@@ -466,6 +466,14 @@ namespace NuGetGallery
         {
             var currentUser = GetCurrentUser();
 
+            // SUNNY customer: redirect to Trusted Publishing when any owned package has a GitHub repo link,
+            // unless they explicitly opted to visit API Keys from the Trusted Publishing page.
+            var forceApiKeys = Request.QueryString["forceApiKeys"] == "true";
+            if (!forceApiKeys && UserHasGitHubRepositoryPackage(currentUser))
+            {
+                return Redirect(Url.ManageMyTrustedPublishing() + "?fromApiKeys=true");
+            }
+
             // Get API keys
             if (!GetCredentialGroups(currentUser).TryGetValue(CredentialKind.Token, out List<CredentialViewModel> credentials))
             {
@@ -511,6 +519,43 @@ namespace NuGetGallery
                                 .Select(p => p.Id)
                                 .OrderBy(i => i)
                                 .ToList());
+        }
+
+        /// <summary>
+        /// Returns true if the current user (or any organization they belong to) owns at least one package
+        /// that has a GitHub repository URL — i.e. a "SUNNY" customer.
+        /// </summary>
+        private bool UserHasGitHubRepositoryPackage(User currentUser)
+        {
+            var owners = new List<User> { currentUser };
+            owners.AddRange(currentUser.Organizations.Select(o => o.Organization));
+
+            foreach (var owner in owners)
+            {
+                var registrations = PackageService.FindPackageRegistrationsByOwner(owner);
+                foreach (var registration in registrations)
+                {
+                    foreach (var package in registration.Packages)
+                    {
+                        if (IsGitHubUrl(package.RepositoryUrl) || IsGitHubUrl(package.ProjectUrl))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private static bool IsGitHubUrl(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                return false;
+            }
+
+            return url.IndexOf("github.com", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         [HttpGet]
@@ -643,7 +688,7 @@ namespace NuGetGallery
         [ValidateRecaptchaResponse]
         public virtual async Task<ActionResult> ForgotPassword(ForgotPasswordViewModel model)
         {
-            if(!_featureFlagService.IsNuGetAccountPasswordLoginEnabled() && !ContentObjectService.LoginDiscontinuationConfiguration.IsEmailInExceptionsList(model.Email))
+            if (!_featureFlagService.IsNuGetAccountPasswordLoginEnabled() && !ContentObjectService.LoginDiscontinuationConfiguration.IsEmailInExceptionsList(model.Email))
             {
                 ModelState.AddModelError(string.Empty, Strings.ForgotPassword_Disabled_Error);
 
@@ -1202,6 +1247,8 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> RemoveTrustedPublisherPolicy(int? federatedCredentialKey)
         {
+            User currentUser = GetCurrentUser();
+
             var result = GetFederatedCredentialPolicy(federatedCredentialKey);
             if (result.policy == null)
             {
