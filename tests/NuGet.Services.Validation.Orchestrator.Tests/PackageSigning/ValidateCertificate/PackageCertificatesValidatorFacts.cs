@@ -532,7 +532,8 @@ namespace NuGet.Services.Validation.PackageSigning
                 // Act & Assert
                 var ex = await Assert.ThrowsAsync<ArgumentException>(() => _target.GetResponseAsync(_validationRequest.Object));
 
-                Assert.Equal($"Package signature {signature.Key} is valid but has a timestamp whose end certificate is revoked\r\nParameter name: signature", ex.Message);
+                Assert.Equal("signature", ex.ParamName);
+                Assert.StartsWith($"Package signature {signature.Key} is valid but has a timestamp whose end certificate is revoked", ex.Message);
             }
 
             [Fact]
