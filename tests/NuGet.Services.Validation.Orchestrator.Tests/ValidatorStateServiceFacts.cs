@@ -739,7 +739,7 @@ namespace NuGet.Services.Validation
                     types: new[]
                     {
                         typeof (int), typeof (byte), typeof (byte), typeof (string), typeof(string), typeof (string),
-                        typeof (int), typeof (uint)
+                        typeof (int), typeof (uint), typeof (Exception)
                     },
                     modifiers: null);
                 var error = errorConstructor.Invoke(new object[]
@@ -751,7 +751,8 @@ namespace NuGet.Services.Validation
                     "errMsg",
                     "procedure",
                     100,
-                    (uint)0
+                    (uint)0,
+                    null
                 });
 
                 addMethod.Invoke(errorCollection, new[] { error });
