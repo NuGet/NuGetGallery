@@ -59,7 +59,7 @@
     <PackageVersion Include="Microsoft.Azure.Kusto.Data" Version="14.0.3" />
     <PackageVersion Include="Microsoft.Azure.Storage.DataMovement" Version="0.9.0" />
     <PackageVersion Include="Microsoft.Bcl.Compression" Version="3.9.85" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="10.0.201" />
     <PackageVersion Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform" Version="4.1.0" />
     <PackageVersion Include="Microsoft.Data.Services.Client" Version="5.8.4" />
     <PackageVersion Include="Microsoft.Data.Services" Version="5.8.4" />
@@ -93,7 +93,7 @@
     <PackageVersion Include="Microsoft.Owin" Version="4.2.2" />
     <PackageVersion Include="Microsoft.Rest.ClientRuntime" Version="2.3.24" />
     <PackageVersion Include="Microsoft.Security.Utilities.Core" Version="1.12.0" />
-    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.201" />
     <PackageVersion Include="Microsoft.TestPlatform" Version="17.14.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Setup.Configuration.Interop" Version="1.8.24" />
     <PackageVersion Include="Microsoft.Web.Infrastructure" Version="1.0.0" />
