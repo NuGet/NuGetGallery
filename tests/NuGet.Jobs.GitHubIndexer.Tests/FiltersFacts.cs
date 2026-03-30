@@ -19,7 +19,7 @@ namespace NuGet.Jobs.GitHubIndexer.Tests
             [Fact]
             public void InvalidFileName()
             {
-                Assert.Throws<ArgumentException>(() => { Filters.GetConfigFileType("\0"); });
+                Assert.Equal(Filters.ConfigFileType.None, Filters.GetConfigFileType("\0"));
             }
 
             [Fact]
