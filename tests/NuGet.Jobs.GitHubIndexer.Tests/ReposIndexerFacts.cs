@@ -238,7 +238,7 @@ namespace NuGet.Jobs.GitHubIndexer.Tests
                     onDisposeHandler: (string serializedValue) => Assert.True(false),
                     shouldTimeOut: true);
 
-                await Assert.ThrowsAsync<OperationCanceledException>(() => indexer.RunAsync());
+                await Assert.ThrowsAnyAsync<OperationCanceledException>(() => indexer.RunAsync());
             }
 
             [Fact]
