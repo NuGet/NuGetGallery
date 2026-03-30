@@ -1,12 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>net472;netstandard2.1</TargetFrameworks>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="ICSharpCode.SharpZipLib">
-      <HintPath>$(MSBuildProjectDirectory)\..\..\external\ICSharpCode.SharpZipLib.0.86.0\ICSharpCode.SharpZipLib.dll</HintPath>
-    </Reference>
-  </ItemGroup>
   <ItemGroup>
     <Compile Update="LogMessages.Designer.cs">
       <DependentUpon>LogMessages.resx</DependentUpon>

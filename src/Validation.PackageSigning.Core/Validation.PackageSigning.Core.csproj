@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>net472;netstandard2.1</TargetFrameworks>
     <RootNamespace>NuGet.Jobs.Validation.PackageSigning</RootNamespace>
     <AssemblyName>NuGet.Jobs.Validation.PackageSigning</AssemblyName>
   </PropertyGroup>

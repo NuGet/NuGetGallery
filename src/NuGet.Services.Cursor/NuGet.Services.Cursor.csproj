@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>net472;netstandard2.1</TargetFrameworks>
     <PackageVersion Condition="'$(PackageVersion)' == ''">$(CommonPackageVersion)</PackageVersion>
     <Description>Shared cursor classes</Description>
   </PropertyGroup>
@@ -14,7 +14,7 @@
     <ProjectReference Include="..\NuGet.Services.Storage\NuGet.Services.Storage.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
     <Reference Include="System.Net.Http" />
   </ItemGroup>
 
