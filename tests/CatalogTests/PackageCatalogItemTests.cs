@@ -151,9 +151,9 @@ namespace CatalogTests.Helpers
                 .ToList();
             Assert.Equal(2, triples.Count);
             Assert.Equal(Schema.Predicates.Id.ToString(), triples[0].Predicate.ToString());
-            Assert.Equal(id, triples[0].Object.ToString());
+            Assert.Equal(id, ((ILiteralNode)triples[0].Object).Value);
             Assert.Equal(Schema.Predicates.Version.ToString(), triples[1].Predicate.ToString());
-            Assert.Equal(version, triples[1].Object.ToString());
+            Assert.Equal(version, ((ILiteralNode)triples[1].Object).Value);
         }
 
         [Fact]
