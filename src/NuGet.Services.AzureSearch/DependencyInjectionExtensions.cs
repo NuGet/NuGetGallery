@@ -141,7 +141,6 @@ namespace NuGet.Services.AzureSearch
                 })
                 .Keyed<BlobServiceClientFactory>(key);
 
-#if NETFRAMEWORK
             containerBuilder
                 .Register<IStorageFactory>(c =>
                 {
@@ -161,7 +160,6 @@ namespace NuGet.Services.AzureSearch
                         throttle: NullThrottle.Instance);
                 })
                 .Keyed<IStorageFactory>(key);
-#endif
 
             containerBuilder
                 .Register<IBlobContainerBuilder>(c => new BlobContainerBuilder(

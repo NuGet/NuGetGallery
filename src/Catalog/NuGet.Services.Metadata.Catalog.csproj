@@ -21,8 +21,6 @@
     <Compile Remove="PackageCatalog.cs" />
     <Compile Remove="PackageCatalogItem.cs" />
     <Compile Remove="PackageCatalogItemCreator.cs" />
-    <Compile Remove="Persistence\AzureStorage.cs" />
-    <Compile Remove="Persistence\AzureStorageFactory.cs" />
     <Compile Remove="ReadOnlyGraph.cs" />
     <Compile Remove="SavePagesResult.cs" />
   </ItemGroup>
