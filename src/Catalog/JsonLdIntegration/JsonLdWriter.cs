@@ -190,7 +190,7 @@ namespace NuGet.Services.Metadata.Catalog.JsonLDIntegration
 
         static JObject MakeLiteralObject(ILiteralNode node)
         {
-            if (node.DataType == null)
+            if (node.DataType == null || node.DataType.ToString() == "http://www.w3.org/2001/XMLSchema#string")
             {
                 return new JObject { { "@value", node.Value } };
             }
