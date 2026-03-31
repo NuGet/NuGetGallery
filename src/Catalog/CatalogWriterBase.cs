@@ -22,7 +22,7 @@ namespace NuGet.Services.Metadata.Catalog
 
         public CatalogWriterBase(IStorage storage, ITelemetryService telemetryService, CatalogContext context = null)
         {
-            Options.InternUris = false;
+            UriFactory.InternUris = false;
 
             Storage = storage;
             Context = context ?? new CatalogContext();
