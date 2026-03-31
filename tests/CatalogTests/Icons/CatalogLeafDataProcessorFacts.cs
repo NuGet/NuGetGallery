@@ -473,6 +473,10 @@ namespace CatalogTests.Icons
                     .Protected()
                     .Setup<Task<Stream>>("CreateContentReadStreamAsync")
                     .ReturnsAsync(() => ExternalIconStream);
+                ExternalIconContentMock
+                    .Protected()
+                    .Setup<Task<Stream>>("CreateContentReadStreamAsync", ItExpr.IsAny<CancellationToken>())
+                    .ReturnsAsync(() => ExternalIconStream);
 
                 ExternalIconStream = new MemoryStream();
             }
