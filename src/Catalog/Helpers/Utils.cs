@@ -17,12 +17,10 @@ using System.Xml.Xsl;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog.Helpers;
-#if NETFRAMEWORK
 using JsonLD.Core;
 using NuGet.Services.Metadata.Catalog.JsonLDIntegration;
 using VDS.RDF;
 using VDS.RDF.Parsing;
-#endif
 
 namespace NuGet.Services.Metadata.Catalog
 {
@@ -258,7 +256,6 @@ namespace NuGet.Services.Metadata.Catalog
             return value.ToObject<T>();
         }
 
-#if NETFRAMEWORK
         public static IGraph CreateNuspecGraph(XDocument nuspec, string baseAddress, bool normalizeXml = false)
         {
             XsltArgumentList arguments = new XsltArgumentList();
@@ -454,6 +451,5 @@ namespace NuGet.Services.Metadata.Catalog
             }
             return result;
         }
-#endif
     }
 }

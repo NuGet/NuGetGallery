@@ -3,7 +3,6 @@
 
 using System;
 using System.Linq;
-using System.Web;
 using Xunit;
 
 namespace NuGet.Services.AzureSearch
@@ -12,18 +11,21 @@ namespace NuGet.Services.AzureSearch
     {
         public class Base64UrlEncode
         {
-            [Fact]
-            public void IsCompatibleWithHttpServerUtilityUrlTokenEncode()
+            [Theory]
+            [InlineData (new byte[] { 0x00 }, "AA2")]
+            [InlineData (new byte[] { 0x00, 0x01 }, "AAE1")]
+            [InlineData (new byte[] { 0x00, 0x01, 0x02 }, "AAEC0")]
+            [InlineData (new byte[] { 0xFF }, "_w2")]
+            [InlineData (new byte[] { 0xFF, 0xFE }, "__41")]
+            [InlineData (new byte[] { 0xFF, 0xFE, 0xFD }, "__790")]
+            [InlineData (new byte[] { 0x3E, 0x3F }, "Pj81")]
+            [InlineData (new byte[] { 0xFB, 0xEF, 0xBE }, "---+0")]
+            [InlineData (new byte[] { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 }, "AQIDBAUG0")]
+            [InlineData (new byte[] { 0x48, 0x65, 0x6C, 0x6C, 0x6F }, "SGVsbG81")]
+            public void ProducesExpectedOutput(byte[] input, string expected)
             {
-                var random = new Random(0);
-                for (var i = 0; i < 1_000_000; i++)
-                {
-                    var bytes = new byte[random.Next(0, 8) + 1];
-                    random.NextBytes(bytes);
-                    var expected = HttpServerUtility.UrlTokenEncode(bytes);
-                    var actual = DocumentUtilities.Base64UrlEncode(bytes);
-                    Assert.Equal(expected, actual);
-                }
+                var actual = DocumentUtilities.Base64UrlEncode(input);
+                Assert.Equal(expected, actual);
             }
         }
 

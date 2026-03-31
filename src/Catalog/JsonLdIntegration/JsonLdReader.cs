@@ -24,6 +24,11 @@ namespace NuGet.Services.Metadata.Catalog.JsonLDIntegration
             Load(handler, new StreamReader(filename));
         }
 
+        public void Load(IRdfHandler handler, string filename, IUriFactory uriFactory)
+        {
+            Load(handler, filename);
+        }
+
         public void Load(IRdfHandler handler, TextReader input)
         {
             bool finished = false;
@@ -130,6 +135,16 @@ namespace NuGet.Services.Metadata.Catalog.JsonLDIntegration
         public void Load(IRdfHandler handler, StreamReader input)
         {
             Load(handler, (TextReader)input);
+        }
+
+        public void Load(IRdfHandler handler, StreamReader input, IUriFactory uriFactory)
+        {
+            Load(handler, input);
+        }
+
+        public void Load(IRdfHandler handler, TextReader input, IUriFactory uriFactory)
+        {
+            Load(handler, input);
         }
 
         public void Load(IGraph g, string filename)

@@ -1,6 +1,6 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>NuGet.Services.AzureSearch</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
@@ -17,4 +17,8 @@
   <ItemGroup>
     <Reference Include="System.Web" />
   </ItemGroup>
+  <ItemGroup>
+    <GlobalPackageReference Remove="PolySharp" />
+  </ItemGroup>
 </Project>
+

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using VDS.RDF;
 using Newtonsoft.Json;
 
@@ -31,6 +32,16 @@ namespace NuGet.Services.Metadata.Catalog.JsonLDIntegration
         public void Save(IGraph g, string filename)
         {
             Save(g, new StreamWriter(filename));
+        }
+
+        public void Save(IGraph g, string filename, Encoding fileEncoding)
+        {
+            Save(g, new StreamWriter(filename, false, fileEncoding));
+        }
+
+        public void Save(IGraph g, TextWriter output, bool leaveOpen)
+        {
+            Save(g, output);
         }
 
         public event RdfWriterWarning Warning;
