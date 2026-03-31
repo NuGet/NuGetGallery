@@ -42,7 +42,7 @@ namespace CatalogTests
                 maxNumberOfUpdatesToKeep: -1, minIntervalBetweenTwoUpdates: TimeSpan.FromSeconds(60), minIntervalBeforeToReadUpdate: TimeSpan.FromSeconds(1)));
 
             Assert.Equal("maxNumberOfUpdatesToKeep", exception.ParamName);
-            Assert.Equal("maxNumberOfUpdatesToKeep must be equal or larger than 0.\r\nParameter name: maxNumberOfUpdatesToKeep", exception.Message);
+            Assert.StartsWith("maxNumberOfUpdatesToKeep must be equal or larger than 0.", exception.Message);
         }
 
         [Fact]
@@ -52,7 +52,7 @@ namespace CatalogTests
                 maxNumberOfUpdatesToKeep: 2, minIntervalBetweenTwoUpdates: TimeSpan.FromSeconds(-1), minIntervalBeforeToReadUpdate: TimeSpan.FromSeconds(1)));
 
             Assert.Equal("minIntervalBetweenTwoUpdates", exception.ParamName);
-            Assert.Equal("minIntervalBetweenTwoUpdates must be equal or larger than 0.\r\nParameter name: minIntervalBetweenTwoUpdates", exception.Message);
+            Assert.StartsWith("minIntervalBetweenTwoUpdates must be equal or larger than 0.", exception.Message);
         }
 
         [Fact]
@@ -62,7 +62,7 @@ namespace CatalogTests
                 maxNumberOfUpdatesToKeep: 2, minIntervalBetweenTwoUpdates: TimeSpan.FromSeconds(60), minIntervalBeforeToReadUpdate: TimeSpan.FromSeconds(-1)));
 
             Assert.Equal("minIntervalBeforeToReadUpdate", exception.ParamName);
-            Assert.Equal("minIntervalBeforeToReadUpdate must be equal or larger than 0.\r\nParameter name: minIntervalBeforeToReadUpdate", exception.Message);
+            Assert.StartsWith("minIntervalBeforeToReadUpdate must be equal or larger than 0.", exception.Message);
         }
 
         [Fact]
