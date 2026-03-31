@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -19,7 +19,7 @@ namespace NuGet.Services.AzureSearch
             [InlineData (new byte[] { 0xFF, 0xFE }, "__41")]
             [InlineData (new byte[] { 0xFF, 0xFE, 0xFD }, "__790")]
             [InlineData (new byte[] { 0x3E, 0x3F }, "Pj81")]
-            [InlineData (new byte[] { 0xFB, 0xEF, 0xBE }, "---+0")]
+            [InlineData (new byte[] { 0xFB, 0xEF, 0xBE }, "----0")]
             [InlineData (new byte[] { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 }, "AQIDBAUG0")]
             [InlineData (new byte[] { 0x48, 0x65, 0x6C, 0x6C, 0x6F }, "SGVsbG81")]
             public void ProducesExpectedOutput(byte[] input, string expected)
