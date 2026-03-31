@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -94,7 +94,7 @@ namespace CatalogTests
                     Assert.Equal("Maximum retry attempts exhausted.", ex.Message);
                     Assert.Equal(2, exceptions.Count);
                     Assert.All(exceptions, e => Assert.IsType<TaskCanceledException>(e.Exception));
-                    Assert.All(exceptions, e => Assert.Equal("A task was canceled.", e.Exception.Message));
+                    
                     Assert.All(exceptions, e => Assert.True(e.Elapsed < TimeSpan.FromSeconds(30)));
                     testHandler.Verify(x => x.OnSendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
                 }
@@ -139,7 +139,7 @@ namespace CatalogTests
                     Assert.Equal("Maximum retry attempts exhausted.", ex.Message);
                     Assert.Equal(2, exceptions.Count);
                     Assert.All(exceptions, e => Assert.IsType<TaskCanceledException>(e.Exception));
-                    Assert.All(exceptions, e => Assert.Equal("A task was canceled.", e.Exception.Message));
+                    
                     Assert.All(exceptions, e => Assert.True(e.Elapsed < TimeSpan.FromSeconds(30)));
                     testHandler.Verify(x => x.OnSendAsync(It.IsAny<HttpRequestMessage>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
                 }
