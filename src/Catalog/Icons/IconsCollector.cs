@@ -1,11 +1,10 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -74,7 +73,7 @@ namespace NuGet.Services.Metadata.Catalog.Icons
                 .Select(g => g.OrderBy(i => i.CommitTimeStamp).ToList()); // group them together for processing in order
             var itemsToProcess = new ConcurrentBag<IReadOnlyCollection<CatalogCommitItem>>(filteredItems);
             var tasks = Enumerable
-                .Range(1, ServicePointManager.DefaultConnectionLimit)
+                .Range(1, CatalogParallelism.Degree)
                 .Select(_ => ProcessIconsAsync(itemsToProcess, cancellationToken));
             await Task.WhenAll(tasks);
 
@@ -123,3 +122,4 @@ namespace NuGet.Services.Metadata.Catalog.Icons
         }
     }
 }
+

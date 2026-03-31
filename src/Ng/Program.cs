@@ -5,7 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+#if NETFRAMEWORK
 using System.Net;
+#endif
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
@@ -52,9 +54,11 @@ namespace Ng
                 // Get arguments
                 var arguments = CommandHelpers.GetArguments(args, 1, out var secretInjector);
 
+#if NETFRAMEWORK
                 // Ensure that SSLv3 is disabled and that Tls v1.2 is enabled.
                 ServicePointManager.SecurityProtocol &= ~SecurityProtocolType.Ssl3;
                 ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
+#endif
 
                 // Determine the job name
                 if (args.Length == 0)

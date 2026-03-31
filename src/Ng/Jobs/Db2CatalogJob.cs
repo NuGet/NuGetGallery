@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -109,19 +108,19 @@ namespace Ng.Jobs
                     "PreferredPackageSourceStorage",
                     arguments,
                     Verbose,
-                    new SemaphoreSlimThrottle(new SemaphoreSlim(ServicePointManager.DefaultConnectionLimit)));
+                    new SemaphoreSlimThrottle(new SemaphoreSlim(CatalogParallelism.Degree)));
             }
 
             var catalogStorageFactory = CommandHelpers.CreateStorageFactory(
                 arguments,
                 Verbose,
-                new SemaphoreSlimThrottle(new SemaphoreSlim(ServicePointManager.DefaultConnectionLimit)));
+                new SemaphoreSlimThrottle(new SemaphoreSlim(CatalogParallelism.Degree)));
 
             var auditingStorageFactory = CommandHelpers.CreateSuffixedStorageFactory(
                 "Auditing",
                 arguments,
                 Verbose,
-                new SemaphoreSlimThrottle(new SemaphoreSlim(ServicePointManager.DefaultConnectionLimit)));
+                new SemaphoreSlimThrottle(new SemaphoreSlim(CatalogParallelism.Degree)));
 
             Logger.LogInformation("CONFIG source: \"{ConfigSource}\" storage: \"{Storage}\" preferred package source storage: \"{PreferredPackageSourceStorage}\"",
                 GalleryDbConnection,
@@ -414,3 +413,4 @@ namespace Ng.Jobs
         }
     }
 }
+

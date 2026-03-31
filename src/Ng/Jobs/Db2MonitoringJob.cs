@@ -5,7 +5,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -97,7 +96,7 @@ namespace Ng.Jobs
                 "Auditing",
                 arguments,
                 verbose,
-                new SemaphoreSlimThrottle(new SemaphoreSlim(ServicePointManager.DefaultConnectionLimit)));
+                new SemaphoreSlimThrottle(new SemaphoreSlim(CatalogParallelism.Degree)));
 
             _auditingStorage = auditingStorageFactory.Create();
 
@@ -209,3 +208,4 @@ namespace Ng.Jobs
         }
     }
 }
+
