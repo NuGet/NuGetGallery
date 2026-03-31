@@ -528,26 +528,13 @@ namespace NuGetGallery
         /// </summary>
         private bool UserHasGitHubRepositoryPackage(User currentUser)
         {
-            var owners = new List<User> { currentUser };
-            owners.AddRange(currentUser.Organizations.Select(o => o.Organization));
+            var ownerKeys = new List<int> { currentUser.Key };
+            ownerKeys.AddRange(currentUser.Organizations.Select(o => o.OrganizationKey));
 
-            foreach (var owner in owners)
-            {
-                var registrations = PackageService.FindPackageRegistrationsByOwner(owner)
-                    .Include(r => r.Packages);
-                foreach (var registration in registrations)
-                {
-                    foreach (var package in registration.Packages)
-                    {
-                        if (IsGitHubUrl(package.RepositoryUrl) || IsGitHubUrl(package.ProjectUrl))
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-
-            return false;
+            return PackageService.GetAllPackageRegistrations()
+                .Where(r => r.Owners.Any(o => ownerKeys.Contains(o.Key)))
+                .SelectMany(r => r.Packages)
+                .Any(p => p.RepositoryUrl.Contains("github.com") || p.ProjectUrl.Contains("github.com"));
         }
 
         private static bool IsGitHubUrl(string url)
