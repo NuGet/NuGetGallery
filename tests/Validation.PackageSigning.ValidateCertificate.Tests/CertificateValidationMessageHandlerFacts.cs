@@ -1,8 +1,9 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,6 +22,13 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
         public const long CertificateKey = 123;
 
         public static readonly Guid ValidationId = new Guid("fb9c0bac-3d4d-4cc7-ac2d-b3940e15b94d");
+
+        private static X509Certificate2 CreateDummyCertificate()
+        {
+            using var rsa = RSA.Create(2048);
+            var request = new CertificateRequest("CN=Test", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+            return request.CreateSelfSigned(DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddYears(1));
+        }
 
         public sealed class TheHandleAsyncMethod : FactsBase
         {
@@ -91,9 +99,9 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
             public async Task DownloadsCertificates()
             {
                 // Arrange
-                var endCertificate = new X509Certificate2();
-                var parentCertificate1 = new X509Certificate2();
-                var parentCertificate2 = new X509Certificate2();
+                var endCertificate = CreateDummyCertificate();
+                var parentCertificate1 = CreateDummyCertificate();
+                var parentCertificate2 = CreateDummyCertificate();
 
                 _certificateValidationService
                     .Setup(s => s.FindCertificateValidationAsync(It.IsAny<CertificateValidationMessage>()))
@@ -194,7 +202,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
 
                 _certificateStore
                     .Setup(s => s.LoadAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(new X509Certificate2());
+                    .ReturnsAsync(CreateDummyCertificate());
 
                 // Act & Arrange
                 await _target.HandleAsync(_message);
@@ -226,7 +234,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
 
                 _certificateStore
                     .Setup(s => s.LoadAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(new X509Certificate2());
+                    .ReturnsAsync(CreateDummyCertificate());
 
                 // Act & Arrange
                 await _target.HandleAsync(_message);
@@ -258,7 +266,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
 
                 _certificateStore
                     .Setup(s => s.LoadAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(new X509Certificate2());
+                    .ReturnsAsync(CreateDummyCertificate());
 
                 _certificateValidationService
                     .Setup(s => s.TrySaveResultAsync(It.IsAny<EndCertificateValidation>(), It.IsAny<CertificateVerificationResult>()))
@@ -314,7 +322,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
 
                 _certificateStore
                     .Setup(s => s.LoadAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(new X509Certificate2());
+                    .ReturnsAsync(CreateDummyCertificate());
 
                 _certificateVerifier
                     .Setup(v => v.VerifyCodeSigningCertificate(It.IsAny<X509Certificate2>(), It.IsAny<X509Certificate2[]>()))
@@ -364,7 +372,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
 
                 _certificateStore
                     .Setup(s => s.LoadAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(new X509Certificate2());
+                    .ReturnsAsync(CreateDummyCertificate());
 
                 _certificateVerifier
                     .Setup(v => v.VerifyCodeSigningCertificate(It.IsAny<X509Certificate2>(), It.IsAny<X509Certificate2[]>()))
@@ -412,7 +420,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
 
                 _certificateStore
                     .Setup(s => s.LoadAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(new X509Certificate2());
+                    .ReturnsAsync(CreateDummyCertificate());
 
                 _certificateVerifier
                     .Setup(v => v.VerifyCodeSigningCertificate(It.IsAny<X509Certificate2>(), It.IsAny<X509Certificate2[]>()))
@@ -477,7 +485,7 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
 
                 _certificateStore
                     .Setup(s => s.LoadAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(new X509Certificate2());
+                    .ReturnsAsync(CreateDummyCertificate());
 
                 _certificateVerifier
                     .Setup(v => v.VerifyCodeSigningCertificate(It.IsAny<X509Certificate2>(), It.IsAny<X509Certificate2[]>()))
