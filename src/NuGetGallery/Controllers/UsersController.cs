@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Globalization;
 using System.Linq;
 using System.Net;
@@ -532,7 +533,8 @@ namespace NuGetGallery
 
             foreach (var owner in owners)
             {
-                var registrations = PackageService.FindPackageRegistrationsByOwner(owner);
+                var registrations = PackageService.FindPackageRegistrationsByOwner(owner)
+                    .Include(r => r.Packages);
                 foreach (var registration in registrations)
                 {
                     foreach (var package in registration.Packages)
