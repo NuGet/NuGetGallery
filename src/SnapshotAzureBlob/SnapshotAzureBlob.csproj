@@ -7,7 +7,6 @@
     <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.ComponentModel.EventBasedAsync" />
     <PackageReference Include="WindowsAzure.Storage" />
   </ItemGroup>
 </Project>

@@ -15,9 +15,6 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="System.Web" />
-  </ItemGroup>
-  <ItemGroup>
     <GlobalPackageReference Remove="PolySharp" />
   </ItemGroup>
 </Project>

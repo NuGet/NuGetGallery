@@ -17,9 +17,6 @@
     <ProjectReference Include="..\Validation.Symbols.Core\Validation.Symbols.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.Reflection.Metadata" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="Scripts\nssm.exe" />
   </ItemGroup>
 </Project>

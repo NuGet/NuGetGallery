@@ -12,7 +12,6 @@
     These references are used to "lift" transitive dependencies to a version that is accepted
     by Azure DevOps Component Governance, which scans the project.assets.json file.
     -->
-    <PackageReference Include="Microsoft.AspNetCore.Http" />
     <PackageReference Include="System.Drawing.Common" />
   </ItemGroup>
 
