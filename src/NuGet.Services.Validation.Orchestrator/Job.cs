@@ -82,7 +82,9 @@ namespace NuGet.Services.Validation.Orchestrator
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
+#if NETFRAMEWORK
             ServicePointManager.DefaultConnectionLimit = MaximumConnectionsPerServer;
+#endif
             _validateOnly = JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, ValidateArgument, defaultValue: false);
             ConfigurationValidated = false;
 

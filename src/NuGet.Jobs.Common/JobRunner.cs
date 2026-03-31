@@ -6,7 +6,9 @@ using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Linq;
+#if NETFRAMEWORK
 using System.Net;
+#endif
 using System.Threading.Tasks;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.Implementation.ApplicationId;
@@ -141,11 +143,13 @@ namespace NuGet.Jobs
                         $"argument is ignored.");
                 }
 
+#if NETFRAMEWORK
                 // Ensure that SSLv3 is disabled and that Tls v1.2 is enabled.
 #pragma warning disable 618
                 ServicePointManager.SecurityProtocol &= ~SecurityProtocolType.Ssl3;
 #pragma warning restore 618
                 ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
+#endif
 
                 // Run the job loop
                 exitCode = await JobLoop(job, runContinuously.Value, sleepDuration.Value, reinitializeAfterSeconds, jobArgsDictionary);

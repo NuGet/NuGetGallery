@@ -7,7 +7,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+#if NETFRAMEWORK
 using System.Net;
+#endif
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Core;
@@ -55,11 +57,13 @@ namespace Stats.PostProcessReports
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
+#if NETFRAMEWORK
             _logger.LogInformation("Connection limit: {ConnectionLimit}", ServicePointManager.DefaultConnectionLimit);
 
             // there are HTTP requests sent outside of worker threads, so we'll buffer the target connection
             // limit a bit to accommodate for anything going slightly unexpected.
             ServicePointManager.DefaultConnectionLimit = _configuration.ReportWriteDegreeOfParallelism + 10;
+#endif
         }
 
         public async Task CopyReportsAsync()

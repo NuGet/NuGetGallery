@@ -36,7 +36,9 @@ namespace NuGet.Jobs.Validation
         {
             base.Init(serviceContainer, jobArgsDictionary);
 
+#if NETFRAMEWORK
             ServicePointManager.DefaultConnectionLimit = MaximumConnectionsPerServer;
+#endif
         }
 
         protected override void ConfigureDefaultJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
