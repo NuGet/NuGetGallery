@@ -1,5 +1,5 @@
 ### Constants ###
-$DefaultMSBuildVersion = '17'
+$DefaultMSBuildVersion = '18'
 $DefaultConfiguration = 'debug'
 $NuGetClientRoot = Split-Path -Path $PSScriptRoot -Parent
 $CLIRoot = Join-Path $NuGetClientRoot 'cli'
@@ -111,7 +111,7 @@ Function Get-LatestVisualStudioRoot {
 
 Function Get-MSBuildExe {
     param(
-        [ValidateSet("15", "16", "17", $null)]
+        [ValidateSet("15", "16", "17", "18", $null)]
         [string]$MSBuildVersion
     )
 

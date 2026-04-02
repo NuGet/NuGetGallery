@@ -75,7 +75,7 @@ Invoke-BuildStep 'Building gallery solution' {
     -ev +BuildErrors
 
 Invoke-BuildStep 'Building jobs solution' { 
-        Build-Solution -Configuration $Configuration -BuildNumber $BuildNumber -SolutionPath $JobsSolution -SkipRestore:$SkipRestore -MSBuildVersion '18'
+        Build-Solution -Configuration $Configuration -BuildNumber $BuildNumber -SolutionPath $JobsSolution -SkipRestore:$SkipRestore
     } `
     -skip:$SkipJobs `
     -ev +BuildErrors 
