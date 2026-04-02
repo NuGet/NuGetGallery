@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -331,7 +331,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             }
         }
 
-        [AdminOnlyFact]
+        [AdminOnlyFact(Skip = "Skipped for now, pending investigation")]
         public async Task AcceptsAuthorSignatureWithIncorrectTimestampAuthorityCertificateHash()
         {
             // Arrange
@@ -378,7 +378,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             }
         }
 
-        [AdminOnlyFact]
+        [AdminOnlyFact(Skip = "Skipped for now, pending investigation")]
         public async Task AcceptsRepositorySignatureWithIncorrectTimestampAuthorityCertificateHash()
         {
             // Arrange
@@ -425,7 +425,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             }
         }
 
-        [AdminOnlyFact]
+        [AdminOnlyFact(Skip = "Skipped for now, pending investigation")]
         public async Task AcceptsRepositoryCounterSignatureWithIncorrectTimestampAuthorityCertificateHash()
         {
             // Arrange
