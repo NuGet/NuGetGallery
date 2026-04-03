@@ -85,7 +85,7 @@ Invoke-BuildStep 'Building jobs solution' {
     -ev +BuildErrors 
 
 Invoke-BuildStep 'Building jobs functional test solution' { 
-        Build-Solution -Configuration $Configuration -BuildNumber $BuildNumber -SolutionPath $JobsFunctionalTestsSolution -SkipRestore:$SkipRestore
+        Build-Solution -Configuration $Configuration -BuildNumber $BuildNumber -SolutionPath $JobsFunctionalTestsSolution -SkipRestore:$SkipRestore -UseDotnet
     } `
     -skip:$SkipJobs `
     -ev +BuildErrors
