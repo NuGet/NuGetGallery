@@ -244,7 +244,8 @@ Function Build-Solution {
         [string]$Target,
         [string]$MSBuildProperties,
         [switch]$SkipRestore,
-        [switch]$BinLog
+        [switch]$BinLog,
+        [switch]$UseDotnet
     )
 
     if (-not $SkipRestore) {
@@ -276,10 +277,16 @@ Function Build-Solution {
         $opts += "/bl"
     }
 
-    $MSBuildExe = Get-MSBuildExe $MSBuildVersion
+    if ($UseDotnet) {
+        Trace-Log "dotnet msbuild $opts"
+        & dotnet msbuild $opts
+    }
+    else {
+        $MSBuildExe = Get-MSBuildExe $MSBuildVersion
+        Trace-Log "$MSBuildExe $opts"
+        & $MSBuildExe $opts
+    }
 
-    Trace-Log "$MSBuildExe $opts"
-    & $MSBuildExe $opts
     if (-not $?) {
         Error-Log "Build of ${SolutionPath} failed. Code: $LASTEXITCODE"
     }
