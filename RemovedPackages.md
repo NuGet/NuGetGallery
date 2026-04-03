@@ -7,10 +7,6 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 
 | Extension Identifier                  | Removal Date | Type                          |
 |---------------------------------------|--------------|-------------------------------|
-|      bsure.Utils	 version  99.99.99   |       4/2/2026       |   Malware  |
-|      bsure.Utils	 version  0.71.2   |       4/2/2026       |   Malware  |
-|      bsure.Utils	 version  0.70.1   |       4/2/2026       |   Malware  |
-|      bsure.binsec	 version  0.70.1   |       4/2/2026       |   Malware  |
 |      SeeDefender	 version 1.0.2    |       2/26/2025       |   Untrustworthy  |
 |      SharpDefender	 version 1.0.0    |       2/25/2025       |  Untrustworthy   |
 |      DemaConsulting.WeasyprintTool version  64.1.0   |      3/5/2025       |  Untrustworthy   |
@@ -112,6 +108,20 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    NCryptYo                            |    02/20/2026    |   Malware  |
 |    SimpleWriter_                       |    02/20/2026    |   Potentially Malicious  |
 |    IRAOAuth2.0                         |    02/20/2026    |   Potentially Malicious  |
+|    bsure.Utils version 99.99.99       |    04/02/2026    |   Malware  |
+|    bsure.Utils version 0.71.2         |    04/02/2026    |   Malware  |
+|    bsure.Utils version 0.70.1         |    04/02/2026    |   Malware  |
+|    bsure.binsec version 0.70.1        |    04/02/2026    |   Malware  |
+|    a0f61a05228a44f5af43662234499b68 0.0.1    |    04/03/2026    |   Potentially Malicious  |
+|    a0f61a05228a44f5af43662234499b68 0.0.2    |    04/03/2026    |   Potentially Malicious  |
+|    a0f61a05228a44f5af43662234499b68 0.0.3    |    04/03/2026    |   Potentially Malicious  |
+|    a0f61a05228a44f5af43662234499b68 0.0.4    |    04/03/2026    |   Potentially Malicious  |
+|    a0f61a05228a44f5af43662234499b68 0.0.5    |    04/03/2026    |   Potentially Malicious  |
+|    a170a4f911e646feb466baf21099b491 0.0.1    |    04/03/2026    |   Potentially Malicious  |
+|    7da3f64d1fc340d983ef7366243fffdd 1.0.0    |    04/03/2026    |   Potentially Malicious  |
+|    Tracer.DotNet.APM 0.0.0                   |    04/03/2026    |   Potentially Malicious  |
+|    APMAzure.DotNet.Agent 1.8.0               |    04/03/2026    |   Potentially Malicious  |
+|    asdftest 1.0.0                            |    04/03/2026    |   Potentially Malicious  |
 
 
 Legend:
