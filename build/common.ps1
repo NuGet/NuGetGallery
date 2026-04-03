@@ -253,7 +253,7 @@ Function Build-Solution {
         if (-not $UseDotnet) {
             Restore-SolutionPackages -path $SolutionPath -MSBuildVersion $MSBuildVersion
         } else {
-            Restore-SolutionPackages -path $SolutionPath
+            Restore-SolutionPackages -path $SolutionPath -UseDotnet
         }
     }
 
@@ -591,30 +591,60 @@ Function Restore-SolutionPackages {
         [string]$SolutionPath,
         [int]$MSBuildVersion,
         [string]$BuildNumber,
-        [string]$ConfigFile
+        [string]$ConfigFile,
+        [switch]$UseDotnet
     )
-    $InstallLocation = $NuGetClientRoot
-    $opts = , 'restore'
-    if (-not $SolutionPath) {
-        $opts += "${NuGetClientRoot}\.nuget\packages.config", '-SolutionDirectory', $NuGetClientRoot
+
+    if ($UseDotnet -and $MSBuildVersion) {
+        Error-Log "-UseDotnet and -MSBuildVersion cannot be specified together. dotnet restore uses its own MSBuild."
+        return
+    }
+
+    if ($UseDotnet) {
+        if (-not $SolutionPath) {
+            Error-Log "-UseDotnet requires -SolutionPath. packages.config restore is not supported with dotnet."
+            return
+        }
+
+        $InstallLocation = Split-Path -Path $SolutionPath -Parent
+        $opts = , 'restore'
+        $opts += $SolutionPath
+
+        if ($ConfigFile) {
+            $opts += '--configfile', $ConfigFile
+        }
+
+        Trace-Log "Restoring packages @""$InstallLocation"""
+        Trace-Log "dotnet $opts"
+        & dotnet $opts
+        if (-not $?) {
+            Error-Log "Restore failed @""$InstallLocation"". Code: ${LASTEXITCODE}"
+        }
     }
     else {
-        $opts += $SolutionPath
-        $InstallLocation = Split-Path -Path $SolutionPath -Parent
-    }
-    if ($MSBuildVersion) {
-        $opts += '-MSBuildPath', (Split-Path -Path (Get-MSBuildExe $MSBuildVersion) -Parent)
-    }
+        $InstallLocation = $NuGetClientRoot
+        $opts = , 'restore'
+        if (-not $SolutionPath) {
+            $opts += "${NuGetClientRoot}\.nuget\packages.config", '-SolutionDirectory', $NuGetClientRoot
+        }
+        else {
+            $opts += $SolutionPath
+            $InstallLocation = Split-Path -Path $SolutionPath -Parent
+        }
+        if ($MSBuildVersion) {
+            $opts += '-MSBuildPath', (Split-Path -Path (Get-MSBuildExe $MSBuildVersion) -Parent)
+        }
 
-    if ($ConfigFile) {
-        $opts += '-configfile', $ConfigFile
-    }
+        if ($ConfigFile) {
+            $opts += '-configfile', $ConfigFile
+        }
 
-    Trace-Log "Restoring packages @""$InstallLocation"""
-    Trace-Log "$NuGetExe $opts"
-    & $NuGetExe $opts
-    if (-not $?) {
-        Error-Log "Restore failed @""$InstallLocation"". Code: ${LASTEXITCODE}"
+        Trace-Log "Restoring packages @""$InstallLocation"""
+        Trace-Log "$NuGetExe $opts"
+        & $NuGetExe $opts
+        if (-not $?) {
+            Error-Log "Restore failed @""$InstallLocation"". Code: ${LASTEXITCODE}"
+        }
     }
 }
 

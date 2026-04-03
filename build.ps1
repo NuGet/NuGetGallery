@@ -33,6 +33,7 @@ trap {
 
 dotnet --list-sdks
 dotnet msbuild -version
+Write-Host "DOTNET_ROOT = ${$env:DOTNET_ROOT}"
 
 Write-Host ("`r`n" * 3)
 Trace-Log ('=' * 60)
