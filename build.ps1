@@ -91,7 +91,7 @@ Invoke-BuildStep 'Building jobs functional test solution' {
     -ev +BuildErrors
 
 Invoke-BuildStep 'Signing the binaries' {
-        Sign-Binaries -Configuration $Configuration -BuildNumber $BuildNumber
+        Sign-Binaries -Configuration $Configuration -BuildNumber $BuildNumber -UseDotnet
     } `
     -skip:$SkipArtifacts `
     -ev +BuildErrors
