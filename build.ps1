@@ -31,6 +31,9 @@ trap {
 
 . "$PSScriptRoot\build\common.ps1"
 
+dotnet --list-sdks
+dotnet msbuild -version
+
 Write-Host ("`r`n" * 3)
 Trace-Log ('=' * 60)
 
