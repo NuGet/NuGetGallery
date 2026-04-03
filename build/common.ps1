@@ -250,7 +250,11 @@ Function Build-Solution {
 
     if (-not $SkipRestore) {
         # Restore packages for NuGet.Tooling solution
-        Restore-SolutionPackages -path $SolutionPath -MSBuildVersion $MSBuildVersion
+        if (-not $UseDotnet) {
+            Restore-SolutionPackages -path $SolutionPath -MSBuildVersion $MSBuildVersion
+        } else {
+            Restore-SolutionPackages -path $SolutionPath
+        }
     }
 
     # Build the solution
