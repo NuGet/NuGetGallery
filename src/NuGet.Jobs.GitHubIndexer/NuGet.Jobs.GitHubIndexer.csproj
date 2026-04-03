@@ -13,6 +13,10 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="System.Collections" />
+    <PackageReference Include="System.IO.FileSystem" />
+    <PackageReference Include="System.Net.Primitives" />
+    <PackageReference Include="Microsoft.Win32.Primitives" />
     <PackageReference Include="LibGit2Sharp" />
     <PackageReference Include="NuGet.StrongName.Octokit" />
   </ItemGroup>

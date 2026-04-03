@@ -99,6 +99,7 @@
     <PackageVersion Include="Microsoft.Web.Infrastructure" Version="1.0.0" />
     <PackageVersion Include="Microsoft.Web.Xdt" Version="3.1.0" />
     <PackageVersion Include="Microsoft.WindowsAzure.ConfigurationManager" Version="3.2.3" />
+    <PackageVersion Include="Microsoft.Win32.Primitives" Version="4.3.0" />
     <PackageVersion Include="Modernizr" Version="2.8.3" />
     <PackageVersion Include="Moment.js" Version="2.29.4" />
     <PackageVersion Include="Moq" Version="4.20.70" />
@@ -134,14 +135,17 @@
     <PackageVersion Include="SerilogTraceListener" Version="3.2.0" />
     <PackageVersion Include="SharpZipLib" Version="1.3.3" />
     <PackageVersion Include="Strathweb.CacheOutput.WebApi2.StrongName" Version="0.9.0" />
+    <PackageVersion Include="System.Colections" Version="4.3.0" />
     <PackageVersion Include="System.ComponentModel.Annotations" Version="5.0.0" />
     <PackageVersion Include="System.ComponentModel.EventBasedAsync" Version="4.0.11" />
     <PackageVersion Include="System.Data.SqlClient" Version="4.8.6" />
     <PackageVersion Include="System.Diagnostics.Debug" Version="4.3.0" />
     <PackageVersion Include="System.Drawing.Common" Version="9.0.0" />
     <PackageVersion Include="System.Formats.Asn1" Version="8.0.2" />
+    <PackageVersion Include="System.IO.FileSystem" Version="4.3.0" />
     <PackageVersion Include="System.Linq.Expressions" Version="4.3.0" />
     <PackageVersion Include="System.Net.Http" Version="4.3.4" />
+    <PackageVersion Include="System.Net.Primitives" Version="4.3.0" />
     <PackageVersion Include="System.Reflection.Metadata" Version="1.7.0-preview1-26717-04" />
     <PackageVersion Include="System.Runtime" Version="4.3.1" />
     <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="8.0.1" />
