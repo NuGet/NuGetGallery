@@ -18,6 +18,9 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             { StorageConstants.ContentType, ApplicationOctetStreamContentType }
         };
 
+        // Default Cache Control of Package Version Index (at Storage)
+        public const string DefaultCacheControlOfPackageVersionIndex = "max-age=10";
+
         // Cache Duration of Package Version Index (at CDN)
         public static readonly TimeSpan CacheDurationOfPackageVersionIndex = TimeSpan.FromSeconds(60);
 
