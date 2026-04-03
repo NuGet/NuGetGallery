@@ -122,6 +122,18 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    Tracer.DotNet.APM 0.0.0                   |    04/03/2026    |   Potentially Malicious  |
 |    APMAzure.DotNet.Agent 1.8.0               |    04/03/2026    |   Potentially Malicious  |
 |    asdftest 1.0.0                            |    04/03/2026    |   Potentially Malicious  |
+|    Axis.Podracers.AudioClips 1.0.4           |    04/03/2026    |   Potentially Malicious  |
+|    Axis.Podracers.AudioClips 1.0.5           |    04/03/2026    |   Potentially Malicious  |
+|    AxisAnalyzers 10.0.0                      |    04/03/2026    |   Potentially Malicious  |
+|    AxisAnalyzers 11.0.0                      |    04/03/2026    |   Potentially Malicious  |
+|    wk10 1.0.3                                |    04/03/2026    |   Potentially Malicious  |
+|    wk10 1.0.4                                |    04/03/2026    |   Potentially Malicious  |
+|    Regorus 0.9.1                             |    04/03/2026    |   Potentially Malicious  |
+|    Regorus 0.9.2                             |    04/03/2026    |   Potentially Malicious  |
+|    Rx.Kql 3.0.5                              |    04/03/2026    |   Potentially Malicious  |
+|    Rx.Kql 3.0.6                              |    04/03/2026    |   Potentially Malicious  |
+|    vc150 1.0.0                               |    04/03/2026    |   Potentially Malicious  |
+|    vc150 1.0.1                               |    04/03/2026    |   Potentially Malicious  |
 
 
 Legend:
