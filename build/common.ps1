@@ -202,7 +202,8 @@ Function Sign-Binaries {
         [string[]]$ProjectsToSign = $null,
         [switch]$BinLog,
         [string]$RepositoryRootDirectory = $null,
-        [switch]$UseDotnet
+        [switch]$UseDotnet,
+        [string]$ExcludeProjects = $null
     )
 
     if ($null -eq $ProjectsToSign) {
@@ -217,8 +218,16 @@ Function Sign-Binaries {
         $msbuildProperties += ";RepositoryRootDirectory=`"$RepositoryRootDirectory`""
     }
 
+    if ($ExcludeProjects) {
+        $msbuildProperties += ";ExcludeProjects=`"$ExcludeProjects`""
+    }
+
     $ProjectPath = Join-Path $PSScriptRoot "sign-binaries.proj"
-    Build-Solution $Configuration $BuildNumber -MSBuildVersion "$MSBuildVersion" $ProjectPath -MSBuildProperties $msbuildProperties -BinLog:$BinLog -UseDotnet:$UseDotnet
+    if (-not $UseDotnet) {
+        Build-Solution $Configuration $BuildNumber -MSBuildVersion "$MSBuildVersion" $ProjectPath -MSBuildProperties $msbuildProperties -BinLog:$BinLog
+    } else {
+        Build-Solution $Configuration $BuildNumber $ProjectPath -MSBuildProperties $msbuildProperties -BinLog:$BinLog -UseDotnet:$UseDotnet
+    }
 }
 
 Function Sign-Packages {

@@ -8,6 +8,7 @@
     <OutDir>$(RepositoryRootDirectory)</OutDir>
     <SignTargetsDependOn>BatchSign</SignTargetsDependOn>
     <SkipAuthenticodeSubjects Condition="'$(SkipAuthenticodeSubjects)' == '' and '$(SignType)' == 'test'">CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US</SkipAuthenticodeSubjects>
+    <_NormalizedExcludeProjects Condition="'$(ExcludeProjects)' != ''">|$(ExcludeProjects)|</_NormalizedExcludeProjects>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,11 +17,16 @@
   </ItemGroup>
 
   <Target Name="BatchSign">
+    <ItemGroup Condition="'$(ExcludeProjects)' != ''">
+      <_ProjectsToSign Remove="@(_ProjectsToSign)"
+        Condition="$(_NormalizedExcludeProjects.Contains('|%(Filename)%(Extension)|'))" />
+    </ItemGroup>
     <Message Text="Projects considered:%0A@(_ProjectsToSign, '%0a')" Importance="High" />
     <ItemGroup>
       <SignTargetFramework Include="net472" />
       <SignTargetFramework Include="netstandard2.0" />
       <SignTargetFramework Include="netstandard2.1" />
+      <SignTargetFramework Include="net10.0" />
     </ItemGroup>
     <MSBuild
       Projects="@(_ProjectsToSign)"
