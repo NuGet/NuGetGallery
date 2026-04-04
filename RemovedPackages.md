@@ -134,6 +134,29 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    Rx.Kql 3.0.6                              |    04/03/2026    |   Potentially Malicious  |
 |    vc150 1.0.0                               |    04/03/2026    |   Potentially Malicious  |
 |    vc150 1.0.1                               |    04/03/2026    |   Potentially Malicious  |
+|    OG.AspNetCore.Identity 2026.4.3.6         |    04/03/2026    |   Malware  |
+|    OG.Services.Core 2026.4.3.6               |    04/03/2026    |   Malware  |
+|    OG.Services.Core.NoSql 2026.4.3.6         |    04/03/2026    |   Malware  |
+|    OG.Services.Core.Shared 1.0.0             |    04/03/2026    |   Malware  |
+|    OG.Services.Core.Shared 2025.4.2.3        |    04/03/2026    |   Malware  |
+|    OG.Services.Core.Shared 2025.4.3.2        |    04/03/2026    |   Malware  |
+|    OG.Services.Core.Shared 2025.4.3.3        |    04/03/2026    |   Malware  |
+|    OG.Services.Core.Shared 2025.4.3.4        |    04/03/2026    |   Malware  |
+|    OG.Services.Core.Shared 2026.4.3.2        |    04/03/2026    |   Malware  |
+|    OG.Services.Core.Shared 2026.4.3.3        |    04/03/2026    |   Malware  |
+|    OG.Services.Core.Shared 2026.4.3.4        |    04/03/2026    |   Malware  |
+|    OG.Services.Core.Shared 2026.4.3.5        |    04/03/2026    |   Malware  |
+|    OG.Services.Core.Shared 2026.4.3.6        |    04/03/2026    |   Malware  |
+|    OG.Services.Core.Shared 2026.4.3.7        |    04/03/2026    |   Malware  |
+|    OG.Services.Core.Shared 2027.4.3.8        |    04/03/2026    |   Malware  |
+|    OG.Services.Events 2026.4.3.6             |    04/03/2026    |   Malware  |
+|    TZ.Abstractions 5.1.0                     |    04/03/2026    |   Malware  |
+|    tz.gatewayapis 0.0.49                     |    04/03/2026    |   Malware  |
+|    TZ.Pad.AppMonitor 5.0.21070952            |    04/03/2026    |   Malware  |
+|    TZ.Pad.Test 6.0.2                         |    04/03/2026    |   Malware  |
+|    TZ.Pad.Test 6.0.3                         |    04/03/2026    |   Malware  |
+|    TZ.Pad.Web 5.0.3                          |    04/03/2026    |   Malware  |
+|    tz.smartgateway2 2.0.0.11                 |    04/03/2026    |   Malware  |
 
 
 Legend:
