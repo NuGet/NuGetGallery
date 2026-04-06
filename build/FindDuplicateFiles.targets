@@ -1,7 +1,14 @@
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- Import SDK bundled versions to get the runtime version (already set in SDK-style projects). -->
+  <Import Project="$(MSBuildToolsPath)\Microsoft.NETCoreSdk.BundledVersions.props"
+          Condition="'$(BundledNETCoreAppPackageVersion)' == ''" />
+  <PropertyGroup>
+    <_DotNetRoot>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)\..\..'))</_DotNetRoot>
+    <_DotNetSharedFxPath>$([System.IO.Path]::Combine('$(_DotNetRoot)', 'shared', 'Microsoft.NETCore.App', '$(BundledNETCoreAppPackageVersion)'))</_DotNetSharedFxPath>
+  </PropertyGroup>
   <UsingTask
     TaskName="FindDuplicateFiles"
-    TaskFactory="CodeTaskFactory"
+    TaskFactory="RoslynCodeTaskFactory"
     AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll" >
     <ParameterGroup>
       <Files ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
@@ -18,6 +25,7 @@
       <SkipAuthenticodeSubjects ParameterType="System.String" />
     </ParameterGroup>
     <Task>
+      <Reference Include="$(_DotNetSharedFxPath)\System.Security.Cryptography.X509Certificates.dll" />
       <Code Type="Class" Language="cs" Source="$(MSBuildThisFileDirectory)FindDuplicateFiles.cs" />
     </Task>
   </UsingTask>

@@ -4,11 +4,6 @@
     <TargetFramework>net472</TargetFramework>
     <PackageVersion Condition="'$(PackageVersion)' == ''">$(CommonPackageVersion)</PackageVersion>
     <Description>Shared component to assist NuGet build scripts.</Description>
-
-    <!--
-    We force C# 5 because the FindDuplicateFiles task is compiled using CodeTaskFactory, which only supports this C# version.
-    -->
-    <LangVersion>5</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

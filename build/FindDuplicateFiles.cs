@@ -130,10 +130,11 @@ namespace NuGet.Services.Build
             {
                 Log.LogMessage("Skipping files with the following Authenticode subjects: {0}", SkipAuthenticodeSubjects);
 
-                var skipSubjects = SkipAuthenticodeSubjects
-                    .Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
-                    .Select(s => s.Trim())
-                    .ToHashSet(StringComparer.Ordinal);
+                var skipSubjects = new HashSet<string>(
+                    SkipAuthenticodeSubjects
+                        .Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(s => s.Trim()),
+                    StringComparer.Ordinal);
 
                 foreach (var pair in filePathToDuplicates.ToList())
                 {
