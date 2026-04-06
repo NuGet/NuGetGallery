@@ -229,7 +229,7 @@ Function Sign-Binaries {
         Build-Solution $Configuration $BuildNumber -MSBuildVersion "$MSBuildVersion" $ProjectPath -MSBuildProperties $msbuildProperties -BinLog:$BinLog
     } else {
         Trace-Log "Running Build-Solution for $ProjectPath using dotnet"
-        Build-Solution $Configuration $BuildNumber $ProjectPath -MSBuildProperties $msbuildProperties -BinLog:$BinLog -UseDotnet
+        Build-Solution -Configuration $Configuration -BuildNumber $BuildNumber -SolutionPath $ProjectPath -MSBuildProperties $msbuildProperties -BinLog:$BinLog -UseDotnet
     }
     Trace-Log "Sign-Binaries completed"
 }
