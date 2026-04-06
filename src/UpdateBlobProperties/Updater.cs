@@ -93,7 +93,7 @@ namespace UpdateBlobProperties
         {
             blobHttpHeaders = new BlobHttpHeaders
             {
-                CacheControl = blobProperties.ContentType,
+                CacheControl = blobProperties.CacheControl,
                 ContentType = blobProperties.ContentType,
                 ContentHash = blobProperties.ContentHash,
                 ContentEncoding = blobProperties.ContentEncoding,
