@@ -238,10 +238,11 @@ Function Sign-Packages {
         [string]$MSBuildVersion = $DefaultMSBuildVersion,
         [switch]$BinLog
     )
-
+    Trace-Log "Sign-Packages started"
     $ProjectPath = Join-Path $PSScriptRoot "sign-packages.proj"
     Trace-Log "Signing using '$ProjectPath' project"
     Build-Solution $Configuration $BuildNumber -MSBuildVersion "$MSBuildVersion" $ProjectPath -BinLog:$BinLog -UseDotnet
+    Trace-Log "Sign-Packages completed"
 }
 
 Function Build-Solution {

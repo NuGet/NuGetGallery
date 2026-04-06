@@ -170,6 +170,7 @@ Invoke-BuildStep 'Creating job packages from jobs solution' {
     -ev +BuildErrors
 
 Invoke-BuildStep 'Signing the packages' {
+        Trace-Log "Before calling Sign-Packages"
         Sign-Packages -Configuration $Configuration -BuildNumber $BuildNumber
     } `
     -skip:$SkipArtifacts `
