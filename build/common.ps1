@@ -205,6 +205,7 @@ Function Sign-Binaries {
         [switch]$UseDotnet,
         [string]$ExcludeProjects = $null
     )
+    Trace-Log "Sign-Binaries started"
 
     if ($null -eq $ProjectsToSign) {
         $repositoryDir = [IO.Path]::GetDirectoryName($PSScriptRoot)
@@ -224,10 +225,13 @@ Function Sign-Binaries {
 
     $ProjectPath = Join-Path $PSScriptRoot "sign-binaries.proj"
     if (-not $UseDotnet) {
+        Trace-Log "Running Build-Solution for $ProjectPath using msbuild"
         Build-Solution $Configuration $BuildNumber -MSBuildVersion "$MSBuildVersion" $ProjectPath -MSBuildProperties $msbuildProperties -BinLog:$BinLog
     } else {
-        Build-Solution $Configuration $BuildNumber $ProjectPath -MSBuildProperties $msbuildProperties -BinLog:$BinLog -UseDotnet:$UseDotnet
+        Trace-Log "Running Build-Solution for $ProjectPath using dotnet"
+        Build-Solution $Configuration $BuildNumber $ProjectPath -MSBuildProperties $msbuildProperties -BinLog:$BinLog -UseDotnet
     }
+    Trace-Log "Sign-Binaries completed"
 }
 
 Function Sign-Packages {
@@ -241,7 +245,7 @@ Function Sign-Packages {
     Trace-Log "Sign-Packages started"
     $ProjectPath = Join-Path $PSScriptRoot "sign-packages.proj"
     Trace-Log "Signing using '$ProjectPath' project"
-    Build-Solution $Configuration $BuildNumber -MSBuildVersion "$MSBuildVersion" $ProjectPath -BinLog:$BinLog -UseDotnet
+    Build-Solution $Configuration $BuildNumber -MSBuildVersion "$MSBuildVersion" $ProjectPath -BinLog:$BinLog
     Trace-Log "Sign-Packages completed"
 }
 
@@ -259,6 +263,7 @@ Function Build-Solution {
         [switch]$BinLog,
         [switch]$UseDotnet
     )
+    Trace-Log "Building solution $SolutionPath UseDotnet=$UseDotnet"
 
     if (-not $SkipRestore) {
         # Restore packages for NuGet.Tooling solution
@@ -268,6 +273,8 @@ Function Build-Solution {
             Restore-SolutionPackages -path $SolutionPath -UseDotnet
         }
     }
+
+    Trace-Log "After Restore-SolutionPackages"
 
     # Build the solution
     $opts = , $SolutionPath

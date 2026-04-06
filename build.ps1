@@ -91,6 +91,7 @@ Invoke-BuildStep 'Building jobs functional test solution' {
     -ev +BuildErrors
 
 Invoke-BuildStep 'Signing the binaries' {
+        Trace-Log "Before calling Sign-Binaries"
         Sign-Binaries -Configuration $Configuration -BuildNumber $BuildNumber -UseDotnet -ExcludeProjects "NuGetGallery.csproj|NuGetCDNRedirect.csproj"
     } `
     -skip:$SkipArtifacts `
