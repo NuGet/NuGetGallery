@@ -157,6 +157,8 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    TZ.Pad.Test 6.0.3                         |    04/03/2026    |   Malware  |
 |    TZ.Pad.Web 5.0.3                          |    04/03/2026    |   Malware  |
 |    tz.smartgateway2 2.0.0.11                 |    04/03/2026    |   Malware  |
+|    esharpwin 137.0.100                       |    04/06/2026    |   Malware  |
+|    esharpwin 137.0.101                       |    04/06/2026    |   Malware  |
 
 
 Legend:
