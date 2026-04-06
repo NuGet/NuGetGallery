@@ -88,7 +88,7 @@ namespace GitHubVulnerabilities2v3
                 .RegisterType<TelemetryService>()
                 .As<ITelemetryService>();
 
-            var writerRegistration = containerBuilder
+            containerBuilder
                 .RegisterType<BlobStorageVulnerabilityWriter>()
                 .As<IVulnerabilityWriter>();
 
