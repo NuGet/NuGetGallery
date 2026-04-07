@@ -108,6 +108,7 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    NCryptYo                            |    02/20/2026    |   Malware  |
 |    SimpleWriter_                       |    02/20/2026    |   Potentially Malicious  |
 |    IRAOAuth2.0                         |    02/20/2026    |   Potentially Malicious  |
+|    Italy.Core version 1.0.3            |    03/23/2026    |   Malware  |
 
 
 Legend:
