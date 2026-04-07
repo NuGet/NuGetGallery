@@ -159,6 +159,7 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    tz.smartgateway2 2.0.0.11                 |    04/03/2026    |   Malware  |
 |    esharpwin 137.0.100                       |    04/06/2026    |   Malware  |
 |    esharpwin 137.0.101                       |    04/06/2026    |   Malware  |
+|    DemoDLL2 2.0.7                            |    04/06/2026    |   Malware  |
 
 
 Legend:
