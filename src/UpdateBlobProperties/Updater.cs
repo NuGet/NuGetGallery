@@ -70,6 +70,11 @@ namespace UpdateBlobProperties
                 }
 
                 retries++;
+                if (retries == MaxRetries)
+                {
+                    throw new Exception($"Failed to update blob properties of Package Id: {packageInfo.Id} and Version: {packageInfo.Version} (Blob Uri: {blobClient.Uri}) after {MaxRetries} retries.");
+                }
+
                 await Task.Delay(TimeSpan.FromSeconds(retries * 5), token);
             }
         }
