@@ -161,6 +161,7 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    esharpwin 137.0.101                       |    04/06/2026    |   Malware  |
 |    DemoDLL2 2.0.7                            |    04/06/2026    |   Malware  |
 |    AutoFactories 1.1.10                      |    04/06/2026    |   Malware  |
+|    CardVaultClient 1.0.0                     |    04/08/2026    |   Malware  |
 
 
 Legend:
