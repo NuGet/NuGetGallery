@@ -164,6 +164,9 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    CardVaultClient 1.0.0                     |    04/08/2026    |   Malware  |
 |    MyHelloTest 2.0.1                         |    04/08/2026    |   Malware  |
 |    MyHelloTest 2.0.3                         |    04/08/2026    |   Malware  |
+|    CCX-Arbitrary 1.1.0.276                   |    04/08/2026    |   Malware  |
+|    CCX-Arbitrary 1.1.0.278                   |    04/08/2026    |   Malware  |
+|    CCX-Arbitrary 1.1.0.279                   |    04/08/2026    |   Malware  |
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.
