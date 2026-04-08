@@ -6,6 +6,8 @@
     <NuGetClientPackageVersion>6.13.2</NuGetClientPackageVersion>
   </PropertyGroup>
   <ItemGroup>
+    <PackageVersion Include="Aspire.Hosting.Azure.Search" Version="13.2.1" />
+    <PackageVersion Include="Aspire.Hosting.Azure.Storage" Version="13.2.1" />
     <PackageVersion Include="Autofac.Extensions.DependencyInjection" Version="4.4.0" />
     <PackageVersion Include="Autofac.Mvc5.Owin" Version="4.0.1" />
     <PackageVersion Include="Autofac.Mvc5" Version="4.0.2" />
