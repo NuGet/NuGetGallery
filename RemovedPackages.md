@@ -167,6 +167,14 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    CCX-Arbitrary 1.1.0.276                   |    04/08/2026    |   Malware  |
 |    CCX-Arbitrary 1.1.0.278                   |    04/08/2026    |   Malware  |
 |    CCX-Arbitrary 1.1.0.279                   |    04/08/2026    |   Malware  |
+|    Detectable.BuildHookAndObf 0.1.0          |    04/08/2026    |   Malware  |
+|    Detectable.ObfuscatedCode 0.1.0           |    04/08/2026    |   Malware  |
+|    Safe.BuildMessage 0.0.2                   |    04/08/2026    |   Malware  |
+|    Safe.ExfilIntent 0.0.2                    |    04/08/2026    |   Malware  |
+|    Safe.Obfuscation 0.0.2                    |    04/08/2026    |   Malware  |
+|    Safe.TypoTaregt 0.0.2                     |    04/08/2026    |   Malware  |
+|    Safe.TypoTarget 0.0.2                     |    04/08/2026    |   Malware  |
+
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.
