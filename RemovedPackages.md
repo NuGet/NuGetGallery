@@ -162,7 +162,8 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    DemoDLL2 2.0.7                            |    04/06/2026    |   Malware  |
 |    AutoFactories 1.1.10                      |    04/06/2026    |   Malware  |
 |    CardVaultClient 1.0.0                     |    04/08/2026    |   Malware  |
-
+|    MyHelloTest 2.0.1                         |    04/08/2026    |   Malware  |
+|    MyHelloTest 2.0.3                         |    04/08/2026    |   Malware  |
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.
