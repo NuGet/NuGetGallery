@@ -85,8 +85,6 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             ReadCursor back,
             CancellationToken cancellationToken)
         {
-            await DnxPackageVersionIndexCacheControl.LoadPackageIdsToIncludeAsync(_storageFactory.Create(), _logger, cancellationToken);
-
             return await CatalogCommitUtilities.ProcessCatalogCommitsAsync(
                 client,
                 front,
@@ -158,7 +156,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                             cancellationToken);
                         var areRequiredPropertiesPresent = await AreRequiredPropertiesPresentAsync(destinationStorage, destinationUri);
 
-                        if (isNupkgSynchronized && areRequiredPropertiesPresent && isPackageInIndex && !DnxPackageVersionIndexCacheControl.PackageIdsToInclude.Contains(packageId))
+                        if (isNupkgSynchronized && areRequiredPropertiesPresent && isPackageInIndex)
                         {
                             _logger.LogInformation("No changes detected: {Id}/{Version}", packageId, normalizedPackageVersion);
 
