@@ -47,9 +47,10 @@ namespace UpdateBlobProperties
             services.AddTransient<BlobInfo, BlobInfoOfPackageVersionIndexInFlatContainer>();
 
             services.Configure<UpdateBlobPropertiesConfiguration>(configurationRoot.GetSection(UpdateBlobPropertiesConfigurationSectionName));
+            services.AddTransient<IEntityRepository<Package>, EntityRepository<Package>>();
             services.AddTransient<IProcessor, Processor>();
             services.AddTransient<ICollector, Collector>();
-            services.AddTransient<IEntityRepository<Package>, EntityRepository<Package>>();
+            services.AddTransient<IUpdater, Updater>();
 
             services.AddTransient(s =>
             {
@@ -60,6 +61,30 @@ namespace UpdateBlobProperties
                     s.GetRequiredService<ILogger<FileStorage>>());
 
                 return new Cursor(new Uri(address, "cursor.json"), fileStorageFactory.Create(), defaultValue: 0);
+            });
+
+            services.AddSingleton(s =>
+            {
+                var blobServiceClientFactory = StorageAccountHelper.CreateBlobServiceClientFactory(
+                    s.GetService<IOptions<StorageMsiConfiguration>>().Value,
+                    s.GetService<IOptions<UpdateBlobPropertiesConfiguration>>().Value.StorageConnectionString);
+
+                var clientOptions = new BlobClientOptions
+                {
+                    Retry =
+                    {
+                        Mode = Azure.Core.RetryMode.Exponential,
+                        Delay = TimeSpan.FromSeconds(2),
+                        MaxRetries = 6,
+                        NetworkTimeout = TimeSpan.FromMinutes(1)
+                    }
+                };
+
+                var blobInfo = s.GetService<BlobInfo>();
+                var blobServiceClient = blobServiceClientFactory.GetBlobServiceClient(clientOptions);
+                var blobContainerClient = blobServiceClient.GetBlobContainerClient(blobInfo.GetContainerName());
+
+                return blobContainerClient;
             });
         }
     }
