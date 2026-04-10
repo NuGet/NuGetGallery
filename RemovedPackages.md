@@ -174,7 +174,29 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    Safe.Obfuscation 0.0.2                    |    04/08/2026    |   Malware  |
 |    Safe.TypoTaregt 0.0.2                     |    04/08/2026    |   Malware  |
 |    Safe.TypoTarget 0.0.2                     |    04/08/2026    |   Malware  |
-
+|    siggnalv.james 2.2.0                      |    04/10/2026    |   Malware  |
+|    monaco.winformxrmuibase 3.0.6474.16527    |    04/10/2026    |   Malware  |
+|    TestProofOfConcept 1.0.0                  |    04/10/2026    |   Malware  |
+|    TestProofOfConcept 1.0.1                  |    04/10/2026    |   Malware  |
+|    TestProofOfConcept 1.0.2                  |    04/10/2026    |   Malware  |
+|    TestProofOfConcept 1.0.3                  |    04/10/2026    |   Malware  |
+|    TestProofOfConcept 1.0.4                  |    04/10/2026    |   Malware  |
+|    TestProofOfConcept 1.0.5                  |    04/10/2026    |   Malware  |
+|    Reothor.Lab.EvilPackage 1.3.3.7           |    04/10/2026    |   Malware  |
+|    Reothor.Lab.EvilPackage 2.0.0             |    04/10/2026    |   Malware  |
+|    Reothor.Lab.EvilPackage 2.0.1             |    04/10/2026    |   Malware  |
+|    Reothor.Lab.EvilPackage 4.4.4.4           |    04/10/2026    |   Malware  |
+|    Reothor.Lab.EvilPackage 4.4.5.5           |    04/10/2026    |   Malware  |
+|    Reothor.Lab.EvilPackage 100.0.0           |    04/10/2026    |   Malware  |
+|    Reothor.Lab.EvilPackage 200.0.0           |    04/10/2026    |   Malware  |
+|    PioneFramework 1.0.1                      |    04/10/2026    |   Malware  |
+|    PioneFramework 1.0.2                      |    04/10/2026    |   Malware  |
+|    PioneFrameworkNew 1.0.4                   |    04/10/2026    |   Malware  |
+|    PioneFrameworkNew 1.0.5                   |    04/10/2026    |   Malware  |
+|    pionehelper 1.0.1                         |    04/10/2026    |   Malware  |
+|    pionehelper 1.0.2                         |    04/10/2026    |   Malware  |
+|    pionehelper 1.0.3                         |    04/10/2026    |   Malware  |
+|    Nova.GtkSharp 1.0.0.1-nova                |    04/10/2026    |   Malware  |
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.
