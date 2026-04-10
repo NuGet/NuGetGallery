@@ -26,7 +26,7 @@ namespace UpdateBlobProperties
 
             if (string.IsNullOrWhiteSpace(packageInfo.Id))
             {
-                throw new ArgumentException($"Invalid package Id with null or whitespace. Package Key: {packageInfo.Key}.");
+                throw new ArgumentException($"Invalid package Id with null or whitespace. Package Registration Key: {packageInfo.Key}.");
             }
 
             return $"/{packageInfo.Id.ToLowerInvariant()}/index.json";
