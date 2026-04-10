@@ -13,7 +13,7 @@
             {
                 dependencySetTitle = "Portable Class Library";
             }
-            
+
             <li>
                 @if (!Model.OnlyHasAllFrameworks)
                 {
@@ -41,5 +41,15 @@
 }
 else
 {
-    <p>This package has no dependencies.</p>
+    if (Model.IsDotnetTool)
+    {
+        <p>
+            .NET tools have dependencies embedded in the package.
+            Join the <a href="https://github.com/NuGet/NuGetGallery/issues/10020">discussion</a> on improving this experience.
+        </p>
+    }
+    else
+    {
+        <p>This package has no dependencies.</p>
+    }
 }
