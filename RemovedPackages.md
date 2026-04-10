@@ -182,6 +182,13 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    TestProofOfConcept 1.0.3                  |    04/10/2026    |   Malware  |
 |    TestProofOfConcept 1.0.4                  |    04/10/2026    |   Malware  |
 |    TestProofOfConcept 1.0.5                  |    04/10/2026    |   Malware  |
+|    Reothor.Lab.EvilPackage 1.3.3.7           |    04/10/2026    |   Malware  |
+|    Reothor.Lab.EvilPackage 2.0.0             |    04/10/2026    |   Malware  |
+|    Reothor.Lab.EvilPackage 2.0.1             |    04/10/2026    |   Malware  |
+|    Reothor.Lab.EvilPackage 4.4.4.4           |    04/10/2026    |   Malware  |
+|    Reothor.Lab.EvilPackage 4.4.5.5           |    04/10/2026    |   Malware  |
+|    Reothor.Lab.EvilPackage 100.0.0           |    04/10/2026    |   Malware  |
+|    Reothor.Lab.EvilPackage 200.0.0           |    04/10/2026    |   Malware  |
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.
