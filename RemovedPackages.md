@@ -189,6 +189,13 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    Reothor.Lab.EvilPackage 4.4.5.5           |    04/10/2026    |   Malware  |
 |    Reothor.Lab.EvilPackage 100.0.0           |    04/10/2026    |   Malware  |
 |    Reothor.Lab.EvilPackage 200.0.0           |    04/10/2026    |   Malware  |
+|    PioneFramework 1.0.1                      |    04/10/2026    |   Malware  |
+|    PioneFramework 1.0.2                      |    04/10/2026    |   Malware  |
+|    PioneFrameworkNew 1.0.4                   |    04/10/2026    |   Malware  |
+|    PioneFrameworkNew 1.0.5                   |    04/10/2026    |   Malware  |
+|    pionehelper 1.0.1                         |    04/10/2026    |   Malware  |
+|    pionehelper 1.0.2                         |    04/10/2026    |   Malware  |
+|    pionehelper 1.0.3                         |    04/10/2026    |   Malware  |
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.
