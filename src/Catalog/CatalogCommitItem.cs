@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -39,6 +39,12 @@ namespace NuGet.Services.Metadata.Catalog
             PackageIdentity = packageIdentity;
             Types = types;
             TypeUris = typeUris;
+
+            Utils.AssertValidPackageId(packageIdentity.Id);
+            if (packageIdentity.Version is null)
+            {
+                throw new ArgumentNullException("The version in the package identity must not be null.");
+            }
 
             IsPackageDetails = HasTypeUri(Schema.DataTypes.PackageDetails);
             IsPackageDelete = HasTypeUri(Schema.DataTypes.PackageDelete);

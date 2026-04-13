@@ -23,6 +23,7 @@ namespace GalleryTools
             commandLineApplication.Command("verifyapikey", VerifyApiKeyCommand.Configure);
             commandLineApplication.Command("updateIsLatest", UpdateIsLatestCommand.Configure);
             commandLineApplication.Command("reservenamespaces", ReserveNamespacesCommand.Configure);
+            commandLineApplication.Command("validatepackageids", ValidatePackageIdsCommand.Configure);
 
             try
             {

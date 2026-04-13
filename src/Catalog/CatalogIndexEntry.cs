@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -135,6 +135,13 @@ namespace NuGet.Services.Metadata.Catalog
             {
                 throw new ArgumentNullException(nameof(packageIdentity));
             }
+
+            if (packageIdentity.Version is null)
+            {
+                throw new ArgumentNullException("The ID and version of the package identity must not be null.");
+            }
+
+            Utils.AssertValidPackageId(packageIdentity.Id);
 
             Id = packageIdentity.Id;
             Version = packageIdentity.Version;

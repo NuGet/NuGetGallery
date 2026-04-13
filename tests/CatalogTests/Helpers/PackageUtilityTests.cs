@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -32,8 +32,8 @@ namespace CatalogTests.Helpers
         }
 
         [Theory]
-        [InlineData("a", "b")]
-        [InlineData("A", "B")]
+        [InlineData("a", "1.0.0")]
+        [InlineData("A", "2.0.0")]
         public void GetPackageFileName_WithValidArguments_ReturnsFileName(string packageId, string packageVersion)
         {
             var packageFileName = PackageUtility.GetPackageFileName(packageId, packageVersion);

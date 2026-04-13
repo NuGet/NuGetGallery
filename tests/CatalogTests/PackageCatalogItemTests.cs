@@ -41,6 +41,7 @@ namespace CatalogTests.Helpers
         [InlineData("TestPackageReadmeFileWithFileType")]
         [InlineData("DuplicateReadmeFiles")]
         [InlineData("DuplicateLibFilesDifferentPathSeparators")]
+        [InlineData("RepositoryServiceableDevDependency")]
         public void CreateContent_ProducesExpectedJson(string packageName)
         {
             // Arrange

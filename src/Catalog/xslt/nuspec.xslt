@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <xsl:stylesheet
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:nuget="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd"
@@ -115,6 +115,7 @@
             </xsl:when>
 
             <xsl:when test="self::nuget:owners">
+              <!-- owners is deprecated and ignored -->
             </xsl:when>
 
             <xsl:when test="self::nuget:license">
@@ -168,13 +169,55 @@
               </ng:requireLicenseAcceptance>
             </xsl:when>
 
-            <xsl:when test="self::nuget:id">
+            <xsl:when test="self::nuget:developmentDependency">
+              <ng:developmentDependency rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">
+                <xsl:value-of select="."/>
+              </ng:developmentDependency>
+            </xsl:when>
+
+            <xsl:when test="self::nuget:serviceable">
+              <ng:serviceable rdf:datatype="http://www.w3.org/2001/XMLSchema#boolean">
+                <xsl:value-of select="."/>
+              </ng:serviceable>
+            </xsl:when>
+
+            <xsl:when test="self::nuget:repository">
+              <ng:repository>
+                <rdf:Description>
+                  <xsl:attribute name="rdf:about">
+                    <xsl:value-of select="obj:LowerCase(concat($base, $path, $extension, '#repository'))"/>
+                  </xsl:attribute>
+                  <xsl:if test="@type">
+                    <ng:type>
+                      <xsl:value-of select="@type"/>
+                    </ng:type>
+                  </xsl:if>
+                  <xsl:if test="@url">
+                    <ng:url>
+                      <xsl:value-of select="@url"/>
+                    </ng:url>
+                  </xsl:if>
+                  <xsl:if test="@branch">
+                    <ng:branch>
+                      <xsl:value-of select="@branch"/>
+                    </ng:branch>
+                  </xsl:if>
+                  <xsl:if test="@commit">
+                    <ng:commit>
+                      <xsl:value-of select="@commit"/>
+                    </ng:commit>
+                  </xsl:if>
+                </rdf:Description>
+              </ng:repository>
+            </xsl:when>
+
+            <xsl:when test="self::nuget:id and obj:IsValidPackageId(.)">
               <ng:id>
                 <xsl:value-of select="."/>
               </ng:id>
             </xsl:when>
 
-            <xsl:when test="self::nuget:version">
+            <xsl:when test="self::nuget:version and obj:IsValidVersion(.)">
               <ng:version>
                 <xsl:value-of select="obj:GetFullVersionString(.)"/>
               </ng:version>
@@ -192,11 +235,65 @@
               </xsl:apply-templates>
             </xsl:when>
 
-            <xsl:otherwise>
-              <xsl:element name="{concat('ng:', local-name())}">
+            <xsl:when test="self::nuget:authors">
+              <ng:authors>
                 <xsl:value-of select="."/>
-              </xsl:element>
-            </xsl:otherwise>
+              </ng:authors>
+            </xsl:when>
+
+            <xsl:when test="self::nuget:description">
+              <ng:description>
+                <xsl:value-of select="."/>
+              </ng:description>
+            </xsl:when>
+
+            <xsl:when test="self::nuget:copyright">
+              <ng:copyright>
+                <xsl:value-of select="."/>
+              </ng:copyright>
+            </xsl:when>
+
+            <xsl:when test="self::nuget:projectUrl">
+              <ng:projectUrl>
+                <xsl:value-of select="."/>
+              </ng:projectUrl>
+            </xsl:when>
+
+            <xsl:when test="self::nuget:releaseNotes">
+              <ng:releaseNotes>
+                <xsl:value-of select="."/>
+              </ng:releaseNotes>
+            </xsl:when>
+
+            <xsl:when test="self::nuget:title">
+              <ng:title>
+                <xsl:value-of select="."/>
+              </ng:title>
+            </xsl:when>
+
+            <xsl:when test="self::nuget:summary">
+              <ng:summary>
+                <xsl:value-of select="."/>
+              </ng:summary>
+            </xsl:when>
+
+            <xsl:when test="self::nuget:language">
+              <ng:language>
+                <xsl:value-of select="."/>
+              </ng:language>
+            </xsl:when>
+
+            <xsl:when test="self::nuget:iconUrl">
+              <ng:iconUrl>
+                <xsl:value-of select="."/>
+              </ng:iconUrl>
+            </xsl:when>
+
+            <xsl:when test="self::nuget:licenseUrl">
+              <ng:licenseUrl>
+                <xsl:value-of select="."/>
+              </ng:licenseUrl>
+            </xsl:when>
 
           </xsl:choose>
         </xsl:for-each>
