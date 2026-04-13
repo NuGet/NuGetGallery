@@ -40,8 +40,6 @@ var infraGroup = builder.AddResource(
 	new GroupResource("infrastructure")).ExcludeFromManifest();
 var pipelineGroup = builder.AddResource(
 	new GroupResource("v3-pipeline")).ExcludeFromManifest();
-var searchGroup = builder.AddResource(
-	new GroupResource("azure-search")).ExcludeFromManifest();
 
 // ─── Infrastructure ───────────────────────────────────────────────────────────
 
@@ -67,118 +65,19 @@ var search = builder.AddAzureSearch("search")
 			.Single();
 		searchService.SearchSkuName = Azure.Provisioning.Search.SearchServiceSkuName.Basic;
 	})
-	.WithParentRelationship(searchGroup);
+	.WithParentRelationship(pipelineGroup);
 
-// ─── Manual reset commands (triggered from Aspire dashboard) ─────────────────
+// ─── Reset arrays (triggered from Aspire dashboard commands) ─────────────────
 
-// V3 pipeline containers (cleared on reset). Gallery containers are NOT touched.
-var v3Containers = new[]
+// Containers produced by V3 jobs only (not seeded data) — used by "Stop and Reset V3".
+var jobContainers = new[]
 {
-	config.Containers.Catalog, config.Containers.FlatContainer, config.Containers.ServiceIndex,
+	config.Containers.Catalog, config.Containers.FlatContainer,
 	config.Containers.RegistrationSemVer1, config.Containers.RegistrationGzSemVer1, config.Containers.RegistrationGzSemVer2,
-	config.Containers.AzureSearch, config.Containers.CdnStats, config.Containers.SearchAuxiliary,
+	config.Containers.AzureSearch,
 };
 
-storage.WithCommand(
-	name: "reset-v3-containers",
-	displayName: "Reset V3 Containers",
-	executeCommand: async context =>
-	{
-		var logger = context.ServiceProvider.GetRequiredService<ILogger<Program>>();
-		var blobService = new Azure.Storage.Blobs.BlobServiceClient("UseDevelopmentStorage=true");
-		foreach (var container in v3Containers)
-		{
-			try
-			{
-				await blobService.DeleteBlobContainerAsync(container, cancellationToken: context.CancellationToken);
-				logger.LogInformation("Deleted container: {Container}", container);
-			}
-			catch (Azure.RequestFailedException ex) when (ex.Status == 404)
-			{
-				logger.LogInformation("Container {Container} does not exist, skipping.", container);
-			}
-		}
-
-		// Re-seed the auxiliary blobs that Db2AzureSearch expects to find on startup.
-		logger.LogInformation("V3 containers reset. Restart seed-blobs and jobs to rebuild.");
-		return CommandResults.Success();
-	},
-	commandOptions: new()
-	{
-		IconName = "Delete",
-		IconVariant = IconVariant.Filled,
-		IsHighlighted = true,
-		ConfirmationMessage = "Delete all V3 pipeline blob containers? Gallery DB and containers (packages, uploads, etc.) will NOT be affected.",
-	});
-
-storage.WithCommand(
-	name: "delete-all-containers",
-	displayName: "Delete All Containers",
-	executeCommand: async context =>
-	{
-		var logger = context.ServiceProvider.GetRequiredService<ILogger<Program>>();
-		var blobService = new Azure.Storage.Blobs.BlobServiceClient("UseDevelopmentStorage=true");
-		var count = 0;
-		await foreach (var container in blobService.GetBlobContainersAsync(
-			cancellationToken: context.CancellationToken))
-		{
-			await blobService.DeleteBlobContainerAsync(container.Name,
-				cancellationToken: context.CancellationToken);
-			logger.LogInformation("Deleted container: {Container}", container.Name);
-			count++;
-		}
-		logger.LogInformation("Deleted {Count} container(s).", count);
-		return CommandResults.Success();
-	},
-	commandOptions: new()
-	{
-		IconName = "Delete",
-		IconVariant = IconVariant.Filled,
-		IsHighlighted = true,
-		ConfirmationMessage = "Delete ALL blob containers in Azurite, including Gallery containers (packages, uploads, content, auditing)? This cannot be undone.",
-	});
-
 var searchIndexNames = new[] { config.SearchIndexes.Search, config.SearchIndexes.Hijack };
-
-search.WithCommand(
-	name: "reset-search-indexes",
-	displayName: "Reset Search Indexes",
-	executeCommand: async context =>
-	{
-		var logger = context.ServiceProvider.GetRequiredService<ILogger<Program>>();
-		var outputs = context.ServiceProvider.GetRequiredService<IConfiguration>()["Azure:Deployments:search:Outputs"];
-		if (string.IsNullOrEmpty(outputs))
-		{
-			logger.LogWarning("Search deployment outputs not found. Has the search resource been provisioned?");
-			return CommandResults.Success();
-		}
-		var doc = JsonDocument.Parse(outputs);
-		var svcName = doc.RootElement.GetProperty("name").GetProperty("value").GetString();
-		var endpoint = new Uri($"https://{svcName}.search.windows.net");
-		var indexClient = new Azure.Search.Documents.Indexes.SearchIndexClient(
-			endpoint, new Azure.Identity.DefaultAzureCredential());
-		foreach (var indexName in searchIndexNames)
-		{
-			try
-			{
-				await indexClient.DeleteIndexAsync(indexName, context.CancellationToken);
-				logger.LogInformation("Deleted search index: {Index}", indexName);
-			}
-			catch (Azure.RequestFailedException ex) when (ex.Status == 404)
-			{
-				logger.LogInformation("Search index {Index} does not exist, skipping.", indexName);
-			}
-		}
-		logger.LogInformation("Search indexes reset. Restart db2azuresearch to rebuild.");
-		return CommandResults.Success();
-	},
-	commandOptions: new()
-	{
-		IconName = "Delete",
-		IconVariant = IconVariant.Filled,
-		IsHighlighted = true,
-		ConfirmationMessage = "Delete all Azure Search indexes (search-index, hijack-index)? They will be recreated by db2azuresearch.",
-	});
 
 // ─── DB Initialization ───────────────────────────────────────────────────────
 
@@ -266,7 +165,6 @@ var catalogIndexUrl = $"{azuriteBase}/{config.Containers.Catalog}/index.json";
 var catalogIndexReady = builder.AddProject<Projects.NuGetGallery_AppHost_Tools>("catalog-index-ready")
 	.WithArgs("catalog-index-available")
 	.WaitFor(storage)
-	.WithExplicitStart()
 	.WithParentRelationship(pipelineGroup);
 WithAppHostEnv(catalogIndexReady, config, azuriteConnStr, azuriteBase, searchServiceName);
 
@@ -333,7 +231,6 @@ var db2catalog = builder.AddProject<Projects.Ng>("db2catalog")
     .WaitForCompletion(dbMigrateGallery)
     .WaitFor(storage)
 	.WithUrl($"{azuriteBase}/{config.Containers.Catalog}/index.json", "Catalog Index")
-	.WithExplicitStart()
 	.WithParentRelationship(pipelineGroup);
 
 builder.AddProject<Projects.Ng>("catalog2dnx")
@@ -351,10 +248,9 @@ builder.AddProject<Projects.Ng>("catalog2dnx")
 		"-verbose",             "true",
 		"-interval",            config.Settings.PollIntervalSeconds.ToString())
 	.WaitForCompletion(catalogIndexReady)
-	.WithExplicitStart()
 	.WithParentRelationship(pipelineGroup);
 
-// ─── Standalone jobs (JsonConfigurationJob — each gets its own config file) ──
+// ─── Standalone jobs(JsonConfigurationJob — each gets its own config file) ──
 
 var catalog2regConfigPath = GenerateJsonConfig(
 	builder.AppHostDirectory, "catalog2registration-dev.json", new
@@ -379,17 +275,15 @@ var catalog2regConfigPath = GenerateJsonConfig(
 builder.AddProject<Projects.NuGet_Jobs_Catalog2Registration>("catalog2registration")
 	.WithArgs("-Configuration", catalog2regConfigPath)
 	.WaitForCompletion(catalogIndexReady)
-	.WithExplicitStart()
 	.WithParentRelationship(pipelineGroup);
 
-// Polls Azure Search for indexes + cursor.json in Azurite created by db2azuresearch.
+// Polls Azure Searchfor indexes + cursor.json in Azurite created by db2azuresearch.
 // Decouples dependents from db2azuresearch's exit code — if indexes already exist from a
 // prior run, dependents start immediately even when db2azuresearch fails on "already exists".
 var searchIndexReady = builder.AddProject<Projects.NuGetGallery_AppHost_Tools>("search-index-ready")
 	.WithArgs("search-index-available")
 	.WaitFor(search)
-	.WithExplicitStart()
-	.WithParentRelationship(searchGroup);
+	.WithParentRelationship(pipelineGroup);
 WithAppHostEnv(searchIndexReady, config, azuriteConnStr, azuriteBase, searchServiceName);
 
 var catalog2searchConfigPath = GenerateJsonConfig(
@@ -456,18 +350,16 @@ var db2azuresearch = builder.AddProject<Projects.NuGet_Jobs_Db2AzureSearch>("db2
 	.WaitForCompletion(seedBlobs)
     .WaitForCompletion(dbMigrateGallery)
     .WaitFor(search)
-	.WithExplicitStart()
-	.WithParentRelationship(searchGroup);
+	.WithParentRelationship(pipelineGroup);
 
 builder.AddProject<Projects.NuGet_Jobs_Catalog2AzureSearch>("catalog2azuresearch")
 	.WithArgs("-Configuration", catalog2searchConfigPath)
 	.WaitForCompletion(catalogIndexReady)
 	.WaitForCompletion(searchIndexReady)
 	.WaitFor(search)
-	.WithExplicitStart()
-	.WithParentRelationship(searchGroup);
+	.WithParentRelationship(pipelineGroup);
 
-// ─── Auxiliary2AzureSearch (ongoing updates to auxiliary blobs) ───────────────
+// ─── Auxiliary2AzureSearch(ongoing updates to auxiliary blobs) ───────────────
 
 var auxiliary2searchConfigPath = GenerateJsonConfig(
 	builder.AppHostDirectory, "auxiliary2azuresearch-dev.json", new
@@ -498,10 +390,9 @@ builder.AddProject<Projects.NuGet_Jobs_Auxiliary2AzureSearch>("auxiliary2azurese
 	.WaitForCompletion(searchIndexReady)
 	.WaitForCompletion(seedBlobs)
 	.WaitFor(search)
-	.WithExplicitStart()
-	.WithParentRelationship(searchGroup);
+	.WithParentRelationship(pipelineGroup);
 
-// ─── Search Service (ASP.NET Core web app) ───────────────────────────────────
+// ─── Search Service(ASP.NET Core web app) ───────────────────────────────────
 
 var searchServiceUri = new Uri(config.SearchServiceBaseAddress);
 
@@ -524,32 +415,173 @@ builder.AddProject<Projects.NuGet_Services_SearchService_Core>("search-service")
 	.WaitForCompletion(searchIndexReady)
 	.WaitFor(search)
 	.WaitFor(storage)
-	.WithExplicitStart()
-	.WithParentRelationship(searchGroup);
+	.WithParentRelationship(pipelineGroup);
 
-// ─── Group "Start All" commands ──────────────────────────────────────────────
+// ─── Group "Start All" / "Stop and Reset" commands ──────────────────────────
 
-var pipelineResources = new[] { "catalog-index-ready", "db2catalog", "catalog2dnx", "catalog2registration" };
-var searchResources = new[] { "search-index-ready", "db2azuresearch", "catalog2azuresearch", "auxiliary2azuresearch", "search-service" };
+var allV3Resources = new[]
+{
+	"catalog-index-ready", "db2catalog", "catalog2dnx", "catalog2registration",
+	"search-index-ready", "db2azuresearch", "catalog2azuresearch", "auxiliary2azuresearch", "search-service",
+};
 
 pipelineGroup.WithCommand(
-	name: "start-all",
-	displayName: "Start V3 Pipeline",
-	executeCommand: context => StartGroupAsync (context, pipelineResources),
+	name: "stop-and-reset",
+	displayName: "Stop and Reset V3",
+	executeCommand: async context =>
+	{
+		var logger = context.ServiceProvider.GetRequiredService<ILogger<Program>>();
+		var commandService = context.ServiceProvider.GetRequiredService<ResourceCommandService>();
+
+		// 1. Stop all V3 resources (ignore errors for already-stopped resources)
+		foreach (var name in allV3Resources)
+		{
+			try
+			{
+				logger.LogInformation("Stopping {Resource}...", name);
+				await commandService.ExecuteCommandAsync(name, "resource-stop", context.CancellationToken);
+			}
+			catch
+			{
+				logger.LogInformation("{Resource} was not running, skipping.", name);
+			}
+		}
+
+		// 2. Delete job-produced blob containers (catalog, flatcontainer, registrations, azuresearch).
+		// Seeded containers (service-index, cdn-stats, search-auxiliary) are preserved.
+		var blobService = new Azure.Storage.Blobs.BlobServiceClient("UseDevelopmentStorage=true");
+		foreach (var container in jobContainers)
+		{
+			try
+			{
+				await blobService.DeleteBlobContainerAsync(container, cancellationToken: context.CancellationToken);
+				logger.LogInformation("Deleted container: {Container}", container);
+			}
+			catch (Azure.RequestFailedException ex) when (ex.Status == 404)
+			{
+				logger.LogInformation("Container {Container} does not exist, skipping.", container);
+			}
+		}
+
+		// 3. Delete Azure Search indexes
+		var outputs = context.ServiceProvider.GetRequiredService<IConfiguration>()["Azure:Deployments:search:Outputs"];
+		if (!string.IsNullOrEmpty(outputs))
+		{
+			var doc = JsonDocument.Parse(outputs);
+			var svcName = doc.RootElement.GetProperty("name").GetProperty("value").GetString();
+			var endpoint = new Uri($"https://{svcName}.search.windows.net");
+			var indexClient = new Azure.Search.Documents.Indexes.SearchIndexClient(
+				endpoint, new Azure.Identity.DefaultAzureCredential());
+			foreach (var indexName in searchIndexNames)
+			{
+				try
+				{
+					await indexClient.DeleteIndexAsync(indexName, context.CancellationToken);
+					logger.LogInformation("Deleted search index: {Index}", indexName);
+				}
+				catch (Azure.RequestFailedException ex) when (ex.Status == 404)
+				{
+					logger.LogInformation("Search index {Index} does not exist, skipping.", indexName);
+				}
+			}
+		}
+		else
+		{
+			logger.LogWarning("Search deployment outputs not found — search indexes were not deleted.");
+		}
+
+		logger.LogInformation("V3 reset complete. Resources will auto-start when Aspire is restarted.");
+		return CommandResults.Success();
+	},
 	commandOptions: new()
 	{
-		IconName = "Play",
+		IconName = "Delete",
 		IconVariant = IconVariant.Filled,
+		IsHighlighted = true,
+		ConfirmationMessage = "Stop all V3 pipeline jobs, delete job-produced blob containers, and delete Azure Search indexes? " +
+			"The Gallery DB, Gallery blobs, and seeded auxiliary data will NOT be affected.",
 	});
 
-searchGroup.WithCommand(
-	name: "start-all",
-	displayName: "Start Azure Search",
-	executeCommand: context => StartGroupAsync (context, searchResources),
+// ─── "Stop and Reset Everything" on infrastructure group ─────────────────────
+
+infraGroup.WithCommand(
+	name: "stop-and-reset-everything",
+	displayName: "Stop and Reset Everything",
+	executeCommand: async context =>
+	{
+		var logger = context.ServiceProvider.GetRequiredService<ILogger<Program>>();
+		var commandService = context.ServiceProvider.GetRequiredService<ResourceCommandService>();
+
+		// 1. Stop all V3 resources + Gallery
+		var allStoppable = allV3Resources.Concat(new[] { "gallery" }).ToArray();
+		foreach (var name in allStoppable)
+		{
+			try
+			{
+				logger.LogInformation("Stopping {Resource}...", name);
+				await commandService.ExecuteCommandAsync(name, "resource-stop", context.CancellationToken);
+			}
+			catch
+			{
+				logger.LogInformation("{Resource} was not running, skipping.", name);
+			}
+		}
+
+		// 2. Drop databases
+		await DropDatabaseAsync (context, config.GalleryDb.ConnectionString, "NuGetGallery");
+		await DropDatabaseAsync (context, config.GalleryDb.ConnectionString, "SupportRequest");
+		logger.LogInformation("Databases dropped.");
+
+		// 3. Delete ALL blob containers
+		var blobService = new Azure.Storage.Blobs.BlobServiceClient("UseDevelopmentStorage=true");
+		var count = 0;
+		await foreach (var container in blobService.GetBlobContainersAsync(
+			cancellationToken: context.CancellationToken))
+		{
+			await blobService.DeleteBlobContainerAsync(container.Name,
+				cancellationToken: context.CancellationToken);
+			logger.LogInformation("Deleted container: {Container}", container.Name);
+			count++;
+		}
+		logger.LogInformation("Deleted {Count} container(s).", count);
+
+		// 4. Delete Azure Search indexes
+		var outputs = context.ServiceProvider.GetRequiredService<IConfiguration>()["Azure:Deployments:search:Outputs"];
+		if (!string.IsNullOrEmpty(outputs))
+		{
+			var doc = JsonDocument.Parse(outputs);
+			var svcName = doc.RootElement.GetProperty("name").GetProperty("value").GetString();
+			var endpoint = new Uri($"https://{svcName}.search.windows.net");
+			var indexClient = new Azure.Search.Documents.Indexes.SearchIndexClient(
+				endpoint, new Azure.Identity.DefaultAzureCredential());
+			foreach (var indexName in searchIndexNames)
+			{
+				try
+				{
+					await indexClient.DeleteIndexAsync(indexName, context.CancellationToken);
+					logger.LogInformation("Deleted search index: {Index}", indexName);
+				}
+				catch (Azure.RequestFailedException ex) when (ex.Status == 404)
+				{
+					logger.LogInformation("Search index {Index} does not exist, skipping.", indexName);
+				}
+			}
+		}
+		else
+		{
+			logger.LogWarning("Search deployment outputs not found — search indexes were not deleted.");
+		}
+
+		logger.LogInformation("Full reset complete. Restart Aspire to rebuild everything from scratch.");
+		return CommandResults.Success();
+	},
 	commandOptions: new()
 	{
-		IconName = "Play",
+		IconName = "Delete",
 		IconVariant = IconVariant.Filled,
+		IsHighlighted = true,
+		ConfirmationMessage = "Stop everything, drop ALL databases, delete ALL blob containers, and delete ALL search indexes? " +
+			"This will completely reset the local environment. Restart Aspire to rebuild from scratch.",
 	});
 
 builder.Build().Run();
@@ -587,19 +619,6 @@ static void WithAppHostEnv<T> (
 		.WithEnvironment("SearchIndexes__Search", config.SearchIndexes.Search)
 		.WithEnvironment("SearchIndexes__Hijack", config.SearchIndexes.Hijack)
 		.WithEnvironment("SearchServiceBaseAddress", config.SearchServiceBaseAddress);
-}
-
-static async Task<ExecuteCommandResult> StartGroupAsync (
-	ExecuteCommandContext context, string[] resourceNames)
-{
-	var logger = context.ServiceProvider.GetRequiredService<ILogger<Program>>();
-	var commandService = context.ServiceProvider.GetRequiredService<ResourceCommandService>();
-	foreach (var name in resourceNames)
-	{
-		logger.LogInformation("Starting resource: {Resource}", name);
-		await commandService.ExecuteCommandAsync(name, "resource-start", context.CancellationToken);
-	}
-	return CommandResults.Success();
 }
 
 static string GenerateJsonConfig (string appHostDir, string fileName, object content)
