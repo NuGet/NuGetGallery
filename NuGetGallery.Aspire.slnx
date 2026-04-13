@@ -1,0 +1,22 @@
+<Solution>
+  <Project Path="src/Catalog/NuGet.Services.Metadata.Catalog.csproj" />
+  <Project Path="src/Ng/Ng.csproj" />
+  <Project Path="src/NuGet.Jobs.Catalog2AzureSearch/NuGet.Jobs.Catalog2AzureSearch.csproj" />
+  <Project Path="src/NuGet.Jobs.Catalog2Registration/NuGet.Jobs.Catalog2Registration.csproj" />
+  <Project Path="src/NuGet.Jobs.Common/NuGet.Jobs.Common.csproj" />
+  <Project Path="src/NuGet.Protocol.Catalog/NuGet.Protocol.Catalog.csproj" />
+  <Project Path="src/NuGet.Services.AzureSearch/NuGet.Services.AzureSearch.csproj" />
+  <Project Path="src/NuGet.Services.Configuration/NuGet.Services.Configuration.csproj" />
+  <Project Path="src/NuGet.Services.Contracts/NuGet.Services.Contracts.csproj" />
+  <Project Path="src/NuGet.Services.Entities/NuGet.Services.Entities.csproj" />
+  <Project Path="src/NuGet.Services.FeatureFlags/NuGet.Services.FeatureFlags.csproj" />
+  <Project Path="src/NuGet.Services.KeyVault/NuGet.Services.KeyVault.csproj" />
+  <Project Path="src/NuGet.Services.Logging/NuGet.Services.Logging.csproj" />
+  <Project Path="src/NuGet.Services.Metadata.Catalog.Monitoring/NuGet.Services.Metadata.Catalog.Monitoring.csproj" />
+  <Project Path="src/NuGet.Services.Sql/NuGet.Services.Sql.csproj" />
+  <Project Path="src/NuGet.Services.Storage/NuGet.Services.Storage.csproj" />
+  <Project Path="src/NuGet.Services.V3/NuGet.Services.V3.csproj" />
+  <Project Path="src/NuGetGallery.Core/NuGetGallery.Core.csproj" />
+  <Project Path="src/Validation.Common.Job/Validation.Common.Job.csproj" />
+  <Project Path="src/NuGetGallery.AppHost/NuGetGallery.AppHost.csproj" />
+</Solution>

@@ -5,18 +5,29 @@
 // Exits 0 once all artifacts are present, allowing dependent Aspire resources to start.
 // This decouples dependents from db2azuresearch's exit code — if indexes already exist from
 // a prior run, dependents start immediately even when db2azuresearch fails on "already exists".
-// Usage: dotnet run SearchIndexAvailable.cs -- <searchServiceName> <storageConnectionString>
+// Configuration is read from environment variables set by the Aspire AppHost.
 
 #:package Azure.Search.Documents
 #:package Azure.Identity
 #:package Azure.Storage.Blobs
+#:package Microsoft.Extensions.Configuration
+#:package Microsoft.Extensions.Configuration.Binder
+#:package Microsoft.Extensions.Configuration.EnvironmentVariables
+#:project ../NuGetGallery.AppHost.Config/NuGetGallery.AppHost.Config.csproj
 
 using Azure.Identity;
 using Azure.Search.Documents.Indexes;
 using Azure.Storage.Blobs;
+using Microsoft.Extensions.Configuration;
 
-var searchServiceName = args[0];
-var storageConnectionString = args[1];
+var config = new ConfigurationBuilder()
+	.AddEnvironmentVariables()
+	.Build();
+
+var searchServiceName      = config["SearchServiceName"]!;
+var storageConnectionString = config["StorageConnectionString"]!;
+var searchIndexes          = config.GetSection("SearchIndexes").Get<SearchIndexNames>()!;
+var containers             = config.GetSection("Containers").Get<ContainerNames>()!;
 
 var endpoint = new Uri($"https://{searchServiceName}.search.windows.net");
 var indexClient = new SearchIndexClient(endpoint, new DefaultAzureCredential());
@@ -26,10 +37,10 @@ while (true)
 {
 	try
 	{
-		await indexClient.GetIndexAsync("search-index");
-		await indexClient.GetIndexAsync("hijack-index");
+		await indexClient.GetIndexAsync(cfg.SearchIndexes.Search);
+		await indexClient.GetIndexAsync(cfg.SearchIndexes.Hijack);
 
-		var container = blobService.GetBlobContainerClient("v3-azuresearch0");
+		var container = blobService.GetBlobContainerClient(cfg.Containers.AzureSearch);
 		var cursor = container.GetBlobClient("cursor.json");
 		if (await cursor.ExistsAsync())
 		{

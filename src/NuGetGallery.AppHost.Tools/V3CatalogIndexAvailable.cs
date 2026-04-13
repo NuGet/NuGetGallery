@@ -3,10 +3,22 @@
 
 // Polls for the V3 catalog index.json blob in Azurite.
 // Exits 0 once the blob returns HTTP 200, allowing dependent Aspire resources to start.
-// Usage: dotnet run V3CatalogIndexAvailable.cs -- <catalogIndexUrl>
+// Configuration is bound from environment variables to the shared NuGetGalleryConfig POCO.
+
+#:package Microsoft.Extensions.Configuration
+#:package Microsoft.Extensions.Configuration.Binder
+#:package Microsoft.Extensions.Configuration.EnvironmentVariables
+#:project ../NuGetGallery.AppHost.Config/NuGetGallery.AppHost.Config.csproj
+
+using Microsoft.Extensions.Configuration;
+
+var cfg = new ConfigurationBuilder()
+	.AddEnvironmentVariables()
+	.Build()
+	.Get<NuGetGalleryConfig>()!;
 
 using var http = new HttpClient();
-var url = args[0];
+var url = $"{cfg.AzuriteBase}/{cfg.Containers.Catalog}/index.json";
 
 while (true)
 {
