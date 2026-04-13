@@ -228,10 +228,8 @@ dbMigrateSupport.WithCommand(
 
 // ─── Auxiliary blob seeding (required before Gallery and search jobs) ─────────
 
-var toolsDir = Path.Combine(srcDir, "NuGetGallery.AppHost.Tools");
-
-var seedAuxBlobs = builder.AddExecutable(
-	"seed-aux-blobs", "dotnet", toolsDir, "run", "SeedBlobs.cs")
+var seedAuxBlobs = builder.AddProject<Projects.NuGetGallery_AppHost_Tools>("seed-aux-blobs")
+	.WithArgs("seed-blobs")
 	.WaitFor(storage)
 	.WithEnvironment("REPO_ROOT", repoRoot)
 	.WithUrl($"{azuriteBase}/{config.Containers.ServiceIndex}/index.json", "V3 Service Index")
@@ -265,8 +263,8 @@ GenerateGalleryToolsConfig(galleryToolsBin, azuriteConnStr,
 // Polls for the catalog index.json blob in Azurite and exits when it appears.
 // Downstream jobs use WaitForCompletion to wait for this, just like the DB migrations.
 var catalogIndexUrl = $"{azuriteBase}/{config.Containers.Catalog}/index.json";
-var catalogIndexReady = builder.AddExecutable(
-	"catalog-index-ready", "dotnet", toolsDir, "run", "V3CatalogIndexAvailable.cs")
+var catalogIndexReady = builder.AddProject<Projects.NuGetGallery_AppHost_Tools>("catalog-index-ready")
+	.WithArgs("catalog-index-available")
 	.WaitFor(storage)
 	.WithExplicitStart()
 	.WithParentRelationship(pipelineGroup);
@@ -387,8 +385,8 @@ builder.AddProject<Projects.NuGet_Jobs_Catalog2Registration>("catalog2registrati
 // Polls Azure Search for indexes + cursor.json in Azurite created by db2azuresearch.
 // Decouples dependents from db2azuresearch's exit code — if indexes already exist from a
 // prior run, dependents start immediately even when db2azuresearch fails on "already exists".
-var searchIndexReady = builder.AddExecutable(
-	"search-index-ready", "dotnet", toolsDir, "run", "SearchIndexAvailable.cs")
+var searchIndexReady = builder.AddProject<Projects.NuGetGallery_AppHost_Tools>("search-index-ready")
+	.WithArgs("search-index-available")
 	.WaitFor(search)
 	.WithExplicitStart()
 	.WithParentRelationship(searchGroup);

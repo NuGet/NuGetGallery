@@ -23,6 +23,7 @@
     <ProjectReference Include="..\NuGet.Jobs.Auxiliary2AzureSearch\NuGet.Jobs.Auxiliary2AzureSearch.csproj" />
     <ProjectReference Include="..\NuGet.Services.SearchService.Core\NuGet.Services.SearchService.Core.csproj" />
     <ProjectReference Include="..\NuGetGallery.AppHost.Config\NuGetGallery.AppHost.Config.csproj" IsAspireProjectResource="false" />
+    <ProjectReference Include="..\NuGetGallery.AppHost.Tools\NuGetGallery.AppHost.Tools.csproj" />
   </ItemGroup>
 
   <ItemGroup>
