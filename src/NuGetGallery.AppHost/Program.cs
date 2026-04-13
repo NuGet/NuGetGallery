@@ -249,6 +249,19 @@ GenerateGalleryAspireConfig(galleryPath, azuriteConnStr,
 	packages: config.Containers.Packages, auditing: config.Containers.Auditing,
 	content: config.Containers.Content, uploads: config.Containers.Uploads);
 
+// Generate appsettings.Aspire.config for GalleryTools so it talks to Azurite + the right SQL DB
+var galleryToolsBin = Path.Combine(srcDir, "GalleryTools", "bin",
+#if DEBUG
+	"Debug",
+#else
+	"Release",
+#endif
+	"net472");
+GenerateGalleryToolsConfig(galleryToolsBin, azuriteConnStr,
+	config.GalleryDb.ConnectionString, config.GalleryBaseAddress,
+	packages: config.Containers.Packages, auditing: config.Containers.Auditing,
+	content: config.Containers.Content, uploads: config.Containers.Uploads);
+
 // Polls for the catalog index.json blob in Azurite and exits when it appears.
 // Downstream jobs use WaitForCompletion to wait for this, just like the DB migrations.
 var catalogIndexUrl = $"{azuriteBase}/{config.Containers.Catalog}/index.json";
@@ -271,6 +284,30 @@ var gallery = builder.AddExecutable(
     .WaitForCompletion(dbMigrateSupport)
 	// .WaitForCompletion(seedAuxBlobs)
 	.WaitFor(storage);
+
+// ─── Test data seeding (creates a user and pushes a test package) ────────────
+
+var galleryToolsExe = Path.Combine(galleryToolsBin, "GalleryTools.exe");
+var testNupkg = Path.Combine(builder.AppHostDirectory, "testdata", "basetestpackage.1.0.0.nupkg.testdata");
+
+var seedUser = builder.AddExecutable(
+	"seed-user", galleryToolsExe, galleryToolsBin,
+	"createuser",
+	"--username", "NuGetTestData",
+	"--password", "Password1!",
+	"--email", "NuGetTestData@localhost")
+	.WaitForCompletion(dbMigrateGallery)
+	.WaitFor(storage)
+	.WithParentRelationship(infraGroup);
+
+var seedPackage = builder.AddExecutable(
+	"seed-package", galleryToolsExe, galleryToolsBin,
+	"pushpackage",
+	"--owner", "NuGetTestData",
+	"--package", testNupkg)
+	.WaitForCompletion(seedUser)
+	.WaitFor(storage)
+	.WithParentRelationship(infraGroup);
 
 // ─── Ng sub-commands (CLI args) ──────────────────────────────────────────────
 
@@ -603,6 +640,44 @@ static void GenerateGalleryAspireConfig (
 			Setting("Gallery.AzureStorage.Revalidation.ConnectionString", connectionString)));
 
 	doc.Save(Path.Combine(galleryDir, "appsettings.Aspire.config"));
+
+	static XElement Setting (string key, string value) =>
+		new("add", new XAttribute("key", key), new XAttribute("value", value));
+}
+
+/// <summary>
+/// Writes appsettings.Aspire.config into the GalleryTools output directory.
+/// GalleryTools' App.config has &lt;appSettings file="appsettings.Aspire.config"&gt;
+/// which loads these settings as overrides, switching from FileSystem to Azurite storage.
+/// </summary>
+static void GenerateGalleryToolsConfig (
+	string toolsBinDir, string storageConnectionString, string sqlConnectionString,
+	string siteRoot, string packages, string auditing, string content, string uploads)
+{
+	Directory.CreateDirectory(toolsBinDir);
+	var doc = new XDocument(
+		new XElement("appSettings",
+			Setting("Gallery.StorageType", "AzureStorage"),
+			Setting("Gallery.AzureStorage.Auditing.ConnectionString", storageConnectionString),
+			Setting("Gallery.AzureStorage.Auditing.ContainerName", auditing),
+			Setting("Gallery.AzureStorage.UserCertificates.ConnectionString", storageConnectionString),
+			Setting("Gallery.AzureStorage.Content.ConnectionString", storageConnectionString),
+			Setting("Gallery.AzureStorage.Content.ContainerName", content),
+			Setting("Gallery.AzureStorage.Errors.ConnectionString", storageConnectionString),
+			Setting("Gallery.AzureStorage.Packages.ConnectionString", storageConnectionString),
+			Setting("Gallery.AzureStorage.Packages.ContainerName", packages),
+			Setting("Gallery.AzureStorage.FlatContainer.ConnectionString", storageConnectionString),
+			Setting("Gallery.AzureStorage.Statistics.ConnectionString", storageConnectionString),
+			Setting("Gallery.AzureStorage.Statistics.ConnectionString.Alternate", storageConnectionString),
+			Setting("Gallery.AzureStorage.Uploads.ConnectionString", storageConnectionString),
+			Setting("Gallery.AzureStorage.Uploads.ContainerName", uploads),
+			Setting("Gallery.AzureStorage.Revalidation.ConnectionString", storageConnectionString),
+			Setting("Gallery.SqlServer", sqlConnectionString),
+			Setting("Gallery.SupportRequestSqlServer", sqlConnectionString),
+			Setting("Gallery.SiteRoot", siteRoot),
+			Setting("Gallery.SupportEmailSiteRoot", siteRoot)));
+
+	doc.Save(Path.Combine(toolsBinDir, "appsettings.Aspire.config"));
 
 	static XElement Setting (string key, string value) =>
 		new("add", new XAttribute("key", key), new XAttribute("value", value));

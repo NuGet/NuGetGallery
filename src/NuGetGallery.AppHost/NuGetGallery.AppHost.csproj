@@ -41,6 +41,26 @@
     <PackageReference Include="EntityFramework" GeneratePathProperty="true" ExcludeAssets="all" VersionOverride="6.5.1" />
   </ItemGroup>
 
+  <!-- Build net472 projects (GalleryTools → NuGetGallery) with VS MSBuild.
+       The .NET SDK cannot build legacy non-SDK projects like NuGetGallery.csproj,
+       so we discover the VS MSBuild via vswhere.exe (same approach as build/common.ps1). -->
+  <Target Name="BuildNet472Projects" BeforeTargets="Build"
+          Condition="'$(BuildingInsideVisualStudio)' != 'true'">
+    <PropertyGroup>
+      <VsWhereExe>$([MSBuild]::NormalizePath('$(ProgramFiles)\Microsoft Visual Studio\Installer\vswhere.exe'))</VsWhereExe>
+      <VsWhereExe Condition="!Exists('$(VsWhereExe)')">$([MSBuild]::NormalizePath('$(MSBuildProgramFiles32)\Microsoft Visual Studio\Installer\vswhere.exe'))</VsWhereExe>
+    </PropertyGroup>
+    <Error Text="vswhere.exe not found. Visual Studio is required to build net472 projects." Condition="!Exists('$(VsWhereExe)')" />
+    <Exec Command="&quot;$(VsWhereExe)&quot; -latest -prerelease -property installationPath" ConsoleToMsBuild="true">
+      <Output TaskParameter="ConsoleOutput" PropertyName="_VsInstallDir" />
+    </Exec>
+    <PropertyGroup>
+      <_VsMSBuild>$(_VsInstallDir)\MSBuild\Current\bin\msbuild.exe</_VsMSBuild>
+    </PropertyGroup>
+    <Error Text="VS MSBuild not found at $(_VsMSBuild)" Condition="!Exists('$(_VsMSBuild)')" />
+    <Exec Command="&quot;$(_VsMSBuild)&quot; &quot;$(MSBuildThisFileDirectory)..\GalleryTools\GalleryTools.csproj&quot; /t:Restore;Build /p:Configuration=$(Configuration) /v:minimal /nologo /m" />
+  </Target>
+
   <!-- Generate a C# source file with the ef6.exe path baked in as a compile-time constant. -->
   <Target Name="GenerateEf6Paths" BeforeTargets="CoreCompile" DependsOnTargets="ResolvePackageAssets">
     <PropertyGroup>
