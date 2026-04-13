@@ -19,4 +19,5 @@
   <Project Path="src/NuGetGallery.Core/NuGetGallery.Core.csproj" />
   <Project Path="src/Validation.Common.Job/Validation.Common.Job.csproj" />
   <Project Path="src/NuGetGallery.AppHost/NuGetGallery.AppHost.csproj" />
+  <Project Path="src/NuGetGallery.AppHost.Config/NuGetGallery.AppHost.Config.csproj" />
 </Solution>
