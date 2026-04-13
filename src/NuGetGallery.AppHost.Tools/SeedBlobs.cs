@@ -11,7 +11,7 @@ using Microsoft.Extensions.Configuration;
 /// </summary>
 static class SeedBlobsTool
 {
-	public static async Task<int> RunAsync (string[] args)
+	public static async Task<int> RunAsync(string[] args)
 	{
 		var cfg = new ConfigurationBuilder()
 			.AddEnvironmentVariables()
@@ -29,8 +29,8 @@ static class SeedBlobsTool
 			"[]");
 
 		// ── Gallery content files from App_Data ─────────────────────────────
-		var repoRoot = FindRepoRoot(
-			Environment.GetEnvironmentVariable("REPO_ROOT") ?? AppContext.BaseDirectory);
+		var repoRoot = Environment.GetEnvironmentVariable("REPO_ROOT")
+			?? throw new InvalidOperationException("REPO_ROOT environment variable is not set.");
 		var contentDir = Path.Combine(repoRoot, "src", "NuGetGallery", "App_Data", "Files", "Content");
 
 		if (Directory.Exists(contentDir))
@@ -159,20 +159,7 @@ static class SeedBlobsTool
 		return 0;
 	}
 
-	static string FindRepoRoot (string startDir)
-	{
-		var dir = startDir;
-		while (dir != null)
-		{
-			if (File.Exists(Path.Combine(dir, "NuGetGallery.sln")))
-				return dir;
-			dir = Path.GetDirectoryName(dir);
-		}
-		throw new InvalidOperationException(
-			$"Could not find repo root (NuGetGallery.sln) starting from {startDir}");
-	}
-
-	static async Task SeedAsync (BlobServiceClient blobService,
+	static async Task SeedAsync(BlobServiceClient blobService,
 		string containerName, string blobName, string content)
 	{
 		var container = blobService.GetBlobContainerClient(containerName);
@@ -188,7 +175,7 @@ static class SeedBlobsTool
 		Console.WriteLine($"  {containerName}/{blobName}");
 	}
 
-	static async Task SeedFileAsync (BlobServiceClient blobService,
+	static async Task SeedFileAsync(BlobServiceClient blobService,
 		string containerName, string blobName, string filePath, string contentType)
 	{
 		var container = blobService.GetBlobContainerClient(containerName);

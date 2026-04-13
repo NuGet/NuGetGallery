@@ -32,14 +32,14 @@
     <PackageReference Include="Aspire.Hosting.Azure.Search" />
 
     <!-- Used by reset commands to clear search indexes and blob containers -->
-    <PackageReference Include="Azure.Search.Documents" VersionOverride="11.7.0" />
+    <PackageReference Include="Azure.Search.Documents" />
 
     <!-- Used by gallery reset command to drop databases -->
     <PackageReference Include="System.Data.SqlClient" />
 
     <!-- EF6 tools — GeneratePathProperty gives us $(PkgEntityFramework) at build time.
          ExcludeAssets="all" prevents EF6 DLLs from polluting the net10.0 AppHost. -->
-    <PackageReference Include="EntityFramework" GeneratePathProperty="true" ExcludeAssets="all" VersionOverride="6.5.1" />
+    <PackageReference Include="EntityFramework" GeneratePathProperty="true" ExcludeAssets="all" />
   </ItemGroup>
 
   <!-- Build net472 projects (GalleryTools → NuGetGallery) with VS MSBuild.

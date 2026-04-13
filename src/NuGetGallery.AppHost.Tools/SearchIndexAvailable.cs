@@ -12,7 +12,7 @@ using Microsoft.Extensions.Configuration;
 /// </summary>
 static class SearchIndexAvailableTool
 {
-	public static async Task<int> RunAsync (string[] args)
+	public static async Task<int> RunAsync(string[] args)
 	{
 		var config = new ConfigurationBuilder()
 			.AddEnvironmentVariables()

@@ -14,7 +14,7 @@ namespace GalleryTools.Commands
 {
 	public static class CreateUserCommand
 	{
-		public static void Configure (CommandLineApplication config)
+		public static void Configure(CommandLineApplication config)
 		{
 			config.Description = "Create a local Gallery user with a confirmed email address";
 			config.HelpOption("-? | -h | --help");
@@ -50,7 +50,7 @@ namespace GalleryTools.Commands
 			});
 		}
 
-		private static async Task<int> ExecuteAsync (string username, string password, string email)
+		private static async Task<int> ExecuteAsync(string username, string password, string email)
 		{
 			var builder = new ContainerBuilder();
 			builder.RegisterAssemblyModules(typeof(DefaultDependenciesModule).Assembly);

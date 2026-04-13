@@ -96,7 +96,7 @@ var dbMigrateGallery = builder.AddExecutable(
 dbMigrateGallery.WithCommand(
 	name: "drop-gallery-db",
 	displayName: "Drop NuGetGallery Database",
-	executeCommand: context => DropDatabaseAsync (context, config.GalleryDb.ConnectionString, "NuGetGallery"),
+	executeCommand: context => DropDatabaseAsync(context, config.GalleryDb.ConnectionString, "NuGetGallery"),
 	commandOptions: new()
 	{
 		IconName = "Delete",
@@ -116,7 +116,7 @@ var dbMigrateSupport = builder.AddExecutable(
 dbMigrateSupport.WithCommand(
 	name: "drop-support-db",
 	displayName: "Drop SupportRequest Database",
-	executeCommand: context => DropDatabaseAsync (context, config.GalleryDb.ConnectionString, "SupportRequest"),
+	executeCommand: context => DropDatabaseAsync(context, config.GalleryDb.ConnectionString, "SupportRequest"),
 	commandOptions: new()
 	{
 		IconName = "Delete",
@@ -528,8 +528,8 @@ infraGroup.WithCommand(
 		}
 
 		// 2. Drop databases
-		await DropDatabaseAsync (context, config.GalleryDb.ConnectionString, "NuGetGallery");
-		await DropDatabaseAsync (context, config.GalleryDb.ConnectionString, "SupportRequest");
+		await DropDatabaseAsync(context, config.GalleryDb.ConnectionString, "NuGetGallery");
+		await DropDatabaseAsync(context, config.GalleryDb.ConnectionString, "SupportRequest");
 		logger.LogInformation("Databases dropped.");
 
 		// 3. Delete ALL blob containers
@@ -592,7 +592,7 @@ builder.Build().Run();
 /// Sets all NuGetGalleryConfig properties as environment variables on an executable resource,
 /// using the __ separator convention so IConfiguration binds them back to the POCO.
 /// </summary>
-static void WithAppHostEnv<T> (
+static void WithAppHostEnv<T>(
 	IResourceBuilder<T> builder,
 	NuGetGalleryConfig config, string storageConnStr, string azuriteBase, string searchServiceName)
 	where T : IResourceWithEnvironment
@@ -621,7 +621,7 @@ static void WithAppHostEnv<T> (
 		.WithEnvironment("SearchServiceBaseAddress", config.SearchServiceBaseAddress);
 }
 
-static string GenerateJsonConfig (string appHostDir, string fileName, object content)
+static string GenerateJsonConfig(string appHostDir, string fileName, object content)
 {
 	var path = Path.Combine(appHostDir, fileName);
 	File.WriteAllText(path, JsonSerializer.Serialize(content,
@@ -634,7 +634,7 @@ static string GenerateJsonConfig (string appHostDir, string fileName, object con
 /// This file is loaded by Web.config's &lt;appSettings file="..."&gt; attribute
 /// and switches Gallery from FileSystem storage to Azurite blob storage.
 /// </summary>
-static void GenerateGalleryAspireConfig (
+static void GenerateGalleryAspireConfig(
 	string galleryDir, string connectionString,
 	string packages, string auditing, string content, string uploads)
 {
@@ -658,7 +658,7 @@ static void GenerateGalleryAspireConfig (
 
 	doc.Save(Path.Combine(galleryDir, "appsettings.Aspire.config"));
 
-	static XElement Setting (string key, string value) =>
+	static XElement Setting(string key, string value) =>
 		new("add", new XAttribute("key", key), new XAttribute("value", value));
 }
 
@@ -667,7 +667,7 @@ static void GenerateGalleryAspireConfig (
 /// GalleryTools' App.config has &lt;appSettings file="appsettings.Aspire.config"&gt;
 /// which loads these settings as overrides, switching from FileSystem to Azurite storage.
 /// </summary>
-static void GenerateGalleryToolsConfig (
+static void GenerateGalleryToolsConfig(
 	string toolsBinDir, string storageConnectionString, string sqlConnectionString,
 	string siteRoot, string packages, string auditing, string content, string uploads)
 {
@@ -696,11 +696,11 @@ static void GenerateGalleryToolsConfig (
 
 	doc.Save(Path.Combine(toolsBinDir, "appsettings.Aspire.config"));
 
-	static XElement Setting (string key, string value) =>
+	static XElement Setting(string key, string value) =>
 		new("add", new XAttribute("key", key), new XAttribute("value", value));
 }
 
-static async Task<ExecuteCommandResult> DropDatabaseAsync (
+static async Task<ExecuteCommandResult> DropDatabaseAsync(
 	ExecuteCommandContext context, string connectionString, string databaseName)
 {
 	var logger = context.ServiceProvider.GetRequiredService<ILogger<Program>>();

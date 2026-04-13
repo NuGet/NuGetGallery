@@ -9,7 +9,7 @@ using Microsoft.Extensions.Configuration;
 /// </summary>
 static class V3CatalogIndexAvailableTool
 {
-	public static async Task<int> RunAsync (string[] args)
+	public static async Task<int> RunAsync(string[] args)
 	{
 		var cfg = new ConfigurationBuilder()
 			.AddEnvironmentVariables()

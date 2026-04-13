@@ -17,7 +17,7 @@ namespace GalleryTools.Commands
 {
 	public static class PushPackageCommand
 	{
-		public static void Configure (CommandLineApplication config)
+		public static void Configure(CommandLineApplication config)
 		{
 			config.Description = "Upload a .nupkg to the Gallery on behalf of a user, creating an API key automatically";
 			config.HelpOption("-? | -h | --help");
@@ -43,7 +43,7 @@ namespace GalleryTools.Commands
 			});
 		}
 
-		private static async Task<int> ExecuteAsync (string ownerUsername, string nupkgPath)
+		private static async Task<int> ExecuteAsync(string ownerUsername, string nupkgPath)
 		{
 			if (!File.Exists(nupkgPath))
 			{
