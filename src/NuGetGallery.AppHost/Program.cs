@@ -100,7 +100,7 @@ storage.WithCommand(
 		}
 
 		// Re-seed the auxiliary blobs that Db2AzureSearch expects to find on startup.
-		logger.LogInformation("V3 containers reset. Restart seed-aux-blobs and jobs to rebuild.");
+		logger.LogInformation("V3 containers reset. Restart seed-blobs and jobs to rebuild.");
 		return CommandResults.Success();
 	},
 	commandOptions: new()
@@ -228,13 +228,13 @@ dbMigrateSupport.WithCommand(
 
 // ─── Auxiliary blob seeding (required before Gallery and search jobs) ─────────
 
-var seedAuxBlobs = builder.AddProject<Projects.NuGetGallery_AppHost_Tools>("seed-aux-blobs")
+var seedBlobs = builder.AddProject<Projects.NuGetGallery_AppHost_Tools>("seed-blobs")
 	.WithArgs("seed-blobs")
 	.WaitFor(storage)
 	.WithEnvironment("REPO_ROOT", repoRoot)
 	.WithUrl($"{azuriteBase}/{config.Containers.ServiceIndex}/index.json", "V3 Service Index")
 	.WithParentRelationship(infraGroup);
-WithAppHostEnv(seedAuxBlobs, config, azuriteConnStr, azuriteBase, searchServiceName);
+WithAppHostEnv(seedBlobs, config, azuriteConnStr, azuriteBase, searchServiceName);
 
 // ─── NuGetGallery web app (IIS Express) ──────────────────────────────────────
 
@@ -280,7 +280,7 @@ var gallery = builder.AddExecutable(
 	.WithHttpsEndpoint(port: 443, name: "gallery-https", isProxied: false)
     .WaitForCompletion(dbMigrateGallery)
     .WaitForCompletion(dbMigrateSupport)
-	// .WaitForCompletion(seedAuxBlobs)
+	// .WaitForCompletion(seedBlobs)
 	.WaitFor(storage);
 
 // ─── Test data seeding (creates a user and pushes a test package) ────────────
@@ -453,7 +453,7 @@ var db2searchConfigPath = GenerateJsonConfig(
 var db2azuresearch = builder.AddProject<Projects.NuGet_Jobs_Db2AzureSearch>("db2azuresearch")
 	.WithArgs("-Configuration", db2searchConfigPath, "-Once", "true")
 	.WaitForCompletion(catalogIndexReady)
-	.WaitForCompletion(seedAuxBlobs)
+	.WaitForCompletion(seedBlobs)
     .WaitForCompletion(dbMigrateGallery)
     .WaitFor(search)
 	.WithExplicitStart()
@@ -496,7 +496,7 @@ var auxiliary2searchConfigPath = GenerateJsonConfig(
 builder.AddProject<Projects.NuGet_Jobs_Auxiliary2AzureSearch>("auxiliary2azuresearch")
 	.WithArgs("-Configuration", auxiliary2searchConfigPath)
 	.WaitForCompletion(searchIndexReady)
-	.WaitForCompletion(seedAuxBlobs)
+	.WaitForCompletion(seedBlobs)
 	.WaitFor(search)
 	.WithExplicitStart()
 	.WithParentRelationship(searchGroup);
