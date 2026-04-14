@@ -135,6 +135,12 @@
     <None Update="TestData\PackageTypeWhiteSpaceVersion.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="TestData\RepositoryServiceableDevDependency.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData\RepositoryServiceableDevDependency.nupkg.testdata">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="TestData\TestPackage.IconAndIconUrl.0.4.2.nupkg.testdata">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

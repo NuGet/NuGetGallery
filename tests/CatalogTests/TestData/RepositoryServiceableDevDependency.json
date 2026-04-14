@@ -1,46 +1,54 @@
 {
-  "@id": "http://example/data/2017.01.04.08.15.00/duplicatelibfilesdifferentpathseparators.1.0.0.json",
+  "@id": "http://example/data/2017.01.04.08.15.00/repositoryserviceabledevdependency.1.0.0.json",
   "@type": [
     "PackageDetails",
     "catalog:Permalink"
   ],
-  "authors": "DuplicateLibFilesDifferentPathSeparators",
+  "authors": "RepositoryServiceableDevDependency",
   "catalog:commitId": "4aee0ef4-a039-4460-bd5f-98f944e33289",
   "catalog:commitTimeStamp": "2017-01-04T08:15:00Z",
   "created": "2017-01-01T08:15:00Z",
   "description": "Package Description",
-  "id": "DuplicateLibFilesDifferentPathSeparators",
+  "developmentDependency": true,
+  "id": "RepositoryServiceableDevDependency",
   "isPrerelease": false,
   "lastEdited": "2017-01-02T08:15:00Z",
+  "licenseExpression": "MIT",
+  "licenseUrl": "https://licenses.nuget.org/MIT",
   "listed": true,
-  "packageHash": "tyZuvjlQp7n2u/Qi5ch1M9oqzxJ/eSHl+x9y374Jurw3Xff9UgMmV/hm7a36FBkdYWHfWV7lCPCjV84W8AtT+A==",
+  "packageHash": "jmtrYklD4l0bPFSk+SM4K+zqhxyQDYq1eO6+ecVRXhIqsvFH0y4JKYQ22cb4SGNRSWamYV2f+FgLzb+1Wg1G9A==",
   "packageHashAlgorithm": "SHA512",
-  "packageSize": 5226,
+  "packageSize": 5411,
   "published": "2017-01-03T08:15:00Z",
   "repository": {
-    "@id": "http://example/data/2017.01.04.08.15.00/duplicatelibfilesdifferentpathseparators.1.0.0.json#repository",
-    "type": "git"
+    "@id": "http://example/data/2017.01.04.08.15.00/repositoryserviceabledevdependency.1.0.0.json#repository",
+    "branch": "main",
+    "commit": "9e6e7580dbcb7176f5cf0626854374af7a382acc",
+    "type": "git",
+    "url": "https://github.com/NuGet/NuGetGallery.git"
   },
+  "requireLicenseAcceptance": true,
+  "serviceable": true,
   "verbatimVersion": "1.0.0",
   "version": "1.0.0",
   "dependencyGroups": [
     {
-      "@id": "http://example/data/2017.01.04.08.15.00/duplicatelibfilesdifferentpathseparators.1.0.0.json#dependencygroup/net8.0",
+      "@id": "http://example/data/2017.01.04.08.15.00/repositoryserviceabledevdependency.1.0.0.json#dependencygroup/net8.0",
       "@type": "PackageDependencyGroup",
       "targetFramework": "net8.0"
     }
   ],
   "packageEntries": [
     {
-      "@id": "http://example/data/2017.01.04.08.15.00/duplicatelibfilesdifferentpathseparators.1.0.0.json#DuplicateLibFilesDifferentPathSeparators.nuspec",
+      "@id": "http://example/data/2017.01.04.08.15.00/repositoryserviceabledevdependency.1.0.0.json#RepositoryServiceableDevDependency.nuspec",
       "@type": "PackageEntry",
-      "compressedLength": 269,
-      "fullName": "DuplicateLibFilesDifferentPathSeparators.nuspec",
-      "length": 475,
-      "name": "DuplicateLibFilesDifferentPathSeparators.nuspec"
+      "compressedLength": 430,
+      "fullName": "RepositoryServiceableDevDependency.nuspec",
+      "length": 839,
+      "name": "RepositoryServiceableDevDependency.nuspec"
     },
     {
-      "@id": "http://example/data/2017.01.04.08.15.00/duplicatelibfilesdifferentpathseparators.1.0.0.json#lib/net8.0/DuplicateLibFilesDifferentPathSeparators.dll",
+      "@id": "http://example/data/2017.01.04.08.15.00/repositoryserviceabledevdependency.1.0.0.json#lib/net8.0/DuplicateLibFilesDifferentPathSeparators.dll",
       "@type": "PackageEntry",
       "compressedLength": 1484,
       "fullName": "lib/net8.0/DuplicateLibFilesDifferentPathSeparators.dll",

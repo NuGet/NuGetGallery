@@ -1,8 +1,9 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Xml;
 using System.Xml.XPath;
+using NuGet.Packaging;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Versioning;
 
@@ -38,6 +39,16 @@ namespace NuGet.Services.Metadata.Catalog
         public string LowerCase(string original)
         {
             return original.ToLowerInvariant();
+        }
+
+        public bool IsValidPackageId(string original)
+        {
+            return PackageIdValidator.IsValidPackageId(original);
+        }
+
+        public bool IsValidVersion(string original)
+        {
+            return NuGetVersion.TryParse(original, out _);
         }
 
         public string NormalizeVersion(string original)

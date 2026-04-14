@@ -1272,6 +1272,9 @@ The {1} Team</value>
   <data name="UploadPackage_NuspecIsNotNormalized" xml:space="preserve">
     <value>The package nuspec file is not compliant with the normalization form C (NFC).</value>
   </data>
+  <data name="UploadPackage_PackageIdNormalizationInvalid" xml:space="preserve">
+    <value>The package ID must be Unicode normalized, must not contain surrogate pairs, and must not expand or create invalid characters when converted to upper or lower case.</value>
+  </data>
   <data name="SearchResult_ExactMatch" xml:space="preserve">
     <value>exact match</value>
   </data>
@@ -1304,5 +1307,8 @@ The {1} Team</value>
   </data>
   <data name="TrustedPublisher_Unexpected" xml:space="preserve">
     <value>Unexpected trusted publisher.</value>
+  </data>
+  <data name="UploadPackage_TooManyNuspecs" xml:space="preserve">
+    <value>The package contains multiple nuspec files. Please make sure only one nuspec file is present in the package.</value>
   </data>
 </root>

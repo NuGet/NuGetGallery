@@ -438,13 +438,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         public override Uri GetUri(string name)
         {
             var baseUri = RemoveQueryString(_directory.Uri);
-
-            if (baseUri.EndsWith("/"))
-            {
-                return new Uri($"{baseUri}{name}", UriKind.Absolute);
-            }
-
-            return new Uri($"{baseUri}/{name}", UriKind.Absolute);
+            return new Uri(baseUri.TrimEnd('/') + '/' + name.TrimStart('/'), UriKind.Absolute);
         }
 
         public override async Task<bool> AreSynchronized(Uri firstResourceUri, Uri secondResourceUri)

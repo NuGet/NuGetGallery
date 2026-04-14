@@ -1,6 +1,7 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using NuGet.Versioning;
 
 namespace NuGet.Services.Metadata.Catalog.Helpers
@@ -12,7 +13,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             NuGetVersion parsedVersion;
             if (!NuGetVersion.TryParse(version, out parsedVersion))
             {
-                return version;
+                throw new InvalidOperationException($"Invalid version found when normalized: '{version}'");
             }
 
             return parsedVersion.ToNormalizedString();

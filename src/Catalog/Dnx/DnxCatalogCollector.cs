@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
+using NuGet.Packaging;
 using NuGet.Protocol.Catalog;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
@@ -456,35 +457,18 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
 
         private static string GetNuspec(Stream stream, string id)
         {
-            string name = $"{id}.nuspec";
+            using var archive = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true);
+            using var packageArchiveReader = new PackageArchiveReader(archive);
 
-            using (var archive = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true))
+            var actualId = packageArchiveReader.GetIdentity().Id;
+            if (!StringComparer.OrdinalIgnoreCase.Equals(id, actualId))
             {
-                // first look for a nuspec file named as the package id
-                foreach (ZipArchiveEntry entry in archive.Entries)
-                {
-                    if (entry.FullName.Equals(name, StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        using (TextReader reader = new StreamReader(entry.Open()))
-                        {
-                            return reader.ReadToEnd();
-                        }
-                    }
-                }
-                // failing that, just return the first file that appears to be a nuspec
-                foreach (ZipArchiveEntry entry in archive.Entries)
-                {
-                    if (entry.FullName.EndsWith(".nuspec", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        using (TextReader reader = new StreamReader(entry.Open()))
-                        {
-                            return reader.ReadToEnd();
-                        }
-                    }
-                }
+                throw new InvalidOperationException($"The package ID in the catalog leaf '{id}' does not match the package ID in the .nupkg '{actualId}'."); 
             }
 
-            return null;
+            using var nuspecStream = packageArchiveReader.GetNuspec();
+            using var nuspecReader = new StreamReader(nuspecStream);
+            return nuspecReader.ReadToEnd();
         }
 
         private static Dictionary<string, string> GetTelemetryProperties(CatalogEntry catalogEntry)
