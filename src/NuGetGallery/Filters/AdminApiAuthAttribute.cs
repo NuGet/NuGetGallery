@@ -19,13 +19,6 @@ using NuGetGallery.Services.Authentication;
 
 namespace NuGetGallery.Filters
 {
-    public static class AdminApiRoles
-    {
-        public const string Read = "AdminApi.Read";
-        public const string Maintenance = "AdminApi.Maintenance";
-        public const string Destructive = "AdminApi.Destructive";
-    }
-
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false)]
     public class AdminApiAuthAttribute : FilterAttribute, IAuthorizationFilter
     {
@@ -33,9 +26,6 @@ namespace NuGetGallery.Filters
 
         internal const string TidClaim = "tid";
         internal const string AzpClaim = "azp";
-        internal const string RolesClaim = "roles";
-
-        public string RequiredRole { get; set; }
 
         public void OnAuthorization(AuthorizationContext filterContext)
         {
@@ -62,7 +52,7 @@ namespace NuGetGallery.Filters
                 return;
             }
 
-            var validationTask = ValidateAndAuthorizeAsync(token, configService, RequiredRole);
+            var validationTask = ValidateAndAuthorizeAsync(token, configService);
             var result = AsyncHelper.RunSync(() => validationTask);
 
             if (result.StatusCode != 0)
@@ -94,8 +84,7 @@ namespace NuGetGallery.Filters
 
         internal static async Task<AuthResult> ValidateAndAuthorizeAsync(
             string token,
-            IGalleryConfigurationService configService,
-            string requiredRole = null)
+            IGalleryConfigurationService configService)
         {
             var config = configService.Current;
 
@@ -197,22 +186,6 @@ namespace NuGetGallery.Filters
                     StatusCode = (int)HttpStatusCode.Forbidden,
                     Message = $"Caller tid={tid} azp={azp} is not in the allowed callers list."
                 };
-            }
-
-            if (!string.IsNullOrEmpty(requiredRole))
-            {
-                var roles = jwt.Claims
-                    .Where(c => string.Equals(c.Type, RolesClaim, StringComparison.OrdinalIgnoreCase))
-                    .Select(c => c.Value);
-
-                if (!roles.Any(r => string.Equals(r, requiredRole, StringComparison.OrdinalIgnoreCase)))
-                {
-                    return new AuthResult
-                    {
-                        StatusCode = (int)HttpStatusCode.Forbidden,
-                        Message = $"Caller does not have the required role '{requiredRole}'. Roles present: {string.Join(", ", roles)}."
-                    };
-                }
             }
 
             return new AuthResult { StatusCode = 0, AuthorizedParty = azp };

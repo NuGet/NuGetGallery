@@ -41,7 +41,6 @@ namespace NuGetGallery.Controllers
 
         [HttpPost]
         [ActionName("ReflowPackage")]
-        [AdminApiAuth(RequiredRole = AdminApiRoles.Maintenance)]
         public virtual async Task<ActionResult> ReflowPackageAsync()
         {
             AdminReflowPackageRequest request;
