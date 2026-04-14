@@ -181,6 +181,13 @@ var gallery = builder.AddExecutable(
 	// .WaitForCompletion(seedBlobs)
 	.WaitFor(storage);
 
+builder.AddProject<Projects.NuGetGallery_AppHost_Tools>("warmup-gallery")
+	.WithArgs("warmup")
+	.WithEnvironment("WarmupBaseUrl", config.GalleryBaseAddress)
+	.WithEnvironment("WarmupPaths", "/,/packages,/api/v2")
+	.WaitFor(gallery)
+	.WithParentRelationship(infraGroup);
+
 // ─── Test data seeding (creates a user and pushes a test package) ────────────
 
 var galleryToolsExe = Path.Combine(galleryToolsBin, "GalleryTools.exe");
@@ -396,7 +403,7 @@ builder.AddProject<Projects.NuGet_Jobs_Auxiliary2AzureSearch>("auxiliary2azurese
 
 var searchServiceUri = new Uri(config.SearchServiceBaseAddress);
 
-builder.AddProject<Projects.NuGet_Services_SearchService_Core>("search-service")
+var searchService = builder.AddProject<Projects.NuGet_Services_SearchService_Core>("search-service")
 	.WithHttpEndpoint(port: searchServiceUri.Port, name: "search-http", isProxied: false)
 	.WithEnvironment("ASPNETCORE_URLS", config.SearchServiceBaseAddress)
 	.WithEnvironment("APPSETTING_SearchService__SearchServiceName", searchServiceName)
@@ -415,6 +422,13 @@ builder.AddProject<Projects.NuGet_Services_SearchService_Core>("search-service")
 	.WaitForCompletion(searchIndexReady)
 	.WaitFor(search)
 	.WaitFor(storage)
+	.WithParentRelationship(pipelineGroup);
+
+builder.AddProject<Projects.NuGetGallery_AppHost_Tools>("warmup-search")
+	.WithArgs("warmup")
+	.WithEnvironment("WarmupBaseUrl", config.SearchServiceBaseAddress)
+	.WithEnvironment("WarmupPaths", "/search/diag,/query")
+	.WaitFor(searchService)
 	.WithParentRelationship(pipelineGroup);
 
 // ─── Group "Start All" / "Stop and Reset" commands ──────────────────────────

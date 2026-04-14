@@ -8,7 +8,7 @@
 if (args.Length == 0)
 {
 	Console.Error.WriteLine("Usage: NuGetGallery.AppHost.Tools <command> [args]");
-	Console.Error.WriteLine("Commands: seed-blobs, catalog-index-available, search-index-available");
+	Console.Error.WriteLine("Commands: seed-blobs, catalog-index-available, search-index-available, warmup");
 	return 1;
 }
 
@@ -20,5 +20,6 @@ return command switch
 	"seed-blobs" => await SeedBlobsTool.RunAsync(remaining),
 	"catalog-index-available" => await V3CatalogIndexAvailableTool.RunAsync(remaining),
 	"search-index-available" => await SearchIndexAvailableTool.RunAsync(remaining),
+	"warmup" => await WarmupTool.RunAsync(remaining),
 	_ => throw new ArgumentException($"Unknown command: {command}"),
 };
