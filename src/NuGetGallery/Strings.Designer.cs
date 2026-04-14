@@ -3084,6 +3084,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The package ID must be Unicode normalized, must not contain surrogate pairs, and must not expand or create invalid characters when converted to upper or lower case..
+        /// </summary>
+        public static string UploadPackage_PackageIdNormalizationInvalid {
+            get {
+                return ResourceManager.GetString("UploadPackage_PackageIdNormalizationInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This package must be signed with a registered certificate..
         /// </summary>
         public static string UploadPackage_PackageIsNotSigned {
@@ -3153,6 +3162,15 @@ namespace NuGetGallery {
         public static string UploadPackage_SymbolsPackageNotAllowed {
             get {
                 return ResourceManager.GetString("UploadPackage_SymbolsPackageNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package contains multiple nuspec files. Please make sure only one nuspec file is present in the package..
+        /// </summary>
+        public static string UploadPackage_TooManyNuspecs {
+            get {
+                return ResourceManager.GetString("UploadPackage_TooManyNuspecs", resourceCulture);
             }
         }
         

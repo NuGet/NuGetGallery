@@ -5,9 +5,10 @@ using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using NuGet.Packaging.Core;
 using NuGet.Services.Metadata.Catalog;
-using Xunit;
 using VDS.RDF;
+using Xunit;
 
 namespace CatalogTests.Helpers
 {
@@ -62,10 +63,10 @@ namespace CatalogTests.Helpers
 
                 stream.Position = 0;
 
-                var exception = Assert.Throws<InvalidDataException>(
+                var exception = Assert.Throws<PackagingException>(
                       () => Utils.GetNupkgMetadata(stream, packageHash: null));
 
-                Assert.StartsWith("Unable to find nuspec", exception.Message);
+                Assert.StartsWith("The package is missing the required nuspec file.", exception.Message);
             }
         }
 
@@ -108,10 +109,10 @@ namespace CatalogTests.Helpers
 
                 stream.Position = 0;
 
-                var exception = Assert.Throws<InvalidDataException>(
+                var exception = Assert.Throws<PackagingException>(
                       () => Utils.GetNupkgMetadata(stream, packageHash: null));
 
-                Assert.StartsWith("Unable to find nuspec", exception.Message);
+                Assert.StartsWith("The package is missing the required nuspec file.", exception.Message);
             }
         }
 
@@ -131,10 +132,10 @@ namespace CatalogTests.Helpers
 
                 stream.Position = 0;
 
-                var exception = Assert.Throws<InvalidDataException>(
+                var exception = Assert.Throws<PackagingException>(
                       () => Utils.GetNupkgMetadata(stream, packageHash: null));
 
-                Assert.StartsWith("Unable to find nuspec", exception.Message);
+                Assert.StartsWith("The package is missing the required nuspec file.", exception.Message);
             }
         }
 

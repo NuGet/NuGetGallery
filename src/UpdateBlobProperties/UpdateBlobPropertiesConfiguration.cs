@@ -8,5 +8,6 @@ namespace UpdateBlobProperties
         public string StorageConnectionString { get; set; }
         public int MaxPageSize { get; set; }
         public int MaxKey { get; set; }
+        public int MaxDegreeOfParallelism { get; set; }
     }
 }

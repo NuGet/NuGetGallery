@@ -14,12 +14,15 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Xsl;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using NuGet.Services.Metadata.Catalog.Helpers;
+using NuGet.Packaging;
+using NuGet.Versioning;
+
 #if NETFRAMEWORK
 using JsonLD.Core;
+using Newtonsoft.Json;
 using NuGet.Services.Metadata.Catalog.JsonLDIntegration;
+using NuGet.Services.Metadata.Catalog.Helpers;
 using VDS.RDF;
 using VDS.RDF.Parsing;
 #endif
@@ -28,15 +31,15 @@ namespace NuGet.Services.Metadata.Catalog
 {
     public static class Utils
     {
+#if NETFRAMEWORK
         private const string XslTransformNuSpec = "xslt.nuspec.xslt";
         private const string XslTransformNormalizeNuSpecNamespace = "xslt.normalizeNuspecNamespace.xslt";
 
         private static readonly Lazy<XslCompiledTransform> XslTransformNuSpecCache = new Lazy<XslCompiledTransform>(() => SafeLoadXslTransform(XslTransformNuSpec));
         private static readonly Lazy<XslCompiledTransform> XslTransformNormalizeNuSpecNamespaceCache = new Lazy<XslCompiledTransform>(() => SafeLoadXslTransform(XslTransformNormalizeNuSpecNamespace));
+#endif
 
         private static readonly char[] TagTrimChars = { ',', ' ', '\t', '|', ';' };
-
-        private static readonly char[] Slashes = { '/', '\\' };
 
         public static string[] SplitTags(string original)
         {
@@ -47,6 +50,22 @@ namespace NuGet.Services.Metadata.Catalog
                 .ToArray();
 
             return fields;
+        }
+
+        public static void AssertValidPackageId(string packageId)
+        {
+            if (packageId is null || !PackageIdValidator.IsValidPackageId(packageId))
+            {
+                throw new InvalidOperationException($"The package ID {(packageId is null ? "<null>" : $"'{packageId}'")} is not valid.");
+            }
+        }
+
+        public static void AssertValidPackageVersion(string packageVersion)
+        {
+            if (packageVersion is null || !NuGetVersion.TryParse(packageVersion, out _))
+            {
+                throw new InvalidOperationException($"The package version {(packageVersion is null ? "<null>" : $"'{packageVersion}'")} is not valid.");
+            }
         }
 
         public static Stream GetResourceStream(string resourceName)
@@ -114,20 +133,10 @@ namespace NuGet.Services.Metadata.Catalog
             return transform;
         }
 
-        public static XDocument GetNuspec(ZipArchive package)
+        public static XDocument GetNuspecXDocument(PackageArchiveReader packageArchiveReader)
         {
-            if (package == null) { return null; }
-
-            foreach (ZipArchiveEntry part in package.Entries)
-            {
-                if (part.FullName.EndsWith(".nuspec") && part.FullName.IndexOfAny(Slashes) == -1)
-                {
-                    XDocument nuspec = XDocument.Load(part.Open());
-                    return nuspec;
-                }
-            }
-
-            return null;
+            using var nuspecStream = packageArchiveReader.GetNuspec();
+            return XDocument.Load(nuspecStream);
         }
 
         public static Uri Expand(JToken context, string term)
@@ -203,13 +212,16 @@ namespace NuGet.Services.Metadata.Catalog
             stream.Seek(0, SeekOrigin.Begin);
 
             using (var package = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true))
+            using (var packageArchiveReader = new PackageArchiveReader(package))
             {
-                var nuspec = GetNuspec(package);
-
-                if (nuspec == null)
+                var identity = packageArchiveReader.GetIdentity();
+                AssertValidPackageId(identity.Id);
+                if (identity.Version is null)
                 {
-                    throw new InvalidDataException("Unable to find nuspec");
+                    throw new InvalidOperationException("The version from the package identity must not be null.");
                 }
+
+                var nuspec = GetNuspecXDocument(packageArchiveReader);
 
                 var entries = GetEntries(package);
 

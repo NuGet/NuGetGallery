@@ -25,6 +25,7 @@ namespace GalleryTools
             commandLineApplication.Command("reservenamespaces", ReserveNamespacesCommand.Configure);
             commandLineApplication.Command("createuser", CreateUserCommand.Configure);
             commandLineApplication.Command("pushpackage", PushPackageCommand.Configure);
+            commandLineApplication.Command("validatepackageids", ValidatePackageIdsCommand.Configure);
 
             try
             {

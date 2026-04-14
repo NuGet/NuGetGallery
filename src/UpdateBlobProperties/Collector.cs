@@ -41,8 +41,8 @@ namespace UpdateBlobProperties
                 var pis = await _blobInfo.GetPageOfPackageInfosToUpdateBlobsAsync(_packageRepo, pageStartKey, maxKey, maxPageSize);
                 if (pis.Count > 0)
                 {
-                    _logger.LogInformation("Loaded page: {pageIndex} of package infos from DB. The page starts from key: {startPackageKey} and ends at key: {endPackageKey}.",
-                        pageIndex, pis.First().Key, pis.Last().Key);
+                    _logger.LogInformation("Loaded page: {pageIndex} of {pageSize} package infos from DB. The page starts from key: {startPackageKey} and ends at key: {endPackageKey}.",
+                        pageIndex, pis.Count, pis.First().Key, pis.Last().Key);
 
                     pageStartKey = pis.Last().Key + 1;
                     pageIndex++;

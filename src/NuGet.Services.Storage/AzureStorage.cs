@@ -433,7 +433,7 @@ namespace NuGet.Services.Storage
         // This method is a helper to insert the _path into the resolved Uri for the file so we get the correct full path.
         private Uri ResolvePathedUri(string filename)
         {
-            return ResolveUri(Path.Combine(_path, filename));
+            return ResolveUri(_path.TrimEnd('/') + '/' + filename.TrimStart('/'));
         }
 
         // Returns the primary blob service URI from the connection string
