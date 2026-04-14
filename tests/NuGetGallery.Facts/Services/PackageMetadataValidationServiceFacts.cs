@@ -13,6 +13,7 @@ using Moq;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using NuGet.Services.Entities;
+using NuGet.Versioning;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Packaging;
@@ -266,6 +267,62 @@ namespace NuGetGallery
                 }
             }
 
+            [Theory]
+            [InlineData("lib/foo.nuspec")]
+            [InlineData("lib/foo.Nuspec")]
+            [InlineData("lib\\foo.nuspec")]
+            public async Task RejectsManyNuspecs(string extraFilename)
+            {
+                _nuGetPackage = GeneratePackage(isSigned: false);
+                var files = _nuGetPackage.Object.GetFiles().ToList();
+                files.Add(extraFilename);
+                _nuGetPackage
+                    .Setup(p => p.GetFiles())
+                    .Returns(files);
+
+                var result = await _target.ValidateMetadataBeforeUploadAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage),
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.NotNull(result.Message);
+                Assert.Contains("multiple nuspec files", result.Message.PlainTextMessage);
+            }
+
+            [Theory]
+            [InlineData("lib/foo.nuspec")]
+            [InlineData("lib//foo.nuspec")]
+            [InlineData("./lib/foo.nuspec")]
+            [InlineData("../lib/foo.nuspec")]
+            [InlineData("/lib/foo.nuspec")]
+            [InlineData("lib/foo.Nuspec")]
+            [InlineData("lib/net45/foo.nuspec")]
+            [InlineData("lib\\foo.nuspec")]
+            [InlineData("lib\\\\foo.nuspec")]
+            [InlineData("lib%2Ffoo.nuspec")]
+            [InlineData("lib%5Cfoo.nuspec")]
+            [InlineData("lib/foo%2Enuspec")]
+            [InlineData("lib/foo.%6Euspec")]
+            [InlineData("lib/foo.%4Euspec")]
+            [InlineData("lib%2Ffoo%2Enuspec")]
+            [InlineData("lib%2Ffoo.%6Euspec")]
+            [InlineData("lib%2Ffoo.%4Euspec")]
+            [InlineData("%6C%69%62%2F%66%6F%6F%2E%6E%75%73%70%65%63")]
+            public async Task RejectsManyNuspecsInZipFile(string extraFilename)
+            {
+                _nuGetPackage = GeneratePackage(isSigned: false, entryNames: [extraFilename]);
+
+                var result = await _target.ValidateMetadataBeforeUploadAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage),
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.NotNull(result.Message);
+                Assert.Contains("multiple nuspec files", result.Message.PlainTextMessage);
+            }
+
             [Fact]
             public async Task AggregatesWarnings()
             {
@@ -418,6 +475,78 @@ namespace NuGetGallery
                 Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                 Assert.NotEmpty(result.Warnings);
                 Assert.Equal("The package nuspec file is not compliant with the normalization form C (NFC).", result.Warnings[0].PlainTextMessage);
+            }
+
+            [Theory]
+            [InlineData("Test.\U0001F600")] // surrogate pair
+            [InlineData("Test.\u212A")] // maps to ASCII with Invariant
+            public async Task RejectsInvalidPackage(string id)
+            {
+                // Arrange
+                var packageStream = PackageServiceUtility.CreateNuGetPackageStream(
+                    id: id,
+                    version: "1.0.0",
+                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"),
+                    licenseExpression: "MIT",
+                    isSigned: true);
+                var package = PackageServiceUtility.CreateNuGetPackage(packageStream);
+
+                // Act
+                var result = await _target.ValidateMetadataBeforeUploadAsync(
+                    package.Object,
+                    GetPackageMetadata(package),
+                    _currentUser);
+
+                // Assert
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Equal(Strings.UploadPackage_PackageIdNormalizationInvalid, result.Message.PlainTextMessage);
+            }
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            [InlineData(" ")]
+            [InlineData("\t")]
+            public void WithNullOrWhitespacePackageId_ThrowsArgumentNullException(string packageId)
+            {
+                // Arrange
+                var packageMetadata = new PackageMetadata(
+                    new Dictionary<string, string> { { "id", packageId }, { "version", "1.0.0" } },
+                    [], [], [], null, null, null);
+
+                // Act & Assert
+                Assert.Throws<ArgumentNullException>(() =>
+                {
+                    PackageMetadataValidationService.CheckPackageIdForBannedCharacters(packageMetadata, new PackageIdentity(packageId, new NuGetVersion("1.0.0")));
+                });
+            }
+
+            [Theory]
+            [InlineData("NuGet.Versioning")]
+            [InlineData("Caf\u00E9.Package")]
+            [InlineData("My_P\u00F6ckage-Test")]
+            [InlineData("Test.\u00DF")] // case expanding in some locales, but not Invariant
+            [InlineData("Test.\u017F")] // case mapping to ASCII in some locales, but not Invariant
+            public async Task WithValidNonAsciiPackageId_ReturnsNull(string id)
+            {
+                // Arrange - using valid non-ASCII characters (é, ö, ü) that don't trigger vulnerabilities
+                var packageStream = PackageServiceUtility.CreateNuGetPackageStream(
+                    id: id,
+                    version: "1.0.0",
+                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"),
+                    licenseExpression: "MIT",
+                    isSigned: true);
+                var package = PackageServiceUtility.CreateNuGetPackage(packageStream);
+
+                // Act
+                var result = await _target.ValidateMetadataBeforeUploadAsync(
+                    package.Object,
+                    GetPackageMetadata(package),
+                    _currentUser);
+
+                // Assert
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
             }
 
             [Theory]

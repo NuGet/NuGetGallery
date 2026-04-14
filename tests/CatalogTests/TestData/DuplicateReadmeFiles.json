@@ -18,7 +18,10 @@
   "packageSize": 3599,
   "published": "2017-01-03T08:15:00Z",
   "readmeFile": "README.md",
-  "repository": "",
+  "repository": {
+    "@id": "http://example/data/2017.01.04.08.15.00/duplicatereadmefiles.1.0.0.json#repository",
+    "type": "git"
+  },
   "verbatimVersion": "1.0.0",
   "version": "1.0.0",
   "dependencyGroups": [

@@ -1,8 +1,9 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -448,6 +449,54 @@ namespace NuGetGallery
             {
                 Fakes = Get<Fakes>();
                 Admin = Fakes.User;
+            }
+
+            [Fact]
+            public async Task WhenViewModelIsInvalid_ReturnsView()
+            {
+                var token = "token";
+                var org = new Organization("newlyCreated")
+                {
+                    UnconfirmedEmailAddress = OrgEmail,
+                    EmailConfirmationToken = token
+                };
+
+                var mockUserService = GetMock<IUserService>();
+                mockUserService
+                    .Setup(x => x.AddOrganizationAsync(OrgName, OrgEmail, Admin))
+                    .Returns(Task.FromResult(org));
+
+                var controller = GetController<OrganizationsController>();
+                controller.SetCurrentUser(Admin);
+                controller.ModelState.AddModelError("key", "Invalid model");
+
+                var result = await controller.Add(Model);
+
+                ResultAssert.IsView<AddOrganizationViewModel>(result);
+            }
+
+            [Theory]
+            [InlineData("foo%bar", "test@example.com")]
+            [InlineData("foo`bar", "test@example.com")]
+            [InlineData("foo/bar", "test@example.com")]
+            [InlineData("foo\\bar", "test@example.com")]
+            [InlineData("foo|bar", "test@example.com")]
+            [InlineData("foo(bar)", "test@example.com")]
+            [InlineData("foo*bar", "test@example.com")]
+            [InlineData("foo&bar", "test@example.com")]
+            [InlineData("foobar", "testexample.com")]
+            public void ValidatorCatchesInvalidOrganizationViewModel(string organizationName, string email)
+            {
+                Model.OrganizationName = organizationName;
+                Model.OrganizationEmailAddress = email;
+
+                var validationResults = new List<ValidationResult>();
+                var validationContext = new ValidationContext(Model);
+                var isValid = Validator.TryValidateObject(Model, validationContext, validationResults, validateAllProperties: true);
+
+                // Assert
+                Assert.False(isValid);
+                Assert.NotEmpty(validationResults);
             }
 
             [Fact]
