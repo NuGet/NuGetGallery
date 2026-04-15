@@ -144,6 +144,22 @@ Function Get-MSBuildExe {
     }
 }
 
+# Returns MSBuild properties that help 'dotnet msbuild' find VS-specific targets
+# (WebApplications, SSDT, etc.) when using the SDK's MSBuild instead of VS's.
+Function Get-VSToolsProperties {
+    $VisualStudioRoot = Get-LatestVisualStudioRoot
+    $VSVersion = (& $BuiltInVsWhereExe -latest -prerelease -property installationVersion).Split('.')[0] + ".0"
+    $MSBuildRoot = Join-Path $VisualStudioRoot 'MSBuild'
+    $VSToolsPath = Join-Path $MSBuildRoot "Microsoft\VisualStudio\v$VSVersion"
+
+    return @(
+        "/p:VSToolsPath=$VSToolsPath",
+        "/p:VisualStudioVersion=$VSVersion",
+        "/p:MSBuildExtensionsPath=$MSBuildRoot",
+        "/p:MSBuildExtensionsPath32=$MSBuildRoot"
+    )
+}
+
 Function Invoke-BuildStep {
     [CmdletBinding()]
     param(
@@ -275,6 +291,8 @@ Function Build-Solution {
     if ($BinLog) {
         $opts += "/bl"
     }
+
+    $opts += Get-VSToolsProperties
 
     $MSBuildExe = "dotnet"
     $msbuildOpts = @("msbuild") + $opts
@@ -817,6 +835,8 @@ Function New-WebAppPackage {
         $opts += "/bl"
     }
 
+    $opts += Get-VSToolsProperties
+
     Trace-Log "dotnet msbuild $opts"
     & dotnet msbuild @opts
     if (-not $?) {
@@ -894,6 +914,8 @@ Function New-ProjectPackage {
     if ($Options) {
         $opts += $Options
     }
+
+    $opts += Get-VSToolsProperties
 
     if (-not (Test-Path $Artifacts)) {
         New-Item $Artifacts -Type Directory
