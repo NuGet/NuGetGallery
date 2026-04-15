@@ -32,6 +32,7 @@ namespace UpdateBlobProperties
         {
             var blobName = _blobInfo.GetBlobName(packageInfo);
             var blobClient = _blobContainerClient.GetBlobClient(blobName);
+            var blobUri = blobClient.Uri.GetLeftPart(UriPartial.Path);
 
             // Retries for concurrency control (Blob client is enabled with the retry policy)
             var retries = 0;
@@ -43,7 +44,7 @@ namespace UpdateBlobProperties
                     if (!TryGetHeadersWhenBlobPropertiesNotMatched(response.Value, _blobInfo.GetUpdatedBlobProperties(), out var blobHttpHeaders))
                     {
                         _logger.LogInformation("Blob properties of Package Id: {packageId} and Version: {packageVersion} (Blob Uri: {blobUri}) are matched.",
-                            packageInfo.Id, packageInfo.Version, blobClient.Uri);
+                            packageInfo.Id, packageInfo.Version, blobUri);
 
                         return;
                     }
@@ -51,20 +52,20 @@ namespace UpdateBlobProperties
                     if (await UpdateAsync(blobClient, blobHttpHeaders, response.Value.ETag, token))
                     {
                         _logger.LogInformation("Blob properties of Package Id: {packageId} and Version: {packageVersion} (Blob Uri: {blobUri}) are updated successfully.",
-                            packageInfo.Id, packageInfo.Version, blobClient.Uri);
+                            packageInfo.Id, packageInfo.Version, blobUri);
 
                         return;
                     }
                     else
                     {
                         _logger.LogInformation("The blob of Package Id: {packageId} and Version: {packageVersion} (Blob Uri: {blobUri}) has been updated since the last read.",
-                            packageInfo.Id, packageInfo.Version, blobClient.Uri);
+                            packageInfo.Id, packageInfo.Version, blobUri);
                     }
                 }
                 catch (RequestFailedException e) when (e.Status == (int)HttpStatusCode.NotFound)
                 {
                     _logger.LogInformation("The blob of Package Id: {packageId} and Version: {packageVersion} (Blob Uri: {blobUri}) does not exist.",
-                        packageInfo.Id, packageInfo.Version, blobClient.Uri);
+                        packageInfo.Id, packageInfo.Version, blobUri);
 
                     return;
                 }
@@ -72,7 +73,7 @@ namespace UpdateBlobProperties
                 retries++;
                 if (retries == MaxRetries)
                 {
-                    throw new Exception($"Failed to update blob properties of Package Id: {packageInfo.Id} and Version: {packageInfo.Version} (Blob Uri: {blobClient.Uri}) after {MaxRetries} retries.");
+                    throw new Exception($"Failed to update blob properties of Package Id: {packageInfo.Id} and Version: {packageInfo.Version} (Blob Uri: {blobUri}) after {MaxRetries} retries.");
                 }
 
                 await Task.Delay(TimeSpan.FromSeconds(retries * 5), token);

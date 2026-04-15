@@ -1,0 +1,15 @@
+﻿<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>UpdateBlobProperties</id>
+    <version>$version$</version>
+    <title>UpdateBlobProperties</title>
+    <authors>.NET Foundation</authors>
+    <owners>.NET Foundation</owners>
+    <description>UpdateBlobProperties</description>
+    <copyright>Copyright .NET Foundation</copyright>
+  </metadata>
+  <files>
+    <file src="bin\$configuration$\net472\*.*" target="bin"/>
+  </files>
+</package>
