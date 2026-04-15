@@ -41,7 +41,9 @@ static class SeedBlobsTool
 			{
 				var fileName = Path.GetFileName(file);
 				if (fileName.Equals("flags.json", StringComparison.OrdinalIgnoreCase))
+				{
 					seededFlags = true;
+				}
 				var contentType = Path.GetExtension(file).ToLowerInvariant() switch
 				{
 					".json" => "application/json",

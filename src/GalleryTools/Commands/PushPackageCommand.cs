@@ -111,11 +111,9 @@ namespace GalleryTools.Commands
 					Console.WriteLine($"Pushed {id} {version} (owner={ownerUsername}, key={package.Key}).");
 					return 0;
 				}
-				else
-				{
-					Console.WriteLine($"Failed to commit package {id} {version}: {commitResult}");
-					return 1;
-				}
+
+				Console.WriteLine($"Failed to commit package {id} {version}: {commitResult}");
+				return 1;
 			}
 		}
 	}
