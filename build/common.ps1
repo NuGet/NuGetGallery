@@ -154,9 +154,7 @@ Function Get-VSToolsProperties {
 
     return @(
         "/p:VSToolsPath=$VSToolsPath",
-        "/p:VisualStudioVersion=$VSVersion",
-        "/p:MSBuildExtensionsPath=$MSBuildRoot",
-        "/p:MSBuildExtensionsPath32=$MSBuildRoot"
+        "/p:VisualStudioVersion=$VSVersion"
     )
 }
 
