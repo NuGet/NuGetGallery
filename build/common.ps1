@@ -276,10 +276,11 @@ Function Build-Solution {
         $opts += "/bl"
     }
 
-    $MSBuildExe = Get-MSBuildExe $MSBuildVersion
+    $MSBuildExe = "dotnet"
+    $msbuildOpts = @("msbuild") + $opts
 
-    Trace-Log "$MSBuildExe $opts"
-    & $MSBuildExe $opts
+    Trace-Log "$MSBuildExe msbuild $opts"
+    & $MSBuildExe @msbuildOpts
     if (-not $?) {
         Error-Log "Build of ${SolutionPath} failed. Code: $LASTEXITCODE"
     }
@@ -583,27 +584,37 @@ Function Restore-SolutionPackages {
         [string]$ConfigFile
     )
     $InstallLocation = $NuGetClientRoot
-    $opts = , 'restore'
     if (-not $SolutionPath) {
+        # packages.config restore — use nuget.exe (no MSBuild needed)
+        $opts = , 'restore'
         $opts += "${NuGetClientRoot}\.nuget\packages.config", '-SolutionDirectory', $NuGetClientRoot
+
+        if ($ConfigFile) {
+            $opts += '-configfile', $ConfigFile
+        }
+
+        Trace-Log "Restoring packages @""$InstallLocation"""
+        Trace-Log "$NuGetExe $opts"
+        & $NuGetExe $opts
+        if (-not $?) {
+            Error-Log "Restore failed @""$InstallLocation"". Code: ${LASTEXITCODE}"
+        }
     }
     else {
-        $opts += $SolutionPath
+        # Solution restore — use dotnet restore (uses the SDK's MSBuild)
         $InstallLocation = Split-Path -Path $SolutionPath -Parent
-    }
-    if ($MSBuildVersion) {
-        $opts += '-MSBuildPath', (Split-Path -Path (Get-MSBuildExe $MSBuildVersion) -Parent)
-    }
+        $opts = @($SolutionPath)
 
-    if ($ConfigFile) {
-        $opts += '-configfile', $ConfigFile
-    }
+        if ($ConfigFile) {
+            $opts += '--configfile', $ConfigFile
+        }
 
-    Trace-Log "Restoring packages @""$InstallLocation"""
-    Trace-Log "$NuGetExe $opts"
-    & $NuGetExe $opts
-    if (-not $?) {
-        Error-Log "Restore failed @""$InstallLocation"". Code: ${LASTEXITCODE}"
+        Trace-Log "Restoring packages @""$InstallLocation"""
+        Trace-Log "dotnet restore $opts"
+        & dotnet restore @opts
+        if (-not $?) {
+            Error-Log "Restore failed @""$InstallLocation"". Code: ${LASTEXITCODE}"
+        }
     }
 }
 
@@ -786,8 +797,6 @@ Function New-WebAppPackage {
     )
     Trace-Log "Creating web app package from @""$TargetFilePath"""
 
-    $MSBuildExe = Get-MSBuildExe $MSBuildVersion
-
     $opts = , $TargetFilePath
     $opts += "/t:build"
 
@@ -808,8 +817,8 @@ Function New-WebAppPackage {
         $opts += "/bl"
     }
 
-    Trace-Log "$MsBuildExe $opts"
-    & $MsBuildExe $opts
+    Trace-Log "dotnet msbuild $opts"
+    & dotnet msbuild @opts
     if (-not $?) {
         Error-Log "Creating web app package failed for @""$TargetFilePath"". Code: ${LASTEXITCODE}"
     }
@@ -836,8 +845,6 @@ Function New-ProjectPackage {
         [string[]]$Options
     )
     Trace-Log "Creating package from @""$TargetFilePath"""
-
-    $MSBuildExe = Get-MSBuildExe $MSBuildVersion
 
     $opts = , $TargetFilePath
     $opts += "/t:pack"
@@ -897,8 +904,8 @@ Function New-ProjectPackage {
         New-Item $OutputDir -Type Directory
     }
 
-    Trace-Log "$MsBuildExe $opts"
-    & $MsBuildExe $opts
+    Trace-Log "dotnet msbuild $opts"
+    & dotnet msbuild @opts
     if (-not $?) {
         Error-Log "Pack failed for @""$TargetFilePath"". Code: ${LASTEXITCODE}"
     }
