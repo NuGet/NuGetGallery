@@ -125,5 +125,48 @@ namespace NuGetGallery
                         It.IsAny<TimeSpan>()), Times.Once);
             }
         }
+
+        public class TheYourPrivacyChoicesUrl : TestContainer
+        {
+            [Fact]
+            public void WithExternalYourPrivacyChoicesUrlConfigured()
+            {
+                var expectedUrl = "https://aka.ms/yourcaliforniaprivacychoices";
+                var configuration = GetConfigurationService();
+                configuration.Current.ExternalYourPrivacyChoicesUrl = expectedUrl;
+
+                var urlHelper = TestUtility.MockUrlHelper();
+
+                var result = UrlHelperExtensions.YourPrivacyChoices(urlHelper);
+
+                Assert.Equal(expectedUrl, result);
+            }
+
+            [Fact]
+            public void WithoutExternalYourPrivacyChoicesUrlConfigured()
+            {
+                var configuration = GetConfigurationService();
+                configuration.Current.ExternalYourPrivacyChoicesUrl = "";
+
+                var urlHelper = TestUtility.MockUrlHelper();
+
+                var result = UrlHelperExtensions.YourPrivacyChoices(urlHelper);
+
+                Assert.NotEqual("https://aka.ms/yourcaliforniaprivacychoices", result);
+            }
+
+            [Fact]
+            public void WithNullExternalYourPrivacyChoicesUrlConfigured()
+            {
+                var configuration = GetConfigurationService();
+                configuration.Current.ExternalYourPrivacyChoicesUrl = null;
+
+                var urlHelper = TestUtility.MockUrlHelper();
+
+                var result = UrlHelperExtensions.YourPrivacyChoices(urlHelper);
+
+                Assert.NotEqual("https://aka.ms/yourcaliforniaprivacychoices", result);
+            }
+        }
     }
 }
