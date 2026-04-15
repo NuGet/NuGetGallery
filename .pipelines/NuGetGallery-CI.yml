@@ -71,6 +71,11 @@ extends:
                 clean: true
                 fetchTags: false
                 path: $(NuGetGalleryDirectory)
+              - task: UseDotNet@2
+                displayName: Install .NET SDK
+                inputs:
+                  useGlobalJson: true
+                  workingDirectory: $(NuGetGalleryPath)
               - task: PowerShell@1
                 name: build
                 displayName: Build
@@ -107,6 +112,11 @@ extends:
                 clean: true
                 fetchTags: false
                 path: $(NuGetGalleryDirectory)
+              - task: UseDotNet@2
+                displayName: Install .NET SDK
+                inputs:
+                  useGlobalJson: true
+                  workingDirectory: $(NuGetGalleryPath)
               - task: PowerShell@1
                 name: build
                 displayName: Build
@@ -177,6 +187,11 @@ extends:
                 clean: true
                 fetchTags: false
                 path: $(NuGetGalleryDirectory)
+              - task: UseDotNet@2
+                displayName: Install .NET SDK
+                inputs:
+                  useGlobalJson: true
+                  workingDirectory: $(NuGetGalleryPath)
               - task: PowerShell@1
                 name: build
                 displayName: Build
@@ -213,6 +228,11 @@ extends:
                 clean: true
                 fetchTags: false
                 path: $(NuGetGalleryDirectory)
+              - task: UseDotNet@2
+                displayName: Install .NET SDK
+                inputs:
+                  useGlobalJson: true
+                  workingDirectory: $(NuGetGalleryPath)
               - task: PowerShell@1
                 name: build_artifacts
                 displayName: Build
