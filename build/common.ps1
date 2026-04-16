@@ -634,22 +634,26 @@ Function Restore-SolutionPackages {
             Error-Log "Restore failed @""$InstallLocation"". Code: ${LASTEXITCODE}"
         }
 
-        # Step 2: nuget.exe restore for packages.config projects
-        # Uses VS MSBuild to parse the solution but only restores packages.config entries.
-        # SDK-style projects may warn but packages.config projects will succeed.
-        $nugetOpts = @('restore', $SolutionPath)
-        if ($MSBuildVersion) {
-            $nugetOpts += '-MSBuildPath', (Split-Path -Path (Get-MSBuildExe $MSBuildVersion) -Parent)
-        }
-        if ($ConfigFile) {
-            $nugetOpts += '-configfile', $ConfigFile
-        }
+        # Step 2: Restore packages.config packages directly (avoids MSBuild SDK resolution issues)
+        $solutionDir = Split-Path -Path $SolutionPath -Parent
+        $packagesDir = Join-Path $solutionDir "packages"
+        $configFiles = Get-ChildItem -Path $solutionDir -Recurse -Filter "packages.config" -File `
+            | Where-Object { $_.DirectoryName -ne $solutionDir }
 
-        Trace-Log "Restoring packages.config packages @""$InstallLocation"""
-        Trace-Log "$NuGetExe $nugetOpts"
-        & $NuGetExe @nugetOpts 2>&1 | ForEach-Object { Trace-Log $_ }
-        # Ignore exit code — SDK-style projects may fail under MSBuild v17 but
-        # packages.config projects should restore successfully.
+        if ($configFiles) {
+            Trace-Log "Restoring packages.config packages @""$InstallLocation"""
+            foreach ($configFile in $configFiles) {
+                $nugetOpts = @('install', $configFile.FullName, '-OutputDirectory', $packagesDir, '-NonInteractive')
+                if ($ConfigFile) {
+                    $nugetOpts += '-configfile', $ConfigFile
+                }
+                Trace-Log "$NuGetExe $nugetOpts"
+                & $NuGetExe @nugetOpts
+                if (-not $?) {
+                    Error-Log "packages.config restore failed for $($configFile.FullName). Code: ${LASTEXITCODE}"
+                }
+            }
+        }
     }
 }
 
