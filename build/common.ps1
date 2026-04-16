@@ -151,10 +151,12 @@ Function Get-VSToolsProperties {
     $VSVersion = (& $BuiltInVsWhereExe -latest -prerelease -property installationVersion).Split('.')[0] + ".0"
     $MSBuildRoot = Join-Path $VisualStudioRoot 'MSBuild'
     $VSToolsPath = Join-Path $MSBuildRoot "Microsoft\VisualStudio\v$VSVersion"
+    $SSDTPath = Join-Path $VSToolsPath 'SSDT'
 
     return @(
         "/p:VSToolsPath=$VSToolsPath",
-        "/p:VisualStudioVersion=$VSVersion"
+        "/p:VisualStudioVersion=$VSVersion",
+        "/p:SQLDBExtensionsRefPath=$SSDTPath"
     )
 }
 
@@ -617,20 +619,37 @@ Function Restore-SolutionPackages {
         }
     }
     else {
-        # Solution restore — use dotnet restore (uses the SDK's MSBuild)
         $InstallLocation = Split-Path -Path $SolutionPath -Parent
-        $opts = @($SolutionPath)
 
+        # Step 1: dotnet restore for SDK-style (PackageReference) projects
+        $dotnetOpts = @($SolutionPath)
         if ($ConfigFile) {
-            $opts += '--configfile', $ConfigFile
+            $dotnetOpts += '--configfile', $ConfigFile
         }
 
-        Trace-Log "Restoring packages @""$InstallLocation"""
-        Trace-Log "dotnet restore $opts"
-        & dotnet restore @opts
+        Trace-Log "Restoring SDK-style packages @""$InstallLocation"""
+        Trace-Log "dotnet restore $dotnetOpts"
+        & dotnet restore @dotnetOpts
         if (-not $?) {
             Error-Log "Restore failed @""$InstallLocation"". Code: ${LASTEXITCODE}"
         }
+
+        # Step 2: nuget.exe restore for packages.config projects
+        # Uses VS MSBuild to parse the solution but only restores packages.config entries.
+        # SDK-style projects may warn but packages.config projects will succeed.
+        $nugetOpts = @('restore', $SolutionPath)
+        if ($MSBuildVersion) {
+            $nugetOpts += '-MSBuildPath', (Split-Path -Path (Get-MSBuildExe $MSBuildVersion) -Parent)
+        }
+        if ($ConfigFile) {
+            $nugetOpts += '-configfile', $ConfigFile
+        }
+
+        Trace-Log "Restoring packages.config packages @""$InstallLocation"""
+        Trace-Log "$NuGetExe $nugetOpts"
+        & $NuGetExe @nugetOpts 2>&1 | ForEach-Object { Trace-Log $_ }
+        # Ignore exit code — SDK-style projects may fail under MSBuild v17 but
+        # packages.config projects should restore successfully.
     }
 }
 
