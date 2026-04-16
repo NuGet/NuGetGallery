@@ -174,7 +174,7 @@ public class Program
 
 		var gallery = builder.AddExecutable(
 			"gallery",
-			@"C:\Program Files\IIS Express\iisexpress.exe",
+			Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "IIS Express", "iisexpress.exe"),
 			galleryPath,
 			"/config:" + iisExpressConfig,
 			"/site:NuGet Gallery (localhost)")
