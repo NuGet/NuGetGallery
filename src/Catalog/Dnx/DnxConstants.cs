@@ -25,7 +25,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
         public static readonly TimeSpan CacheDurationOfPackageVersionIndex = TimeSpan.FromSeconds(60);
 
         // Front Cursor with Updates
-        // (MaxNumberOfUpdatesToKeepOfFrontCursor - 1) * MinIntervalBetweenTwoUpdatesOfFrontCursor > CacheDurationOfPackageVersionIndex
+        // (MaxNumberOfUpdatesToKeepOfFrontCursor - 1) * MinIntervalBetweenTwoUpdatesOfFrontCursor > CacheDurationOfPackageVersionIndex + 1
         public const int MaxNumberOfUpdatesToKeepOfFrontCursor = 31;
         public static readonly TimeSpan MinIntervalBetweenTwoUpdatesOfFrontCursor = TimeSpan.FromSeconds(60);
     }
