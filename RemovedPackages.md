@@ -197,6 +197,24 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    pionehelper 1.0.2                         |    04/10/2026    |   Malware  |
 |    pionehelper 1.0.3                         |    04/10/2026    |   Malware  |
 |    Nova.GtkSharp 1.0.0.1-nova                |    04/10/2026    |   Malware  |
+|    kusto 11.1.2                              |    04/16/2026    |   Potentially Malicious  |
+|    Kusto.Cloud 11.1.2                        |    04/16/2026    |   Potentially Malicious  |
+|    Kusto.Cloud.Platform 11.1.1               |    04/16/2026    |   Potentially Malicious  |
+|    Kusto.Cloud.Platform.IO 11.1.2            |    04/16/2026    |   Potentially Malicious  |
+|    Kusto.Cloud.Platform.Security 11.1.0      |    04/16/2026    |   Potentially Malicious  |
+|    Kusto.Cloud.Platform.Text 11.1.0          |    04/16/2026    |   Potentially Malicious  |
+|    Kusto.Cloud.Platform.Utils 11.1.0         |    04/16/2026    |   Potentially Malicious  |
+|    Kusto.Data.Common 11.1.3                  |    04/16/2026    |   Potentially Malicious  |
+|    Kusto.Data.Common.ClientRequestProperties 11.1.0  |    04/16/2026    |   Potentially Malicious  |
+|    Kusto.Data.Exceptions 11.1.0              |    04/16/2026    |   Potentially Malicious  |
+|    Kusto.Data.Ingestion 11.1.0               |    04/16/2026    |   Potentially Malicious  |
+|    Kusto.Data.Linq 11.1.0                    |    04/16/2026    |   Potentially Malicious  |
+|    Kusto.Data.Net 11.1.0                     |    04/16/2026    |   Potentially Malicious  |
+|    Kusto.Data.Net.Client 11.1.0              |    04/16/2026    |   Potentially Malicious  |
+|    Kusto.Ingest 11.1.0                       |    04/16/2026    |   Potentially Malicious  |
+|    Kusto.Ingest.Exceptions 11.1.0            |    04/16/2026    |   Potentially Malicious  |
+|    KustoData.Exceptions 11.1.4               |    04/16/2026    |   Potentially Malicious  |
+|    eugenerrr_test 1.0.4                      |    04/16/2026    |   Potentially Malicious  |
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.
