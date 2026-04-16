@@ -43,7 +43,7 @@ resources:
       ref: refs/heads/main
 
 pool:
-  name: $(DncEngPublicBuildPool)
+  name: NetCore-Public
   demands: ImageOverride -equals windows.vs2026.amd64.open
 
 stages:
