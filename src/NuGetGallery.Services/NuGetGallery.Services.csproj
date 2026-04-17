@@ -61,11 +61,15 @@
     <PackageReference Include="System.Runtime" />
   </ItemGroup>
 
+  <ItemGroup Label="Transitive pinning for CG fix">
+    <PackageReference Include="Microsoft.Bcl.Memory" />
+  </ItemGroup>
+
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
     <ProjectReference Include="..\NuGet.Services.Configuration\NuGet.Services.Configuration.csproj" />
     <ProjectReference Include="..\NuGet.Services.Logging\NuGet.Services.Logging.csproj" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <Compile Update="ServicesStrings.Designer.cs">
       <DesignTime>True</DesignTime>
