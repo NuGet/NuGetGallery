@@ -60,6 +60,11 @@ stages:
             clean: true
             fetchTags: false
             path: $(NuGetGalleryDirectory)
+          - task: UseDotNet@2
+            displayName: Install .NET 8.0 SDK
+            inputs:
+              packageType: sdk
+              version: 8.0.x
           - task: PowerShell@1
             name: build
             displayName: Build
@@ -96,6 +101,11 @@ stages:
             clean: true
             fetchTags: false
             path: $(NuGetGalleryDirectory)
+          - task: UseDotNet@2
+            displayName: Install .NET 8.0 SDK
+            inputs:
+              packageType: sdk
+              version: 8.0.x
           - task: PowerShell@1
             name: build
             displayName: Build
@@ -165,6 +175,11 @@ stages:
             clean: true
             fetchTags: false
             path: $(NuGetGalleryDirectory)
+          - task: UseDotNet@2
+            displayName: Install .NET 8.0 SDK
+            inputs:
+              packageType: sdk
+              version: 8.0.x
           - task: PowerShell@1
             name: build
             displayName: Build
@@ -201,6 +216,11 @@ stages:
             clean: true
             fetchTags: false
             path: $(NuGetGalleryDirectory)
+          - task: UseDotNet@2
+            displayName: Install .NET 8.0 SDK
+            inputs:
+              packageType: sdk
+              version: 8.0.x
           - task: PowerShell@1
             name: build_artifacts
             displayName: Build
