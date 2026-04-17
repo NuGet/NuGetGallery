@@ -1471,6 +1471,16 @@ namespace NuGetGallery
             return GetActionLink(url, "Privacy", "Pages", relativeUrl);
         }
 
+        public static string YourPrivacyChoices(this UrlHelper url, bool relativeUrl = true)
+        {
+            if (!String.IsNullOrEmpty(_configuration.Current.ExternalYourPrivacyChoicesUrl))
+            {
+                return _configuration.Current.ExternalYourPrivacyChoicesUrl;
+            }
+
+            return GetActionLink(url, "Your Privacy Choices", "Pages", relativeUrl);
+        }
+
         public static string ExternalPrivacyUrl(this UrlHelper url)
         {
             return _configuration.Current.ExternalPrivacyPolicyUrl;
