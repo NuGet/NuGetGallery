@@ -139,7 +139,7 @@
     <value>The specified API key is invalid, has expired, or does not have permission to access the specified package.</value>
   </data>
   <data name="ApiKeyNotAuthorized_PackageIdScopeMismatch" xml:space="preserve">
-    <value>The specified API key does not have permission to push to this package. The API key may have a package ID scope that does not include this package ID.</value>
+    <value>The specified API key does not have permission to perform this action on this package. The API key may have a package ID scope that does not include this package ID, or it may not allow the requested action.</value>
   </data>
   <data name="PackageExistsAndCannotBeModified" xml:space="preserve">
     <value>A package with ID '{0}' and version '{1}' already exists and cannot be modified.</value>
