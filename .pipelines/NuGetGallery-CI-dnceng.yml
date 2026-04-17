@@ -149,13 +149,12 @@ stages:
               versionSpec: '3.10'
           - script: |
               python -m pip install --user pipx
-              pipx ensurepath
-            displayName: 'Install tools'
-          - script: |
+              set PATH=%USERPROFILE%\.local\bin;%PATH%
               pipx install poetry
               poetry install
               poetry build
               poetry run pytest tests/ --cov loginterpretation --cov-report html
+            displayName: 'Install tools and run tests'
             workingDirectory: $(NuGetGalleryPath)\python\StatsLogParser
           - task: PublishPipelineArtifact@1
             inputs:
