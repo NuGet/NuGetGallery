@@ -1227,7 +1227,11 @@ namespace NuGetGallery
             }
 
             string message;
-            if (result.PermissionsCheckResult == PermissionsCheckResult.Allowed && !result.IsOwnerConfirmed)
+            if (!result.ScopesAreValid)
+            {
+                message = Strings.ApiKeyNotAuthorized_PackageIdScopeMismatch;
+            }
+            else if (result.PermissionsCheckResult == PermissionsCheckResult.Allowed && !result.IsOwnerConfirmed)
             {
                 message = Strings.ApiKeyOwnerUnconfirmed;
             }
