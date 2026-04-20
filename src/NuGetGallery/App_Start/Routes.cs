@@ -898,8 +898,26 @@ namespace NuGetGallery
         {
             routes.MapRoute(
                 RouteName.AdminReflow,
-                "api/admin/reflow",
+                "api/admin/reflow-package",
                 new { controller = "AdminApi", action = "ReflowPackage" },
+                new { httpMethod = new HttpMethodConstraint("POST") });
+
+            routes.MapRoute(
+                RouteName.AdminReflow,
+                "api/admin/lock-package",
+                new { controller = "AdminApi", action = "LockPackage" },
+                new { httpMethod = new HttpMethodConstraint("POST") });
+
+            routes.MapRoute(
+                RouteName.AdminReflow,
+                "api/admin/lock-user",
+                new { controller = "AdminApi", action = "LockUser" },
+                new { httpMethod = new HttpMethodConstraint("POST") });
+
+            routes.MapRoute(
+                RouteName.AdminReflow,
+                "api/admin/soft-delete-package",
+                new { controller = "AdminApi", action = "SoftDeletePackage" },
                 new { httpMethod = new HttpMethodConstraint("POST") });
         }
     }
