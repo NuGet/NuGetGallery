@@ -72,17 +72,17 @@ stages:
               packageType: sdk
               version: 8.0.x
           - task: PowerShell@1
-            name: setup_dev
-            displayName: Setup Dev Environment
-            inputs:
-              scriptName: $(NuGetGalleryPath)\tools\Setup-DevEnvironment.ps1
-              workingFolder: $(NuGetGalleryPath)
-          - task: PowerShell@1
             name: build
             displayName: Build
             inputs:
               scriptName: $(NuGetGalleryPath)\build.ps1
               arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipArtifacts -SkipGallery -SkipJobs -CommonAssemblyVersion $(CommonAssemblyVersion) -CommonPackageVersion $(CommonPackageVersion) -GalleryAssemblyVersion $(GalleryAssemblyVersion) -GalleryPackageVersion $(GalleryPackageVersion) -JobsAssemblyVersion $(JobsAssemblyVersion) -JobsPackageVersion $(JobsPackageVersion) -Branch $(NuGetGalleryBranch) -CommitSHA $(Build.SourceVersion)
+              workingFolder: $(NuGetGalleryPath)
+          - task: PowerShell@1
+            name: setup_dev
+            displayName: Setup Dev Environment
+            inputs:
+              scriptName: $(NuGetGalleryPath)\tools\Setup-DevEnvironment.ps1
               workingFolder: $(NuGetGalleryPath)
           - task: PowerShell@1
             name: test
@@ -119,17 +119,17 @@ stages:
               packageType: sdk
               version: 8.0.x
           - task: PowerShell@1
-            name: setup_dev
-            displayName: Setup Dev Environment
-            inputs:
-              scriptName: $(NuGetGalleryPath)\tools\Setup-DevEnvironment.ps1
-              workingFolder: $(NuGetGalleryPath)
-          - task: PowerShell@1
             name: build
             displayName: Build
             inputs:
               scriptName: $(NuGetGalleryPath)\build.ps1
               arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipArtifacts -SkipCommon -SkipJobs -CommonAssemblyVersion $(CommonAssemblyVersion) -CommonPackageVersion $(CommonPackageVersion) -GalleryAssemblyVersion $(GalleryAssemblyVersion) -GalleryPackageVersion $(GalleryPackageVersion) -JobsAssemblyVersion $(JobsAssemblyVersion) -JobsPackageVersion $(JobsPackageVersion) -Branch $(NuGetGalleryBranch) -CommitSHA $(Build.SourceVersion)
+              workingFolder: $(NuGetGalleryPath)
+          - task: PowerShell@1
+            name: setup_dev
+            displayName: Setup Dev Environment
+            inputs:
+              scriptName: $(NuGetGalleryPath)\tools\Setup-DevEnvironment.ps1
               workingFolder: $(NuGetGalleryPath)
           - task: PowerShell@1
             name: test
@@ -198,17 +198,17 @@ stages:
               packageType: sdk
               version: 8.0.x
           - task: PowerShell@1
-            name: setup_dev
-            displayName: Setup Dev Environment
-            inputs:
-              scriptName: $(NuGetGalleryPath)\tools\Setup-DevEnvironment.ps1
-              workingFolder: $(NuGetGalleryPath)
-          - task: PowerShell@1
             name: build
             displayName: Build
             inputs:
               scriptName: $(NuGetGalleryPath)\build.ps1
               arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipArtifacts -SkipCommon -SkipGallery -CommonAssemblyVersion $(CommonAssemblyVersion) -CommonPackageVersion $(CommonPackageVersion) -GalleryAssemblyVersion $(GalleryAssemblyVersion) -GalleryPackageVersion $(GalleryPackageVersion) -JobsAssemblyVersion $(JobsAssemblyVersion) -JobsPackageVersion $(JobsPackageVersion) -Branch $(NuGetGalleryBranch) -CommitSHA $(Build.SourceVersion)
+              workingFolder: $(NuGetGalleryPath)
+          - task: PowerShell@1
+            name: setup_dev
+            displayName: Setup Dev Environment
+            inputs:
+              scriptName: $(NuGetGalleryPath)\tools\Setup-DevEnvironment.ps1
               workingFolder: $(NuGetGalleryPath)
           - task: PowerShell@1
             name: test
@@ -245,15 +245,15 @@ stages:
               packageType: sdk
               version: 8.0.x
           - task: PowerShell@1
-            name: setup_dev
-            displayName: Setup Dev Environment
-            inputs:
-              scriptName: $(NuGetGalleryPath)\tools\Setup-DevEnvironment.ps1
-              workingFolder: $(NuGetGalleryPath)
-          - task: PowerShell@1
             name: build_artifacts
             displayName: Build
             inputs:
               scriptName: $(NuGetGalleryPath)\build.ps1
               arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -CommonAssemblyVersion $(CommonAssemblyVersion) -CommonPackageVersion $(CommonPackageVersion) -GalleryAssemblyVersion $(GalleryAssemblyVersion) -GalleryPackageVersion $(GalleryPackageVersion) -JobsAssemblyVersion $(JobsAssemblyVersion) -JobsPackageVersion $(JobsPackageVersion) -Branch $(NuGetGalleryBranch) -CommitSHA $(Build.SourceVersion)
+              workingFolder: $(NuGetGalleryPath)
+          - task: PowerShell@1
+            name: setup_dev
+            displayName: Setup Dev Environment
+            inputs:
+              scriptName: $(NuGetGalleryPath)\tools\Setup-DevEnvironment.ps1
               workingFolder: $(NuGetGalleryPath)
