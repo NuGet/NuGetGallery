@@ -268,13 +268,33 @@ stages:
               }
             displayName: Docker Check (informational)
             workingDirectory: $(NuGetGalleryPath)
-          - script: |
-              npm install -g azurite
-              mkdir %TEMP%\azurite 2>nul
-              start /B azurite --silent --location %TEMP%\azurite --blobPort 10000 --queuePort 10001 --tablePort 10002
-            displayName: Install & Start Azurite
-            workingDirectory: $(NuGetGalleryPath)
           - powershell: |
+              Write-Host "=== Installing Azurite via npm ==="
+              npm install -g azurite
+              if ($LASTEXITCODE -ne 0) {
+                  Write-Error "Failed to install azurite via npm."
+                  exit 1
+              }
+
+              $azuriteDir = Join-Path $env:TEMP "azurite"
+              New-Item -ItemType Directory -Path $azuriteDir -Force | Out-Null
+
+              Write-Host "=== Starting Azurite in background ==="
+              $azuriteCmd = Get-Command azurite.cmd -ErrorAction SilentlyContinue
+              if (-not $azuriteCmd) {
+                  $azuriteCmd = Get-Command azurite -ErrorAction SilentlyContinue
+              }
+              if (-not $azuriteCmd) {
+                  Write-Error "azurite command not found after npm install."
+                  exit 1
+              }
+              Write-Host "Azurite found at: $($azuriteCmd.Source)"
+
+              $proc = Start-Process -FilePath "cmd.exe" `
+                  -ArgumentList "/c `"$($azuriteCmd.Source)`" --silent --location $azuriteDir --blobPort 10000 --queuePort 10001 --tablePort 10002" `
+                  -PassThru -WindowStyle Hidden
+              Write-Host "Azurite launched with PID $($proc.Id), waiting for endpoints..."
+
               Write-Host "=== Polling Azurite endpoints ==="
               $start = Get-Date
               $maxWait = 300
@@ -285,52 +305,50 @@ stages:
                   foreach ($port in (10000..10002)) {
                       $url = "http://127.0.0.1:$port/"
                       try {
-                          $response = Invoke-WebRequest $url -TimeoutSec 5
+                          $null = Invoke-WebRequest $url -TimeoutSec 5
                       }
                       catch {
                           $response = $_.Exception.Response
                           $status = $response.StatusCode
-                          if ($response.Headers) { $server = $response.Headers.Server }
                           if (!$status) {
                               $ready = $false
-                              Write-Host "[Storage not ready] $url - $($_.Exception.Message)"
+                              Write-Host "[Not ready] $url - $($_.Exception.Message)"
                           }
-                          elseif (!($status -eq 400 -or ($status -ge 200 -and $status -lt 300))) {
-                              $ready = $false
-                              Write-Host "[Storage not ready] $url - HTTP $status"
-                          }
-                          elseif ($server -notlike "Azurite-*") {
-                              $ready = $false
-                              Write-Host "[Storage not ready] $url - Unexpected Server header $server"
+                          elseif ($status -eq 400 -or ($status -ge 200 -and $status -lt 300)) {
+                              Write-Host "[Ready] $url - HTTP $([int]$status)"
                           }
                           else {
-                              Write-Host "[Storage ready] $url - Server header $server"
+                              $ready = $false
+                              Write-Host "[Not ready] $url - HTTP $([int]$status)"
                           }
                       }
-
-                      if (!$ready) {
-                          break
-                      }
+                      if (!$ready) { break }
                   }
 
                   $duration = (Get-Date) - $start
                   if ($ready) {
-                      Write-Host "All storage endpoints ready after $duration" -ForegroundColor Green
+                      Write-Host "All Azurite endpoints ready after $duration" -ForegroundColor Green
                       break
+                  }
+                  elseif ($proc.HasExited) {
+                      Write-Error "Azurite process exited with code $($proc.ExitCode)."
+                      exit 1
                   }
                   elseif ($duration.TotalSeconds -gt $maxWait) {
                       Write-Error "Azurite not ready after $duration"
                       exit 1
                   }
                   else {
-                      $remaining = [int][Math]::Ceiling([Math]::Min($maxWait - $duration.TotalSeconds, $attempt))
-                      if ($remaining -gt 0) {
-                          Write-Host "Waiting $remaining second(s)..."
-                          Start-Sleep -Seconds $remaining
-                      }
+                      $wait = [Math]::Min(10, [Math]::Max(1, $maxWait - $duration.TotalSeconds))
+                      Write-Host "Attempt $attempt - waiting $([int]$wait)s..."
+                      Start-Sleep -Seconds $wait
                   }
               }
-            displayName: Verify Azurite
+
+              Write-Host "Blob:  http://127.0.0.1:10000/"
+              Write-Host "Queue: http://127.0.0.1:10001/"
+              Write-Host "Table: http://127.0.0.1:10002/"
+            displayName: Install, Start & Verify Azurite
             workingDirectory: $(NuGetGalleryPath)
 
   - stage: artifacts
