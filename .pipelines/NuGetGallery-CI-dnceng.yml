@@ -253,29 +253,34 @@ stages:
               includePreviewVersions: true
           - powershell: |
               Write-Host "=== Checking Docker availability ==="
-              docker version
-              if ($LASTEXITCODE -ne 0) {
-                  Write-Error "Docker is not installed or not running on this agent."
-                  exit 1
-              }
-              Write-Host "Docker is installed and running."
-
-              docker info
-              if ($LASTEXITCODE -ne 0) {
-                  Write-Error "Docker daemon is not responsive."
-                  exit 1
-              }
-
-              Write-Host "=== Starting Azurite container ==="
-              docker run -d --name azurite -p 10000:10000 -p 10001:10001 -p 10002:10002 mcr.microsoft.com/azure-storage/azurite
-              if ($LASTEXITCODE -ne 0) {
-                  Write-Host "=== Docker diagnostics ==="
+              $dockerPath = Get-Command docker -ErrorAction SilentlyContinue
+              if ($dockerPath) {
+                  Write-Host "Docker found at: $($dockerPath.Source)"
                   docker version
                   docker info
-                  Write-Error "Failed to start Azurite container. This may be because the agent does not support Linux containers."
+              }
+              else {
+                  Write-Host "Docker is NOT installed on this agent."
+              }
+
+              Write-Host ""
+              Write-Host "=== Agent OS info ==="
+              Write-Host "OSType from docker info (if available) determines Linux vs Windows container support."
+              Write-Host "This agent runs Windows Server - Azurite Linux image won't work via Docker."
+              Write-Host "Using npx azurite instead."
+            displayName: Docker Check (informational)
+            workingDirectory: $(NuGetGalleryPath)
+          - powershell: |
+              Write-Host "=== Installing and starting Azurite via npm ==="
+              npm install -g azurite
+              if ($LASTEXITCODE -ne 0) {
+                  Write-Error "Failed to install Azurite via npm."
                   exit 1
               }
-              Write-Host "Azurite container started."
+
+              Write-Host "=== Starting Azurite in background ==="
+              $azuriteProcess = Start-Process -FilePath "azurite" -ArgumentList "--silent", "--location", "$env:TEMP\azurite", "--blobPort", "10000", "--queuePort", "10001", "--tablePort", "10002" -PassThru -NoNewWindow
+              Write-Host "Azurite started with PID: $($azuriteProcess.Id)"
 
               Write-Host "=== Polling Azurite blob endpoint ==="
               $maxRetries = 30
@@ -305,17 +310,19 @@ stages:
               }
 
               if (-not $success) {
-                  Write-Host "=== Azurite container logs ==="
-                  docker logs azurite
-                  Write-Host "=== Azurite container status ==="
-                  docker inspect azurite
+                  if ($azuriteProcess.HasExited) {
+                      Write-Host "Azurite process exited with code: $($azuriteProcess.ExitCode)"
+                  }
                   Write-Error "Azurite did not become available within $($maxRetries * $retryInterval) seconds."
                   exit 1
               }
 
               Write-Host "=== Azurite is running and responsive ==="
-              docker ps --filter name=azurite
-            displayName: Docker & Azurite Check
+              Write-Host "Blob:  http://127.0.0.1:10000/"
+              Write-Host "Queue: http://127.0.0.1:10001/"
+              Write-Host "Table: http://127.0.0.1:10002/"
+              Write-Host "PID:   $($azuriteProcess.Id)"
+            displayName: Start Azurite & Verify
             workingDirectory: $(NuGetGalleryPath)
 
   - stage: artifacts
