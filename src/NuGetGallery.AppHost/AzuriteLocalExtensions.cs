@@ -7,7 +7,10 @@ using Aspire.Hosting.Azure;
 
 /// <summary>
 /// Extension methods to add Azurite as a local executable resource instead of a Docker container.
-/// Uses the Azurite installation bundled with Visual Studio when available.
+/// Priority order:
+/// 1. VS-bundled Azurite executable (no Node.js or Docker required)
+/// 2. npx azurite (requires Node.js, no Docker required)
+/// 3. Docker container emulator (fallback)
 /// See: https://github.com/microsoft/aspire/issues/6673
 /// </summary>
 public static class AzuriteLocalExtensions
@@ -24,8 +27,10 @@ public static class AzuriteLocalExtensions
 	}
 
 	/// <summary>
-	/// Adds Azurite storage to the application. Prefers the local VS-bundled Azurite executable
-	/// (no Docker required); falls back to the container-based emulator if not found.
+	/// Adds Azurite storage to the application. Tries sources in order:
+	/// 1. VS-bundled Azurite executable (fastest, no dependencies)
+	/// 2. npx azurite (requires Node.js on PATH, downloads azurite on first use)
+	/// 3. Docker container emulator (requires Docker Desktop)
 	/// </summary>
 	public static AzuriteResult AddLocalOrEmulatorAzurite(
 		this IDistributedApplicationBuilder builder,
@@ -34,36 +39,52 @@ public static class AzuriteLocalExtensions
 		int queuePort = 10001,
 		int tablePort = 10002)
 	{
-		var azuritePath = FindVsAzurite();
+		var workingDir = Path.GetFullPath(
+			Path.Combine(builder.AppHostDirectory, dataPath));
+		Directory.CreateDirectory(workingDir);
 
-		if (azuritePath is not null)
+		string[] azuriteArgs =
+		[
+			"--blobPort", blobPort.ToString(),
+			"--queuePort", queuePort.ToString(),
+			"--tablePort", tablePort.ToString(),
+			"--location", workingDir,
+			"--skipApiVersionCheck",
+		];
+
+		// 1. Try VS-bundled Azurite
+		var vsAzurite = FindVsAzurite();
+		if (vsAzurite is not null)
 		{
-			var workingDir = Path.GetFullPath(
-				Path.Combine(builder.AppHostDirectory, dataPath));
-			Directory.CreateDirectory(workingDir);
-
-			var resource = builder.AddExecutable("storage", azuritePath, workingDir,
-					"--blobPort", blobPort.ToString(),
-					"--queuePort", queuePort.ToString(),
-					"--tablePort", tablePort.ToString(),
-					"--location", workingDir,
-					"--skipApiVersionCheck")
+			Console.WriteLine($"[Azurite] Using VS-bundled executable: {vsAzurite}");
+			var resource = builder.AddExecutable("storage", vsAzurite, workingDir, azuriteArgs)
 				.ExcludeFromManifest();
-
 			return new AzuriteResult(resource);
 		}
-		else
-		{
-			var emulator = builder.AddAzureStorage("storage")
-				.RunAsEmulator(r => r
-					.WithDataBindMount(dataPath)
-					.WithBlobPort(blobPort)
-					.WithQueuePort(queuePort)
-					.WithTablePort(tablePort));
-			emulator.AddBlobs("blobs");
 
-			return new AzuriteResult(emulator);
+		// 2. Try npx (ships with Node.js)
+		var npxPath = FindNpx();
+		if (npxPath is not null)
+		{
+			Console.WriteLine($"[Azurite] Using npx: {npxPath}");
+			// npx --yes azurite <args>: --yes skips the install prompt
+			string[] npxArgs = ["--yes", "azurite", .. azuriteArgs];
+			var resource = builder.AddExecutable("storage", npxPath, workingDir, npxArgs)
+				.ExcludeFromManifest();
+			return new AzuriteResult(resource);
 		}
+
+		// 3. Fall back to Docker container
+		Console.WriteLine("[Azurite] No local Azurite or npx found. Falling back to Docker container.");
+		var emulator = builder.AddAzureStorage("storage")
+			.RunAsEmulator(r => r
+				.WithDataBindMount(dataPath)
+				.WithBlobPort(blobPort)
+				.WithQueuePort(queuePort)
+				.WithTablePort(tablePort));
+		emulator.AddBlobs("blobs");
+
+		return new AzuriteResult(emulator);
 	}
 
 	/// <summary>
@@ -106,6 +127,28 @@ public static class AzuriteLocalExtensions
 			@"Common7\IDE\Extensions\Microsoft\Azure Storage Emulator\azurite.exe");
 
 		return File.Exists(azuritePath) ? azuritePath : null;
+	}
+
+	/// <summary>
+	/// Locates npx on the system PATH. Returns the full path to npx.cmd (Windows)
+	/// or npx (Unix), or null if Node.js is not installed.
+	/// </summary>
+	private static string? FindNpx()
+	{
+		// On Windows, npx ships as npx.cmd alongside node.exe
+		var npxName = OperatingSystem.IsWindows() ? "npx.cmd" : "npx";
+
+		var pathDirs = Environment.GetEnvironmentVariable("PATH")?.Split(Path.PathSeparator) ?? [];
+		foreach (var dir in pathDirs)
+		{
+			var candidate = Path.Combine(dir, npxName);
+			if (File.Exists(candidate))
+			{
+				return candidate;
+			}
+		}
+
+		return null;
 	}
 }
 
