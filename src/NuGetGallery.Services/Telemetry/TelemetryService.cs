@@ -45,7 +45,10 @@ namespace NuGetGallery
             public const string UserMultiFactorAuthenticationEnabled = "UserMultiFactorAuthenticationEnabled";
             public const string UserMultiFactorAuthenticationDisabled = "UserMultiFactorAuthenticationDisabled";
             public const string PackageReflow = "PackageReflow";
-            public const string AdminApiReflow = "AdminApiReflow";
+            public const string AdminApiReflowPackage = "AdminApiReflowPackage";
+            public const string AdminApiLockPackage = "AdminApiLockPackage";
+            public const string AdminApiLockUser = "AdminApiLockUser";
+            public const string AdminApiSoftDeletePackage = "AdminApiSoftDeletePackage";
             public const string PackageUnlisted = "PackageUnlisted";
             public const string PackageListed = "PackageListed";
             public const string PackagesUpdateListed = "PackagesUpdateListed";
@@ -539,9 +542,42 @@ namespace NuGetGallery
             TrackMetricForPackage(Events.PackageHardDeleteReflow, packageId, packageVersion);
         }
 
-        public void TrackAdminApiReflow(int packageCount, int acceptedCount, string reason, string callerAppId)
+        public void TrackAdminApiReflowPackage(int packageCount, int acceptedCount, string reason, string callerAppId)
         {
-            TrackMetric(Events.AdminApiReflow, 1, properties =>
+            TrackMetric(Events.AdminApiReflowPackage, 1, properties =>
+            {
+                properties.Add("PackageCount", packageCount.ToString());
+                properties.Add("AcceptedCount", acceptedCount.ToString());
+                properties.Add("Reason", reason ?? string.Empty);
+                properties.Add("CallerAppId", callerAppId ?? string.Empty);
+            });
+        }
+
+        public void TrackAdminApiLockPackage(int packageCount, int acceptedCount, string reason, string callerAppId)
+        {
+            TrackMetric(Events.AdminApiLockPackage, 1, properties =>
+            {
+                properties.Add("PackageCount", packageCount.ToString());
+                properties.Add("AcceptedCount", acceptedCount.ToString());
+                properties.Add("Reason", reason ?? string.Empty);
+                properties.Add("CallerAppId", callerAppId ?? string.Empty);
+            });
+        }
+
+        public void TrackAdminApiLockUser(int userCount, int acceptedCount, string reason, string callerAppId)
+        {
+            TrackMetric(Events.AdminApiLockUser, 1, properties =>
+            {
+                properties.Add("UserCount", userCount.ToString());
+                properties.Add("AcceptedCount", acceptedCount.ToString());
+                properties.Add("Reason", reason ?? string.Empty);
+                properties.Add("CallerAppId", callerAppId ?? string.Empty);
+            });
+        }
+
+        public void TrackAdminApiSoftDeletePackage(int packageCount, int acceptedCount, string reason, string callerAppId)
+        {
+            TrackMetric(Events.AdminApiSoftDeletePackage, 1, properties =>
             {
                 properties.Add("PackageCount", packageCount.ToString());
                 properties.Add("AcceptedCount", acceptedCount.ToString());

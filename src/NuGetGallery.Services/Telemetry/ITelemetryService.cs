@@ -52,7 +52,13 @@ namespace NuGetGallery
 
         void TrackPackageHardDeleteReflow(string packageId, string packageVersion);
 
-        void TrackAdminApiReflow(int packageCount, int acceptedCount, string reason, string callerAppId);
+        void TrackAdminApiReflowPackage(int packageCount, int acceptedCount, string reason, string callerAppId);
+
+        void TrackAdminApiLockPackage(int packageCount, int acceptedCount, string reason, string callerAppId);
+
+        void TrackAdminApiLockUser(int userCount, int acceptedCount, string reason, string callerAppId);
+
+        void TrackAdminApiSoftDeletePackage(int packageCount, int acceptedCount, string reason, string callerAppId);
 
         void TrackPackageRevalidate(Package package);
 
