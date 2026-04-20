@@ -47,15 +47,12 @@ public class Program
 
 		// ─── Infrastructure ───────────────────────────────────────────────────────────
 
-		// Azurite blob storage emulator (hosts all blob containers used by the V3 pipeline)
-		var storage = builder.AddAzureStorage("storage")
-			.RunAsEmulator(r => r
-				.WithDataBindMount("./azurite-data")
-				.WithBlobPort(10000)
-				.WithQueuePort(10001)
-				.WithTablePort(10002))
+		// Azurite blob storage emulator (hosts all blob containers used by the V3 pipeline).
+		// Prefer the VS-bundled local executable (no Docker required);
+		// fall back to the container-based emulator if not found.
+		var storage = builder.AddLocalOrEmulatorAzurite(dataPath: "./azurite-data");
+		builder.CreateResourceBuilder(storage.Resource)
 			.WithParentRelationship(infraGroup);
-		var blobs = storage.AddBlobs("blobs");
 
 		var azuriteConnStr = "UseDevelopmentStorage=true";
 		var azuriteBase = "http://127.0.0.1:10000/devstoreaccount1";
