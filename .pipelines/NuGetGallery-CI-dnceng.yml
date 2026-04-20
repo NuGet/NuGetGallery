@@ -72,6 +72,12 @@ stages:
               packageType: sdk
               version: 8.0.x
           - task: PowerShell@1
+            name: setup_dev
+            displayName: Setup Dev Environment
+            inputs:
+              scriptName: $(NuGetGalleryPath)\tools\Setup-DevEnvironment.ps1
+              workingFolder: $(NuGetGalleryPath)
+          - task: PowerShell@1
             name: build
             displayName: Build
             inputs:
@@ -112,6 +118,12 @@ stages:
             inputs:
               packageType: sdk
               version: 8.0.x
+          - task: PowerShell@1
+            name: setup_dev
+            displayName: Setup Dev Environment
+            inputs:
+              scriptName: $(NuGetGalleryPath)\tools\Setup-DevEnvironment.ps1
+              workingFolder: $(NuGetGalleryPath)
           - task: PowerShell@1
             name: build
             displayName: Build
@@ -186,6 +198,12 @@ stages:
               packageType: sdk
               version: 8.0.x
           - task: PowerShell@1
+            name: setup_dev
+            displayName: Setup Dev Environment
+            inputs:
+              scriptName: $(NuGetGalleryPath)\tools\Setup-DevEnvironment.ps1
+              workingFolder: $(NuGetGalleryPath)
+          - task: PowerShell@1
             name: build
             displayName: Build
             inputs:
@@ -226,6 +244,12 @@ stages:
             inputs:
               packageType: sdk
               version: 8.0.x
+          - task: PowerShell@1
+            name: setup_dev
+            displayName: Setup Dev Environment
+            inputs:
+              scriptName: $(NuGetGalleryPath)\tools\Setup-DevEnvironment.ps1
+              workingFolder: $(NuGetGalleryPath)
           - task: PowerShell@1
             name: build_artifacts
             displayName: Build
