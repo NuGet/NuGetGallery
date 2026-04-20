@@ -173,6 +173,14 @@
     <Compile Include="Areas\Admin\Migrations\201805221605033_DropPagerDutyColumn.Designer.cs">
       <DependentUpon>201805221605033_DropPagerDutyColumn.cs</DependentUpon>
     </Compile>
+    <Compile Include="Areas\Admin\Models\AdminPackageIdentity.cs" />
+    <Compile Include="Areas\Admin\Models\AdminSoftDeletePackageRequest.cs" />
+    <Compile Include="Areas\Admin\Models\AdminSoftDeletePackageResponse.cs" />
+    <Compile Include="Areas\Admin\Models\AdminLockUserRequest.cs" />
+    <Compile Include="Areas\Admin\Models\AdminLockPackageRequest.cs" />
+    <Compile Include="Areas\Admin\Models\AdminLockUserResponse.cs" />
+    <Compile Include="Areas\Admin\Models\AdminLockPackageResponse.cs" />
+    <Compile Include="Areas\Admin\Models\AdminUserIdentity.cs" />
     <Compile Include="Areas\Admin\Models\DeletedStatus.cs" />
     <Compile Include="Areas\Admin\Migrations\SupportRequestMigrationsConfiguration.cs" />
     <Compile Include="Areas\Admin\Models\AdminReflowPackageRequest.cs" />
