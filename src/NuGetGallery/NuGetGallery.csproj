@@ -173,7 +173,6 @@
     <Compile Include="Areas\Admin\Migrations\201805221605033_DropPagerDutyColumn.Designer.cs">
       <DependentUpon>201805221605033_DropPagerDutyColumn.cs</DependentUpon>
     </Compile>
-    <Compile Include="Areas\Admin\Models\AdminPackageIdentity.cs" />
     <Compile Include="Areas\Admin\Models\AdminSoftDeletePackageRequest.cs" />
     <Compile Include="Areas\Admin\Models\AdminSoftDeletePackageResponse.cs" />
     <Compile Include="Areas\Admin\Models\AdminLockUserRequest.cs" />
@@ -1342,6 +1341,8 @@
     <Compile Include="RequestModels\DeletePackagesRequest.cs" />
     <Compile Include="RequestModels\EditPackageVersionRequest.cs" />
     <Compile Include="RequestModels\VerifyPackageRequest.cs" />
+    <Compile Include="Services\LockPackageService.cs" />
+    <Compile Include="Services\LockUserService.cs" />
     <Compile Include="Services\ReflowPackageService.cs" />
     <Compile Include="ViewModels\ManageOrganizationsItemViewModel.cs" />
     <Compile Include="ViewModels\ManageOrganizationsViewModel.cs" />
@@ -1485,6 +1486,8 @@
     <Compile Include="Services\ConfirmOwnershipResult.cs" />
     <Compile Include="Services\DownloadCountObjectMaterializedInterceptor.cs" />
     <Compile Include="Services\IDownloadCountService.cs" />
+    <Compile Include="Services\ILockPackageService.cs" />
+    <Compile Include="Services\ILockUserService.cs" />
     <Compile Include="Services\IPackageDeleteService.cs" />
     <Compile Include="Services\IRawSearchService.cs" />
     <Compile Include="Services\IStatusService.cs" />

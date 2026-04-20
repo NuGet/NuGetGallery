@@ -326,6 +326,16 @@ namespace NuGetGallery
                 .As<IPackageFilter>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<LockPackageService>()
+                .AsSelf()
+                .As<ILockPackageService>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<LockUserService>()
+                .AsSelf()
+                .As<ILockUserService>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<PackageDeleteService>()
                 .AsSelf()
                 .As<IPackageDeleteService>()

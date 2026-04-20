@@ -5,10 +5,15 @@ using System.Collections.Generic;
 
 namespace NuGetGallery.Areas.Admin.Models
 {
-    public class AdminLockPackageRequest
-    {
-        public List<AdminPackageIdentity> Packages { get; set; }
+	public class AdminLockPackageRequest
+	{
+		public List<AdminLockPackageIdentity> Packages { get; set; }
 
-        public string Reason { get; set; }
-    }
+		public string Reason { get; set; }
+	}
+
+	public class AdminLockPackageIdentity
+	{
+		public string Id { get; set; }
+	}
 }
