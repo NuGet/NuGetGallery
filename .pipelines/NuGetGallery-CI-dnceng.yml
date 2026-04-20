@@ -79,12 +79,6 @@ stages:
               arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipArtifacts -SkipGallery -SkipJobs -CommonAssemblyVersion $(CommonAssemblyVersion) -CommonPackageVersion $(CommonPackageVersion) -GalleryAssemblyVersion $(GalleryAssemblyVersion) -GalleryPackageVersion $(GalleryPackageVersion) -JobsAssemblyVersion $(JobsAssemblyVersion) -JobsPackageVersion $(JobsPackageVersion) -Branch $(NuGetGalleryBranch) -CommitSHA $(Build.SourceVersion)
               workingFolder: $(NuGetGalleryPath)
           - task: PowerShell@1
-            name: setup_dev
-            displayName: Setup Dev Environment
-            inputs:
-              scriptName: $(NuGetGalleryPath)\tools\Setup-DevEnvironment.ps1
-              workingFolder: $(NuGetGalleryPath)
-          - task: PowerShell@1
             name: test
             displayName: Run tests
             inputs:
@@ -205,12 +199,6 @@ stages:
               arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipArtifacts -SkipCommon -SkipGallery -CommonAssemblyVersion $(CommonAssemblyVersion) -CommonPackageVersion $(CommonPackageVersion) -GalleryAssemblyVersion $(GalleryAssemblyVersion) -GalleryPackageVersion $(GalleryPackageVersion) -JobsAssemblyVersion $(JobsAssemblyVersion) -JobsPackageVersion $(JobsPackageVersion) -Branch $(NuGetGalleryBranch) -CommitSHA $(Build.SourceVersion)
               workingFolder: $(NuGetGalleryPath)
           - task: PowerShell@1
-            name: setup_dev
-            displayName: Setup Dev Environment
-            inputs:
-              scriptName: $(NuGetGalleryPath)\tools\Setup-DevEnvironment.ps1
-              workingFolder: $(NuGetGalleryPath)
-          - task: PowerShell@1
             name: test
             displayName: Run tests
             inputs:
@@ -225,6 +213,110 @@ stages:
               testRunner: VSTest
               testResultsFiles: $(NuGetGalleryPath)\Results.*.xml
               failTaskOnFailedTests: true
+
+  - stage: devenv
+    displayName: Dev Environment & Azurite
+    dependsOn: []
+    jobs:
+      - job: setup_and_azurite
+        displayName: setup dev environment and azurite
+        cancelTimeoutInMinutes: 1
+        steps:
+          - checkout: self
+            fetchDepth: 1
+            clean: true
+            fetchTags: false
+            path: $(NuGetGalleryDirectory)
+          - task: UseDotNet@2
+            displayName: Install .NET 8.0 SDK
+            inputs:
+              packageType: sdk
+              version: 8.0.x
+          - task: PowerShell@1
+            name: build
+            displayName: Build Gallery
+            inputs:
+              scriptName: $(NuGetGalleryPath)\build.ps1
+              arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipArtifacts -SkipCommon -SkipJobs -CommonAssemblyVersion $(CommonAssemblyVersion) -CommonPackageVersion $(CommonPackageVersion) -GalleryAssemblyVersion $(GalleryAssemblyVersion) -GalleryPackageVersion $(GalleryPackageVersion) -JobsAssemblyVersion $(JobsAssemblyVersion) -JobsPackageVersion $(JobsPackageVersion) -Branch $(NuGetGalleryBranch) -CommitSHA $(Build.SourceVersion)
+              workingFolder: $(NuGetGalleryPath)
+          - task: PowerShell@1
+            name: setup_dev
+            displayName: Setup Dev Environment
+            inputs:
+              scriptName: $(NuGetGalleryPath)\tools\Setup-DevEnvironment.ps1
+              workingFolder: $(NuGetGalleryPath)
+          - task: UseDotNet@2
+            displayName: Install .NET 10.0 SDK
+            inputs:
+              packageType: sdk
+              version: 10.0.x
+              includePreviewVersions: true
+          - powershell: |
+              Write-Host "=== Checking Docker availability ==="
+              docker version
+              if ($LASTEXITCODE -ne 0) {
+                  Write-Error "Docker is not installed or not running on this agent."
+                  exit 1
+              }
+              Write-Host "Docker is installed and running."
+
+              docker info
+              if ($LASTEXITCODE -ne 0) {
+                  Write-Error "Docker daemon is not responsive."
+                  exit 1
+              }
+
+              Write-Host "=== Starting Azurite container ==="
+              docker run -d --name azurite -p 10000:10000 -p 10001:10001 -p 10002:10002 mcr.microsoft.com/azure-storage/azurite
+              if ($LASTEXITCODE -ne 0) {
+                  Write-Host "=== Docker diagnostics ==="
+                  docker version
+                  docker info
+                  Write-Error "Failed to start Azurite container. This may be because the agent does not support Linux containers."
+                  exit 1
+              }
+              Write-Host "Azurite container started."
+
+              Write-Host "=== Polling Azurite blob endpoint ==="
+              $maxRetries = 30
+              $retryInterval = 10
+              $endpoint = "http://127.0.0.1:10000/"
+              $success = $false
+
+              for ($i = 1; $i -le $maxRetries; $i++) {
+                  Write-Host "Attempt $i of $maxRetries..."
+                  try {
+                      $response = Invoke-WebRequest -Uri $endpoint -UseBasicParsing -TimeoutSec 5 -ErrorAction Stop
+                      Write-Host "Azurite responded with status $($response.StatusCode)"
+                      $success = $true
+                      break
+                  }
+                  catch {
+                      $ex = $_.Exception
+                      if ($ex -and $ex.Response) {
+                          $statusCode = [int]$ex.Response.StatusCode
+                          Write-Host "Azurite responded with status $statusCode - service is up!"
+                          $success = $true
+                          break
+                      }
+                      Write-Host "Connection failed: $($_.Exception.Message). Retrying in $retryInterval seconds..."
+                      Start-Sleep -Seconds $retryInterval
+                  }
+              }
+
+              if (-not $success) {
+                  Write-Host "=== Azurite container logs ==="
+                  docker logs azurite
+                  Write-Host "=== Azurite container status ==="
+                  docker inspect azurite
+                  Write-Error "Azurite did not become available within $($maxRetries * $retryInterval) seconds."
+                  exit 1
+              }
+
+              Write-Host "=== Azurite is running and responsive ==="
+              docker ps --filter name=azurite
+            displayName: Docker & Azurite Check
+            workingDirectory: $(NuGetGalleryPath)
 
   - stage: artifacts
     displayName: Artifacts
@@ -250,10 +342,4 @@ stages:
             inputs:
               scriptName: $(NuGetGalleryPath)\build.ps1
               arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -CommonAssemblyVersion $(CommonAssemblyVersion) -CommonPackageVersion $(CommonPackageVersion) -GalleryAssemblyVersion $(GalleryAssemblyVersion) -GalleryPackageVersion $(GalleryPackageVersion) -JobsAssemblyVersion $(JobsAssemblyVersion) -JobsPackageVersion $(JobsPackageVersion) -Branch $(NuGetGalleryBranch) -CommitSHA $(Build.SourceVersion)
-              workingFolder: $(NuGetGalleryPath)
-          - task: PowerShell@1
-            name: setup_dev
-            displayName: Setup Dev Environment
-            inputs:
-              scriptName: $(NuGetGalleryPath)\tools\Setup-DevEnvironment.ps1
               workingFolder: $(NuGetGalleryPath)
