@@ -27,17 +27,26 @@ namespace NuGetGallery.Controllers
         private readonly IEntitiesContext _entitiesContext;
         private readonly IPackageFileService _packageFileService;
         private readonly ITelemetryService _telemetryService;
+        private readonly ILockPackageService _lockPackageService;
+        private readonly ILockUserService _lockUserService;
+        private readonly IPackageDeleteService _packageDeleteService;
 
         public AdminApiController(
             IPackageService packageService,
             IEntitiesContext entitiesContext,
             IPackageFileService packageFileService,
-            ITelemetryService telemetryService)
+            ITelemetryService telemetryService,
+            ILockPackageService lockPackageService,
+            ILockUserService lockUserService,
+            IPackageDeleteService packageDeleteService)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
+            _lockPackageService = lockPackageService ?? throw new ArgumentNullException(nameof(lockPackageService));
+            _lockUserService = lockUserService ?? throw new ArgumentNullException(nameof(lockUserService));
+            _packageDeleteService = packageDeleteService ?? throw new ArgumentNullException(nameof(packageDeleteService));
         }
 
         [HttpPost]
@@ -134,12 +143,6 @@ namespace NuGetGallery.Controllers
 
             var callerAzp = HttpContext.Items[AdminApiAuthAttribute.AzpItemKey] as string;
 
-            _telemetryService.TrackAdminApiReflowPackage(
-                request.Packages.Count,
-                acceptedPackages.Count,
-                request.Reason,
-                callerAzp);
-
             var reflowService = new ReflowPackageService(
                 _entitiesContext,
                 _packageService,
@@ -190,88 +193,47 @@ namespace NuGetGallery.Controllers
 
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var results = new List<AdminLockPackageResult>();
-            var acceptedPackages = new List<(string Id, string Version)>();
+            var acceptedPackageIds = new List<string>();
 
             foreach (var entry in request.Packages)
             {
-                if (string.IsNullOrWhiteSpace(entry?.Id) || string.IsNullOrWhiteSpace(entry?.Version))
+                if (string.IsNullOrWhiteSpace(entry?.Id))
                 {
                     results.Add(new AdminLockPackageResult
                     {
                         Id = entry?.Id ?? string.Empty,
-                        Version = entry?.Version ?? string.Empty,
                         Status = AdminLockPackageStatus.Invalid
                     });
 
                     continue;
                 }
 
-                if (!NuGetVersion.TryParse(entry.Version, out var nugetVersion))
+                if (!seen.Add(entry.Id))
                 {
-                    results.Add(new AdminLockPackageResult
-                    {
-                        Id = entry.Id,
-                        Version = entry.Version,
-                        Status = AdminLockPackageStatus.Invalid
-                    });
-
-                    continue;
-                }
-
-                var normalizedVersion = nugetVersion.ToNormalizedString();
-                var dedupeKey = $"{entry.Id}/{normalizedVersion}";
-                if (!seen.Add(dedupeKey))
-                {
-                    continue;
-                }
-
-                var package = _packageService.FindPackageByIdAndVersionStrict(entry.Id, normalizedVersion);
-                if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
-                {
-                    results.Add(new AdminLockPackageResult
-                    {
-                        Id = entry.Id,
-                        Version = normalizedVersion,
-                        Status = AdminLockPackageStatus.NotFound
-                    });
-
                     continue;
                 }
 
                 results.Add(new AdminLockPackageResult
                 {
                     Id = entry.Id,
-                    Version = normalizedVersion,
                     Status = AdminLockPackageStatus.Accepted
                 });
 
-                acceptedPackages.Add((entry.Id, normalizedVersion));
+                acceptedPackageIds.Add(entry.Id);
             }
 
-            if (acceptedPackages.Count == 0)
+            if (acceptedPackageIds.Count == 0)
             {
                 return Json(HttpStatusCode.BadRequest, new AdminLockPackageResponse { Results = results });
             }
 
             var callerAzp = HttpContext.Items[AdminApiAuthAttribute.AzpItemKey] as string;
 
-            _telemetryService.TrackAdminApiLockPackage(
-                request.Packages.Count,
-                acceptedPackages.Count,
-                request.Reason,
-                callerAzp);
-
-            //var reflowService = new ReflowPackageService(
-            //    _entitiesContext,
-            //    _packageService,
-            //    _packageFileService,
-            //    _telemetryService);
-
-            foreach (var (id, version) in acceptedPackages)
+            foreach (var packageId in acceptedPackageIds)
             {
                 try
                 {
-                    // await reflowService.ReflowAsync(id, version);
+                    await _lockPackageService.SetLockStateAsync(packageId, isLocked: true);
                 }
                 catch (Exception ex)
                 {
@@ -347,23 +309,11 @@ namespace NuGetGallery.Controllers
 
             var callerAzp = HttpContext.Items[AdminApiAuthAttribute.AzpItemKey] as string;
 
-            _telemetryService.TrackAdminApiLockUser(
-                request.Users.Count,
-                acceptedUsers.Count,
-                request.Reason,
-                callerAzp);
-
-            //var reflowService = new ReflowPackageService(
-            //    _entitiesContext,
-            //    _packageService,
-            //    _packageFileService,
-            //    _telemetryService);
-
             foreach (var username in acceptedUsers)
             {
                 try
                 {
-                    // await reflowService.ReflowAsync(id, version);
+                    await _lockUserService.SetLockStateAsync(username, isLocked: true);
                 }
                 catch (Exception ex)
                 {
@@ -403,7 +353,7 @@ namespace NuGetGallery.Controllers
 
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var results = new List<AdminSoftDeletePackageResult>();
-            var acceptedPackages = new List<(string Id, string Version)>();
+            var acceptedPackageEntities = new List<Package>();
 
             foreach (var entry in request.Packages)
             {
@@ -458,38 +408,30 @@ namespace NuGetGallery.Controllers
                     Status = AdminSoftDeletePackageStatus.Accepted
                 });
 
-                acceptedPackages.Add((entry.Id, normalizedVersion));
+                acceptedPackageEntities.Add(package);
             }
 
-            if (acceptedPackages.Count == 0)
+            if (acceptedPackageEntities.Count == 0)
             {
                 return Json(HttpStatusCode.BadRequest, new AdminSoftDeletePackageResponse { Results = results });
             }
 
             var callerAzp = HttpContext.Items[AdminApiAuthAttribute.AzpItemKey] as string;
 
-            _telemetryService.TrackAdminApiSoftDeletePackage(
-                request.Packages.Count,
-                acceptedPackages.Count,
-                request.Reason,
-                callerAzp);
-
-            //var reflowService = new ReflowPackageService(
-            //    _entitiesContext,
-            //    _packageService,
-            //    _packageFileService,
-            //    _telemetryService);
-
-            foreach (var (id, version) in acceptedPackages)
+            try
             {
-                try
-                {
-                    // await reflowService.ReflowAsync(id, version);
-                }
-                catch (Exception ex)
-                {
-                    QuietLog.LogHandledException(ex);
-                }
+                var reason = request.Reason ?? string.Empty;
+                var signature = callerAzp ?? "AdminApi";
+
+                await _packageDeleteService.SoftDeletePackagesAsync(
+                    acceptedPackageEntities,
+                    deletedBy: null,
+                    reason: reason,
+                    signature: signature);
+            }
+            catch (Exception ex)
+            {
+                QuietLog.LogHandledException(ex);
             }
 
             return Json(HttpStatusCode.Accepted, new AdminSoftDeletePackageResponse { Results = results });

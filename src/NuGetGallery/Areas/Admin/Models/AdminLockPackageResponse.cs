@@ -14,8 +14,6 @@ namespace NuGetGallery.Areas.Admin.Models
     {
         public string Id { get; set; }
 
-        public string Version { get; set; }
-
         public string Status { get; set; }
     }
 
