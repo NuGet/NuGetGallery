@@ -215,7 +215,7 @@ namespace NuGetGallery.Controllers
             {
                 try
                 {
-                    await _lockPackageService.SetLockStateAsync(packageId, isLocked: true, request.Reason, callerAzp);
+                    await _lockPackageService.SetLockStateAsync(packageId, isLocked: request.Locked, request.Reason, callerAzp);
                 }
                 catch (Exception ex)
                 {
@@ -292,7 +292,7 @@ namespace NuGetGallery.Controllers
             {
                 try
                 {
-                    await _lockUserService.SetLockStateAsync(username, isLocked: true, request.Reason, callerAzp);
+                    await _lockUserService.SetLockStateAsync(username, isLocked: request.Locked, request.Reason, callerAzp);
                 }
                 catch (Exception ex)
                 {
