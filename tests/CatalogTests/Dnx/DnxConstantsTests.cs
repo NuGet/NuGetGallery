@@ -18,7 +18,8 @@ namespace CatalogTests.Dnx
                 totalTimeSpan += DnxConstants.MinIntervalBetweenTwoUpdatesOfFrontCursor;
             }
 
-            Assert.True(totalTimeSpan > DnxConstants.CacheDurationOfPackageVersionIndex);
+            Assert.True(totalTimeSpan > DnxConstants.MinIntervalBeforeToReadUpdateOfFrontCursor);
+            Assert.True(DnxConstants.MinIntervalBeforeToReadUpdateOfFrontCursor >= DnxConstants.CacheDurationOfPackageVersionIndex + TimeSpan.FromSeconds(1));
         }
     }
 }
