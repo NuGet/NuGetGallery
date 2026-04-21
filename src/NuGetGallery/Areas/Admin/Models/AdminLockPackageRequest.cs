@@ -9,6 +9,8 @@ namespace NuGetGallery.Areas.Admin.Models
 	{
 		public List<AdminLockPackageIdentity> Packages { get; set; }
 
+		public bool Locked { get; set; } = true;
+
 		public string Reason { get; set; }
 	}
 
