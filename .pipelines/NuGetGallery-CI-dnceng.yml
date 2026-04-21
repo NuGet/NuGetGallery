@@ -245,6 +245,7 @@ stages:
               $env:DOTNET_ASPIRE_SHOW_DASHBOARD_RESOURCES = "false"
               $env:ASPNETCORE_URLS = "http://localhost:15888"
               $env:ASPIRE_DASHBOARD_OTLP_ENDPOINT_URL = "http://localhost:18889"
+              $env:ASPIRE_ALLOW_UNSECURED_TRANSPORT = "true"
 
               $proc = Start-Process -FilePath "dotnet" `
                   -ArgumentList "run","--project","$(NuGetGalleryPath)\src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj","-c","$(BuildConfiguration)","--no-build","--no-launch-profile" `
