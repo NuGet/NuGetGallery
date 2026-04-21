@@ -110,7 +110,7 @@ public class Program
 
 		var galleryPath = Path.Combine(srcDir, "NuGetGallery");
 		var iisExpressConfig = Path.Combine(
-			repoRoot, ".vs", "NuGetGallery", "config", "applicationhost.config");
+			repoRoot, ".vs", "config", "applicationhost.config");
 
 		// Generate appsettings.Aspire.config to switch Gallery to Azurite blob storage
 		GenerateGalleryAspireConfig(galleryPath, azuriteConnStr,
