@@ -66,11 +66,6 @@ stages:
             clean: true
             fetchTags: false
             path: $(NuGetGalleryDirectory)
-          - task: UseDotNet@2
-            displayName: Install .NET 8.0 SDK
-            inputs:
-              packageType: sdk
-              version: 8.0.x
           - task: PowerShell@1
             name: build
             displayName: Build
@@ -107,11 +102,6 @@ stages:
             clean: true
             fetchTags: false
             path: $(NuGetGalleryDirectory)
-          - task: UseDotNet@2
-            displayName: Install .NET 8.0 SDK
-            inputs:
-              packageType: sdk
-              version: 8.0.x
           - task: PowerShell@1
             name: build
             displayName: Build
@@ -186,11 +176,6 @@ stages:
             clean: true
             fetchTags: false
             path: $(NuGetGalleryDirectory)
-          - task: UseDotNet@2
-            displayName: Install .NET 8.0 SDK
-            inputs:
-              packageType: sdk
-              version: 8.0.x
           - task: PowerShell@1
             name: build
             displayName: Build
@@ -227,11 +212,6 @@ stages:
             clean: true
             fetchTags: false
             path: $(NuGetGalleryDirectory)
-          - task: UseDotNet@2
-            displayName: Install .NET 8.0 SDK
-            inputs:
-              packageType: sdk
-              version: 8.0.x
           - task: PowerShell@1
             name: build
             displayName: Build Gallery
@@ -245,12 +225,6 @@ stages:
             inputs:
               scriptName: $(NuGetGalleryPath)\tools\Setup-DevEnvironment.ps1
               workingFolder: $(NuGetGalleryPath)
-          - task: UseDotNet@2
-            displayName: Install .NET 10.0 SDK
-            inputs:
-              packageType: sdk
-              version: 10.0.x
-              includePreviewVersions: true
           - powershell: |
               Write-Host "=== Building NuGetGallery.AppHost ==="
               dotnet build $(NuGetGalleryPath)\src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj -c $(BuildConfiguration)
@@ -275,11 +249,6 @@ stages:
             clean: true
             fetchTags: false
             path: $(NuGetGalleryDirectory)
-          - task: UseDotNet@2
-            displayName: Install .NET 8.0 SDK
-            inputs:
-              packageType: sdk
-              version: 8.0.x
           - task: PowerShell@1
             name: build_artifacts
             displayName: Build
