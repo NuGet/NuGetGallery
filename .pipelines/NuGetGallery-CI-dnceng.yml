@@ -324,7 +324,25 @@ stages:
 
               # Check Windows Event Log for ASP.NET errors
               Write-Host "=== Recent Application Event Log errors ==="
-              Get-EventLog -LogName Application -EntryType Error -Newest 20 -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "$($_.TimeGenerated) [$($_.Source)] $($_.Message.Substring(0, [Math]::Min(500, $_.Message.Length)))" }
+              Get-EventLog -LogName Application -EntryType Error -Newest 20 -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "$($_.TimeGenerated) [$($_.Source)] $($_.Message)" }
+
+              # Check for ASP.NET-specific events with full message
+              Write-Host "=== ASP.NET WinEvents ==="
+              Get-WinEvent -FilterHashtable @{LogName='Application'; ProviderName='ASP.NET 4.0.30319.0'; Level=2} -MaxEvents 5 -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "$($_.TimeCreated) $($_.Message)" }
+
+              # Check if appsettings.Aspire.config was generated
+              Write-Host "=== appsettings.Aspire.config check ==="
+              $aspireConfig = "$(NuGetGalleryPath)\src\NuGetGallery\appsettings.Aspire.config"
+              Write-Host "appsettings.Aspire.config exists now: $(Test-Path $aspireConfig)"
+              if (Test-Path $aspireConfig) { Get-Content $aspireConfig }
+
+              # Check .NET Framework version
+              Write-Host "=== .NET Framework version ==="
+              Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" -ErrorAction SilentlyContinue | Select-Object -Property Release,Version | Format-List
+
+              # Check ASP.NET registration
+              Write-Host "=== ASP.NET 4.x registration ==="
+              Test-Path "$env:windir\Microsoft.NET\Framework64\v4.0.30319\aspnet_isapi.dll"
 
               # Check IIS Express trace logs
               Write-Host "=== IIS Express Trace Logs ==="
