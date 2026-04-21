@@ -246,6 +246,7 @@ stages:
               $env:ASPNETCORE_URLS = "http://localhost:15888"
               $env:ASPIRE_DASHBOARD_OTLP_ENDPOINT_URL = "http://localhost:18889"
               $env:ASPIRE_ALLOW_UNSECURED_TRANSPORT = "true"
+              $env:ASPIRE_RESOURCE_SERVICE_ENDPOINT_URL = "http://localhost:18890"
 
               $proc = Start-Process -FilePath "dotnet" `
                   -ArgumentList "run","--project","$(NuGetGalleryPath)\src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj","-c","$(BuildConfiguration)","--no-build","--no-launch-profile" `
@@ -253,13 +254,13 @@ stages:
 
               Write-Host "AppHost started with PID $($proc.Id)"
 
+              # Wait for dashboard to be ready
+              Start-Sleep -Seconds 15
+
               $maxWait = 300
-              $elapsed = 0
+              $elapsed = 15
               $healthy = $false
               while ($elapsed -lt $maxWait) {
-                  Start-Sleep -Seconds 10
-                  $elapsed += 10
-
                   if ($proc.HasExited) {
                       Write-Host "=== AppHost stdout ==="
                       Get-Content "$(NuGetGalleryPath)\aspire-stdout.log" -ErrorAction SilentlyContinue
@@ -269,6 +270,17 @@ stages:
                       exit 1
                   }
 
+                  # Query Aspire dashboard for resource states
+                  try {
+                      $dashboard = Invoke-RestMethod -Uri "http://localhost:15888/api/v1/resources" -TimeoutSec 5 -ErrorAction SilentlyContinue
+                      if ($dashboard) {
+                          $dashboard | ForEach-Object { Write-Host "  Resource: $($_.name) State: $($_.state)" }
+                      }
+                  } catch {
+                      Write-Host "  (dashboard not ready yet)"
+                  }
+
+                  # Try health probe
                   try {
                       $response = Invoke-WebRequest -Uri "http://localhost/api/health-probe" -UseBasicParsing -TimeoutSec 5
                       if ($response.StatusCode -eq 200) {
@@ -277,14 +289,17 @@ stages:
                           break
                       }
                   } catch {
-                      Write-Host "Waiting for Gallery... ($elapsed seconds)"
+                      Write-Host "Waiting for Gallery... ($elapsed seconds) - $($_.Exception.Message)"
                   }
+
+                  Start-Sleep -Seconds 15
+                  $elapsed += 15
               }
 
-              Write-Host "=== AppHost stdout (last 50 lines) ==="
-              Get-Content "$(NuGetGalleryPath)\aspire-stdout.log" -Tail 50 -ErrorAction SilentlyContinue
-              Write-Host "=== AppHost stderr (last 50 lines) ==="
-              Get-Content "$(NuGetGalleryPath)\aspire-stderr.log" -Tail 50 -ErrorAction SilentlyContinue
+              Write-Host "=== AppHost stdout (last 100 lines) ==="
+              Get-Content "$(NuGetGalleryPath)\aspire-stdout.log" -Tail 100 -ErrorAction SilentlyContinue
+              Write-Host "=== AppHost stderr (last 100 lines) ==="
+              Get-Content "$(NuGetGalleryPath)\aspire-stderr.log" -Tail 100 -ErrorAction SilentlyContinue
 
               if (-not $proc.HasExited) {
                   Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
