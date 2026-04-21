@@ -263,6 +263,14 @@ stages:
               Write-Host "IIS_USER_HOME = $iisUserHome"
               Write-Host "aspnet.config exists: $(Test-Path $aspnetCfg)"
 
+              # Verify Gallery prerequisites
+              $gallerySrc = "$(NuGetGalleryPath)\src\NuGetGallery"
+              Write-Host "Web.config exists: $(Test-Path (Join-Path $gallerySrc 'Web.config'))"
+              Write-Host "NuGetGallery.dll exists: $(Test-Path (Join-Path $gallerySrc 'bin\NuGetGallery.dll'))"
+              Write-Host "EntityFramework.dll exists: $(Test-Path (Join-Path $gallerySrc 'bin\EntityFramework.dll'))"
+              Write-Host "appsettings.Aspire.config exists: $(Test-Path (Join-Path $gallerySrc 'appsettings.Aspire.config'))"
+              Write-Host "applicationhost.config exists: $(Test-Path '$(NuGetGalleryPath)\.vs\config\applicationhost.config')"
+
               $proc = Start-Process -FilePath "dotnet" `
                   -ArgumentList "run","--project","$(NuGetGalleryPath)\src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj","-c","$(BuildConfiguration)","--no-build","--no-launch-profile" `
                   -PassThru -RedirectStandardOutput "$(NuGetGalleryPath)\aspire-stdout.log" -RedirectStandardError "$(NuGetGalleryPath)\aspire-stderr.log"

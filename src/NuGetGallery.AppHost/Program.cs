@@ -137,7 +137,8 @@ public class Program
 			Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "IIS Express", "iisexpress.exe"),
 			galleryPath,
 			"/config:" + iisExpressConfig,
-			"/site:NuGet Gallery (localhost)")
+			"/site:NuGet Gallery (localhost)",
+			"/userhome:" + iisUserHome)
 			.WithHttpEndpoint(port: 80, name: "gallery-http", isProxied: false)
 			.WithHttpsEndpoint(port: 443, name: "gallery-https", isProxied: false)
 		    .WaitForCompletion(dbMigrateGallery)
