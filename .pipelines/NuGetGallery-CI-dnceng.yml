@@ -275,29 +275,20 @@ stages:
                   Get-Content "$(NuGetGalleryPath)\aspire-stdout.log" -Tail 10 -ErrorAction SilentlyContinue
 
                   # Try health probe and capture response body on error
-                  try {
-                      $response = Invoke-WebRequest -Uri "http://localhost/api/health-probe" -UseBasicParsing -TimeoutSec 5
-                      if ($response.StatusCode -eq 200) {
-                          Write-Host "Gallery is healthy! Status: $($response.StatusCode)"
-                          $healthy = $true
-                          break
-                      }
-                  } catch {
-                      $statusCode = ""
-                      $body = ""
-                      if ($_.Exception.Response) {
-                          $statusCode = [int]$_.Exception.Response.StatusCode
-                          try {
-                              $stream = $_.Exception.Response.GetResponseStream()
-                              $reader = New-Object System.IO.StreamReader($stream)
-                              $body = $reader.ReadToEnd()
-                              $reader.Close()
-                          } catch {}
-                      }
-                      Write-Host "Waiting for Gallery... ($elapsed s) Status=$statusCode"
-                      if ($body) {
-                          Write-Host "Response body (first 2000 chars):"
-                          Write-Host $body.Substring(0, [Math]::Min(2000, $body.Length))
+                  $curlOutput = & curl.exe -s -o "$(NuGetGalleryPath)\health-response.txt" -w "%{http_code}" "http://localhost/api/health-probe" --max-time 5 2>$null
+                  $httpCode = $curlOutput
+                  if ($httpCode -eq "200") {
+                      Write-Host "Gallery is healthy! Status: 200"
+                      $healthy = $true
+                      break
+                  } else {
+                      Write-Host "Waiting for Gallery... ($elapsed s) Status=$httpCode"
+                      if ($httpCode -and $httpCode -ne "000") {
+                          $bodyContent = Get-Content "$(NuGetGalleryPath)\health-response.txt" -Raw -ErrorAction SilentlyContinue
+                          if ($bodyContent) {
+                              Write-Host "Response body (first 3000 chars):"
+                              Write-Host $bodyContent.Substring(0, [Math]::Min(3000, $bodyContent.Length))
+                          }
                       }
                   }
 
