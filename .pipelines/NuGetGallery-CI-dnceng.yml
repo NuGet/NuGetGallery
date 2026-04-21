@@ -243,6 +243,8 @@ stages:
               Write-Host "=== Starting Aspire AppHost (ci-gallery profile) ==="
               $env:APPHOST_PROFILE = "ci-gallery"
               $env:DOTNET_ASPIRE_SHOW_DASHBOARD_RESOURCES = "false"
+              $env:ASPNETCORE_URLS = "http://localhost:15888"
+              $env:ASPIRE_DASHBOARD_OTLP_ENDPOINT_URL = "http://localhost:18889"
 
               $proc = Start-Process -FilePath "dotnet" `
                   -ArgumentList "run","--project","$(NuGetGalleryPath)\src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj","-c","$(BuildConfiguration)","--no-build","--no-launch-profile" `
