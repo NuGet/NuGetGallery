@@ -240,6 +240,55 @@ stages:
             displayName: Build AppHost
             workingDirectory: $(NuGetGalleryPath)
           - powershell: |
+              Write-Host "=== Testing IIS Express directly ==="
+              $env:IIS_USER_HOME = "$(NuGetGalleryPath)\.vs"
+              $iisUserHome = "$(NuGetGalleryPath)\.vs"
+              @("config", "Logs", "TraceLogFiles") | ForEach-Object {
+                  New-Item -ItemType Directory -Path (Join-Path $iisUserHome $_) -Force | Out-Null
+              }
+              $aspnetCfg = Join-Path $iisUserHome "config\aspnet.config"
+              if (-not (Test-Path $aspnetCfg)) {
+                  $template = Join-Path $env:ProgramFiles "IIS Express\config\templates\PersonalWebServer\aspnet.config"
+                  if (Test-Path $template) { Copy-Item $template $aspnetCfg }
+              }
+
+              $iisExe = Join-Path $env:ProgramFiles "IIS Express\iisexpress.exe"
+              $configPath = "$(NuGetGalleryPath)\.vs\config\applicationhost.config"
+              Write-Host "IIS Express: $iisExe"
+              Write-Host "Config: $configPath"
+              Write-Host "IIS_USER_HOME: $env:IIS_USER_HOME"
+
+              $iisProc = Start-Process -FilePath $iisExe `
+                  -ArgumentList "/config:$configPath","/site:NuGet Gallery (localhost)","/userhome:$iisUserHome" `
+                  -PassThru -RedirectStandardOutput "$(NuGetGalleryPath)\iis-stdout.log" -RedirectStandardError "$(NuGetGalleryPath)\iis-stderr.log"
+
+              Write-Host "IIS Express started with PID $($iisProc.Id)"
+              Start-Sleep -Seconds 10
+
+              if ($iisProc.HasExited) {
+                  Write-Host "IIS Express exited with code $($iisProc.ExitCode)"
+                  Write-Host "=== stdout ==="
+                  Get-Content "$(NuGetGalleryPath)\iis-stdout.log" -ErrorAction SilentlyContinue
+                  Write-Host "=== stderr ==="
+                  Get-Content "$(NuGetGalleryPath)\iis-stderr.log" -ErrorAction SilentlyContinue
+              } else {
+                  Write-Host "IIS Express is running"
+                  $curlOutput = & curl.exe -s -o "$(NuGetGalleryPath)\iis-response.txt" -w "%{http_code}" "http://localhost/api/health-probe" --max-time 10 2>$null
+                  Write-Host "Health probe status: $curlOutput"
+                  $body = Get-Content "$(NuGetGalleryPath)\iis-response.txt" -Raw -ErrorAction SilentlyContinue
+                  if ($body) {
+                      $textOnly = $body -replace '<style[^>]*>.*?</style>', '' -replace '<script[^>]*>.*?</script>', '' -replace '<[^>]+>', ' ' -replace '\s+', ' '
+                      Write-Host "Response: $($textOnly.Substring(0, [Math]::Min(4000, $textOnly.Length)))"
+                  }
+                  Stop-Process -Id $iisProc.Id -Force -ErrorAction SilentlyContinue
+              }
+
+              # Check event log
+              Write-Host "=== Recent ASP.NET errors ==="
+              Get-EventLog -LogName Application -EntryType Error -Source "ASP.NET*" -Newest 5 -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "$($_.TimeGenerated) $($_.Message)" }
+            displayName: Test IIS Express Directly
+            workingDirectory: $(NuGetGalleryPath)
+          - powershell: |
               Write-Host "=== Starting Aspire AppHost (ci-gallery profile) ==="
               $env:APPHOST_PROFILE = "ci-gallery"
               $env:DOTNET_ASPIRE_SHOW_DASHBOARD_RESOURCES = "false"
