@@ -112,6 +112,21 @@ public class Program
 		var iisExpressConfig = Path.Combine(
 			repoRoot, ".vs", "config", "applicationhost.config");
 
+		// Ensure aspnet.config exists for IIS Express (applicationhost.config references
+		// %IIS_USER_HOME%\config\aspnet.config which may not exist on CI agents)
+		var iisUserHome = Path.Combine(repoRoot, ".vs");
+		var aspnetConfigPath = Path.Combine(iisUserHome, "config", "aspnet.config");
+		if (!File.Exists(aspnetConfigPath))
+		{
+			var iisExpressDir = Path.Combine(
+				Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "IIS Express");
+			var templatePath = Path.Combine(iisExpressDir, "config", "templates", "PersonalWebServer", "aspnet.config");
+			if (File.Exists(templatePath))
+			{
+				File.Copy(templatePath, aspnetConfigPath);
+			}
+		}
+
 		// Generate appsettings.Aspire.config to switch Gallery to Azurite blob storage
 		GenerateGalleryAspireConfig(galleryPath, azuriteConnStr,
 			packages: config.Containers.Packages, auditing: config.Containers.Auditing,
@@ -127,7 +142,8 @@ public class Program
 			.WithHttpsEndpoint(port: 443, name: "gallery-https", isProxied: false)
 		    .WaitForCompletion(dbMigrateGallery)
 		    .WaitForCompletion(dbMigrateSupport)
-			.WaitFor(storage);
+			.WaitFor(storage)
+			.WithEnvironment("IIS_USER_HOME", iisUserHome);
 
 		// ─── Full profile: V3 pipeline, seeding, search, and dashboard commands ──────
 		// Azure AI Search, V3 pipeline resources, seeding, and dashboard commands
