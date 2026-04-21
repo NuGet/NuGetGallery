@@ -22,7 +22,7 @@ namespace NuGetGallery
 			_auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
 		}
 
-		public async Task<LockUserServiceResult> SetLockStateAsync(string username, bool isLocked)
+		public async Task<LockUserServiceResult> SetLockStateAsync(string username, bool isLocked, string reason = null, string callerIdentity = null)
 		{
 			if (string.IsNullOrWhiteSpace(username))
 			{
@@ -42,9 +42,9 @@ namespace NuGetGallery
 			{
 				user.UserStatusKey = isLocked ? UserStatus.Locked : UserStatus.Unlocked;
 
-				await _auditingService.SaveAuditRecordAsync(new UserAuditRecord(
-					user,
-					isLocked ? AuditedUserAction.Lock : AuditedUserAction.Unlock));
+				var action = isLocked ? AuditedUserAction.Lock : AuditedUserAction.Unlock;
+				await _auditingService.SaveAuditRecordAsync(
+					new UserAuditRecord(user, action, reason, callerIdentity));
 
 				await _userRepository.CommitChangesAsync();
 			}

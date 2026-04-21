@@ -24,26 +24,20 @@ namespace NuGetGallery.Controllers
         private const int MaxUserCount = 10;
 
         private readonly IPackageService _packageService;
-        private readonly IEntitiesContext _entitiesContext;
-        private readonly IPackageFileService _packageFileService;
-        private readonly ITelemetryService _telemetryService;
+        private readonly IReflowPackageService _reflowPackageService;
         private readonly ILockPackageService _lockPackageService;
         private readonly ILockUserService _lockUserService;
         private readonly IPackageDeleteService _packageDeleteService;
 
         public AdminApiController(
             IPackageService packageService,
-            IEntitiesContext entitiesContext,
-            IPackageFileService packageFileService,
-            ITelemetryService telemetryService,
+            IReflowPackageService reflowPackageService,
             ILockPackageService lockPackageService,
             ILockUserService lockUserService,
             IPackageDeleteService packageDeleteService)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
-            _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
-            _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
-            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
+            _reflowPackageService = reflowPackageService ?? throw new ArgumentNullException(nameof(reflowPackageService));
             _lockPackageService = lockPackageService ?? throw new ArgumentNullException(nameof(lockPackageService));
             _lockUserService = lockUserService ?? throw new ArgumentNullException(nameof(lockUserService));
             _packageDeleteService = packageDeleteService ?? throw new ArgumentNullException(nameof(packageDeleteService));
@@ -143,17 +137,11 @@ namespace NuGetGallery.Controllers
 
             var callerAzp = HttpContext.Items[AdminApiAuthAttribute.AzpItemKey] as string;
 
-            var reflowService = new ReflowPackageService(
-                _entitiesContext,
-                _packageService,
-                _packageFileService,
-                _telemetryService);
-
             foreach (var (id, version) in acceptedPackages)
             {
                 try
                 {
-                    await reflowService.ReflowAsync(id, version);
+                    await _reflowPackageService.ReflowAsync(id, version, request.Reason, callerAzp);
                 }
                 catch (Exception ex)
                 {
@@ -233,7 +221,7 @@ namespace NuGetGallery.Controllers
             {
                 try
                 {
-                    await _lockPackageService.SetLockStateAsync(packageId, isLocked: true);
+                    await _lockPackageService.SetLockStateAsync(packageId, isLocked: true, request.Reason, callerAzp);
                 }
                 catch (Exception ex)
                 {
@@ -313,7 +301,7 @@ namespace NuGetGallery.Controllers
             {
                 try
                 {
-                    await _lockUserService.SetLockStateAsync(username, isLocked: true);
+                    await _lockUserService.SetLockStateAsync(username, isLocked: true, request.Reason, callerAzp);
                 }
                 catch (Exception ex)
                 {

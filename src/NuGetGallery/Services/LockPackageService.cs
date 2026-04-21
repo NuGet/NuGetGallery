@@ -22,7 +22,7 @@ namespace NuGetGallery
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
         }
 
-        public async Task<LockPackageServiceResult> SetLockStateAsync(string packageId, bool isLocked)
+        public async Task<LockPackageServiceResult> SetLockStateAsync(string packageId, bool isLocked, string reason = null, string callerIdentity = null)
         {
             if (string.IsNullOrWhiteSpace(packageId))
             {
@@ -45,7 +45,9 @@ namespace NuGetGallery
                 await _auditingService.SaveAuditRecordAsync(new PackageRegistrationAuditRecord(
                     packageRegistration,
                     isLocked ? AuditedPackageRegistrationAction.Lock : AuditedPackageRegistrationAction.Unlock,
-                    owner: null));
+                    owner: null,
+                    reason: reason,
+                    callerIdentity: callerIdentity));
 
                 await _packageRegistrationRepository.CommitChangesAsync();
             }

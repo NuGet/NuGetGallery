@@ -19,6 +19,8 @@ namespace NuGetGallery.Auditing
 
         public string Reason { get; }
 
+        public string CallerIdentity { get; set; }
+
         public PackageAuditRecord(
             string id, string version, string hash,
             AuditedPackage packageRecord,

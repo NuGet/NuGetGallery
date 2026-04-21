@@ -13,7 +13,7 @@ namespace NuGetGallery
 		/// <param name="packageId">The package ID whose registration to lock or unlock.</param>
 		/// <param name="isLocked">True to lock, false to unlock.</param>
 		/// <returns>The result of the operation.</returns>
-		Task<LockPackageServiceResult> SetLockStateAsync(string packageId, bool isLocked);
+		Task<LockPackageServiceResult> SetLockStateAsync(string packageId, bool isLocked, string reason = null, string callerIdentity = null);
 	}
 
 	public enum LockPackageServiceResult
