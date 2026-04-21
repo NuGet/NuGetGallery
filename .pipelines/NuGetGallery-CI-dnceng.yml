@@ -260,6 +260,7 @@ stages:
               $maxWait = 300
               $elapsed = 20
               $healthy = $false
+              $bodyLogged = $false
               while ($elapsed -lt $maxWait) {
                   if ($proc.HasExited) {
                       Write-Host "=== AppHost stdout ==="
@@ -270,10 +271,6 @@ stages:
                       exit 1
                   }
 
-                  # Dump recent AppHost stdout for diagnostics
-                  Write-Host "--- AppHost stdout (tail 10) ---"
-                  Get-Content "$(NuGetGalleryPath)\aspire-stdout.log" -Tail 10 -ErrorAction SilentlyContinue
-
                   # Try health probe and capture response body on error
                   $curlOutput = & curl.exe -s -o "$(NuGetGalleryPath)\health-response.txt" -w "%{http_code}" "http://localhost/api/health-probe" --max-time 5 2>$null
                   $httpCode = $curlOutput
@@ -283,11 +280,12 @@ stages:
                       break
                   } else {
                       Write-Host "Waiting for Gallery... ($elapsed s) Status=$httpCode"
-                      if ($httpCode -and $httpCode -ne "000") {
+                      if (-not $bodyLogged -and $httpCode -and $httpCode -ne "000") {
                           $bodyContent = Get-Content "$(NuGetGalleryPath)\health-response.txt" -Raw -ErrorAction SilentlyContinue
                           if ($bodyContent) {
-                              Write-Host "Response body (first 3000 chars):"
-                              Write-Host $bodyContent.Substring(0, [Math]::Min(3000, $bodyContent.Length))
+                              $textOnly = $bodyContent -replace '<style[^>]*>.*?</style>', '' -replace '<script[^>]*>.*?</script>', '' -replace '<[^>]+>', ' ' -replace '\s+', ' '
+                              Write-Host "Response (text): $($textOnly.Substring(0, [Math]::Min(4000, $textOnly.Length)))"
+                              $bodyLogged = $true
                           }
                       }
                   }
