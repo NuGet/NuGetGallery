@@ -247,6 +247,21 @@ stages:
               $env:ASPIRE_DASHBOARD_OTLP_ENDPOINT_URL = "http://localhost:18889"
               $env:ASPIRE_ALLOW_UNSECURED_TRANSPORT = "true"
               $env:ASPIRE_RESOURCE_SERVICE_ENDPOINT_URL = "http://localhost:18890"
+              $env:IIS_USER_HOME = "$(NuGetGalleryPath)\.vs"
+
+              # Ensure IIS Express user home directories exist
+              $iisUserHome = "$(NuGetGalleryPath)\.vs"
+              @("config", "Logs", "TraceLogFiles") | ForEach-Object {
+                  New-Item -ItemType Directory -Path (Join-Path $iisUserHome $_) -Force | Out-Null
+              }
+              # Copy aspnet.config if missing
+              $aspnetCfg = Join-Path $iisUserHome "config\aspnet.config"
+              if (-not (Test-Path $aspnetCfg)) {
+                  $template = Join-Path $env:ProgramFiles "IIS Express\config\templates\PersonalWebServer\aspnet.config"
+                  if (Test-Path $template) { Copy-Item $template $aspnetCfg }
+              }
+              Write-Host "IIS_USER_HOME = $iisUserHome"
+              Write-Host "aspnet.config exists: $(Test-Path $aspnetCfg)"
 
               $proc = Start-Process -FilePath "dotnet" `
                   -ArgumentList "run","--project","$(NuGetGalleryPath)\src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj","-c","$(BuildConfiguration)","--no-build","--no-launch-profile" `
@@ -298,6 +313,22 @@ stages:
               Get-Content "$(NuGetGalleryPath)\aspire-stdout.log" -Tail 100 -ErrorAction SilentlyContinue
               Write-Host "=== AppHost stderr (last 100 lines) ==="
               Get-Content "$(NuGetGalleryPath)\aspire-stderr.log" -Tail 100 -ErrorAction SilentlyContinue
+
+              # Check Windows Event Log for ASP.NET errors
+              Write-Host "=== Recent Application Event Log errors ==="
+              Get-EventLog -LogName Application -EntryType Error -Newest 20 -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "$($_.TimeGenerated) [$($_.Source)] $($_.Message.Substring(0, [Math]::Min(500, $_.Message.Length)))" }
+
+              # Check IIS Express trace logs
+              Write-Host "=== IIS Express Trace Logs ==="
+              $tracePath = "C:\Users\cloudtest\Documents\IISExpress\TraceLogFiles"
+              if (Test-Path $tracePath) {
+                  Get-ChildItem $tracePath -Recurse -File | Sort-Object LastWriteTime -Descending | Select-Object -First 3 | ForEach-Object {
+                      Write-Host "--- $($_.FullName) ---"
+                      Get-Content $_.FullName -Tail 50 -ErrorAction SilentlyContinue
+                  }
+              } else {
+                  Write-Host "(no trace logs found)"
+              }
 
               if (-not $proc.HasExited) {
                   Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
