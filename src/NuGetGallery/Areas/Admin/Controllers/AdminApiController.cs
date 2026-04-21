@@ -50,10 +50,7 @@ namespace NuGetGallery.Controllers
             AdminReflowPackageRequest request;
             try
             {
-                Request.InputStream.Position = 0;
-                using var reader = new StreamReader(Request.InputStream, Encoding.UTF8, true, 4096, leaveOpen: true);
-                var body = reader.ReadToEnd();
-                request = JsonConvert.DeserializeObject<AdminReflowPackageRequest>(body);
+                request = ReadJsonBody<AdminReflowPackageRequest>();
             }
             catch (JsonException)
             {
@@ -159,10 +156,7 @@ namespace NuGetGallery.Controllers
             AdminLockPackageRequest request;
             try
             {
-                Request.InputStream.Position = 0;
-                using var reader = new StreamReader(Request.InputStream, Encoding.UTF8, true, 4096, leaveOpen: true);
-                var body = reader.ReadToEnd();
-                request = JsonConvert.DeserializeObject<AdminLockPackageRequest>(body);
+                request = ReadJsonBody<AdminLockPackageRequest>();
             }
             catch (JsonException)
             {
@@ -239,10 +233,7 @@ namespace NuGetGallery.Controllers
             AdminLockUserRequest request;
             try
             {
-                Request.InputStream.Position = 0;
-                using var reader = new StreamReader(Request.InputStream, Encoding.UTF8, true, 4096, leaveOpen: true);
-                var body = reader.ReadToEnd();
-                request = JsonConvert.DeserializeObject<AdminLockUserRequest>(body);
+                request = ReadJsonBody<AdminLockUserRequest>();
             }
             catch (JsonException)
             {
@@ -319,10 +310,7 @@ namespace NuGetGallery.Controllers
             AdminSoftDeletePackageRequest request;
             try
             {
-                Request.InputStream.Position = 0;
-                using var reader = new StreamReader(Request.InputStream, Encoding.UTF8, true, 4096, leaveOpen: true);
-                var body = reader.ReadToEnd();
-                request = JsonConvert.DeserializeObject<AdminSoftDeletePackageRequest>(body);
+                request = ReadJsonBody<AdminSoftDeletePackageRequest>();
             }
             catch (JsonException)
             {
@@ -408,14 +396,11 @@ namespace NuGetGallery.Controllers
 
             try
             {
-                var reason = request.Reason ?? string.Empty;
-                var signature = callerAzp ?? "AdminApi";
-
                 await _packageDeleteService.SoftDeletePackagesAsync(
                     acceptedPackageEntities,
                     deletedBy: null,
-                    reason: reason,
-                    signature: signature);
+                    reason: request.Reason ?? string.Empty,
+                    signature: callerAzp);
             }
             catch (Exception ex)
             {
@@ -423,6 +408,14 @@ namespace NuGetGallery.Controllers
             }
 
             return Json(HttpStatusCode.Accepted, new AdminSoftDeletePackageResponse { Results = results });
+        }
+
+        private T ReadJsonBody<T>() where T : class
+        {
+            Request.InputStream.Position = 0;
+            using var reader = new StreamReader(Request.InputStream, Encoding.UTF8, true, 4096, leaveOpen: true);
+            var body = reader.ReadToEnd();
+            return JsonConvert.DeserializeObject<T>(body);
         }
     }
 }
