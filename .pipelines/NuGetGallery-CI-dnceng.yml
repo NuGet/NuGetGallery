@@ -251,104 +251,15 @@ stages:
               packageType: sdk
               version: 10.0.x
               includePreviewVersions: true
-          - task: UseNode@1
-            displayName: Install Node.js
-            inputs:
-              version: '20.x'
           - powershell: |
-              Write-Host "=== Checking Docker availability ==="
-              $dockerPath = Get-Command docker -ErrorAction SilentlyContinue
-              if ($dockerPath) {
-                  Write-Host "Docker found at: $($dockerPath.Source)"
-                  docker version
-                  docker info
-              }
-              else {
-                  Write-Host "Docker is NOT installed on this agent."
-              }
-            displayName: Docker Check (informational)
-            workingDirectory: $(NuGetGalleryPath)
-          - powershell: |
-              Write-Host "=== Installing Azurite via npm ==="
-              npm install -g azurite
+              Write-Host "=== Building NuGetGallery.AppHost ==="
+              dotnet build $(NuGetGalleryPath)\src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj -c $(BuildConfiguration)
               if ($LASTEXITCODE -ne 0) {
-                  Write-Error "Failed to install azurite via npm."
+                  Write-Error "AppHost build failed."
                   exit 1
               }
-
-              $azuriteDir = Join-Path $env:TEMP "azurite"
-              New-Item -ItemType Directory -Path $azuriteDir -Force | Out-Null
-
-              Write-Host "=== Starting Azurite in background ==="
-              $azuriteCmd = Get-Command azurite.cmd -ErrorAction SilentlyContinue
-              if (-not $azuriteCmd) {
-                  $azuriteCmd = Get-Command azurite -ErrorAction SilentlyContinue
-              }
-              if (-not $azuriteCmd) {
-                  Write-Error "azurite command not found after npm install."
-                  exit 1
-              }
-              Write-Host "Azurite found at: $($azuriteCmd.Source)"
-
-              $proc = Start-Process -FilePath "cmd.exe" `
-                  -ArgumentList "/c `"$($azuriteCmd.Source)`" --silent --location $azuriteDir --blobPort 10000 --queuePort 10001 --tablePort 10002" `
-                  -PassThru -WindowStyle Hidden
-              Write-Host "Azurite launched with PID $($proc.Id), waiting for endpoints..."
-
-              Write-Host "=== Polling Azurite endpoints ==="
-              $start = Get-Date
-              $maxWait = 300
-              $attempt = 0
-              while ($true) {
-                  $ready = $true
-                  $attempt++
-                  foreach ($port in (10000..10002)) {
-                      $url = "http://127.0.0.1:$port/"
-                      try {
-                          $null = Invoke-WebRequest $url -TimeoutSec 5
-                      }
-                      catch {
-                          $response = $_.Exception.Response
-                          $status = $response.StatusCode
-                          if (!$status) {
-                              $ready = $false
-                              Write-Host "[Not ready] $url - $($_.Exception.Message)"
-                          }
-                          elseif ($status -eq 400 -or ($status -ge 200 -and $status -lt 300)) {
-                              Write-Host "[Ready] $url - HTTP $([int]$status)"
-                          }
-                          else {
-                              $ready = $false
-                              Write-Host "[Not ready] $url - HTTP $([int]$status)"
-                          }
-                      }
-                      if (!$ready) { break }
-                  }
-
-                  $duration = (Get-Date) - $start
-                  if ($ready) {
-                      Write-Host "All Azurite endpoints ready after $duration" -ForegroundColor Green
-                      break
-                  }
-                  elseif ($proc.HasExited) {
-                      Write-Error "Azurite process exited with code $($proc.ExitCode)."
-                      exit 1
-                  }
-                  elseif ($duration.TotalSeconds -gt $maxWait) {
-                      Write-Error "Azurite not ready after $duration"
-                      exit 1
-                  }
-                  else {
-                      $wait = [Math]::Min(10, [Math]::Max(1, $maxWait - $duration.TotalSeconds))
-                      Write-Host "Attempt $attempt - waiting $([int]$wait)s..."
-                      Start-Sleep -Seconds $wait
-                  }
-              }
-
-              Write-Host "Blob:  http://127.0.0.1:10000/"
-              Write-Host "Queue: http://127.0.0.1:10001/"
-              Write-Host "Table: http://127.0.0.1:10002/"
-            displayName: Install, Start & Verify Azurite
+              Write-Host "AppHost build succeeded."
+            displayName: Build AppHost
             workingDirectory: $(NuGetGalleryPath)
 
   - stage: artifacts
