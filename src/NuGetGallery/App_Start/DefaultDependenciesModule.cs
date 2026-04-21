@@ -336,6 +336,11 @@ namespace NuGetGallery
                 .As<ILockUserService>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<ReflowPackageService>()
+                .AsSelf()
+                .As<IReflowPackageService>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<PackageDeleteService>()
                 .AsSelf()
                 .As<IPackageDeleteService>()

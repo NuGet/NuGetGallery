@@ -13,7 +13,7 @@ namespace NuGetGallery
 		/// <param name="username">The username of the user to lock or unlock.</param>
 		/// <param name="isLocked">True to lock, false to unlock.</param>
 		/// <returns>The result of the operation.</returns>
-		Task<LockUserServiceResult> SetLockStateAsync(string username, bool isLocked);
+		Task<LockUserServiceResult> SetLockStateAsync(string username, bool isLocked, string reason = null, string callerIdentity = null);
 	}
 
 	public enum LockUserServiceResult
