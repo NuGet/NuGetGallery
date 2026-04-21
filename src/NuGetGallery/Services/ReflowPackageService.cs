@@ -6,30 +6,34 @@ using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Packaging;
 using NuGet.Services.Entities;
+using NuGetGallery.Auditing;
 using NuGetGallery.Packaging;
 
 namespace NuGetGallery
 {
-    public class ReflowPackageService
+    public class ReflowPackageService : IReflowPackageService
     {
         private readonly IEntitiesContext _entitiesContext;
         private readonly IPackageService _packageService;
         private readonly IPackageFileService _packageFileService;
         private readonly ITelemetryService _telemetryService;
+        private readonly IAuditingService _auditingService;
 
         public ReflowPackageService(
             IEntitiesContext entitiesContext,
             IPackageService packageService,
             IPackageFileService packageFileService,
-            ITelemetryService telemetryService)
+            ITelemetryService telemetryService,
+            IAuditingService auditingService)
         {
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
+            _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
         }
 
-        public async Task<Package> ReflowAsync(string id, string version)
+        public async Task<Package> ReflowAsync(string id, string version, string reason = null, string callerIdentity = null)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
 
@@ -85,7 +89,12 @@ namespace NuGetGallery
                         // 6) Emit telemetry.
                         _telemetryService.TrackPackageReflow(package);
 
-                        // 7) Save and profit
+                        // 7) Audit the reflow operation.
+                        var auditRecord = new PackageAuditRecord(package, AuditedPackageAction.Reflow, reason);
+                        auditRecord.CallerIdentity = callerIdentity;
+                        await _auditingService.SaveAuditRecordAsync(auditRecord);
+
+                        // 8) Save and profit
                         await _entitiesContext.SaveChangesAsync();
                     }
                 }

@@ -150,6 +150,7 @@ namespace NuGetGallery
         private readonly IMarkdownService _markdownService;
         private readonly IIconUrlProvider _iconUrlProvider;
         private readonly IPackageFrameworkCompatibilityFactory _compatibilityFactory;
+        private readonly IReflowPackageService _reflowPackageService;
         private readonly DisplayPackageViewModelFactory _displayPackageViewModelFactory;
         private readonly DisplayLicenseViewModelFactory _displayLicenseViewModelFactory;
         private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
@@ -192,7 +193,8 @@ namespace NuGetGallery
             IIconUrlProvider iconUrlProvider,
             IMarkdownService markdownService,
             IPackageFrameworkCompatibilityFactory compatibilityFactory,
-            ISponsorshipUrlService sponsorshipUrlService)
+            ISponsorshipUrlService sponsorshipUrlService,
+            IReflowPackageService reflowPackageService)
         {
             _packageFilter = packageFilter;
             _packageService = packageService;
@@ -230,6 +232,7 @@ namespace NuGetGallery
             _renameService = renameService ?? throw new ArgumentNullException(nameof(renameService));
             _abTestService = abTestService ?? throw new ArgumentNullException(nameof(abTestService));
             _iconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
+            _reflowPackageService = reflowPackageService ?? throw new ArgumentNullException(nameof(reflowPackageService));
 
             _displayPackageViewModelFactory = new DisplayPackageViewModelFactory(_iconUrlProvider, _compatibilityFactory, featureFlagService, sponsorshipUrlService);
             _displayLicenseViewModelFactory = new DisplayLicenseViewModelFactory(_iconUrlProvider, _markdownService, _featureFlagService);
@@ -2014,15 +2017,9 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var reflowPackageService = new ReflowPackageService(
-                _entitiesContext,
-                (PackageService)_packageService,
-                _packageFileService,
-                _telemetryService);
-
             try
             {
-                await reflowPackageService.ReflowAsync(id, version);
+                await _reflowPackageService.ReflowAsync(id, version);
 
                 TempData["Message"] =
                     "The package is being reflowed. It may take a while for this change to propagate through our system.";
