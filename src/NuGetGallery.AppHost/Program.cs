@@ -16,6 +16,10 @@ public class Program
 		var builder = DistributedApplication.CreateBuilder(args);
 		var config = builder.Configuration.GetSection("NuGetGallery").Get<NuGetGalleryConfig>()!;
 
+		// APPHOST_PROFILE controls which resources are launched.
+		// "ci-gallery" = minimal: only Azurite, DB migrations, and Gallery.
+		var profile = Environment.GetEnvironmentVariable("APPHOST_PROFILE") ?? "full";
+
 		// Read the Aspire-provisioned search service name from deployment outputs in user secrets.
 		var searchOutputsJson = builder.Configuration["Azure:Deployments:search:Outputs"];
 		var searchServiceName = "";
@@ -55,29 +59,6 @@ public class Program
 
 		var azuriteConnStr = "UseDevelopmentStorage=true";
 		var azuriteBase = "http://127.0.0.1:10000/devstoreaccount1";
-
-		// Azure AI Search — Bicep-provisioned, Basic SKU
-		var search = builder.AddAzureSearch("search")
-			.ConfigureInfrastructure(infra =>
-			{
-				var searchService = infra.GetProvisionableResources()
-					.OfType<Azure.Provisioning.Search.SearchService>()
-					.Single();
-				searchService.SearchSkuName = Azure.Provisioning.Search.SearchServiceSkuName.Basic;
-			})
-			.WithParentRelationship(pipelineGroup);
-
-		// ─── Reset arrays (triggered from Aspire dashboard commands) ─────────────────
-
-		// Containers produced by V3 jobs only (not seeded data) — used by "Stop and Reset V3".
-		var jobContainers = new[]
-		{
-			config.Containers.Catalog, config.Containers.FlatContainer,
-			config.Containers.RegistrationSemVer1, config.Containers.RegistrationGzSemVer1, config.Containers.RegistrationGzSemVer2,
-			config.Containers.AzureSearch,
-		};
-
-		var searchIndexNames = new[] { config.SearchIndexes.Search, config.SearchIndexes.Hijack };
 
 		// ─── DB Initialization ───────────────────────────────────────────────────────
 
@@ -125,16 +106,6 @@ public class Program
 				ConfirmationMessage = "Drop the SupportRequest database? It will be recreated by restarting this migration.",
 			});
 
-		// ─── Auxiliary blob seeding (required before Gallery and search jobs) ─────────
-
-		var seedBlobs = builder.AddProject<Projects.NuGetGallery_AppHost_Tools>("seed-blobs")
-			.WithArgs("seed-blobs")
-			.WaitFor(storage)
-			.WithEnvironment("REPO_ROOT", repoRoot)
-			.WithUrl($"{azuriteBase}/{config.Containers.ServiceIndex}/index.json", "V3 Service Index")
-			.WithParentRelationship(infraGroup);
-		WithAppHostEnv(seedBlobs, config, azuriteConnStr, azuriteBase, searchServiceName);
-
 		// ─── NuGetGallery web app (IIS Express) ──────────────────────────────────────
 
 		var galleryPath = Path.Combine(srcDir, "NuGetGallery");
@@ -145,6 +116,57 @@ public class Program
 		GenerateGalleryAspireConfig(galleryPath, azuriteConnStr,
 			packages: config.Containers.Packages, auditing: config.Containers.Auditing,
 			content: config.Containers.Content, uploads: config.Containers.Uploads);
+
+		var gallery = builder.AddExecutable(
+			"gallery",
+			Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "IIS Express", "iisexpress.exe"),
+			galleryPath,
+			"/config:" + iisExpressConfig,
+			"/site:NuGet Gallery (localhost)")
+			.WithHttpEndpoint(port: 80, name: "gallery-http", isProxied: false)
+			.WithHttpsEndpoint(port: 443, name: "gallery-https", isProxied: false)
+		    .WaitForCompletion(dbMigrateGallery)
+		    .WaitForCompletion(dbMigrateSupport)
+			.WaitFor(storage);
+
+		// ─── Full profile: V3 pipeline, seeding, search, and dashboard commands ──────
+		// Azure AI Search, V3 pipeline resources, seeding, and dashboard commands
+		// are only needed in the full profile.
+		if (profile != "ci-gallery")
+		{
+
+		// Azure AI Search — Bicep-provisioned, Basic SKU
+		var search = builder.AddAzureSearch("search")
+			.ConfigureInfrastructure(infra =>
+			{
+				var searchService = infra.GetProvisionableResources()
+					.OfType<Azure.Provisioning.Search.SearchService>()
+					.Single();
+				searchService.SearchSkuName = Azure.Provisioning.Search.SearchServiceSkuName.Basic;
+			})
+			.WithParentRelationship(pipelineGroup);
+
+		// ─── Reset arrays (triggered from Aspire dashboard commands) ─────────────────
+
+		// Containers produced by V3 jobs only (not seeded data) — used by "Stop and Reset V3".
+		var jobContainers = new[]
+		{
+			config.Containers.Catalog, config.Containers.FlatContainer,
+			config.Containers.RegistrationSemVer1, config.Containers.RegistrationGzSemVer1, config.Containers.RegistrationGzSemVer2,
+			config.Containers.AzureSearch,
+		};
+
+		var searchIndexNames = new[] { config.SearchIndexes.Search, config.SearchIndexes.Hijack };
+
+		// ─── Auxiliary blob seeding (required before Gallery and search jobs) ─────────
+
+		var seedBlobs = builder.AddProject<Projects.NuGetGallery_AppHost_Tools>("seed-blobs")
+			.WithArgs("seed-blobs")
+			.WaitFor(storage)
+			.WithEnvironment("REPO_ROOT", repoRoot)
+			.WithUrl($"{azuriteBase}/{config.Containers.ServiceIndex}/index.json", "V3 Service Index")
+			.WithParentRelationship(infraGroup);
+		WithAppHostEnv(seedBlobs, config, azuriteConnStr, azuriteBase, searchServiceName);
 
 		// Generate appsettings.Aspire.config for GalleryTools so it talks to Azurite + the right SQL DB
 		var galleryToolsBin = Path.Combine(srcDir, "GalleryTools", "bin",
@@ -167,19 +189,6 @@ public class Program
 			.WaitFor(storage)
 			.WithParentRelationship(pipelineGroup);
 		WithAppHostEnv(catalogIndexReady, config, azuriteConnStr, azuriteBase, searchServiceName);
-
-		var gallery = builder.AddExecutable(
-			"gallery",
-			Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "IIS Express", "iisexpress.exe"),
-			galleryPath,
-			"/config:" + iisExpressConfig,
-			"/site:NuGet Gallery (localhost)")
-			.WithHttpEndpoint(port: 80, name: "gallery-http", isProxied: false)
-			.WithHttpsEndpoint(port: 443, name: "gallery-https", isProxied: false)
-		    .WaitForCompletion(dbMigrateGallery)
-		    .WaitForCompletion(dbMigrateSupport)
-			// .WaitForCompletion(seedBlobs)
-			.WaitFor(storage);
 
 		builder.AddProject<Projects.NuGetGallery_AppHost_Tools>("warmup-gallery")
 			.WithArgs("warmup")
@@ -597,6 +606,8 @@ public class Program
 				ConfirmationMessage = "Stop everything, drop ALL databases, delete ALL blob containers, and delete ALL search indexes? " +
 					"This will completely reset the local environment. Restart Aspire to rebuild from scratch.",
 			});
+
+		} // end if (profile != "ci-gallery")
 
 		builder.Build().Run();
 	}

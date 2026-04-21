@@ -239,6 +239,62 @@ stages:
               Write-Host "AppHost build succeeded."
             displayName: Build AppHost
             workingDirectory: $(NuGetGalleryPath)
+          - powershell: |
+              Write-Host "=== Starting Aspire AppHost (ci-gallery profile) ==="
+              $env:APPHOST_PROFILE = "ci-gallery"
+              $env:DOTNET_ASPIRE_SHOW_DASHBOARD_RESOURCES = "false"
+
+              $proc = Start-Process -FilePath "dotnet" `
+                  -ArgumentList "run","--project","$(NuGetGalleryPath)\src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj","-c","$(BuildConfiguration)","--no-build","--no-launch-profile" `
+                  -PassThru -RedirectStandardOutput "$(NuGetGalleryPath)\aspire-stdout.log" -RedirectStandardError "$(NuGetGalleryPath)\aspire-stderr.log"
+
+              Write-Host "AppHost started with PID $($proc.Id)"
+
+              $maxWait = 300
+              $elapsed = 0
+              $healthy = $false
+              while ($elapsed -lt $maxWait) {
+                  Start-Sleep -Seconds 10
+                  $elapsed += 10
+
+                  if ($proc.HasExited) {
+                      Write-Host "=== AppHost stdout ==="
+                      Get-Content "$(NuGetGalleryPath)\aspire-stdout.log" -ErrorAction SilentlyContinue
+                      Write-Host "=== AppHost stderr ==="
+                      Get-Content "$(NuGetGalleryPath)\aspire-stderr.log" -ErrorAction SilentlyContinue
+                      Write-Error "AppHost exited prematurely with code $($proc.ExitCode)."
+                      exit 1
+                  }
+
+                  try {
+                      $response = Invoke-WebRequest -Uri "http://localhost/api/health-probe" -UseBasicParsing -TimeoutSec 5
+                      if ($response.StatusCode -eq 200) {
+                          Write-Host "Gallery is healthy! Status: $($response.StatusCode)"
+                          $healthy = $true
+                          break
+                      }
+                  } catch {
+                      Write-Host "Waiting for Gallery... ($elapsed seconds)"
+                  }
+              }
+
+              Write-Host "=== AppHost stdout (last 50 lines) ==="
+              Get-Content "$(NuGetGalleryPath)\aspire-stdout.log" -Tail 50 -ErrorAction SilentlyContinue
+              Write-Host "=== AppHost stderr (last 50 lines) ==="
+              Get-Content "$(NuGetGalleryPath)\aspire-stderr.log" -Tail 50 -ErrorAction SilentlyContinue
+
+              if (-not $proc.HasExited) {
+                  Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+                  Write-Host "AppHost stopped."
+              }
+
+              if (-not $healthy) {
+                  Write-Error "Gallery did not become healthy within $maxWait seconds."
+                  exit 1
+              }
+              Write-Host "Aspire AppHost CI verification succeeded."
+            displayName: Start Aspire Host
+            workingDirectory: $(NuGetGalleryPath)
 
   - stage: artifacts
     displayName: Artifacts
