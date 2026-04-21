@@ -66,12 +66,21 @@ stages:
             clean: true
             fetchTags: false
             path: $(NuGetGalleryDirectory)
+          - powershell: |
+              Write-Host "=== Pre-installed .NET SDKs ==="
+              dotnet --list-sdks
+              Write-Host "=== global.json ==="
+              Get-Content $(NuGetGalleryPath)\global.json
+              Write-Host "=== Resolved SDK ==="
+              dotnet --version
+            displayName: List .NET SDKs (diagnostic)
+            workingDirectory: $(NuGetGalleryPath)
           - task: PowerShell@1
             name: build
             displayName: Build
             inputs:
               scriptName: $(NuGetGalleryPath)\build.ps1
-              arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipArtifacts -SkipGallery -SkipJobs -CommonAssemblyVersion $(CommonAssemblyVersion) -CommonPackageVersion $(CommonPackageVersion) -GalleryAssemblyVersion $(GalleryAssemblyVersion) -GalleryPackageVersion $(GalleryPackageVersion) -JobsAssemblyVersion $(JobsAssemblyVersion) -JobsPackageVersion $(JobsPackageVersion) -Branch $(NuGetGalleryBranch) -CommitSHA $(Build.SourceVersion)
+              arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipArtifacts -SkipGallery -SkipJobs -CommonAssemblyVersion $(CommonAssemblyVersion)-CommonPackageVersion $(CommonPackageVersion) -GalleryAssemblyVersion $(GalleryAssemblyVersion) -GalleryPackageVersion $(GalleryPackageVersion) -JobsAssemblyVersion $(JobsAssemblyVersion) -JobsPackageVersion $(JobsPackageVersion) -Branch $(NuGetGalleryBranch) -CommitSHA $(Build.SourceVersion)
               workingFolder: $(NuGetGalleryPath)
           - task: PowerShell@1
             name: test
