@@ -254,11 +254,11 @@ stages:
 
               Write-Host "AppHost started with PID $($proc.Id)"
 
-              # Wait for dashboard to be ready
-              Start-Sleep -Seconds 15
+              # Wait for Aspire to initialize
+              Start-Sleep -Seconds 20
 
               $maxWait = 300
-              $elapsed = 15
+              $elapsed = 20
               $healthy = $false
               while ($elapsed -lt $maxWait) {
                   if ($proc.HasExited) {
@@ -270,17 +270,11 @@ stages:
                       exit 1
                   }
 
-                  # Query Aspire dashboard for resource states
-                  try {
-                      $dashboard = Invoke-RestMethod -Uri "http://localhost:15888/api/v1/resources" -TimeoutSec 5 -ErrorAction SilentlyContinue
-                      if ($dashboard) {
-                          $dashboard | ForEach-Object { Write-Host "  Resource: $($_.name) State: $($_.state)" }
-                      }
-                  } catch {
-                      Write-Host "  (dashboard not ready yet)"
-                  }
+                  # Dump recent AppHost stdout for diagnostics
+                  Write-Host "--- AppHost stdout (tail 10) ---"
+                  Get-Content "$(NuGetGalleryPath)\aspire-stdout.log" -Tail 10 -ErrorAction SilentlyContinue
 
-                  # Try health probe
+                  # Try health probe and capture response body on error
                   try {
                       $response = Invoke-WebRequest -Uri "http://localhost/api/health-probe" -UseBasicParsing -TimeoutSec 5
                       if ($response.StatusCode -eq 200) {
@@ -289,7 +283,22 @@ stages:
                           break
                       }
                   } catch {
-                      Write-Host "Waiting for Gallery... ($elapsed seconds) - $($_.Exception.Message)"
+                      $statusCode = ""
+                      $body = ""
+                      if ($_.Exception.Response) {
+                          $statusCode = [int]$_.Exception.Response.StatusCode
+                          try {
+                              $stream = $_.Exception.Response.GetResponseStream()
+                              $reader = New-Object System.IO.StreamReader($stream)
+                              $body = $reader.ReadToEnd()
+                              $reader.Close()
+                          } catch {}
+                      }
+                      Write-Host "Waiting for Gallery... ($elapsed s) Status=$statusCode"
+                      if ($body) {
+                          Write-Host "Response body (first 2000 chars):"
+                          Write-Host $body.Substring(0, [Math]::Min(2000, $body.Length))
+                      }
                   }
 
                   Start-Sleep -Seconds 15
