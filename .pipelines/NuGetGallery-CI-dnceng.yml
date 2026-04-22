@@ -246,12 +246,6 @@ stages:
               $env:ASPIRE_DASHBOARD_OTLP_ENDPOINT_URL = "http://localhost:18889"
               $env:ASPIRE_ALLOW_UNSECURED_TRANSPORT = "true"
               $env:ASPIRE_RESOURCE_SERVICE_ENDPOINT_URL = "http://localhost:18890"
-              $env:IIS_USER_HOME = "$(NuGetGalleryPath)\.vs"
-
-              # Ensure IIS Express user home directories exist
-              @("config", "Logs", "TraceLogFiles") | ForEach-Object {
-                  New-Item -ItemType Directory -Path "$(NuGetGalleryPath)\.vs\$_" -Force | Out-Null
-              }
 
               $proc = Start-Process -FilePath "dotnet" `
                   -ArgumentList "run","--project","$(NuGetGalleryPath)\src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj","-c","$(BuildConfiguration)","--no-build","--no-launch-profile" `

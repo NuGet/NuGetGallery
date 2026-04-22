@@ -109,28 +109,17 @@ public class Program
 		// ─── NuGetGallery web app (IIS Express) ──────────────────────────────────────
 
 		var galleryPath = Path.Combine(srcDir, "NuGetGallery");
-		var iisExpressConfig = Path.Combine(
-			repoRoot, ".vs", "config", "applicationhost.config");
+		var iisUserHome = Path.Combine(repoRoot, ".vs");
+		var iisExpressConfig = Path.Combine(iisUserHome, "config", "applicationhost.config");
 
 		// IIS Express needs absolute physicalPath when launched via Aspire/DCP.
 		// The checked-in config uses a relative path that works from VS but not
 		// when the process working directory is set by DCP.
 		EnsureAbsolutePhysicalPath(iisExpressConfig, galleryPath);
 
-		// Ensure aspnet.config exists for IIS Express (applicationhost.config references
-		// %IIS_USER_HOME%\config\aspnet.config which may not exist on CI agents)
-		var iisUserHome = Path.Combine(repoRoot, ".vs");
-		var aspnetConfigPath = Path.Combine(iisUserHome, "config", "aspnet.config");
-		if (!File.Exists(aspnetConfigPath))
-		{
-			var iisExpressDir = Path.Combine(
-				Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "IIS Express");
-			var templatePath = Path.Combine(iisExpressDir, "config", "templates", "PersonalWebServer", "aspnet.config");
-			if (File.Exists(templatePath))
-			{
-				File.Copy(templatePath, aspnetConfigPath);
-			}
-		}
+		// Ensure IIS Express user home directories and aspnet.config exist.
+		// On CI agents these may not be present; on dev machines they already are.
+		EnsureIISExpressUserHome(iisUserHome);
 
 		// Generate appsettings.Aspire.config to switch Gallery to Azurite blob storage
 		GenerateGalleryAspireConfig(galleryPath, azuriteConnStr,
@@ -693,6 +682,30 @@ public class Program
 		{
 			content = content.Replace(relativePhysicalPath, $@"physicalPath=""{absPath}""");
 			File.WriteAllText(configPath, content);
+		}
+	}
+
+	/// <summary>
+	/// Creates IIS Express user home directories and copies aspnet.config from
+	/// the IIS Express templates if it doesn't already exist.
+	/// </summary>
+	static void EnsureIISExpressUserHome(string iisUserHome)
+	{
+		foreach (var subdir in new[] { "config", "Logs", "TraceLogFiles" })
+		{
+			Directory.CreateDirectory(Path.Combine(iisUserHome, subdir));
+		}
+
+		var aspnetConfigPath = Path.Combine(iisUserHome, "config", "aspnet.config");
+		if (!File.Exists(aspnetConfigPath))
+		{
+			var templatePath = Path.Combine(
+				Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+				"IIS Express", "config", "templates", "PersonalWebServer", "aspnet.config");
+			if (File.Exists(templatePath))
+			{
+				File.Copy(templatePath, aspnetConfigPath);
+			}
 		}
 	}
 
