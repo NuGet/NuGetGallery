@@ -234,14 +234,12 @@ stages:
             displayName: Build AppHost
             workingDirectory: $(NuGetGalleryPath)
           - powershell: |
-              # Generate a dev cert and export to PFX (no password)
-              dotnet dev-certs https
-              $pfx = Join-Path $env:TEMP "aspire-dev-cert.pfx"
-              dotnet dev-certs https --export-path $pfx --no-password
+              # Generate a dev cert, export to PEM, import into Trusted Root non-interactively
+              $crt = Join-Path $env:TEMP "aspire-dev-cert.crt"
+              dotnet dev-certs https -ep $crt --format Pem --no-password
               if ($LASTEXITCODE -ne 0) { Write-Error "Failed to export dev cert."; exit 1 }
 
-              # Import into Trusted Root so Aspire components trust each other over HTTPS
-              Import-PfxCertificate -FilePath $pfx -CertStoreLocation Cert:\LocalMachine\Root
+              Import-Certificate -FilePath $crt -CertStoreLocation Cert:\LocalMachine\Root
               if (-not $?) { Write-Error "Failed to import dev cert."; exit 1 }
 
               Write-Host "Dev certificate trusted successfully."
