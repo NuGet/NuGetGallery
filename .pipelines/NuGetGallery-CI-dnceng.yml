@@ -240,18 +240,6 @@ stages:
             displayName: Build AppHost
             workingDirectory: $(NuGetGalleryPath)
           - powershell: |
-              # Fix relative physicalPath in applicationhost.config to absolute
-              # IIS Express via Aspire/DCP may not resolve relative paths correctly
-              $configPath = "$(NuGetGalleryPath)\.vs\config\applicationhost.config"
-              $absPhysPath = "$(NuGetGalleryPath)\src\NuGetGallery"
-              $content = Get-Content $configPath -Raw
-              $content = $content -replace 'physicalPath="\.\.\\\.\.\\src\\NuGetGallery"', "physicalPath=""$absPhysPath"""
-              Set-Content $configPath -Value $content
-              Write-Host "Fixed applicationhost.config physicalPath to: $absPhysPath"
-            displayName: Prepare IIS Express Config
-            workingDirectory: $(NuGetGalleryPath)
-          - powershell: |
-          - powershell: |
               $env:APPHOST_PROFILE = "ci-gallery"
               $env:DOTNET_ASPIRE_SHOW_DASHBOARD_RESOURCES = "false"
               $env:ASPNETCORE_URLS = "http://localhost:15888"
@@ -260,15 +248,9 @@ stages:
               $env:ASPIRE_RESOURCE_SERVICE_ENDPOINT_URL = "http://localhost:18890"
               $env:IIS_USER_HOME = "$(NuGetGalleryPath)\.vs"
 
-              # Ensure IIS Express user home directories and aspnet.config exist
-              $iisUserHome = "$(NuGetGalleryPath)\.vs"
+              # Ensure IIS Express user home directories exist
               @("config", "Logs", "TraceLogFiles") | ForEach-Object {
-                  New-Item -ItemType Directory -Path (Join-Path $iisUserHome $_) -Force | Out-Null
-              }
-              $aspnetCfg = Join-Path $iisUserHome "config\aspnet.config"
-              if (-not (Test-Path $aspnetCfg)) {
-                  $template = Join-Path $env:ProgramFiles "IIS Express\config\templates\PersonalWebServer\aspnet.config"
-                  if (Test-Path $template) { Copy-Item $template $aspnetCfg }
+                  New-Item -ItemType Directory -Path "$(NuGetGalleryPath)\.vs\$_" -Force | Out-Null
               }
 
               $proc = Start-Process -FilePath "dotnet" `
@@ -284,9 +266,7 @@ stages:
               $healthy = $false
               while ($elapsed -lt $maxWait) {
                   if ($proc.HasExited) {
-                      Write-Host "=== AppHost stdout ==="
                       Get-Content "$(NuGetGalleryPath)\aspire-stdout.log" -ErrorAction SilentlyContinue
-                      Write-Host "=== AppHost stderr ==="
                       Get-Content "$(NuGetGalleryPath)\aspire-stderr.log" -ErrorAction SilentlyContinue
                       Write-Error "AppHost exited prematurely with code $($proc.ExitCode)."
                       exit 1
@@ -303,21 +283,16 @@ stages:
                   $elapsed += 15
               }
 
-              Write-Host "=== AppHost stdout (last 50 lines) ==="
-              Get-Content "$(NuGetGalleryPath)\aspire-stdout.log" -Tail 50 -ErrorAction SilentlyContinue
-              Write-Host "=== AppHost stderr (last 50 lines) ==="
-              Get-Content "$(NuGetGalleryPath)\aspire-stderr.log" -Tail 50 -ErrorAction SilentlyContinue
-
               if (-not $proc.HasExited) {
                   Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
-                  Write-Host "AppHost stopped."
               }
 
               if (-not $healthy) {
+                  Get-Content "$(NuGetGalleryPath)\aspire-stdout.log" -Tail 50 -ErrorAction SilentlyContinue
+                  Get-Content "$(NuGetGalleryPath)\aspire-stderr.log" -Tail 50 -ErrorAction SilentlyContinue
                   Write-Error "Gallery did not become healthy within $maxWait seconds."
                   exit 1
               }
-              Write-Host "Aspire AppHost CI verification succeeded."
             displayName: Start Aspire Host
             workingDirectory: $(NuGetGalleryPath)
 

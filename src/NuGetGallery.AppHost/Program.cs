@@ -112,6 +112,11 @@ public class Program
 		var iisExpressConfig = Path.Combine(
 			repoRoot, ".vs", "config", "applicationhost.config");
 
+		// IIS Express needs absolute physicalPath when launched via Aspire/DCP.
+		// The checked-in config uses a relative path that works from VS but not
+		// when the process working directory is set by DCP.
+		EnsureAbsolutePhysicalPath(iisExpressConfig, galleryPath);
+
 		// Ensure aspnet.config exists for IIS Express (applicationhost.config references
 		// %IIS_USER_HOME%\config\aspnet.config which may not exist on CI agents)
 		var iisUserHome = Path.Combine(repoRoot, ".vs");
@@ -671,6 +676,24 @@ public class Program
 		File.WriteAllText(path, JsonSerializer.Serialize(content,
 			new JsonSerializerOptions { WriteIndented = true }));
 		return path;
+	}
+
+	/// <summary>
+	/// Ensures the IIS Express site's physicalPath is absolute. The checked-in
+	/// applicationhost.config uses a relative path that works when VS launches
+	/// IIS Express but fails when Aspire/DCP sets a different working directory.
+	/// </summary>
+	static void EnsureAbsolutePhysicalPath(string configPath, string galleryPath)
+	{
+		var content = File.ReadAllText(configPath);
+		var absPath = Path.GetFullPath(galleryPath);
+
+		const string relativePhysicalPath = @"physicalPath=""..\..\src\NuGetGallery""";
+		if (content.Contains(relativePhysicalPath))
+		{
+			content = content.Replace(relativePhysicalPath, $@"physicalPath=""{absPath}""");
+			File.WriteAllText(configPath, content);
+		}
 	}
 
 	/// <summary>
