@@ -243,7 +243,7 @@ stages:
               if (-not $?) { Write-Error "Failed to import dev cert."; exit 1 }
 
               Write-Host "Dev certificate trusted successfully."
-              Remove-Item $pfx -ErrorAction SilentlyContinue
+              Remove-Item $crt, ($crt -replace '\.crt$','.key') -ErrorAction SilentlyContinue
             displayName: Trust Dev Certificates
             workingDirectory: $(NuGetGalleryPath)
           - powershell: |
