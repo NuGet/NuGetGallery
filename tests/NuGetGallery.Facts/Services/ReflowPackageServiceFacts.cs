@@ -7,6 +7,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
+using NuGetGallery.Auditing;
 using NuGetGallery.Helpers;
 using NuGetGallery.TestUtils;
 using Xunit;
@@ -20,6 +21,7 @@ namespace NuGetGallery
             Mock<IEntitiesContext> entitiesContext = null,
             Mock<IPackageFileService> packageFileService = null,
             Mock<ITelemetryService> telemetryService = null,
+            Mock<IAuditingService> auditingService = null,
             Action<Mock<ReflowPackageService>> setup = null)
         {
             entitiesContext = entitiesContext ?? new Mock<IEntitiesContext>();
@@ -30,12 +32,14 @@ namespace NuGetGallery
             packageService = packageService ?? new Mock<PackageService>();
             packageFileService = packageFileService ?? new Mock<IPackageFileService>();
             telemetryService = telemetryService ?? new Mock<ITelemetryService>();
+            auditingService = auditingService ?? new Mock<IAuditingService>();
 
             var reflowPackageService = new Mock<ReflowPackageService>(
                 entitiesContext.Object,
                 packageService.Object,
                 packageFileService.Object,
-                telemetryService.Object);
+                telemetryService.Object,
+                auditingService.Object);
 
             reflowPackageService.CallBase = true;
 

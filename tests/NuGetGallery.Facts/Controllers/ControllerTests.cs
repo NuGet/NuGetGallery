@@ -77,6 +77,9 @@ namespace NuGetGallery.Controllers
                 new ControllerActionRuleException(typeof(PackagesController), nameof(PackagesController.DisplayPackage)),
                 new ControllerActionRuleException(typeof(TokenApiController), nameof(TokenApiController.CreateToken)),
                 new ControllerActionRuleException(typeof(AdminApiController), nameof(AdminApiController.ReflowPackageAsync)),
+                new ControllerActionRuleException(typeof(AdminApiController), nameof(AdminApiController.LockPackageAsync)),
+                new ControllerActionRuleException(typeof(AdminApiController), nameof(AdminApiController.LockUserAsync)),
+                new ControllerActionRuleException(typeof(AdminApiController), nameof(AdminApiController.SoftDeletePackageAsync)),
             };
 
             // Act
