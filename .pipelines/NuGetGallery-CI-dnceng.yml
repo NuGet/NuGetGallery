@@ -240,6 +240,46 @@ stages:
             displayName: Build AppHost
             workingDirectory: $(NuGetGalleryPath)
           - powershell: |
+              Write-Host "=== Pre-flight: check bin directory and fix applicationhost.config ==="
+              $binDir = "$(NuGetGalleryPath)\src\NuGetGallery\bin"
+              Write-Host "Bin dir: $binDir"
+              Write-Host "Bin dir exists: $(Test-Path $binDir)"
+              $configDlls = @(
+                  "Microsoft.ApplicationServer.Caching.Core.dll",
+                  "EntityFramework.dll",
+                  "NuGetGallery.dll",
+                  "NuGetGallery.Core.dll",
+                  "System.Web.Mvc.dll"
+              )
+              foreach ($dll in $configDlls) {
+                  $dllPath = Join-Path $binDir $dll
+                  $exists = Test-Path $dllPath
+                  Write-Host "  $dll : $exists"
+                  if ($exists) {
+                      try {
+                          $asm = [System.Reflection.Assembly]::LoadFrom($dllPath)
+                          Write-Host "    Loaded OK: $($asm.FullName)"
+                      } catch {
+                          Write-Host "    LOAD ERROR: $($_.Exception.Message)"
+                          if ($_.Exception.InnerException) {
+                              Write-Host "    INNER: $($_.Exception.InnerException.Message)"
+                          }
+                      }
+                  }
+              }
+              Write-Host "Total DLLs in bin: $((Get-ChildItem $binDir -Filter *.dll -ErrorAction SilentlyContinue).Count)"
+
+              # Fix relative physicalPath in applicationhost.config to absolute
+              $configPath = "$(NuGetGalleryPath)\.vs\config\applicationhost.config"
+              $absPhysPath = "$(NuGetGalleryPath)\src\NuGetGallery"
+              Write-Host "Fixing physicalPath to: $absPhysPath"
+              $content = Get-Content $configPath -Raw
+              $content = $content -replace 'physicalPath="\.\.\\\.\.\\src\\NuGetGallery"', "physicalPath=""$absPhysPath"""
+              Set-Content $configPath -Value $content
+              # Verify
+              Select-String -Path $configPath -Pattern "physicalPath" | ForEach-Object { Write-Host $_.Line.Trim() }
+
+              # Also test direct IIS Express launch (fixed arg format)
               Write-Host "=== Testing IIS Express directly ==="
               $env:IIS_USER_HOME = "$(NuGetGalleryPath)\.vs"
               $iisUserHome = "$(NuGetGalleryPath)\.vs"
@@ -253,17 +293,15 @@ stages:
               }
 
               $iisExe = Join-Path $env:ProgramFiles "IIS Express\iisexpress.exe"
-              $configPath = "$(NuGetGalleryPath)\.vs\config\applicationhost.config"
+              $args = @("/config:$configPath", "/site:NuGet Gallery (localhost)", "/userhome:$iisUserHome")
               Write-Host "IIS Express: $iisExe"
-              Write-Host "Config: $configPath"
-              Write-Host "IIS_USER_HOME: $env:IIS_USER_HOME"
+              Write-Host "Args: $($args -join ' ')"
 
-              $iisProc = Start-Process -FilePath $iisExe `
-                  -ArgumentList "/config:$configPath","/site:NuGet Gallery (localhost)","/userhome:$iisUserHome" `
+              $iisProc = Start-Process -FilePath $iisExe -ArgumentList $args `
                   -PassThru -RedirectStandardOutput "$(NuGetGalleryPath)\iis-stdout.log" -RedirectStandardError "$(NuGetGalleryPath)\iis-stderr.log"
 
               Write-Host "IIS Express started with PID $($iisProc.Id)"
-              Start-Sleep -Seconds 10
+              Start-Sleep -Seconds 15
 
               if ($iisProc.HasExited) {
                   Write-Host "IIS Express exited with code $($iisProc.ExitCode)"
@@ -272,20 +310,42 @@ stages:
                   Write-Host "=== stderr ==="
                   Get-Content "$(NuGetGalleryPath)\iis-stderr.log" -ErrorAction SilentlyContinue
               } else {
-                  Write-Host "IIS Express is running"
+                  Write-Host "IIS Express is running, testing health probe..."
                   $curlOutput = & curl.exe -s -o "$(NuGetGalleryPath)\iis-response.txt" -w "%{http_code}" "http://localhost/api/health-probe" --max-time 10 2>$null
                   Write-Host "Health probe status: $curlOutput"
                   $body = Get-Content "$(NuGetGalleryPath)\iis-response.txt" -Raw -ErrorAction SilentlyContinue
                   if ($body) {
                       $textOnly = $body -replace '<style[^>]*>.*?</style>', '' -replace '<script[^>]*>.*?</script>', '' -replace '<[^>]+>', ' ' -replace '\s+', ' '
-                      Write-Host "Response: $($textOnly.Substring(0, [Math]::Min(4000, $textOnly.Length)))"
+                      Write-Host "Response: $($textOnly.Substring(0, [Math]::Min(2000, $textOnly.Length)))"
                   }
+
+                  # Check event log for details
+                  Write-Host "=== Recent ASP.NET errors ==="
+                  Get-EventLog -LogName Application -EntryType Error -Source "ASP.NET*" -Newest 3 -ErrorAction SilentlyContinue | ForEach-Object {
+                      Write-Host "$($_.TimeGenerated) $($_.Message)"
+                      if ($_.Data) {
+                          $dataStr = [System.Text.Encoding]::UTF8.GetString($_.Data)
+                          Write-Host "  DATA: $dataStr"
+                      }
+                  }
+
+                  # Check ASP.NET temp files for compilation errors
+                  $tempDir = Join-Path $env:LOCALAPPDATA "Temp\Temporary ASP.NET Files"
+                  Write-Host "=== ASP.NET Temp Files ==="
+                  if (Test-Path $tempDir) {
+                      Get-ChildItem $tempDir -Recurse -Filter "*.err" -ErrorAction SilentlyContinue | ForEach-Object {
+                          Write-Host "Error file: $($_.FullName)"
+                          Get-Content $_.FullName -ErrorAction SilentlyContinue | Write-Host
+                      }
+                      Get-ChildItem $tempDir -Recurse -ErrorAction SilentlyContinue | Select-Object -First 20 | ForEach-Object {
+                          Write-Host "  $($_.FullName)"
+                      }
+                  } else {
+                      Write-Host "Temp dir not found: $tempDir"
+                  }
+
                   Stop-Process -Id $iisProc.Id -Force -ErrorAction SilentlyContinue
               }
-
-              # Check event log
-              Write-Host "=== Recent ASP.NET errors ==="
-              Get-EventLog -LogName Application -EntryType Error -Source "ASP.NET*" -Newest 5 -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "$($_.TimeGenerated) $($_.Message)" }
             displayName: Test IIS Express Directly
             workingDirectory: $(NuGetGalleryPath)
           - powershell: |
