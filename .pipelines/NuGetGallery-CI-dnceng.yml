@@ -234,11 +234,25 @@ stages:
             displayName: Build AppHost
             workingDirectory: $(NuGetGalleryPath)
           - powershell: |
+              # Generate a dev cert and export to PFX (no password)
+              dotnet dev-certs https
+              $pfx = Join-Path $env:TEMP "aspire-dev-cert.pfx"
+              dotnet dev-certs https --export-path $pfx --no-password
+              if ($LASTEXITCODE -ne 0) { Write-Error "Failed to export dev cert."; exit 1 }
+
+              # Import into Trusted Root so Aspire components trust each other over HTTPS
+              Import-PfxCertificate -FilePath $pfx -CertStoreLocation Cert:\LocalMachine\Root
+              if (-not $?) { Write-Error "Failed to import dev cert."; exit 1 }
+
+              Write-Host "Dev certificate trusted successfully."
+              Remove-Item $pfx -ErrorAction SilentlyContinue
+            displayName: Trust Dev Certificates
+            workingDirectory: $(NuGetGalleryPath)
+          - powershell: |
               $env:APPHOST_PROFILE = "ci-gallery"
-              $env:ASPIRE_ALLOW_UNSECURED_TRANSPORT = "true"
 
               $proc = Start-Process -FilePath "dotnet" `
-                  -ArgumentList "run","--project","$(NuGetGalleryPath)\src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj","-c","$(BuildConfiguration)","--no-build","--launch-profile","http" `
+                  -ArgumentList "run","--project","$(NuGetGalleryPath)\src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj","-c","$(BuildConfiguration)","--no-build","--launch-profile","https" `
                   -PassThru -RedirectStandardOutput "$(NuGetGalleryPath)\aspire-stdout.log" -RedirectStandardError "$(NuGetGalleryPath)\aspire-stderr.log"
 
               Write-Host "AppHost started with PID $($proc.Id)"
