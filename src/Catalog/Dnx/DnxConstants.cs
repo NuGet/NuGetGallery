@@ -22,7 +22,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
         public const string DefaultCacheControlOfPackageVersionIndex = "max-age=10";
 
         // Cache Duration of Package Version Index (at CDN)
-        public static readonly TimeSpan CacheDurationOfPackageVersionIndex = TimeSpan.FromSeconds(180);
+        public static readonly TimeSpan CacheDurationOfPackageVersionIndex = TimeSpan.FromSeconds(60);
 
         // Front Cursor with Updates
         // (MaxNumberOfUpdatesToKeepOfFrontCursor - 1) * MinIntervalBetweenTwoUpdatesOfFrontCursor > MinIntervalBeforeToReadUpdateOfFrontCursor
