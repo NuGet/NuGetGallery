@@ -41,10 +41,6 @@ variables:
     value: $(Build.SourceBranchName)
   - name: SemverFriendlyBranchName
     value: ${{ replace(replace(variables['Build.SourceBranchName'], '_', '-'), '/', '-') }}
-  - name: DOTNET_SKIP_FIRST_TIME_EXPERIENCE
-    value: true
-  - name: DOTNET_NOLOGO
-    value: true
 
 resources:
   repositories:
