@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
@@ -309,11 +310,17 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 ReflowServiceSetupHelper.SetupPackages(PackageServiceMock, PackageFileServiceMock, new List<Package>() { ReflowPackage, ReflowPackage2 });
                 PackageServiceMock.ThrowFindPackageByIdAndVersionStrict(new List<Package>() { FailReflowPackage, FailReflowPackage2 });
 
+                var reflowPackageServiceMock = GetMock<IReflowPackageService>();
+                reflowPackageServiceMock
+                    .Setup(s => s.ReflowAsync(FailReflowPackage.Id, FailReflowPackage.Version, It.IsAny<string>(), It.IsAny<string>()))
+                    .ThrowsAsync(new InvalidOperationException("Reflow failed"));
+                reflowPackageServiceMock
+                    .Setup(s => s.ReflowAsync(FailReflowPackage2.Id, FailReflowPackage2.Version, It.IsAny<string>(), It.IsAny<string>()))
+                    .ThrowsAsync(new InvalidOperationException("Reflow failed"));
+
                 CorrectIsLatestController = new CorrectIsLatestController(
-                    PackageServiceMock.Object,
                     entitiesContextMock.Object,
-                    PackageFileServiceMock.Object,
-                    GetMock<ITelemetryService>().Object);
+                    reflowPackageServiceMock.Object);
 
                 TestUtility.SetupHttpContextMockForUrlGeneration(new Mock<HttpContextBase>(), CorrectIsLatestController);
             }
