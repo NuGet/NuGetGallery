@@ -240,116 +240,18 @@ stages:
             displayName: Build AppHost
             workingDirectory: $(NuGetGalleryPath)
           - powershell: |
-              Write-Host "=== Pre-flight: check bin directory and fix applicationhost.config ==="
-              $binDir = "$(NuGetGalleryPath)\src\NuGetGallery\bin"
-              Write-Host "Bin dir: $binDir"
-              Write-Host "Bin dir exists: $(Test-Path $binDir)"
-              $configDlls = @(
-                  "Microsoft.ApplicationServer.Caching.Core.dll",
-                  "EntityFramework.dll",
-                  "NuGetGallery.dll",
-                  "NuGetGallery.Core.dll",
-                  "System.Web.Mvc.dll"
-              )
-              foreach ($dll in $configDlls) {
-                  $dllPath = Join-Path $binDir $dll
-                  $exists = Test-Path $dllPath
-                  Write-Host "  $dll : $exists"
-                  if ($exists) {
-                      try {
-                          $asm = [System.Reflection.Assembly]::LoadFrom($dllPath)
-                          Write-Host "    Loaded OK: $($asm.FullName)"
-                      } catch {
-                          Write-Host "    LOAD ERROR: $($_.Exception.Message)"
-                          if ($_.Exception.InnerException) {
-                              Write-Host "    INNER: $($_.Exception.InnerException.Message)"
-                          }
-                      }
-                  }
-              }
-              Write-Host "Total DLLs in bin: $((Get-ChildItem $binDir -Filter *.dll -ErrorAction SilentlyContinue).Count)"
-
               # Fix relative physicalPath in applicationhost.config to absolute
+              # IIS Express via Aspire/DCP may not resolve relative paths correctly
               $configPath = "$(NuGetGalleryPath)\.vs\config\applicationhost.config"
               $absPhysPath = "$(NuGetGalleryPath)\src\NuGetGallery"
-              Write-Host "Fixing physicalPath to: $absPhysPath"
               $content = Get-Content $configPath -Raw
               $content = $content -replace 'physicalPath="\.\.\\\.\.\\src\\NuGetGallery"', "physicalPath=""$absPhysPath"""
               Set-Content $configPath -Value $content
-              # Verify
-              Select-String -Path $configPath -Pattern "physicalPath" | ForEach-Object { Write-Host $_.Line.Trim() }
-
-              # Also test direct IIS Express launch (fixed arg format)
-              Write-Host "=== Testing IIS Express directly ==="
-              $env:IIS_USER_HOME = "$(NuGetGalleryPath)\.vs"
-              $iisUserHome = "$(NuGetGalleryPath)\.vs"
-              @("config", "Logs", "TraceLogFiles") | ForEach-Object {
-                  New-Item -ItemType Directory -Path (Join-Path $iisUserHome $_) -Force | Out-Null
-              }
-              $aspnetCfg = Join-Path $iisUserHome "config\aspnet.config"
-              if (-not (Test-Path $aspnetCfg)) {
-                  $template = Join-Path $env:ProgramFiles "IIS Express\config\templates\PersonalWebServer\aspnet.config"
-                  if (Test-Path $template) { Copy-Item $template $aspnetCfg }
-              }
-
-              $iisExe = Join-Path $env:ProgramFiles "IIS Express\iisexpress.exe"
-              $args = @("/config:$configPath", "/site:NuGet Gallery (localhost)", "/userhome:$iisUserHome")
-              Write-Host "IIS Express: $iisExe"
-              Write-Host "Args: $($args -join ' ')"
-
-              $iisProc = Start-Process -FilePath $iisExe -ArgumentList $args `
-                  -PassThru -RedirectStandardOutput "$(NuGetGalleryPath)\iis-stdout.log" -RedirectStandardError "$(NuGetGalleryPath)\iis-stderr.log"
-
-              Write-Host "IIS Express started with PID $($iisProc.Id)"
-              Start-Sleep -Seconds 15
-
-              if ($iisProc.HasExited) {
-                  Write-Host "IIS Express exited with code $($iisProc.ExitCode)"
-                  Write-Host "=== stdout ==="
-                  Get-Content "$(NuGetGalleryPath)\iis-stdout.log" -ErrorAction SilentlyContinue
-                  Write-Host "=== stderr ==="
-                  Get-Content "$(NuGetGalleryPath)\iis-stderr.log" -ErrorAction SilentlyContinue
-              } else {
-                  Write-Host "IIS Express is running, testing health probe..."
-                  $curlOutput = & curl.exe -s -o "$(NuGetGalleryPath)\iis-response.txt" -w "%{http_code}" "http://localhost/api/health-probe" --max-time 10 2>$null
-                  Write-Host "Health probe status: $curlOutput"
-                  $body = Get-Content "$(NuGetGalleryPath)\iis-response.txt" -Raw -ErrorAction SilentlyContinue
-                  if ($body) {
-                      $textOnly = $body -replace '<style[^>]*>.*?</style>', '' -replace '<script[^>]*>.*?</script>', '' -replace '<[^>]+>', ' ' -replace '\s+', ' '
-                      Write-Host "Response: $($textOnly.Substring(0, [Math]::Min(2000, $textOnly.Length)))"
-                  }
-
-                  # Check event log for details
-                  Write-Host "=== Recent ASP.NET errors ==="
-                  Get-EventLog -LogName Application -EntryType Error -Source "ASP.NET*" -Newest 3 -ErrorAction SilentlyContinue | ForEach-Object {
-                      Write-Host "$($_.TimeGenerated) $($_.Message)"
-                      if ($_.Data) {
-                          $dataStr = [System.Text.Encoding]::UTF8.GetString($_.Data)
-                          Write-Host "  DATA: $dataStr"
-                      }
-                  }
-
-                  # Check ASP.NET temp files for compilation errors
-                  $tempDir = Join-Path $env:LOCALAPPDATA "Temp\Temporary ASP.NET Files"
-                  Write-Host "=== ASP.NET Temp Files ==="
-                  if (Test-Path $tempDir) {
-                      Get-ChildItem $tempDir -Recurse -Filter "*.err" -ErrorAction SilentlyContinue | ForEach-Object {
-                          Write-Host "Error file: $($_.FullName)"
-                          Get-Content $_.FullName -ErrorAction SilentlyContinue | Write-Host
-                      }
-                      Get-ChildItem $tempDir -Recurse -ErrorAction SilentlyContinue | Select-Object -First 20 | ForEach-Object {
-                          Write-Host "  $($_.FullName)"
-                      }
-                  } else {
-                      Write-Host "Temp dir not found: $tempDir"
-                  }
-
-                  Stop-Process -Id $iisProc.Id -Force -ErrorAction SilentlyContinue
-              }
-            displayName: Test IIS Express Directly
+              Write-Host "Fixed applicationhost.config physicalPath to: $absPhysPath"
+            displayName: Prepare IIS Express Config
             workingDirectory: $(NuGetGalleryPath)
           - powershell: |
-              Write-Host "=== Starting Aspire AppHost (ci-gallery profile) ==="
+          - powershell: |
               $env:APPHOST_PROFILE = "ci-gallery"
               $env:DOTNET_ASPIRE_SHOW_DASHBOARD_RESOURCES = "false"
               $env:ASPNETCORE_URLS = "http://localhost:15888"
@@ -358,27 +260,16 @@ stages:
               $env:ASPIRE_RESOURCE_SERVICE_ENDPOINT_URL = "http://localhost:18890"
               $env:IIS_USER_HOME = "$(NuGetGalleryPath)\.vs"
 
-              # Ensure IIS Express user home directories exist
+              # Ensure IIS Express user home directories and aspnet.config exist
               $iisUserHome = "$(NuGetGalleryPath)\.vs"
               @("config", "Logs", "TraceLogFiles") | ForEach-Object {
                   New-Item -ItemType Directory -Path (Join-Path $iisUserHome $_) -Force | Out-Null
               }
-              # Copy aspnet.config if missing
               $aspnetCfg = Join-Path $iisUserHome "config\aspnet.config"
               if (-not (Test-Path $aspnetCfg)) {
                   $template = Join-Path $env:ProgramFiles "IIS Express\config\templates\PersonalWebServer\aspnet.config"
                   if (Test-Path $template) { Copy-Item $template $aspnetCfg }
               }
-              Write-Host "IIS_USER_HOME = $iisUserHome"
-              Write-Host "aspnet.config exists: $(Test-Path $aspnetCfg)"
-
-              # Verify Gallery prerequisites
-              $gallerySrc = "$(NuGetGalleryPath)\src\NuGetGallery"
-              Write-Host "Web.config exists: $(Test-Path (Join-Path $gallerySrc 'Web.config'))"
-              Write-Host "NuGetGallery.dll exists: $(Test-Path (Join-Path $gallerySrc 'bin\NuGetGallery.dll'))"
-              Write-Host "EntityFramework.dll exists: $(Test-Path (Join-Path $gallerySrc 'bin\EntityFramework.dll'))"
-              Write-Host "appsettings.Aspire.config exists: $(Test-Path (Join-Path $gallerySrc 'appsettings.Aspire.config'))"
-              Write-Host "applicationhost.config exists: $(Test-Path '$(NuGetGalleryPath)\.vs\config\applicationhost.config')"
 
               $proc = Start-Process -FilePath "dotnet" `
                   -ArgumentList "run","--project","$(NuGetGalleryPath)\src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj","-c","$(BuildConfiguration)","--no-build","--no-launch-profile" `
@@ -386,13 +277,11 @@ stages:
 
               Write-Host "AppHost started with PID $($proc.Id)"
 
-              # Wait for Aspire to initialize
+              # Poll for Gallery health
               Start-Sleep -Seconds 20
-
               $maxWait = 300
               $elapsed = 20
               $healthy = $false
-              $bodyLogged = $false
               while ($elapsed -lt $maxWait) {
                   if ($proc.HasExited) {
                       Write-Host "=== AppHost stdout ==="
@@ -403,67 +292,21 @@ stages:
                       exit 1
                   }
 
-                  # Try health probe and capture response body on error
-                  $curlOutput = & curl.exe -s -o "$(NuGetGalleryPath)\health-response.txt" -w "%{http_code}" "http://localhost/api/health-probe" --max-time 5 2>$null
-                  $httpCode = $curlOutput
+                  $httpCode = & curl.exe -s -o NUL -w "%{http_code}" "http://localhost/api/health-probe" --max-time 5 2>$null
                   if ($httpCode -eq "200") {
-                      Write-Host "Gallery is healthy! Status: 200"
+                      Write-Host "Gallery is healthy! Status: 200 ($elapsed s)"
                       $healthy = $true
                       break
-                  } else {
-                      Write-Host "Waiting for Gallery... ($elapsed s) Status=$httpCode"
-                      if (-not $bodyLogged -and $httpCode -and $httpCode -ne "000") {
-                          $bodyContent = Get-Content "$(NuGetGalleryPath)\health-response.txt" -Raw -ErrorAction SilentlyContinue
-                          if ($bodyContent) {
-                              $textOnly = $bodyContent -replace '<style[^>]*>.*?</style>', '' -replace '<script[^>]*>.*?</script>', '' -replace '<[^>]+>', ' ' -replace '\s+', ' '
-                              Write-Host "Response (text): $($textOnly.Substring(0, [Math]::Min(4000, $textOnly.Length)))"
-                              $bodyLogged = $true
-                          }
-                      }
                   }
-
+                  Write-Host "Waiting for Gallery... ($elapsed s) Status=$httpCode"
                   Start-Sleep -Seconds 15
                   $elapsed += 15
               }
 
-              Write-Host "=== AppHost stdout (last 100 lines) ==="
-              Get-Content "$(NuGetGalleryPath)\aspire-stdout.log" -Tail 100 -ErrorAction SilentlyContinue
-              Write-Host "=== AppHost stderr (last 100 lines) ==="
-              Get-Content "$(NuGetGalleryPath)\aspire-stderr.log" -Tail 100 -ErrorAction SilentlyContinue
-
-              # Check Windows Event Log for ASP.NET errors
-              Write-Host "=== Recent Application Event Log errors ==="
-              Get-EventLog -LogName Application -EntryType Error -Newest 20 -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "$($_.TimeGenerated) [$($_.Source)] $($_.Message)" }
-
-              # Check for ASP.NET-specific events with full message
-              Write-Host "=== ASP.NET WinEvents ==="
-              Get-WinEvent -FilterHashtable @{LogName='Application'; ProviderName='ASP.NET 4.0.30319.0'; Level=2} -MaxEvents 5 -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "$($_.TimeCreated) $($_.Message)" }
-
-              # Check if appsettings.Aspire.config was generated
-              Write-Host "=== appsettings.Aspire.config check ==="
-              $aspireConfig = "$(NuGetGalleryPath)\src\NuGetGallery\appsettings.Aspire.config"
-              Write-Host "appsettings.Aspire.config exists now: $(Test-Path $aspireConfig)"
-              if (Test-Path $aspireConfig) { Get-Content $aspireConfig }
-
-              # Check .NET Framework version
-              Write-Host "=== .NET Framework version ==="
-              Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" -ErrorAction SilentlyContinue | Select-Object -Property Release,Version | Format-List
-
-              # Check ASP.NET registration
-              Write-Host "=== ASP.NET 4.x registration ==="
-              Test-Path "$env:windir\Microsoft.NET\Framework64\v4.0.30319\aspnet_isapi.dll"
-
-              # Check IIS Express trace logs
-              Write-Host "=== IIS Express Trace Logs ==="
-              $tracePath = "C:\Users\cloudtest\Documents\IISExpress\TraceLogFiles"
-              if (Test-Path $tracePath) {
-                  Get-ChildItem $tracePath -Recurse -File | Sort-Object LastWriteTime -Descending | Select-Object -First 3 | ForEach-Object {
-                      Write-Host "--- $($_.FullName) ---"
-                      Get-Content $_.FullName -Tail 50 -ErrorAction SilentlyContinue
-                  }
-              } else {
-                  Write-Host "(no trace logs found)"
-              }
+              Write-Host "=== AppHost stdout (last 50 lines) ==="
+              Get-Content "$(NuGetGalleryPath)\aspire-stdout.log" -Tail 50 -ErrorAction SilentlyContinue
+              Write-Host "=== AppHost stderr (last 50 lines) ==="
+              Get-Content "$(NuGetGalleryPath)\aspire-stderr.log" -Tail 50 -ErrorAction SilentlyContinue
 
               if (-not $proc.HasExited) {
                   Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
