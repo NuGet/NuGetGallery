@@ -75,7 +75,7 @@ stages:
             displayName: Build
             inputs:
               scriptName: $(NuGetGalleryPath)\build.ps1
-              arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipArtifacts -SkipGallery -SkipJobs -CommonAssemblyVersion $(CommonAssemblyVersion) -CommonPackageVersion $(CommonPackageVersion)-GalleryAssemblyVersion $(GalleryAssemblyVersion) -GalleryPackageVersion $(GalleryPackageVersion) -JobsAssemblyVersion $(JobsAssemblyVersion) -JobsPackageVersion $(JobsPackageVersion) -Branch $(NuGetGalleryBranch) -CommitSHA $(Build.SourceVersion)
+              arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipArtifacts -SkipGallery -SkipJobs -CommonAssemblyVersion $(CommonAssemblyVersion) -CommonPackageVersion $(CommonPackageVersion) -GalleryAssemblyVersion $(GalleryAssemblyVersion) -GalleryPackageVersion $(GalleryPackageVersion) -JobsAssemblyVersion $(JobsAssemblyVersion) -JobsPackageVersion $(JobsPackageVersion) -Branch $(NuGetGalleryBranch) -CommitSHA $(Build.SourceVersion)
               workingFolder: $(NuGetGalleryPath)
           - task: PowerShell@1
             name: test
@@ -112,12 +112,6 @@ stages:
             inputs:
               scriptName: $(NuGetGalleryPath)\build.ps1
               arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipArtifacts -SkipCommon -SkipJobs -CommonAssemblyVersion $(CommonAssemblyVersion) -CommonPackageVersion $(CommonPackageVersion) -GalleryAssemblyVersion $(GalleryAssemblyVersion) -GalleryPackageVersion $(GalleryPackageVersion) -JobsAssemblyVersion $(JobsAssemblyVersion) -JobsPackageVersion $(JobsPackageVersion) -Branch $(NuGetGalleryBranch) -CommitSHA $(Build.SourceVersion)
-              workingFolder: $(NuGetGalleryPath)
-          - task: PowerShell@1
-            name: setup_dev
-            displayName: Setup Dev Environment
-            inputs:
-              scriptName: $(NuGetGalleryPath)\tools\Setup-DevEnvironment.ps1
               workingFolder: $(NuGetGalleryPath)
           - task: PowerShell@1
             name: test
@@ -239,16 +233,13 @@ stages:
               Write-Host "AppHost build succeeded."
             displayName: Build AppHost
             workingDirectory: $(NuGetGalleryPath)
+          - powershell: dotnet dev-certs https --trust
+            displayName: Trust Dev Certificates
           - powershell: |
               $env:APPHOST_PROFILE = "ci-gallery"
-              $env:DOTNET_ASPIRE_SHOW_DASHBOARD_RESOURCES = "false"
-              $env:ASPNETCORE_URLS = "http://localhost:15888"
-              $env:ASPIRE_DASHBOARD_OTLP_ENDPOINT_URL = "http://localhost:18889"
-              $env:ASPIRE_ALLOW_UNSECURED_TRANSPORT = "true"
-              $env:ASPIRE_RESOURCE_SERVICE_ENDPOINT_URL = "http://localhost:18890"
 
               $proc = Start-Process -FilePath "dotnet" `
-                  -ArgumentList "run","--project","$(NuGetGalleryPath)\src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj","-c","$(BuildConfiguration)","--no-build","--no-launch-profile" `
+                  -ArgumentList "run","--project","$(NuGetGalleryPath)\src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj","-c","$(BuildConfiguration)","--no-build","--launch-profile","https" `
                   -PassThru -RedirectStandardOutput "$(NuGetGalleryPath)\aspire-stdout.log" -RedirectStandardError "$(NuGetGalleryPath)\aspire-stderr.log"
 
               Write-Host "AppHost started with PID $($proc.Id)"
