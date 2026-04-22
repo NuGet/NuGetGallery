@@ -233,13 +233,12 @@ stages:
               Write-Host "AppHost build succeeded."
             displayName: Build AppHost
             workingDirectory: $(NuGetGalleryPath)
-          - powershell: dotnet dev-certs https --trust
-            displayName: Trust Dev Certificates
           - powershell: |
               $env:APPHOST_PROFILE = "ci-gallery"
+              $env:ASPIRE_ALLOW_UNSECURED_TRANSPORT = "true"
 
               $proc = Start-Process -FilePath "dotnet" `
-                  -ArgumentList "run","--project","$(NuGetGalleryPath)\src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj","-c","$(BuildConfiguration)","--no-build","--launch-profile","https" `
+                  -ArgumentList "run","--project","$(NuGetGalleryPath)\src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj","-c","$(BuildConfiguration)","--no-build","--launch-profile","http" `
                   -PassThru -RedirectStandardOutput "$(NuGetGalleryPath)\aspire-stdout.log" -RedirectStandardError "$(NuGetGalleryPath)\aspire-stderr.log"
 
               Write-Host "AppHost started with PID $($proc.Id)"
