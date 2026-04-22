@@ -20,11 +20,17 @@ namespace NuGet.Jobs
             services.Configure<Auxiliary2AzureSearchConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
             services.Configure<AzureSearchJobConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
             services.Configure<AzureSearchConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
-            services.AddDownloadsV1JsonClient(provider =>
-            {
-                var jsonConfigurationAccessor = provider.GetRequiredService<IOptionsSnapshot<Auxiliary2AzureSearchConfiguration>>();
-                return jsonConfigurationAccessor.Value.DownloadsV1JsonUrl;
-            });
+            services.AddDownloadsV1JsonClient(
+                provider =>
+                {
+                    var jsonConfigurationAccessor = provider.GetRequiredService<IOptionsSnapshot<Auxiliary2AzureSearchConfiguration>>();
+                    return jsonConfigurationAccessor.Value.DownloadsV1JsonUrl;
+                },
+                provider =>
+                {
+                    var jsonConfigurationAccessor = provider.GetRequiredService<IOptionsSnapshot<Auxiliary2AzureSearchConfiguration>>();
+                    return jsonConfigurationAccessor.Value.DownloadsV1JsonConnectionString;
+                });
         }
     }
 }
