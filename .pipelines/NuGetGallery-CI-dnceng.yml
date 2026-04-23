@@ -223,74 +223,13 @@ stages:
             inputs:
               scriptName: $(NuGetGalleryPath)\tools\Setup-DevEnvironment.ps1
               workingFolder: $(NuGetGalleryPath)
-          - powershell: |
-              Write-Host "=== Building NuGetGallery.AppHost ==="
-              dotnet build $(NuGetGalleryPath)\src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj -c $(BuildConfiguration)
-              if ($LASTEXITCODE -ne 0) {
-                  Write-Error "AppHost build failed."
-                  exit 1
-              }
-              Write-Host "AppHost build succeeded."
-            displayName: Build AppHost
-            workingDirectory: $(NuGetGalleryPath)
-          - powershell: |
-              # Generate a dev cert, export to PEM, import into Trusted Root non-interactively
-              $crt = Join-Path $env:TEMP "aspire-dev-cert.crt"
-              dotnet dev-certs https -ep $crt --format Pem --no-password
-              if ($LASTEXITCODE -ne 0) { Write-Error "Failed to export dev cert."; exit 1 }
-
-              Import-Certificate -FilePath $crt -CertStoreLocation Cert:\LocalMachine\Root
-              if (-not $?) { Write-Error "Failed to import dev cert."; exit 1 }
-
-              Write-Host "Dev certificate trusted successfully."
-              Remove-Item $crt, ($crt -replace '\.crt$','.key') -ErrorAction SilentlyContinue
-            displayName: Trust Dev Certificates
-            workingDirectory: $(NuGetGalleryPath)
-          - powershell: |
-              $env:APPHOST_PROFILE = "ci-gallery"
-
-              $proc = Start-Process -FilePath "dotnet" `
-                  -ArgumentList "run","--project","$(NuGetGalleryPath)\src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj","-c","$(BuildConfiguration)","--no-build","--launch-profile","https" `
-                  -PassThru -RedirectStandardOutput "$(NuGetGalleryPath)\aspire-stdout.log" -RedirectStandardError "$(NuGetGalleryPath)\aspire-stderr.log"
-
-              Write-Host "AppHost started with PID $($proc.Id)"
-
-              # Poll for Gallery health
-              Start-Sleep -Seconds 20
-              $maxWait = 300
-              $elapsed = 20
-              $healthy = $false
-              while ($elapsed -lt $maxWait) {
-                  if ($proc.HasExited) {
-                      Get-Content "$(NuGetGalleryPath)\aspire-stdout.log" -ErrorAction SilentlyContinue
-                      Get-Content "$(NuGetGalleryPath)\aspire-stderr.log" -ErrorAction SilentlyContinue
-                      Write-Error "AppHost exited prematurely with code $($proc.ExitCode)."
-                      exit 1
-                  }
-
-                  $httpCode = & curl.exe -s -o NUL -w "%{http_code}" "http://localhost/api/health-probe" --max-time 5 2>$null
-                  if ($httpCode -eq "200") {
-                      Write-Host "Gallery is healthy! Status: 200 ($elapsed s)"
-                      $healthy = $true
-                      break
-                  }
-                  Write-Host "Waiting for Gallery... ($elapsed s) Status=$httpCode"
-                  Start-Sleep -Seconds 15
-                  $elapsed += 15
-              }
-
-              if (-not $proc.HasExited) {
-                  Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
-              }
-
-              if (-not $healthy) {
-                  Get-Content "$(NuGetGalleryPath)\aspire-stdout.log" -Tail 50 -ErrorAction SilentlyContinue
-                  Get-Content "$(NuGetGalleryPath)\aspire-stderr.log" -Tail 50 -ErrorAction SilentlyContinue
-                  Write-Error "Gallery did not become healthy within $maxWait seconds."
-                  exit 1
-              }
+          - task: PowerShell@1
+            name: aspire
             displayName: Start Aspire Host
-            workingDirectory: $(NuGetGalleryPath)
+            inputs:
+              scriptName: $(NuGetGalleryPath)\tools\Start-AspireHost.ps1
+              arguments: -Configuration $(BuildConfiguration) -TrustDevCert
+              workingFolder: $(NuGetGalleryPath)
 
   - stage: artifacts
     displayName: Artifacts
