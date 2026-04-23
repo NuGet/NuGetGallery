@@ -29,6 +29,7 @@
 *.html text=auto
 *.htm text=auto
 *.css text=auto
+*.min.css -text
 *.scss text=auto
 *.sass text=auto
 *.less text=auto
