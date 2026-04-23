@@ -15,18 +15,18 @@ if (-not (Test-Path $pidFile))
 	exit 0
 }
 
-$pid = [int](Get-Content $pidFile -Raw).Trim()
-$proc = Get-Process -Id $pid -ErrorAction SilentlyContinue
+$hostPid = [int](Get-Content $pidFile -Raw).Trim()
+$proc = Get-Process -Id $hostPid -ErrorAction SilentlyContinue
 
 if ($proc)
 {
-	Write-Host "Stopping Aspire host (PID $pid)..."
-	Stop-Process -Id $pid -Force -ErrorAction SilentlyContinue
+	Write-Host "Stopping Aspire host (PID $hostPid)..."
+	Stop-Process -Id $hostPid -Force -ErrorAction SilentlyContinue
 	Write-Host "Aspire host stopped."
 }
 else
 {
-	Write-Host "Aspire host process (PID $pid) is not running."
+	Write-Host "Aspire host process (PID $hostPid) is not running."
 }
 
 Remove-Item $pidFile -ErrorAction SilentlyContinue
