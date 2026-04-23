@@ -3,7 +3,9 @@
 
 <#
 .SYNOPSIS
-    Builds and starts the Aspire AppHost for CI, waits for the Gallery health check, then shuts down.
+    Builds, starts the Aspire AppHost, and waits for the Gallery health check.
+    The host remains running after this script exits so that tests can run against it.
+    Use Stop-AspireHost.ps1 to shut it down.
 
 .PARAMETER Configuration
     Build configuration (Release or Debug). Default: Release.
@@ -37,6 +39,7 @@ param(
 $ErrorActionPreference = "Stop"
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $appHostProject = Join-Path $repoRoot "src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj"
+$pidFile = Join-Path $repoRoot "aspire-host.pid"
 
 # Step 1: Build AppHost
 Write-Host "=== Building NuGetGallery.AppHost ==="
@@ -83,6 +86,7 @@ $proc = Start-Process -FilePath "dotnet" `
 	-PassThru -RedirectStandardOutput $stdoutLog -RedirectStandardError $stderrLog
 
 Write-Host "AppHost started with PID $($proc.Id)"
+$proc.Id | Out-File -FilePath $pidFile -Encoding ascii
 
 # Step 4: Poll for health
 Start-Sleep -Seconds 20
@@ -110,18 +114,17 @@ while ($elapsed -lt $Timeout)
 	$elapsed += 15
 }
 
-# Step 5: Shutdown
-if (-not $proc.HasExited)
-{
-	Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
-}
-
 if (-not $healthy)
 {
+	# Shut down on failure — no point leaving it running
+	if (-not $proc.HasExited)
+	{
+		Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+	}
 	Get-Content $stdoutLog -Tail 50 -ErrorAction SilentlyContinue
 	Get-Content $stderrLog -Tail 50 -ErrorAction SilentlyContinue
 	Write-Error "Gallery did not become healthy within $Timeout seconds."
 	exit 1
 }
 
-Write-Host "=== Aspire Host CI check passed ==="
+Write-Host "=== Aspire Host is running (PID $($proc.Id)) ==="
