@@ -68,7 +68,24 @@ namespace NuGet.Jobs.GitHubIndexer
             string mainBranchRef = "refs/remotes/origin/" + _repoInfo.MainBranch;
             _repo.CheckoutPaths(mainBranchRef, filePaths, new CheckoutOptions());
 
-            return filePaths.Select(x => (ICheckedOutFile)new CheckedOutFile(Path.Combine(_repoFolder, x), _repoInfo.Id)).ToList();
+            var checkedOutFiles = new List<ICheckedOutFile>();
+            foreach (var filePath in filePaths)
+            {
+                var fullPath = Path.Combine(_repoFolder, filePath);
+                if (File.Exists (fullPath))
+                {
+                    checkedOutFiles.Add (new CheckedOutFile (fullPath, _repoInfo.Id));
+                }
+                else
+                {
+                    _logger.LogWarning (
+                        "[{RepoName}] File was not checked out to disk: {FilePath}",
+                        _repoInfo.Id,
+                        filePath);
+                }
+            }
+
+            return checkedOutFiles;
         }
 
         /// <summary>
