@@ -228,7 +228,7 @@ stages:
             displayName: Start Aspire Host
             inputs:
               scriptName: $(NuGetGalleryPath)\tools\Start-AspireHost.ps1
-              arguments: -Configuration $(BuildConfiguration) -TrustDevCert
+              arguments: -Configuration $(BuildConfiguration)
               workingFolder: $(NuGetGalleryPath)
           # Future: add test steps here (e.g. Playwright, API tests) while the host is running
           - task: PowerShell@1
