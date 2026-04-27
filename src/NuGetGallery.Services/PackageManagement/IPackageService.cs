@@ -205,5 +205,7 @@ namespace NuGetGallery
         /// <param name="packageVersion">The package's version.</param>
         /// <returns>The package's status, or <c>null</c> is the package does not exist.</returns>
         PackageStatus? GetPackageStatus(string packageId, NuGetVersion packageVersion);
+
+        bool HasGitHubRepositoryPackage(IList<int> ownerKeys);
     }
 }
