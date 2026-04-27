@@ -119,8 +119,8 @@ namespace NuGet.Jobs.GitHubIndexer
                 // where Directory.Delete(recursive: true) can throw IOException because the
                 // OS has not fully released file handles before the parent directory removal
                 // is attempted.
-                DeleteDirectoryWithRetries(RepositoriesDirectory);
-                DeleteDirectoryWithRetries(CacheDirectory);
+                DirectoryHelper.DeleteDirectoryWithRetries (RepositoriesDirectory, _logger);
+                DirectoryHelper.DeleteDirectoryWithRetries (CacheDirectory, _logger);
 
                 completed = true;
                 runDuration.Stop();
@@ -274,50 +274,5 @@ namespace NuGet.Jobs.GitHubIndexer
             }
         }
 
-        /// <summary>
-        /// Deletes a directory with retry logic to work around the .NET Framework race condition
-        /// where <see cref="Directory.Delete(string, bool)"/> with recursive=true can throw
-        /// <see cref="IOException"/> ("The directory is not empty") because the OS has not fully
-        /// released file handles before the parent directory removal is attempted.
-        /// </summary>
-        private void DeleteDirectoryWithRetries (string path, int maxRetries = 3)
-        {
-            if (!Directory.Exists (path))
-            {
-                return;
-            }
-
-            for (var attempt = 0; attempt <= maxRetries; attempt++)
-            {
-                try
-                {
-                    // Clear read-only attributes that may have been set by git
-                    var dirInfo = new DirectoryInfo (path);
-                    foreach (var file in dirInfo.EnumerateFiles ("*", SearchOption.AllDirectories))
-                    {
-                        file.IsReadOnly = false;
-                    }
-
-                    Directory.Delete (path, recursive: true);
-                    return;
-                }
-                catch (IOException) when (attempt < maxRetries)
-                {
-                    _logger.LogWarning (
-                        "Failed to delete directory {Path} on attempt {Attempt}. Retrying...",
-                        path,
-                        attempt + 1);
-                    Thread.Sleep (200 * (attempt + 1));
-                }
-                catch (UnauthorizedAccessException) when (attempt < maxRetries)
-                {
-                    _logger.LogWarning (
-                        "Unauthorized access deleting directory {Path} on attempt {Attempt}. Retrying...",
-                        path,
-                        attempt + 1);
-                    Thread.Sleep (200 * (attempt + 1));
-                }
-            }
-        }
     }
 }

@@ -124,9 +124,8 @@ namespace NuGet.Jobs.GitHubIndexer
 
         /// <summary>
         /// Recursively deletes all the files and sub-directories in a directory.
-        /// Handles read-only files (common in .git folders) and retries directory
-        /// removal to work around the NTFS race condition where file deletions
-        /// are not fully committed before the parent directory removal is attempted.
+        /// Delegates to <see cref="DirectoryHelper"/> for robust handling of
+        /// read-only files, NTFS race conditions, and Windows reserved device names.
         /// </summary>
         private void CleanDirectory (DirectoryInfo dir)
         {
@@ -135,29 +134,7 @@ namespace NuGet.Jobs.GitHubIndexer
                 return;
             }
 
-            foreach (var childDir in dir.GetDirectories ())
-            {
-                CleanDirectory (childDir);
-            }
-
-            foreach (var file in dir.GetFiles ())
-            {
-                file.IsReadOnly = false;
-                file.Delete ();
-            }
-
-            for (var attempt = 0; attempt < 3; attempt++)
-            {
-                try
-                {
-                    dir.Delete ();
-                    return;
-                }
-                catch (IOException) when (attempt < 2)
-                {
-                    Thread.Sleep (100 * (attempt + 1));
-                }
-            }
+            DirectoryHelper.DeleteDirectoryWithRetries (dir.FullName, _logger);
         }
     }
 }
