@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
 
@@ -105,38 +106,40 @@ namespace NuGet.Jobs.GitHubIndexer
         }
 
         /// <summary>
-        /// Recursivly deletes all the files and sub-directories in a directory
+        /// Recursively deletes all the files and sub-directories in a directory.
+        /// Handles read-only files (common in .git folders) and retries directory
+        /// removal to work around the NTFS race condition where file deletions
+        /// are not fully committed before the parent directory removal is attempted.
         /// </summary>
-        private void CleanDirectory(DirectoryInfo dir)
+        private void CleanDirectory (DirectoryInfo dir)
         {
             if (!dir.Exists)
             {
                 return;
             }
 
-            // I manually delete the dirs/folders because, for some reason, the Directory.Delete() 
-            // doesn't handle deleting Readonly files really well (which some files in the .git folder are).
-            //
-            // An alternative would have been to set the FileAttribute for each file and then call Directory.Delete(...)
-            // but that would be redundant
-            foreach (var childDir in dir.GetDirectories())
+            foreach (var childDir in dir.GetDirectories ())
             {
-                CleanDirectory(childDir);
+                CleanDirectory (childDir);
             }
 
-            foreach (var file in dir.GetFiles())
+            foreach (var file in dir.GetFiles ())
             {
                 file.IsReadOnly = false;
-                file.Delete();
+                file.Delete ();
             }
 
-            if (dir.GetFiles().Length == 0)
+            for (var attempt = 0; attempt < 3; attempt++)
             {
-                dir.Delete();
-            }
-            else
-            {
-                _logger.LogError("The directory {DirName} is not empty!", dir.FullName);
+                try
+                {
+                    dir.Delete ();
+                    return;
+                }
+                catch (IOException) when (attempt < 2)
+                {
+                    Thread.Sleep (100 * (attempt + 1));
+                }
             }
         }
     }
