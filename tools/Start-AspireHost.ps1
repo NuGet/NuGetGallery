@@ -140,7 +140,7 @@ Write-Host "=== Verifying all health URLs ==="
 $allPassed = $true
 foreach ($url in $HealthUrls)
 {
-	$httpCode = & curl.exe -s -o NUL -w "%{http_code}" -k -L $url --max-time 10 2>$null
+	$httpCode = & curl.exe -s -o NUL -w "%{http_code}" -L $url --max-time 10 2>$null
 	if ($httpCode -eq "200")
 	{
 		Write-Host "  $url -> 200 OK"
