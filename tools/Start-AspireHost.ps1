@@ -17,11 +17,13 @@
     Value for the APPHOST_PROFILE environment variable, controlling which resources Aspire starts.
     Default: ci-gallery.
 
-.PARAMETER HealthUrl
-    URL to poll for Gallery readiness. Default: http://localhost/api/health-probe.
+.PARAMETER HealthUrls
+    URLs to verify after the host starts. The first URL is polled until it responds HTTP 200
+    (this is the main readiness gate). All remaining URLs are then checked once.
+    Default: Gallery HTTP, Aspire dashboard HTTP, Gallery HTTPS, Aspire dashboard HTTPS.
 
 .PARAMETER Timeout
-    Maximum seconds to wait for the health check. Default: 300.
+    Maximum seconds to wait for the first health URL to respond. Default: 300.
 
 .PARAMETER TrustDevCert
     When set, exports the .NET dev certificate and imports it into the local machine trusted root store.
@@ -31,7 +33,12 @@ param(
 	[string]$Configuration = "Release",
 	[string]$LaunchProfile = "https",
 	[string]$AppHostProfile = "ci-gallery",
-	[string]$HealthUrl = "http://localhost/api/health-probe",
+	[string[]]$HealthUrls = @(
+		"http://localhost/api/health-probe",
+		"http://localhost:15170",
+		"https://localhost/api/health-probe",
+		"https://localhost:17170"
+	),
 	[int]$Timeout = 300,
 	[switch]$TrustDevCert
 )
@@ -88,7 +95,9 @@ $proc = Start-Process -FilePath "dotnet" `
 Write-Host "AppHost started with PID $($proc.Id)"
 $proc.Id | Out-File -FilePath $pidFile -Encoding ascii
 
-# Step 4: Poll for health
+# Step 4: Poll first URL for readiness
+$primaryUrl = $HealthUrls[0]
+Write-Host "=== Waiting for $primaryUrl ==="
 Start-Sleep -Seconds 20
 $elapsed = 20
 $healthy = $false
@@ -102,28 +111,56 @@ while ($elapsed -lt $Timeout)
 		exit 1
 	}
 
-	$httpCode = & curl.exe -s -o NUL -w "%{http_code}" $HealthUrl --max-time 5 2>$null
+	$httpCode = & curl.exe -s -o NUL -w "%{http_code}" $primaryUrl --max-time 5 2>$null
 	if ($httpCode -eq "200")
 	{
-		Write-Host "Gallery is healthy! Status: 200 ($elapsed s)"
+		Write-Host "  $primaryUrl -> 200 OK ($elapsed s)"
 		$healthy = $true
 		break
 	}
-	Write-Host "Waiting for Gallery... ($elapsed s) Status=$httpCode"
+	Write-Host "  Waiting... ($elapsed s) Status=$httpCode"
 	Start-Sleep -Seconds 15
 	$elapsed += 15
 }
 
 if (-not $healthy)
 {
-	# Shut down on failure — no point leaving it running
 	if (-not $proc.HasExited)
 	{
 		Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
 	}
 	Get-Content $stdoutLog -Tail 50 -ErrorAction SilentlyContinue
 	Get-Content $stderrLog -Tail 50 -ErrorAction SilentlyContinue
-	Write-Error "Gallery did not become healthy within $Timeout seconds."
+	Write-Error "Primary health URL did not respond within $Timeout seconds."
+	exit 1
+}
+
+# Step 5: Verify all health URLs
+Write-Host "=== Verifying all health URLs ==="
+$allPassed = $true
+foreach ($url in $HealthUrls)
+{
+	$httpCode = & curl.exe -s -o NUL -w "%{http_code}" -k $url --max-time 10 2>$null
+	if ($httpCode -eq "200")
+	{
+		Write-Host "  $url -> 200 OK"
+	}
+	else
+	{
+		Write-Host "  $url -> $httpCode FAILED"
+		$allPassed = $false
+	}
+}
+
+if (-not $allPassed)
+{
+	if (-not $proc.HasExited)
+	{
+		Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+	}
+	Get-Content $stdoutLog -Tail 50 -ErrorAction SilentlyContinue
+	Get-Content $stderrLog -Tail 50 -ErrorAction SilentlyContinue
+	Write-Error "One or more health URLs failed verification."
 	exit 1
 }
 
