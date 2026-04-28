@@ -111,8 +111,16 @@ while ($elapsed -lt $Timeout)
 		exit 1
 	}
 
-	$httpCode = & curl.exe -s -o NUL -w "%{http_code}" $primaryUrl --max-time 5 2>$null
-	if ($httpCode -eq "200")
+	try
+	{
+		$response = Invoke-WebRequest -Uri $primaryUrl -UseBasicParsing -TimeoutSec 5 -ErrorAction Stop
+		$httpCode = $response.StatusCode
+	}
+	catch
+	{
+		$httpCode = 0
+	}
+	if ($httpCode -eq 200)
 	{
 		Write-Host "  $primaryUrl -> 200 OK ($elapsed s)"
 		$healthy = $true
@@ -140,14 +148,23 @@ Write-Host "=== Verifying all health URLs ==="
 $allPassed = $true
 foreach ($url in $HealthUrls)
 {
-	$httpCode = & curl.exe -s -o NUL -w "%{http_code}" -L $url --max-time 10 2>$null
-	if ($httpCode -eq "200")
+	try
+	{
+		$response = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 10 -MaximumRedirection 5 -ErrorAction Stop
+		$httpCode = $response.StatusCode
+	}
+	catch
+	{
+		$httpCode = 0
+		$errorMsg = $_.Exception.Message
+	}
+	if ($httpCode -eq 200)
 	{
 		Write-Host "  $url -> 200 OK"
 	}
 	else
 	{
-		Write-Host "  $url -> $httpCode FAILED"
+		Write-Host "  $url -> $httpCode FAILED $(if ($errorMsg) { "($errorMsg)" })"
 		$allPassed = $false
 	}
 }
