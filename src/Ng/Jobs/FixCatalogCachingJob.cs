@@ -66,7 +66,7 @@ namespace Ng.Jobs
             _catalogStorageFactory = CommandHelpers.CreateStorageFactory(
                 arguments,
                 verbose: true,
-                new SemaphoreSlimThrottle(new SemaphoreSlim(ServicePointManager.DefaultConnectionLimit)));
+                new SemaphoreSlimThrottle(new SemaphoreSlim(CatalogParallelism.Degree)));
             _catalogStorage = (AzureStorage)_catalogStorageFactory.Create();
 
             _front = new DurableCursor(_catalogStorage.ResolveUri("fix-caching-cursor.json"), _catalogStorage, MemoryCursor.MinValue);
