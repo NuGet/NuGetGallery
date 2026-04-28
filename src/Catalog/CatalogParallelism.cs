@@ -15,7 +15,7 @@ namespace NuGet.Services.Metadata.Catalog
     /// </summary>
     public static class CatalogParallelism
     {
-        private const int DefaultDegree = 10;
+        private const int DefaultDegree = 2;
 
 #if NETFRAMEWORK
         public static int Degree
