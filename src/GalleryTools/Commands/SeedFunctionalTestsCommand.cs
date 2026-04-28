@@ -4,17 +4,18 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Autofac;
 using Microsoft.Extensions.CommandLineUtils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using NuGet.Packaging;
 using NuGet.Services.Entities;
 using NuGetGallery;
 using NuGetGallery.Authentication;
 using NuGetGallery.Infrastructure.Authentication;
-using NuGetGallery.Packaging;
 
 namespace GalleryTools.Commands
 {
@@ -22,15 +23,15 @@ namespace GalleryTools.Commands
 	{
 		public static void Configure(CommandLineApplication config)
 		{
-			config.Description = "Seed users, organizations, API keys, and a test package for functional tests";
+			config.Description = "Seed users, organizations, API keys, and test packages for functional tests";
 			config.HelpOption("-? | -h | --help");
 
 			var outputOption = config.Option(
 				"-o | --output", "Path to write settings.CI.json (required).",
 				CommandOptionType.SingleValue);
 
-			var packageOption = config.Option(
-				"-p | --package", "Path to the base test .nupkg file (required).",
+			var packageDirOption = config.Option(
+				"-p | --package-dir", "Directory containing .nupkg.testdata files to push (required).",
 				CommandOptionType.SingleValue);
 
 			var baseUrlOption = config.Option(
@@ -39,23 +40,30 @@ namespace GalleryTools.Commands
 
 			config.OnExecute(() =>
 			{
-				if (!outputOption.HasValue() || !packageOption.HasValue())
+				if (!outputOption.HasValue() || !packageDirOption.HasValue())
 				{
-					Console.WriteLine("--output and --package are required.");
+					Console.WriteLine("--output and --package-dir are required.");
 					config.ShowHelp();
 					return 1;
 				}
 
 				var baseUrl = baseUrlOption.HasValue() ? baseUrlOption.Value() : "https://localhost";
-				return ExecuteAsync(outputOption.Value(), packageOption.Value(), baseUrl).GetAwaiter().GetResult();
+				return ExecuteAsync(outputOption.Value(), packageDirOption.Value(), baseUrl).GetAwaiter().GetResult();
 			});
 		}
 
-		private static async Task<int> ExecuteAsync(string outputPath, string nupkgPath, string baseUrl)
+		private static async Task<int> ExecuteAsync(string outputPath, string packageDir, string baseUrl)
 		{
-			if (!File.Exists(nupkgPath))
+			if (!Directory.Exists(packageDir))
 			{
-				Console.Error.WriteLine($"Package file not found: {nupkgPath}");
+				Console.Error.WriteLine($"Package directory not found: {packageDir}");
+				return 1;
+			}
+
+			var nupkgFiles = Directory.GetFiles(packageDir, "*.nupkg.testdata");
+			if (nupkgFiles.Length == 0)
+			{
+				Console.Error.WriteLine($"No .nupkg.testdata files found in: {packageDir}");
 				return 1;
 			}
 
@@ -65,8 +73,6 @@ namespace GalleryTools.Commands
 
 			var context = container.Resolve<IEntitiesContext>();
 			var credentialBuilder = container.Resolve<ICredentialBuilder>();
-			var packageService = container.Resolve<IPackageService>();
-			var packageUploadService = container.Resolve<IPackageUploadService>();
 
 			// ─── Test account names ──────────────────────────────────────────────────
 			const string testUser = "NugetTestAccount";
@@ -87,10 +93,7 @@ namespace GalleryTools.Commands
 			await EnsureOrganizationAsync(context, adminOrgName, admin: testAccount, collaborator: null);
 			await EnsureOrganizationAsync(context, collaboratorOrgName, admin: orgAdmin, collaborator: testAccount);
 
-			// ─── 3. Push base test package ───────────────────────────────────────────
-			await EnsurePackageAsync(context, packageService, packageUploadService, testAccount, nupkgPath);
-
-			// ─── 4. Create API keys ──────────────────────────────────────────────────
+			// ─── 3. Create API keys ──────────────────────────────────────────────────
 			var accountApiKey = CreateApiKey(context, credentialBuilder, testAccount, "CI Full Access", scopeActions: null, scopeOwner: testAccount);
 			var apiKeyPush = CreateApiKey(context, credentialBuilder, testAccount, "CI Push", scopeActions: new[] { NuGetScopes.PackagePush }, scopeOwner: testAccount);
 			var apiKeyPushVersion = CreateApiKey(context, credentialBuilder, testAccount, "CI Push Version", scopeActions: new[] { NuGetScopes.PackagePushVersion }, scopeOwner: testAccount);
@@ -106,15 +109,19 @@ namespace GalleryTools.Commands
 			await context.SaveChangesAsync();
 			Console.WriteLine("All API keys created.");
 
+			// ─── 4. Push test packages via Gallery API ──────────────────────────────
+			// Push through the gallery's HTTP API so the in-process Lucene index
+			// is updated automatically by ApiController.UpdatePackage().
+			foreach (var nupkgPath in nupkgFiles)
+			{
+				await PushPackageViaApiAsync(baseUrl, apiKeyPush, nupkgPath);
+			}
+
 			// ─── 5. Write settings.CI.json ───────────────────────────────────────────
 			var settings = new JObject(
 				new JProperty("DefaultSecurityPoliciesEnforced", true),
 				new JProperty("TestPackageLock", true),
 				new JProperty("TyposquattingCheckAndBlockUsers", true),
-				new JProperty("Branding", new JObject(
-					new JProperty("BrandingMessage", "&#169; Microsoft {0}"),
-					new JProperty("PrivacyPolicyUrl", "https://go.microsoft.com/fwlink/?LinkId=521839"),
-					new JProperty("TrademarksUrl", "https://www.microsoft.com/trademarks"))),
 				new JProperty("Account", new JObject(
 					new JProperty("Name", testUser),
 					new JProperty("Email", testEmail),
@@ -210,46 +217,50 @@ namespace GalleryTools.Commands
 			Console.WriteLine($"Created organization '{orgName}' (key={org.Key}, admin={admin.Username}).");
 		}
 
-		private static async Task EnsurePackageAsync(
-			IEntitiesContext context, IPackageService packageService,
-			IPackageUploadService packageUploadService, User owner, string nupkgPath)
+		/// <summary>
+		/// Pushes a .nupkg.testdata file to the gallery via the API push endpoint.
+		/// This ensures the gallery's in-process Lucene index is updated automatically.
+		/// </summary>
+		private static async Task PushPackageViaApiAsync(string baseUrl, string apiKey, string nupkgPath)
 		{
-			using (var fileStream = File.OpenRead(nupkgPath))
-			using (var packageArchiveReader = new PackageArchiveReader(fileStream, leaveStreamOpen: true))
+			var fileName = Path.GetFileName(nupkgPath);
+
+			// Trust dev certs for localhost HTTPS
+			var handler = new HttpClientHandler();
+			if (baseUrl.IndexOf("localhost", StringComparison.OrdinalIgnoreCase) >= 0)
 			{
-				var nuspec = packageArchiveReader.GetNuspecReader();
-				var id = nuspec.GetId();
-				var version = nuspec.GetVersion().ToNormalizedString();
+				handler.ServerCertificateCustomValidationCallback = (msg, cert, chain, errors) => true;
+			}
 
-				var existingPackage = packageService.FindPackageByIdAndVersionStrict(id, version);
-				if (existingPackage != null)
+			using (var client = new HttpClient(handler))
+			{
+				client.DefaultRequestHeaders.Add("X-NuGet-ApiKey", apiKey);
+				client.Timeout = TimeSpan.FromSeconds(120);
+
+				using (var fileStream = File.OpenRead(nupkgPath))
 				{
-					Console.WriteLine($"Package {id} {version} already exists (key={existingPackage.Key}).");
-					return;
-				}
+					var content = new MultipartFormDataContent();
+					var streamContent = new StreamContent(fileStream);
+					streamContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+					content.Add(streamContent, "package", fileName);
 
-				fileStream.Position = 0;
-				var packageStreamMetadata = new PackageStreamMetadata
-				{
-					HashAlgorithm = CoreConstants.Sha512HashAlgorithmId,
-					Hash = CryptographyService.GenerateHash(fileStream, CoreConstants.Sha512HashAlgorithmId),
-					Size = fileStream.Length,
-				};
+					var pushUrl = $"{baseUrl.TrimEnd('/')}/api/v2/package";
+					var response = await client.PutAsync(pushUrl, content);
 
-				fileStream.Position = 0;
-				var package = await packageUploadService.GeneratePackageAsync(
-					id, packageArchiveReader, packageStreamMetadata, owner, owner);
+					if (response.StatusCode == HttpStatusCode.Conflict)
+					{
+						Console.WriteLine($"Package {fileName} already exists (409 Conflict). Skipping.");
+						return;
+					}
 
-				fileStream.Position = 0;
-				var commitResult = await packageUploadService.CommitPackageAsync(package, fileStream);
+					if (!response.IsSuccessStatusCode)
+					{
+						var body = await response.Content.ReadAsStringAsync();
+						throw new InvalidOperationException(
+							$"Failed to push {fileName}: {response.StatusCode} {response.ReasonPhrase}\n{body}");
+					}
 
-				if (commitResult == PackageCommitResult.Success)
-				{
-					Console.WriteLine($"Pushed {id} {version} (owner={owner.Username}, key={package.Key}).");
-				}
-				else
-				{
-					throw new InvalidOperationException($"Failed to commit package {id} {version}: {commitResult}");
+					Console.WriteLine($"Pushed {fileName} via API ({response.StatusCode}).");
 				}
 			}
 		}

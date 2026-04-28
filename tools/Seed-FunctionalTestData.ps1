@@ -23,7 +23,7 @@ $ErrorActionPreference = "Stop"
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $galleryToolsBin = Join-Path $repoRoot "src\GalleryTools\bin\$Configuration\net472"
 $galleryToolsExe = Join-Path $galleryToolsBin "GalleryTools.exe"
-$testNupkg = Join-Path $repoRoot "src\NuGetGallery.AppHost\testdata\basetestpackage.1.0.0.nupkg.testdata"
+$testDataDir = Join-Path $repoRoot "src\NuGetGallery.AppHost\testdata"
 $settingsOutput = Join-Path $repoRoot "tests\NuGetGallery.FunctionalTests\settings.CI.json"
 
 if (-not (Test-Path $galleryToolsExe))
@@ -64,7 +64,7 @@ Write-Host "=== Seeding functional test data ==="
 
 & $galleryToolsExe seedfunctionaltests `
 	--output $settingsOutput `
-	--package $testNupkg `
+	--package-dir $testDataDir `
 	--base-url "https://localhost"
 
 if ($LASTEXITCODE -ne 0)
