@@ -140,6 +140,20 @@ public class Program
 			.WaitFor(storage)
 			.WithEnvironment("IIS_USER_HOME", iisUserHome);
 
+		// ─── GalleryTools config (needed for seeding in all profiles) ───────────────
+
+		var galleryToolsBin = Path.Combine(srcDir, "GalleryTools", "bin",
+		#if DEBUG
+			"Debug",
+		#else
+			"Release",
+		#endif
+			"net472");
+		GenerateGalleryToolsConfig(galleryToolsBin, azuriteConnStr,
+			config.GalleryDb.ConnectionString, config.GalleryBaseAddress,
+			packages: config.Containers.Packages, auditing: config.Containers.Auditing,
+			content: config.Containers.Content, uploads: config.Containers.Uploads);
+
 		// ─── Full profile: V3 pipeline, seeding, search, and dashboard commands ──────
 		// Azure AI Search, V3 pipeline resources, seeding, and dashboard commands
 		// are only needed in the full profile.
@@ -178,19 +192,6 @@ public class Program
 			.WithUrl($"{azuriteBase}/{config.Containers.ServiceIndex}/index.json", "V3 Service Index")
 			.WithParentRelationship(infraGroup);
 		WithAppHostEnv(seedBlobs, config, azuriteConnStr, azuriteBase, searchServiceName);
-
-		// Generate appsettings.Aspire.config for GalleryTools so it talks to Azurite + the right SQL DB
-		var galleryToolsBin = Path.Combine(srcDir, "GalleryTools", "bin",
-		#if DEBUG
-			"Debug",
-		#else
-			"Release",
-		#endif
-			"net472");
-		GenerateGalleryToolsConfig(galleryToolsBin, azuriteConnStr,
-			config.GalleryDb.ConnectionString, config.GalleryBaseAddress,
-			packages: config.Containers.Packages, auditing: config.Containers.Auditing,
-			content: config.Containers.Content, uploads: config.Containers.Uploads);
 
 		// Polls for the catalog index.json blob in Azurite and exits when it appears.
 		// Downstream jobs use WaitForCompletion to wait for this, just like the DB migrations.

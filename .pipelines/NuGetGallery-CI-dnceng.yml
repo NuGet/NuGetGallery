@@ -230,7 +230,39 @@ stages:
               scriptName: $(NuGetGalleryPath)\tools\Start-AspireHost.ps1
               arguments: -Configuration $(BuildConfiguration) -TrustDevCert
               workingFolder: $(NuGetGalleryPath)
-          # Future: add test steps here (e.g. Playwright, API tests) while the host is running
+          - task: PowerShell@1
+            name: seed_test_data
+            displayName: Seed Functional Test Data
+            inputs:
+              scriptName: $(NuGetGalleryPath)\tools\Seed-FunctionalTestData.ps1
+              arguments: -Configuration $(BuildConfiguration)
+              workingFolder: $(NuGetGalleryPath)
+          - task: PowerShell@1
+            name: build_functional_tests
+            displayName: Build Functional Tests
+            inputs:
+              scriptName: $(NuGetGalleryPath)\tests\Scripts\BuildGalleryFunctionalTests.ps1
+              arguments: -Configuration $(BuildConfiguration)
+              workingFolder: $(NuGetGalleryPath)
+          - task: PowerShell@1
+            name: run_p0_tests
+            displayName: Run P0 Functional Tests
+            env:
+              ConfigurationFilePath: $(NuGetGalleryPath)\tests\NuGetGallery.FunctionalTests\settings.CI.json
+            inputs:
+              scriptName: $(NuGetGalleryPath)\tests\Scripts\RunGalleryFunctionalTestCategory.ps1
+              arguments: -Configuration $(BuildConfiguration) -TestCategory P0
+              workingFolder: $(NuGetGalleryPath)
+          - task: PublishTestResults@2
+            name: publish_test_results
+            displayName: Publish Test Results
+            condition: always()
+            inputs:
+              testResultsFormat: xUnit
+              testResultsFiles: 'tests/functionaltests.P0.xml'
+              searchFolder: $(NuGetGalleryPath)
+              mergeTestResults: true
+              testRunTitle: 'P0 Functional Tests'
           - task: PowerShell@1
             name: stop_aspire
             displayName: Stop Aspire Host
