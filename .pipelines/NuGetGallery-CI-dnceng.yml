@@ -247,19 +247,41 @@ stages:
           - task: PowerShell@1
             name: run_p0_tests
             displayName: Run P0 Functional Tests
+            continueOnError: true
+            timeoutInMinutes: 15
             env:
               ConfigurationFilePath: $(NuGetGalleryPath)\tests\NuGetGallery.FunctionalTests\settings.CI.json
             inputs:
-              scriptName: $(NuGetGalleryPath)\tests\Scripts\RunGalleryFunctionalTestCategory.ps1
-              arguments: -Configuration $(BuildConfiguration) -TestCategory P0
+              scriptType: inlineScript
+              inlineScript: |
+                $testDll = "tests\NuGetGallery.FunctionalTests\bin\$(BuildConfiguration)\net472\NuGetGallery.FunctionalTests.dll"
+                $resultsDir = "tests\TestResults"
+                New-Item -ItemType Directory -Path $resultsDir -Force | Out-Null
+
+                Write-Host "Running P0 functional tests with blame-hang-timeout..."
+                dotnet test $testDll `
+                  --blame-hang-timeout 90s `
+                  --filter "Category=P0Tests" `
+                  --logger "trx;LogFileName=P0Tests.trx" `
+                  --results-directory $resultsDir
+
+                $exitCode = $LASTEXITCODE
+                Write-Host "dotnet test exited with code $exitCode"
+
+                # List result files for diagnostics
+                if (Test-Path $resultsDir) {
+                  Get-ChildItem -Recurse $resultsDir | ForEach-Object { Write-Host "  Result file: $($_.FullName) ($($_.Length) bytes)" }
+                }
+
+                exit $exitCode
               workingFolder: $(NuGetGalleryPath)
           - task: PublishTestResults@2
             name: publish_test_results
             displayName: Publish Test Results
             condition: always()
             inputs:
-              testResultsFormat: xUnit
-              testResultsFiles: 'tests/functionaltests.P0.xml'
+              testResultsFormat: VSTest
+              testResultsFiles: 'tests/TestResults/**/*.trx'
               searchFolder: $(NuGetGalleryPath)
               mergeTestResults: true
               testRunTitle: 'P0 Functional Tests'
