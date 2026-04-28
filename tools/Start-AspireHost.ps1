@@ -88,9 +88,15 @@ $env:APPHOST_PROFILE = $AppHostProfile
 $stdoutLog = Join-Path $repoRoot "aspire-stdout.log"
 $stderrLog = Join-Path $repoRoot "aspire-stderr.log"
 
-$proc = Start-Process -FilePath "dotnet" `
-	-ArgumentList "run", "--project", $appHostProject, "-c", $Configuration, "--no-build", "--launch-profile", $LaunchProfile `
-	-PassThru -RedirectStandardOutput $stdoutLog -RedirectStandardError $stderrLog
+# Launch via cmd.exe with its own hidden window. Using Start-Process with
+# -RedirectStandardOutput causes UseShellExecute=false, which shares the console
+# with the calling process. When the PowerShell task exits, CTRL_CLOSE_EVENT
+# is sent to all console processes, killing the AppHost. Using cmd.exe with
+# -WindowStyle Hidden creates a separate console that survives task boundaries.
+$argLine = "run --project `"$appHostProject`" -c $Configuration --no-build --launch-profile $LaunchProfile"
+$proc = Start-Process -FilePath "cmd.exe" `
+	-ArgumentList "/c dotnet $argLine > `"$stdoutLog`" 2> `"$stderrLog`"" `
+	-PassThru -WindowStyle Hidden
 
 Write-Host "AppHost started with PID $($proc.Id)"
 $proc.Id | Out-File -FilePath $pidFile -Encoding ascii
@@ -103,11 +109,11 @@ $elapsed = 20
 $healthy = $false
 while ($elapsed -lt $Timeout)
 {
-	if ($proc.HasExited)
+	if ($proc.HasExited -or !(Get-Process -Id $proc.Id -ErrorAction SilentlyContinue))
 	{
 		Get-Content $stdoutLog -ErrorAction SilentlyContinue
 		Get-Content $stderrLog -ErrorAction SilentlyContinue
-		Write-Error "AppHost exited prematurely with code $($proc.ExitCode)."
+		Write-Error "AppHost exited prematurely."
 		exit 1
 	}
 
@@ -133,7 +139,7 @@ while ($elapsed -lt $Timeout)
 
 if (-not $healthy)
 {
-	if (-not $proc.HasExited)
+	if (Get-Process -Id $proc.Id -ErrorAction SilentlyContinue)
 	{
 		Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
 	}
@@ -171,7 +177,7 @@ foreach ($url in $HealthUrls)
 
 if (-not $allPassed)
 {
-	if (-not $proc.HasExited)
+	if (Get-Process -Id $proc.Id -ErrorAction SilentlyContinue)
 	{
 		Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
 	}

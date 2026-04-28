@@ -20,7 +20,20 @@ $proc = Get-Process -Id $hostPid -ErrorAction SilentlyContinue
 
 if ($proc)
 {
-	Write-Host "Stopping Aspire host (PID $hostPid)..."
+	Write-Host "Stopping Aspire host process tree (root PID $hostPid)..."
+	# Kill the entire process tree. The root is cmd.exe which wraps dotnet run,
+	# which wraps the AppHost, which manages DCP/Azurite/IIS Express.
+	$children = Get-CimInstance Win32_Process | Where-Object { $_.ParentProcessId -eq $hostPid }
+	foreach ($child in $children)
+	{
+		# Recursively kill grandchildren first
+		$grandchildren = Get-CimInstance Win32_Process | Where-Object { $_.ParentProcessId -eq $child.ProcessId }
+		foreach ($gc in $grandchildren)
+		{
+			Stop-Process -Id $gc.ProcessId -Force -ErrorAction SilentlyContinue
+		}
+		Stop-Process -Id $child.ProcessId -Force -ErrorAction SilentlyContinue
+	}
 	Stop-Process -Id $hostPid -Force -ErrorAction SilentlyContinue
 	Write-Host "Aspire host stopped."
 }
