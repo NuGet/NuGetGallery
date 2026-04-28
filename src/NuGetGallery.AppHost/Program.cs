@@ -156,36 +156,11 @@ public class Program
 
 		var galleryToolsExe = Path.Combine(galleryToolsBin, "GalleryTools.exe");
 
-		// ─── Full profile: V3 pipeline, seeding, search, and dashboard commands ──────
-		// Azure AI Search, V3 pipeline resources, seeding, and dashboard commands
-		// are only needed in the full profile.
-		if (profile != "ci-gallery")
-		{
+		// ─── V3 pipeline, seeding, and blob initialization (all profiles) ───────────
+		// These resources run in ALL profiles including ci-gallery.
+		// Azure Search resources are gated separately below.
 
-		// Azure AI Search — Bicep-provisioned, Basic SKU
-		var search = builder.AddAzureSearch("search")
-			.ConfigureInfrastructure(infra =>
-			{
-				var searchService = infra.GetProvisionableResources()
-					.OfType<Azure.Provisioning.Search.SearchService>()
-					.Single();
-				searchService.SearchSkuName = Azure.Provisioning.Search.SearchServiceSkuName.Basic;
-			})
-			.WithParentRelationship(pipelineGroup);
-
-		// ─── Reset arrays (triggered from Aspire dashboard commands) ─────────────────
-
-		// Containers produced by V3 jobs only (not seeded data) — used by "Stop and Reset V3".
-		var jobContainers = new[]
-		{
-			config.Containers.Catalog, config.Containers.FlatContainer,
-			config.Containers.RegistrationSemVer1, config.Containers.RegistrationGzSemVer1, config.Containers.RegistrationGzSemVer2,
-			config.Containers.AzureSearch,
-		};
-
-		var searchIndexNames = new[] { config.SearchIndexes.Search, config.SearchIndexes.Hijack };
-
-		// ─── Auxiliary blob seeding (required before Gallery and search jobs) ─────────
+		// ─── Auxiliary blob seeding (required before Gallery and V3 jobs) ────────────
 
 		var seedBlobs = builder.AddProject<Projects.NuGetGallery_AppHost_Tools>("seed-blobs")
 			.WithArgs("seed-blobs")
@@ -194,6 +169,9 @@ public class Program
 			.WithUrl($"{azuriteBase}/{config.Containers.ServiceIndex}/index.json", "V3 Service Index")
 			.WithParentRelationship(infraGroup);
 		WithAppHostEnv(seedBlobs, config, azuriteConnStr, azuriteBase, searchServiceName);
+
+		// Gallery needs flags.json (seeded by seed-blobs) for feature flags like EmbeddedIcons.
+		builder.CreateResourceBuilder(gallery.Resource).WaitForCompletion(seedBlobs);
 
 		// Polls for the catalog index.json blob in Azurite and exits when it appears.
 		// Downstream jobs use WaitForCompletion to wait for this, just like the DB migrations.
@@ -306,7 +284,36 @@ public class Program
 			.WaitForCompletion(catalogIndexReady)
 			.WithParentRelationship(pipelineGroup);
 
-		// Polls Azure Searchfor indexes + cursor.json in Azurite created by db2azuresearch.
+		// ─── Full profile: Azure Search, dashboard commands ─────────────────────────
+		// Azure AI Search requires Bicep-provisioned infrastructure and is only
+		// available in the full (default) profile.
+		if (profile != "ci-gallery")
+		{
+
+		// Azure AI Search — Bicep-provisioned, Basic SKU
+		var search = builder.AddAzureSearch("search")
+			.ConfigureInfrastructure(infra =>
+			{
+				var searchService = infra.GetProvisionableResources()
+					.OfType<Azure.Provisioning.Search.SearchService>()
+					.Single();
+				searchService.SearchSkuName = Azure.Provisioning.Search.SearchServiceSkuName.Basic;
+			})
+			.WithParentRelationship(pipelineGroup);
+
+		// ─── Reset arrays (triggered from Aspire dashboard commands) ─────────────────
+
+		// Containers produced by V3 jobs only (not seeded data) — used by "Stop and Reset V3".
+		var jobContainers = new[]
+		{
+			config.Containers.Catalog, config.Containers.FlatContainer,
+			config.Containers.RegistrationSemVer1, config.Containers.RegistrationGzSemVer1, config.Containers.RegistrationGzSemVer2,
+			config.Containers.AzureSearch,
+		};
+
+		var searchIndexNames = new[] { config.SearchIndexes.Search, config.SearchIndexes.Hijack };
+
+		// Polls Azure Search for indexes + cursor.json in Azurite created by db2azuresearch.
 		// Decouples dependents from db2azuresearch's exit code — if indexes already exist from a
 		// prior run, dependents start immediately even when db2azuresearch fails on "already exists".
 		var searchIndexReady = builder.AddProject<Projects.NuGetGallery_AppHost_Tools>("search-index-ready")
