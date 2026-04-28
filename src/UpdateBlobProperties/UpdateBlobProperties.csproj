@@ -1,0 +1,10 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NuGet.Services.Cursor\NuGet.Services.Cursor.csproj" />
+    <ProjectReference Include="..\Validation.Common.Job\Validation.Common.Job.csproj" />
+  </ItemGroup>
+</Project>

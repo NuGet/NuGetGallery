@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -1439,7 +1439,7 @@ namespace NgTests
             var packageId = operation.Package.Id.ToLowerInvariant();
             var packageVersion = operation.Package.Version.ToNormalizedString().ToLowerInvariant();
             var fileNamePostfix = isSoftDelete ? "softdelete.audit.v1.json" : "Deleted.audit.v1.json";
-            var uri = new Uri($"https://nuget.test/auditing/{packageId}/{packageVersion}-{fileNamePostfix}");
+            var uri = new Uri($"https://unit.test/auditing/{packageId}/{packageVersion}-{fileNamePostfix}");
 
             _auditingStorage.Content.TryAdd(uri, new JTokenStorageContent(auditRecord));
 

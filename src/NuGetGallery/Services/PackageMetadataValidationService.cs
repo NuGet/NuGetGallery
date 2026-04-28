@@ -12,6 +12,7 @@ using System.Xml.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet.Packaging;
+using NuGet.Packaging.Core;
 using NuGet.Packaging.Licenses;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
@@ -117,7 +118,7 @@ namespace NuGetGallery
             {
                 return result;
             }
-            
+
             var nuspecFileEntry = nuGetPackage.GetEntry(nuGetPackage.GetNuspecFile());
             using (var nuspecFileStream = await nuGetPackage.GetNuspecAsync(CancellationToken.None))
             {
@@ -127,7 +128,21 @@ namespace NuGetGallery
                 }
             }
 
+            result = CheckNuspecCount(nuGetPackage);
+
+            if (result != null)
+            {
+                return result;
+            }
+
             result = CheckNuspecNormalized(nuGetPackage, warnings);
+
+            if (result != null)
+            {
+                return result;
+            }
+
+            result = CheckPackageIdForBannedCharacters(packageMetadata, nuGetPackage.GetIdentity());
 
             if (result != null)
             {
@@ -189,6 +204,22 @@ namespace NuGetGallery
             return PackageValidationResult.AcceptedWithWarnings(warnings);
         }
 
+        private PackageValidationResult CheckNuspecCount(PackageArchiveReader nuGetPackage)
+        {
+            var numNuspecCandidates = nuGetPackage.GetFiles().Count(filename => filename.EndsWith(PackagingCoreConstants.NuspecExtension, StringComparison.OrdinalIgnoreCase));
+            if (numNuspecCandidates > 1)
+            {
+                return PackageValidationResult.Invalid(Strings.UploadPackage_TooManyNuspecs);
+            }
+            if (numNuspecCandidates < 1)
+            {
+                // this should have been caught earlier, but just in case, will recheck here, too
+                return PackageValidationResult.Invalid(Strings.FailedToReadUploadFile);
+            }
+
+            return null;
+        }
+
         private PackageValidationResult CheckNuspecNormalized(PackageArchiveReader nuGetPackage, List<IValidationMessage> warnings)
         {
             try
@@ -204,6 +235,77 @@ namespace NuGetGallery
             catch (Exception)
             {
                 return PackageValidationResult.Invalid(Strings.UploadPackage_NuspecContainsInvalidUnicodeCharacters);
+            }
+
+            return null;
+        }
+
+        public static PackageValidationResult CheckPackageIdForBannedCharacters(PackageMetadata packageMetadata, PackageIdentity packageIdentity)
+        {
+            var packageId = packageMetadata?.Id;
+            if (string.IsNullOrWhiteSpace(packageId))
+            {
+                throw new ArgumentNullException(nameof(packageId));
+            }
+
+            // this is a sanity check to make sure that the package ID from the metadata matches the package ID from the archive reader
+            if (!StringComparer.Ordinal.Equals(packageId, packageIdentity.Id))
+            {
+                throw new InvalidOperationException("The package identity in the package metadata does not match the package archive reader.");
+            }
+
+            // we use both the Gallery validator and the NuGet packaging validator to ensure both pass
+            // these should have the same definition but we check both as a defensive measure
+            if (!NuGet.Packaging.PackageIdValidator.IsValidPackageId(packageId)
+                || !NuGetGallery.Packaging.PackageIdValidator.IsValidPackageId(packageId))
+            {
+                return PackageValidationResult.Invalid(Strings.UploadPackage_PackageIdNormalizationInvalid);
+            }
+
+            // reject package IDs that normalize using Form C to different strings
+            var normalizedPackageId = packageId.Normalize(NormalizationForm.FormC);
+            if (!string.Equals(packageId, normalizedPackageId, StringComparison.Ordinal))
+            {
+                return PackageValidationResult.Invalid(Strings.UploadPackage_PackageIdNormalizationInvalid);
+            }
+
+            foreach (var character in packageId)
+            {
+                // reject surrogate characters, should not be allowed by PackageIdValidator, here for defensiveness
+                if (char.IsSurrogate(character))
+                {
+                    return PackageValidationResult.Invalid(Strings.UploadPackage_PackageIdNormalizationInvalid);
+                }
+
+                var lower = character.ToString().ToLowerInvariant();
+                var upper = character.ToString().ToUpperInvariant();
+
+                // don't allow characters that fold to multiple characters
+                if (lower.Length != 1 || upper.Length != 1)
+                {
+                    return PackageValidationResult.Invalid(Strings.UploadPackage_PackageIdNormalizationInvalid);
+                }
+
+                // don't allow non separator characters that fold to invalid characters (should not be possible in practice)
+                if (lower != "." && lower != "_" && lower != "-")
+                {
+                    if (!NuGet.Packaging.PackageIdValidator.IsValidPackageId(lower)
+                        || !NuGet.Packaging.PackageIdValidator.IsValidPackageId(upper)
+                        || !NuGetGallery.Packaging.PackageIdValidator.IsValidPackageId(lower)
+                        || !NuGetGallery.Packaging.PackageIdValidator.IsValidPackageId(upper))
+                    {
+                        return PackageValidationResult.Invalid(Strings.UploadPackage_PackageIdNormalizationInvalid);
+                    }
+                }
+
+                if (character > 0x7F)
+                {
+                    // don't allow non-ASCII characters that fold to ASCII
+                    if (lower[0] <= 0x7F || upper[0] <= 0x7F)
+                    {
+                        return PackageValidationResult.Invalid(Strings.UploadPackage_PackageIdNormalizationInvalid);
+                    }
+                }
             }
 
             return null;
@@ -645,7 +747,7 @@ namespace NuGetGallery
             // nuget.exe 4.9.0 and its dotnet and msbuild counterparts encode spaces as "+"
             // when generating legacy license URL, which is bad. We explicitly forbid such
             // URLs. On the other hand, if license expression does not contain spaces they
-            // generate good URLs which we don't want to reject. This method detects the 
+            // generate good URLs which we don't want to reject. This method detects the
             // case when spaces are in the expression in a meaningful way.
 
             if (Uri.TryCreate(licenseUrl, UriKind.Absolute, out var url))
@@ -805,7 +907,7 @@ namespace NuGetGallery
         }
 
         /// <summary>
-        /// Validate repository metadata: 
+        /// Validate repository metadata:
         /// 1. If the type is "git" - allow the URL scheme "git://" or "https://". We will translate "git://" to "https://" at display time for known domains.
         /// 2. For types other then "git" - URL scheme should be "https://"
         /// </summary>

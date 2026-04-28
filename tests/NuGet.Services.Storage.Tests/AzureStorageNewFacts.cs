@@ -217,7 +217,7 @@ namespace NuGet.Services.Storage.Tests
                 .Returns(_blobClientMock.Object);
             var azureStorage = new AzureStorage(_blobServiceClientFactoryMock.Object, "containerName", "path", new Uri("http://baseAddress"), initializeContainer: true, enablePublicAccess: false, _loggerMock.Object);
 
-            await azureStorage.Save(new Uri("http://testUri.com/blob.json"), new StringStorageContent("content"), overwrite: overwrite, CancellationToken.None);
+            await azureStorage.Save(new Uri("http://baseAddress/blob.json"), new StringStorageContent("content"), overwrite: overwrite, CancellationToken.None);
 
             _blobClientMock.Verify(bcm => bcm.SetHttpHeadersAsync(It.IsAny<BlobHttpHeaders>(), It.IsAny<BlobRequestConditions>(), It.IsAny<CancellationToken>()), Times.Exactly(calledTimes));
             _blobClientMock.Verify(bcm => bcm.UploadAsync(It.IsAny<Stream>(), It.IsAny<BlobUploadOptions>(), It.IsAny<CancellationToken>()), Times.Exactly(calledTimes));

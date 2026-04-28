@@ -14,8 +14,10 @@ namespace NuGetGallery
 {
     public class DependencySetsViewModel
     {
-        public DependencySetsViewModel(IEnumerable<PackageDependency> packageDependencies)
+        public DependencySetsViewModel(IEnumerable<PackageDependency> packageDependencies, bool isDotnetTool = false)
         {
+            IsDotnetTool = isDotnetTool;
+
             try
             {
                 DependencySets = new Dictionary<string, IEnumerable<DependencyViewModel>>();
@@ -50,6 +52,7 @@ namespace NuGetGallery
 
         public IDictionary<string, IEnumerable<DependencyViewModel>> DependencySets { get; private set; }
         public bool OnlyHasAllFrameworks { get; private set; }
+        public bool IsDotnetTool { get; private set; }
 
         public class DependencyViewModel
         {

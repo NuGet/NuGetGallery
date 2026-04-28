@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Diagnostics.Tracing;
 using System.IO;
+using System.Security.Cryptography;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.ApplicationInsights;
@@ -91,9 +92,21 @@ namespace NuGet.Jobs
 
         private IConfigurationRoot GetConfigurationRoot(string configurationFilename, out ICachingSecretInjector secretInjector, out ICachingSecretReader secretReader)
         {
-            Logger.LogInformation(
-                "Using the {ConfigurationFilename} configuration file",
-                Path.Combine(Environment.CurrentDirectory, configurationFilename));
+            if (!File.Exists(configurationFilename))
+            {
+                throw new ArgumentException($"File {configurationFilename} does not exist", nameof(configurationFilename));
+            }
+
+            using (var sha512 = SHA512.Create())
+            {
+                var configurationBytes = File.ReadAllBytes(configurationFilename);
+                var configurationContentHash = sha512.ComputeHash(configurationBytes);
+                Logger.LogInformation(
+                    "Using the {ConfigurationFilename} configuration file. Size: {ConfigurationFileSize} bytes, hash: {ConfigurationFileHash}",
+                    Path.Combine(Environment.CurrentDirectory, configurationFilename),
+                    configurationBytes.Length,
+                    BitConverter.ToString(configurationContentHash).Replace("-", ""));
+            }
 
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Environment.CurrentDirectory)

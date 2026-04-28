@@ -20,6 +20,7 @@ using Newtonsoft.Json.Linq;
 using NgTests;
 using NgTests.Data;
 using NgTests.Infrastructure;
+using NuGet.Packaging.Core;
 using NuGet.Protocol.Catalog;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Dnx;
@@ -30,8 +31,17 @@ namespace CatalogTests.Dnx
 {
     public class DnxCatalogCollectorTests
     {
-        private static readonly Uri _baseUri = new Uri("https://nuget.test");
-        private const string _nuspecData = "nuspec data";
+        private static readonly Uri _baseUri = new Uri("https://tempuri.org");
+        private const string _nuspecData =
+            """
+            <?xml version="1.0" encoding="utf-8"?>
+            <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+                <metadata>
+                    <id>UnlistedPackage</id>
+                    <version>1.0.0</version>
+                </metadata>
+            </package>
+            """;
         private const int _maxDegreeOfParallelism = 20;
         private static readonly HttpContent _noContent = new ByteArrayContent(new byte[0]);
         private const IAzureStorage _nullPreferredPackageSourceStorage = null;
@@ -135,7 +145,7 @@ namespace CatalogTests.Dnx
             {
                 var exception = Assert.Throws<ArgumentNullException>(
                     () => new DnxCatalogCollector(
-                        new Uri("https://nuget.test"),
+                        new Uri("https://tempuri.org"),
                         storageFactory,
                         _nullPreferredPackageSourceStorage,
                         contentBaseAddress: null,
@@ -157,7 +167,7 @@ namespace CatalogTests.Dnx
             {
                 var exception = Assert.Throws<ArgumentNullException>(
                     () => new DnxCatalogCollector(
-                        new Uri("https://nuget.test"),
+                        new Uri("https://tempuri.org"),
                         new TestStorageFactory(),
                         _nullPreferredPackageSourceStorage,
                         contentBaseAddress: null,
@@ -181,7 +191,7 @@ namespace CatalogTests.Dnx
             {
                 var exception = Assert.Throws<ArgumentNullException>(
                     () => new DnxCatalogCollector(
-                        new Uri("https://nuget.test"),
+                        new Uri("https://tempuri.org"),
                         new TestStorageFactory(),
                         _nullPreferredPackageSourceStorage,
                         null,
@@ -205,7 +215,7 @@ namespace CatalogTests.Dnx
             {
                 var exception = Assert.Throws<ArgumentOutOfRangeException>(
                     () => new DnxCatalogCollector(
-                        new Uri("https://nuget.test"),
+                        new Uri("https://tempuri.org"),
                         new TestStorageFactory(),
                         _nullPreferredPackageSourceStorage,
                         contentBaseAddress: null,
@@ -228,7 +238,7 @@ namespace CatalogTests.Dnx
             {
                 var exception = Assert.Throws<ArgumentNullException>(
                     () => new DnxCatalogCollector(
-                        new Uri("https://nuget.test"),
+                        new Uri("https://tempuri.org"),
                         new TestStorageFactory(),
                         _nullPreferredPackageSourceStorage,
                         null,
@@ -247,7 +257,7 @@ namespace CatalogTests.Dnx
         public void Constructor_WhenHandlerFuncIsNull_InstantiatesClass()
         {
             new DnxCatalogCollector(
-                new Uri("https://nuget.test"),
+                new Uri("https://tempuri.org"),
                 new TestStorageFactory(),
                 _nullPreferredPackageSourceStorage,
                 contentBaseAddress: null,
@@ -265,7 +275,7 @@ namespace CatalogTests.Dnx
             using (var clientHandler = new HttpClientHandler())
             {
                 new DnxCatalogCollector(
-                    new Uri("https://nuget.test"),
+                    new Uri("https://tempuri.org"),
                     new TestStorageFactory(),
                     _nullPreferredPackageSourceStorage,
                     contentBaseAddress: null,
@@ -279,7 +289,7 @@ namespace CatalogTests.Dnx
         }
 
         [Fact]
-        public async Task RunAsync_WhenPackageDoesNotHaveNuspec_SkipsPackage()
+        public async Task RunAsync_WhenPackageDoesNotHaveNuspec_ErrorsOut()
         {
             var zipWithNoNuspec = CreateZipStreamWithEntry("readme.txt", "content");
             var indexJsonUri = _catalogToDnxStorage.ResolveUri("/listedpackage/index.json");
@@ -294,13 +304,10 @@ namespace CatalogTests.Dnx
             var front = new DurableCursor(_cursorJsonUri, _catalogToDnxStorage, MemoryCursor.MinValue);
             ReadCursor back = MemoryCursor.CreateMax();
 
-            await _target.RunAsync(front, back, CancellationToken.None);
-
-            Assert.Single(_catalogToDnxStorage.Content);
-            Assert.True(_catalogToDnxStorage.Content.ContainsKey(_cursorJsonUri));
-            Assert.False(_catalogToDnxStorage.Content.ContainsKey(indexJsonUri));
-            Assert.True(_catalogToDnxStorage.ContentBytes.ContainsKey(_cursorJsonUri));
-            Assert.False(_catalogToDnxStorage.ContentBytes.ContainsKey(indexJsonUri));
+            var ex = await Assert.ThrowsAsync<BatchProcessingException>(() => _target.RunAsync(front, back, CancellationToken.None));
+            var innerEx = Assert.IsType<PackagingException>(ex.InnerException);
+            Assert.StartsWith("The package is missing the required nuspec file.", innerEx.Message);
+            Assert.Empty(_catalogToDnxStorage.Content);
         }
 
         [Fact]
@@ -777,7 +784,7 @@ namespace CatalogTests.Dnx
                 request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\ListedPackage.1.0.1.zip")) }));
             _mockServer.SetAction(
                 "/packages/anotherpackage.1.0.0.nupkg",
-                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\ListedPackage.1.0.0.zip")) }));
+                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\AnotherPackage.1.0.0.zip")) }));
 
             // Make the first request for a catalog leaf node fail. This will cause the registration collector
             // to fail the first time but pass the second time.

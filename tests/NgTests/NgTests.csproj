@@ -19,6 +19,9 @@
       <Link>Packages\TestPackage.SemVer2.1.0.0-alpha.1.nupkg</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Packages\AnotherPackage.1.0.0.zip">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Packages\ListedPackage.1.0.0.zip">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

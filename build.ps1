@@ -162,7 +162,8 @@ Invoke-BuildStep 'Creating job packages from jobs solution' {
             "src\Validation.PackageSigning.ProcessSignature\Validation.PackageSigning.ProcessSignature.nuspec",
             "src\Validation.PackageSigning.RevalidateCertificate\Validation.PackageSigning.RevalidateCertificate.nuspec",
             "src\Validation.PackageSigning.ValidateCertificate\Validation.PackageSigning.ValidateCertificate.nuspec",
-            "src\Validation.Symbols\Validation.Symbols.Job.nuspec"
+            "src\Validation.Symbols\Validation.Symbols.Job.nuspec",
+            "src\UpdateBlobProperties\UpdateBlobProperties.nuspec"
         $JobsNuspecProjects | ForEach-Object {
             New-Package (Join-Path $PSScriptRoot $_) -Configuration $Configuration -BuildNumber $BuildNumber -Version $JobsPackageVersion -Branch $Branch
         }

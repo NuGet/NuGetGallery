@@ -108,7 +108,95 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    NCryptYo                            |    02/20/2026    |   Malware  |
 |    SimpleWriter_                       |    02/20/2026    |   Potentially Malicious  |
 |    IRAOAuth2.0                         |    02/20/2026    |   Potentially Malicious  |
-
+|    bsure.Utils version 99.99.99       |    04/02/2026    |   Malware  |
+|    bsure.Utils version 0.71.2         |    04/02/2026    |   Malware  |
+|    bsure.Utils version 0.70.1         |    04/02/2026    |   Malware  |
+|    bsure.binsec version 0.70.1        |    04/02/2026    |   Malware  |
+|    a0f61a05228a44f5af43662234499b68 0.0.1    |    04/03/2026    |   Potentially Malicious  |
+|    a0f61a05228a44f5af43662234499b68 0.0.2    |    04/03/2026    |   Potentially Malicious  |
+|    a0f61a05228a44f5af43662234499b68 0.0.3    |    04/03/2026    |   Potentially Malicious  |
+|    a0f61a05228a44f5af43662234499b68 0.0.4    |    04/03/2026    |   Potentially Malicious  |
+|    a0f61a05228a44f5af43662234499b68 0.0.5    |    04/03/2026    |   Potentially Malicious  |
+|    a170a4f911e646feb466baf21099b491 0.0.1    |    04/03/2026    |   Potentially Malicious  |
+|    7da3f64d1fc340d983ef7366243fffdd 1.0.0    |    04/03/2026    |   Potentially Malicious  |
+|    Tracer.DotNet.APM 0.0.0                   |    04/03/2026    |   Potentially Malicious  |
+|    APMAzure.DotNet.Agent 1.8.0               |    04/03/2026    |   Potentially Malicious  |
+|    asdftest 1.0.0                            |    04/03/2026    |   Potentially Malicious  |
+|    Axis.Podracers.AudioClips 1.0.4           |    04/03/2026    |   Potentially Malicious  |
+|    Axis.Podracers.AudioClips 1.0.5           |    04/03/2026    |   Potentially Malicious  |
+|    AxisAnalyzers 10.0.0                      |    04/03/2026    |   Potentially Malicious  |
+|    AxisAnalyzers 11.0.0                      |    04/03/2026    |   Potentially Malicious  |
+|    wk10 1.0.3                                |    04/03/2026    |   Potentially Malicious  |
+|    wk10 1.0.4                                |    04/03/2026    |   Potentially Malicious  |
+|    Regorus 0.9.1                             |    04/03/2026    |   Potentially Malicious  |
+|    Regorus 0.9.2                             |    04/03/2026    |   Potentially Malicious  |
+|    Rx.Kql 3.0.5                              |    04/03/2026    |   Potentially Malicious  |
+|    Rx.Kql 3.0.6                              |    04/03/2026    |   Potentially Malicious  |
+|    vc150 1.0.0                               |    04/03/2026    |   Potentially Malicious  |
+|    vc150 1.0.1                               |    04/03/2026    |   Potentially Malicious  |
+|    OG.AspNetCore.Identity 2026.4.3.6         |    04/03/2026    |   Malware  |
+|    OG.Services.Core 2026.4.3.6               |    04/03/2026    |   Malware  |
+|    OG.Services.Core.NoSql 2026.4.3.6         |    04/03/2026    |   Malware  |
+|    OG.Services.Core.Shared 1.0.0             |    04/03/2026    |   Malware  |
+|    OG.Services.Core.Shared 2025.4.2.3        |    04/03/2026    |   Malware  |
+|    OG.Services.Core.Shared 2025.4.3.2        |    04/03/2026    |   Malware  |
+|    OG.Services.Core.Shared 2025.4.3.3        |    04/03/2026    |   Malware  |
+|    OG.Services.Core.Shared 2025.4.3.4        |    04/03/2026    |   Malware  |
+|    OG.Services.Core.Shared 2026.4.3.2        |    04/03/2026    |   Malware  |
+|    OG.Services.Core.Shared 2026.4.3.3        |    04/03/2026    |   Malware  |
+|    OG.Services.Core.Shared 2026.4.3.4        |    04/03/2026    |   Malware  |
+|    OG.Services.Core.Shared 2026.4.3.5        |    04/03/2026    |   Malware  |
+|    OG.Services.Core.Shared 2026.4.3.6        |    04/03/2026    |   Malware  |
+|    OG.Services.Core.Shared 2026.4.3.7        |    04/03/2026    |   Malware  |
+|    OG.Services.Core.Shared 2027.4.3.8        |    04/03/2026    |   Malware  |
+|    OG.Services.Events 2026.4.3.6             |    04/03/2026    |   Malware  |
+|    TZ.Abstractions 5.1.0                     |    04/03/2026    |   Malware  |
+|    tz.gatewayapis 0.0.49                     |    04/03/2026    |   Malware  |
+|    TZ.Pad.AppMonitor 5.0.21070952            |    04/03/2026    |   Malware  |
+|    TZ.Pad.Test 6.0.2                         |    04/03/2026    |   Malware  |
+|    TZ.Pad.Test 6.0.3                         |    04/03/2026    |   Malware  |
+|    TZ.Pad.Web 5.0.3                          |    04/03/2026    |   Malware  |
+|    tz.smartgateway2 2.0.0.11                 |    04/03/2026    |   Malware  |
+|    esharpwin 137.0.100                       |    04/06/2026    |   Malware  |
+|    esharpwin 137.0.101                       |    04/06/2026    |   Malware  |
+|    DemoDLL2 2.0.7                            |    04/06/2026    |   Malware  |
+|    AutoFactories 1.1.10                      |    04/06/2026    |   Malware  |
+|    CardVaultClient 1.0.0                     |    04/08/2026    |   Malware  |
+|    MyHelloTest 2.0.1                         |    04/08/2026    |   Malware  |
+|    MyHelloTest 2.0.3                         |    04/08/2026    |   Malware  |
+|    CCX-Arbitrary 1.1.0.276                   |    04/08/2026    |   Malware  |
+|    CCX-Arbitrary 1.1.0.278                   |    04/08/2026    |   Malware  |
+|    CCX-Arbitrary 1.1.0.279                   |    04/08/2026    |   Malware  |
+|    Detectable.BuildHookAndObf 0.1.0          |    04/08/2026    |   Malware  |
+|    Detectable.ObfuscatedCode 0.1.0           |    04/08/2026    |   Malware  |
+|    Safe.BuildMessage 0.0.2                   |    04/08/2026    |   Malware  |
+|    Safe.ExfilIntent 0.0.2                    |    04/08/2026    |   Malware  |
+|    Safe.Obfuscation 0.0.2                    |    04/08/2026    |   Malware  |
+|    Safe.TypoTaregt 0.0.2                     |    04/08/2026    |   Malware  |
+|    Safe.TypoTarget 0.0.2                     |    04/08/2026    |   Malware  |
+|    siggnalv.james 2.2.0                      |    04/10/2026    |   Malware  |
+|    monaco.winformxrmuibase 3.0.6474.16527    |    04/10/2026    |   Malware  |
+|    TestProofOfConcept 1.0.0                  |    04/10/2026    |   Malware  |
+|    TestProofOfConcept 1.0.1                  |    04/10/2026    |   Malware  |
+|    TestProofOfConcept 1.0.2                  |    04/10/2026    |   Malware  |
+|    TestProofOfConcept 1.0.3                  |    04/10/2026    |   Malware  |
+|    TestProofOfConcept 1.0.4                  |    04/10/2026    |   Malware  |
+|    TestProofOfConcept 1.0.5                  |    04/10/2026    |   Malware  |
+|    Reothor.Lab.EvilPackage 1.3.3.7           |    04/10/2026    |   Malware  |
+|    Reothor.Lab.EvilPackage 2.0.0             |    04/10/2026    |   Malware  |
+|    Reothor.Lab.EvilPackage 2.0.1             |    04/10/2026    |   Malware  |
+|    Reothor.Lab.EvilPackage 4.4.4.4           |    04/10/2026    |   Malware  |
+|    Reothor.Lab.EvilPackage 4.4.5.5           |    04/10/2026    |   Malware  |
+|    Reothor.Lab.EvilPackage 100.0.0           |    04/10/2026    |   Malware  |
+|    Reothor.Lab.EvilPackage 200.0.0           |    04/10/2026    |   Malware  |
+|    PioneFramework 1.0.1                      |    04/10/2026    |   Malware  |
+|    PioneFramework 1.0.2                      |    04/10/2026    |   Malware  |
+|    PioneFrameworkNew 1.0.4                   |    04/10/2026    |   Malware  |
+|    PioneFrameworkNew 1.0.5                   |    04/10/2026    |   Malware  |
+|    pionehelper 1.0.1                         |    04/10/2026    |   Malware  |
+|    pionehelper 1.0.2                         |    04/10/2026    |   Malware  |
+|    pionehelper 1.0.3                         |    04/10/2026    |   Malware  |
+|    Nova.GtkSharp 1.0.0.1-nova                |    04/10/2026    |   Malware  |
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.

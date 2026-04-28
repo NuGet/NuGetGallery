@@ -18,12 +18,17 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             { StorageConstants.ContentType, ApplicationOctetStreamContentType }
         };
 
+        // Default Cache Control of Package Version Index (at Storage)
+        public const string DefaultCacheControlOfPackageVersionIndex = "max-age=10";
+
         // Cache Duration of Package Version Index (at CDN)
         public static readonly TimeSpan CacheDurationOfPackageVersionIndex = TimeSpan.FromSeconds(60);
 
         // Front Cursor with Updates
-        // (MaxNumberOfUpdatesToKeepOfFrontCursor - 1) * MinIntervalBetweenTwoUpdatesOfFrontCursor > CacheDurationOfPackageVersionIndex
+        // (MaxNumberOfUpdatesToKeepOfFrontCursor - 1) * MinIntervalBetweenTwoUpdatesOfFrontCursor > MinIntervalBeforeToReadUpdateOfFrontCursor
         public const int MaxNumberOfUpdatesToKeepOfFrontCursor = 31;
         public static readonly TimeSpan MinIntervalBetweenTwoUpdatesOfFrontCursor = TimeSpan.FromSeconds(60);
+        // MinIntervalBeforeToReadUpdateOfFrontCursor >= CacheDurationOfPackageVersionIndex + 1 second
+        public static readonly TimeSpan MinIntervalBeforeToReadUpdateOfFrontCursor = CacheDurationOfPackageVersionIndex + TimeSpan.FromSeconds(1);
     }
 }

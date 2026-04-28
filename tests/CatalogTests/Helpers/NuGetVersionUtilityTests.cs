@@ -1,6 +1,7 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using Xunit;
 
@@ -13,7 +14,6 @@ namespace CatalogTests.Helpers
         [InlineData("1.0.0-alpha.1", "1.0.0-alpha.1")]
         [InlineData("1.0.0-alpha+githash", "1.0.0-alpha")]
         [InlineData("1.0.0.0", "1.0.0")]
-        [InlineData("invalid", "invalid")]
         public void NormalizeVersion(string input, string expected)
         {
             // Arrange & Act
@@ -21,6 +21,15 @@ namespace CatalogTests.Helpers
 
             // Assert
             Assert.Equal(expected, actual);
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("invalid")]
+        public void NormalizeVersion_Invalid(string input)
+        {
+            // Arrange & Act & Assert
+            Assert.Throws<InvalidOperationException>(() => NuGetVersionUtility.NormalizeVersion(input));
         }
 
         [Theory]
