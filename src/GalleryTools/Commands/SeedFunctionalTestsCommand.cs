@@ -253,6 +253,13 @@ namespace GalleryTools.Commands
 						return;
 					}
 
+					if (response.StatusCode == HttpStatusCode.Forbidden)
+					{
+						// Package may already exist under a different owner (e.g. seeded by AppHost).
+						Console.WriteLine($"Package {fileName} returned 403 Forbidden (likely already owned by another account). Skipping.");
+						return;
+					}
+
 					if (!response.IsSuccessStatusCode)
 					{
 						var body = await response.Content.ReadAsStringAsync();
