@@ -1,7 +1,14 @@
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <!-- Import SDK bundled versions to get the runtime version (already set in SDK-style projects). -->
-  <Import Project="$(MSBuildToolsPath)\Microsoft.NETCoreSdk.BundledVersions.props"
-          Condition="'$(BundledNETCoreAppPackageVersion)' == ''" />
+  <!-- Import SDK bundled versions to get the runtime version (already set in SDK-style projects).
+       When VS MSBuild builds legacy (non-SDK) projects, $(MSBuildToolsPath) points to the VS dir
+       which does not contain this file. Use $(NETCoreSdkBundledVersionsProps) set by the SDK
+       resolver, or probe the dotnet SDK directory as a fallback. -->
+  <PropertyGroup Condition="'$(BundledNETCoreAppPackageVersion)' == ''">
+    <_BundledVersionsPropsPath Condition="'$(NETCoreSdkBundledVersionsProps)' != '' and Exists('$(NETCoreSdkBundledVersionsProps)')">$(NETCoreSdkBundledVersionsProps)</_BundledVersionsPropsPath>
+    <_BundledVersionsPropsPath Condition="'$(_BundledVersionsPropsPath)' == '' and Exists('$(MSBuildToolsPath)\Microsoft.NETCoreSdk.BundledVersions.props')">$(MSBuildToolsPath)\Microsoft.NETCoreSdk.BundledVersions.props</_BundledVersionsPropsPath>
+  </PropertyGroup>
+  <Import Project="$(_BundledVersionsPropsPath)"
+          Condition="'$(BundledNETCoreAppPackageVersion)' == '' and '$(_BundledVersionsPropsPath)' != ''" />
   <PropertyGroup>
     <_DotNetRoot>$([System.IO.Path]::GetFullPath('$(MSBuildToolsPath)\..\..'))</_DotNetRoot>
     <_DotNetSharedFxPath>$([System.IO.Path]::Combine('$(_DotNetRoot)', 'shared', 'Microsoft.NETCore.App', '$(BundledNETCoreAppPackageVersion)'))</_DotNetSharedFxPath>

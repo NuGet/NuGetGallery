@@ -195,7 +195,10 @@ namespace NuGetGallery
 
             using (var peStream = File.OpenRead(pdbFile))
             {
-                peStream.Read(currentPDBStamp, 0, 4);
+                if (peStream.Read(currentPDBStamp, 0, 4) < 4)
+                {
+                    return false;
+                }
             }
 
             return currentPDBStamp.SequenceEqual(portableStamp);
