@@ -109,7 +109,7 @@ namespace GalleryTools.Commands
 			// ─── 5. Write settings.CI.json ───────────────────────────────────────────
 			var settings = new JObject(
 				new JProperty("DefaultSecurityPoliciesEnforced", true),
-				new JProperty("TestPackageLock", false),
+				new JProperty("TestPackageLock", true),
 				new JProperty("TyposquattingCheckAndBlockUsers", true),
 				new JProperty("Branding", new JObject(
 					new JProperty("BrandingMessage", "&#169; Microsoft {0}"),
