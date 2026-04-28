@@ -181,4 +181,30 @@ if (-not $allPassed)
 	exit 1
 }
 
+# Step 6: Verify Azurite is reachable on port 10000
+Write-Host "=== Verifying Azurite blob storage ==="
+$azuriteUrl = "http://127.0.0.1:10000/"
+try
+{
+	$azResponse = Invoke-WebRequest -Uri $azuriteUrl -UseBasicParsing -TimeoutSec 5 -ErrorAction Stop
+	Write-Host "  Azurite -> $($azResponse.StatusCode) (reachable)"
+}
+catch
+{
+	# Azurite returns 400 for bare requests, but that still proves it's listening
+	if ($_.Exception.Response -and $_.Exception.Response.StatusCode)
+	{
+		Write-Host "  Azurite -> $($_.Exception.Response.StatusCode) (reachable)"
+	}
+	else
+	{
+		Write-Host "  WARNING: Azurite is NOT reachable at $azuriteUrl"
+		Write-Host "  Error: $($_.Exception.Message)"
+		Write-Host "  AppHost stderr (last 30 lines):"
+		Get-Content $stderrLog -Tail 30 -ErrorAction SilentlyContinue
+		Write-Host "  AppHost stdout (last 30 lines):"
+		Get-Content $stdoutLog -Tail 30 -ErrorAction SilentlyContinue
+	}
+}
+
 Write-Host "=== Aspire Host is running (PID $($proc.Id)) ==="

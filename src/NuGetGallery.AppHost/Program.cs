@@ -154,6 +154,8 @@ public class Program
 			packages: config.Containers.Packages, auditing: config.Containers.Auditing,
 			content: config.Containers.Content, uploads: config.Containers.Uploads);
 
+		var galleryToolsExe = Path.Combine(galleryToolsBin, "GalleryTools.exe");
+
 		// ─── Full profile: V3 pipeline, seeding, search, and dashboard commands ──────
 		// Azure AI Search, V3 pipeline resources, seeding, and dashboard commands
 		// are only needed in the full profile.
@@ -211,7 +213,6 @@ public class Program
 
 		// ─── Test data seeding (creates a user and pushes a test package) ────────────
 
-		var galleryToolsExe = Path.Combine(galleryToolsBin, "GalleryTools.exe");
 		var testNupkg = Path.Combine(builder.AppHostDirectory, "testdata", "basetestpackage.1.0.0.nupkg.testdata");
 
 		var seedUser = builder.AddExecutable(

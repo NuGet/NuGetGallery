@@ -6,9 +6,9 @@
 Seeds the local Gallery database with test data needed for functional tests.
 
 .DESCRIPTION
-Creates a test user, two organizations (admin + collaborator), and six API keys
-with different scopes. Outputs a settings.CI.json config file and sets the
-ConfigurationFilePath environment variable for xunit test discovery.
+Runs the GalleryTools seedfunctionaltests command which creates test users,
+organizations, API keys, and a base test package. Writes settings.CI.json
+for the functional test runner.
 
 .PARAMETER Configuration
 Build configuration (Release or Debug). Default: Release.
@@ -31,111 +31,53 @@ if (-not (Test-Path $galleryToolsExe))
 	throw "GalleryTools.exe not found at $galleryToolsExe. Build GalleryTools first."
 }
 
-function Invoke-GalleryTool
+# Verify the AppHost is still running
+$pidFile = Join-Path $repoRoot "aspire-host.pid"
+if (Test-Path $pidFile)
 {
-	param ([string[]]$Arguments)
-	$result = & $galleryToolsExe @Arguments 2>&1
-	if ($LASTEXITCODE -ne 0)
+	$hostPid = [int](Get-Content $pidFile -Raw).Trim()
+	$proc = Get-Process -Id $hostPid -ErrorAction SilentlyContinue
+	if (-not $proc)
 	{
-		$stderr = ($result | Where-Object { $_ -is [System.Management.Automation.ErrorRecord] }) -join "`n"
-		$stdout = ($result | Where-Object { $_ -isnot [System.Management.Automation.ErrorRecord] }) -join "`n"
-		throw "GalleryTools failed (exit $LASTEXITCODE).`nArgs: $($Arguments -join ' ')`nStdout: $stdout`nStderr: $stderr"
+		Write-Host "WARNING: AppHost process (PID $hostPid) is no longer running!"
+		Write-Host "=== aspire-stderr.log (last 50 lines) ==="
+		Get-Content (Join-Path $repoRoot "aspire-stderr.log") -Tail 50 -ErrorAction SilentlyContinue
+		Write-Host "=== aspire-stdout.log (last 50 lines) ==="
+		Get-Content (Join-Path $repoRoot "aspire-stdout.log") -Tail 50 -ErrorAction SilentlyContinue
+		throw "AppHost process has exited. Cannot seed test data."
 	}
-	# Return only stdout lines (not ErrorRecord objects)
-	return ($result | Where-Object { $_ -isnot [System.Management.Automation.ErrorRecord] }) -join "`n"
+	Write-Host "AppHost process (PID $hostPid) is running."
 }
 
-# ─── Test account and password ────────────────────────────────────────────────
-$testUser = "NugetTestAccount"
-$testPassword = "Password1!"
-$testEmail = "testnuget@localhost"
-
-# ─── Organization names ──────────────────────────────────────────────────────
-$adminOrgName = "NugetTestAdminOrganization"
-$collaboratorOrgName = "NugetTestCollaboratorOrganization"
-
-# ─── Second user for collaborator org admin ──────────────────────────────────
-$orgAdminUser = "NugetOrgAdmin"
-$orgAdminPassword = "Password1!"
+# Verify the GalleryTools config file exists
+$configFile = Join-Path $galleryToolsBin "appsettings.Aspire.config"
+if (Test-Path $configFile)
+{
+	Write-Host "GalleryTools config found: $configFile"
+}
+else
+{
+	Write-Host "WARNING: $configFile not found. GalleryTools will use defaults."
+}
 
 Write-Host "=== Seeding functional test data ==="
 
-# 1. Create test user
-Write-Host "Creating test user '$testUser'..."
-Invoke-GalleryTool "createuser", "--username", $testUser, "--password", $testPassword, "--email", $testEmail
+& $galleryToolsExe seedfunctionaltests `
+	--output $settingsOutput `
+	--package $testNupkg `
+	--base-url "https://localhost"
 
-# 2. Create second user (will be admin of the collaborator org)
-Write-Host "Creating org admin user '$orgAdminUser'..."
-Invoke-GalleryTool "createuser", "--username", $orgAdminUser, "--password", $orgAdminPassword
+if ($LASTEXITCODE -ne 0)
+{
+	Write-Host "=== Seed failed. Dumping diagnostics ==="
+	Write-Host "=== aspire-stderr.log (last 30 lines) ==="
+	Get-Content (Join-Path $repoRoot "aspire-stderr.log") -Tail 30 -ErrorAction SilentlyContinue
+	Write-Host "=== aspire-stdout.log (last 30 lines) ==="
+	Get-Content (Join-Path $repoRoot "aspire-stdout.log") -Tail 30 -ErrorAction SilentlyContinue
+	throw "GalleryTools seedfunctionaltests failed with exit code $LASTEXITCODE"
+}
 
-# 3. Create admin organization (testUser is admin)
-Write-Host "Creating admin organization '$adminOrgName'..."
-Invoke-GalleryTool "createorganization", "--name", $adminOrgName, "--admin", $testUser
-
-# 4. Create collaborator organization (orgAdminUser is admin, testUser is collaborator)
-Write-Host "Creating collaborator organization '$collaboratorOrgName'..."
-Invoke-GalleryTool "createorganization", "--name", $collaboratorOrgName, "--admin", $orgAdminUser, "--collaborator", $testUser
-
-# 5. Push the base test package
-Write-Host "Pushing BaseTestPackage..."
-Invoke-GalleryTool "pushpackage", "--owner", $testUser, "--package", $testNupkg
-
-# 6. Create API keys
-Write-Host "Creating API keys..."
-
-$accountApiKey = (Invoke-GalleryTool "createapikey", "--user", $testUser, "--description", "CI Full Access", "--scope", "all").Trim()
-Write-Host "  Account API key (all): created"
-
-$apiKeyPush = (Invoke-GalleryTool "createapikey", "--user", $testUser, "--description", "CI Push", "--scope", "push").Trim()
-Write-Host "  Account API key (push): created"
-
-$apiKeyPushVersion = (Invoke-GalleryTool "createapikey", "--user", $testUser, "--description", "CI Push Version", "--scope", "pushversion").Trim()
-Write-Host "  Account API key (pushversion): created"
-
-$apiKeyUnlist = (Invoke-GalleryTool "createapikey", "--user", $testUser, "--description", "CI Unlist", "--scope", "unlist").Trim()
-Write-Host "  Account API key (unlist): created"
-
-$adminOrgApiKey = (Invoke-GalleryTool "createapikey", "--user", $testUser, "--description", "CI Admin Org", "--scope", "all", "--owner-scope", $adminOrgName).Trim()
-Write-Host "  Admin org API key: created"
-
-$collabOrgApiKey = (Invoke-GalleryTool "createapikey", "--user", $testUser, "--description", "CI Collaborator Org", "--scope", "all", "--owner-scope", $collaboratorOrgName).Trim()
-Write-Host "  Collaborator org API key: created"
-
-# 7. Write settings.CI.json with real keys embedded
-$settings = @{
-	DefaultSecurityPoliciesEnforced = $true
-	TestPackageLock = $false
-	TyposquattingCheckAndBlockUsers = $true
-	Branding = @{
-		BrandingMessage = "&#169; Microsoft {0}"
-		PrivacyPolicyUrl = "https://go.microsoft.com/fwlink/?LinkId=521839"
-		TrademarksUrl = "https://www.microsoft.com/trademarks"
-	}
-	Account = @{
-		Name = $testUser
-		Email = $testEmail
-		Password = $testPassword
-		ApiKey = $accountApiKey
-		ApiKeyPush = $apiKeyPush
-		ApiKeyPushVersion = $apiKeyPushVersion
-		ApiKeyUnlist = $apiKeyUnlist
-	}
-	AdminOrganization = @{
-		Name = $adminOrgName
-		ApiKey = $adminOrgApiKey
-	}
-	CollaboratorOrganization = @{
-		Name = $collaboratorOrgName
-		ApiKey = $collabOrgApiKey
-	}
-	ProductionBaseUrl = "https://localhost"
-	StagingBaseUrl = ""
-} | ConvertTo-Json -Depth 3
-
-Set-Content -Path $settingsOutput -Value $settings -Encoding UTF8
-Write-Host "Settings written to: $settingsOutput"
-
-# 8. Set the config file path for the functional tests
+# Set the config file path for the functional tests
 $env:ConfigurationFilePath = $settingsOutput
 Write-Host "ConfigurationFilePath = $settingsOutput"
 

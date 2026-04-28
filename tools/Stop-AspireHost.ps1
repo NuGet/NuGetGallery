@@ -27,6 +27,10 @@ if ($proc)
 else
 {
 	Write-Host "Aspire host process (PID $hostPid) is not running."
+	Write-Host "=== aspire-stderr.log (last 30 lines) ==="
+	Get-Content (Join-Path $repoRoot "aspire-stderr.log") -Tail 30 -ErrorAction SilentlyContinue
+	Write-Host "=== aspire-stdout.log (last 30 lines) ==="
+	Get-Content (Join-Path $repoRoot "aspire-stdout.log") -Tail 30 -ErrorAction SilentlyContinue
 }
 
 Remove-Item $pidFile -ErrorAction SilentlyContinue
