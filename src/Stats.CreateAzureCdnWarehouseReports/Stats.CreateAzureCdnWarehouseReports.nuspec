@@ -11,6 +11,7 @@
   </metadata>
   <files>
     <file src="bin\$configuration$\net10.0\*.*" target="bin"/>
+    <file src="bin\$configuration$\net10.0\runtimes\**\*" target="bin\runtimes"/>
 	
     <file src="Scripts\Functions.ps1" />
     <file src="Scripts\PreDeploy.ps1" />
