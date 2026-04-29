@@ -136,15 +136,7 @@ namespace GalleryTools.Commands
 				new JProperty("CollaboratorOrganization", new JObject(
 					new JProperty("Name", collaboratorOrgName),
 					new JProperty("ApiKey", collabOrgApiKey))),
-				new JProperty("Branding", new JObject(
-					new JProperty("Message", ""),
-					new JProperty("Url", ""),
-					new JProperty("AboutUrl", ""),
-					new JProperty("PrivacyPolicyUrl", ""),
-					new JProperty("TermsOfUseUrl", ""),
-					new JProperty("TrademarksUrl", ""))),
-				new JProperty("ProductionBaseUrl", baseUrl),
-				new JProperty("StagingBaseUrl", ""));
+				new JProperty("ProductionBaseUrl", baseUrl));
 
 			Directory.CreateDirectory(Path.GetDirectoryName(outputPath));
 			File.WriteAllText(outputPath, settings.ToString(Formatting.Indented));
