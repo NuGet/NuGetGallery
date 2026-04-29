@@ -53,7 +53,8 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         {
             using (var httpClient = new HttpClient())
             {
-                var requestUrl = UrlHelper.DotnetCuratedFeedUrl + "FindPackagesById()?id='AutoMapper'";
+                // Use BaseTestPackage.SearchFilters (4 versions seeded) with $top=2 to force pagination.
+                var requestUrl = UrlHelper.DotnetCuratedFeedUrl + "FindPackagesById()?id='BaseTestPackage.SearchFilters'&$top=2";
 
                 string responseText;
                 using (var response = await httpClient.GetAsync(requestUrl))
@@ -61,9 +62,9 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                     responseText = await response.Content.ReadAsStringAsync();
                 }
 
-                // Make sure that 100 entries are returned.  This means that if we split on the <entry> tag, we'd have 101 strings.
+                // Make sure that 2 entries are returned.  This means that if we split on the <entry> tag, we'd have 3 strings.
                 int length = responseText.Split(new[] { "<entry>" }, StringSplitOptions.RemoveEmptyEntries).Length;
-                Assert.True(length == 101, "An unexpected number of entries was found.  Actual number was " + (length - 1));
+                Assert.True(length == 3, "An unexpected number of entries was found.  Actual number was " + (length - 1));
 
                 // Get the link to the next page.
                 string link = responseText.Split(new[] { @"<link rel=""next"" href=""" }, StringSplitOptions.RemoveEmptyEntries)[1];
