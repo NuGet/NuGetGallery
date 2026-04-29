@@ -247,7 +247,6 @@ stages:
           - task: PowerShell@1
             name: run_p0_tests
             displayName: Run P0 Functional Tests
-            continueOnError: true
             timeoutInMinutes: 15
             env:
               ConfigurationFilePath: $(NuGetGalleryPath)\tests\NuGetGallery.FunctionalTests\settings.CI.json
