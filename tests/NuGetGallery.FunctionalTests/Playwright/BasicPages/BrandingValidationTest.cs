@@ -24,12 +24,13 @@ namespace NuGetGallery.FunctionalTests.Playwright.BasicPages
 			var content = await response.TextAsync();
 			var branding = GalleryConfiguration.Instance.Branding;
 
-			if (string.IsNullOrEmpty(branding.Message)
+			if (branding == null
+				|| (string.IsNullOrEmpty(branding.Message)
 				&& string.IsNullOrEmpty(branding.Url)
 				&& string.IsNullOrEmpty(branding.AboutUrl)
 				&& string.IsNullOrEmpty(branding.PrivacyPolicyUrl)
 				&& string.IsNullOrEmpty(branding.TermsOfUseUrl)
-				&& string.IsNullOrEmpty(branding.TrademarksUrl))
+				&& string.IsNullOrEmpty(branding.TrademarksUrl)))
 			{
 				// Check for default .NET Foundation branding
 				Assert.Contains(@"<a href=""https://www.dotnetfoundation.org"">", content);
