@@ -110,11 +110,13 @@ public class Program
 
 		var galleryPath = Path.Combine(srcDir, "NuGetGallery");
 		var iisUserHome = Path.Combine(repoRoot, ".vs");
-		var iisExpressConfig = Path.Combine(iisUserHome, "config", "applicationhost.config");
+		var iisExpressConfigSource = Path.Combine(iisUserHome, "config", "applicationhost.config");
 
 		// IIS Express needs absolute physicalPath when launched via Aspire/DCP.
-		// The checked-in config uses a relative path that works from VS but not
-		// when the process working directory is set by DCP.
+		// Work on a copy so the checked-in file (which uses a relative path for VS)
+		// is never modified.
+		var iisExpressConfig = Path.Combine(iisUserHome, "config", "applicationhost.aspire.config");
+		File.Copy(iisExpressConfigSource, iisExpressConfig, overwrite: true);
 		EnsureAbsolutePhysicalPath(iisExpressConfig, galleryPath);
 
 		// Ensure IIS Express user home directories and aspnet.config exist.
