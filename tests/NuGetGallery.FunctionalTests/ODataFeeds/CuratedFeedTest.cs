@@ -46,15 +46,14 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         }
 
         [Fact]
-        [Description("Validates the microsoftdotnet feed returns packages via FindPackagesById")]
+        [Description("Validates the microsoftdotnet feed, including the next page link")]
         [Priority(1)]
         [Category("P1Tests")]
         public async Task ValidateMicrosoftDotNetCuratedFeed()
         {
             using (var httpClient = new HttpClient())
             {
-                // Validate that FindPackagesById returns entries for a known seeded package.
-                var requestUrl = UrlHelper.DotnetCuratedFeedUrl + "FindPackagesById()?id='BaseTestPackage.SearchFilters'";
+                var requestUrl = UrlHelper.DotnetCuratedFeedUrl + "FindPackagesById()?id='AutoMapper'";
 
                 string responseText;
                 using (var response = await httpClient.GetAsync(requestUrl))
@@ -62,9 +61,22 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                     responseText = await response.Content.ReadAsStringAsync();
                 }
 
-                // Make sure that at least 1 entry is returned.
-                int entryCount = responseText.Split(new[] { "<entry>" }, StringSplitOptions.RemoveEmptyEntries).Length - 1;
-                Assert.True(entryCount >= 1, "Expected at least 1 entry but found " + entryCount);
+                // Make sure that 100 entries are returned.  This means that if we split on the <entry> tag, we'd have 101 strings.
+                int length = responseText.Split(new[] { "<entry>" }, StringSplitOptions.RemoveEmptyEntries).Length;
+                Assert.True(length == 101, "An unexpected number of entries was found.  Actual number was " + (length - 1));
+
+                // Get the link to the next page.
+                string link = responseText.Split(new[] { @"<link rel=""next"" href=""" }, StringSplitOptions.RemoveEmptyEntries)[1];
+                link = link.Substring(0, link.IndexOf(@"""", StringComparison.Ordinal));
+
+                // Get the response.
+                using (var response = await httpClient.GetAsync(link))
+                {
+                    if (response.StatusCode != HttpStatusCode.OK)
+                    {
+                        throw new Exception($"Next page link is broken. Expected 200, got '{response.StatusCode}'");
+                    }
+                }
             }
         }
     }

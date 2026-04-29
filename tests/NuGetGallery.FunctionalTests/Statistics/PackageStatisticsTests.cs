@@ -16,6 +16,7 @@ namespace NuGetGallery.FunctionalTests.Statistics
         /// Double-checks whether expected fields exist in the packages feed.
         /// </summary>
         [NeedsStatisticsServiceFact]
+        [Description("Verify the webresponse for stats/downloads/last6weeks/ returns all 6 fields")]
         [Priority(1)]
         [Category("P1Tests")]
         public async Task PackageFeedStatsConfidenceTest()
@@ -42,6 +43,7 @@ namespace NuGetGallery.FunctionalTests.Statistics
         /// Verify copunt querystring parameter in the Packages feed.
         /// </summary>
         [NeedsStatisticsServiceFact]
+        [Description("Verify the webresponse for stats/downloads/last6weeks/ contains the right amount of packages")]
         [Priority(1)]
         [Category("P1Tests")]
         public async Task PackageFeedCountParameterTest()
