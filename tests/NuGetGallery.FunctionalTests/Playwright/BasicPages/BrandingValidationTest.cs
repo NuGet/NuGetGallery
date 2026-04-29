@@ -34,8 +34,8 @@ namespace NuGetGallery.FunctionalTests.Playwright.BasicPages
 				// Check for default .NET Foundation branding
 				Assert.Contains(@"<a href=""https://www.dotnetfoundation.org"">", content);
 				Assert.Contains($"&copy; {DateTime.UtcNow.Year} .NET Foundation", content);
-				Assert.Contains($@"<a href=""{UrlHelper.BaseUrl}policies/Terms"">Terms of Use</a>", content);
-				Assert.Contains($@"<a href=""{UrlHelper.BaseUrl}policies/Privacy"" id=""footer-privacy-policy-link"">Privacy Policy</a>", content);
+				Assert.Contains(@"<a href=""/policies/Terms"">Terms of Use</a>", content);
+				Assert.Contains(@"<a href=""/policies/Privacy"" id=""footer-privacy-policy-link"">Privacy Policy</a>", content);
 			}
 			else
 			{
