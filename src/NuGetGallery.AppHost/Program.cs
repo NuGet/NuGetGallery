@@ -748,8 +748,6 @@ public class Program
 				Setting("Gallery.AzureStorage.Revalidation.ConnectionString", connectionString),
 				Setting("Gallery.SiteRoot", "https://localhost"),
 				Setting("Gallery.SupportEmailSiteRoot", "https://localhost"),
-				Setting("Gallery.ExternalBrandingMessage", "\u00a9 Microsoft {0}"),
-				Setting("Gallery.ExternalBrandingUrl", "https://www.microsoft.com"),
 				Setting("Gallery.EnforceDefaultSecurityPolicies", "true")));
 
 		doc.Save(Path.Combine(galleryDir, "appsettings.Aspire.config"));
