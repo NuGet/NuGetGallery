@@ -94,7 +94,7 @@ namespace GalleryTools.Commands
 			await EnsureOrganizationAsync(context, collaboratorOrgName, admin: orgAdmin, collaborator: testAccount);
 
 			// ─── 3. Create API keys ──────────────────────────────────────────────────
-			var accountApiKey = CreateApiKey(context, credentialBuilder, testAccount, "CI Full Access", scopeActions: null, scopeOwner: testAccount);
+			var accountApiKey = CreateApiKey(context, credentialBuilder, testAccount, "CI Full Access", scopeActions: new[] { NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion, NuGetScopes.PackageUnlist }, scopeOwner: testAccount);
 			var apiKeyPush = CreateApiKey(context, credentialBuilder, testAccount, "CI Push", scopeActions: new[] { NuGetScopes.PackagePush }, scopeOwner: testAccount);
 			var apiKeyPushVersion = CreateApiKey(context, credentialBuilder, testAccount, "CI Push Version", scopeActions: new[] { NuGetScopes.PackagePushVersion }, scopeOwner: testAccount);
 			var apiKeyUnlist = CreateApiKey(context, credentialBuilder, testAccount, "CI Unlist", scopeActions: new[] { NuGetScopes.PackageUnlist }, scopeOwner: testAccount);
@@ -120,7 +120,7 @@ namespace GalleryTools.Commands
 			// ─── 5. Write settings.CI.json ───────────────────────────────────────────
 			var settings = new JObject(
 				new JProperty("DefaultSecurityPoliciesEnforced", true),
-				new JProperty("TestPackageLock", true),
+				new JProperty("TestPackageLock", false),
 				new JProperty("TyposquattingCheckAndBlockUsers", false),
 				new JProperty("Account", new JObject(
 					new JProperty("Name", testUser),
