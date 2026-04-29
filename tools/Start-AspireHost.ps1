@@ -19,8 +19,8 @@
 
 .PARAMETER HealthUrls
     URLs to verify after the host starts. The first URL is polled until it responds HTTP 200
-    (readiness gate). All remaining URLs are then checked once.
-    Default: Gallery HTTP, Gallery HTTPS, Aspire dashboard HTTP, Aspire dashboard HTTPS.
+    (this is the main readiness gate). All remaining URLs are then checked once.
+    Default: Gallery HTTP, Aspire dashboard HTTP, Gallery HTTPS, Aspire dashboard HTTPS.
 
 .PARAMETER Timeout
     Maximum seconds to wait for the first health URL to respond. Default: 300.
@@ -35,8 +35,8 @@ param(
 	[string]$AppHostProfile = "ci-gallery",
 	[string[]]$HealthUrls = @(
 		"http://localhost/api/health-probe",
-		"https://localhost/api/health-probe",
 		"http://localhost:15170",
+		"https://localhost/api/health-probe",
 		"https://localhost:17170"
 	),
 	[int]$Timeout = 300,
@@ -56,8 +56,9 @@ if ($LASTEXITCODE -ne 0)
 	Write-Error "AppHost build failed."
 	exit 1
 }
+Write-Host "AppHost build succeeded."
 
-# Step 2: Trust dev certificate (optional, for CI)
+# Step 2: Trust dev certificate (optional)
 if ($TrustDevCert)
 {
 	Write-Host "=== Trusting dev certificate ==="
@@ -76,11 +77,11 @@ if ($TrustDevCert)
 		exit 1
 	}
 
-	Write-Host "Dev certificate trusted."
+	Write-Host "Dev certificate trusted successfully."
 	Remove-Item $crt, ($crt -replace '\.crt$', '.key') -ErrorAction SilentlyContinue
 }
 
-# Step 3: Start Aspire host as a background process
+# Step 3: Start Aspire host
 Write-Host "=== Starting Aspire Host (profile=$AppHostProfile, launch=$LaunchProfile) ==="
 $env:APPHOST_PROFILE = $AppHostProfile
 
@@ -100,53 +101,85 @@ $primaryUrl = $HealthUrls[0]
 Write-Host "=== Waiting for $primaryUrl ==="
 Start-Sleep -Seconds 20
 $elapsed = 20
-
+$healthy = $false
 while ($elapsed -lt $Timeout)
 {
 	if ($proc.HasExited)
 	{
-		Get-Content $stderrLog -Tail 50 -ErrorAction SilentlyContinue
-		Write-Error "AppHost exited prematurely."
+		Get-Content $stdoutLog -ErrorAction SilentlyContinue
+		Get-Content $stderrLog -ErrorAction SilentlyContinue
+		Write-Error "AppHost exited prematurely with code $($proc.ExitCode)."
 		exit 1
 	}
 
 	try
 	{
 		$response = Invoke-WebRequest -Uri $primaryUrl -UseBasicParsing -TimeoutSec 5 -ErrorAction Stop
-		if ($response.StatusCode -eq 200)
-		{
-			Write-Host "  $primaryUrl -> 200 OK ($elapsed s)"
-			break
-		}
+		$httpCode = $response.StatusCode
 	}
-	catch { }
-
-	Write-Host "  Waiting... ($elapsed s)"
+	catch
+	{
+		$httpCode = 0
+	}
+	if ($httpCode -eq 200)
+	{
+		Write-Host "  $primaryUrl -> 200 OK ($elapsed s)"
+		$healthy = $true
+		break
+	}
+	Write-Host "  Waiting... ($elapsed s) Status=$httpCode"
 	Start-Sleep -Seconds 15
 	$elapsed += 15
 }
 
-if ($elapsed -ge $Timeout)
+if (-not $healthy)
 {
-	Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+	if (-not $proc.HasExited)
+	{
+		Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+	}
+	Get-Content $stdoutLog -Tail 50 -ErrorAction SilentlyContinue
 	Get-Content $stderrLog -Tail 50 -ErrorAction SilentlyContinue
-	Write-Error "Health URL did not respond within $Timeout seconds."
+	Write-Error "Primary health URL did not respond within $Timeout seconds."
 	exit 1
 }
 
 # Step 5: Verify all health URLs
 Write-Host "=== Verifying all health URLs ==="
+$allPassed = $true
 foreach ($url in $HealthUrls)
 {
 	try
 	{
-		$r = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 10 -MaximumRedirection 5 -ErrorAction Stop
-		Write-Host "  $url -> $($r.StatusCode) OK"
+		$response = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 10 -MaximumRedirection 5 -ErrorAction Stop
+		$httpCode = $response.StatusCode
 	}
 	catch
 	{
-		Write-Host "  $url -> FAILED ($($_.Exception.Message))"
+		$httpCode = 0
+		$errorMsg = $_.Exception.Message
 	}
+	if ($httpCode -eq 200)
+	{
+		Write-Host "  $url -> 200 OK"
+	}
+	else
+	{
+		Write-Host "  $url -> $httpCode FAILED $(if ($errorMsg) { "($errorMsg)" })"
+		$allPassed = $false
+	}
+}
+
+if (-not $allPassed)
+{
+	if (-not $proc.HasExited)
+	{
+		Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+	}
+	Get-Content $stdoutLog -Tail 50 -ErrorAction SilentlyContinue
+	Get-Content $stderrLog -Tail 50 -ErrorAction SilentlyContinue
+	Write-Error "One or more health URLs failed verification."
+	exit 1
 }
 
 Write-Host "=== Aspire Host is running (PID $($proc.Id)) ==="

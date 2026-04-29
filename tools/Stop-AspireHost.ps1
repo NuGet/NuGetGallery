@@ -22,7 +22,7 @@ if ($proc)
 {
 	Write-Host "Stopping Aspire host (PID $hostPid)..."
 	Stop-Process -Id $hostPid -Force -ErrorAction SilentlyContinue
-	Write-Host "Aspire host stopped. DCP will tear down managed resources."
+	Write-Host "Aspire host stopped."
 }
 else
 {
