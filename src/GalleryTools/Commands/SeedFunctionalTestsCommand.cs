@@ -136,6 +136,7 @@ namespace GalleryTools.Commands
 				new JProperty("CollaboratorOrganization", new JObject(
 					new JProperty("Name", collaboratorOrgName),
 					new JProperty("ApiKey", collabOrgApiKey))),
+				new JProperty("Branding", new JObject()),
 				new JProperty("ProductionBaseUrl", baseUrl),
 				new JProperty("StagingBaseUrl", ""));
 
