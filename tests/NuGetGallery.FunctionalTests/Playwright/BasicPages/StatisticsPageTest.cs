@@ -3,13 +3,14 @@
 
 using System.Net;
 using System.Threading.Tasks;
+using NuGetGallery.FunctionalTests.XunitExtensions;
 using Xunit;
 
 namespace NuGetGallery.FunctionalTests.Playwright.BasicPages
 {
 	public class StatisticsPageTest : NuGetPageTest
 	{
-		[Fact]
+		[NeedsStatisticsServiceFact]
 		[Priority(1)]
 		[Category("P1Tests")]
 		public async Task StatisticsPage_ContainsExpectedContent()

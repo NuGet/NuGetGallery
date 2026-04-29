@@ -5,6 +5,7 @@
   "TestPackageLock": true,
   "TyposquattingCheckAndBlockUsers": true,
   "HasSearchService": true,
+  "HasStatisticsService": true,
   "Branding": {
     "BrandingMessage": "&#169; Microsoft {0}",
     "PrivacyPolicyUrl": "https://go.microsoft.com/fwlink/?LinkId=521839",

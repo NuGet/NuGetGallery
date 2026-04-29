@@ -27,6 +27,7 @@ namespace NuGetGallery.FunctionalTests
         public BrandingConfiguration Branding { get; set; }
         public bool TyposquattingCheckAndBlockUsers { get; set; }
         public bool HasSearchService { get; set; }
+        public bool HasStatisticsService { get; set; }
 
         static GalleryConfiguration()
         {

@@ -5,6 +5,7 @@ using System;
 using System.ComponentModel;
 using System.Net.Http;
 using System.Threading.Tasks;
+using NuGetGallery.FunctionalTests.XunitExtensions;
 using Xunit;
 
 namespace NuGetGallery.FunctionalTests.Statistics
@@ -14,8 +15,7 @@ namespace NuGetGallery.FunctionalTests.Statistics
         /// <summary>
         /// Double-checks whether expected fields exist in the packages feed.
         /// </summary>
-        [Fact]
-        [Description("Verify the webresponse for stats/downloads/last6weeks/ returns all 6 fields")]
+        [NeedsStatisticsServiceFact]
         [Priority(1)]
         [Category("P1Tests")]
         public async Task PackageFeedStatsConfidenceTest()
@@ -41,8 +41,7 @@ namespace NuGetGallery.FunctionalTests.Statistics
         /// <summary>
         /// Verify copunt querystring parameter in the Packages feed.
         /// </summary>
-        [Fact]
-        [Description("Verify the webresponse for stats/downloads/last6weeks/ contains the right amount of packages")]
+        [NeedsStatisticsServiceFact]
         [Priority(1)]
         [Category("P1Tests")]
         public async Task PackageFeedCountParameterTest()
