@@ -137,8 +137,8 @@ namespace GalleryTools.Commands
 					new JProperty("Name", collaboratorOrgName),
 					new JProperty("ApiKey", collabOrgApiKey))),
 				new JProperty("Branding", new JObject(
-					new JProperty("Message", ""),
-					new JProperty("Url", ""),
+					new JProperty("Message", "&#169; Microsoft {0}"),
+					new JProperty("Url", "https://www.microsoft.com"),
 					new JProperty("AboutUrl", ""),
 					new JProperty("PrivacyPolicyUrl", ""),
 					new JProperty("TermsOfUseUrl", ""),

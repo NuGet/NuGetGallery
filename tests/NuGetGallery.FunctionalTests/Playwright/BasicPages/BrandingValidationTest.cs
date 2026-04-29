@@ -21,7 +21,7 @@ namespace NuGetGallery.FunctionalTests.Playwright.BasicPages
 			// Assert
 			Assert.Equal(HttpStatusCode.OK, (HttpStatusCode)response.Status);
 
-			var content = await Page.ContentAsync();
+			var content = await response.TextAsync();
 			var branding = GalleryConfiguration.Instance.Branding;
 
 			if (string.IsNullOrEmpty(branding.Message)

@@ -743,7 +743,11 @@ public class Program
 				Setting("Gallery.AzureStorage.Statistics.ConnectionString.Alternate", connectionString),
 				Setting("Gallery.AzureStorage.Uploads.ConnectionString", connectionString),
 				Setting("Gallery.AzureStorage.Uploads.ContainerName", uploads),
-				Setting("Gallery.AzureStorage.Revalidation.ConnectionString", connectionString)));
+				Setting("Gallery.AzureStorage.Revalidation.ConnectionString", connectionString),
+				Setting("Gallery.SiteRoot", "https://localhost"),
+				Setting("Gallery.SupportEmailSiteRoot", "https://localhost"),
+				Setting("Gallery.ExternalBrandingMessage", "\u00a9 Microsoft {0}"),
+				Setting("Gallery.ExternalBrandingUrl", "https://www.microsoft.com")));
 
 		doc.Save(Path.Combine(galleryDir, "appsettings.Aspire.config"));
 
