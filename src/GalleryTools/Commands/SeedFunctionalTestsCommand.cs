@@ -117,10 +117,31 @@ namespace GalleryTools.Commands
 				await PushPackageViaApiAsync(baseUrl, apiKeyPush, nupkgPath);
 			}
 
-			// ─── 5. Write settings.CI.json ───────────────────────────────────────────
+			// ─── 5. Lock the locked-package test fixture ─────────────────────────────
+			const string lockedPackageId = "NuGetTest_LockedPackageCannotBeModified";
+			var lockedReg = context.PackageRegistrations.FirstOrDefault(r => r.Id == lockedPackageId);
+			if (lockedReg != null)
+			{
+				if (!lockedReg.IsLocked)
+				{
+					lockedReg.IsLocked = true;
+					await context.SaveChangesAsync();
+					Console.WriteLine($"Locked package registration '{lockedPackageId}'.");
+				}
+				else
+				{
+					Console.WriteLine($"Package registration '{lockedPackageId}' already locked.");
+				}
+			}
+			else
+			{
+				Console.Error.WriteLine($"WARNING: Package '{lockedPackageId}' not found — LockedPackageCannotBeModified test will fail.");
+			}
+
+			// ─── 6. Write settings.CI.json ───────────────────────────────────────────
 			var settings = new JObject(
 				new JProperty("DefaultSecurityPoliciesEnforced", true),
-				new JProperty("TestPackageLock", false),
+				new JProperty("TestPackageLock", true),
 				new JProperty("TyposquattingCheckAndBlockUsers", false),
 				new JProperty("Account", new JObject(
 					new JProperty("Name", testUser),
