@@ -119,8 +119,8 @@ namespace NuGet.Jobs.GitHubIndexer
                 // where Directory.Delete(recursive: true) can throw IOException because the
                 // OS has not fully released file handles before the parent directory removal
                 // is attempted.
-                DirectoryHelper.DeleteDirectoryWithRetries (RepositoriesDirectory, _logger);
-                DirectoryHelper.DeleteDirectoryWithRetries (CacheDirectory, _logger);
+                DirectoryHelper.DeleteDirectoryWithRetries(RepositoriesDirectory, _logger);
+                DirectoryHelper.DeleteDirectoryWithRetries(CacheDirectory, _logger);
 
                 completed = true;
                 runDuration.Stop();

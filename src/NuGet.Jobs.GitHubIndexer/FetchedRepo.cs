@@ -72,13 +72,13 @@ namespace NuGet.Jobs.GitHubIndexer
             foreach (var filePath in filePaths)
             {
                 var fullPath = Path.Combine(_repoFolder, filePath);
-                if (File.Exists (fullPath))
+                if (File.Exists(fullPath))
                 {
-                    checkedOutFiles.Add (new CheckedOutFile (fullPath, _repoInfo.Id));
+                    checkedOutFiles.Add(new CheckedOutFile(fullPath, _repoInfo.Id));
                 }
                 else
                 {
-                    _logger.LogWarning (
+                    _logger.LogWarning(
                         "[{RepoName}] File was not checked out to disk: {FilePath}",
                         _repoInfo.Id,
                         filePath);
@@ -127,14 +127,14 @@ namespace NuGet.Jobs.GitHubIndexer
         /// Delegates to <see cref="DirectoryHelper"/> for robust handling of
         /// read-only files, NTFS race conditions, and Windows reserved device names.
         /// </summary>
-        private void CleanDirectory (DirectoryInfo dir)
+        private void CleanDirectory(DirectoryInfo dir)
         {
             if (!dir.Exists)
             {
                 return;
             }
 
-            DirectoryHelper.DeleteDirectoryWithRetries (dir.FullName, _logger);
+            DirectoryHelper.DeleteDirectoryWithRetries(dir.FullName, _logger);
         }
     }
 }
