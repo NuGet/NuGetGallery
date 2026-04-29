@@ -10,6 +10,7 @@ using Xunit;
 using Xunit.Abstractions;
 using System.Linq;
 using System.Collections.Generic;
+using NuGetGallery.FunctionalTests.XunitExtensions;
 
 namespace NuGetGallery.FunctionalTests.PackageRetrieval
 {
@@ -23,7 +24,7 @@ namespace NuGetGallery.FunctionalTests.PackageRetrieval
         {
         }
 
-        [Theory]
+        [NeedsStatisticsServiceTheory]
         [Priority(2)]
         [Category("P2Tests")]
         [InlineData("totaldownloads-desc", true)]
@@ -56,7 +57,7 @@ namespace NuGetGallery.FunctionalTests.PackageRetrieval
             }
         }
 
-        [Theory]
+        [NeedsSearchServiceTheory]
         [InlineData("created-desc")]
         [InlineData("cReAtEd-DeSc")]
         public async Task MakeSureLastUpdatedSortingWorks(string sortBy)

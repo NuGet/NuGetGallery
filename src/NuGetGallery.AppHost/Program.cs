@@ -191,18 +191,26 @@ public class Program
 			.WaitFor(gallery)
 			.WithParentRelationship(infraGroup);
 
-		// ─── Test data seeding (creates a user and pushes a test package) ────────────
+		// ─── Test data seeding (creates user, org, and pushes a test package) ────────
 
 		var testNupkg = Path.Combine(builder.AppHostDirectory, "testdata", "basetestpackage.1.0.0.nupkg.testdata");
 
 		var seedUser = builder.AddExecutable(
 			"seed-user", galleryToolsExe, galleryToolsBin,
 			"createuser",
-			"--username", "NuGetTestData",
+			"--username", "NugetTestAccount",
 			"--password", "Password1!",
-			"--email", "NuGetTestData@localhost")
+			"--email", "testnuget@localhost")
 			.WaitForCompletion(dbMigrateGallery)
 			.WaitFor(storage)
+			.WithParentRelationship(infraGroup);
+
+		var seedOrg = builder.AddExecutable(
+			"seed-org", galleryToolsExe, galleryToolsBin,
+			"createorganization",
+			"--name", "NuGetTestData",
+			"--admin", "NugetTestAccount")
+			.WaitForCompletion(seedUser)
 			.WithParentRelationship(infraGroup);
 
 		var seedPackage = builder.AddExecutable(
@@ -210,7 +218,7 @@ public class Program
 			"pushpackage",
 			"--owner", "NuGetTestData",
 			"--package", testNupkg)
-			.WaitForCompletion(seedUser)
+			.WaitForCompletion(seedOrg)
 			.WaitFor(storage)
 			.WithParentRelationship(infraGroup);
 

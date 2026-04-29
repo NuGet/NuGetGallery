@@ -84,22 +84,26 @@ namespace GalleryTools.Commands
 
 			const string adminOrgName = "NugetTestAdminOrganization";
 			const string collaboratorOrgName = "NugetTestCollaboratorOrganization";
+			const string testDataOrgName = "NuGetTestData";
 
 			// ─── 1. Create users ─────────────────────────────────────────────────────
 			var testAccount = await EnsureUserAsync(context, credentialBuilder, testUser, testPassword, testEmail);
 			var orgAdmin = await EnsureUserAsync(context, credentialBuilder, orgAdminUser, orgAdminPassword, $"{orgAdminUser}@localhost");
 
 			// ─── 2. Create organizations ─────────────────────────────────────────────
+			await EnsureOrganizationAsync(context, testDataOrgName, admin: testAccount, collaborator: null);
 			await EnsureOrganizationAsync(context, adminOrgName, admin: testAccount, collaborator: null);
 			await EnsureOrganizationAsync(context, collaboratorOrgName, admin: orgAdmin, collaborator: testAccount);
 
 			// ─── 3. Create API keys ──────────────────────────────────────────────────
+			var testDataOrgEntity = context.Users.First(u => u.Username == testDataOrgName);
 			var accountApiKey = CreateApiKey(context, credentialBuilder, testAccount, "CI Full Access", scopeActions: new[] { NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion, NuGetScopes.PackageUnlist }, scopeOwner: testAccount);
 			var apiKeyPush = CreateApiKey(context, credentialBuilder, testAccount, "CI Push", scopeActions: new[] { NuGetScopes.PackagePush }, scopeOwner: testAccount);
 			var apiKeyPushVersion = CreateApiKey(context, credentialBuilder, testAccount, "CI Push Version", scopeActions: new[] { NuGetScopes.PackagePushVersion }, scopeOwner: testAccount);
 			var apiKeyUnlist = CreateApiKey(context, credentialBuilder, testAccount, "CI Unlist", scopeActions: new[] { NuGetScopes.PackageUnlist }, scopeOwner: testAccount);
 
 			// Org API keys: credential on testAccount, scoped to the org
+			var testDataOrgApiKey = CreateApiKey(context, credentialBuilder, testAccount, "CI TestData Org Push", scopeActions: new[] { NuGetScopes.PackagePush }, scopeOwner: testDataOrgEntity);
 			var adminOrgEntity = context.Users.First(u => u.Username == adminOrgName);
 			var collabOrgEntity = context.Users.First(u => u.Username == collaboratorOrgName);
 
@@ -112,9 +116,15 @@ namespace GalleryTools.Commands
 			// ─── 4. Push test packages via Gallery API ──────────────────────────────
 			// Push through the gallery's HTTP API so the in-process Lucene index
 			// is updated automatically by ApiController.UpdatePackage().
+			// Use the org-scoped key so packages are owned by NuGetTestData org.
+			// Exception: the locked package is pushed with the user-scoped key so the
+			// LockedPackageCannotBeModified test can attempt to push with Account.ApiKey.
+			const string lockedPackageFile = "nugettest_lockedpackagecannotbemodified.1.0.0.nupkg.testdata";
 			foreach (var nupkgPath in nupkgFiles)
 			{
-				await PushPackageViaApiAsync(baseUrl, apiKeyPush, nupkgPath);
+				var fileName = Path.GetFileName(nupkgPath).ToLowerInvariant();
+				var key = fileName == lockedPackageFile ? apiKeyPush : testDataOrgApiKey;
+				await PushPackageViaApiAsync(baseUrl, key, nupkgPath);
 			}
 
 			// ─── 5. Lock the locked-package test fixture ─────────────────────────────

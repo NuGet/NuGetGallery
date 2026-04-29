@@ -52,7 +52,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             Assert.True(containsResponseText);
         }
 
-        [Fact]
+        [NeedsStatisticsServiceFact]
         [Description("Verify the webresponse from top30 packages feed contains Newtonsoft.Json")]
         [Priority(0)]
         [Category("P0Tests")]
