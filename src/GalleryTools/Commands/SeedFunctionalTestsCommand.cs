@@ -242,6 +242,7 @@ namespace GalleryTools.Commands
 			using (var client = new HttpClient(handler))
 			{
 				client.DefaultRequestHeaders.Add("X-NuGet-ApiKey", apiKey);
+				client.DefaultRequestHeaders.Add("X-NuGet-Client-Version", "6.0.0");
 				client.Timeout = TimeSpan.FromSeconds(120);
 
 				using (var fileStream = File.OpenRead(nupkgPath))
