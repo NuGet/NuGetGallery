@@ -121,7 +121,7 @@ namespace GalleryTools.Commands
 			var settings = new JObject(
 				new JProperty("DefaultSecurityPoliciesEnforced", true),
 				new JProperty("TestPackageLock", true),
-				new JProperty("TyposquattingCheckAndBlockUsers", true),
+				new JProperty("TyposquattingCheckAndBlockUsers", false),
 				new JProperty("Account", new JObject(
 					new JProperty("Name", testUser),
 					new JProperty("Email", testEmail),
