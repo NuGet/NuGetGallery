@@ -245,9 +245,9 @@ stages:
               arguments: -Configuration $(BuildConfiguration)
               workingFolder: $(NuGetGalleryPath)
           - task: PowerShell@1
-            name: run_p0_tests
-            displayName: Run P0 Functional Tests
-            timeoutInMinutes: 15
+            name: run_functional_tests
+            displayName: Run Functional Tests (P0, P1)
+            timeoutInMinutes: 30
             env:
               ConfigurationFilePath: $(NuGetGalleryPath)\tests\NuGetGallery.FunctionalTests\settings.CI.json
             inputs:
@@ -257,11 +257,11 @@ stages:
                 $resultsDir = "tests\TestResults"
                 New-Item -ItemType Directory -Path $resultsDir -Force | Out-Null
 
-                Write-Host "Running P0 functional tests with blame-hang-timeout..."
+                Write-Host "Running P0 and P1 functional tests with blame-hang-timeout..."
                 dotnet test $testDll `
                   --blame-hang-timeout 90s `
-                  --filter "Category=P0Tests" `
-                  --logger "trx;LogFileName=P0Tests.trx" `
+                  --filter "Category=P0Tests|Category=P1Tests" `
+                  --logger "trx;LogFileName=FunctionalTests.trx" `
                   --results-directory $resultsDir
 
                 $exitCode = $LASTEXITCODE
@@ -283,7 +283,7 @@ stages:
               testResultsFiles: 'tests/TestResults/**/*.trx'
               searchFolder: $(NuGetGalleryPath)
               mergeTestResults: true
-              testRunTitle: 'P0 Functional Tests'
+              testRunTitle: 'Functional Tests (P0, P1)'
           - task: PowerShell@1
             name: stop_aspire
             displayName: Stop Aspire Host
