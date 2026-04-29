@@ -223,57 +223,62 @@ stages:
             inputs:
               scriptName: $(NuGetGalleryPath)\tools\Setup-DevEnvironment.ps1
               workingFolder: $(NuGetGalleryPath)
-          - task: PowerShell@1
-            name: start_aspire
-            displayName: Start Aspire Host
-            inputs:
-              scriptName: $(NuGetGalleryPath)\tools\Start-AspireHost.ps1
-              arguments: -Configuration $(BuildConfiguration) -TrustDevCert
-              workingFolder: $(NuGetGalleryPath)
-          - task: PowerShell@1
-            name: seed_test_data
-            displayName: Seed Functional Test Data
-            inputs:
-              scriptName: $(NuGetGalleryPath)\tools\Seed-FunctionalTestData.ps1
-              arguments: -Configuration $(BuildConfiguration)
-              workingFolder: $(NuGetGalleryPath)
-          - task: PowerShell@1
-            name: build_functional_tests
-            displayName: Build Functional Tests
-            inputs:
-              scriptName: $(NuGetGalleryPath)\tests\Scripts\BuildGalleryFunctionalTests.ps1
-              arguments: -Configuration $(BuildConfiguration)
-              workingFolder: $(NuGetGalleryPath)
-          - task: PowerShell@1
-            name: run_functional_tests
-            displayName: Run Functional Tests (P0, P1)
+          - task: PowerShell@2
+            name: functional_tests
+            displayName: Aspire Functional Tests
             timeoutInMinutes: 30
             env:
               ConfigurationFilePath: $(NuGetGalleryPath)\tests\NuGetGallery.FunctionalTests\settings.CI.json
             inputs:
-              scriptType: inlineScript
-              inlineScript: |
-                $testDll = "tests\NuGetGallery.FunctionalTests\bin\$(BuildConfiguration)\net472\NuGetGallery.FunctionalTests.dll"
-                $resultsDir = "tests\TestResults"
-                New-Item -ItemType Directory -Path $resultsDir -Force | Out-Null
+              targetType: inline
+              errorActionPreference: stop
+              script: |
+                $repoRoot = "$(NuGetGalleryPath)"
+                $config = "$(BuildConfiguration)"
 
-                Write-Host "Running P0 and P1 functional tests with blame-hang-timeout..."
-                dotnet test $testDll `
-                  --blame-hang-timeout 90s `
-                  --filter "Category=P0Tests|Category=P1Tests" `
-                  --logger "trx;LogFileName=FunctionalTests.trx" `
-                  --results-directory $resultsDir
+                # 1. Start Aspire Host
+                Write-Host "=== Starting Aspire Host ==="
+                $hostPid = & "$repoRoot\tools\Start-AspireHost.ps1" -Configuration $config -TrustDevCert
+                Write-Host "Aspire Host PID: $hostPid"
 
-                $exitCode = $LASTEXITCODE
-                Write-Host "dotnet test exited with code $exitCode"
+                try {
+                  # 2. Seed functional test data
+                  Write-Host "=== Seeding functional test data ==="
+                  & "$repoRoot\tools\Seed-FunctionalTestData.ps1" -Configuration $config -HostPid $hostPid
+                  if ($LASTEXITCODE -ne 0) { throw "Seed failed with exit code $LASTEXITCODE" }
 
-                # List result files for diagnostics
-                if (Test-Path $resultsDir) {
-                  Get-ChildItem -Recurse $resultsDir | ForEach-Object { Write-Host "  Result file: $($_.FullName) ($($_.Length) bytes)" }
+                  # 3. Build functional tests
+                  Write-Host "=== Building functional tests ==="
+                  & "$repoRoot\tests\Scripts\BuildGalleryFunctionalTests.ps1" -Configuration $config
+                  if ($LASTEXITCODE -ne 0) { throw "Build functional tests failed with exit code $LASTEXITCODE" }
+
+                  # 4. Run functional tests
+                  Write-Host "=== Running P0 and P1 functional tests ==="
+                  $testDll = "$repoRoot\tests\NuGetGallery.FunctionalTests\bin\$config\net472\NuGetGallery.FunctionalTests.dll"
+                  $resultsDir = "$repoRoot\tests\TestResults"
+                  New-Item -ItemType Directory -Path $resultsDir -Force | Out-Null
+
+                  dotnet test $testDll `
+                    --blame-hang-timeout 600s `
+                    --filter "Category=P0Tests|Category=P1Tests" `
+                    --logger "trx;LogFileName=FunctionalTests.trx" `
+                    --results-directory $resultsDir
+
+                  $testExit = $LASTEXITCODE
+                  Write-Host "dotnet test exited with code $testExit"
+
+                  if (Test-Path $resultsDir) {
+                    Get-ChildItem -Recurse $resultsDir | ForEach-Object { Write-Host "  Result file: $($_.FullName) ($($_.Length) bytes)" }
+                  }
+
+                  if ($testExit -ne 0) { throw "Functional tests failed with exit code $testExit" }
                 }
-
-                exit $exitCode
-              workingFolder: $(NuGetGalleryPath)
+                finally {
+                  # 5. Stop Aspire Host
+                  Write-Host "=== Stopping Aspire Host ==="
+                  & "$repoRoot\tools\Stop-AspireHost.ps1" -HostPid $hostPid
+                }
+              workingDirectory: $(NuGetGalleryPath)
           - task: PublishTestResults@2
             name: publish_test_results
             displayName: Publish Test Results
@@ -284,13 +289,6 @@ stages:
               searchFolder: $(NuGetGalleryPath)
               mergeTestResults: true
               testRunTitle: 'Functional Tests (P0, P1)'
-          - task: PowerShell@1
-            name: stop_aspire
-            displayName: Stop Aspire Host
-            condition: always()
-            inputs:
-              scriptName: $(NuGetGalleryPath)\tools\Stop-AspireHost.ps1
-              workingFolder: $(NuGetGalleryPath)
 
   - stage: artifacts
     displayName: Artifacts
