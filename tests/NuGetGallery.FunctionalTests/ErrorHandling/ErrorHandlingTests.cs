@@ -10,6 +10,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
+using NuGetGallery.FunctionalTests.XunitExtensions;
 
 namespace NuGetGallery.FunctionalTests.ErrorHandling
 {
@@ -80,7 +81,7 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
         /// <summary>
         /// Verify simple 404 behavior.
         /// </summary>
-        [Theory]
+        [NeedsAppServiceTheory]
         [Priority(2)]
         [Category("P2Tests")]
         [InlineData("/api/does-not-exist", false)]
@@ -111,7 +112,7 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
         /// <summary>
         /// Verify a matched route but a mismatched HTTP method.
         /// </summary>
-        [Theory]
+        [NeedsAppServiceTheory]
         [Priority(2)]
         [Category("P2Tests")]
         [InlineData("DELETE", "/api/v2", 405)]
@@ -161,7 +162,7 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
         /// <summary>
         /// Verify behavior when the pretty HTTP 500 page fails itself.
         /// </summary>
-        [Fact]
+        [NeedsAppServiceFact]
         [Priority(2)]
         [Category("P2Tests")]
         public async Task ErrorInErrorPageWithPathToSelf()
@@ -184,7 +185,7 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
         /// <summary>
         /// Simulate cases where application code throws different sorts of exceptions.
         /// </summary>
-        [Theory]
+        [NeedsAppServiceTheory]
         [Priority(2)]
         [Category("P2Tests")]
         [MemberData(nameof(AllTestData))]

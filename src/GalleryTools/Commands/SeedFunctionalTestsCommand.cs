@@ -153,6 +153,9 @@ namespace GalleryTools.Commands
 				new JProperty("DefaultSecurityPoliciesEnforced", true),
 				new JProperty("TestPackageLock", true),
 				new JProperty("TyposquattingCheckAndBlockUsers", false),
+				new JProperty("HasSearchService", false),
+				new JProperty("HasStatisticsService", false),
+				new JProperty("HasAppService", false),
 				new JProperty("Account", new JObject(
 					new JProperty("Name", testUser),
 					new JProperty("Email", testEmail),
