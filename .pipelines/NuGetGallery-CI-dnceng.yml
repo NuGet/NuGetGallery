@@ -253,14 +253,14 @@ stages:
                   if ($LASTEXITCODE -ne 0) { throw "Build functional tests failed with exit code $LASTEXITCODE" }
 
                   # 4. Run functional tests
-                  Write-Host "=== Running P0 and P1 functional tests ==="
+                  Write-Host "=== Running P0, P1, and P2 functional tests ==="
                   $testDll = "$repoRoot\tests\NuGetGallery.FunctionalTests\bin\$config\net472\NuGetGallery.FunctionalTests.dll"
                   $resultsDir = "$repoRoot\tests\TestResults"
                   New-Item -ItemType Directory -Path $resultsDir -Force | Out-Null
 
                   dotnet test $testDll `
                     --blame-hang-timeout 600s `
-                    --filter "Category=P0Tests|Category=P1Tests" `
+                    --filter "Category=P0Tests|Category=P1Tests|Category=P2Tests" `
                     --logger "trx;LogFileName=FunctionalTests.trx" `
                     --results-directory $resultsDir
 
@@ -288,7 +288,7 @@ stages:
               testResultsFiles: 'tests/TestResults/**/*.trx'
               searchFolder: $(NuGetGalleryPath)
               mergeTestResults: true
-              testRunTitle: 'Functional Tests (P0, P1)'
+              testRunTitle: 'Functional Tests (P0, P1, P2)'
 
   - stage: artifacts
     displayName: Artifacts
