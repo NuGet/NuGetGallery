@@ -24,7 +24,7 @@ namespace NuGetGallery.FunctionalTests.Playwright
 
             await Page.Locator("input[name='SignIn.UserNameOrEmail']").FillAsync(email ?? GalleryConfiguration.Instance.Account.Email);
             await Page.Locator("input[name='SignIn.Password']").FillAsync(password ?? GalleryConfiguration.Instance.Account.Password);
-            await Page.Locator("input:has-text('Sign in')").ClickAsync();
+            await Page.Locator("input[type='submit'][value='Sign in']").ClickAsync();
 
             await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
         }
