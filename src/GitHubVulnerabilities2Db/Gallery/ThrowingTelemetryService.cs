@@ -41,7 +41,7 @@ namespace GitHubVulnerabilities2Db.Gallery
             throw new NotImplementedException();
         }
 
-        public void TrackCertificateActivated(string thumbprint)
+        public void TrackCertificateActivated(string thumbprint, User account)
         {
             throw new NotImplementedException();
         }
@@ -51,7 +51,7 @@ namespace GitHubVulnerabilities2Db.Gallery
             throw new NotImplementedException();
         }
 
-        public void TrackCertificateDeactivated(string thumbprint)
+        public void TrackCertificateDeactivated(string thumbprint, User account)
         {
             throw new NotImplementedException();
         }
@@ -371,7 +371,7 @@ namespace GitHubVulnerabilities2Db.Gallery
             throw new NotImplementedException();
         }
 
-        public void TrackUserPackageDeleteExecuted(int packageKey, string packageId, string packageVersion, ReportPackageReason reason, bool success)
+        public void TrackUserPackageDeleteExecuted(int packageKey, string packageId, string packageVersion, ReportPackageReason reason, bool success, User user)
         {
             throw new NotImplementedException();
         }
