@@ -4,9 +4,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Autofac;
 using Microsoft.Extensions.CommandLineUtils;
@@ -124,7 +121,7 @@ namespace GalleryTools.Commands
 			{
 				var fileName = Path.GetFileName(nupkgPath).ToLowerInvariant();
 				var key = fileName == lockedPackageFile ? apiKeyPush : testDataOrgApiKey;
-				await PushPackageViaApiAsync(baseUrl, key, nupkgPath);
+				await GalleryOperations.PushPackageAsync(baseUrl, key, nupkgPath);
 			}
 
 			// ─── 5. Lock the locked-package test fixture ─────────────────────────────
@@ -179,60 +176,5 @@ namespace GalleryTools.Commands
 			return 0;
 		}
 
-		/// <summary>
-		/// Pushes a .nupkg.testdata file to the gallery via the API push endpoint.
-		/// This ensures the gallery's in-process Lucene index is updated automatically.
-		/// </summary>
-		private static async Task PushPackageViaApiAsync(string baseUrl, string apiKey, string nupkgPath)
-		{
-			var fileName = Path.GetFileName(nupkgPath);
-
-			// Trust dev certs for localhost HTTPS
-			var handler = new HttpClientHandler();
-			if (baseUrl.IndexOf("localhost", StringComparison.OrdinalIgnoreCase) >= 0)
-			{
-				handler.ServerCertificateCustomValidationCallback = (msg, cert, chain, errors) => true;
-			}
-
-			using (var client = new HttpClient(handler))
-			{
-				client.DefaultRequestHeaders.Add("X-NuGet-ApiKey", apiKey);
-				client.DefaultRequestHeaders.Add("X-NuGet-Client-Version", "6.0.0");
-				client.Timeout = TimeSpan.FromSeconds(120);
-
-				using (var fileStream = File.OpenRead(nupkgPath))
-				{
-					var content = new MultipartFormDataContent();
-					var streamContent = new StreamContent(fileStream);
-					streamContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-					content.Add(streamContent, "package", fileName);
-
-					var pushUrl = $"{baseUrl.TrimEnd('/')}/api/v2/package";
-					var response = await client.PutAsync(pushUrl, content);
-
-					if (response.StatusCode == HttpStatusCode.Conflict)
-					{
-						Console.WriteLine($"Package {fileName} already exists (409 Conflict). Skipping.");
-						return;
-					}
-
-					if (response.StatusCode == HttpStatusCode.Forbidden)
-					{
-						// Package may already exist under a different owner (e.g. seeded by AppHost).
-						Console.WriteLine($"Package {fileName} returned 403 Forbidden (likely already owned by another account). Skipping.");
-						return;
-					}
-
-					if (!response.IsSuccessStatusCode)
-					{
-						var body = await response.Content.ReadAsStringAsync();
-						throw new InvalidOperationException(
-							$"Failed to push {fileName}: {response.StatusCode} {response.ReasonPhrase}\n{body}");
-					}
-
-					Console.WriteLine($"Pushed {fileName} via API ({response.StatusCode}).");
-				}
-			}
-		}
 	}
 }

@@ -4,9 +4,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Autofac;
 using Microsoft.Extensions.CommandLineUtils;
@@ -100,53 +97,9 @@ namespace GalleryTools.Commands
 			await context.SaveChangesAsync ();
 
 			// 4. Push the package via Gallery HTTP API (updates Lucene index)
-			await PushPackageAsync (baseUrl, apiKey, nupkgPath);
+			await GalleryOperations.PushPackageAsync(baseUrl, apiKey, nupkgPath);
 
 			return 0;
-		}
-
-		private static async Task PushPackageAsync (string baseUrl, string apiKey, string nupkgPath)
-		{
-			var fileName = Path.GetFileName (nupkgPath);
-
-			var handler = new HttpClientHandler ();
-			if (baseUrl.IndexOf ("localhost", StringComparison.OrdinalIgnoreCase) >= 0)
-			{
-				handler.ServerCertificateCustomValidationCallback = (msg, cert, chain, errors) => true;
-			}
-
-			using (var client = new HttpClient (handler))
-			{
-				client.DefaultRequestHeaders.Add ("X-NuGet-ApiKey", apiKey);
-				client.DefaultRequestHeaders.Add ("X-NuGet-Client-Version", "6.0.0");
-				client.Timeout = TimeSpan.FromSeconds (120);
-
-				using (var fileStream = File.OpenRead (nupkgPath))
-				{
-					var content = new MultipartFormDataContent ();
-					var streamContent = new StreamContent (fileStream);
-					streamContent.Headers.ContentType = new MediaTypeHeaderValue ("application/octet-stream");
-					content.Add (streamContent, "package", fileName);
-
-					var pushUrl = $"{baseUrl.TrimEnd ('/')}/api/v2/package";
-					var response = await client.PutAsync (pushUrl, content);
-
-					if (response.StatusCode == HttpStatusCode.Conflict)
-					{
-						Console.WriteLine ($"Package {fileName} already exists (409 Conflict). Skipping.");
-						return;
-					}
-
-					if (!response.IsSuccessStatusCode)
-					{
-						var body = await response.Content.ReadAsStringAsync ();
-						throw new InvalidOperationException (
-							$"Failed to push {fileName}: {response.StatusCode} {response.ReasonPhrase}\n{body}");
-					}
-
-					Console.WriteLine ($"Pushed {fileName} via API ({response.StatusCode}).");
-				}
-			}
 		}
 	}
 }
