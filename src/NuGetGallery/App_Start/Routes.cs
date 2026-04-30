@@ -10,7 +10,7 @@ namespace NuGetGallery
 {
     public static class Routes
     {
-        public static void RegisterRoutes(RouteCollection routes, bool feedOnlyMode = false, bool adminPanelEnabled = false)
+        public static void RegisterRoutes(RouteCollection routes, bool feedOnlyMode = false, bool adminPanelEnabled = false, bool adminApiEnabled = false)
         {
             if (!feedOnlyMode)
             {
@@ -26,6 +26,12 @@ namespace NuGetGallery
                 "",
                 new { controller = "Pages", action = "EmptyHome" });
             }
+
+            if (adminApiEnabled)
+            {
+                RegisterAdminApiRoutes(routes);
+            }
+
             RegisterApiV2Routes(routes);
         }
 
@@ -886,6 +892,33 @@ namespace NuGetGallery
                 "api/v2/token",
                 defaults: new { controller = TokenApiController.ControllerName, action = nameof(TokenApiController.CreateToken) },
                 constraints: new { httpMethod = new HttpMethodConstraint("POST") });
+        }
+
+        public static void RegisterAdminApiRoutes(RouteCollection routes)
+        {
+            routes.MapRoute(
+                RouteName.AdminReflow,
+                "api/admin/reflow-package",
+                new { controller = "AdminApi", action = "ReflowPackage" },
+                new { httpMethod = new HttpMethodConstraint("POST") });
+
+            routes.MapRoute(
+                RouteName.AdminReflow,
+                "api/admin/lock-package",
+                new { controller = "AdminApi", action = "LockPackage" },
+                new { httpMethod = new HttpMethodConstraint("POST") });
+
+            routes.MapRoute(
+                RouteName.AdminReflow,
+                "api/admin/lock-user",
+                new { controller = "AdminApi", action = "LockUser" },
+                new { httpMethod = new HttpMethodConstraint("POST") });
+
+            routes.MapRoute(
+                RouteName.AdminReflow,
+                "api/admin/soft-delete-package",
+                new { controller = "AdminApi", action = "SoftDeletePackage" },
+                new { httpMethod = new HttpMethodConstraint("POST") });
         }
     }
 }

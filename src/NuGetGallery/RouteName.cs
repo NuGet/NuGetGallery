@@ -122,5 +122,6 @@ namespace NuGetGallery
         public const string PackageRevalidateSymbolsAction = "PackageRevalidateSymbolsAction";
         public const string Send2FAFeedback = "Send2FAFeedback";
         public const string CreateToken = "CreateToken";
+        public const string AdminReflow = "AdminReflow";
     }
 }
