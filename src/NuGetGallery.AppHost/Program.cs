@@ -191,35 +191,18 @@ public class Program
 			.WaitFor(gallery)
 			.WithParentRelationship(infraGroup);
 
-		// ─── Test data seeding (creates user, org, and pushes a test package) ────────
+		// ─── Test data seeding (creates user, org, and pushes a test package via HTTP) ─
 
 		var testNupkg = Path.Combine(builder.AppHostDirectory, "testdata", "basetestpackage.1.0.0.nupkg.testdata");
 
-		var seedUser = builder.AddExecutable(
-			"seed-user", galleryToolsExe, galleryToolsBin,
-			"createuser",
-			"--username", "NugetTestAccount",
-			"--password", "Password1!",
-			"--email", "testnuget@localhost")
-			.WaitForCompletion(dbMigrateGallery)
-			.WaitFor(storage)
-			.WithParentRelationship(infraGroup);
-
-		var seedOrg = builder.AddExecutable(
-			"seed-org", galleryToolsExe, galleryToolsBin,
-			"createorganization",
-			"--name", "NuGetTestData",
-			"--admin", "NugetTestAccount")
-			.WaitForCompletion(seedUser)
-			.WithParentRelationship(infraGroup);
-
 		var seedPackage = builder.AddExecutable(
 			"seed-package", galleryToolsExe, galleryToolsBin,
-			"pushpackage",
-			"--owner", "NuGetTestData",
-			"--package", testNupkg)
-			.WaitForCompletion(seedOrg)
+			"seedsinglepackage",
+			"--package", testNupkg,
+			"--base-url", config.GalleryBaseAddress)
+			.WaitForCompletion(dbMigrateGallery)
 			.WaitFor(storage)
+			.WaitFor(gallery)
 			.WithParentRelationship(infraGroup);
 
 		// ─── Ng sub-commands (CLI args) ──────────────────────────────────────────────
@@ -246,6 +229,7 @@ public class Program
 				"-verbose",             "true",
 				"-interval",            config.Settings.PollIntervalSeconds.ToString())
 		    .WaitForCompletion(dbMigrateGallery)
+		    .WaitForCompletion(seedPackage)
 		    .WaitFor(storage)
 			.WithUrl($"{azuriteBase}/{config.Containers.Catalog}/index.json", "Catalog Index")
 			.WithParentRelationship(pipelineGroup);

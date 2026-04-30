@@ -28,6 +28,7 @@ namespace GalleryTools
             commandLineApplication.Command("createapikey", CreateApiKeyCommand.Configure);
             commandLineApplication.Command("createorganization", CreateOrganizationCommand.Configure);
             commandLineApplication.Command("seedfunctionaltests", SeedFunctionalTestsCommand.Configure);
+            commandLineApplication.Command("seedsinglepackage", SeedSinglePackageCommand.Configure);
             commandLineApplication.Command("validatepackageids", ValidatePackageIdsCommand.Configure);
 
             try
