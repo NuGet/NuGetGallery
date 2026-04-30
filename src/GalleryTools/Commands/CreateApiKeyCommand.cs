@@ -62,7 +62,7 @@ namespace GalleryTools.Commands
 			var container = builder.Build();
 
 			var context = container.Resolve<IEntitiesContext>();
-			var credentialBuilder = container.Resolve<ICredentialBuilder>();
+			var ops = new GalleryOperations(context, container.Resolve<ICredentialBuilder>());
 
 			var user = context.Users.FirstOrDefault(u => u.Username == username);
 			if (user == null)
@@ -92,18 +92,11 @@ namespace GalleryTools.Commands
 			}
 
 			// Create the API key credential.
-			var credential = credentialBuilder.CreateApiKey(expiration: null, out string plaintextApiKey);
-			credential.Description = description;
-			credential.User = user;
-			credential.UserKey = user.Key;
-			credential.Scopes = credentialBuilder.BuildScopes(scopeOwner, scopeActions, subjects: null);
-
-			user.Credentials.Add(credential);
+			var plaintextApiKey = ops.CreateApiKey(user, description, scopeActions, scopeOwner);
 			await context.SaveChangesAsync();
 
 			// Print only the plaintext key to stdout so callers can capture it.
 			Console.WriteLine(plaintextApiKey);
-			Console.Error.WriteLine($"Created API key '{description}' for user '{username}' (scope={scope}, owner={scopeOwner.Username}).");
 			return 0;
 		}
 

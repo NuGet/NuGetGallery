@@ -55,14 +55,7 @@ namespace GalleryTools.Commands
 			var container = builder.Build();
 
 			var context = container.Resolve<IEntitiesContext>();
-
-			// Check if organization already exists.
-			var existingOrg = context.Users.FirstOrDefault(u => u.Username == orgName);
-			if (existingOrg != null)
-			{
-				Console.WriteLine($"Organization '{orgName}' already exists (key={existingOrg.Key}). Skipping creation.");
-				return 0;
-			}
+			var ops = new GalleryOperations(context, container.Resolve<ICredentialBuilder>());
 
 			// Look up admin user.
 			var admin = context.Users.FirstOrDefault(u => u.Username == adminUsername);
@@ -72,45 +65,19 @@ namespace GalleryTools.Commands
 				return 1;
 			}
 
-			// Create the organization.
-			var org = new Organization(orgName)
-			{
-				EmailAllowed = true,
-				EmailAddress = $"{orgName}@localhost",
-				EmailConfirmationToken = null,
-				CreatedUtc = DateTime.UtcNow,
-			};
-
-			// Add admin membership.
-			org.Members.Add(new Membership
-			{
-				Organization = org,
-				Member = admin,
-				IsAdmin = true,
-			});
-
-			// Add collaborator membership if specified.
+			// Look up collaborator if specified.
+			User collaborator = null;
 			if (!string.IsNullOrEmpty(collaboratorUsername))
 			{
-				var collaborator = context.Users.FirstOrDefault(u => u.Username == collaboratorUsername);
+				collaborator = context.Users.FirstOrDefault(u => u.Username == collaboratorUsername);
 				if (collaborator == null)
 				{
 					Console.Error.WriteLine($"Collaborator user '{collaboratorUsername}' not found. Run 'createuser' first.");
 					return 1;
 				}
-
-				org.Members.Add(new Membership
-				{
-					Organization = org,
-					Member = collaborator,
-					IsAdmin = false,
-				});
 			}
 
-			context.Users.Add(org);
-			await context.SaveChangesAsync();
-
-			Console.WriteLine($"Created organization '{orgName}' (key={org.Key}, admin={adminUsername}).");
+			await ops.EnsureOrganizationAsync(orgName, admin, collaborator);
 			return 0;
 		}
 	}

@@ -72,7 +72,7 @@ namespace GalleryTools.Commands
 			var container = builder.Build();
 
 			var context = container.Resolve<IEntitiesContext>();
-			var credentialBuilder = container.Resolve<ICredentialBuilder>();
+			var ops = new GalleryOperations(context, container.Resolve<ICredentialBuilder>());
 
 			// ─── Test account names ──────────────────────────────────────────────────
 			const string testUser = "NugetTestAccount";
@@ -87,28 +87,28 @@ namespace GalleryTools.Commands
 			const string testDataOrgName = "NuGetTestData";
 
 			// ─── 1. Create users ─────────────────────────────────────────────────────
-			var testAccount = await EnsureUserAsync(context, credentialBuilder, testUser, testPassword, testEmail);
-			var orgAdmin = await EnsureUserAsync(context, credentialBuilder, orgAdminUser, orgAdminPassword, $"{orgAdminUser}@localhost");
+			var testAccount = await ops.EnsureUserAsync(testUser, testPassword, testEmail);
+			var orgAdmin = await ops.EnsureUserAsync(orgAdminUser, orgAdminPassword, $"{orgAdminUser}@localhost");
 
 			// ─── 2. Create organizations ─────────────────────────────────────────────
-			await EnsureOrganizationAsync(context, testDataOrgName, admin: testAccount, collaborator: null);
-			await EnsureOrganizationAsync(context, adminOrgName, admin: testAccount, collaborator: null);
-			await EnsureOrganizationAsync(context, collaboratorOrgName, admin: orgAdmin, collaborator: testAccount);
+			await ops.EnsureOrganizationAsync(testDataOrgName, admin: testAccount, collaborator: null);
+			await ops.EnsureOrganizationAsync(adminOrgName, admin: testAccount, collaborator: null);
+			await ops.EnsureOrganizationAsync(collaboratorOrgName, admin: orgAdmin, collaborator: testAccount);
 
 			// ─── 3. Create API keys ──────────────────────────────────────────────────
 			var testDataOrgEntity = context.Users.First(u => u.Username == testDataOrgName);
-			var accountApiKey = CreateApiKey(context, credentialBuilder, testAccount, "CI Full Access", scopeActions: new[] { NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion, NuGetScopes.PackageUnlist }, scopeOwner: testAccount);
-			var apiKeyPush = CreateApiKey(context, credentialBuilder, testAccount, "CI Push", scopeActions: new[] { NuGetScopes.PackagePush }, scopeOwner: testAccount);
-			var apiKeyPushVersion = CreateApiKey(context, credentialBuilder, testAccount, "CI Push Version", scopeActions: new[] { NuGetScopes.PackagePushVersion }, scopeOwner: testAccount);
-			var apiKeyUnlist = CreateApiKey(context, credentialBuilder, testAccount, "CI Unlist", scopeActions: new[] { NuGetScopes.PackageUnlist }, scopeOwner: testAccount);
+			var accountApiKey = ops.CreateApiKey(testAccount, "CI Full Access", scopeActions: new[] { NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion, NuGetScopes.PackageUnlist }, scopeOwner: testAccount);
+			var apiKeyPush = ops.CreateApiKey(testAccount, "CI Push", scopeActions: new[] { NuGetScopes.PackagePush }, scopeOwner: testAccount);
+			var apiKeyPushVersion = ops.CreateApiKey(testAccount, "CI Push Version", scopeActions: new[] { NuGetScopes.PackagePushVersion }, scopeOwner: testAccount);
+			var apiKeyUnlist = ops.CreateApiKey(testAccount, "CI Unlist", scopeActions: new[] { NuGetScopes.PackageUnlist }, scopeOwner: testAccount);
 
 			// Org API keys: credential on testAccount, scoped to the org
-			var testDataOrgApiKey = CreateApiKey(context, credentialBuilder, testAccount, "CI TestData Org Push", scopeActions: new[] { NuGetScopes.PackagePush }, scopeOwner: testDataOrgEntity);
+			var testDataOrgApiKey = ops.CreateApiKey(testAccount, "CI TestData Org Push", scopeActions: new[] { NuGetScopes.PackagePush }, scopeOwner: testDataOrgEntity);
 			var adminOrgEntity = context.Users.First(u => u.Username == adminOrgName);
 			var collabOrgEntity = context.Users.First(u => u.Username == collaboratorOrgName);
 
-			var adminOrgApiKey = CreateApiKey(context, credentialBuilder, testAccount, "CI Admin Org", scopeActions: null, scopeOwner: adminOrgEntity);
-			var collabOrgApiKey = CreateApiKey(context, credentialBuilder, testAccount, "CI Collaborator Org", scopeActions: null, scopeOwner: collabOrgEntity);
+			var adminOrgApiKey = ops.CreateApiKey(testAccount, "CI Admin Org", scopeActions: null, scopeOwner: adminOrgEntity);
+			var collabOrgApiKey = ops.CreateApiKey(testAccount, "CI Collaborator Org", scopeActions: null, scopeOwner: collabOrgEntity);
 
 			await context.SaveChangesAsync();
 			Console.WriteLine("All API keys created.");
@@ -179,77 +179,6 @@ namespace GalleryTools.Commands
 			return 0;
 		}
 
-		private static async Task<User> EnsureUserAsync(
-			IEntitiesContext context, ICredentialBuilder credentialBuilder,
-			string username, string password, string email)
-		{
-			var existing = context.Users.FirstOrDefault(u => u.Username == username);
-			if (existing != null)
-			{
-				Console.WriteLine($"User '{username}' already exists (key={existing.Key}).");
-				return existing;
-			}
-
-			var passwordCredential = credentialBuilder.CreatePasswordCredential(password);
-
-			var user = new User(username)
-			{
-				EmailAllowed = true,
-				EmailAddress = email,
-				EmailConfirmationToken = null,
-				NotifyPackagePushed = true,
-				CreatedUtc = DateTime.UtcNow,
-			};
-			user.Credentials.Add(passwordCredential);
-
-			context.Users.Add(user);
-			await context.SaveChangesAsync();
-
-			Console.WriteLine($"Created user '{username}' (key={user.Key}).");
-			return user;
-		}
-
-		private static async Task EnsureOrganizationAsync(
-			IEntitiesContext context, string orgName, User admin, User collaborator)
-		{
-			var existing = context.Users.FirstOrDefault(u => u.Username == orgName);
-			if (existing != null)
-			{
-				Console.WriteLine($"Organization '{orgName}' already exists (key={existing.Key}).");
-				return;
-			}
-
-			var org = new Organization(orgName)
-			{
-				EmailAllowed = true,
-				EmailAddress = $"{orgName}@localhost",
-				EmailConfirmationToken = null,
-				CreatedUtc = DateTime.UtcNow,
-			};
-
-			org.Members.Add(new Membership
-			{
-				Organization = org,
-				Member = admin,
-				IsAdmin = true,
-			});
-
-			if (collaborator != null)
-			{
-				org.Members.Add(new Membership
-				{
-					Organization = org,
-					Member = collaborator,
-					IsAdmin = false,
-				});
-			}
-
-			context.Users.Add(org);
-			await context.SaveChangesAsync();
-
-			Console.WriteLine($"Created organization '{orgName}' (key={org.Key}, admin={admin.Username}).");
-		}
-
 		/// <summary>
 		/// Pushes a .nupkg.testdata file to the gallery via the API push endpoint.
 		/// This ensures the gallery's in-process Lucene index is updated automatically.
@@ -304,26 +233,6 @@ namespace GalleryTools.Commands
 					Console.WriteLine($"Pushed {fileName} via API ({response.StatusCode}).");
 				}
 			}
-		}
-
-		/// <summary>
-		/// Creates an API key credential and returns the plaintext key.
-		/// Does NOT call SaveChangesAsync — caller should batch saves.
-		/// </summary>
-		private static string CreateApiKey(
-			IEntitiesContext context, ICredentialBuilder credentialBuilder,
-			User user, string description, string[] scopeActions, User scopeOwner)
-		{
-			var credential = credentialBuilder.CreateApiKey(expiration: null, out string plaintextApiKey);
-			credential.Description = description;
-			credential.User = user;
-			credential.UserKey = user.Key;
-			credential.Scopes = credentialBuilder.BuildScopes(scopeOwner, scopeActions, subjects: null);
-
-			user.Credentials.Add(credential);
-
-			Console.WriteLine($"Created API key '{description}' for '{user.Username}' (scope owner={scopeOwner.Username}).");
-			return plaintextApiKey;
 		}
 	}
 }
