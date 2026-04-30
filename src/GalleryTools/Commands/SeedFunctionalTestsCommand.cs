@@ -155,7 +155,7 @@ namespace GalleryTools.Commands
 				new JProperty("TyposquattingCheckAndBlockUsers", false),
 				new JProperty("HasSearchService", false),
 				new JProperty("HasStatisticsService", false),
-				new JProperty("HasAppService", false),
+				new JProperty("HasManyVersions", false),
 				new JProperty("Account", new JObject(
 					new JProperty("Name", testUser),
 					new JProperty("Email", testEmail),

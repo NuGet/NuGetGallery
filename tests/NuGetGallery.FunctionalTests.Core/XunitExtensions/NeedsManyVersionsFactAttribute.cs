@@ -5,13 +5,13 @@ using Xunit;
 
 namespace NuGetGallery.FunctionalTests.XunitExtensions
 {
-	public class NeedsAppServiceFactAttribute : FactAttribute
+	public class NeedsManyVersionsFactAttribute : FactAttribute
 	{
-		public NeedsAppServiceFactAttribute()
+		public NeedsManyVersionsFactAttribute()
 		{
-			if (!GalleryConfiguration.Instance.HasAppService)
+			if (!GalleryConfiguration.Instance.HasManyVersions)
 			{
-				Skip = "This test requires the gallery to be hosted in IIS/Azure App Service.";
+				Skip = "This test requires packages with many versions (100+).";
 			}
 		}
 	}

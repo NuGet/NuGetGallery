@@ -28,7 +28,7 @@ namespace NuGetGallery.FunctionalTests
         public bool TyposquattingCheckAndBlockUsers { get; set; }
         public bool HasSearchService { get; set; } = true;
         public bool HasStatisticsService { get; set; } = true;
-        public bool HasAppService { get; set; } = true;
+        public bool HasManyVersions { get; set; } = true;
 
         static GalleryConfiguration()
         {

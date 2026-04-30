@@ -10,7 +10,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
-using NuGetGallery.FunctionalTests.XunitExtensions;
 
 namespace NuGetGallery.FunctionalTests.ErrorHandling
 {
@@ -81,9 +80,9 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
         /// <summary>
         /// Verify simple 404 behavior.
         /// </summary>
-        [NeedsAppServiceTheory]
+        [Theory]
         [Priority(2)]
-        [Category("P2Tests")]
+        [Category("AppServiceTests")]
         [InlineData("/api/does-not-exist", false)]
         [InlineData("/pages/does-not-exist", true)]
         [InlineData("/api/v2/curated-feed/microsoftdotnet/DoesNotExist()", false)]
@@ -112,9 +111,9 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
         /// <summary>
         /// Verify a matched route but a mismatched HTTP method.
         /// </summary>
-        [NeedsAppServiceTheory]
+        [Theory]
         [Priority(2)]
-        [Category("P2Tests")]
+        [Category("AppServiceTests")]
         [InlineData("DELETE", "/api/v2", 405)]
         // The following have non-ideal behavior.
         [InlineData("DELETE", "/api/status", 500)]
@@ -162,9 +161,9 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
         /// <summary>
         /// Verify behavior when the pretty HTTP 500 page fails itself.
         /// </summary>
-        [NeedsAppServiceFact]
+        [Fact]
         [Priority(2)]
-        [Category("P2Tests")]
+        [Category("AppServiceTests")]
         public async Task ErrorInErrorPageWithPathToSelf()
         {
             // Arrange
@@ -185,9 +184,9 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
         /// <summary>
         /// Simulate cases where application code throws different sorts of exceptions.
         /// </summary>
-        [NeedsAppServiceTheory]
+        [Theory]
         [Priority(2)]
-        [Category("P2Tests")]
+        [Category("AppServiceTests")]
         [MemberData(nameof(AllTestData))]
         public async Task SimulateError(EndpointType endpointType, SimulatedErrorType simulatedErrorType)
         {

@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using NuGetGallery.FunctionalTests.XunitExtensions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -45,15 +46,15 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             Assert.Contains(packageUrl.ToLowerInvariant(), responseText.ToLowerInvariant());
         }
 
-        [Fact]
-        [Description("Validates the microsoftdotnet curated feed returns entries for a known package")]
+        [NeedsManyVersionsFact]
+        [Description("Validates the microsoftdotnet feed, including the next page link")]
         [Priority(1)]
         [Category("P1Tests")]
         public async Task ValidateMicrosoftDotNetCuratedFeed()
         {
             using (var httpClient = new HttpClient())
             {
-                var requestUrl = UrlHelper.DotnetCuratedFeedUrl + "FindPackagesById()?id='Newtonsoft.Json'";
+                var requestUrl = UrlHelper.DotnetCuratedFeedUrl + "FindPackagesById()?id='AutoMapper'";
 
                 string responseText;
                 using (var response = await httpClient.GetAsync(requestUrl))
@@ -61,9 +62,22 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                     responseText = await response.Content.ReadAsStringAsync();
                 }
 
-                // Verify at least one entry is returned for the package.
+                // Make sure that 100 entries are returned.  This means that if we split on the <entry> tag, we'd have 101 strings.
                 int length = responseText.Split(new[] { "<entry>" }, StringSplitOptions.RemoveEmptyEntries).Length;
-                Assert.True(length >= 2, "An unexpected number of entries was found.  Actual number was " + (length - 1));
+                Assert.True(length == 101, "An unexpected number of entries was found.  Actual number was " + (length - 1));
+
+                // Get the link to the next page.
+                string link = responseText.Split(new[] { @"<link rel=""next"" href=""" }, StringSplitOptions.RemoveEmptyEntries)[1];
+                link = link.Substring(0, link.IndexOf(@"""", StringComparison.Ordinal));
+
+                // Get the response.
+                using (var response = await httpClient.GetAsync(link))
+                {
+                    if (response.StatusCode != HttpStatusCode.OK)
+                    {
+                        throw new Exception($"Next page link is broken. Expected 200, got '{response.StatusCode}'");
+                    }
+                }
             }
         }
     }
