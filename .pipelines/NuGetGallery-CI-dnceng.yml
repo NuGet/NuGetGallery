@@ -202,7 +202,7 @@ stages:
     dependsOn: []
     jobs:
       - job: aspire_host
-        displayName: aspire host smoke test
+        displayName: Aspire Host Smoke Test
         cancelTimeoutInMinutes: 1
         steps:
           - checkout: self
