@@ -16,6 +16,10 @@ public class Program
 		var builder = DistributedApplication.CreateBuilder(args);
 		var config = builder.Configuration.GetSection("NuGetGallery").Get<NuGetGalleryConfig>()!;
 
+		// APPHOST_PROFILE controls which resources are launched.
+		// "ci-gallery" = minimal: only Azurite, DB migrations, and Gallery.
+		var profile = Environment.GetEnvironmentVariable("APPHOST_PROFILE") ?? "full";
+
 		// Read the Aspire-provisioned search service name from deployment outputs in user secrets.
 		var searchOutputsJson = builder.Configuration["Azure:Deployments:search:Outputs"];
 		var searchServiceName = "";
@@ -55,29 +59,6 @@ public class Program
 
 		var azuriteConnStr = "UseDevelopmentStorage=true";
 		var azuriteBase = "http://127.0.0.1:10000/devstoreaccount1";
-
-		// Azure AI Search — Bicep-provisioned, Basic SKU
-		var search = builder.AddAzureSearch("search")
-			.ConfigureInfrastructure(infra =>
-			{
-				var searchService = infra.GetProvisionableResources()
-					.OfType<Azure.Provisioning.Search.SearchService>()
-					.Single();
-				searchService.SearchSkuName = Azure.Provisioning.Search.SearchServiceSkuName.Basic;
-			})
-			.WithParentRelationship(pipelineGroup);
-
-		// ─── Reset arrays (triggered from Aspire dashboard commands) ─────────────────
-
-		// Containers produced by V3 jobs only (not seeded data) — used by "Stop and Reset V3".
-		var jobContainers = new[]
-		{
-			config.Containers.Catalog, config.Containers.FlatContainer,
-			config.Containers.RegistrationSemVer1, config.Containers.RegistrationGzSemVer1, config.Containers.RegistrationGzSemVer2,
-			config.Containers.AzureSearch,
-		};
-
-		var searchIndexNames = new[] { config.SearchIndexes.Search, config.SearchIndexes.Hijack };
 
 		// ─── DB Initialization ───────────────────────────────────────────────────────
 
@@ -125,6 +106,69 @@ public class Program
 				ConfirmationMessage = "Drop the SupportRequest database? It will be recreated by restarting this migration.",
 			});
 
+		// ─── NuGetGallery web app (IIS Express) ──────────────────────────────────────
+
+		var galleryPath = Path.Combine(srcDir, "NuGetGallery");
+		var iisUserHome = Path.Combine(repoRoot, ".vs");
+		var iisExpressConfig = Path.Combine(iisUserHome, "config", "applicationhost.config");
+
+		// IIS Express needs absolute physicalPath when launched via Aspire/DCP.
+		// The checked-in config uses a relative path that works from VS but not
+		// when the process working directory is set by DCP.
+		EnsureAbsolutePhysicalPath(iisExpressConfig, galleryPath);
+
+		// Ensure IIS Express user home directories and aspnet.config exist.
+		// On CI agents these may not be present; on dev machines they already are.
+		EnsureIISExpressUserHome(iisUserHome);
+
+		// Generate appsettings.Aspire.config to switch Gallery to Azurite blob storage
+		GenerateGalleryAspireConfig(galleryPath, azuriteConnStr,
+			packages: config.Containers.Packages, auditing: config.Containers.Auditing,
+			content: config.Containers.Content, uploads: config.Containers.Uploads);
+
+		var gallery = builder.AddExecutable(
+			"gallery",
+			Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "IIS Express", "iisexpress.exe"),
+			galleryPath,
+			"/config:" + iisExpressConfig,
+			"/site:NuGet Gallery (localhost)",
+			"/userhome:" + iisUserHome)
+			.WithHttpEndpoint(port: 80, name: "gallery-http", isProxied: false)
+			.WithHttpsEndpoint(port: 443, name: "gallery-https", isProxied: false)
+		    .WaitForCompletion(dbMigrateGallery)
+		    .WaitForCompletion(dbMigrateSupport)
+			.WaitFor(storage)
+			.WithEnvironment("IIS_USER_HOME", iisUserHome);
+
+		// ─── Full profile: V3 pipeline, seeding, search, and dashboard commands ──────
+		// Azure AI Search, V3 pipeline resources, seeding, and dashboard commands
+		// are only needed in the full profile.
+		if (profile != "ci-gallery")
+		{
+
+		// Azure AI Search — Bicep-provisioned, Basic SKU
+		var search = builder.AddAzureSearch("search")
+			.ConfigureInfrastructure(infra =>
+			{
+				var searchService = infra.GetProvisionableResources()
+					.OfType<Azure.Provisioning.Search.SearchService>()
+					.Single();
+				searchService.SearchSkuName = Azure.Provisioning.Search.SearchServiceSkuName.Basic;
+			})
+			.WithParentRelationship(pipelineGroup);
+
+		// ─── Reset arrays (triggered from Aspire dashboard commands) ─────────────────
+
+		// Containers produced by V3 jobs only (not seeded data) — used by "Stop and Reset V3".
+		var jobContainers = new[]
+		{
+			config.Containers.Catalog, config.Containers.FlatContainer,
+			config.Containers.RegistrationSemVer1, config.Containers.RegistrationGzSemVer1, config.Containers.RegistrationGzSemVer2,
+			config.Containers.AzureSearch,
+		};
+
+		var searchIndexNames = new[] { config.SearchIndexes.Search, config.SearchIndexes.Hijack };
+
 		// ─── Auxiliary blob seeding (required before Gallery and search jobs) ─────────
 
 		var seedBlobs = builder.AddProject<Projects.NuGetGallery_AppHost_Tools>("seed-blobs")
@@ -134,17 +178,6 @@ public class Program
 			.WithUrl($"{azuriteBase}/{config.Containers.ServiceIndex}/index.json", "V3 Service Index")
 			.WithParentRelationship(infraGroup);
 		WithAppHostEnv(seedBlobs, config, azuriteConnStr, azuriteBase, searchServiceName);
-
-		// ─── NuGetGallery web app (IIS Express) ──────────────────────────────────────
-
-		var galleryPath = Path.Combine(srcDir, "NuGetGallery");
-		var iisExpressConfig = Path.Combine(
-			repoRoot, ".vs", "NuGetGallery", "config", "applicationhost.config");
-
-		// Generate appsettings.Aspire.config to switch Gallery to Azurite blob storage
-		GenerateGalleryAspireConfig(galleryPath, azuriteConnStr,
-			packages: config.Containers.Packages, auditing: config.Containers.Auditing,
-			content: config.Containers.Content, uploads: config.Containers.Uploads);
 
 		// Generate appsettings.Aspire.config for GalleryTools so it talks to Azurite + the right SQL DB
 		var galleryToolsBin = Path.Combine(srcDir, "GalleryTools", "bin",
@@ -167,19 +200,6 @@ public class Program
 			.WaitFor(storage)
 			.WithParentRelationship(pipelineGroup);
 		WithAppHostEnv(catalogIndexReady, config, azuriteConnStr, azuriteBase, searchServiceName);
-
-		var gallery = builder.AddExecutable(
-			"gallery",
-			Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "IIS Express", "iisexpress.exe"),
-			galleryPath,
-			"/config:" + iisExpressConfig,
-			"/site:NuGet Gallery (localhost)")
-			.WithHttpEndpoint(port: 80, name: "gallery-http", isProxied: false)
-			.WithHttpsEndpoint(port: 443, name: "gallery-https", isProxied: false)
-		    .WaitForCompletion(dbMigrateGallery)
-		    .WaitForCompletion(dbMigrateSupport)
-			// .WaitForCompletion(seedBlobs)
-			.WaitFor(storage);
 
 		builder.AddProject<Projects.NuGetGallery_AppHost_Tools>("warmup-gallery")
 			.WithArgs("warmup")
@@ -598,6 +618,8 @@ public class Program
 					"This will completely reset the local environment. Restart Aspire to rebuild from scratch.",
 			});
 
+		} // end if (profile != "ci-gallery")
+
 		builder.Build().Run();
 	}
 
@@ -643,6 +665,48 @@ public class Program
 		File.WriteAllText(path, JsonSerializer.Serialize(content,
 			new JsonSerializerOptions { WriteIndented = true }));
 		return path;
+	}
+
+	/// <summary>
+	/// Ensures the IIS Express site's physicalPath is absolute. The checked-in
+	/// applicationhost.config uses a relative path that works when VS launches
+	/// IIS Express but fails when Aspire/DCP sets a different working directory.
+	/// </summary>
+	static void EnsureAbsolutePhysicalPath(string configPath, string galleryPath)
+	{
+		var content = File.ReadAllText(configPath);
+		var absPath = Path.GetFullPath(galleryPath);
+
+		const string relativePhysicalPath = @"physicalPath=""..\..\src\NuGetGallery""";
+		if (content.Contains(relativePhysicalPath))
+		{
+			content = content.Replace(relativePhysicalPath, $@"physicalPath=""{absPath}""");
+			File.WriteAllText(configPath, content);
+		}
+	}
+
+	/// <summary>
+	/// Creates IIS Express user home directories and copies aspnet.config from
+	/// the IIS Express templates if it doesn't already exist.
+	/// </summary>
+	static void EnsureIISExpressUserHome(string iisUserHome)
+	{
+		foreach (var subdir in new[] { "config", "Logs", "TraceLogFiles" })
+		{
+			Directory.CreateDirectory(Path.Combine(iisUserHome, subdir));
+		}
+
+		var aspnetConfigPath = Path.Combine(iisUserHome, "config", "aspnet.config");
+		if (!File.Exists(aspnetConfigPath))
+		{
+			var templatePath = Path.Combine(
+				Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+				"IIS Express", "config", "templates", "PersonalWebServer", "aspnet.config");
+			if (File.Exists(templatePath))
+			{
+				File.Copy(templatePath, aspnetConfigPath);
+			}
+		}
 	}
 
 	/// <summary>
