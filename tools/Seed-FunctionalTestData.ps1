@@ -15,9 +15,7 @@ Build configuration (Release or Debug). Default: Release.
 #>
 [CmdletBinding()]
 param (
-	[string]$Configuration = "Release",
-	[Parameter(Mandatory = $true)]
-	[int]$HostPid
+	[string]$Configuration = "Release"
 )
 
 $ErrorActionPreference = "Stop"
@@ -32,19 +30,6 @@ if (-not (Test-Path $galleryToolsExe))
 {
 	throw "GalleryTools.exe not found at $galleryToolsExe. Build GalleryTools first."
 }
-
-# Verify the AppHost is still running
-$proc = Get-Process -Id $HostPid -ErrorAction SilentlyContinue
-if (-not $proc)
-{
-	Write-Host "WARNING: AppHost process (PID $HostPid) is no longer running!"
-	Write-Host "=== aspire-stderr.log (last 50 lines) ==="
-	Get-Content (Join-Path $repoRoot "aspire-stderr.log") -Tail 50 -ErrorAction SilentlyContinue
-	Write-Host "=== aspire-stdout.log (last 50 lines) ==="
-	Get-Content (Join-Path $repoRoot "aspire-stdout.log") -Tail 50 -ErrorAction SilentlyContinue
-	throw "AppHost process has exited. Cannot seed test data."
-}
-Write-Host "AppHost process (PID $HostPid) is running."
 
 # Verify the GalleryTools config file exists
 $configFile = Join-Path $galleryToolsBin "appsettings.Aspire.config"
