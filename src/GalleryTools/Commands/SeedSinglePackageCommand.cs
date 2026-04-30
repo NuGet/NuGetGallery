@@ -85,7 +85,8 @@ namespace GalleryTools.Commands
 			var ops = new GalleryOperations (context, container.Resolve<ICredentialBuilder> ());
 
 			// 1. Ensure user exists
-			var user = await ops.EnsureUserAsync (username, password, $"{username}@localhost");
+			// Email must match what SeedFunctionalTestsCommand uses so Playwright login tests work.
+		var user = await ops.EnsureUserAsync (username, password, "testnuget@localhost");
 
 			// 2. Ensure org exists
 			await ops.EnsureOrganizationAsync (orgName, admin: user, collaborator: null);
