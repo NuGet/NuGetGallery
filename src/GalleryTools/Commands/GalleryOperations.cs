@@ -25,27 +25,27 @@ namespace GalleryTools.Commands
 		private readonly IEntitiesContext _context;
 		private readonly ICredentialBuilder _credentialBuilder;
 
-		public GalleryOperations (IEntitiesContext context, ICredentialBuilder credentialBuilder)
+		public GalleryOperations(IEntitiesContext context, ICredentialBuilder credentialBuilder)
 		{
-			_context = context ?? throw new ArgumentNullException (nameof (context));
-			_credentialBuilder = credentialBuilder ?? throw new ArgumentNullException (nameof (credentialBuilder));
+			_context = context ?? throw new ArgumentNullException(nameof(context));
+			_credentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
 		}
 
 		/// <summary>
 		/// Creates a user if one does not already exist. Saves changes immediately.
 		/// </summary>
-		public async Task<User> EnsureUserAsync (string username, string password, string email)
+		public async Task<User> EnsureUserAsync(string username, string password, string email)
 		{
-			var existing = _context.Users.FirstOrDefault (u => u.Username == username);
+			var existing = _context.Users.FirstOrDefault(u => u.Username == username);
 			if (existing != null)
 			{
-				Console.WriteLine ($"User '{username}' already exists (key={existing.Key}).");
+				Console.WriteLine($"User '{username}' already exists (key={existing.Key}).");
 				return existing;
 			}
 
-			var passwordCredential = _credentialBuilder.CreatePasswordCredential (password);
+			var passwordCredential = _credentialBuilder.CreatePasswordCredential(password);
 
-			var user = new User (username)
+			var user = new User(username)
 			{
 				EmailAllowed = true,
 				EmailAddress = email,
@@ -53,12 +53,12 @@ namespace GalleryTools.Commands
 				NotifyPackagePushed = true,
 				CreatedUtc = DateTime.UtcNow,
 			};
-			user.Credentials.Add (passwordCredential);
+			user.Credentials.Add(passwordCredential);
 
-			_context.Users.Add (user);
-			await _context.SaveChangesAsync ();
+			_context.Users.Add(user);
+			await _context.SaveChangesAsync();
 
-			Console.WriteLine ($"Created user '{username}' (key={user.Key}, email={email}).");
+			Console.WriteLine($"Created user '{username}' (key={user.Key}, email={email}).");
 			return user;
 		}
 
@@ -66,16 +66,16 @@ namespace GalleryTools.Commands
 		/// Creates an organization if one does not already exist. Saves changes immediately.
 		/// Returns null if the admin user is not found.
 		/// </summary>
-		public async Task<Organization> EnsureOrganizationAsync (string orgName, User admin, User collaborator)
+		public async Task<Organization> EnsureOrganizationAsync(string orgName, User admin, User collaborator)
 		{
-			var existing = _context.Users.FirstOrDefault (u => u.Username == orgName);
+			var existing = _context.Users.FirstOrDefault(u => u.Username == orgName);
 			if (existing != null)
 			{
-				Console.WriteLine ($"Organization '{orgName}' already exists (key={existing.Key}).");
+				Console.WriteLine($"Organization '{orgName}' already exists (key={existing.Key}).");
 				return existing as Organization;
 			}
 
-			var org = new Organization (orgName)
+			var org = new Organization(orgName)
 			{
 				EmailAllowed = true,
 				EmailAddress = $"{orgName}@localhost",
@@ -83,7 +83,7 @@ namespace GalleryTools.Commands
 				CreatedUtc = DateTime.UtcNow,
 			};
 
-			org.Members.Add (new Membership
+			org.Members.Add(new Membership
 			{
 				Organization = org,
 				Member = admin,
@@ -92,7 +92,7 @@ namespace GalleryTools.Commands
 
 			if (collaborator != null)
 			{
-				org.Members.Add (new Membership
+				org.Members.Add(new Membership
 				{
 					Organization = org,
 					Member = collaborator,
@@ -100,10 +100,10 @@ namespace GalleryTools.Commands
 				});
 			}
 
-			_context.Users.Add (org);
-			await _context.SaveChangesAsync ();
+			_context.Users.Add(org);
+			await _context.SaveChangesAsync();
 
-			Console.WriteLine ($"Created organization '{orgName}' (key={org.Key}, admin={admin.Username}).");
+			Console.WriteLine($"Created organization '{orgName}' (key={org.Key}, admin={admin.Username}).");
 			return org;
 		}
 
@@ -111,17 +111,17 @@ namespace GalleryTools.Commands
 		/// Creates an API key credential and returns the plaintext key.
 		/// Does NOT call SaveChangesAsync — caller should batch saves.
 		/// </summary>
-		public string CreateApiKey (User user, string description, string[] scopeActions, User scopeOwner)
+		public string CreateApiKey(User user, string description, string[] scopeActions, User scopeOwner)
 		{
-			var credential = _credentialBuilder.CreateApiKey (expiration: null, out string plaintextApiKey);
+			var credential = _credentialBuilder.CreateApiKey(expiration: null, out string plaintextApiKey);
 			credential.Description = description;
 			credential.User = user;
 			credential.UserKey = user.Key;
-			credential.Scopes = _credentialBuilder.BuildScopes (scopeOwner, scopeActions, subjects: null);
+			credential.Scopes = _credentialBuilder.BuildScopes(scopeOwner, scopeActions, subjects: null);
 
-			user.Credentials.Add (credential);
+			user.Credentials.Add(credential);
 
-			Console.WriteLine ($"Created API key '{description}' for '{user.Username}' (scope owner={scopeOwner.Username}).");
+			Console.WriteLine($"Created API key '{description}' for '{user.Username}' (scope owner={scopeOwner.Username}).");
 			return plaintextApiKey;
 		}
 
