@@ -114,9 +114,13 @@ namespace NuGet.Jobs.GitHubIndexer
                     _logger.LogError("The final GitHub Usage blob is empty!");
                 }
 
-                // Delete the repos and cache directory
-                Directory.Delete(RepositoriesDirectory, recursive: true);
-                Directory.Delete(CacheDirectory, recursive: true);
+                // Delete the repos and cache directory.
+                // Use retry logic to work around the known .NET Framework race condition
+                // where Directory.Delete(recursive: true) can throw IOException because the
+                // OS has not fully released file handles before the parent directory removal
+                // is attempted.
+                DirectoryHelper.DeleteDirectoryWithRetries(RepositoriesDirectory, _logger);
+                DirectoryHelper.DeleteDirectoryWithRetries(CacheDirectory, _logger);
 
                 completed = true;
                 runDuration.Stop();
@@ -269,5 +273,6 @@ namespace NuGet.Jobs.GitHubIndexer
                 throw;
             }
         }
+
     }
 }
