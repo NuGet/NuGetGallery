@@ -41,7 +41,7 @@ namespace NuGet.Jobs.GitHubIndexer
                 }
                 catch (IOException ex) when (attempt < maxRetries)
                 {
-                    logger.LogWarning (
+                    logger.LogWarning(
                         "Failed to delete directory {Path} on attempt {Attempt}: {Message}. Retrying...",
                         path,
                         attempt + 1,
@@ -50,7 +50,7 @@ namespace NuGet.Jobs.GitHubIndexer
                 }
                 catch (UnauthorizedAccessException ex) when (attempt < maxRetries)
                 {
-                    logger.LogWarning (
+                    logger.LogWarning(
                         "Unauthorized access deleting directory {Path} on attempt {Attempt}: {Message}. Retrying...",
                         path,
                         attempt + 1,
@@ -62,7 +62,7 @@ namespace NuGet.Jobs.GitHubIndexer
                     // All retries exhausted with normal APIs. Fall back to
                     // cmd /c rmdir with the \\?\ prefix, which bypasses
                     // Windows reserved device name restrictions (AUX, CON, etc.).
-                    logger.LogWarning (
+                    logger.LogWarning(
                         "Normal deletion failed for {Path} after {MaxRetries} retries. Falling back to rmdir with UNC prefix.",
                         path,
                         maxRetries);
@@ -76,7 +76,7 @@ namespace NuGet.Jobs.GitHubIndexer
         /// Clears read-only attributes on all files in a directory tree.
         /// Skips files that cannot be accessed (e.g. due to reserved names).
         /// </summary>
-        private static void ClearReadOnlyAttributes (string path)
+        private static void ClearReadOnlyAttributes(string path)
         {
             try
             {
@@ -123,7 +123,7 @@ namespace NuGet.Jobs.GitHubIndexer
                 using (var process = Process.Start(processInfo))
                 {
                     var stderr = process.StandardError.ReadToEnd();
-                    process.WaitForExit ();
+                    process.WaitForExit();
 
                     if (process.ExitCode != 0 && Directory.Exists(path))
                     {
