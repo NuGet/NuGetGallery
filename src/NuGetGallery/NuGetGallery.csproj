@@ -1412,6 +1412,7 @@
     <Content Include="Content\gallery\img\default-package-icon-white.png" />
     <Content Include="Content\gallery\img\dotnet-foundation-42x42.png" />
     <Content Include="Content\gallery\img\dotnet-foundation.svg" />
+    <Content Include="Content\gallery\img\privacy-choices.svg" />
     <Content Include="Content\gallery\img\git-32x32.png" />
     <Content Include="Content\gallery\img\git.svg" />
     <Content Include="Content\gallery\img\git-white.svg" />
