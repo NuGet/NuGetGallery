@@ -26,6 +26,11 @@ namespace NuGet.Jobs.GitHubIndexer
         /// </summary>
         public static void DeleteDirectoryWithRetries(string path, ILogger logger, int maxRetries = 3)
         {
+            if (!Path.IsPathRooted(path))
+            {
+                throw new ArgumentException($"Path must be absolute: {path}", nameof(path));
+            }
+
             if (!Directory.Exists(path))
             {
                 return;
