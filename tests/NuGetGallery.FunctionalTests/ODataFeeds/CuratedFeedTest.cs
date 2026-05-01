@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using NuGetGallery.FunctionalTests.XunitExtensions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -45,7 +46,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             Assert.Contains(packageUrl.ToLowerInvariant(), responseText.ToLowerInvariant());
         }
 
-        [Fact]
+        [NeedsManyVersionsFact]
         [Description("Validates the microsoftdotnet feed, including the next page link")]
         [Priority(1)]
         [Category("P1Tests")]

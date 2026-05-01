@@ -110,11 +110,13 @@ public class Program
 
 		var galleryPath = Path.Combine(srcDir, "NuGetGallery");
 		var iisUserHome = Path.Combine(repoRoot, ".vs");
-		var iisExpressConfig = Path.Combine(iisUserHome, "config", "applicationhost.config");
+		var iisExpressConfigSource = Path.Combine(iisUserHome, "config", "applicationhost.config");
 
 		// IIS Express needs absolute physicalPath when launched via Aspire/DCP.
-		// The checked-in config uses a relative path that works from VS but not
-		// when the process working directory is set by DCP.
+		// Work on a copy so the checked-in file (which uses a relative path for VS)
+		// is never modified.
+		var iisExpressConfig = Path.Combine(iisUserHome, "config", "applicationhost.aspire.config");
+		File.Copy(iisExpressConfigSource, iisExpressConfig, overwrite: true);
 		EnsureAbsolutePhysicalPath(iisExpressConfig, galleryPath);
 
 		// Ensure IIS Express user home directories and aspnet.config exist.
@@ -140,46 +142,8 @@ public class Program
 			.WaitFor(storage)
 			.WithEnvironment("IIS_USER_HOME", iisUserHome);
 
-		// ─── Full profile: V3 pipeline, seeding, search, and dashboard commands ──────
-		// Azure AI Search, V3 pipeline resources, seeding, and dashboard commands
-		// are only needed in the full profile.
-		if (profile != "ci-gallery")
-		{
+		// ─── GalleryTools config (needed for seeding in all profiles) ───────────────
 
-		// Azure AI Search — Bicep-provisioned, Basic SKU
-		var search = builder.AddAzureSearch("search")
-			.ConfigureInfrastructure(infra =>
-			{
-				var searchService = infra.GetProvisionableResources()
-					.OfType<Azure.Provisioning.Search.SearchService>()
-					.Single();
-				searchService.SearchSkuName = Azure.Provisioning.Search.SearchServiceSkuName.Basic;
-			})
-			.WithParentRelationship(pipelineGroup);
-
-		// ─── Reset arrays (triggered from Aspire dashboard commands) ─────────────────
-
-		// Containers produced by V3 jobs only (not seeded data) — used by "Stop and Reset V3".
-		var jobContainers = new[]
-		{
-			config.Containers.Catalog, config.Containers.FlatContainer,
-			config.Containers.RegistrationSemVer1, config.Containers.RegistrationGzSemVer1, config.Containers.RegistrationGzSemVer2,
-			config.Containers.AzureSearch,
-		};
-
-		var searchIndexNames = new[] { config.SearchIndexes.Search, config.SearchIndexes.Hijack };
-
-		// ─── Auxiliary blob seeding (required before Gallery and search jobs) ─────────
-
-		var seedBlobs = builder.AddProject<Projects.NuGetGallery_AppHost_Tools>("seed-blobs")
-			.WithArgs("seed-blobs")
-			.WaitFor(storage)
-			.WithEnvironment("REPO_ROOT", repoRoot)
-			.WithUrl($"{azuriteBase}/{config.Containers.ServiceIndex}/index.json", "V3 Service Index")
-			.WithParentRelationship(infraGroup);
-		WithAppHostEnv(seedBlobs, config, azuriteConnStr, azuriteBase, searchServiceName);
-
-		// Generate appsettings.Aspire.config for GalleryTools so it talks to Azurite + the right SQL DB
 		var galleryToolsBin = Path.Combine(srcDir, "GalleryTools", "bin",
 		#if DEBUG
 			"Debug",
@@ -191,6 +155,25 @@ public class Program
 			config.GalleryDb.ConnectionString, config.GalleryBaseAddress,
 			packages: config.Containers.Packages, auditing: config.Containers.Auditing,
 			content: config.Containers.Content, uploads: config.Containers.Uploads);
+
+		var galleryToolsExe = Path.Combine(galleryToolsBin, "GalleryTools.exe");
+
+		// ─── V3 pipeline, seeding, and blob initialization (all profiles) ───────────
+		// These resources run in ALL profiles including ci-gallery.
+		// Azure Search resources are gated separately below.
+
+		// ─── Auxiliary blob seeding (required before Gallery and V3 jobs) ────────────
+
+		var seedBlobs = builder.AddProject<Projects.NuGetGallery_AppHost_Tools>("seed-blobs")
+			.WithArgs("seed-blobs")
+			.WaitFor(storage)
+			.WithEnvironment("REPO_ROOT", repoRoot)
+			.WithUrl($"{azuriteBase}/{config.Containers.ServiceIndex}/index.json", "V3 Service Index")
+			.WithParentRelationship(infraGroup);
+		WithAppHostEnv(seedBlobs, config, azuriteConnStr, azuriteBase, searchServiceName);
+
+		// Gallery needs flags.json (seeded by seed-blobs) for feature flags like EmbeddedIcons.
+		builder.CreateResourceBuilder(gallery.Resource).WaitForCompletion(seedBlobs);
 
 		// Polls for the catalog index.json blob in Azurite and exits when it appears.
 		// Downstream jobs use WaitForCompletion to wait for this, just like the DB migrations.
@@ -208,28 +191,18 @@ public class Program
 			.WaitFor(gallery)
 			.WithParentRelationship(infraGroup);
 
-		// ─── Test data seeding (creates a user and pushes a test package) ────────────
+		// ─── Test data seeding (creates user, org, and pushes a test package via HTTP) ─
 
-		var galleryToolsExe = Path.Combine(galleryToolsBin, "GalleryTools.exe");
 		var testNupkg = Path.Combine(builder.AppHostDirectory, "testdata", "basetestpackage.1.0.0.nupkg.testdata");
-
-		var seedUser = builder.AddExecutable(
-			"seed-user", galleryToolsExe, galleryToolsBin,
-			"createuser",
-			"--username", "NuGetTestData",
-			"--password", "Password1!",
-			"--email", "NuGetTestData@localhost")
-			.WaitForCompletion(dbMigrateGallery)
-			.WaitFor(storage)
-			.WithParentRelationship(infraGroup);
 
 		var seedPackage = builder.AddExecutable(
 			"seed-package", galleryToolsExe, galleryToolsBin,
-			"pushpackage",
-			"--owner", "NuGetTestData",
-			"--package", testNupkg)
-			.WaitForCompletion(seedUser)
+			"seedsinglepackage",
+			"--package", testNupkg,
+			"--base-url", config.GalleryBaseAddress)
+			.WaitForCompletion(dbMigrateGallery)
 			.WaitFor(storage)
+			.WaitFor(gallery)
 			.WithParentRelationship(infraGroup);
 
 		// ─── Ng sub-commands (CLI args) ──────────────────────────────────────────────
@@ -256,6 +229,7 @@ public class Program
 				"-verbose",             "true",
 				"-interval",            config.Settings.PollIntervalSeconds.ToString())
 		    .WaitForCompletion(dbMigrateGallery)
+		    .WaitForCompletion(seedPackage)
 		    .WaitFor(storage)
 			.WithUrl($"{azuriteBase}/{config.Containers.Catalog}/index.json", "Catalog Index")
 			.WithParentRelationship(pipelineGroup);
@@ -304,7 +278,36 @@ public class Program
 			.WaitForCompletion(catalogIndexReady)
 			.WithParentRelationship(pipelineGroup);
 
-		// Polls Azure Searchfor indexes + cursor.json in Azurite created by db2azuresearch.
+		// ─── Full profile: Azure Search, dashboard commands ─────────────────────────
+		// Azure AI Search requires Bicep-provisioned infrastructure and is only
+		// available in the full (default) profile.
+		if (profile != "ci-gallery")
+		{
+
+		// Azure AI Search — Bicep-provisioned, Basic SKU
+		var search = builder.AddAzureSearch("search")
+			.ConfigureInfrastructure(infra =>
+			{
+				var searchService = infra.GetProvisionableResources()
+					.OfType<Azure.Provisioning.Search.SearchService>()
+					.Single();
+				searchService.SearchSkuName = Azure.Provisioning.Search.SearchServiceSkuName.Basic;
+			})
+			.WithParentRelationship(pipelineGroup);
+
+		// ─── Reset arrays (triggered from Aspire dashboard commands) ─────────────────
+
+		// Containers produced by V3 jobs only (not seeded data) — used by "Stop and Reset V3".
+		var jobContainers = new[]
+		{
+			config.Containers.Catalog, config.Containers.FlatContainer,
+			config.Containers.RegistrationSemVer1, config.Containers.RegistrationGzSemVer1, config.Containers.RegistrationGzSemVer2,
+			config.Containers.AzureSearch,
+		};
+
+		var searchIndexNames = new[] { config.SearchIndexes.Search, config.SearchIndexes.Hijack };
+
+		// Polls Azure Search for indexes + cursor.json in Azurite created by db2azuresearch.
 		// Decouples dependents from db2azuresearch's exit code — if indexes already exist from a
 		// prior run, dependents start immediately even when db2azuresearch fails on "already exists".
 		var searchIndexReady = builder.AddProject<Projects.NuGetGallery_AppHost_Tools>("search-index-ready")
@@ -734,7 +737,10 @@ public class Program
 				Setting("Gallery.AzureStorage.Statistics.ConnectionString.Alternate", connectionString),
 				Setting("Gallery.AzureStorage.Uploads.ConnectionString", connectionString),
 				Setting("Gallery.AzureStorage.Uploads.ContainerName", uploads),
-				Setting("Gallery.AzureStorage.Revalidation.ConnectionString", connectionString)));
+				Setting("Gallery.AzureStorage.Revalidation.ConnectionString", connectionString),
+				Setting("Gallery.SiteRoot", "https://localhost"),
+				Setting("Gallery.SupportEmailSiteRoot", "https://localhost"),
+				Setting("Gallery.EnforceDefaultSecurityPolicies", "true")));
 
 		doc.Save(Path.Combine(galleryDir, "appsettings.Aspire.config"));
 

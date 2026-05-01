@@ -223,21 +223,72 @@ stages:
             inputs:
               scriptName: $(NuGetGalleryPath)\tools\Setup-DevEnvironment.ps1
               workingFolder: $(NuGetGalleryPath)
-          - task: PowerShell@1
-            name: start_aspire
-            displayName: Start Aspire Host
+          - task: PowerShell@2
+            name: functional_tests
+            displayName: Aspire Functional Tests
+            timeoutInMinutes: 30
+            env:
+              ConfigurationFilePath: $(NuGetGalleryPath)\tests\NuGetGallery.FunctionalTests\settings.CI.json
             inputs:
-              scriptName: $(NuGetGalleryPath)\tools\Start-AspireHost.ps1
-              arguments: -Configuration $(BuildConfiguration) -TrustDevCert
-              workingFolder: $(NuGetGalleryPath)
-          # Future: add test steps here (e.g. Playwright, API tests) while the host is running
-          - task: PowerShell@1
-            name: stop_aspire
-            displayName: Stop Aspire Host
+              targetType: inline
+              errorActionPreference: stop
+              script: |
+                $repoRoot = "$(NuGetGalleryPath)"
+                $config = "$(BuildConfiguration)"
+
+                # 1. Start Aspire Host
+                Write-Host "=== Starting Aspire Host ==="
+                $hostPid = & "$repoRoot\tools\Start-AspireHost.ps1" -Configuration $config -TrustDevCert
+                Write-Host "Aspire Host PID: $hostPid"
+
+                try {
+                  # 2. Seed functional test data
+                  Write-Host "=== Seeding functional test data ==="
+                  & "$repoRoot\tools\Seed-FunctionalTestData.ps1" -Configuration $config
+                  if ($LASTEXITCODE -ne 0) { throw "Seed failed with exit code $LASTEXITCODE" }
+
+                  # 3. Build functional tests
+                  Write-Host "=== Building functional tests ==="
+                  & "$repoRoot\tests\Scripts\BuildGalleryFunctionalTests.ps1" -Configuration $config
+                  if ($LASTEXITCODE -ne 0) { throw "Build functional tests failed with exit code $LASTEXITCODE" }
+
+                  # 4. Run functional tests
+                  Write-Host "=== Running P0, P1, and P2 functional tests ==="
+                  $testDll = "$repoRoot\tests\NuGetGallery.FunctionalTests\bin\$config\net472\NuGetGallery.FunctionalTests.dll"
+                  $resultsDir = "$repoRoot\tests\TestResults"
+                  New-Item -ItemType Directory -Path $resultsDir -Force | Out-Null
+
+                  dotnet test $testDll `
+                    --blame-hang-timeout 600s `
+                    --filter "Category=P0Tests|Category=P1Tests|Category=P2Tests" `
+                    --logger "trx;LogFileName=FunctionalTests.trx" `
+                    --results-directory $resultsDir
+
+                  $testExit = $LASTEXITCODE
+                  Write-Host "dotnet test exited with code $testExit"
+
+                  if (Test-Path $resultsDir) {
+                    Get-ChildItem -Recurse $resultsDir | ForEach-Object { Write-Host "  Result file: $($_.FullName) ($($_.Length) bytes)" }
+                  }
+
+                  if ($testExit -ne 0) { throw "Functional tests failed with exit code $testExit" }
+                }
+                finally {
+                  # 5. Stop Aspire Host
+                  Write-Host "=== Stopping Aspire Host ==="
+                  & "$repoRoot\tools\Stop-AspireHost.ps1" -HostPid $hostPid
+                }
+              workingDirectory: $(NuGetGalleryPath)
+          - task: PublishTestResults@2
+            name: publish_test_results
+            displayName: Publish Test Results
             condition: always()
             inputs:
-              scriptName: $(NuGetGalleryPath)\tools\Stop-AspireHost.ps1
-              workingFolder: $(NuGetGalleryPath)
+              testResultsFormat: VSTest
+              testResultsFiles: 'tests/TestResults/**/*.trx'
+              searchFolder: $(NuGetGalleryPath)
+              mergeTestResults: true
+              testRunTitle: 'Functional Tests (P0, P1, P2)'
 
   - stage: artifacts
     displayName: Artifacts

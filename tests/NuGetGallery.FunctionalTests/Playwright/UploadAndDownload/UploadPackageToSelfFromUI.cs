@@ -3,13 +3,13 @@
 
 using System.Threading.Tasks;
 using NuGetGallery.FunctionalTests.Helpers;
-using NuGetGallery.FunctionalTests.XunitExtensions;
+using Xunit;
 
 namespace NuGetGallery.FunctionalTests.Playwright.UploadAndDownload
 {
 	public class UploadPackageToSelfFromUI : NuGetPageTest
 	{
-		[PackageLockFact]
+		[Fact]
 		[Priority(0)]
 		[Category("P0Tests")]
 		public async Task UploadNewPackageRegistrationAsSelf()
@@ -26,7 +26,7 @@ namespace NuGetGallery.FunctionalTests.Playwright.UploadAndDownload
 			await Expect(Page.Locator(".package-title")).ToContainTextAsync("1.0.0");
 		}
 
-		[PackageLockFact]
+		[Fact]
 		[Priority(0)]
 		[Category("P0Tests")]
 		public async Task UploadNewVersionOfExistingPackageAsSelf()
@@ -47,7 +47,7 @@ namespace NuGetGallery.FunctionalTests.Playwright.UploadAndDownload
 			await Expect(Page.Locator(".package-title")).ToContainTextAsync("2.0.0");
 		}
 
-        [PackageLockFact]
+        [Fact]
         [Priority(0)]
         [Category("P0Tests")]
         public async Task UploadNewPackageRegistrationAsCollaborator()
@@ -65,7 +65,7 @@ namespace NuGetGallery.FunctionalTests.Playwright.UploadAndDownload
             await Expect(Page.Locator(".package-title")).ToContainTextAsync("1.0.0");
         }
 
-        [PackageLockFact]
+        [Fact]
         [Priority(0)]
         [Category("P0Tests")]
         public async Task UploadNewVersionOfExistingPackageAsCollaborator()
@@ -86,7 +86,7 @@ namespace NuGetGallery.FunctionalTests.Playwright.UploadAndDownload
             await Expect(Page.Locator(".package-title")).ToContainTextAsync("2.0.0");
         }
 
-        [PackageLockFact]
+        [Fact]
         [Priority(0)]
         [Category("P0Tests")]
         public async Task UploadNewPackageRegistrationAsAdmin()
@@ -104,7 +104,7 @@ namespace NuGetGallery.FunctionalTests.Playwright.UploadAndDownload
             await Expect(Page.Locator(".package-title")).ToContainTextAsync("1.0.0");
         }
 
-        [PackageLockFact]
+        [Fact]
         [Priority(0)]
         [Category("P0Tests")]
         public async Task UploadNewVersionOfExistingPackageAsAdmin()

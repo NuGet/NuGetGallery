@@ -29,7 +29,10 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
         [Fact]
         [Description("Pushes many packages of the same ID and version. Verifies exactly one push succeeds and the rest fail with a conflict.")]
         [Priority(1)]
-        [Category("P1Tests")]
+        [Category("AppServiceTests")]
+        // This test fires 160 concurrent push requests (10 versions × 16 parallel pushes each)
+        // using a Barrier to maximize race conditions. It can technically run locally but is
+        // flaky on resource-constrained environments due to the extreme load on IIS Express.
         public async Task DuplicatePushesAreRejectedAndNotDeleted()
         {
             // Arrange

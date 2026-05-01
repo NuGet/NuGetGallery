@@ -2,11 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
 using Microsoft.Extensions.CommandLineUtils;
-using NuGet.Services.Entities;
 using NuGetGallery;
 using NuGetGallery.Infrastructure.Authentication;
 
@@ -56,36 +54,11 @@ namespace GalleryTools.Commands
 			builder.RegisterAssemblyModules(typeof(DefaultDependenciesModule).Assembly);
 			var container = builder.Build();
 
-			var context = container.Resolve<IEntitiesContext>();
-			var credentialBuilder = container.Resolve<ICredentialBuilder>();
+			var ops = new GalleryOperations(
+				container.Resolve<IEntitiesContext>(),
+				container.Resolve<ICredentialBuilder>());
 
-			// Check if user already exists.
-			var existingUser = context.Users
-				.FirstOrDefault(u => u.Username == username);
-
-			if (existingUser != null)
-			{
-				Console.WriteLine($"User '{username}' already exists (key={existingUser.Key}). Skipping creation.");
-				return 0;
-			}
-
-			var passwordCredential = credentialBuilder.CreatePasswordCredential(password);
-
-			var user = new User(username)
-			{
-				EmailAllowed = true,
-				EmailAddress = email,
-				EmailConfirmationToken = null,
-				NotifyPackagePushed = true,
-				CreatedUtc = DateTime.UtcNow,
-			};
-
-			user.Credentials.Add(passwordCredential);
-
-			context.Users.Add(user);
-			await context.SaveChangesAsync();
-
-			Console.WriteLine($"Created user '{username}' (key={user.Key}, email={email}, confirmed=true).");
+			await ops.EnsureUserAsync(username, password, email);
 			return 0;
 		}
 	}
