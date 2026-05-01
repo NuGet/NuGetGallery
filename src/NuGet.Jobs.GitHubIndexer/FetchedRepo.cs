@@ -72,6 +72,12 @@ namespace NuGet.Jobs.GitHubIndexer
             foreach (var filePath in filePaths)
             {
                 var fullPath = Path.Combine(_repoFolder, filePath);
+
+                // CheckoutPaths can silently skip files when it cannot create
+                // intermediate directories on Windows — e.g. paths containing
+                // characters that are valid on Linux/GitHub but problematic on
+                // NTFS, or directories matching Windows reserved device names
+                // (AUX, CON, PRN, etc.).
                 if (File.Exists(fullPath))
                 {
                     checkedOutFiles.Add(new CheckedOutFile(fullPath, _repoInfo.Id));
