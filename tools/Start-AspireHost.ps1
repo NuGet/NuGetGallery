@@ -46,11 +46,10 @@ param(
 $ErrorActionPreference = "Stop"
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $appHostProject = Join-Path $repoRoot "src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj"
-$pidFile = Join-Path $repoRoot "aspire-host.pid"
 
 # Step 1: Build AppHost
 Write-Host "=== Building NuGetGallery.AppHost ==="
-dotnet build $appHostProject -c $Configuration
+dotnet build $appHostProject -c $Configuration | Out-Host
 if ($LASTEXITCODE -ne 0)
 {
 	Write-Error "AppHost build failed."
@@ -63,14 +62,14 @@ if ($TrustDevCert)
 {
 	Write-Host "=== Trusting dev certificate ==="
 	$crt = Join-Path $env:TEMP "aspire-dev-cert.crt"
-	dotnet dev-certs https -ep $crt --format Pem --no-password
+	dotnet dev-certs https -ep $crt --format Pem --no-password | Out-Host
 	if ($LASTEXITCODE -ne 0)
 	{
 		Write-Error "Failed to export dev cert."
 		exit 1
 	}
 
-	Import-Certificate -FilePath $crt -CertStoreLocation Cert:\LocalMachine\Root
+	Import-Certificate -FilePath $crt -CertStoreLocation Cert:\LocalMachine\Root | Out-Host
 	if (-not $?)
 	{
 		Write-Error "Failed to import dev cert."
@@ -88,12 +87,12 @@ $env:APPHOST_PROFILE = $AppHostProfile
 $stdoutLog = Join-Path $repoRoot "aspire-stdout.log"
 $stderrLog = Join-Path $repoRoot "aspire-stderr.log"
 
-$proc = Start-Process -FilePath "dotnet" `
-	-ArgumentList "run", "--project", $appHostProject, "-c", $Configuration, "--no-build", "--launch-profile", $LaunchProfile `
-	-PassThru -RedirectStandardOutput $stdoutLog -RedirectStandardError $stderrLog
+$argLine = "run --project `"$appHostProject`" -c $Configuration --no-build --launch-profile $LaunchProfile"
+$proc = Start-Process dotnet -ArgumentList $argLine `
+	-RedirectStandardOutput $stdoutLog -RedirectStandardError $stderrLog `
+	-PassThru
 
 Write-Host "AppHost started with PID $($proc.Id)"
-$proc.Id | Out-File -FilePath $pidFile -Encoding ascii
 
 # Step 4: Poll first URL for readiness
 $primaryUrl = $HealthUrls[0]
@@ -105,8 +104,8 @@ while ($elapsed -lt $Timeout)
 {
 	if ($proc.HasExited)
 	{
-		Get-Content $stdoutLog -ErrorAction SilentlyContinue
-		Get-Content $stderrLog -ErrorAction SilentlyContinue
+		Get-Content $stdoutLog -ErrorAction SilentlyContinue | Out-Host
+		Get-Content $stderrLog -ErrorAction SilentlyContinue | Out-Host
 		Write-Error "AppHost exited prematurely with code $($proc.ExitCode)."
 		exit 1
 	}
@@ -137,8 +136,8 @@ if (-not $healthy)
 	{
 		Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
 	}
-	Get-Content $stdoutLog -Tail 50 -ErrorAction SilentlyContinue
-	Get-Content $stderrLog -Tail 50 -ErrorAction SilentlyContinue
+	Get-Content $stdoutLog -Tail 50 -ErrorAction SilentlyContinue | Out-Host
+	Get-Content $stderrLog -Tail 50 -ErrorAction SilentlyContinue | Out-Host
 	Write-Error "Primary health URL did not respond within $Timeout seconds."
 	exit 1
 }
@@ -175,10 +174,13 @@ if (-not $allPassed)
 	{
 		Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
 	}
-	Get-Content $stdoutLog -Tail 50 -ErrorAction SilentlyContinue
-	Get-Content $stderrLog -Tail 50 -ErrorAction SilentlyContinue
+	Get-Content $stdoutLog -Tail 50 -ErrorAction SilentlyContinue | Out-Host
+	Get-Content $stderrLog -Tail 50 -ErrorAction SilentlyContinue | Out-Host
 	Write-Error "One or more health URLs failed verification."
 	exit 1
 }
 
 Write-Host "=== Aspire Host is running (PID $($proc.Id)) ==="
+
+# Return the PID so callers can pass it to Stop-AspireHost.ps1
+return $proc.Id
