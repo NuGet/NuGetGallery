@@ -5,14 +5,14 @@ using Xunit;
 
 namespace NuGetGallery.FunctionalTests.XunitExtensions
 {
-	public class NeedsManyVersionsFactAttribute : FactAttribute
-	{
-		public NeedsManyVersionsFactAttribute()
-		{
-			if (!GalleryConfiguration.Instance.HasManyVersions)
-			{
-				Skip = "This test requires packages with many versions (100+).";
-			}
-		}
-	}
+    public class NeedsManyVersionsFactAttribute : FactAttribute
+    {
+        public NeedsManyVersionsFactAttribute()
+        {
+            if (!GalleryConfiguration.Instance.HasManyVersions)
+            {
+                Skip = "This test requires packages with many versions (100+).";
+            }
+        }
+    }
 }

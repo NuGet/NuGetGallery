@@ -7,45 +7,45 @@ using Xunit;
 
 namespace NuGetGallery.FunctionalTests.Playwright.UploadAndDownload
 {
-	public class UploadPackageToSelfFromUI : NuGetPageTest
-	{
-		[Fact]
-		[Priority(0)]
-		[Category("P0Tests")]
-		public async Task UploadNewPackageRegistrationAsSelf()
-		{
-			// Arrange
-			var packageId = UploadHelper.GetUniquePackageId();
+    public class UploadPackageToSelfFromUI : NuGetPageTest
+    {
+        [Fact]
+        [Priority(0)]
+        [Category("P0Tests")]
+        public async Task UploadNewPackageRegistrationAsSelf()
+        {
+            // Arrange
+            var packageId = UploadHelper.GetUniquePackageId();
             var owner = GalleryConfiguration.Instance.Account.Name;
 
             // Act
             await SignInAsync();
-			await UploadPackageAsync(packageId, "1.0.0", owner);
-			// Assert
-			await Expect(Page.Locator("h1")).ToContainTextAsync(packageId);
-			await Expect(Page.Locator(".package-title")).ToContainTextAsync("1.0.0");
-		}
+            await UploadPackageAsync(packageId, "1.0.0", owner);
+            // Assert
+            await Expect(Page.Locator("h1")).ToContainTextAsync(packageId);
+            await Expect(Page.Locator(".package-title")).ToContainTextAsync("1.0.0");
+        }
 
-		[Fact]
-		[Priority(0)]
-		[Category("P0Tests")]
-		public async Task UploadNewVersionOfExistingPackageAsSelf()
-		{
-			// Arrange
-			var packageId = UploadHelper.GetUniquePackageId();
+        [Fact]
+        [Priority(0)]
+        [Category("P0Tests")]
+        public async Task UploadNewVersionOfExistingPackageAsSelf()
+        {
+            // Arrange
+            var packageId = UploadHelper.GetUniquePackageId();
             var owner = GalleryConfiguration.Instance.Account.Name;
 
             // Act - Upload first version
             await SignInAsync();
-			await UploadPackageAsync(packageId, "1.0.0", owner);
+            await UploadPackageAsync(packageId, "1.0.0", owner);
 
-			// Act - Upload second version
-			await UploadPackageAsync(packageId, "2.0.0", owner: null);
+            // Act - Upload second version
+            await UploadPackageAsync(packageId, "2.0.0", owner: null);
 
-			// Assert
-			await Expect(Page.Locator("h1")).ToContainTextAsync(packageId);
-			await Expect(Page.Locator(".package-title")).ToContainTextAsync("2.0.0");
-		}
+            // Assert
+            await Expect(Page.Locator("h1")).ToContainTextAsync(packageId);
+            await Expect(Page.Locator(".package-title")).ToContainTextAsync("2.0.0");
+        }
 
         [Fact]
         [Priority(0)]

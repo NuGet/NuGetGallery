@@ -5,14 +5,14 @@ using Xunit;
 
 namespace NuGetGallery.FunctionalTests.XunitExtensions
 {
-	public class NeedsStatisticsServiceFactAttribute : FactAttribute
-	{
-		public NeedsStatisticsServiceFactAttribute()
-		{
-			if (!GalleryConfiguration.Instance.HasStatisticsService)
-			{
-				Skip = "This test requires a statistics service.";
-			}
-		}
-	}
+    public class NeedsStatisticsServiceFactAttribute : FactAttribute
+    {
+        public NeedsStatisticsServiceFactAttribute()
+        {
+            if (!GalleryConfiguration.Instance.HasStatisticsService)
+            {
+                Skip = "This test requires a statistics service.";
+            }
+        }
+    }
 }

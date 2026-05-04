@@ -5,14 +5,14 @@ using Xunit;
 
 namespace NuGetGallery.FunctionalTests.XunitExtensions
 {
-	public class NeedsSearchServiceTheoryAttribute : TheoryAttribute
-	{
-		public NeedsSearchServiceTheoryAttribute()
-		{
-			if (!GalleryConfiguration.Instance.HasSearchService)
-			{
-				Skip = "This test requires an external search service.";
-			}
-		}
-	}
+    public class NeedsSearchServiceTheoryAttribute : TheoryAttribute
+    {
+        public NeedsSearchServiceTheoryAttribute()
+        {
+            if (!GalleryConfiguration.Instance.HasSearchService)
+            {
+                Skip = "This test requires an external search service.";
+            }
+        }
+    }
 }
