@@ -6,6 +6,11 @@ on:
       - users/jver/gha
   workflow_dispatch:
 
+permissions:
+  checks: write
+  pull-requests: write
+  contents: read
+
 env:
   BuildConfiguration: Release
   CommonAssemblyVersion: '5.0.0'
