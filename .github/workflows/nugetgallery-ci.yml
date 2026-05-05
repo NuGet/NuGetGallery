@@ -123,11 +123,9 @@ jobs:
           fetch-depth: 1
 
       - name: Install Python 3.10
-        shell: pwsh
-        run: |
-          $pythonPath = (Get-Command python -ErrorAction SilentlyContinue).Source
-          Write-Host "Python: $pythonPath"
-          python --version
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
 
       - name: Install tools and run tests
         shell: cmd
@@ -139,6 +137,12 @@ jobs:
           poetry install
           poetry build
           poetry run pytest tests/ --cov loginterpretation --cov-report html
+
+      - name: Upload StatsLogParser artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: StatsLogParser
+          path: python/StatsLogParser/dist
 
   aspire:
     name: Aspire Functional Tests
