@@ -63,10 +63,11 @@ jobs:
 
       - name: Publish test results
         if: always()
-        uses: EnricoMi/publish-unit-test-result-action/windows@c950f6fb443cb5af20a377fd0dfaa78838901040 # v2.23.0
+        uses: dorny/test-reporter@a6ddd83ac95ff4586f5d3aceeb314d9a1841db95 # v3.0.0
         with:
-          files: Results.Common.*.xml
-          check_name: Common Test Results
+          name: Common Test Results
+          path: Results.Common.*.xml
+          reporter: dotnet-trx
 
   gallery:
     name: NuGetGallery build and test
@@ -111,10 +112,11 @@ jobs:
 
       - name: Publish test results
         if: always()
-        uses: EnricoMi/publish-unit-test-result-action/windows@c950f6fb443cb5af20a377fd0dfaa78838901040 # v2.23.0
+        uses: dorny/test-reporter@a6ddd83ac95ff4586f5d3aceeb314d9a1841db95 # v3.0.0
         with:
-          files: Results.Gallery.*.xml
-          check_name: Gallery Test Results
+          name: Gallery Test Results
+          path: Results.Gallery.*.xml
+          reporter: dotnet-trx
 
   jobs:
     name: NuGet.Jobs build and test
@@ -159,10 +161,11 @@ jobs:
 
       - name: Publish test results
         if: always()
-        uses: EnricoMi/publish-unit-test-result-action/windows@c950f6fb443cb5af20a377fd0dfaa78838901040 # v2.23.0
+        uses: dorny/test-reporter@a6ddd83ac95ff4586f5d3aceeb314d9a1841db95 # v3.0.0
         with:
-          files: Results.Jobs.*.xml
-          check_name: Jobs Test Results
+          name: Jobs Test Results
+          path: Results.Jobs.*.xml
+          reporter: dotnet-trx
 
   statslogparser:
     name: StatsLogParser build and test
@@ -203,10 +206,11 @@ jobs:
 
       - name: Publish test results
         if: always()
-        uses: EnricoMi/publish-unit-test-result-action/windows@c950f6fb443cb5af20a377fd0dfaa78838901040 # v2.23.0
+        uses: dorny/test-reporter@a6ddd83ac95ff4586f5d3aceeb314d9a1841db95 # v3.0.0
         with:
-          files: Results.StatsLogParser.xml
-          check_name: StatsLogParser Test Results
+          name: StatsLogParser Test Results
+          path: Results.StatsLogParser.xml
+          reporter: java-junit
 
   aspire:
     name: Aspire Functional Tests
@@ -285,10 +289,11 @@ jobs:
 
       - name: Publish test results
         if: always()
-        uses: EnricoMi/publish-unit-test-result-action/windows@c950f6fb443cb5af20a377fd0dfaa78838901040 # v2.23.0
+        uses: dorny/test-reporter@a6ddd83ac95ff4586f5d3aceeb314d9a1841db95 # v3.0.0
         with:
-          files: tests/TestResults/*.trx
-          check_name: Aspire Functional Test Results
+          name: Aspire Functional Test Results
+          path: tests/TestResults/*.trx
+          reporter: dotnet-trx
 
   artifacts:
     name: Build artifacts
