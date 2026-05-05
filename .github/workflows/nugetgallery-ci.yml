@@ -1,6 +1,13 @@
 name: NuGetGallery CI
 
 on:
+  pull_request:
+  push:
+    branches:
+      - dev
+      - main
+  schedule:
+    - cron: '0 12 * * 1-5' # Weekdays at 8 AM Eastern (UTC 12:00)
   workflow_dispatch:
 
 env:
