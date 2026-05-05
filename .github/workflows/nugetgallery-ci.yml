@@ -23,16 +23,6 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Cache NuGet packages
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.nuget/packages
-            packages
-          key: nuget-${{ hashFiles('**/*.csproj', '**/*.props', '**/*.targets', 'packages.config', 'NuGet.config') }}
-          restore-keys: |
-            nuget-
-
       - name: Build
         shell: pwsh
         run: |
@@ -67,16 +57,6 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Cache NuGet packages
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.nuget/packages
-            packages
-          key: nuget-${{ hashFiles('**/*.csproj', '**/*.props', '**/*.targets', 'packages.config', 'NuGet.config') }}
-          restore-keys: |
-            nuget-
-
       - name: Build
         shell: pwsh
         run: |
@@ -110,16 +90,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
-
-      - name: Cache NuGet packages
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.nuget/packages
-            packages
-          key: nuget-${{ hashFiles('**/*.csproj', '**/*.props', '**/*.targets', 'packages.config', 'NuGet.config') }}
-          restore-keys: |
-            nuget-
 
       - name: Build
         shell: pwsh
@@ -186,33 +156,9 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Cache NuGet packages
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.nuget/packages
-            packages
-          key: nuget-${{ hashFiles('**/*.csproj', '**/*.props', '**/*.targets', 'packages.config', 'NuGet.config') }}
-          restore-keys: |
-            nuget-
-
-      - name: Build Gallery
+      - name: Build AppHost
         shell: pwsh
-        run: |
-          $buildNumber = "${{ github.run_number }}"
-          $branch = "${{ github.ref_name }}" -replace '[_/]', '-'
-          .\build.ps1 `
-            -Configuration $env:BuildConfiguration `
-            -BuildNumber $buildNumber `
-            -SkipArtifacts -SkipCommon -SkipJobs `
-            -CommonAssemblyVersion $env:CommonAssemblyVersion `
-            -CommonPackageVersion "$env:CommonAssemblyVersion-$branch-$buildNumber" `
-            -GalleryAssemblyVersion $env:GalleryAssemblyVersion `
-            -GalleryPackageVersion "$env:GalleryAssemblyVersion-$branch-$buildNumber" `
-            -JobsAssemblyVersion $env:JobsAssemblyVersion `
-            -JobsPackageVersion "$env:JobsAssemblyVersion-$branch-$buildNumber" `
-            -Branch "${{ github.ref_name }}" `
-            -CommitSHA "${{ github.sha }}"
+        run: dotnet build src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj -c $env:BuildConfiguration
 
       - name: Setup Dev Environment
         shell: pwsh
@@ -276,16 +222,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
-
-      - name: Cache NuGet packages
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.nuget/packages
-            packages
-          key: nuget-${{ hashFiles('**/*.csproj', '**/*.props', '**/*.targets', 'packages.config', 'NuGet.config') }}
-          restore-keys: |
-            nuget-
 
       - name: Build
         shell: powershell

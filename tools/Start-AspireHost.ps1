@@ -23,7 +23,7 @@
     Default: Gallery HTTP, Aspire dashboard HTTP, Gallery HTTPS, Aspire dashboard HTTPS.
 
 .PARAMETER Timeout
-    Maximum seconds to wait for the first health URL to respond. Default: 300.
+    Maximum seconds to wait for the first health URL to respond. Default: 600.
 
 .PARAMETER TrustDevCert
     When set, exports the .NET dev certificate and imports it into the local machine trusted root store.
@@ -39,7 +39,7 @@ param(
 		"https://localhost/api/health-probe",
 		"https://localhost:17170"
 	),
-	[int]$Timeout = 300,
+	[int]$Timeout = 600,
 	[switch]$TrustDevCert
 )
 
