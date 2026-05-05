@@ -1,6 +1,9 @@
 name: NuGetGallery CI
 
 on:
+  push:
+    branches:
+      - users/jver/gha
   workflow_dispatch:
 
 env:
@@ -46,6 +49,20 @@ jobs:
             -BuildNumber ${{ github.run_number }} `
             -SkipGallery -SkipJobs
 
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-common
+          path: Results.Common.*.xml
+
+      - name: Publish test results
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action/windows@c950f6fb443cb5af20a377fd0dfaa78838901040 # v2.23.0
+        with:
+          files: Results.Common.*.xml
+          check_name: Common Test Results
+
   gallery:
     name: NuGetGallery build and test
     runs-on: windows-2025-vs2026
@@ -79,6 +96,20 @@ jobs:
             -Configuration $env:BuildConfiguration `
             -BuildNumber ${{ github.run_number }} `
             -SkipCommon -SkipJobs
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-gallery
+          path: Results.Gallery.*.xml
+
+      - name: Publish test results
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action/windows@c950f6fb443cb5af20a377fd0dfaa78838901040 # v2.23.0
+        with:
+          files: Results.Gallery.*.xml
+          check_name: Gallery Test Results
 
   jobs:
     name: NuGet.Jobs build and test
@@ -114,6 +145,20 @@ jobs:
             -BuildNumber ${{ github.run_number }} `
             -SkipCommon -SkipGallery
 
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-jobs
+          path: Results.Jobs.*.xml
+
+      - name: Publish test results
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action/windows@c950f6fb443cb5af20a377fd0dfaa78838901040 # v2.23.0
+        with:
+          files: Results.Jobs.*.xml
+          check_name: Jobs Test Results
+
   statslogparser:
     name: StatsLogParser build and test
     runs-on: windows-2025-vs2026
@@ -136,13 +181,27 @@ jobs:
           pipx install poetry
           poetry install
           poetry build
-          poetry run pytest tests/ --cov loginterpretation --cov-report html
+          poetry run pytest tests/ --cov loginterpretation --cov-report html --junitxml=../../Results.StatsLogParser.xml
 
       - name: Upload StatsLogParser artifact
         uses: actions/upload-artifact@v4
         with:
           name: StatsLogParser
           path: python/StatsLogParser/dist
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-statslogparser
+          path: Results.StatsLogParser.xml
+
+      - name: Publish test results
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action/windows@c950f6fb443cb5af20a377fd0dfaa78838901040 # v2.23.0
+        with:
+          files: Results.StatsLogParser.xml
+          check_name: StatsLogParser Test Results
 
   aspire:
     name: Aspire Functional Tests
@@ -211,6 +270,20 @@ jobs:
             Write-Host "=== Stopping Aspire Host ==="
             & "$repoRoot\tools\Stop-AspireHost.ps1" -HostPid $hostPid
           }
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-aspire
+          path: tests/TestResults/*.trx
+
+      - name: Publish test results
+        if: always()
+        uses: EnricoMi/publish-unit-test-result-action/windows@c950f6fb443cb5af20a377fd0dfaa78838901040 # v2.23.0
+        with:
+          files: tests/TestResults/*.trx
+          check_name: Aspire Functional Test Results
 
   artifacts:
     name: Build artifacts
