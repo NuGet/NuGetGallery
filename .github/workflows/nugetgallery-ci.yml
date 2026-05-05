@@ -2,9 +2,6 @@ name: NuGetGallery CI
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - users/jver/gha
 
 env:
   BuildConfiguration: Release
