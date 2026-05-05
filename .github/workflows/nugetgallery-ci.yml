@@ -238,14 +238,13 @@ jobs:
           fetch-depth: 1
 
       - name: Build
-        shell: pwsh
+        shell: powershell
         run: |
           $buildNumber = "${{ github.run_number }}"
           $branch = "${{ github.ref_name }}" -replace '[_/]', '-'
           .\build.ps1 `
             -Configuration $env:BuildConfiguration `
             -BuildNumber $buildNumber `
-            -SkipArtifacts `
             -CommonAssemblyVersion $env:CommonAssemblyVersion `
             -CommonPackageVersion "$env:CommonAssemblyVersion-$branch-$buildNumber" `
             -GalleryAssemblyVersion $env:GalleryAssemblyVersion `
