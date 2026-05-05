@@ -6,11 +6,6 @@ on:
       - users/jver/gha
   workflow_dispatch:
 
-permissions:
-  checks: write
-  pull-requests: write
-  contents: read
-
 env:
   BuildConfiguration: Release
   CommonAssemblyVersion: '5.0.0'
@@ -61,13 +56,6 @@ jobs:
           name: test-results-common
           path: Results.Common.*.xml
 
-      - name: Publish test results
-        if: always()
-        uses: dorny/test-reporter@a6ddd83ac95ff4586f5d3aceeb314d9a1841db95 # v3.0.0
-        with:
-          name: Common Test Results
-          path: Results.Common.*.xml
-          reporter: dotnet-trx
 
   gallery:
     name: NuGetGallery build and test
@@ -110,13 +98,6 @@ jobs:
           name: test-results-gallery
           path: Results.Gallery.*.xml
 
-      - name: Publish test results
-        if: always()
-        uses: dorny/test-reporter@a6ddd83ac95ff4586f5d3aceeb314d9a1841db95 # v3.0.0
-        with:
-          name: Gallery Test Results
-          path: Results.Gallery.*.xml
-          reporter: dotnet-trx
 
   jobs:
     name: NuGet.Jobs build and test
@@ -159,13 +140,6 @@ jobs:
           name: test-results-jobs
           path: Results.Jobs.*.xml
 
-      - name: Publish test results
-        if: always()
-        uses: dorny/test-reporter@a6ddd83ac95ff4586f5d3aceeb314d9a1841db95 # v3.0.0
-        with:
-          name: Jobs Test Results
-          path: Results.Jobs.*.xml
-          reporter: dotnet-trx
 
   statslogparser:
     name: StatsLogParser build and test
@@ -204,13 +178,6 @@ jobs:
           name: test-results-statslogparser
           path: Results.StatsLogParser.xml
 
-      - name: Publish test results
-        if: always()
-        uses: dorny/test-reporter@a6ddd83ac95ff4586f5d3aceeb314d9a1841db95 # v3.0.0
-        with:
-          name: StatsLogParser Test Results
-          path: Results.StatsLogParser.xml
-          reporter: java-junit
 
   aspire:
     name: Aspire Functional Tests
@@ -287,13 +254,6 @@ jobs:
           name: test-results-aspire
           path: tests/TestResults/*.trx
 
-      - name: Publish test results
-        if: always()
-        uses: dorny/test-reporter@a6ddd83ac95ff4586f5d3aceeb314d9a1841db95 # v3.0.0
-        with:
-          name: Aspire Functional Test Results
-          path: tests/TestResults/*.trx
-          reporter: dotnet-trx
 
   artifacts:
     name: Build artifacts
