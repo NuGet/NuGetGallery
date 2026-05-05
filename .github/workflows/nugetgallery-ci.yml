@@ -245,6 +245,7 @@ jobs:
           .\build.ps1 `
             -Configuration $env:BuildConfiguration `
             -BuildNumber $buildNumber `
+            -SkipArtifacts `
             -CommonAssemblyVersion $env:CommonAssemblyVersion `
             -CommonPackageVersion "$env:CommonAssemblyVersion-$branch-$buildNumber" `
             -GalleryAssemblyVersion $env:GalleryAssemblyVersion `
