@@ -27,10 +27,12 @@ namespace NuGetGallery
                 new { controller = "Pages", action = "EmptyHome" });
             }
 
-            if (adminApiEnabled)
-            {
-                RegisterAdminApiRoutes(routes);
-            }
+            //if (adminApiEnabled)
+            //{
+            //    RegisterAdminApiRoutes(routes);
+            //}
+
+            RegisterAdminApiRoutes(routes);
 
             RegisterApiV2Routes(routes);
         }
@@ -897,25 +899,25 @@ namespace NuGetGallery
         public static void RegisterAdminApiRoutes(RouteCollection routes)
         {
             routes.MapRoute(
-                RouteName.AdminReflow,
+                RouteName.AdminReflowPackage,
                 "api/admin/reflow-package",
                 new { controller = "AdminApi", action = "ReflowPackage" },
                 new { httpMethod = new HttpMethodConstraint("POST") });
 
             routes.MapRoute(
-                RouteName.AdminReflow,
+                RouteName.AdminLockPackage,
                 "api/admin/lock-package",
                 new { controller = "AdminApi", action = "LockPackage" },
                 new { httpMethod = new HttpMethodConstraint("POST") });
 
             routes.MapRoute(
-                RouteName.AdminReflow,
+                RouteName.AdminLockUser,
                 "api/admin/lock-user",
                 new { controller = "AdminApi", action = "LockUser" },
                 new { httpMethod = new HttpMethodConstraint("POST") });
 
             routes.MapRoute(
-                RouteName.AdminReflow,
+                RouteName.AdminSoftDeletePackage,
                 "api/admin/soft-delete-package",
                 new { controller = "AdminApi", action = "SoftDeletePackage" },
                 new { httpMethod = new HttpMethodConstraint("POST") });
