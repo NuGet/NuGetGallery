@@ -499,7 +499,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                Assert.Equal(Strings.UploadPackage_PackageIdNormalizationInvalid, result.Message.PlainTextMessage);
+                Assert.Equal(Strings.UploadPackage_PackageIdInvalid, result.Message.PlainTextMessage);
             }
 
             [Theory]

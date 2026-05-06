@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -130,7 +130,7 @@
     <value>The package manifest contains an invalid Dependency: '{0} {1}'</value>
   </data>
   <data name="Manifest_InvalidId" xml:space="preserve">
-    <value>The package manifest contains an invalid ID: '{0}'</value>
+    <value>The package manifest contains an invalid ID: '{0}'. The package ID must only contain alphanumeric characters, periods, hyphens and underscores.</value>
   </data>
   <data name="Manifest_InvalidMinClientVersion" xml:space="preserve">
     <value>The package manifest contains an invalid Minimum Client Version: '{0}'</value>

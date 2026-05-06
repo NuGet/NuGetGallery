@@ -11,22 +11,46 @@ namespace NuGetGallery.Packaging
     public static class PackageIdValidator
     {
         private static readonly Regex IdRegex = RegexEx.CreateWithTimeout(
+            @"^[A-Za-z0-9_]+([.-][A-Za-z0-9_]+)*$",
+            RegexOptions.ExplicitCapture);
+
+        private static readonly Regex IdRegexForRead = RegexEx.CreateWithTimeout(
             @"^\w+([.-]\w+)*$",
             RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture);
 
         public static bool IsValidPackageId(string packageId)
+        {
+            if (!IsValid(packageId))
+            {
+                return false;
+            }
+
+            return IdRegex.IsMatch(packageId);
+        }
+
+        public static bool IsValidPackageIdForRead(string packageId)
+        {
+            if (!IsValid(packageId))
+            {
+                return false;
+            }
+
+            return IdRegexForRead.IsMatch(packageId);
+        }
+
+        private static bool IsValid(string packageId)
         {
             if (packageId == null)
             {
                 throw new ArgumentNullException(nameof(packageId));
             }
 
-            if (String.Equals(packageId, "$id$", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(packageId, "$id$", StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }
 
-            return IdRegex.IsMatch(packageId);
+            return true;
         }
 
         public static void ValidatePackageId(string packageId)
