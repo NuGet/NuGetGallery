@@ -67,7 +67,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             _maxConcurrentBatches = Convert.ToInt32(Math.Ceiling(squareRoot));
             _maxConcurrentCommitItemsWithinBatch = Convert.ToInt32(maxDegreeOfParallelism / _maxConcurrentBatches);
 
-            ServicePointManager.DefaultConnectionLimit = _maxConcurrentBatches * _maxConcurrentCommitItemsWithinBatch;
+            CatalogParallelism.Degree = _maxConcurrentBatches * _maxConcurrentCommitItemsWithinBatch;
         }
 
         protected override Task<IEnumerable<CatalogCommitItemBatch>> CreateBatchesAsync(
