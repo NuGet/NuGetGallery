@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -135,7 +135,7 @@ namespace NuGetGallery.Packaging
                                 dependency.Id));
                         }
 
-                        if (!PackageIdValidator.IsValidPackageId(dependency.Id))
+                        if (!PackageIdValidator.IsValidPackageIdForRead(dependency.Id))
                         {
                             yield return new ValidationResult(String.Format(
                                 CultureInfo.CurrentCulture,

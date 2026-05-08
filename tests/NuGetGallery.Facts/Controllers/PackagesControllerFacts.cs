@@ -7293,7 +7293,8 @@ namespace NuGetGallery
                 var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
 
                 Assert.NotNull(result);
-                Assert.Equal($"The package manifest contains an invalid ID: '{packageId}'", ((JsonValidationMessage[]) result.Data)[0].PlainTextMessage);
+                Assert.Equal($"The package manifest contains an invalid ID: '{packageId}'. The package ID must only contain alphanumeric characters, periods, hyphens and underscores.",
+                    ((JsonValidationMessage[]) result.Data)[0].PlainTextMessage);
             }
 
             [Theory]

@@ -3084,6 +3084,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The package ID must only contain alphanumeric characters, periods, hyphens and underscores..
+        /// </summary>
+        public static string UploadPackage_PackageIdInvalid {
+            get {
+                return ResourceManager.GetString("UploadPackage_PackageIdInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The package ID must be Unicode normalized, must not contain surrogate pairs, and must not expand or create invalid characters when converted to upper or lower case..
         /// </summary>
         public static string UploadPackage_PackageIdNormalizationInvalid {

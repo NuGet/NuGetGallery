@@ -480,6 +480,10 @@ namespace NuGetGallery
             [Theory]
             [InlineData("Test.\U0001F600")] // surrogate pair
             [InlineData("Test.\u212A")] // maps to ASCII with Invariant
+            [InlineData("Caf\u00E9.Package")]
+            [InlineData("My_P\u00F6ckage-Test")]
+            [InlineData("Test.\u00DF")] // case expanding in some locales, but not Invariant
+            [InlineData("Test.\u017F")] // case mapping to ASCII in some locales, but not Invariant
             public async Task RejectsInvalidPackage(string id)
             {
                 // Arrange
@@ -499,7 +503,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                Assert.Equal(Strings.UploadPackage_PackageIdNormalizationInvalid, result.Message.PlainTextMessage);
+                Assert.Equal(Strings.UploadPackage_PackageIdInvalid, result.Message.PlainTextMessage);
             }
 
             [Theory]
@@ -521,33 +525,7 @@ namespace NuGetGallery
                 });
             }
 
-            [Theory]
-            [InlineData("NuGet.Versioning")]
-            [InlineData("Caf\u00E9.Package")]
-            [InlineData("My_P\u00F6ckage-Test")]
-            [InlineData("Test.\u00DF")] // case expanding in some locales, but not Invariant
-            [InlineData("Test.\u017F")] // case mapping to ASCII in some locales, but not Invariant
-            public async Task WithValidNonAsciiPackageId_ReturnsNull(string id)
-            {
-                // Arrange - using valid non-ASCII characters (é, ö, ü) that don't trigger vulnerabilities
-                var packageStream = PackageServiceUtility.CreateNuGetPackageStream(
-                    id: id,
-                    version: "1.0.0",
-                    licenseUrl: new Uri("https://licenses.nuget.org/MIT"),
-                    licenseExpression: "MIT",
-                    isSigned: true);
-                var package = PackageServiceUtility.CreateNuGetPackage(packageStream);
 
-                // Act
-                var result = await _target.ValidateMetadataBeforeUploadAsync(
-                    package.Object,
-                    GetPackageMetadata(package),
-                    _currentUser);
-
-                // Assert
-                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
-                Assert.Null(result.Message);
-            }
 
             [Theory]
             [InlineData("duplicatedFile.txt", "duplicatedFile.txt")]

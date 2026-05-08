@@ -16,22 +16,7 @@ namespace NuGetGallery.Packaging
         [InlineData("Nu_Get.Core-IsCool")]
         public void ValidatePackageIdWithValidIdReturnsTrue(string packageId)
         {
-            // Act
-            bool isValid = PackageIdValidator.IsValidPackageId(packageId);
-
-            // Assert
-            Assert.True(isValid);
-        }
-
-        [Fact]
-        public void NullThrowsException()
-        {
-            // Arrange
-            string packageId = null;
-
-            // Act & Assert
-            Assert.Throws<ArgumentNullException>("packageId",
-                () => PackageIdValidator.IsValidPackageId(packageId));
+            Assert.True(PackageIdValidator.IsValidPackageId(packageId));
         }
 
         [Theory]
@@ -44,13 +29,54 @@ namespace NuGetGallery.Packaging
         [InlineData("$id$")]
         [InlineData("Contains#Invalid$Characters!@#$%^&*")]
         [InlineData("Contains#Invalid$Characters!@#$%^&*EndsOnValidCharacter")]
-        public void ValidatePackageIdInvalidIdReturnsFalse(string packageId)
+        [InlineData("páckage")]
+        [InlineData("packagé")]
+        [InlineData("пакет")]
+        [InlineData("パッケージ")]
+        [InlineData("pacKage")]
+        public void ValidatePackageIdWithInvalidIdReturnsFalse(string packageId)
         {
-            // Act
-            bool isValid = PackageIdValidator.IsValidPackageId(packageId);
+            Assert.False(PackageIdValidator.IsValidPackageId(packageId));
+        }
 
-            // Assert
-            Assert.False(isValid);
+        [Theory]
+        [InlineData("42This1Is4You")]
+        [InlineData("I.Like.Writing.Unit.Tests")]
+        [InlineData("1.2.3.4.Uno.Dos.Tres.Cuatro")]
+        [InlineData("Nu_Get.Core-IsCool")]
+        [InlineData("páckage")]
+        [InlineData("packagé")]
+        [InlineData("пакет")]
+        [InlineData("パッケージ")]
+        public void ValidatePackageIdForReadWithValidIdReturnsTrue(string packageId)
+        {
+            Assert.True(PackageIdValidator.IsValidPackageIdForRead(packageId));
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("ILike*Asterisks")]
+        [InlineData("I_.Like.-Separators")]
+        [InlineData("-StartWithSeparator")]
+        [InlineData("EndWithSeparator.")]
+        [InlineData("EndsWithHyphen-")]
+        [InlineData("$id$")]
+        [InlineData("Contains#Invalid$Characters!@#$%^&*")]
+        [InlineData("Contains#Invalid$Characters!@#$%^&*EndsOnValidCharacter")]
+        public void ValidatePackageIdForReadWithInvalidIdReturnsFalse(string packageId)
+        {
+            Assert.False(PackageIdValidator.IsValidPackageIdForRead(packageId));
+        }
+
+        [Fact]
+        public void NullThrowsException()
+        {
+            // Arrange
+            string packageId = null;
+
+            // Act & Assert
+            Assert.Throws<ArgumentNullException>("packageId", () => PackageIdValidator.IsValidPackageId(packageId));
+            Assert.Throws<ArgumentNullException>("packageId", () => PackageIdValidator.IsValidPackageIdForRead(packageId));
         }
 
         [Theory]

@@ -259,7 +259,7 @@ namespace NuGetGallery
             if (!NuGet.Packaging.PackageIdValidator.IsValidPackageId(packageId)
                 || !NuGetGallery.Packaging.PackageIdValidator.IsValidPackageId(packageId))
             {
-                return PackageValidationResult.Invalid(Strings.UploadPackage_PackageIdNormalizationInvalid);
+                return PackageValidationResult.Invalid(Strings.UploadPackage_PackageIdInvalid);
             }
 
             // reject package IDs that normalize using Form C to different strings
