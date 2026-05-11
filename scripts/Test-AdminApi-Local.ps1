@@ -57,7 +57,7 @@ public class TrustAllCertsPolicy : ICertificatePolicy {
     }
 }
 
-$endpoint = "$BaseUrl/api/admin/reflow"
+$endpoint = "$BaseUrl/api/admin/reflow-package"
 
 function Invoke-AdminApi {
     param (

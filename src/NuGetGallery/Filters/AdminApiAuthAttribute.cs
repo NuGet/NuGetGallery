@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using Microsoft.IdentityModel.JsonWebTokens;
+using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
@@ -117,6 +118,9 @@ namespace NuGetGallery.Filters
             };
 
             tokenValidationParameters.EnableAadSigningKeyIssuerValidation();
+
+            IdentityModelEventSource.ShowPII = true;
+            IdentityModelEventSource.LogCompleteSecurityArtifact = true;
 
             TokenValidationResult validationResult;
             try
