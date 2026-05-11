@@ -27,12 +27,10 @@ namespace NuGetGallery
                 new { controller = "Pages", action = "EmptyHome" });
             }
 
-            //if (adminApiEnabled)
-            //{
-            //    RegisterAdminApiRoutes(routes);
-            //}
-
-            RegisterAdminApiRoutes(routes);
+            if (adminApiEnabled)
+            {
+                RegisterAdminApiRoutes(routes);
+            }
 
             RegisterApiV2Routes(routes);
         }
