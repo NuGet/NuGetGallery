@@ -119,8 +119,10 @@ namespace NuGetGallery.Filters
 
             tokenValidationParameters.EnableAadSigningKeyIssuerValidation();
 
+#if DEBUG
             IdentityModelEventSource.ShowPII = true;
             IdentityModelEventSource.LogCompleteSecurityArtifact = true;
+#endif
 
             TokenValidationResult validationResult;
             try
