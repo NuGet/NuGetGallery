@@ -413,10 +413,5 @@ namespace GitHubVulnerabilities2Db.Gallery
         {
             throw new NotImplementedException();
         }
-
-        public void TrackAdminApiReflow(int packageCount, int acceptedCount, string reason, string callerAppId)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

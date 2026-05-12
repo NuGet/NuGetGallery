@@ -5,17 +5,17 @@ using System.Collections.Generic;
 
 namespace NuGetGallery.Areas.Admin.Models
 {
-	public class AdminReflowPackageRequest
-	{
-		public List<AdminReflowPackageIdentity> Packages { get; set; }
+    public class AdminReflowPackageRequest
+    {
+        public List<AdminReflowPackageIdentity> Packages { get; set; }
 
-		public string Reason { get; set; }
-	}
+        public string Reason { get; set; }
+    }
 
-	public class AdminReflowPackageIdentity
-	{
-		public string Id { get; set; }
+    public class AdminReflowPackageIdentity
+    {
+        public string Id { get; set; }
 
-		public string Version { get; set; }
-	}
+        public string Version { get; set; }
+    }
 }
