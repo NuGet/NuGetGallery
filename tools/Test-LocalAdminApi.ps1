@@ -27,8 +27,8 @@
     testing when the auth filter is temporarily disabled for local dev.
 
 .EXAMPLE
-    .\Test-AdminApi-Local.ps1 -BaseUrl https://localhost -SkipAuth
-    .\Test-AdminApi-Local.ps1 -BearerToken (az account get-access-token --resource api://nuget-admin-api --query accessToken -o tsv)
+    .\Test-LocalAdminApi.ps1 -BaseUrl https://localhost -SkipAuth
+    .\Test-LocalAdminApi.ps1 -BearerToken (az account get-access-token --resource api://nuget-admin-api --query accessToken -o tsv)
 #>
 [CmdletBinding()]
 param (
