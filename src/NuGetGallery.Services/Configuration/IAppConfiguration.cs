@@ -120,18 +120,18 @@ namespace NuGetGallery.Configuration
         bool AdminPanelDatabaseAccessEnabled { get; set; }
 
         /// <summary>
-        /// Indicates whether the Geneva-only Admin API is enabled.
+        /// Indicates whether the Admin API is enabled.
         /// </summary>
         bool AdminApiEnabled { get; set; }
 
         /// <summary>
-        /// The Entra ID audience URI for Geneva Admin API JWT validation.
+        /// The Entra ID audience URI for Admin API JWT validation.
         /// </summary>
         string AdminApiAudience { get; set; }
 
         /// <summary>
         /// Semicolon-separated list of allowed callers in "tid:appid" format
-        /// for the Geneva Admin API.
+        /// for the Admin API.
         /// </summary>
         string AdminApiAllowedCallers { get; set; }
 

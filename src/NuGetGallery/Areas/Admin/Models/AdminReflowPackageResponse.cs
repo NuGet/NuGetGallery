@@ -5,24 +5,24 @@ using System.Collections.Generic;
 
 namespace NuGetGallery.Areas.Admin.Models
 {
-	public class AdminReflowPackageResponse
-	{
-		public List<AdminReflowPackageResult> Results { get; set; }
-	}
+    public class AdminReflowPackageResponse
+    {
+        public List<AdminReflowPackageResult> Results { get; set; }
+    }
 
-	public class AdminReflowPackageResult
-	{
-		public string Id { get; set; }
+    public class AdminReflowPackageResult
+    {
+        public string Id { get; set; }
 
-		public string Version { get; set; }
+        public string Version { get; set; }
 
-		public string Status { get; set; }
-	}
+        public string Status { get; set; }
+    }
 
-	public static class AdminReflowPackageStatus
-	{
-		public const string Accepted = "accepted";
-		public const string NotFound = "notFound";
-		public const string Invalid = "invalid";
-	}
+    public static class AdminReflowPackageStatus
+    {
+        public const string Accepted = "accepted";
+        public const string NotFound = "notFound";
+        public const string Invalid = "invalid";
+    }
 }
