@@ -197,6 +197,7 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    pionehelper 1.0.2                         |    04/10/2026    |   Malware  |
 |    pionehelper 1.0.3                         |    04/10/2026    |   Malware  |
 |    Nova.GtkSharp 1.0.0.1-nova                |    04/10/2026    |   Malware  |
+|    IR.Infrastructure.DataService.Core 2.1.57 |    05/07/2026    |   Potentially Malicious  |
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.
