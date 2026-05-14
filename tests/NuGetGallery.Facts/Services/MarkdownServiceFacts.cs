@@ -78,7 +78,6 @@ namespace NuGetGallery
             [InlineData("## License\n\tLicensed under the Apache License, Version 2.0 (the \"License\");", "<h3 id=\"license\">License</h3>\n<pre><code>Licensed under the Apache License, Version 2.0 (the \"License\");\n</code></pre>")]
             public void ConvertsMarkdownToHtml(string originalMd, string expectedHtml)
             {
-                _featureFlagService.Setup(x => x.IsImageAllowlistEnabled()).Returns(false);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
             }

@@ -51,7 +51,6 @@ namespace NuGetGallery
         private const string DisplayUploadWarningV2FlightName = GalleryPrefix + "DisplayUploadWarningV2";
         private const string DisplayPackageReadmeWarningFlightName = GalleryPrefix + "DisplayPackageReadmeWarning";
         private const string DeletePackageApiFlightName = GalleryPrefix + "DeletePackageApi";
-        private const string ImageAllowlistFlightName = GalleryPrefix + "ImageAllowlist";
         private const string DisplayBannerFlightName = GalleryPrefix + "Banner";
         private const string ShowReportAbuseSafetyChanges = GalleryPrefix + "ShowReportAbuseSafetyChanges";
         private const string AllowAadContentSafetyReports = GalleryPrefix + "AllowAadContentSafetyReports";
@@ -379,11 +378,6 @@ namespace NuGetGallery
         public bool IsDeletePackageApiEnabled(User user)
         {
             return _client.IsEnabled(DeletePackageApiFlightName, user, defaultValue: false);
-        }
-
-        public bool IsImageAllowlistEnabled()
-        {
-            return _client.IsEnabled(ImageAllowlistFlightName, defaultValue: false);
         }
 
         public bool IsDisplayBannerEnabled()

@@ -30,7 +30,6 @@
     "NuGetGallery.PatternSetTfmHeuristics": "Enabled",
     "NuGetGallery.EmbeddedIcons": "Enabled",
     "NuGetGallery.MarkdigMdSyntaxHighlight": "Enabled",
-    "NuGetGallery.ImageAllowlist": "Enabled",
     "NuGetGallery.ShowReportAbuseSafetyChanges": "Enabled",
     "NuGetGallery.ComputeTargetFramework": "Enabled",
     "NuGetGallery.NewAccount2FAEnforcement": "Disabled",

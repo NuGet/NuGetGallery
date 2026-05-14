@@ -95,11 +95,6 @@ namespace GitHubVulnerabilities2Db.Fakes
             throw new NotImplementedException();
         }
 
-        public bool IsImageAllowlistEnabled()
-        {
-            throw new NotImplementedException();
-        }
-
         public bool IsLicenseMdRenderingEnabled(User user)
         {
             throw new NotImplementedException();

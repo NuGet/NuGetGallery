@@ -295,11 +295,6 @@ namespace NuGetGallery
         bool IsDeletePackageApiEnabled(User user);
 
         /// <summary>
-        /// Whether the allowlist is enabled for checking the image sources
-        /// </summary>
-        bool IsImageAllowlistEnabled();
-
-        /// <summary>
         /// Whether or not display the banner on nuget.org
         /// </summary>
         bool IsDisplayBannerEnabled();
