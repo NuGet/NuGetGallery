@@ -4,9 +4,6 @@
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
-using System.Web;
-using CommonMark;
-using CommonMark.Syntax;
 using Ganss.Xss;
 using Markdig;
 using Markdig.Extensions.AutoIdentifiers;
@@ -22,8 +19,6 @@ namespace NuGetGallery
     public class MarkdownService : IMarkdownService
     {
         private static readonly TimeSpan RegexTimeout = TimeSpan.FromMinutes(1);
-        private static readonly Regex EncodedBlockQuotePattern = new Regex("^ {0,3}&gt;", RegexOptions.Multiline, RegexTimeout);
-        private static readonly Regex LinkPattern = new Regex("<a href=([\"\']).*?\\1", RegexOptions.None, RegexTimeout);
         private static readonly Regex HtmlCommentPattern = new Regex("<!--.*?-->", RegexOptions.Singleline, RegexTimeout);
         private static readonly Regex ImageTextPattern = new Regex("!\\[\\]\\(", RegexOptions.Singleline, RegexTimeout);
         private static readonly string AltTextForImage = "alternate text is missing from this package README image";
@@ -66,15 +61,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(markdownString));
             }
 
-
-            if (_features.IsMarkdigMdRenderingEnabled()) 
-            { 
-                return GetHtmlFromMarkdownMarkdig(markdownString, 1);
-            }
-            else
-            {
-                return GetHtmlFromMarkdownCommonMark(markdownString, 1);
-            }
+            return GetHtmlFromMarkdownMarkdig(markdownString, 1);
         }
 
         public RenderedMarkdownResult GetHtmlFromMarkdown(string markdownString, int incrementHeadersBy)
@@ -89,127 +76,7 @@ namespace NuGetGallery
                 throw new ArgumentOutOfRangeException(nameof(incrementHeadersBy), $"{nameof(incrementHeadersBy)} must be greater than or equal to 0");
             }
 
-            if (_features.IsMarkdigMdRenderingEnabled())
-            {
-                return GetHtmlFromMarkdownMarkdig(markdownString, incrementHeadersBy);
-            }
-            else
-            {
-                return GetHtmlFromMarkdownCommonMark(markdownString, incrementHeadersBy);
-            }
-        }
-
-        private RenderedMarkdownResult GetHtmlFromMarkdownCommonMark(string markdownString, int incrementHeadersBy)
-        {
-            var output = new RenderedMarkdownResult()
-            {
-                ImagesRewritten = false,
-                Content = "",
-                ImageSourceDisallowed = false,
-                IsMarkdigMdSyntaxHighlightEnabled = false
-            };
-
-            var markdownWithoutComments = HtmlCommentPattern.Replace(markdownString, "");
-
-            var markdownWithoutBom = markdownWithoutComments.StartsWith("\ufeff") ? markdownWithoutComments.Replace("\ufeff", "") : markdownWithoutComments;
-
-            // HTML encode markdown, except for block quotes, to block inline html.
-            var encodedMarkdown = EncodedBlockQuotePattern.Replace(HttpUtility.HtmlEncode(markdownWithoutBom), "> ");
-
-            var settings = CommonMarkSettings.Default.Clone();
-
-            // Parse executes CommonMarkConverter's ProcessStage1 and ProcessStage2.
-            var document = CommonMarkConverter.Parse(encodedMarkdown, settings);
-            foreach (var node in document.AsEnumerable())
-            {
-                if (node.IsOpening)
-                {
-                    var block = node.Block;
-                    if (block != null)
-                    {
-                        switch (block.Tag)
-                        {
-                            // Demote heading tags so they don't overpower expander headings.
-                            case BlockTag.AtxHeading:
-                            case BlockTag.SetextHeading:
-                                var level = (byte)Math.Min(block.Heading.Level + incrementHeadersBy, 6);
-                                block.Heading = new HeadingData(level);
-                                break;
-
-                            // Decode preformatted blocks to prevent double encoding.
-                            // Skip BlockTag.BlockQuote, which are partially decoded upfront.
-                            case BlockTag.FencedCode:
-                            case BlockTag.IndentedCode:
-                                if (block.StringContent != null)
-                                {
-                                    var content = block.StringContent.TakeFromStart(block.StringContent.Length);
-                                    var unencodedContent = HttpUtility.HtmlDecode(content);
-                                    block.StringContent.Replace(unencodedContent, 0, unencodedContent.Length);
-                                }
-                                break;
-                        }
-                    }
-
-                    var inline = node.Inline;
-                    if (inline != null)
-                    {
-                        if (inline.Tag == InlineTag.Link)
-                        {
-                            // Allow only http or https links in markdown. Transform link to https for known domains.
-                            if (!PackageHelper.TryPrepareUrlForRendering(inline.TargetUrl, out string readyUriString))
-                            {
-                                inline.TargetUrl = string.Empty;
-                            }
-                            else
-                            {
-                                inline.TargetUrl = readyUriString;
-                            }
-                        }
-
-                        else if (inline.Tag == InlineTag.Image)
-                        {
-                            if (_features.IsImageAllowlistEnabled())
-                            {
-                                if (!_imageDomainValidator.TryPrepareImageUrlForRendering(inline.TargetUrl, out string readyUriString))
-                                {
-                                    inline.TargetUrl = string.Empty;
-                                    output.ImageSourceDisallowed = true;
-                                }
-                                else
-                                {
-                                    output.ImagesRewritten = output.ImagesRewritten || (inline.TargetUrl != readyUriString);
-                                    inline.TargetUrl = readyUriString;
-                                }
-                            }
-                            else
-                            {
-                                if (!PackageHelper.TryPrepareUrlForRendering(inline.TargetUrl, out string readyUriString, rewriteAllHttp: true))
-                                {
-                                    inline.TargetUrl = string.Empty;
-                                }
-                                else
-                                {
-                                    output.ImagesRewritten = output.ImagesRewritten || (inline.TargetUrl != readyUriString);
-                                    inline.TargetUrl = readyUriString;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            output.IsMarkdigMdSyntaxHighlightEnabled = _features.IsMarkdigMdSyntaxHighlightEnabled();
-
-            // CommonMark.Net does not support link attributes, so manually inject nofollow.
-            using (var htmlWriter = new StringWriter())
-            {
-                CommonMarkConverter.ProcessStage3(document, htmlWriter, settings);
-                string htmlContent = htmlWriter.ToString();
-                htmlContent = SanitizeText(htmlContent);
-                output.Content = LinkPattern.Replace(htmlContent, "$0" + " rel=\"noopener noreferrer nofollow\"").Trim();
-
-                return output;
-            }
+            return GetHtmlFromMarkdownMarkdig(markdownString, incrementHeadersBy);
         }
 
         private RenderedMarkdownResult GetHtmlFromMarkdownMarkdig(string markdownString, int incrementHeadersBy)
