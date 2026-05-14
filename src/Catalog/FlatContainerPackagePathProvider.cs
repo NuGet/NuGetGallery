@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -27,6 +27,9 @@ namespace NuGet.Services.Metadata.Catalog
                 throw new ArgumentNullException(nameof(version));
             }
 
+            Utils.AssertValidPackageId(id);
+            Utils.AssertValidPackageVersion(version);
+
             var idLowerCase = id.ToLowerInvariant();
             var versionLowerCase = NuGetVersionUtility.NormalizeVersion(version).ToLowerInvariant();
             var packageFileName = PackageUtility.GetPackageFileName(idLowerCase, versionLowerCase);
@@ -50,6 +53,9 @@ namespace NuGet.Services.Metadata.Catalog
             {
                 throw new ArgumentNullException(nameof(version));
             }
+
+            Utils.AssertValidPackageId(id);
+            Utils.AssertValidPackageVersion(version);
 
             var idLowerCase = id.ToLowerInvariant();
 

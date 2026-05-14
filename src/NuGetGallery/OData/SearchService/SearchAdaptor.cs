@@ -202,7 +202,17 @@ namespace NuGetGallery.OData
             }
 
             packages = packages.Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevelPredicate(semVerLevel));
-    
+
+            // Handle packageid: prefix for exact package ID matching.
+            // SQL Server uses case-insensitive collation by default, so a simple equality check
+            // gives us the case-insensitive exact match that packageid: semantics require.
+            if (searchTerm != null && searchTerm.StartsWith("packageid:", StringComparison.OrdinalIgnoreCase))
+            {
+                var packageId = searchTerm.Substring("packageid:".Length).Trim();
+                return new SearchAdaptorResult(false,
+                    packages.Where(p => p.PackageRegistration.Id == packageId));
+            }
+
             return new SearchAdaptorResult(false, packages.Search(searchTerm));
         }
 

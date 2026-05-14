@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -98,6 +98,11 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Add(AddOrganizationViewModel model)
         {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
             var organizationName = model.OrganizationName;
             var organizationEmailAddress = model.OrganizationEmailAddress;
             var adminUser = GetCurrentUser();

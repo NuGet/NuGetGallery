@@ -74,7 +74,10 @@ namespace NuGetGallery
         {
             var dependencies = package.Dependencies.ToList();
 
-            viewModel.Dependencies = new DependencySetsViewModel(dependencies);
+            // Check if the package is a .NET Tool to pass to the DependencySetsViewModel
+            var isDotnetTool = package.PackageTypes.Any(e => e.Name.Equals("DotnetTool", StringComparison.OrdinalIgnoreCase));
+
+            viewModel.Dependencies = new DependencySetsViewModel(dependencies, isDotnetTool);
 
             var packageHistory = allVersions
                 .OrderByDescending(p => new NuGetVersion(p.Version))
@@ -108,7 +111,7 @@ namespace NuGetGallery
                 viewModel.DownloadsPerDayLabel = viewModel.DownloadsPerDay < 1 ? "<1" : viewModel.DownloadsPerDay.ToNuGetNumberString();
 
                 // Lazily load the package types from the database.
-                viewModel.IsDotnetToolPackageType = package.PackageTypes.Any(e => e.Name.Equals("DotnetTool", StringComparison.OrdinalIgnoreCase));
+                viewModel.IsDotnetToolPackageType = isDotnetTool;
                 viewModel.IsDotnetNewTemplatePackageType = package.PackageTypes.Any(e => e.Name.Equals("Template", StringComparison.OrdinalIgnoreCase));
                 viewModel.IsMSBuildSdkPackageType = package.PackageTypes.Any(e => e.Name.Equals("MSBuildSdk", StringComparison.OrdinalIgnoreCase));
                 viewModel.IsMcpServerPackageType = package.PackageTypes.Any(e => e.Name.Equals(McpHelper.McpServerPackageTypeName, StringComparison.OrdinalIgnoreCase));

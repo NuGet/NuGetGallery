@@ -23,6 +23,13 @@ namespace GalleryTools
             commandLineApplication.Command("verifyapikey", VerifyApiKeyCommand.Configure);
             commandLineApplication.Command("updateIsLatest", UpdateIsLatestCommand.Configure);
             commandLineApplication.Command("reservenamespaces", ReserveNamespacesCommand.Configure);
+            commandLineApplication.Command("createuser", CreateUserCommand.Configure);
+            commandLineApplication.Command("pushpackage", PushPackageCommand.Configure);
+            commandLineApplication.Command("createapikey", CreateApiKeyCommand.Configure);
+            commandLineApplication.Command("createorganization", CreateOrganizationCommand.Configure);
+            commandLineApplication.Command("seedfunctionaltests", SeedFunctionalTestsCommand.Configure);
+            commandLineApplication.Command("seedsinglepackage", SeedSinglePackageCommand.Configure);
+            commandLineApplication.Command("validatepackageids", ValidatePackageIdsCommand.Configure);
 
             try
             {

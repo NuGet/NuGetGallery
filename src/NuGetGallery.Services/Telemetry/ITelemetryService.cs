@@ -92,7 +92,7 @@ namespace NuGetGallery
         /// <summary>
         /// A telemetry event emitted when a user package delete is executed.
         /// </summary>
-        void TrackUserPackageDeleteExecuted(int packageKey, string packageId, string packageVersion, ReportPackageReason reason, bool success);
+        void TrackUserPackageDeleteExecuted(int packageKey, string packageId, string packageVersion, ReportPackageReason reason, bool success, User user);
 
         /// <summary>
         /// A telemetry event emitted when a certificate is added to the database.
@@ -113,17 +113,19 @@ namespace NuGetGallery
         /// A telemetry event emitted when a certificate is activated for an account.
         /// </summary>
         /// <param name="thumbprint">The certificate thumbprint.</param>
+        /// <param name="account">The <see cref="User"/> whose certificate is being activated.</param>
         /// <exception cref="ArgumentException">Thrown if <paramref name="thumbprint" /> is <c>null</c>
         /// or empty.</exception>
-        void TrackCertificateActivated(string thumbprint);
+        void TrackCertificateActivated(string thumbprint, User account);
 
         /// <summary>
         /// A telemetry event emitted when a certificate is deactivated for an account.
         /// </summary>
         /// <param name="thumbprint">The certificate thumbprint.</param>
+        /// <param name="account">The <see cref="User"/> whose certificate is being deactivated.</param>
         /// <exception cref="ArgumentException">Thrown if <paramref name="thumbprint" /> is <c>null</c>
         /// or empty.</exception>
-        void TrackCertificateDeactivated(string thumbprint);
+        void TrackCertificateDeactivated(string thumbprint, User account);
 
         /// <summary>
         /// A telemetry event emitted when the required signer is set on a package registration.

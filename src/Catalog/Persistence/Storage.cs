@@ -181,7 +181,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         public Uri ResolveUri(string relativeUri)
         {
-            return new Uri(BaseAddress, relativeUri);
+            return Services.Storage.Storage.ResolveUri(BaseAddress, relativeUri);
         }
 
         /// <summary>
@@ -197,39 +197,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         public string GetName(Uri uri)
         {
-            if (uri is null)
-            { 
-                throw new ArgumentNullException(nameof(uri));
-            }
-
-            if (BaseAddress is null)
-            {
-                throw new InvalidOperationException("BaseAddress must be set.");
-            }
-
-            // The GetLeftPart method performs encoding under the hood, which could be problematic if it contains Unicode characters.
-            // It doesn't perform double encoding; the Uri object knows if it's already encoded and skips encoding it again.
-            // Decoding the base address to remove any encoded characters.
-            string address = Uri.UnescapeDataString(BaseAddress.GetLeftPart(UriPartial.Path)); // Remove potential query or SAS from the URI
-            if (!address.EndsWith("/"))
-            {
-                address += "/";
-            }
-
-            // Do the same with the above to get it decoded.
-            string fullPath = Uri.UnescapeDataString(uri.GetLeftPart(UriPartial.Path)); // Remove potential query or SAS from the URI
-
-            // handle mismatched scheme (http vs https)
-            int schemeLengthDifference = uri.Scheme.Length - BaseAddress.Scheme.Length;
-
-            string name = fullPath.Substring(address.Length + schemeLengthDifference);
-
-            if (name.Contains("#"))
-            {
-                name = name.Substring(0, name.IndexOf("#"));
-            }
-
-            return name;
+            return Services.Storage.Storage.GetName(BaseAddress, uri);
         }
 
         public virtual Uri GetUri(string name)

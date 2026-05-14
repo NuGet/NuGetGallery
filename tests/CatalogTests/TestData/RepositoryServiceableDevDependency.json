@@ -1,0 +1,107 @@
+{
+  "@id": "http://example/data/2017.01.04.08.15.00/repositoryserviceabledevdependency.1.0.0.json",
+  "@type": [
+    "PackageDetails",
+    "catalog:Permalink"
+  ],
+  "authors": "RepositoryServiceableDevDependency",
+  "catalog:commitId": "4aee0ef4-a039-4460-bd5f-98f944e33289",
+  "catalog:commitTimeStamp": "2017-01-04T08:15:00Z",
+  "created": "2017-01-01T08:15:00Z",
+  "description": "Package Description",
+  "developmentDependency": true,
+  "id": "RepositoryServiceableDevDependency",
+  "isPrerelease": false,
+  "lastEdited": "2017-01-02T08:15:00Z",
+  "licenseExpression": "MIT",
+  "licenseUrl": "https://licenses.nuget.org/MIT",
+  "listed": true,
+  "packageHash": "jmtrYklD4l0bPFSk+SM4K+zqhxyQDYq1eO6+ecVRXhIqsvFH0y4JKYQ22cb4SGNRSWamYV2f+FgLzb+1Wg1G9A==",
+  "packageHashAlgorithm": "SHA512",
+  "packageSize": 5411,
+  "published": "2017-01-03T08:15:00Z",
+  "repository": {
+    "@id": "http://example/data/2017.01.04.08.15.00/repositoryserviceabledevdependency.1.0.0.json#repository",
+    "branch": "main",
+    "commit": "9e6e7580dbcb7176f5cf0626854374af7a382acc",
+    "type": "git",
+    "url": "https://github.com/NuGet/NuGetGallery.git"
+  },
+  "requireLicenseAcceptance": true,
+  "serviceable": true,
+  "verbatimVersion": "1.0.0",
+  "version": "1.0.0",
+  "dependencyGroups": [
+    {
+      "@id": "http://example/data/2017.01.04.08.15.00/repositoryserviceabledevdependency.1.0.0.json#dependencygroup/net8.0",
+      "@type": "PackageDependencyGroup",
+      "targetFramework": "net8.0"
+    }
+  ],
+  "packageEntries": [
+    {
+      "@id": "http://example/data/2017.01.04.08.15.00/repositoryserviceabledevdependency.1.0.0.json#RepositoryServiceableDevDependency.nuspec",
+      "@type": "PackageEntry",
+      "compressedLength": 430,
+      "fullName": "RepositoryServiceableDevDependency.nuspec",
+      "length": 839,
+      "name": "RepositoryServiceableDevDependency.nuspec"
+    },
+    {
+      "@id": "http://example/data/2017.01.04.08.15.00/repositoryserviceabledevdependency.1.0.0.json#lib/net8.0/DuplicateLibFilesDifferentPathSeparators.dll",
+      "@type": "PackageEntry",
+      "compressedLength": 1484,
+      "fullName": "lib/net8.0/DuplicateLibFilesDifferentPathSeparators.dll",
+      "length": 4608,
+      "name": "DuplicateLibFilesDifferentPathSeparators.dll"
+    }
+  ],
+  "@context": {
+    "@vocab": "http://schema.nuget.org/schema#",
+    "catalog": "http://schema.nuget.org/catalog#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "dependencies": {
+      "@id": "dependency",
+      "@container": "@set"
+    },
+    "dependencyGroups": {
+      "@id": "dependencyGroup",
+      "@container": "@set"
+    },
+    "packageEntries": {
+      "@id": "packageEntry",
+      "@container": "@set"
+    },
+    "packageTypes": {
+      "@id": "packageType",
+      "@container": "@set"
+    },
+    "supportedFrameworks": {
+      "@id": "supportedFramework",
+      "@container": "@set"
+    },
+    "tags": {
+      "@id": "tag",
+      "@container": "@set"
+    },
+    "vulnerabilities": {
+      "@id": "vulnerability",
+      "@container": "@set"
+    },
+    "published": {
+      "@type": "xsd:dateTime"
+    },
+    "created": {
+      "@type": "xsd:dateTime"
+    },
+    "lastEdited": {
+      "@type": "xsd:dateTime"
+    },
+    "catalog:commitTimeStamp": {
+      "@type": "xsd:dateTime"
+    },
+    "reasons": {
+      "@container": "@set"
+    }
+  }
+}

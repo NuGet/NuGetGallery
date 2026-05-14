@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -189,33 +190,111 @@ namespace NuGet.Services.Storage
             DeleteCount = 0;
         }
 
+        /// <summary>
+        /// Validate that relative URI is a simple, additive path and add it to a base address. Reject non-relative URIs or badly formed relative URIs.
+        /// </summary>
+        public static Uri ResolveUri(Uri baseAddress, string relativeUri)
+        {
+            AssertSimpleBlobName(relativeUri);
+            return new Uri(baseAddress.GetLeftPart(UriPartial.Path).TrimEnd('/') + "/" + relativeUri.TrimStart('/'));
+        }
+
         public Uri ResolveUri(string relativeUri)
         {
-            return new Uri(BaseAddress.GetLeftPart(UriPartial.Path).TrimEnd('/') + "/" + relativeUri.TrimStart('/'));
+            return ResolveUri(BaseAddress, relativeUri);
+        }
+
+        public static string GetName(Uri baseAddress, Uri uri)
+        {
+            if (uri is null)
+            {
+                throw new ArgumentNullException(nameof(uri));
+            }
+
+            if (baseAddress is null)
+            {
+                throw new ArgumentNullException(nameof(baseAddress));
+            }
+
+            if (!uri.IsAbsoluteUri)
+            {
+                throw new ArgumentException($"'{nameof(uri)}' must be an absolute URI.", nameof(uri));
+            }
+
+            if (!baseAddress.IsAbsoluteUri)
+            {
+                throw new ArgumentException($"'{nameof(baseAddress)}' must be an absolute URI.", nameof(baseAddress));
+            }
+
+            if (uri.AbsoluteUri.IndexOf("%2F", StringComparison.OrdinalIgnoreCase) >= 0 // Encoded forward slash
+                || uri.AbsoluteUri.IndexOf("%5C", StringComparison.OrdinalIgnoreCase) >= 0) // Encoded backslash
+            {
+                throw new ArgumentException("The input URI must not contain encoded forward slashes or back slashes.", nameof(uri));
+            }
+
+            // The GetLeftPart method performs encoding under the hood, which could be problematic if it contains Unicode characters.
+            // It doesn't perform double encoding; the Uri object knows if it's already encoded and skips encoding it again.
+            // Decoding the base address to remove any encoded characters.
+            var baseAddressStr = Uri.UnescapeDataString(baseAddress.GetLeftPart(UriPartial.Path)); // Remove potential query or SAS from the URI
+            if (!baseAddressStr.EndsWith("/"))
+            {
+                baseAddressStr += "/";
+            }
+
+            // Do the same with the above to get it decoded.
+            string uriStr = Uri.UnescapeDataString(uri.GetLeftPart(UriPartial.Path)); // Remove potential query or SAS from the URI
+
+            // handle mismatched scheme (http vs https)
+            if (uri.Scheme != baseAddress.Scheme)
+            {
+                uriStr = baseAddress.Scheme + uriStr.Substring(uri.Scheme.Length);
+            }
+
+            if (!uriStr.StartsWith(baseAddressStr, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new ArgumentException($"The input {nameof(uri)} '{uri.AbsoluteUri}' must start with the base address '{baseAddress.AbsoluteUri}'.", nameof(uri));
+            }
+
+            string name = uriStr.Substring(baseAddressStr.Length);
+            name = name.TrimStart('/');
+
+            AssertSimpleBlobName(name);
+
+            return name;
         }
 
         protected string GetName(Uri uri)
         {
-            var address = Uri.UnescapeDataString(BaseAddress.GetLeftPart(UriPartial.Path));
-            if (!address.EndsWith("/"))
-            {
-                address += "/";
-            }
-            var uriString = uri.ToString();
+            return GetName(BaseAddress, uri);
+        }
 
-            int baseAddressLength = address.Length;
-
-            var name = uriString.Substring(baseAddressLength);
-            if (name.Contains("?"))
+        private static void AssertSimpleBlobName(string relativeUri)
+        {
+            if (relativeUri.IndexOfAny(['?', '#']) >= 0)
             {
-                name = name.Substring(0, name.IndexOf("?"));
-            }
-            else if (name.Contains("#"))
-            {
-                name = name.Substring(0, name.IndexOf("#"));
+                throw new ArgumentException($"{nameof(relativeUri)} '{relativeUri}' must not contain a fragment or query string.");
             }
 
-            return name;
+            // Enforce https://learn.microsoft.com/en-us/rest/api/storageservices/naming-and-referencing-containers--blobs--and-metadata#blob-names
+            var pieces = relativeUri.TrimStart('/').Split('/');
+            foreach (var piece in pieces)
+            {
+                if (piece.Length == 0)
+                {
+                    throw new ArgumentException($"{nameof(relativeUri)} '{relativeUri}' must not have an empty path segment.");
+                }
+
+                var decoded = Uri.UnescapeDataString(piece);
+                if (decoded.StartsWith(".") || decoded.EndsWith("."))
+                {
+                    throw new ArgumentException($"{nameof(relativeUri)} '{relativeUri}' must not have a path segment ending in a dot.");
+                }
+
+                if (decoded.Contains("\\") || decoded.Contains("/"))
+                {
+                    throw new ArgumentException($"{nameof(relativeUri)} '{relativeUri}' must not have a path segment containing a forward slash or backslash.");
+                }
+            }
         }
 
         protected Uri GetUri(string name)

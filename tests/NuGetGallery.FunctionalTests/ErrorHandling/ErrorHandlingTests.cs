@@ -82,7 +82,7 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
         /// </summary>
         [Theory]
         [Priority(2)]
-        [Category("P2Tests")]
+        [Category("AppServiceTests")]
         [InlineData("/api/does-not-exist", false)]
         [InlineData("/pages/does-not-exist", true)]
         [InlineData("/api/v2/curated-feed/microsoftdotnet/DoesNotExist()", false)]
@@ -113,7 +113,7 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
         /// </summary>
         [Theory]
         [Priority(2)]
-        [Category("P2Tests")]
+        [Category("AppServiceTests")]
         [InlineData("DELETE", "/api/v2", 405)]
         // The following have non-ideal behavior.
         [InlineData("DELETE", "/api/status", 500)]
@@ -163,7 +163,7 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
         /// </summary>
         [Fact]
         [Priority(2)]
-        [Category("P2Tests")]
+        [Category("AppServiceTests")]
         public async Task ErrorInErrorPageWithPathToSelf()
         {
             // Arrange
@@ -186,7 +186,7 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
         /// </summary>
         [Theory]
         [Priority(2)]
-        [Category("P2Tests")]
+        [Category("AppServiceTests")]
         [MemberData(nameof(AllTestData))]
         public async Task SimulateError(EndpointType endpointType, SimulatedErrorType simulatedErrorType)
         {

@@ -415,13 +415,20 @@ tests/functionaltests.*.xml
 *.trx
 *.g.txt
 
+# CI-generated functional test settings
+tests/NuGetGallery.FunctionalTests/settings.CI.json
+
 # launch settings for running jobs locally
 **/Properties/launchSettings.json
+!src/NuGetGallery.AppHost/Properties/launchSettings.json
 
 # The applicationhost.config is ignored, but already comitted on purpose
 # Reason: The localtest.me setting needs to be configured in the <sites>-section.
 # See ReadMe.md for more information
 .vs/config/applicationhost.config
+
+# Aspire-generated copy with absolute paths (never commit)
+.vs/config/applicationhost.aspire.config
 
 # Files are created at build time
 src/NuGetGallery/Content/gallery/css/bootstrap-theme.css
@@ -437,3 +444,4 @@ src/NuGetGallery/App_Data/Files/*
 !src/NuGetGallery/Branding/Views/Packages/
 
 
+/.idea
