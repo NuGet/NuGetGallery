@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
+using AngleSharp.Html.Dom;
 using Ganss.Xss;
 using Markdig;
 using Markdig.Extensions.AutoIdentifiers;
@@ -25,21 +26,58 @@ namespace NuGetGallery
 
         private readonly IFeatureFlagService _features;
         private readonly IHtmlSanitizer _htmlSanitizer;
+        private bool _imagesRewritten;
 
         public MarkdownService(IFeatureFlagService features,
             IHtmlSanitizer htmlSanitizer)
         {
             _features = features ?? throw new ArgumentNullException(nameof(features));
             _htmlSanitizer = htmlSanitizer ?? throw new ArgumentNullException(nameof(htmlSanitizer));
-            SanitizerSettings();
+            ConfigureSanitizer();
         }
 
-        private void SanitizerSettings()
+        private void ConfigureSanitizer()
         {
-            //Configure allowed tags, attributes for the sanitizer
+            // HtmlSanitizer ships with 95 default allowed attributes including href, src, alt, width,
+            // height, style, align, colspan, rowspan, border, color, disabled, checked, readonly,
+            // target, title, type, value, name, lang, dir, tabindex, shape, coords, usemap, rel, rev,
+            // and many others. However, "class" and "id" are explicitly excluded from the defaults to
+            // prevent CSS-based attacks and element ID conflicts. "aria-label" is also not in the defaults.
+            // We add all three here because they are needed for our rendered markdown.
             _htmlSanitizer.AllowedAttributes.Add("id");
             _htmlSanitizer.AllowedAttributes.Add("class");
             _htmlSanitizer.AllowedAttributes.Add("aria-label");
+
+            _htmlSanitizer.PostProcessNode += (sender, args) =>
+            {
+                if (args.Node is IHtmlAnchorElement anchor)
+                {
+                    anchor.SetAttribute("rel", "noopener noreferrer nofollow");
+
+                    RewriteHttpToHttps(anchor, "href");
+                }
+                else if (args.Node is IHtmlImageElement image)
+                {
+                    if (RewriteHttpToHttps(image, "src"))
+                    {
+                        _imagesRewritten = true;
+                    }
+                }
+            };
+        }
+
+        private static bool RewriteHttpToHttps(AngleSharp.Dom.IElement element, string attribute)
+        {
+            var url = element.GetAttribute(attribute);
+            if (url != null &&
+                Uri.TryCreate(url, UriKind.Absolute, out var uri) &&
+                uri.Scheme == Uri.UriSchemeHttp)
+            {
+                var builder = new UriBuilder(uri) { Scheme = Uri.UriSchemeHttps, Port = -1 };
+                element.SetAttribute(attribute, builder.Uri.AbsoluteUri);
+                return true;
+            }
+            return false;
         }
 
         private string SanitizeText(string input)
@@ -102,7 +140,6 @@ namespace NuGetGallery
                 .UseReferralLinks("noopener noreferrer nofollow")
                 .UseAutoIdentifiers(AutoIdentifierOptions.GitHub)
                 .UseEmphasisExtras(EmphasisExtraOptions.Strikethrough)
-                .DisableHtml() //block inline html
                 .UseBootstrap()
                 .Build();
 
@@ -127,19 +164,10 @@ namespace NuGetGallery
                     {
                         if (node is LinkInline linkInline)
                         {
-                            if (linkInline.IsImage)
-                            {
-                                if (!PackageHelper.TryPrepareUrlForRendering(linkInline.Url, out string readyUriString, rewriteAllHttp: true))
-                                {
-                                    linkInline.Url = string.Empty;
-                                }
-                                else
-                                {
-                                    output.ImagesRewritten = output.ImagesRewritten || (linkInline.Url != readyUriString);
-                                    linkInline.Url = readyUriString;
-                                }
-                            }
-                            else
+                            // Image HTTP→HTTPS rewriting is handled by the PostProcessNode sanitizer hook
+                            // rather than here, since both Markdig-rendered and raw HTML images pass through
+                            // the sanitizer as <img> elements.
+                            if (!linkInline.IsImage)
                             {
                                 // Allow only http or https links in markdown. Transform link to https for known domains.
                                 if (!PackageHelper.TryPrepareUrlForRendering(linkInline.Url, out string readyUriString))
@@ -166,7 +194,11 @@ namespace NuGetGallery
                 renderer.Render(document);
                 output.Content = htmlWriter.ToString().Trim();
                 output.IsMarkdigMdSyntaxHighlightEnabled = _features.IsMarkdigMdSyntaxHighlightEnabled();
+
+                // Reset before sanitization; PostProcessNode sets this to true if any image src is rewritten.
+                _imagesRewritten = false;
                 output.Content = SanitizeText(output.Content);
+                output.ImagesRewritten = _imagesRewritten;
 
                 return output;
             }
