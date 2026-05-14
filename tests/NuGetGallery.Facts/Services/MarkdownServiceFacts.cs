@@ -20,6 +20,7 @@ namespace NuGetGallery
             public GetReadMeHtmlMethod()
             {
                 _featureFlagService = new Mock<IFeatureFlagService>();
+                _featureFlagService.Setup(x => x.IsHtmlInMarkdownEnabled()).Returns(true);
                 _htmlSanitizer = new HtmlSanitizer();
                 _markdownService = new MarkdownService(_featureFlagService.Object, _htmlSanitizer);
             }

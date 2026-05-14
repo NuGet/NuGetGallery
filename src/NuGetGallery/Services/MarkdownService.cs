@@ -140,15 +140,21 @@ namespace NuGetGallery
                 .UseReferralLinks("noopener noreferrer nofollow")
                 .UseAutoIdentifiers(AutoIdentifierOptions.GitHub)
                 .UseEmphasisExtras(EmphasisExtraOptions.Strikethrough)
-                .UseBootstrap()
-                .Build();
+                .UseBootstrap();
+
+            if (!_features.IsHtmlInMarkdownEnabled())
+            {
+                pipeline.DisableHtml();
+            }
+
+            var builtPipeline = pipeline.Build();
 
             using (var htmlWriter = new StringWriter())
             {
                 var renderer = new HtmlRenderer(htmlWriter);
-                pipeline.Setup(renderer);
+                builtPipeline.Setup(renderer);
 
-                var document = Markdown.Parse(markdownWithoutBom, pipeline);
+                var document = Markdown.Parse(markdownWithoutBom, builtPipeline);
 
                 foreach (var node in document.Descendants())
                 {

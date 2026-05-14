@@ -144,6 +144,11 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
+        public bool IsHtmlInMarkdownEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsNewAccount2FAEnforcementEnabled()
         {
             throw new NotImplementedException();

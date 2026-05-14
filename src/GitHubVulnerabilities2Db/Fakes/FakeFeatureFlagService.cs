@@ -125,6 +125,11 @@ namespace GitHubVulnerabilities2Db.Fakes
             throw new NotImplementedException();
         }
 
+        public bool IsHtmlInMarkdownEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsDisplayUploadWarningV2Enabled(User user)
         {
             throw new NotImplementedException();
