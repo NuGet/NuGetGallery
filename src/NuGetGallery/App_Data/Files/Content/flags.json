@@ -29,7 +29,6 @@
     "NuGetGallery.DisplayNuGetTrendsLink": "Enabled",
     "NuGetGallery.PatternSetTfmHeuristics": "Enabled",
     "NuGetGallery.EmbeddedIcons": "Enabled",
-    "NuGetGallery.MarkdigMdRendering": "Enabled",
     "NuGetGallery.MarkdigMdSyntaxHighlight": "Enabled",
     "NuGetGallery.ImageAllowlist": "Enabled",
     "NuGetGallery.ShowReportAbuseSafetyChanges": "Enabled",

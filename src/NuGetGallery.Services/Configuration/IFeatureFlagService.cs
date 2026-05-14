@@ -275,11 +275,6 @@ namespace NuGetGallery
         bool IsAllowAadContentSafetyReportsEnabled();
 
         /// <summary>
-        /// Whether rendering Markdown content to HTML using Markdig is enabled
-        /// </summary>
-        bool IsMarkdigMdRenderingEnabled();
-
-        /// <summary>
         /// Whether rendering Markdown fenced code with syntax highlighting
         /// </summary>
         bool IsMarkdigMdSyntaxHighlightEnabled();

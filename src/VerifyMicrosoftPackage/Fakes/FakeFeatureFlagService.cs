@@ -104,9 +104,7 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
 
         public bool IsAllowAadContentSafetyReportsEnabled() => throw new NotImplementedException();
 
-        public bool IsMarkdigMdRenderingEnabled() => throw new NotImplementedException();
-
-        public bool IsMarkdigMdSyntaxHighlightEnabled() => throw new NotImplementedException();
+        public bool IsMarkdigMdSyntaxHighlightEnabled()=> throw new NotImplementedException();
 
         public bool IsDeletePackageApiEnabled(User user) => throw new NotImplementedException();
 

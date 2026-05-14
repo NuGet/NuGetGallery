@@ -47,7 +47,6 @@ namespace NuGetGallery
         private const string PatternSetTfmHeuristicsFeatureName = GalleryPrefix + "PatternSetTfmHeuristics";
         private const string EmbeddedReadmeFlightName = GalleryPrefix + "EmbeddedReadmes";
         private const string LicenseMdRenderingFlightName = GalleryPrefix + "LicenseMdRendering";
-        private const string MarkdigMdRenderingFlightName = GalleryPrefix + "MarkdigMdRendering";
         private const string MarkdigMdSyntaxHighlightFlightName = GalleryPrefix + "MarkdigMdSyntaxHighlight";
         private const string DisplayUploadWarningV2FlightName = GalleryPrefix + "DisplayUploadWarningV2";
         private const string DisplayPackageReadmeWarningFlightName = GalleryPrefix + "DisplayPackageReadmeWarning";
@@ -360,11 +359,6 @@ namespace NuGetGallery
         public bool IsAllowAadContentSafetyReportsEnabled()
         {
             return _client.IsEnabled(AllowAadContentSafetyReports, defaultValue: false);
-        }
-
-        public bool IsMarkdigMdRenderingEnabled()
-        {
-            return _client.IsEnabled(MarkdigMdRenderingFlightName, defaultValue: false);
         }
 
         public bool IsMarkdigMdSyntaxHighlightEnabled()
