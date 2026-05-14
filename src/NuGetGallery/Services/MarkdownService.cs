@@ -24,15 +24,12 @@ namespace NuGetGallery
         private static readonly string AltTextForImage = "alternate text is missing from this package README image";
 
         private readonly IFeatureFlagService _features;
-        private readonly IImageDomainValidator _imageDomainValidator;
         private readonly IHtmlSanitizer _htmlSanitizer;
 
         public MarkdownService(IFeatureFlagService features,
-            IImageDomainValidator imageDomainValidator,
             IHtmlSanitizer htmlSanitizer)
         {
             _features = features ?? throw new ArgumentNullException(nameof(features));
-            _imageDomainValidator = imageDomainValidator ?? throw new ArgumentNullException(nameof(imageDomainValidator));
             _htmlSanitizer = htmlSanitizer ?? throw new ArgumentNullException(nameof(htmlSanitizer));
             SanitizerSettings();
         }
@@ -85,7 +82,6 @@ namespace NuGetGallery
             {
                 ImagesRewritten = false,
                 Content = "",
-                ImageSourceDisallowed = false,
                 IsMarkdigMdSyntaxHighlightEnabled = false
             };
 
@@ -133,30 +129,14 @@ namespace NuGetGallery
                         {
                             if (linkInline.IsImage)
                             {
-                                if (_features.IsImageAllowlistEnabled())
+                                if (!PackageHelper.TryPrepareUrlForRendering(linkInline.Url, out string readyUriString, rewriteAllHttp: true))
                                 {
-                                    if (!_imageDomainValidator.TryPrepareImageUrlForRendering(linkInline.Url, out string readyUriString))
-                                    {
-                                        linkInline.Url = string.Empty;
-                                        output.ImageSourceDisallowed = true;
-                                    }
-                                    else
-                                    {
-                                        output.ImagesRewritten = output.ImagesRewritten || (linkInline.Url != readyUriString);
-                                        linkInline.Url = readyUriString;
-                                    }
+                                    linkInline.Url = string.Empty;
                                 }
                                 else
                                 {
-                                    if (!PackageHelper.TryPrepareUrlForRendering(linkInline.Url, out string readyUriString, rewriteAllHttp: true))
-                                    {
-                                        linkInline.Url = string.Empty;
-                                    }
-                                    else
-                                    {
-                                        output.ImagesRewritten = output.ImagesRewritten || (linkInline.Url != readyUriString);
-                                        linkInline.Url = readyUriString;
-                                    }
+                                    output.ImagesRewritten = output.ImagesRewritten || (linkInline.Url != readyUriString);
+                                    linkInline.Url = readyUriString;
                                 }
                             }
                             else

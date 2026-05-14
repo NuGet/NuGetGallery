@@ -71,11 +71,6 @@
                         <div class="common-licenses">
                             @if (Model.LicenseFileContentsHtml != null)
                             {
-                                if (Model.LicenseFileContentsHtml.ImageSourceDisallowed && Model.CanDisplayPrivateMetadata)
-                                {
-                                    @ViewHelpers.AlertImageSourceDisallowed();
-                                }
-
                                 if (Model.LicenseFileContentsHtml.ImagesRewritten && Model.CanDisplayPrivateMetadata)
                                 {
                                     @ViewHelpers.AlertImagesRewritten();

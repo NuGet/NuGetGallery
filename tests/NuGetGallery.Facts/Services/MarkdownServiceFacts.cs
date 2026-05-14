@@ -15,15 +15,13 @@ namespace NuGetGallery
         {
             private readonly MarkdownService _markdownService;
             private readonly Mock<IFeatureFlagService> _featureFlagService;
-            private readonly Mock<IImageDomainValidator> _imageDomainValidator;
             private readonly IHtmlSanitizer _htmlSanitizer;
 
             public GetReadMeHtmlMethod()
             {
                 _featureFlagService = new Mock<IFeatureFlagService>();
-                _imageDomainValidator = new Mock<IImageDomainValidator>();
                 _htmlSanitizer = new HtmlSanitizer();
-                _markdownService = new MarkdownService(_featureFlagService.Object, _imageDomainValidator.Object, _htmlSanitizer);
+                _markdownService = new MarkdownService(_featureFlagService.Object, _htmlSanitizer);
             }
 
             [Theory]
@@ -43,111 +41,69 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData("<script>alert('test')</script>", "<p>&lt;script&gt;alert('test')&lt;/script&gt;</p>", true)]
-            [InlineData("<script>alert('test')</script>", "<p>&lt;script&gt;alert('test')&lt;/script&gt;</p>", false)]
-            [InlineData("<img src=\"javascript:alert('test');\">", "<p>&lt;img src=\"javascript:alert('test');\"&gt;</p>", true)]
-            [InlineData("<img src=\"javascript:alert('test');\">", "<p>&lt;img src=\"javascript:alert('test');\"&gt;</p>", false)]
-            [InlineData("<a href=\"javascript:alert('test');\">", "<p>&lt;a href=\"javascript:alert('test');\"&gt;</p>", true)]
-            [InlineData("<a href=\"javascript:alert('test');\">", "<p>&lt;a href=\"javascript:alert('test');\"&gt;</p>", false)]
-            public void EncodesHtmlInMarkdown(string originalMd, string expectedHtml, bool isMarkdigMdRenderingEnabled)
+            [InlineData("<script>alert('test')</script>", "<p>&lt;script&gt;alert('test')&lt;/script&gt;</p>")]
+            [InlineData("<img src=\"javascript:alert('test');\">", "<p>&lt;img src=\"javascript:alert('test');\"&gt;</p>")]
+            [InlineData("<a href=\"javascript:alert('test');\">", "<p>&lt;a href=\"javascript:alert('test');\"&gt;</p>")]
+            public void EncodesHtmlInMarkdown(string originalMd, string expectedHtml)
             {
-                _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(isMarkdigMdRenderingEnabled);
                 Assert.Equal(expectedHtml, _markdownService.GetHtmlFromMarkdown(originalMd).Content);
             }
 
             [Theory]
-            [InlineData("# Heading", "<h1 id=\"heading\">Heading</h1>", true, 0)]
-            [InlineData("# Heading", "<h1>Heading</h1>", false, 0)]
-            [InlineData("# Heading", "<h2 id=\"heading\">Heading</h2>", true, 1)]
-            [InlineData("# Heading", "<h2>Heading</h2>", false, 1)]
-            [InlineData("# Heading", "<h6 id=\"heading\">Heading</h6>", true, 6)]
-            [InlineData("# Heading", "<h6>Heading</h6>", false, 6)]
-            [InlineData("# Heading", "<h6 id=\"heading\">Heading</h6>", true, 7)]
-            [InlineData("# Heading", "<h6>Heading</h6>", false, 7)]
-            [InlineData("# Heading", "<h6 id=\"heading\">Heading</h6>", true, 5)]
-            [InlineData("# Heading", "<h6>Heading</h6>", false, 5)]
-            public void EncodesHtmlInMarkdownWithAdaptiveHeader(string originalMd, string expectedHtml, bool isMarkdigMdRenderingEnabled, int incrementHeadersBy)
+            [InlineData("# Heading", "<h1 id=\"heading\">Heading</h1>", 0)]
+            [InlineData("# Heading", "<h2 id=\"heading\">Heading</h2>", 1)]
+            [InlineData("# Heading", "<h6 id=\"heading\">Heading</h6>", 6)]
+            [InlineData("# Heading", "<h6 id=\"heading\">Heading</h6>", 7)]
+            [InlineData("# Heading", "<h6 id=\"heading\">Heading</h6>", 5)]
+            public void EncodesHtmlInMarkdownWithAdaptiveHeader(string originalMd, string expectedHtml, int incrementHeadersBy)
             {
-                _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(isMarkdigMdRenderingEnabled);
                 Assert.Equal(expectedHtml, _markdownService.GetHtmlFromMarkdown(originalMd, incrementHeadersBy).Content);
             }
 
             [Theory]
-            [InlineData("# Heading", "<h2 id=\"heading\">Heading</h2>", false, true)]
-            [InlineData("# Heading", "<h2>Heading</h2>", false, false)]
-            [InlineData("<!-- foo --> <!-- foo \n bar --> baz", "<p>baz</p>", false, true)]
-            [InlineData("<!-- foo --> <!-- foo \n bar --> baz", "<p>baz</p>", false, false)]
-            [InlineData("\ufeff# Heading with BOM", "<h2 id=\"heading-with-bom\">Heading with BOM</h2>", false, true)]
-            [InlineData("\ufeff# Heading with BOM", "<h2>Heading with BOM</h2>", false, false)]
-            [InlineData("- List", "<ul>\n<li>List</li>\n</ul>", false, true)]
-            [InlineData("- List", "<ul>\n<li>List</li>\n</ul>", false, false)]
-            [InlineData("This is a paragraph\nwithout a break inside", "<p>This is a paragraph\nwithout a break inside</p>", false, true)]
-            [InlineData("This is a paragraph\nwithout a break inside", "<p>This is a paragraph\nwithout a break inside</p>", false, false)]
-            [InlineData("soft line break line1  \nline2  \nline3  ", "<p>soft line break line1<br>\nline2<br>\nline3</p>", false, true)]
-            [InlineData("soft line break line1  \nline2  \nline3  ", "<p>soft line break line1<br>\nline2<br>\nline3</p>", false, false)]
-            [InlineData("hard line break line1\n\nline2\n\nline3", "<p>hard line break line1</p>\n<p>line2</p>\n<p>line3</p>", false, true)]
-            [InlineData("hard line break line1\n\nline2\n\nline3", "<p>hard line break line1</p>\n<p>line2</p>\n<p>line3</p>", false, false)]
-            [InlineData("[text](http://www.test.com)", "<p><a href=\"http://www.test.com/\" rel=\"noopener noreferrer nofollow\">text</a></p>", false, true)]
-            [InlineData("[text](http://www.test.com)", "<p><a href=\"http://www.test.com/\" rel=\"noopener noreferrer nofollow\">text</a></p>", false, false)]
-            [InlineData("[text](javascript:alert('hi'))", "<p><a href=\"\" rel=\"noopener noreferrer nofollow\">text</a></p>", false, true)]
-            [InlineData("[text](javascript:alert('hi'))", "<p><a href=\"\" rel=\"noopener noreferrer nofollow\">text</a></p>", false, false)]
-            [InlineData("> <text>Blockquote</text>", "<blockquote class=\"blockquote\">\n<p>&lt;text&gt;Blockquote&lt;/text&gt;</p>\n</blockquote>", false, true)]
-            [InlineData("> <text>Blockquote</text>", "<blockquote>\n<p>&lt;text&gt;Blockquote&lt;/text&gt;</p>\n</blockquote>", false, false)]
-            [InlineData("> > <text>Blockquote</text>", "<blockquote class=\"blockquote\">\n<blockquote class=\"blockquote\">\n<p>&lt;text&gt;Blockquote&lt;/text&gt;</p>\n</blockquote>\n</blockquote>", false, true)]
-            [InlineData("> > <text>Blockquote</text>", "<blockquote>\n<p>&gt; &lt;text&gt;Blockquote&lt;/text&gt;</p>\n</blockquote>", false, false)]
-            [InlineData("[text](http://www.asp.net)", "<p><a href=\"https://www.asp.net/\" rel=\"noopener noreferrer nofollow\">text</a></p>", false, true)]
-            [InlineData("[text](http://www.asp.net)", "<p><a href=\"https://www.asp.net/\" rel=\"noopener noreferrer nofollow\">text</a></p>", false, false)]
-            [InlineData("[text](badurl://www.asp.net)", "<p><a href=\"\" rel=\"noopener noreferrer nofollow\">text</a></p>", false, true)]
-            [InlineData("[text](badurl://www.asp.net)", "<p><a href=\"\" rel=\"noopener noreferrer nofollow\">text</a></p>", false, false)]
-            [InlineData("![image](http://www.asp.net/fake.jpg)", "<p><img src=\"https://www.asp.net/fake.jpg\" class=\"img-fluid\" alt=\"image\"></p>", true, true)]
-            [InlineData("![image](http://www.asp.net/fake.jpg)", "<p><img src=\"https://www.asp.net/fake.jpg\" alt=\"image\"></p>", true, false)]
-            [InlineData("![image](https://www.asp.net/fake.jpg)", "<p><img src=\"https://www.asp.net/fake.jpg\" class=\"img-fluid\" alt=\"image\"></p>", false, true)]
-            [InlineData("![image](https://www.asp.net/fake.jpg)", "<p><img src=\"https://www.asp.net/fake.jpg\" alt=\"image\"></p>", false, false)]
-            [InlineData("![image](http://www.otherurl.net/fake.jpg)", "<p><img src=\"https://www.otherurl.net/fake.jpg\" class=\"img-fluid\" alt=\"image\"></p>", true, true)]
-            [InlineData("![image](http://www.otherurl.net/fake.jpg)", "<p><img src=\"https://www.otherurl.net/fake.jpg\" alt=\"image\"></p>", true, false)]
-            [InlineData("![](http://www.otherurl.net/fake.jpg)", "<p><img src=\"https://www.otherurl.net/fake.jpg\" alt=\"\"></p>", true, false)]
-            [InlineData("![](http://www.otherurl.net/fake.jpg)", "<p><img src=\"https://www.otherurl.net/fake.jpg\" class=\"img-fluid\" alt=\"alternate text is missing from this package README image\"></p>", true, true)]
-            [InlineData("## License\n\tLicensed under the Apache License, Version 2.0 (the \"License\");", "<h3 id=\"license\">License</h3>\n<pre><code>Licensed under the Apache License, Version 2.0 (the \"License\");\n</code></pre>", false, true)]
-            public void ConvertsMarkdownToHtml(string originalMd, string expectedHtml, bool imageRewriteExpected, bool isMarkdigMdRenderingEnabled)
+            [InlineData("# Heading", "<h2 id=\"heading\">Heading</h2>", false)]
+            [InlineData("<!-- foo --> <!-- foo \n bar --> baz", "<p>baz</p>", false)]
+            [InlineData("\ufeff# Heading with BOM", "<h2 id=\"heading-with-bom\">Heading with BOM</h2>", false)]
+            [InlineData("- List", "<ul>\n<li>List</li>\n</ul>", false)]
+            [InlineData("This is a paragraph\nwithout a break inside", "<p>This is a paragraph\nwithout a break inside</p>", false)]
+            [InlineData("soft line break line1  \nline2  \nline3  ", "<p>soft line break line1<br>\nline2<br>\nline3</p>", false)]
+            [InlineData("hard line break line1\n\nline2\n\nline3", "<p>hard line break line1</p>\n<p>line2</p>\n<p>line3</p>", false)]
+            [InlineData("[text](http://www.test.com)", "<p><a href=\"http://www.test.com/\" rel=\"noopener noreferrer nofollow\">text</a></p>", false)]
+            [InlineData("[text](javascript:alert('hi'))", "<p><a href=\"\" rel=\"noopener noreferrer nofollow\">text</a></p>", false)]
+            [InlineData("> <text>Blockquote</text>", "<blockquote class=\"blockquote\">\n<p>&lt;text&gt;Blockquote&lt;/text&gt;</p>\n</blockquote>", false)]
+            [InlineData("> > <text>Blockquote</text>", "<blockquote class=\"blockquote\">\n<blockquote class=\"blockquote\">\n<p>&lt;text&gt;Blockquote&lt;/text&gt;</p>\n</blockquote>\n</blockquote>", false)]
+            [InlineData("[text](http://www.asp.net)", "<p><a href=\"https://www.asp.net/\" rel=\"noopener noreferrer nofollow\">text</a></p>", false)]
+            [InlineData("[text](badurl://www.asp.net)", "<p><a href=\"\" rel=\"noopener noreferrer nofollow\">text</a></p>", false)]
+            [InlineData("![image](http://www.asp.net/fake.jpg)", "<p><img src=\"https://www.asp.net/fake.jpg\" class=\"img-fluid\" alt=\"image\"></p>", true)]
+            [InlineData("![image](https://www.asp.net/fake.jpg)", "<p><img src=\"https://www.asp.net/fake.jpg\" class=\"img-fluid\" alt=\"image\"></p>", false)]
+            [InlineData("![image](http://www.otherurl.net/fake.jpg)", "<p><img src=\"https://www.otherurl.net/fake.jpg\" class=\"img-fluid\" alt=\"image\"></p>", true)]
+            [InlineData("![](http://www.otherurl.net/fake.jpg)", "<p><img src=\"https://www.otherurl.net/fake.jpg\" class=\"img-fluid\" alt=\"alternate text is missing from this package README image\"></p>", true)]
+            [InlineData("## License\n\tLicensed under the Apache License, Version 2.0 (the \"License\");", "<h3 id=\"license\">License</h3>\n<pre><code>Licensed under the Apache License, Version 2.0 (the \"License\");\n</code></pre>", false)]
+            public void ConvertsMarkdownToHtml(string originalMd, string expectedHtml, bool imageRewriteExpected)
             {
-                _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(isMarkdigMdRenderingEnabled);
-                _featureFlagService.Setup(x => x.IsImageAllowlistEnabled()).Returns(false);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
                 Assert.Equal(imageRewriteExpected, readMeResult.ImagesRewritten);
             }
 
-            [Theory]
-            [InlineData(true, "<p><img src=\"https://api.codacy.com/example/image.svg\" class=\"img-fluid\" alt=\"image\"></p>")]
-            [InlineData(false, "<p><img src=\"https://api.codacy.com/example/image.svg\" alt=\"image\"></p>")]
-            public void ConvertsMarkdownToHtmlWithImageDisaplyed(bool isMarkdigMdRenderingEnabled, string expectedHtml)
+            [Fact]
+            public void ConvertsMarkdownToHtmlWithImageDisplayed()
             {
-                string imageUrl = "https://api.codacy.com/example/image.svg";
                 string originalMd = "![image](https://api.codacy.com/example/image.svg)";
+                var expectedHtml = "<p><img src=\"https://api.codacy.com/example/image.svg\" class=\"img-fluid\" alt=\"image\"></p>";
 
-                _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(isMarkdigMdRenderingEnabled);
-                _featureFlagService.Setup(x => x.IsImageAllowlistEnabled()).Returns(true);
-                _imageDomainValidator.Setup(x => x.TryPrepareImageUrlForRendering(imageUrl, out imageUrl)).Returns(true);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
-                Assert.False(readMeResult.ImageSourceDisallowed);
             }
 
-            [Theory]
-            [InlineData(true, "<p><img src=\"\" class=\"img-fluid\" alt=\"image\"></p>")]
-            [InlineData(false, "<p><img src=\"\" alt=\"image\"></p>")]
-            public void ConvertsMarkdownToHtmlWithoutImageDisaplyed(bool isMarkdigMdRenderingEnabled, string expectedHtml)
+            [Fact]
+            public void RewritesHttpImageUrlToHttps()
             {
-                string imageUrl = "https://nuget.org/example/image.svg";
-                string originalMd = "![image](https://nuget.org/example/image.svg)";
-                string outUrl = null;
-
-                _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(isMarkdigMdRenderingEnabled);
-                _featureFlagService.Setup(x => x.IsImageAllowlistEnabled()).Returns(true);
-                _imageDomainValidator.Setup(x => x.TryPrepareImageUrlForRendering(imageUrl, out outUrl)).Returns(false);
+                var originalMd = "![image](http://www.asp.net/fake.jpg)";
+                var expectedHtml = "<p><img src=\"https://www.asp.net/fake.jpg\" class=\"img-fluid\" alt=\"image\"></p>";
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.Equal(expectedHtml, readMeResult.Content);
-                Assert.True(readMeResult.ImageSourceDisallowed);
+                Assert.True(readMeResult.ImagesRewritten);
             }
 
             [Fact]

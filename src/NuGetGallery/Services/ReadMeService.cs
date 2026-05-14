@@ -93,7 +93,6 @@ namespace NuGetGallery
             {
                 Content = readMeMd,
                 ImagesRewritten = false,
-                ImageSourceDisallowed = false, 
                 IsMarkdigMdSyntaxHighlightEnabled = false
             };
 
@@ -117,7 +116,6 @@ namespace NuGetGallery
             {
                 Content = readmeMd,
                 ImagesRewritten = false,
-                ImageSourceDisallowed = false,
                 IsMarkdigMdSyntaxHighlightEnabled = false
             };
 

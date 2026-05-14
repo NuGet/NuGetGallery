@@ -9,8 +9,6 @@ namespace NuGetGallery
         
         public bool ImagesRewritten { get; set; }
 
-        public bool ImageSourceDisallowed { get; set; }
-
         public bool IsMarkdigMdSyntaxHighlightEnabled { get; set; }
     }
 }
