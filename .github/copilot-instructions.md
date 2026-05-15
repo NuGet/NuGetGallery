@@ -1,151 +1,212 @@
-# Instructions for AIs
+# Copilot Instructions for NuGetGallery
 
-This repository is NuGet Gallery.
+This repository powers [nuget.org](https://www.nuget.org). It contains the gallery web application, background jobs, shared libraries, and validation services.
 
 ## Target Frameworks
 
-This repository targets multiple C# frameworks:
-* `.NET Framework 4.7.2`
-* `.NET Standard 2.1`
-* `.NET Standard 2.0`
+This repository targets multiple C# frameworks: .NET Framework 4.7.2, .NET Standard 2.1, and .NET Standard 2.0.
 
-This repository uses <LangVersion>latest</LangVersion>. Please try to use the latest C# version syntax if available for newly generated code.
+The repo uses `<LangVersion>latest</LangVersion>`. Use the latest C# syntax for newly generated code.
 
-Consider these characteristics when generating or modifying code.
+## Build
 
-## Nullable Reference Types
+The repo uses MSBuild via Visual Studio (not `dotnet build`). Build with PowerShell:
 
-When opting C# code into nullable reference types:
+```powershell
+# Full build (restore + common + gallery + jobs + artifacts)
+.\build.ps1
 
-* Only make the following changes when asked to do so.
+# Gallery-only build (most common during development)
+.\build.ps1 -SkipCommon -SkipJobs -SkipArtifacts
 
-* Add `#nullable enable` at the top of the file.
+# Incremental (skip restore after first build)
+.\build.ps1 -SkipCommon -SkipJobs -SkipArtifacts -SkipRestore
+```
 
-* Don't *ever* use `!` to handle `null`!
+## Test
 
-* Declare variables non-nullable, and check for `null` at entry points.
+Tests use **xUnit** and **Moq**. Run all tests:
 
-* Use `throw new ArgumentNullException(nameof(parameter))` in `.NET Framework` and `.NET Standard` projects.
+```powershell
+.\test.ps1
+```
 
-### Indentation and Whitespace
+Run a single test project:
 
-* C# code uses tabs (not spaces) for indentation.
-* Your mission is to make diffs as absolutely as small as possible, preserving existing code formatting.
-* If you encounter additional spaces or formatting within existing code blocks, LEAVE THEM AS-IS.
-* If you encounter code comments, LEAVE THEM AS-IS.
+```powershell
+dotnet test tests\NuGetGallery.Facts\NuGetGallery.Facts.csproj --no-restore --no-build --configuration debug
+```
 
-### Brackets and Spaces
+Run a single test by name:
 
-* Place a space prior to any parentheses `(`
-* Opening braces { should be on a new line after the control statement
-* Closing braces } should be on their own line aligned with the control statement
+```powershell
+dotnet test tests\NuGetGallery.Facts\NuGetGallery.Facts.csproj --no-restore --no-build --configuration debug --filter "FullyQualifiedName~TheMethodName"
+```
 
+## Architecture
 
-### Example Code Style
+### Solutions
 
-Examples of properly formatted code:
+- **NuGetGallery.sln** — Main gallery web app and its tests
+- **NuGet.Server.Common.sln** — Shared libraries (configuration, logging, storage, etc.)
+- **NuGet.Jobs.sln** — Background jobs (catalog indexing, stats, validation, Azure Search)
+- **NuGetGallery.Aspire.slnx** — Aspire orchestrator for local development
+
+### Key projects
+
+- `src/NuGetGallery` — ASP.NET MVC web app (.NET Framework 4.7.2). Uses OWIN, Web API, and Razor views.
+- `src/NuGetGallery.Core` — Shared core library (multi-targets net472 and netstandard2.1). Contains EF entities and core services.
+- `src/NuGetGallery.Services` — Business logic layer: authentication, package management, permissions, telemetry.
+- `src/NuGet.Services.Entities` — Entity models shared across gallery and jobs.
+- `src/NuGetGallery.AppHost` — Aspire AppHost for local orchestration (Azurite, IIS Express, DB migrations, seeding).
+
+### Dependency injection
+
+Autofac is the DI container. Registration is module-based:
+
+- `src/NuGetGallery/App_Start/AutofacConfig.cs` — Container setup
+- `src/NuGetGallery/App_Start/DefaultDependenciesModule.cs` — Main service registrations
+- `src/NuGetGallery/Authentication/AuthDependenciesModule.cs` — Auth registrations
+
+### Database
+
+Entity Framework 6 with code-first migrations. Key files:
+
+- `src/NuGetGallery.Core/Entities/EntitiesContext.cs` — Main DbContext
+- `src/NuGetGallery/Migrations/` — Gallery database migrations
+
+Additional contexts exist for validation (`ValidationEntitiesContext`) and support requests (`SupportRequestDbContext`).
+
+### Search
+
+The search pipeline flows: `ExternalSearchService` → `GallerySearchClient` → `ResilientSearchHttpClient` → `HttpClientWrapper` (with Polly retry policies). Configured conditionally based on `SearchServiceUriPrimary`/`SearchServiceUriSecondary` settings.
+
+## Conventions
+
+### File header
+
+Source files should include this copyright header:
+
+```
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+```
+
+### Nullable reference types
+
+Only opt code into nullable reference types when explicitly asked. When doing so:
+
+- Add `#nullable enable` at the top of the file.
+- Never use `!` to suppress null warnings.
+- Declare variables non-nullable and check for `null` at entry points.
+- Use `throw new ArgumentNullException(nameof(parameter))` in .NET Framework and .NET Standard projects.
+
+### C# style
+
+- Allman-style braces
+- Always specify visibility (`private string _foo`, not `string _foo`)
+- Private fields: `_camelCase` with `readonly` where possible
+- Avoid `this.` unless necessary
+- Avoid abbreviations: `Service` not `Svc`
+- Namespaces match folder structure
+- 4 spaces indentation
+- System usings first, then alphabetical
+
+### Asynchronous programming
+
+- Use async/await consistently. Name async methods with an `Async` suffix.
+- Never use `.Result` or `.Wait()` on Tasks.
+- Pass `CancellationToken` parameters when appropriate.
+- Use `ConfigureAwait(false)` in library code (shared projects targeting netstandard).
+
+### Telemetry
+
+Use `ITelemetryService` for application telemetry, not raw `ILogger`.
+
+### Database migrations
+
+- Use Entity Framework 6 migration patterns with proper `Up()` and `Down()` implementations.
+- Never modify existing migrations after they've been deployed. Create new migrations for schema changes.
+
+### URL handling
+
+- Convert HTTP URLs to HTTPS where appropriate.
+- Use `PackageHelper.TryPrepareUrlForRendering()` for sanitizing URLs for display.
+
+### Anti-forgery tokens
+
+All POST controller actions must have `[ValidateAntiForgeryToken]`. API-style POST actions that intentionally skip it must be added as exceptions in `tests/NuGetGallery.Facts/Controllers/ControllerTests.cs` (`AllActionsHaveAntiForgeryTokenIfNotGet`).
+
+### Test organization
+
+Test projects are named with `.Facts` suffix (e.g., `NuGetGallery.Facts`, `NuGetGallery.Core.Facts`).
+
+Tests use nested classes to group by member under test:
 
 ```csharp
-Foo();
-Bar(1, 2, "test");
-myarray[0] = 1;
+public class PackageServiceFacts
+{
+    public class TheCreatePackageMethod : TestContainer
+    {
+        [Fact]
+        public void ReturnsCreatedPackage()
+        {
+            // Arrange
+            // ...
 
-if (someValue)
-{
-    // Code here
-}
+            // Act
+            // ...
 
-try
-{
-    // Code here
-}
-catch (Exception e)
-{
-    // Code here
+            // Assert
+            // ...
+        }
+    }
 }
 ```
 
-## File Header
+`TestContainer` (in `tests/NuGetGallery.Facts/Framework/TestContainer.cs`) is the base class for tests that need DI. It provides `GetController<T>()`, `GetMock<T>()`, `GetService<T>()`, and `GetFakeContext()`.
 
-Source files should include the following copyright header:
+### csproj compile patterns
 
-// Copyright (c) .NET Foundation. All rights reserved.  
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+`NuGetGallery.Core.csproj` excludes certain files from `netstandard2.1` that depend on `System.Web`. If porting code that uses `System.Web.HttpServerUtility`, check the compile exclusions.
 
-## Asynchronous Programming
+### Branch workflow
 
-* Use async/await pattern consistently.
-* Ensure method names end with "Async" when they return Task or Task<T>.
-* Never use .Result or .Wait() on Tasks - this can lead to deadlocks.
-* Pass CancellationToken parameters when appropriate.
-* Use ConfigureAwait(false) when appropriate in library code.
+All feature branches should be created from and merged back to `dev`. Branch names follow the format `users/[username]/[feature-name]` for new features and `users/[username]/[issue-number]` for bug fixes.
 
-## Exception Handling
+### JavaScript and frontend
 
-* Use specific exception types rather than generic Exception if possible.
-* Include meaningful exception messages.
-* Validate parameters at the beginning of methods.
-* Avoid swallowing exceptions without proper logging.
+- JavaScript uses ES5 syntax for compatibility.
+- Use `'use strict'` directive.
+- Follow accessibility best practices (WCAG) in UI components.
+- The gallery uses a customized Bootstrap 3.4.1 fork. LESS sources are in `src/Bootstrap/less/`. After modifying them, rebuild with `.\tools\Build-Bootstrap.ps1` and commit both the LESS changes and the updated output files.
+- Several pages use **Knockout.js** for client-side data binding.
 
-## Database Migrations
+### Views and layout
 
-When creating or modifying database migrations:
+The master layout is `Views/Shared/Gallery/Layout.cshtml` (not the standard `_Layout.cshtml` location). It's selected via `_ViewStart.cshtml` with a branding override fallback. The layout defines optional Razor sections that pages can render into: `TopStyles`, `TopScripts`, `BottomScripts`, `Meta`, and `SocialMeta`.
 
-* Use EntityFramework migration patterns.
-* Ensure proper Up() and Down() implementations.
-* Use appropriate data types and constraints.
-* Don't modify existing migrations after they've been deployed.
-* Create new migrations for changes to the schema.
+Views use strongly-typed ViewModels (e.g., `DisplayPackageViewModel`). ViewModels live in `src/NuGetGallery/ViewModels/`.
 
-## URL Handling
+Icons use the **Microsoft Fabric** icon set: `<i class="ms-Icon ms-Icon--{Name}" aria-hidden="true"></i>`.
 
-For URL handling:
+### CSS and JS bundles
 
-* Convert HTTP URLs to HTTPS where appropriate.
-* Preserve query parameters and paths when modifying URLs.
-* Follow the URL normalization patterns in the codebase.
-* Use `PackageHelper.TryPrepareUrlForRendering()` for sanitizing URLs.
-* Follow security best practices for URL validation.
+Page styles are written in **LESS** in `src/Bootstrap/less/theme/`. Each page has a corresponding file (e.g., `page-display-package.less`, `page-home.less`). These are imported via `all.less`, compiled by Grunt, and output as `bootstrap.min.css`. This is the primary stylesheet loaded by the layout.
 
-## Logging and Telemetry
+When adding styles for a new page:
+1. Create `src/Bootstrap/less/theme/page-{name}.less`
+2. Add `@import "page-{name}.less";` to `src/Bootstrap/less/theme/all.less`
+3. Run `.\tools\Build-Bootstrap.ps1` to compile
+4. Commit both the LESS source and the compiled output in `Content/gallery/css/bootstrap.min.css`
 
-* Use the appropriate logging mechanism for the component:
-  * Use `ITelemetryService` for application telemetry.
-  * Include relevant context in log entries.
-* Avoid logging sensitive information.
-* Use appropriate log levels based on severity.
+For shared/reusable component styles, use the `common-*.less` naming pattern.
 
-## Testing
+CSS variables (e.g., `var(--neutralForeground1Rest)`) are used for dark/light theme support. Use them instead of hardcoded colors where available.
 
-When adding new functionality:
+JS bundles are registered in code in `App_Start/AppActivator.cs` (not a separate `BundleConfig.cs`). Each page has its own JS file following the naming convention `Scripts/gallery/page-{name}.js`, with a corresponding `ScriptBundle` registered in `AppActivator.cs`.
 
-* Use xUnit when adding new tests.
-* Add appropriate unit tests in the corresponding Facts project.
-* Follow the existing test patterns and naming conventions.
-* Use theories with inline data for testing multiple scenarios.
-* Mock external dependencies when appropriate.
-* Test both success and error paths.
-
-## Security Best Practices
-
-* Always validate user input.
-* Use proper CSRF/XSRF protection with anti-forgery tokens.
-* Follow secure coding practices to prevent injection attacks.
-* Use proper encoding for output displayed to users.
-* Never store sensitive information in client-side code.
-
-## JavaScript and Frontend
-
-* JavaScript uses standard ES5 syntax for compatibility.
-* When working with JavaScript:
-  * Use 'use strict' directive
-  * Follow existing patterns for DOM manipulation
-  * Properly handle browser compatibility issues
-* Follow accessibility best practices (WCAG) in UI components.
-
-## Documentation
-
-* Keep code documentation up-to-date.
-* Document public APIs with XML comments.
-* Include examples in documentation where helpful.
-* Use Markdown for text formatting in comments and documentation.
+When adding a new page with JavaScript:
+1. Create `Scripts/gallery/page-{name}.js`
+2. Register a new `ScriptBundle` in `AppActivator.cs`
+3. Reference the bundle in the view's `BottomScripts` section
