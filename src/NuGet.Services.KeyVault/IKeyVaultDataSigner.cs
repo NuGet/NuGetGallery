@@ -7,6 +7,12 @@ namespace NuGet.Services.KeyVault
 {
     public interface IKeyVaultDataSigner
     {
-        Task<byte[]> SignDataAsync(byte[] digest, KeyVaultSignatureAlgorithm algorithm);
+        /// <summary>
+        /// Signs the given data with the specified algorithm using the key stored in key vault.
+        /// </summary>
+        /// <param name="data">Raw data to sign. Implementation will hash the data internally if required by the algorithm.</param>
+        /// <param name="algorithm">Signature algorithm.</param>
+        /// <returns>Signature bytes.</returns>
+        Task<byte[]> SignDataAsync(byte[] data, KeyVaultSignatureAlgorithm algorithm);
     }
 }

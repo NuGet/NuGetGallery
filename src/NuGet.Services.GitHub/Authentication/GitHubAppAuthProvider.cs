@@ -49,16 +49,10 @@ namespace NuGet.Services.GitHub.Authentication
         private async Task<string> CreateSignedJwtAsync()
         {
             string unsignedJwt = CreateJwt();
-            byte[] digest = GetHash(unsignedJwt);
-            byte[] signature = await _dataSigner.SignDataAsync(digest, KeyVaultSignatureAlgorithm.RS256);
+            byte[] data = System.Text.Encoding.UTF8.GetBytes(unsignedJwt);
+            byte[] signature = await _dataSigner.SignDataAsync(data, KeyVaultSignatureAlgorithm.RS256);
             string jwt = $"{unsignedJwt}.{Base64UrlEncode(signature)}";
             return jwt;
-        }
-
-        private static byte[] GetHash(string unsignedJwt)
-        {
-            using var sha256 = System.Security.Cryptography.SHA256.Create();
-            return sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(unsignedJwt));
         }
 
         private static string Base64UrlEncode(byte[] signature)

@@ -16,11 +16,11 @@ namespace NuGet.Services.KeyVault
             _cryptoClient = cryptoClient ?? throw new ArgumentNullException(nameof(cryptoClient));
         }
 
-        public async Task<byte[]> SignDataAsync(byte[] digest, KeyVaultSignatureAlgorithm algorithm)
+        public async Task<byte[]> SignDataAsync(byte[] data, KeyVaultSignatureAlgorithm algorithm)
         {
-            if (digest is null)
+            if (data is null)
             {
-                throw new ArgumentNullException(nameof(digest));
+                throw new ArgumentNullException(nameof(data));
             }
 
             SignatureAlgorithm libraryAlgorithm = algorithm switch
@@ -34,7 +34,7 @@ namespace NuGet.Services.KeyVault
                 _ => throw new ArgumentException($"Unsupported algorithm: {algorithm}", nameof(algorithm)),
             };
 
-            SignResult result = await _cryptoClient.SignDataAsync(libraryAlgorithm, digest);
+            SignResult result = await _cryptoClient.SignDataAsync(libraryAlgorithm, data);
             return result.Signature;
         }
     }
