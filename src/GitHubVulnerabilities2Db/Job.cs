@@ -154,6 +154,7 @@ namespace GitHubVulnerabilities2Db
 
             var keyVaultUseManagedIdentity = configurationRoot.GetValue<bool>(Constants.KeyVaultUseManagedIdentity, false);
             var keyVaultName = configurationRoot[Constants.KeyVaultVaultNameKey] ?? throw new InvalidOperationException("Key vault name is not configured.");
+            var keyVaultManagedIdentityClientId = configurationRoot[Constants.ManagedIdentityClientIdKey];
 
             containerBuilder
                 .Register(ctx =>
@@ -166,11 +167,11 @@ namespace GitHubVulnerabilities2Db
 #if DEBUG
                     var credential = new DefaultAzureCredential();
 #else
-                    if (string.IsNullOrWhiteSpace(keyVaultConfig.ClientId))
+                    if (string.IsNullOrWhiteSpace(keyVaultManagedIdentityClientId))
                     {
                         throw new InvalidOperationException("Key vault client ID is not configured.");
                     }
-                    var credential = new ManagedIdentityCredential(keyVaultConfig.ClientId);
+                    var credential = new ManagedIdentityCredential(keyVaultManagedIdentityClientId);
 #endif
                     string vaultName = keyVaultName.ToLowerInvariant();
                     string keyName = config.GitHubAppPrivateKeyName.ToLowerInvariant();
