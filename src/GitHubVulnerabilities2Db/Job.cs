@@ -15,6 +15,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Identity.Web;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
 using NuGet.Services.Cursor;
@@ -29,6 +30,7 @@ using NuGetGallery;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 using NuGetGallery.Security;
+using Constants = NuGet.Services.Configuration.Constants;
 
 namespace GitHubVulnerabilities2Db
 {
@@ -146,11 +148,18 @@ namespace GitHubVulnerabilities2Db
         protected void ConfigureQueryServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
             containerBuilder
+                .RegisterInstance(_client)
+                .As<HttpClient>()
+                .ExternallyOwned(); // We don't want autofac disposing this--see https://github.com/NuGet/NuGetGallery/issues/9194
+
+            var keyVaultUseManagedIdentity = configurationRoot.GetValue<bool>(Constants.KeyVaultUseManagedIdentity, false);
+            var keyVaultName = configurationRoot[Constants.KeyVaultVaultNameKey] ?? throw new InvalidOperationException("Key vault name is not configured.");
+
+            containerBuilder
                 .Register(ctx =>
                 {
                     var config = ctx.Resolve<GitHubVulnerabilities2DbConfiguration>();
-                    var keyVaultConfig = ctx.Resolve<KeyVaultConfiguration>();
-                    if (!keyVaultConfig.UseManagedIdentity)
+                    if (!keyVaultUseManagedIdentity)
                     {
                         throw new InvalidOperationException("Only managed identity authentication is supported.");
                     }
@@ -163,7 +172,7 @@ namespace GitHubVulnerabilities2Db
                     }
                     var credential = new ManagedIdentityCredential(keyVaultConfig.ClientId);
 #endif
-                    string vaultName = keyVaultConfig.VaultName.ToLowerInvariant();
+                    string vaultName = keyVaultName.ToLowerInvariant();
                     string keyName = config.GitHubAppPrivateKeyName.ToLowerInvariant();
 
                     var keyUri = new Uri($"https://{vaultName}.vault.azure.net/keys/{keyName}");
@@ -213,7 +222,11 @@ namespace GitHubVulnerabilities2Db
                 .Register(ctx =>
                 {
                     var config = ctx.Resolve<GitHubVulnerabilities2DbConfiguration>();
+#if DEBUG
+                    var credential = new DefaultAzureCredential();
+#else
                     var credential = new ManagedIdentityCredential(configurationRoot[ManagedIdentityClientIdKey]);
+#endif
                     return new BlobServiceClientFactory(new Uri(config.StorageConnectionString), credential);
                 })
                 .As<BlobServiceClientFactory>();
