@@ -178,6 +178,35 @@ All feature branches should be created from and merged back to `dev`. Branch nam
 
 - JavaScript uses ES5 syntax for compatibility.
 - Use `'use strict'` directive.
-- Follow existing patterns for DOM manipulation.
 - Follow accessibility best practices (WCAG) in UI components.
 - The gallery uses a customized Bootstrap 3.4.1 fork. LESS sources are in `src/Bootstrap/less/`. After modifying them, rebuild with `.\tools\Build-Bootstrap.ps1` and commit both the LESS changes and the updated output files.
+- Several pages use **Knockout.js** for client-side data binding.
+
+### Views and layout
+
+The master layout is `Views/Shared/Gallery/Layout.cshtml` (not the standard `_Layout.cshtml` location). It's selected via `_ViewStart.cshtml` with a branding override fallback. The layout defines optional Razor sections that pages can render into: `TopStyles`, `TopScripts`, `BottomScripts`, `Meta`, and `SocialMeta`.
+
+Views use strongly-typed ViewModels (e.g., `DisplayPackageViewModel`). ViewModels live in `src/NuGetGallery/ViewModels/`.
+
+Icons use the **Microsoft Fabric** icon set: `<i class="ms-Icon ms-Icon--{Name}" aria-hidden="true"></i>`.
+
+### CSS and JS bundles
+
+Page styles are written in **LESS** in `src/Bootstrap/less/theme/`. Each page has a corresponding file (e.g., `page-display-package.less`, `page-home.less`). These are imported via `all.less`, compiled by Grunt, and output as `bootstrap.min.css`. This is the primary stylesheet loaded by the layout.
+
+When adding styles for a new page:
+1. Create `src/Bootstrap/less/theme/page-{name}.less`
+2. Add `@import "page-{name}.less";` to `src/Bootstrap/less/theme/all.less`
+3. Run `.\tools\Build-Bootstrap.ps1` to compile
+4. Commit both the LESS source and the compiled output in `Content/gallery/css/bootstrap.min.css`
+
+For shared/reusable component styles, use the `common-*.less` naming pattern.
+
+CSS variables (e.g., `var(--neutralForeground1Rest)`) are used for dark/light theme support. Use them instead of hardcoded colors where available.
+
+JS bundles are registered in code in `App_Start/AppActivator.cs` (not a separate `BundleConfig.cs`). Each page has its own JS file following the naming convention `Scripts/gallery/page-{name}.js`, with a corresponding `ScriptBundle` registered in `AppActivator.cs`.
+
+When adding a new page with JavaScript:
+1. Create `Scripts/gallery/page-{name}.js`
+2. Register a new `ScriptBundle` in `AppActivator.cs`
+3. Reference the bundle in the view's `BottomScripts` section
