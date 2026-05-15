@@ -121,5 +121,8 @@ namespace NuGetGallery.AccountDeleter
         public int MaxOwnerPerPackageRegistration { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public int MaxOwnerRequestsPerPackageRegistration { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string ExternalYourPrivacyChoicesUrl { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public bool AdminApiEnabled { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string AdminApiAudience { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string AdminApiAllowedCallers { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
     }
 }
