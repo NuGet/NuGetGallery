@@ -1068,14 +1068,20 @@ namespace NuGetGallery
 
         private TrustedPublisherPolicyViewModel CreatePublisherViewModel(FederatedCredentialPolicy policy)
         {
-            // Currently only GitHub Actions policies are supported by our Trusted Publishing UX.
-            if (policy.Type != FederatedCredentialType.GitHubActions)
+            TrustedPublisherPolicyDetailsViewModel policyDetails;
+            switch (policy.Type)
             {
-                return null;
+                case FederatedCredentialType.GitHubActions:
+                    policyDetails = GitHubPolicyDetailsViewModel.FromDatabaseJson(policy.Criteria);
+                    break;
+                case FederatedCredentialType.GitLabCI:
+                    policyDetails = GitLabPolicyDetailsViewModel.FromDatabaseJson(policy.Criteria);
+                    break;
+                default:
+                    return null;
             }
 
-            if (GitHubPolicyDetailsViewModel.FromDatabaseJson(policy.Criteria)
-                is not GitHubPolicyDetailsViewModel policyDetails)
+            if (policyDetails == null)
             {
                 return null;
             }
@@ -1094,7 +1100,7 @@ namespace NuGetGallery
         [UIAuthorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<JsonResult> GenerateTrustedPublisherPolicy(string policyName, string owner, string criteria)
+        public virtual async Task<JsonResult> GenerateTrustedPublisherPolicy(string policyName, string owner, string criteria, string publisherType = null)
         {
             User currentUser = GetCurrentUser();
             if (currentUser == null)
@@ -1109,11 +1115,12 @@ namespace NuGetGallery
                 return Json(Strings.TrustedPublisher_PolicyOwnerRequired);
             }
 
-            var policyCriteria = ViewToPolicyCriteria(criteria);
+            FederatedCredentialType credentialType = ResolveCredentialType(publisherType);
+            var policyCriteria = ViewToPolicyCriteria(criteria, credentialType);
 
             // Try adding policy
             FederatedCredentialPolicyValidationResult result = await _federatedCredentialService.AddPolicyAsync(
-                currentUser, owner, policyCriteria, policyName, FederatedCredentialType.GitHubActions);
+                currentUser, owner, policyCriteria, policyName, credentialType);
 
             switch (result.Type)
             {
@@ -1134,6 +1141,32 @@ namespace NuGetGallery
             }
         }
 
+        private FederatedCredentialType ResolveCredentialType(string publisherType)
+        {
+            if (string.Equals(publisherType, nameof(FederatedCredentialType.GitLabCI), StringComparison.OrdinalIgnoreCase))
+            {
+                return FederatedCredentialType.GitLabCI;
+            }
+
+            // Default to GitHub Actions for backward compatibility
+            return FederatedCredentialType.GitHubActions;
+        }
+
+        private string ViewToPolicyCriteria(string criteria, FederatedCredentialType credentialType)
+        {
+            switch (credentialType)
+            {
+                case FederatedCredentialType.GitLabCI:
+                    var gitLabDetails = GitLabPolicyDetailsViewModel.FromViewJson(criteria);
+                    return gitLabDetails.Criteria.ToDatabaseJson();
+
+                case FederatedCredentialType.GitHubActions:
+                default:
+                    var details = GitHubPolicyDetailsViewModel.FromViewJson(criteria);
+                    return details.Criteria.ToDatabaseJson();
+            }
+        }
+
         [UIAuthorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -1146,7 +1179,7 @@ namespace NuGetGallery
                 return Json(result.error);
             }
 
-            var policyCriteria = ViewToPolicyCriteria(criteria);
+            var policyCriteria = ViewToPolicyCriteria(criteria, result.policy.Type);
             return await UpdatePolicyAsync(result.policy, policyCriteria, policyName);
         }
 
@@ -1188,29 +1221,6 @@ namespace NuGetGallery
             }
 
             return Json(model);
-        }
-
-        private string ViewToPolicyCriteria(string criteria)
-        {
-            // Currently only GitHub Actions policies are expected
-            var details = GitHubPolicyDetailsViewModel.FromViewJson(criteria);
-            return details.Criteria.ToDatabaseJson();
-        }
-
-        [HttpPost]
-        [UIAuthorize]
-        [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> RemoveTrustedPublisherPolicy(int? federatedCredentialKey)
-        {
-            var result = GetFederatedCredentialPolicy(federatedCredentialKey);
-            if (result.policy == null)
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(result.error);
-            }
-
-            await _federatedCredentialService.DeletePolicyAsync(result.policy);
-            return Json(Strings.TrustedPolicyRemoved);
         }
 
         private (FederatedCredentialPolicy policy, string error) GetFederatedCredentialPolicy(int? federatedCredentialKey)
