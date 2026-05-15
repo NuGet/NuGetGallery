@@ -172,7 +172,7 @@ public class PackageServiceFacts
 
 ### Branch workflow
 
-All feature branches should be created from and merged back to `dev`. Branch names follow the format `[username]-[issue-number]`.
+All feature branches should be created from and merged back to `dev`. Branch names follow the format `users/[username]/[feature-name]` for new features and `users/[username]/[issue-number]` for bug fixes.
 
 ### JavaScript and frontend
 
