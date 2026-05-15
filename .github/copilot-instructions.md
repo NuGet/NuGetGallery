@@ -119,6 +119,10 @@ Only opt code into nullable reference types when explicitly asked. When doing so
 - Pass `CancellationToken` parameters when appropriate.
 - Use `ConfigureAwait(false)` in library code (shared projects targeting netstandard).
 
+### Telemetry
+
+Use `ITelemetryService` for application telemetry, not raw `ILogger`.
+
 ### Database migrations
 
 - Use Entity Framework 6 migration patterns with proper `Up()` and `Down()` implementations.
