@@ -180,3 +180,4 @@ All feature branches should be created from and merged back to `dev`. Branch nam
 - Use `'use strict'` directive.
 - Follow existing patterns for DOM manipulation.
 - Follow accessibility best practices (WCAG) in UI components.
+- The gallery uses a customized Bootstrap 3.4.1 fork. LESS sources are in `src/Bootstrap/less/`. After modifying them, rebuild with `.\tools\Build-Bootstrap.ps1` and commit both the LESS changes and the updated output files.
