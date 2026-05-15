@@ -794,6 +794,7 @@
     <Compile Include="ViewModels\DisplayLicenseViewModel.cs" />
     <Compile Include="ViewModels\GitHubPolicyDetailsViewModel.cs" />
     <Compile Include="ViewModels\GitHubUsageViewModel.cs" />
+    <Compile Include="ViewModels\GitLabPolicyDetailsViewModel.cs" />
     <Compile Include="ViewModels\ListCertificateItemViewModel.cs" />
     <Compile Include="ViewModels\GalleryHomeViewModel.cs" />
     <Compile Include="ViewModels\HandleOrganizationMembershipRequestModel.cs" />
