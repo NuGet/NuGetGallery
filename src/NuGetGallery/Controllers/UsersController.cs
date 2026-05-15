@@ -1505,5 +1505,22 @@ namespace NuGetGallery
                 CanCancel = packageViewModel.CanManageOwners,
             };
         }
+
+        [HttpPost]
+        [UIAuthorize]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<JsonResult> RemoveTrustedPublisherPolicy(int? federatedCredentialKey)
+        {
+            var result = GetFederatedCredentialPolicy(federatedCredentialKey);
+            if (result.policy == null)
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(result.error);
+            }
+
+            await _federatedCredentialService.DeletePolicyAsync(result.policy);
+
+            return Json(Strings.TrustedPolicyRemoved);
+        }
     }
 }
