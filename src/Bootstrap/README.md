@@ -1,5 +1,21 @@
 # [Bootstrap](https://getbootstrap.com/)
 
+## NuGetGallery customization
+
+This folder contains a customized fork of Bootstrap 3.4.1 used by the NuGet Gallery. The LESS source files in `less/` have been modified for NuGet Gallery styling.
+
+### Rebuilding after changes
+
+After modifying any LESS files, run the build script from the repository root:
+
+```powershell
+.\tools\Build-Bootstrap.ps1
+```
+
+This compiles the LESS sources, minifies the CSS/JS, and copies the output to the correct locations in `src/NuGetGallery`. Commit both the LESS changes and the updated output files.
+
+---
+
 [![Slack](https://bootstrap-slack.herokuapp.com/badge.svg)](https://bootstrap-slack.herokuapp.com/)
 ![Bower version](https://img.shields.io/bower/v/bootstrap.svg)
 [![npm version](https://img.shields.io/npm/v/bootstrap.svg)](https://www.npmjs.com/package/bootstrap)
