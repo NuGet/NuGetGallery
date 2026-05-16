@@ -122,29 +122,7 @@ namespace VerifyGitHubVulnerabilities
             var keyVaultManagedIdentityClientId = configurationRoot[Constants.ManagedIdentityClientIdKey];
 
             containerBuilder
-                .Register(ctx =>
-                {
-                    var config = ctx.Resolve<VerifyGitHubVulnerabilitiesConfiguration>();
-                    if (!keyVaultUseManagedIdentity)
-                    {
-                        throw new InvalidOperationException("Only managed identity authentication is supported.");
-                    }
-#if DEBUG
-                    var credential = new DefaultAzureCredential();
-#else
-                    if (string.IsNullOrWhiteSpace(keyVaultManagedIdentityClientId))
-                    {
-                        throw new InvalidOperationException("Managed identity client ID is not configured.");
-                    }
-                    var credential = new ManagedIdentityCredential(keyVaultManagedIdentityClientId);
-#endif
-                    string vaultName = keyVaultName.ToLowerInvariant();
-                    string keyName = config.GitHubAppPrivateKeyName.ToLowerInvariant();
-
-                    var keyUri = new Uri($"https://{vaultName}.vault.azure.net/keys/{keyName}");
-                    CryptographyClient cryptographyClient = new CryptographyClient(keyUri, credential);
-                    return new KeyVaultDataSigner(cryptographyClient);
-                })
+                .RegisterKeyVaultDataSigner<VerifyGitHubVulnerabilitiesConfiguration>(configurationRoot)
                 .As<IKeyVaultDataSigner>();
 
             containerBuilder

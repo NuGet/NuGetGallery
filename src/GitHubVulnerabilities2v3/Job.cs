@@ -108,34 +108,8 @@ namespace GitHubVulnerabilities2v3
                 .As<HttpClient>()
                 .ExternallyOwned(); // We don't want autofac disposing this--see https://github.com/NuGet/NuGetGallery/issues/9194
 
-            var keyVaultUseManagedIdentity = configurationRoot.GetValue<bool>(Constants.KeyVaultUseManagedIdentity, false);
-            var keyVaultName = configurationRoot[Constants.KeyVaultVaultNameKey] ?? throw new InvalidOperationException("Key vault name is not configured.");
-            var keyVaultManagedIdentityClientId = configurationRoot[Constants.ManagedIdentityClientIdKey];
-
             containerBuilder
-                .Register(ctx =>
-                {
-                    var config = ctx.Resolve<GitHubVulnerabilities2v3Configuration>();
-                    if (!keyVaultUseManagedIdentity)
-                    {
-                        throw new InvalidOperationException("Only managed identity authentication is supported.");
-                    }
-#if DEBUG
-                    var credential = new DefaultAzureCredential();
-#else
-                    if (string.IsNullOrWhiteSpace(keyVaultManagedIdentityClientId))
-                    {
-                        throw new InvalidOperationException("Managed identity client ID is not configured.");
-                    }
-                    var credential = new ManagedIdentityCredential(keyVaultManagedIdentityClientId);
-#endif
-                    string vaultName = keyVaultName.ToLowerInvariant();
-                    string keyName = config.GitHubAppPrivateKeyName.ToLowerInvariant();
-
-                    var keyUri = new Uri($"https://{vaultName}.vault.azure.net/keys/{keyName}");
-                    CryptographyClient cryptographyClient = new CryptographyClient(keyUri, credential);
-                    return new KeyVaultDataSigner(cryptographyClient);
-                })
+                .RegisterKeyVaultDataSigner<GitHubVulnerabilities2v3Configuration>(configurationRoot)
                 .As<IKeyVaultDataSigner>();
 
             containerBuilder

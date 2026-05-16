@@ -6,6 +6,7 @@
   </PropertyGroup>
   
   <ItemGroup>
+    <PackageReference Include="Autofac" />
     <PackageReference Include="Octokit" />
   </ItemGroup>
   <ItemGroup>
