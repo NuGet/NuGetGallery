@@ -8,6 +8,7 @@
   <ItemGroup>
     <PackageReference Include="Autofac" />
     <PackageReference Include="Octokit" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Services.Cursor\NuGet.Services.Cursor.csproj" />

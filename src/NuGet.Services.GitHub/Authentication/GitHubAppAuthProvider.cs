@@ -3,11 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.IdentityModel.Tokens;
 using NuGet.Services.GitHub.Configuration;
 using NuGet.Services.KeyVault;
 using Octokit;
@@ -46,50 +47,32 @@ namespace NuGet.Services.GitHub.Authentication
             message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", authToken);
         }
 
-        private async Task<string> CreateSignedJwtAsync()
-        {
-            string unsignedJwt = CreateJwt();
-            byte[] data = System.Text.Encoding.UTF8.GetBytes(unsignedJwt);
-            byte[] signature = await _dataSigner.SignDataAsync(data, KeyVaultSignatureAlgorithm.RS256);
-            string jwt = $"{unsignedJwt}.{Base64UrlEncode(signature)}";
-            return jwt;
-        }
+		private async Task<string> CreateSignedJwtAsync()
+		{
+			string unsignedJwt = CreateJwt();
+			byte[] data = System.Text.Encoding.UTF8.GetBytes(unsignedJwt);
+			byte[] signature = await _dataSigner.SignDataAsync(data, KeyVaultSignatureAlgorithm.RS256);
+			return $"{unsignedJwt}.{Base64UrlEncoder.Encode(signature)}";
+		}
 
-        private static string Base64UrlEncode(byte[] signature)
-        {
-            return MakeBase64UrlSafe(Convert.ToBase64String(signature));
-        }
+		private string CreateJwt()
+		{
+			var now = DateTimeOffset.UtcNow;
 
-        private static string Base64UrlEncode(string str)
-        {
-            return Base64UrlEncode(System.Text.Encoding.UTF8.GetBytes(str));
-        }
+			var header = new JwtHeader();
+			header[JwtHeaderParameterNames.Alg] = SecurityAlgorithms.RsaSha256;
+			header[JwtHeaderParameterNames.Typ] = "JWT";
 
-        private static string MakeBase64UrlSafe(string base64)
-        {
-            return base64.TrimEnd('=').Replace('+', '-').Replace('/', '_');
-        }
+			var payload = new JwtPayload(
+				issuer: _gitHubAppId,
+				audience: null,
+				claims: null,
+				notBefore: null,
+				expires: now.AddMinutes(5).UtcDateTime,
+				issuedAt: now.AddMinutes(-1).UtcDateTime);
 
-        private string CreateJwt()
-        {
-            var header = new JwtHeader();
-            var payload = new JwtPayload
-            {
-                Iss = _gitHubAppId,
-            };
-
-			var serializerOptions = new JsonSerializerOptions
-			{
-				PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-			};
-			string headerJson = JsonSerializer.Serialize(header, serializerOptions);
-			string payloadJson = JsonSerializer.Serialize(payload, serializerOptions);
-
-            string headerBase64 = Base64UrlEncode(headerJson);
-            string payloadBase64 = Base64UrlEncode(payloadJson);
-
-            return $"{headerBase64}.{payloadBase64}";
-        }
+			return $"{header.Base64UrlEncode()}.{payload.Base64UrlEncode()}";
+		}
 
         private async Task<long> GetInstallationIdAsync(GitHubClient client)
         {
@@ -148,17 +131,5 @@ namespace NuGet.Services.GitHub.Authentication
             };
         }
 
-        private class JwtHeader
-        {
-            public string Alg { get; set; } = "RS256";
-            public string Typ { get; set; } = "JWT";
+            }
         }
-
-        private class JwtPayload
-        {
-            public string Iss { get; set; }
-            public long Iat { get; set; } = DateTimeOffset.UtcNow.AddMinutes(-1).ToUnixTimeSeconds();
-            public long Exp { get; set; } = DateTimeOffset.UtcNow.AddMinutes(5).ToUnixTimeSeconds();
-        }
-    }
-}
