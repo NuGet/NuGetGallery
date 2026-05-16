@@ -7,6 +7,8 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
+using Azure.Identity;
+using Azure.Security.KeyVault.Keys.Cryptography;
 using GitHubVulnerabilities2Db.Gallery;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,11 +16,13 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
+using NuGet.Services.Configuration;
 using NuGet.Services.GitHub.Authentication;
 using NuGet.Services.GitHub.Collector;
 using NuGet.Services.GitHub.Configuration;
 using NuGet.Services.GitHub.GraphQL;
 using NuGet.Services.GitHub.Ingest;
+using NuGet.Services.KeyVault;
 using NuGetGallery;
 using VerifyGitHubVulnerabilities.Configuration;
 using VerifyGitHubVulnerabilities.Verify;
@@ -65,7 +69,7 @@ namespace VerifyGitHubVulnerabilities
             containerBuilder
                 .RegisterAdapter<IOptionsSnapshot<VerifyGitHubVulnerabilitiesConfiguration>, GraphQLQueryConfiguration>(c => c.Value);
 
-            ConfigureQueryServices(containerBuilder);
+            ConfigureQueryServices(containerBuilder, configurationRoot);
             ConfigureIngestionServices(containerBuilder);
         }
 
@@ -107,15 +111,63 @@ namespace VerifyGitHubVulnerabilities
                 .As(typeof(IEntityRepository<>));
        }
 
-        protected void ConfigureQueryServices(ContainerBuilder containerBuilder)
+        protected void ConfigureQueryServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
             containerBuilder
                 .RegisterInstance(new HttpClient())
                 .As<HttpClient>();
 
+            var keyVaultUseManagedIdentity = configurationRoot.GetValue<bool>(Constants.KeyVaultUseManagedIdentity, false);
+            var keyVaultName = configurationRoot[Constants.KeyVaultVaultNameKey] ?? throw new InvalidOperationException("Key vault name is not configured.");
+            var keyVaultManagedIdentityClientId = configurationRoot[Constants.ManagedIdentityClientIdKey];
+
+            containerBuilder
+                .Register(ctx =>
+                {
+                    var config = ctx.Resolve<VerifyGitHubVulnerabilitiesConfiguration>();
+                    if (!keyVaultUseManagedIdentity)
+                    {
+                        throw new InvalidOperationException("Only managed identity authentication is supported.");
+                    }
+#if DEBUG
+                    var credential = new DefaultAzureCredential();
+#else
+                    if (string.IsNullOrWhiteSpace(keyVaultManagedIdentityClientId))
+                    {
+                        throw new InvalidOperationException("Managed identity client ID is not configured.");
+                    }
+                    var credential = new ManagedIdentityCredential(keyVaultManagedIdentityClientId);
+#endif
+                    string vaultName = keyVaultName.ToLowerInvariant();
+                    string keyName = config.GitHubAppPrivateKeyName.ToLowerInvariant();
+
+                    var keyUri = new Uri($"https://{vaultName}.vault.azure.net/keys/{keyName}");
+                    CryptographyClient cryptographyClient = new CryptographyClient(keyUri, credential);
+                    return new KeyVaultDataSigner(cryptographyClient);
+                })
+                .As<IKeyVaultDataSigner>();
+
             containerBuilder
                 .RegisterType<GitHubPersonalAccessTokenAuthProvider>()
-                .As<IGitHubAuthProvider>();
+                .AsSelf()
+                .SingleInstance();
+
+            containerBuilder
+                .RegisterType<GitHubAppAuthProvider>()
+                .AsSelf()
+                .SingleInstance();
+
+            containerBuilder
+                .Register<IGitHubAuthProvider>(ctx => {
+                    var config = ctx.Resolve<VerifyGitHubVulnerabilitiesConfiguration>();
+                    if (string.IsNullOrWhiteSpace(config.GitHubAppId))
+                    {
+                        return ctx.Resolve<GitHubPersonalAccessTokenAuthProvider>();
+                    }
+                    return ctx.Resolve<GitHubAppAuthProvider>();
+                })
+                .As<IGitHubAuthProvider>()
+                .SingleInstance();
 
             containerBuilder
                 .RegisterType<QueryService>()
