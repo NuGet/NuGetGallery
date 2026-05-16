@@ -843,12 +843,7 @@
                                         @ViewHelpers.AlertImagesRewritten();
                                     }
 
-                                    @if (Model.ReadmeImageSourceDisallowed && Model.CanDisplayPrivateMetadata)
-                                    {
-                                        @ViewHelpers.AlertImageSourceDisallowed();
-                                    }
-
-                                    @Html.Raw(Model.ReadMeHtml)
+                            @Html.Raw(Model.ReadMeHtml)
                                 </div>
                             </div>
                         }

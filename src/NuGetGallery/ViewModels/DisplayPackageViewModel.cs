@@ -24,7 +24,6 @@ namespace NuGetGallery
         public string Copyright { get; set; }
         public string ReadMeHtml { get; set; }
         public bool ReadMeImagesRewritten { get; set; }
-        public bool ReadmeImageSourceDisallowed { get; set; }
         public DateTime? LastEdited { get; set; }
         public long DownloadsPerDay { get; set; }
         public int TotalDaysSinceCreated { get; set; }

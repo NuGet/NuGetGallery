@@ -275,14 +275,14 @@ namespace NuGetGallery
         bool IsAllowAadContentSafetyReportsEnabled();
 
         /// <summary>
-        /// Whether rendering Markdown content to HTML using Markdig is enabled
-        /// </summary>
-        bool IsMarkdigMdRenderingEnabled();
-
-        /// <summary>
         /// Whether rendering Markdown fenced code with syntax highlighting
         /// </summary>
         bool IsMarkdigMdSyntaxHighlightEnabled();
+
+        /// <summary>
+        /// Whether HTML tags in Markdown READMEs are allowed to pass through to the sanitizer
+        /// </summary>
+        bool IsHtmlInMarkdownEnabled();
 
         /// <summary>
         /// Whether the new warning of the verfiy metadata when upload package is enabled.
@@ -298,11 +298,6 @@ namespace NuGetGallery
         /// Whether or not the user can delete a package through the API.
         /// </summary>
         bool IsDeletePackageApiEnabled(User user);
-
-        /// <summary>
-        /// Whether the allowlist is enabled for checking the image sources
-        /// </summary>
-        bool IsImageAllowlistEnabled();
 
         /// <summary>
         /// Whether or not display the banner on nuget.org

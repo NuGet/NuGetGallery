@@ -47,12 +47,11 @@ namespace NuGetGallery
         private const string PatternSetTfmHeuristicsFeatureName = GalleryPrefix + "PatternSetTfmHeuristics";
         private const string EmbeddedReadmeFlightName = GalleryPrefix + "EmbeddedReadmes";
         private const string LicenseMdRenderingFlightName = GalleryPrefix + "LicenseMdRendering";
-        private const string MarkdigMdRenderingFlightName = GalleryPrefix + "MarkdigMdRendering";
         private const string MarkdigMdSyntaxHighlightFlightName = GalleryPrefix + "MarkdigMdSyntaxHighlight";
+        private const string HtmlInMarkdownFlightName = GalleryPrefix + "HtmlInMarkdown";
         private const string DisplayUploadWarningV2FlightName = GalleryPrefix + "DisplayUploadWarningV2";
         private const string DisplayPackageReadmeWarningFlightName = GalleryPrefix + "DisplayPackageReadmeWarning";
         private const string DeletePackageApiFlightName = GalleryPrefix + "DeletePackageApi";
-        private const string ImageAllowlistFlightName = GalleryPrefix + "ImageAllowlist";
         private const string DisplayBannerFlightName = GalleryPrefix + "Banner";
         private const string ShowReportAbuseSafetyChanges = GalleryPrefix + "ShowReportAbuseSafetyChanges";
         private const string AllowAadContentSafetyReports = GalleryPrefix + "AllowAadContentSafetyReports";
@@ -362,14 +361,14 @@ namespace NuGetGallery
             return _client.IsEnabled(AllowAadContentSafetyReports, defaultValue: false);
         }
 
-        public bool IsMarkdigMdRenderingEnabled()
-        {
-            return _client.IsEnabled(MarkdigMdRenderingFlightName, defaultValue: false);
-        }
-
         public bool IsMarkdigMdSyntaxHighlightEnabled()
         {
             return _client.IsEnabled(MarkdigMdSyntaxHighlightFlightName, defaultValue: false);
+        }
+
+        public bool IsHtmlInMarkdownEnabled()
+        {
+            return _client.IsEnabled(HtmlInMarkdownFlightName, defaultValue: false);
         }
 
         public bool IsDisplayUploadWarningV2Enabled(User user)
@@ -385,11 +384,6 @@ namespace NuGetGallery
         public bool IsDeletePackageApiEnabled(User user)
         {
             return _client.IsEnabled(DeletePackageApiFlightName, user, defaultValue: false);
-        }
-
-        public bool IsImageAllowlistEnabled()
-        {
-            return _client.IsEnabled(ImageAllowlistFlightName, defaultValue: false);
         }
 
         public bool IsDisplayBannerEnabled()

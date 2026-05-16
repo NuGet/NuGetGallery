@@ -95,11 +95,6 @@ namespace GitHubVulnerabilities2Db.Fakes
             throw new NotImplementedException();
         }
 
-        public bool IsImageAllowlistEnabled()
-        {
-            throw new NotImplementedException();
-        }
-
         public bool IsLicenseMdRenderingEnabled(User user)
         {
             throw new NotImplementedException();
@@ -125,12 +120,12 @@ namespace GitHubVulnerabilities2Db.Fakes
             throw new NotImplementedException();
         }
 
-        public bool IsMarkdigMdRenderingEnabled()
+        public bool IsMarkdigMdSyntaxHighlightEnabled()
         {
             throw new NotImplementedException();
         }
 
-        public bool IsMarkdigMdSyntaxHighlightEnabled()
+        public bool IsHtmlInMarkdownEnabled()
         {
             throw new NotImplementedException();
         }

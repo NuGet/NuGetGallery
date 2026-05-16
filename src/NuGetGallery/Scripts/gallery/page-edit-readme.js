@@ -349,10 +349,6 @@ var BindReadMeDataManager = (function () {
             if (response.ImagesRewritten) {
                 displayReadMeWarning("Some images were automatically rewritten to use secure links and may be broken.");
             }
-
-            if (response.ImageSourceDisallowed) {
-                displayReadMeWarning("Some images are not displayed as they are not from <a href='https://aka.ms/nuget-org-readme#allowed-domains-for-images-and-badges'>trusted domains</a>.");
-            }
         }
 
         function displayReadMeEditMarkdown() {

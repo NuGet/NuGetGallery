@@ -144,7 +144,6 @@ namespace NuGetGallery.ViewModels
             {
                 Content = licenseFileContents,
                 ImagesRewritten = false,
-                ImageSourceDisallowed = false,
             };
 
             _featureFlagService.Setup(x => x.IsLicenseMdRenderingEnabled(user))
@@ -159,8 +158,6 @@ namespace NuGetGallery.ViewModels
             Assert.NotNull(model.LicenseFileContentsHtml);
             Assert.Equal(expectedlicenseContentResult.Content,
                 model.LicenseFileContentsHtml.Content);
-            Assert.Equal(expectedlicenseContentResult.ImageSourceDisallowed,
-                model.LicenseFileContentsHtml.ImageSourceDisallowed);
             Assert.Equal(expectedlicenseContentResult.ImagesRewritten,
                 model.LicenseFileContentsHtml.ImagesRewritten);
         }

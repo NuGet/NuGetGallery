@@ -373,9 +373,7 @@
     <Compile Include="Services\UploadPackageMissingReadme.cs" />
     <Compile Include="Services\MissingLicenseValidationMessage.cs" />
     <Compile Include="Services\UploadPackageIdNamespaceConflict.cs" />
-    <Compile Include="Services\ImageDomainValidator.cs" />
     <Compile Include="Services\IMarkdownService.cs" />
-    <Compile Include="Services\IImageDomainValidator.cs" />
     <Compile Include="Services\IPackageVulnerabilitiesService.cs" />
     <Compile Include="Services\IPackageMetadataValidationService.cs" />
     <Compile Include="Services\IPackageVulnerabilitiesCacheService.cs" />
@@ -2235,7 +2233,7 @@
     <PackageReference Include="Autofac.Mvc5.Owin" />
     <PackageReference Include="Autofac.Owin" />
     <PackageReference Include="Autofac.WebApi2" />
-    <PackageReference Include="CommonMark.NET" />
+
     <PackageReference Include="d3" />
     <PackageReference Include="NuGet.StrongName.DynamicData.EFCodeFirstProvider" />
     <PackageReference Include="NuGet.StrongName.elmah.sqlserver" />

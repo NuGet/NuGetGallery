@@ -2,11 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
-using System.Web;
-using CommonMark;
-using CommonMark.Syntax;
+using AngleSharp.Html.Dom;
 using Ganss.Xss;
 using Markdig;
 using Markdig.Extensions.AutoIdentifiers;
@@ -22,32 +21,123 @@ namespace NuGetGallery
     public class MarkdownService : IMarkdownService
     {
         private static readonly TimeSpan RegexTimeout = TimeSpan.FromMinutes(1);
-        private static readonly Regex EncodedBlockQuotePattern = new Regex("^ {0,3}&gt;", RegexOptions.Multiline, RegexTimeout);
-        private static readonly Regex LinkPattern = new Regex("<a href=([\"\']).*?\\1", RegexOptions.None, RegexTimeout);
         private static readonly Regex HtmlCommentPattern = new Regex("<!--.*?-->", RegexOptions.Singleline, RegexTimeout);
         private static readonly Regex ImageTextPattern = new Regex("!\\[\\]\\(", RegexOptions.Singleline, RegexTimeout);
         private static readonly string AltTextForImage = "alternate text is missing from this package README image";
 
         private readonly IFeatureFlagService _features;
-        private readonly IImageDomainValidator _imageDomainValidator;
         private readonly IHtmlSanitizer _htmlSanitizer;
+        private bool _imagesRewritten;
 
         public MarkdownService(IFeatureFlagService features,
-            IImageDomainValidator imageDomainValidator,
             IHtmlSanitizer htmlSanitizer)
         {
             _features = features ?? throw new ArgumentNullException(nameof(features));
-            _imageDomainValidator = imageDomainValidator ?? throw new ArgumentNullException(nameof(imageDomainValidator));
             _htmlSanitizer = htmlSanitizer ?? throw new ArgumentNullException(nameof(htmlSanitizer));
-            SanitizerSettings();
+            ConfigureSanitizer();
         }
 
-        private void SanitizerSettings()
+        // Allowlist of HTML tags modeled after GitHub's Markdown sanitization filter.
+        // See: https://github.com/jch/html-pipeline/blob/main/lib/html_pipeline/sanitization_filter.rb
+        // Note: "input" is NOT in this list. Markdig task list checkboxes are preserved via
+        // the RemovingTag event which allows only <input type="checkbox" disabled>.
+        private static readonly HashSet<string> AllowedTagsList = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            //Configure allowed tags, attributes for the sanitizer
-            _htmlSanitizer.AllowedAttributes.Add("id");
-            _htmlSanitizer.AllowedAttributes.Add("class");
-            _htmlSanitizer.AllowedAttributes.Add("aria-label");
+            "a", "abbr", "b", "bdo", "blockquote", "br", "caption", "cite", "code",
+            "dd", "del", "details", "dfn", "div", "dl", "dt",
+            "em", "figcaption", "figure",
+            "h1", "h2", "h3", "h4", "h5", "h6", "hr",
+            "i", "img", "ins",
+            "kbd", "li", "mark",
+            "ol", "p", "picture", "pre",
+            "q", "rp", "rt", "ruby",
+            "s", "samp", "small", "source", "span", "strike", "strong", "sub", "summary", "sup",
+            "table", "tbody", "td", "tfoot", "th", "thead", "time", "tr", "tt",
+            "ul", "var", "wbr"
+        };
+
+        // Allowlist of HTML attributes modeled after GitHub's sanitization filter.
+        // This is the union of GitHub's global "all" list plus their per-element attributes
+        // (href, src, longdesc, loading, srcset, itemscope, itemtype) applied globally since
+        // the Ganss.Xss HtmlSanitizer does not support per-element attribute restrictions.
+        // Per-element attributes on stripped tags are harmless (e.g., "action" without "form").
+        // We add "class" (needed for Markdig CSS classes like "table", "img-fluid", "task-list-item").
+        // We intentionally exclude "style" to prevent CSS-based attacks (positioning overlays,
+        // background-image tracking, opacity clickjacking).
+        private static readonly HashSet<string> AllowedAttributesList = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            // GitHub's global "all" attributes
+            "abbr", "accept", "accept-charset", "action", "align", "alt",
+            "aria-describedby", "aria-hidden", "aria-label", "aria-labelledby",
+            "axis", "border", "char", "charoff", "charset", "checked", "clear",
+            "cols", "colspan", "compact", "coords", "datetime", "dir", "disabled",
+            "enctype", "for", "frame", "headers", "height", "hreflang", "hspace",
+            "id", "ismap", "label", "lang", "maxlength", "media", "method", "multiple",
+            "name", "nohref", "noshade", "nowrap", "open", "progress", "prompt",
+            "readonly", "rel", "rev", "role", "rows", "rowspan", "rules", "scope",
+            "selected", "shape", "size", "span", "start", "summary", "tabindex",
+            "title", "type", "usemap", "valign", "value", "width", "itemprop",
+            // GitHub's per-element attributes (applied globally)
+            "href", "src", "longdesc", "loading", "srcset", "itemscope", "itemtype",
+            // NuGet additions
+            "class"
+        };
+
+        private void ConfigureSanitizer()
+        {
+            // Replace the HtmlSanitizer's permissive defaults with our GitHub-modeled allowlists.
+            _htmlSanitizer.AllowedTags.Clear();
+            _htmlSanitizer.AllowedTags.UnionWith(AllowedTagsList);
+
+            _htmlSanitizer.AllowedAttributes.Clear();
+            _htmlSanitizer.AllowedAttributes.UnionWith(AllowedAttributesList);
+
+            // No style attribute means no CSS processing is needed.
+            _htmlSanitizer.AllowedCssProperties.Clear();
+
+            // Allow Markdig task list checkboxes through while stripping all other inputs.
+            // GitHub handles this via a post-sanitization filter; we use RemovingTag since
+            // Ganss.Xss doesn't support multi-stage pipelines.
+            _htmlSanitizer.RemovingTag += (sender, args) =>
+            {
+                if (args.Tag is IHtmlInputElement input
+                    && string.Equals(input.Type, "checkbox", StringComparison.OrdinalIgnoreCase)
+                    && input.IsDisabled)
+                {
+                    args.Cancel = true;
+                }
+            };
+
+            _htmlSanitizer.PostProcessNode += (sender, args) =>
+            {
+                if (args.Node is IHtmlAnchorElement anchor)
+                {
+                    anchor.SetAttribute("rel", "noopener noreferrer nofollow");
+
+                    RewriteHttpToHttps(anchor, "href");
+                }
+                else if (args.Node is IHtmlImageElement image)
+                {
+                    if (RewriteHttpToHttps(image, "src"))
+                    {
+                        _imagesRewritten = true;
+                    }
+                }
+            };
+        }
+
+        private static bool RewriteHttpToHttps(AngleSharp.Dom.IElement element, string attribute)
+        {
+            var url = element.GetAttribute(attribute);
+            if (url != null &&
+                Uri.TryCreate(url, UriKind.Absolute, out var uri) &&
+                uri.Scheme == Uri.UriSchemeHttp)
+            {
+                var builder = new UriBuilder(uri) { Scheme = Uri.UriSchemeHttps, Port = -1 };
+                element.SetAttribute(attribute, builder.Uri.AbsoluteUri);
+                return true;
+            }
+            return false;
         }
 
         private string SanitizeText(string input)
@@ -66,15 +156,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(markdownString));
             }
 
-
-            if (_features.IsMarkdigMdRenderingEnabled()) 
-            { 
-                return GetHtmlFromMarkdownMarkdig(markdownString, 1);
-            }
-            else
-            {
-                return GetHtmlFromMarkdownCommonMark(markdownString, 1);
-            }
+            return GetHtmlFromMarkdownMarkdig(markdownString, 1);
         }
 
         public RenderedMarkdownResult GetHtmlFromMarkdown(string markdownString, int incrementHeadersBy)
@@ -89,127 +171,7 @@ namespace NuGetGallery
                 throw new ArgumentOutOfRangeException(nameof(incrementHeadersBy), $"{nameof(incrementHeadersBy)} must be greater than or equal to 0");
             }
 
-            if (_features.IsMarkdigMdRenderingEnabled())
-            {
-                return GetHtmlFromMarkdownMarkdig(markdownString, incrementHeadersBy);
-            }
-            else
-            {
-                return GetHtmlFromMarkdownCommonMark(markdownString, incrementHeadersBy);
-            }
-        }
-
-        private RenderedMarkdownResult GetHtmlFromMarkdownCommonMark(string markdownString, int incrementHeadersBy)
-        {
-            var output = new RenderedMarkdownResult()
-            {
-                ImagesRewritten = false,
-                Content = "",
-                ImageSourceDisallowed = false,
-                IsMarkdigMdSyntaxHighlightEnabled = false
-            };
-
-            var markdownWithoutComments = HtmlCommentPattern.Replace(markdownString, "");
-
-            var markdownWithoutBom = markdownWithoutComments.StartsWith("\ufeff") ? markdownWithoutComments.Replace("\ufeff", "") : markdownWithoutComments;
-
-            // HTML encode markdown, except for block quotes, to block inline html.
-            var encodedMarkdown = EncodedBlockQuotePattern.Replace(HttpUtility.HtmlEncode(markdownWithoutBom), "> ");
-
-            var settings = CommonMarkSettings.Default.Clone();
-
-            // Parse executes CommonMarkConverter's ProcessStage1 and ProcessStage2.
-            var document = CommonMarkConverter.Parse(encodedMarkdown, settings);
-            foreach (var node in document.AsEnumerable())
-            {
-                if (node.IsOpening)
-                {
-                    var block = node.Block;
-                    if (block != null)
-                    {
-                        switch (block.Tag)
-                        {
-                            // Demote heading tags so they don't overpower expander headings.
-                            case BlockTag.AtxHeading:
-                            case BlockTag.SetextHeading:
-                                var level = (byte)Math.Min(block.Heading.Level + incrementHeadersBy, 6);
-                                block.Heading = new HeadingData(level);
-                                break;
-
-                            // Decode preformatted blocks to prevent double encoding.
-                            // Skip BlockTag.BlockQuote, which are partially decoded upfront.
-                            case BlockTag.FencedCode:
-                            case BlockTag.IndentedCode:
-                                if (block.StringContent != null)
-                                {
-                                    var content = block.StringContent.TakeFromStart(block.StringContent.Length);
-                                    var unencodedContent = HttpUtility.HtmlDecode(content);
-                                    block.StringContent.Replace(unencodedContent, 0, unencodedContent.Length);
-                                }
-                                break;
-                        }
-                    }
-
-                    var inline = node.Inline;
-                    if (inline != null)
-                    {
-                        if (inline.Tag == InlineTag.Link)
-                        {
-                            // Allow only http or https links in markdown. Transform link to https for known domains.
-                            if (!PackageHelper.TryPrepareUrlForRendering(inline.TargetUrl, out string readyUriString))
-                            {
-                                inline.TargetUrl = string.Empty;
-                            }
-                            else
-                            {
-                                inline.TargetUrl = readyUriString;
-                            }
-                        }
-
-                        else if (inline.Tag == InlineTag.Image)
-                        {
-                            if (_features.IsImageAllowlistEnabled())
-                            {
-                                if (!_imageDomainValidator.TryPrepareImageUrlForRendering(inline.TargetUrl, out string readyUriString))
-                                {
-                                    inline.TargetUrl = string.Empty;
-                                    output.ImageSourceDisallowed = true;
-                                }
-                                else
-                                {
-                                    output.ImagesRewritten = output.ImagesRewritten || (inline.TargetUrl != readyUriString);
-                                    inline.TargetUrl = readyUriString;
-                                }
-                            }
-                            else
-                            {
-                                if (!PackageHelper.TryPrepareUrlForRendering(inline.TargetUrl, out string readyUriString, rewriteAllHttp: true))
-                                {
-                                    inline.TargetUrl = string.Empty;
-                                }
-                                else
-                                {
-                                    output.ImagesRewritten = output.ImagesRewritten || (inline.TargetUrl != readyUriString);
-                                    inline.TargetUrl = readyUriString;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            output.IsMarkdigMdSyntaxHighlightEnabled = _features.IsMarkdigMdSyntaxHighlightEnabled();
-
-            // CommonMark.Net does not support link attributes, so manually inject nofollow.
-            using (var htmlWriter = new StringWriter())
-            {
-                CommonMarkConverter.ProcessStage3(document, htmlWriter, settings);
-                string htmlContent = htmlWriter.ToString();
-                htmlContent = SanitizeText(htmlContent);
-                output.Content = LinkPattern.Replace(htmlContent, "$0" + " rel=\"noopener noreferrer nofollow\"").Trim();
-
-                return output;
-            }
+            return GetHtmlFromMarkdownMarkdig(markdownString, incrementHeadersBy);
         }
 
         private RenderedMarkdownResult GetHtmlFromMarkdownMarkdig(string markdownString, int incrementHeadersBy)
@@ -218,7 +180,6 @@ namespace NuGetGallery
             {
                 ImagesRewritten = false,
                 Content = "",
-                ImageSourceDisallowed = false,
                 IsMarkdigMdSyntaxHighlightEnabled = false
             };
 
@@ -239,16 +200,21 @@ namespace NuGetGallery
                 .UseReferralLinks("noopener noreferrer nofollow")
                 .UseAutoIdentifiers(AutoIdentifierOptions.GitHub)
                 .UseEmphasisExtras(EmphasisExtraOptions.Strikethrough)
-                .DisableHtml() //block inline html
-                .UseBootstrap()
-                .Build();
+                .UseBootstrap();
+
+            if (!_features.IsHtmlInMarkdownEnabled())
+            {
+                pipeline.DisableHtml();
+            }
+
+            var builtPipeline = pipeline.Build();
 
             using (var htmlWriter = new StringWriter())
             {
                 var renderer = new HtmlRenderer(htmlWriter);
-                pipeline.Setup(renderer);
+                builtPipeline.Setup(renderer);
 
-                var document = Markdown.Parse(markdownWithoutBom, pipeline);
+                var document = Markdown.Parse(markdownWithoutBom, builtPipeline);
 
                 foreach (var node in document.Descendants())
                 {
@@ -264,35 +230,10 @@ namespace NuGetGallery
                     {
                         if (node is LinkInline linkInline)
                         {
-                            if (linkInline.IsImage)
-                            {
-                                if (_features.IsImageAllowlistEnabled())
-                                {
-                                    if (!_imageDomainValidator.TryPrepareImageUrlForRendering(linkInline.Url, out string readyUriString))
-                                    {
-                                        linkInline.Url = string.Empty;
-                                        output.ImageSourceDisallowed = true;
-                                    }
-                                    else
-                                    {
-                                        output.ImagesRewritten = output.ImagesRewritten || (linkInline.Url != readyUriString);
-                                        linkInline.Url = readyUriString;
-                                    }
-                                }
-                                else
-                                {
-                                    if (!PackageHelper.TryPrepareUrlForRendering(linkInline.Url, out string readyUriString, rewriteAllHttp: true))
-                                    {
-                                        linkInline.Url = string.Empty;
-                                    }
-                                    else
-                                    {
-                                        output.ImagesRewritten = output.ImagesRewritten || (linkInline.Url != readyUriString);
-                                        linkInline.Url = readyUriString;
-                                    }
-                                }
-                            }
-                            else
+                            // Image HTTP→HTTPS rewriting is handled by the PostProcessNode sanitizer hook
+                            // rather than here, since both Markdig-rendered and raw HTML images pass through
+                            // the sanitizer as <img> elements.
+                            if (!linkInline.IsImage)
                             {
                                 // Allow only http or https links in markdown. Transform link to https for known domains.
                                 if (!PackageHelper.TryPrepareUrlForRendering(linkInline.Url, out string readyUriString))
@@ -319,7 +260,11 @@ namespace NuGetGallery
                 renderer.Render(document);
                 output.Content = htmlWriter.ToString().Trim();
                 output.IsMarkdigMdSyntaxHighlightEnabled = _features.IsMarkdigMdSyntaxHighlightEnabled();
+
+                // Reset before sanitization; PostProcessNode sets this to true if any image src is rewritten.
+                _imagesRewritten = false;
                 output.Content = SanitizeText(output.Content);
+                output.ImagesRewritten = _imagesRewritten;
 
                 return output;
             }
