@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NuGet.Services.GitHub.Authentication;
 using NuGet.Services.GitHub.Configuration;
 
 namespace NuGet.Services.GitHub.GraphQL
@@ -19,15 +20,18 @@ namespace NuGet.Services.GitHub.GraphQL
     {
         private readonly GraphQLQueryConfiguration _configuration;
         private readonly HttpClient _client;
+        private readonly IGitHubAuthProvider _gitHubAuthProvider;
         private readonly ILogger<QueryService> _logger;
 
         public QueryService(
             GraphQLQueryConfiguration configuration,
             HttpClient client,
+            IGitHubAuthProvider gitHubAuthProvider,
             ILogger<QueryService> logger)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _client = client ?? throw new ArgumentNullException(nameof(client));
+            _gitHubAuthProvider = gitHubAuthProvider ?? throw new ArgumentNullException(nameof(gitHubAuthProvider));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -62,7 +66,7 @@ namespace NuGet.Services.GitHub.GraphQL
                 {
                     attempt++;
                     lastStatusCode = null;
-                    using (var request = CreateRequest(query))
+                    using (var request = await CreateRequestAsync(query))
                     using (var response = await _client.SendAsync(request, token))
                     {
                         lastStatusCode = response.StatusCode;
@@ -82,7 +86,7 @@ namespace NuGet.Services.GitHub.GraphQL
             }
         }
 
-        private HttpRequestMessage CreateRequest(string query)
+        private async Task<HttpRequestMessage> CreateRequestAsync(string query)
         {
             var message = new HttpRequestMessage
             {
@@ -91,8 +95,8 @@ namespace NuGet.Services.GitHub.GraphQL
                 Content = new StringContent(query, Encoding.UTF8, "application/json")
             };
 
-            message.Headers.Authorization = new AuthenticationHeaderValue(
-                "Bearer", _configuration.GitHubPersonalAccessToken);
+            await _gitHubAuthProvider.AddAuthentication(message);
+
             message.Headers.UserAgent.TryParseAdd(_configuration.UserAgent);
             return message;
         }

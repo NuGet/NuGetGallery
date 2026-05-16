@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
 using Azure.Identity;
-using Azure.Storage.Blobs;
+using Azure.Security.KeyVault.Keys.Cryptography;
 using GitHubVulnerabilities2Db.Configuration;
 using GitHubVulnerabilities2Db.Fakes;
 using GitHubVulnerabilities2Db.Gallery;
@@ -15,18 +15,22 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Identity.Web;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
 using NuGet.Services.Cursor;
+using NuGet.Services.GitHub.Authentication;
 using NuGet.Services.GitHub.Collector;
 using NuGet.Services.GitHub.Configuration;
 using NuGet.Services.GitHub.GraphQL;
 using NuGet.Services.GitHub.Ingest;
+using NuGet.Services.KeyVault;
 using NuGet.Services.Storage;
 using NuGetGallery;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 using NuGetGallery.Security;
+using Constants = NuGet.Services.Configuration.Constants;
 
 namespace GitHubVulnerabilities2Db
 {
@@ -59,7 +63,7 @@ namespace GitHubVulnerabilities2Db
             containerBuilder
                 .RegisterAdapter<IOptionsSnapshot<GitHubVulnerabilities2DbConfiguration>, GraphQLQueryConfiguration>(c => c.Value);
 
-            ConfigureQueryServices(containerBuilder);
+            ConfigureQueryServices(containerBuilder, configurationRoot);
             ConfigureIngestionServices(containerBuilder);
             ConfigureCollectorServices(containerBuilder, configurationRoot);
         }
@@ -141,12 +145,38 @@ namespace GitHubVulnerabilities2Db
                 .SingleInstance();
         }
 
-        protected void ConfigureQueryServices(ContainerBuilder containerBuilder)
+        protected void ConfigureQueryServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
             containerBuilder
                 .RegisterInstance(_client)
                 .As<HttpClient>()
                 .ExternallyOwned(); // We don't want autofac disposing this--see https://github.com/NuGet/NuGetGallery/issues/9194
+
+            containerBuilder
+                .RegisterKeyVaultDataSigner<GitHubVulnerabilities2DbConfiguration>(configurationRoot)
+                .As<IKeyVaultDataSigner>();
+
+            containerBuilder
+                .RegisterType<GitHubPersonalAccessTokenAuthProvider>()
+                .AsSelf()
+                .SingleInstance();
+
+            containerBuilder
+                .RegisterType<GitHubAppAuthProvider>()
+                .AsSelf()
+                .SingleInstance();
+
+            containerBuilder
+                .Register<IGitHubAuthProvider>(ctx => {
+                    var config = ctx.Resolve<GitHubVulnerabilities2DbConfiguration>();
+                    if (string.IsNullOrWhiteSpace(config.GitHubAppId))
+                    {
+                        return ctx.Resolve<GitHubPersonalAccessTokenAuthProvider>();
+                    }
+                    return ctx.Resolve<GitHubAppAuthProvider>();
+                })
+                .As<IGitHubAuthProvider>()
+                .SingleInstance();
 
             containerBuilder
                 .RegisterType<QueryService>()
@@ -167,7 +197,11 @@ namespace GitHubVulnerabilities2Db
                 .Register(ctx =>
                 {
                     var config = ctx.Resolve<GitHubVulnerabilities2DbConfiguration>();
+#if DEBUG
+                    var credential = new DefaultAzureCredential();
+#else
                     var credential = new ManagedIdentityCredential(configurationRoot[ManagedIdentityClientIdKey]);
+#endif
                     return new BlobServiceClientFactory(new Uri(config.StorageConnectionString), credential);
                 })
                 .As<BlobServiceClientFactory>();

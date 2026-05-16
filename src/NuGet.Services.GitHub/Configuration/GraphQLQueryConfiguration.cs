@@ -15,7 +15,26 @@ namespace NuGet.Services.GitHub.Configuration
         /// <summary>
         /// The personal access token to use to authenticate with GitHub.
         /// </summary>
-        public string GitHubPersonalAccessToken { get; set; }
+        public string GitHubPersonalAccessToken { get; set; } = null;
+
+        /// <summary>
+        /// If using GitHub App authentication, the GitHub App Client Id to use to authenticate with GitHub.
+        /// </summary>
+        /// <remarks>
+        /// If specified, the <see cref="GitHubPersonalAccessToken"/> will be ignored and GitHub App authentication will be used instead of personal access token authentication.
+        /// If specified, the <see cref="GitHubAppPrivateKeyName"/> and <see cref="GitHubInstallationName"/> must also be specified.
+        /// </remarks>
+        public string GitHubAppId { get; set; } = null;
+
+        /// <summary>
+        /// GitHub App installation name, will determine the auth scope of generated tokens.
+        /// </summary>
+        public string GitHubInstallationName { get; set; } = null;
+
+        /// <summary>
+        /// The name of the private key used to sign GitHub App auth tokens
+        /// </summary>
+        public string GitHubAppPrivateKeyName { get; set; } = null;
 
         /// <summary>
         /// The User-Agent header to send with each request to GitHub.
