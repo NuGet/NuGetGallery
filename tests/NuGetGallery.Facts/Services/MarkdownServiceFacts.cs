@@ -242,6 +242,108 @@ Some text
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
                 Assert.False(readMeResult.ImagesRewritten);
             }
+
+            [Theory]
+            [InlineData("<form action=\"https://evil.com\"><input type=\"text\"></form>", "")]
+            [InlineData("<iframe src=\"https://evil.com\"></iframe>", "")]
+            [InlineData("<object data=\"https://evil.com\"></object>", "<p></p>")]
+            [InlineData("<embed src=\"https://evil.com\">", "")]
+            [InlineData("<style>body { display: none; }</style>", "")]
+            [InlineData("<script>alert('xss')</script>", "")]
+            [InlineData("<svg onload=\"alert('xss')\"></svg>", "<p></p>")]
+            [InlineData("<button onclick=\"alert('xss')\">Click</button>", "<p></p>")]
+            [InlineData("<select><option>Opt</option></select>", "<p></p>")]
+            [InlineData("<textarea>text</textarea>", "")]
+            public void StripsDangerousTags(string originalMd, string expectedHtml)
+            {
+                var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
+                Assert.Equal(expectedHtml, readMeResult.Content);
+            }
+
+            [Theory]
+            [InlineData("<div style=\"background:red\">text</div>", "<div>text</div>")]
+            [InlineData("<p contenteditable=\"true\">text</p>", "<p>text</p>")]
+            [InlineData("<a href=\"https://example.com\" accesskey=\"x\">link</a>", "<p><a href=\"https://example.com\" rel=\"noopener noreferrer nofollow\">link</a></p>")]
+            [InlineData("<div onclick=\"alert('xss')\">text</div>", "<div>text</div>")]
+            [InlineData("<img src=\"https://example.com/img.png\" onerror=\"alert('xss')\">", "<img src=\"https://example.com/img.png\">")]
+            public void StripsDisallowedAttributes(string originalMd, string expectedHtml)
+            {
+                var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
+                Assert.Equal(expectedHtml, readMeResult.Content);
+            }
+
+            [Theory]
+            [InlineData("<a href=\"file:///etc/passwd\">link</a>", "<p><a rel=\"noopener noreferrer nofollow\">link</a></p>")]
+            [InlineData("<a href=\"ftp://evil.com/malware\">link</a>", "<p><a rel=\"noopener noreferrer nofollow\">link</a></p>")]
+            [InlineData("<a href=\"data:text/html,<script>alert('xss')</script>\">link</a>", "<p><a rel=\"noopener noreferrer nofollow\">link</a></p>")]
+            [InlineData("<img src=\"data:image/png;base64,abc\">", "<img>")]
+            public void StripsDisallowedUrlSchemes(string originalMd, string expectedHtml)
+            {
+                var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
+                Assert.Equal(expectedHtml, readMeResult.Content);
+            }
+
+            [Fact]
+            public void RendersFootnotes()
+            {
+                var originalMd = "Text with footnote[^1].\n\n[^1]: Footnote content.";
+                var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
+                Assert.Contains("class=\"footnote-ref\"", readMeResult.Content);
+                Assert.Contains("Footnote content.", readMeResult.Content);
+            }
+
+            [Fact]
+            public void RendersDetailsSummary()
+            {
+                var originalMd = "<details>\n<summary>Click me</summary>\n\nHidden content\n\n</details>";
+                var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
+                Assert.Contains("<details>", readMeResult.Content);
+                Assert.Contains("<summary>Click me</summary>", readMeResult.Content);
+                Assert.Contains("Hidden content", readMeResult.Content);
+            }
+
+            [Fact]
+            public void RendersPictureElement()
+            {
+                var originalMd = "<picture><source media=\"(prefers-color-scheme: dark)\" srcset=\"https://example.com/dark.png\"><img src=\"https://example.com/light.png\" alt=\"logo\"></picture>";
+                var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
+                Assert.Contains("<picture>", readMeResult.Content);
+                Assert.Contains("<source", readMeResult.Content);
+                Assert.Contains("srcset=\"https://example.com/dark.png\"", readMeResult.Content);
+                Assert.Contains("<img src=\"https://example.com/light.png\"", readMeResult.Content);
+            }
+
+            [Fact]
+            public void DisablesHtmlWhenFeatureFlagIsOff()
+            {
+                var featureFlags = new Mock<IFeatureFlagService>();
+                featureFlags.Setup(x => x.IsHtmlInMarkdownEnabled()).Returns(false);
+                var sanitizer = new HtmlSanitizer();
+                var service = new MarkdownService(featureFlags.Object, sanitizer);
+
+                var originalMd = "<div>HTML content</div>";
+                var readMeResult = service.GetHtmlFromMarkdown(originalMd);
+                Assert.DoesNotContain("<div>", readMeResult.Content);
+                Assert.Contains("HTML content", readMeResult.Content);
+            }
+
+            [Fact]
+            public void PreservesTaskListCheckboxes()
+            {
+                var originalMd = "- [x] Done\n- [ ] Todo";
+                var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
+                Assert.Contains("type=\"checkbox\"", readMeResult.Content);
+                Assert.Contains("disabled=\"disabled\"", readMeResult.Content);
+                Assert.Contains("checked=\"checked\"", readMeResult.Content);
+            }
+
+            [Fact]
+            public void StripsNonCheckboxInputs()
+            {
+                var originalMd = "<input type=\"text\" value=\"phish\">";
+                var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);
+                Assert.DoesNotContain("<input", readMeResult.Content);
+            }
         }
     }
 }
