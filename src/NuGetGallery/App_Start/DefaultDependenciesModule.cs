@@ -132,7 +132,7 @@ namespace NuGetGallery
 
             services.AddSingleton(loggerFactory);
             services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
-            services.AddSingleton<IHtmlSanitizer, HtmlSanitizer>();
+            services.AddTransient<IHtmlSanitizer, HtmlSanitizer>();
 
             UrlHelperExtensions.SetConfigurationService(configuration);
             builder.RegisterType<UrlHelperWrapper>()
