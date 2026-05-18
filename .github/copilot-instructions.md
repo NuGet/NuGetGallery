@@ -77,6 +77,8 @@ Entity Framework 6 with code-first migrations. Key files:
 
 Additional contexts exist for validation (`ValidationEntitiesContext`) and support requests (`SupportRequestDbContext`).
 
+Run `.\tools\Setup-DevEnvironment.ps1` to create the local database (SQL Server LocalDB) and enable HTTPS for first-time setup.
+
 ### Search
 
 The search pipeline flows: `ExternalSearchService` → `GallerySearchClient` → `ResilientSearchHttpClient` → `HttpClientWrapper` (with Polly retry policies). Configured conditionally based on `SearchServiceUriPrimary`/`SearchServiceUriSecondary` settings.
