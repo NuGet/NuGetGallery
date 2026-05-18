@@ -906,6 +906,13 @@ body {
 .readme-common blockquote {
   font-size: 16px;
 }
+.readme-common details {
+  margin-bottom: 16px;
+}
+.readme-common summary {
+  display: list-item;
+  cursor: pointer;
+}
 .readme-common pre code.hljs {
   background-color: var(--neutralBackground1Rest);
   color: var(--neutralForeground1Rest);

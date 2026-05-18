@@ -38,7 +38,7 @@ namespace NuGetGallery
         }
 
         // Allowlist of HTML tags modeled after GitHub's Markdown sanitization filter.
-        // See: https://github.com/jch/html-pipeline/blob/main/lib/html_pipeline/sanitization_filter.rb
+        // See: https://raw.githubusercontent.com/jch/html-pipeline/main/lib/html_pipeline/sanitization_filter.rb
         // Note: "input" is NOT in this list. Markdig task list checkboxes are preserved via
         // the RemovingTag event which allows only <input type="checkbox" disabled>.
         private static readonly HashSet<string> AllowedTagsList = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
