@@ -117,7 +117,6 @@ Only opt code into nullable reference types when explicitly asked. When doing so
 - Use async/await consistently. Name async methods with an `Async` suffix.
 - Never use `.Result` or `.Wait()` on Tasks.
 - Pass `CancellationToken` parameters when appropriate.
-- Use `ConfigureAwait(false)` in library code (shared projects targeting netstandard).
 
 ### Telemetry
 
