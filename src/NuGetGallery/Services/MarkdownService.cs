@@ -51,7 +51,7 @@ namespace NuGetGallery
             "kbd", "li", "mark",
             "ol", "p", "picture", "pre",
             "q", "rp", "rt", "ruby",
-            "s", "samp", "small", "source", "span", "strike", "strong", "sub", "summary", "sup",
+            "s", "samp", "section", "small", "source", "span", "strike", "strong", "sub", "summary", "sup",
             "table", "tbody", "td", "tfoot", "th", "thead", "time", "tr", "tt",
             "ul", "var", "wbr"
         };
@@ -200,6 +200,7 @@ namespace NuGetGallery
                 .UseReferralLinks("noopener noreferrer nofollow")
                 .UseAutoIdentifiers(AutoIdentifierOptions.GitHub)
                 .UseEmphasisExtras(EmphasisExtraOptions.Strikethrough)
+                .UseFootnotes()
                 .UseBootstrap();
 
             if (!_features.IsHtmlInMarkdownEnabled())
