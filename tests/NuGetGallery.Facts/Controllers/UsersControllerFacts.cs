@@ -642,6 +642,10 @@ namespace NuGetGallery
                     .Setup(p => p.FindPackageRegistrationsByOwner(It.IsAny<User>()))
                     .Returns(Enumerable.Empty<PackageRegistration>().AsQueryable());
 
+                var mockHttpContext = GetMock<HttpContextBase>();
+                mockHttpContext.Setup(c => c.Request.QueryString)
+                    .Returns(new System.Collections.Specialized.NameValueCollection { { "forceApiKeys", "true" } });
+
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(currentUser);
 
@@ -1525,6 +1529,7 @@ namespace NuGetGallery
 
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
+
                 var inputModel = new UserAccountViewModel()
                 {
                     ChangePassword = new ChangePasswordViewModel()
