@@ -2,9 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.IO;
+using System.ComponentModel.DataAnnotations;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
@@ -23,7 +22,6 @@ namespace NuGetGallery.Controllers
     public class AdminApiControllerFacts
     {
         private static AdminApiController CreateController(
-            string requestBody = null,
             string callerAzp = null,
             Mock<IPackageService> packageService = null,
             Mock<IReflowPackageService> reflowPackageService = null,
@@ -44,13 +42,6 @@ namespace NuGetGallery.Controllers
                 lockUserService.Object,
                 packageDeleteService.Object);
 
-            var body = requestBody ?? "{}";
-            var bodyBytes = Encoding.UTF8.GetBytes(body);
-            var inputStream = new MemoryStream(bodyBytes);
-
-            var mockRequest = new Mock<HttpRequestBase>();
-            mockRequest.Setup(r => r.InputStream).Returns(inputStream);
-
             var mockResponse = new Mock<HttpResponseBase>();
             mockResponse.SetupProperty(r => r.StatusCode);
             mockResponse.SetupProperty(r => r.TrySkipIisCustomErrors);
@@ -66,7 +57,6 @@ namespace NuGetGallery.Controllers
             }
 
             var mockHttpContext = new Mock<HttpContextBase>();
-            mockHttpContext.Setup(c => c.Request).Returns(mockRequest.Object);
             mockHttpContext.Setup(c => c.Response).Returns(mockResponse.Object);
             mockHttpContext.SetupGet(c => c.Items).Returns(items);
 
@@ -95,6 +85,35 @@ namespace NuGetGallery.Controllers
                 packageServiceMock
                     .Setup(s => s.FindPackageByIdAndVersionStrict(package.Id, package.Version))
                     .Returns(package);
+            }
+        }
+
+        private static void ValidateModel(Controller controller, object model)
+        {
+            var validationContext = new ValidationContext(model, null, null);
+            var validationResults = new List<ValidationResult>();
+
+            Validator.TryValidateObject(model, validationContext, validationResults, validateAllProperties: true);
+
+            foreach (var validationResult in validationResults)
+            {
+                foreach (var memberName in validationResult.MemberNames)
+                {
+                    controller.ModelState.AddModelError(memberName, validationResult.ErrorMessage);
+                }
+            }
+        }
+
+        private static void ValidateModelItems<T>(Controller controller, IEnumerable<T> items)
+        {
+            if (items == null)
+            {
+                return;
+            }
+
+            foreach (var item in items)
+            {
+                ValidateModel(controller, item);
             }
         }
 
@@ -137,11 +156,12 @@ namespace NuGetGallery.Controllers
             }
 
             [Fact]
-            public async Task Returns400WhenBodyIsInvalidJsonAsync()
+            public async Task Returns400WhenModelStateIsInvalidAsync()
             {
-                var controller = CreateController(requestBody: "{invalid json");
+                var controller = CreateController();
+                controller.ModelState.AddModelError("Packages", "The packages field is required.");
 
-                var result = await controller.ReflowPackageAsync() as JsonResult;
+                var result = await controller.ReflowPackageAsync(new AdminReflowPackageRequest()) as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
@@ -150,11 +170,11 @@ namespace NuGetGallery.Controllers
             [Fact]
             public async Task Returns400WhenPackagesIsNullAsync()
             {
-                var request = new AdminReflowPackageRequest { Packages = null };
-                var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request));
+                var request = new AdminReflowPackageRequest { Packages = null, Reason = "test" };
+                var controller = CreateController();
+                ValidateModel(controller, request);
 
-                var result = await controller.ReflowPackageAsync() as JsonResult;
+                var result = await controller.ReflowPackageAsync(request) as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
@@ -163,11 +183,11 @@ namespace NuGetGallery.Controllers
             [Fact]
             public async Task Returns400WhenPackagesIsEmptyAsync()
             {
-                var request = new AdminReflowPackageRequest { Packages = [] };
-                var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request));
+                var request = new AdminReflowPackageRequest { Packages = [], Reason = "test" };
+                var controller = CreateController();
+                ValidateModel(controller, request);
 
-                var result = await controller.ReflowPackageAsync() as JsonResult;
+                var result = await controller.ReflowPackageAsync(request) as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
@@ -182,11 +202,53 @@ namespace NuGetGallery.Controllers
                     packages.Add(new AdminReflowPackageIdentity { Id = $"Pkg{i}", Version = "1.0.0" });
                 }
 
-                var request = new AdminReflowPackageRequest { Packages = packages };
-                var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request));
+                var request = new AdminReflowPackageRequest { Packages = packages, Reason = "test" };
+                var controller = CreateController();
+                ValidateModel(controller, request);
 
-                var result = await controller.ReflowPackageAsync() as JsonResult;
+                var result = await controller.ReflowPackageAsync(request) as JsonResult;
+
+                Assert.NotNull(result);
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public async Task Returns400WhenReasonIsMissingAsync()
+            {
+                var request = new AdminReflowPackageRequest
+                {
+                    Packages =
+                    [
+                        new AdminReflowPackageIdentity { Id = "A", Version = "1.0.0" }
+                    ]
+                };
+
+                var controller = CreateController();
+                ValidateModel(controller, request);
+
+                var result = await controller.ReflowPackageAsync(request) as JsonResult;
+
+                Assert.NotNull(result);
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public async Task Returns400WhenVersionIsInvalidAsync()
+            {
+                var request = new AdminReflowPackageRequest
+                {
+                    Packages =
+                    [
+                        new AdminReflowPackageIdentity { Id = "A", Version = "not-a-version" }
+                    ],
+                    Reason = "test"
+                };
+
+                var controller = CreateController();
+                ValidateModel(controller, request);
+                ValidateModelItems(controller, request.Packages);
+
+                var result = await controller.ReflowPackageAsync(request) as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
@@ -204,11 +266,9 @@ namespace NuGetGallery.Controllers
                     Reason = "test"
                 };
 
-                var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request),
-                    packageService: _packageServiceMock);
+                var controller = CreateController(packageService: _packageServiceMock);
 
-                var result = await controller.ReflowPackageAsync() as JsonResult;
+                var result = await controller.ReflowPackageAsync(request) as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
@@ -231,12 +291,11 @@ namespace NuGetGallery.Controllers
                 };
 
                 var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request),
                     callerAzp: "test-app",
                     packageService: _packageServiceMock,
                     reflowPackageService: _reflowPackageServiceMock);
 
-                var result = await controller.ReflowPackageAsync() as JsonResult;
+                var result = await controller.ReflowPackageAsync(request) as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.Accepted, controller.Response.StatusCode);
@@ -264,11 +323,9 @@ namespace NuGetGallery.Controllers
                     Reason = "mixed test"
                 };
 
-                var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request),
-                    packageService: _packageServiceMock);
+                var controller = CreateController(packageService: _packageServiceMock);
 
-                var result = await controller.ReflowPackageAsync() as JsonResult;
+                var result = await controller.ReflowPackageAsync(request) as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.Accepted, controller.Response.StatusCode);
@@ -278,34 +335,6 @@ namespace NuGetGallery.Controllers
                 Assert.Equal(AdminReflowPackageStatus.Accepted, response.Results[0].Status);
                 Assert.Equal(AdminReflowPackageStatus.NotFound, response.Results[1].Status);
                 Assert.Equal(AdminReflowPackageStatus.Accepted, response.Results[2].Status);
-            }
-
-            [Fact]
-            public async Task ReturnsInvalidForBadVersionStringAsync()
-            {
-                var request = new AdminReflowPackageRequest
-                {
-                    Packages =
-                    [
-                        new AdminReflowPackageIdentity { Id = "InvalidVersionPackage", Version = "not-a-version" },
-                        new AdminReflowPackageIdentity { Id = _availablePackage.Id, Version = _availablePackage.Version }
-                    ],
-                    Reason = "version test"
-                };
-
-                var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request),
-                    packageService: _packageServiceMock);
-
-                var result = await controller.ReflowPackageAsync() as JsonResult;
-
-                Assert.NotNull(result);
-                Assert.Equal((int)HttpStatusCode.Accepted, controller.Response.StatusCode);
-
-                var response = GetResponseData<AdminReflowPackageResponse>(result);
-                Assert.Equal(2, response.Results.Count);
-                Assert.Equal(AdminReflowPackageStatus.Invalid, response.Results[0].Status);
-                Assert.Equal(AdminReflowPackageStatus.Accepted, response.Results[1].Status);
             }
 
             [Fact]
@@ -323,11 +352,10 @@ namespace NuGetGallery.Controllers
                 };
 
                 var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request),
                     packageService: _packageServiceMock,
                     reflowPackageService: _reflowPackageServiceMock);
 
-                var result = await controller.ReflowPackageAsync() as JsonResult;
+                var result = await controller.ReflowPackageAsync(request) as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.Accepted, controller.Response.StatusCode);
@@ -343,36 +371,6 @@ namespace NuGetGallery.Controllers
             }
 
             [Fact]
-            public async Task ReturnsInvalidForNullIdOrVersionAsync()
-            {
-                var request = new AdminReflowPackageRequest
-                {
-                    Packages =
-                    [
-                        new AdminReflowPackageIdentity { Id = null, Version = "1.0.0" },
-                        new AdminReflowPackageIdentity { Id = "My.Package", Version = null },
-                        new AdminReflowPackageIdentity { Id = _availablePackage.Id, Version = _availablePackage.Version }
-                    ],
-                    Reason = "null test"
-                };
-
-                var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request),
-                    packageService: _packageServiceMock);
-
-                var result = await controller.ReflowPackageAsync() as JsonResult;
-
-                Assert.NotNull(result);
-                Assert.Equal((int)HttpStatusCode.Accepted, controller.Response.StatusCode);
-
-                var response = GetResponseData<AdminReflowPackageResponse>(result);
-                Assert.Equal(3, response.Results.Count);
-                Assert.Equal(AdminReflowPackageStatus.Invalid, response.Results[0].Status);
-                Assert.Equal(AdminReflowPackageStatus.Invalid, response.Results[1].Status);
-                Assert.Equal(AdminReflowPackageStatus.Accepted, response.Results[2].Status);
-            }
-
-            [Fact]
             public async Task ReturnsNotFoundForDeletedPackageAsync()
             {
                 var request = new AdminReflowPackageRequest
@@ -384,11 +382,9 @@ namespace NuGetGallery.Controllers
                     Reason = "deleted test"
                 };
 
-                var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request),
-                    packageService: _packageServiceMock);
+                var controller = CreateController(packageService: _packageServiceMock);
 
-                var result = await controller.ReflowPackageAsync() as JsonResult;
+                var result = await controller.ReflowPackageAsync(request) as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
@@ -402,11 +398,12 @@ namespace NuGetGallery.Controllers
         public class TheLockPackageMethod : TestContainer
         {
             [Fact]
-            public async Task Returns400WhenBodyIsInvalidJsonAsync()
+            public async Task Returns400WhenModelStateIsInvalidAsync()
             {
-                var controller = CreateController(requestBody: "{invalid json");
+                var controller = CreateController();
+                controller.ModelState.AddModelError("Packages", "The packages field is required.");
 
-                var result = await controller.LockPackageAsync() as JsonResult;
+                var result = await controller.LockPackageAsync(new AdminLockPackageRequest()) as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
@@ -415,11 +412,11 @@ namespace NuGetGallery.Controllers
             [Fact]
             public async Task Returns400WhenPackagesIsNullAsync()
             {
-                var request = new AdminLockPackageRequest { Packages = null };
-                var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request));
+                var request = new AdminLockPackageRequest { Packages = null, Locked = true, Reason = "test" };
+                var controller = CreateController();
+                ValidateModel(controller, request);
 
-                var result = await controller.LockPackageAsync() as JsonResult;
+                var result = await controller.LockPackageAsync(request) as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
@@ -428,11 +425,11 @@ namespace NuGetGallery.Controllers
             [Fact]
             public async Task Returns400WhenPackagesIsEmptyAsync()
             {
-                var request = new AdminLockPackageRequest { Packages = [] };
-                var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request));
+                var request = new AdminLockPackageRequest { Packages = [], Locked = true, Reason = "test" };
+                var controller = CreateController();
+                ValidateModel(controller, request);
 
-                var result = await controller.LockPackageAsync() as JsonResult;
+                var result = await controller.LockPackageAsync(request) as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
@@ -447,39 +444,50 @@ namespace NuGetGallery.Controllers
                     packages.Add(new AdminLockPackageIdentity { Id = $"Pkg{i}" });
                 }
 
-                var request = new AdminLockPackageRequest { Packages = packages };
-                var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request));
+                var request = new AdminLockPackageRequest { Packages = packages, Locked = true, Reason = "test" };
+                var controller = CreateController();
+                ValidateModel(controller, request);
 
-                var result = await controller.LockPackageAsync() as JsonResult;
+                var result = await controller.LockPackageAsync(request) as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
             }
 
             [Fact]
-            public async Task Returns400WhenAllPackagesInvalidAsync()
+            public async Task Returns400WhenLockedIsMissingAsync()
             {
                 var request = new AdminLockPackageRequest
                 {
-                    Packages =
-                    [
-                        new AdminLockPackageIdentity { Id = null },
-                        new AdminLockPackageIdentity { Id = "" }
-                    ]
+                    Packages = [new AdminLockPackageIdentity { Id = "My.Package" }],
+                    Reason = "test"
                 };
 
-                var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request));
+                var controller = CreateController();
+                ValidateModel(controller, request);
 
-                var result = await controller.LockPackageAsync() as JsonResult;
+                var result = await controller.LockPackageAsync(request) as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+            }
 
-                var response = GetResponseData<AdminLockPackageResponse>(result);
-                Assert.Equal(2, response.Results.Count);
-                Assert.All(response.Results, r => Assert.Equal(AdminLockPackageStatus.Invalid, r.Status));
+            [Fact]
+            public async Task Returns400WhenReasonIsMissingAsync()
+            {
+                var request = new AdminLockPackageRequest
+                {
+                    Packages = [new AdminLockPackageIdentity { Id = "My.Package" }],
+                    Locked = true
+                };
+
+                var controller = CreateController();
+                ValidateModel(controller, request);
+
+                var result = await controller.LockPackageAsync(request) as JsonResult;
+
+                Assert.NotNull(result);
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
             }
 
             [Fact]
@@ -493,15 +501,15 @@ namespace NuGetGallery.Controllers
                 var request = new AdminLockPackageRequest
                 {
                     Packages = [new AdminLockPackageIdentity { Id = "My.Package" }],
+                    Locked = true,
                     Reason = "test lock"
                 };
 
                 var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request),
                     callerAzp: "test-app",
                     lockPackageService: lockPackageService);
 
-                var result = await controller.LockPackageAsync() as JsonResult;
+                var result = await controller.LockPackageAsync(request) as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.Accepted, controller.Response.StatusCode);
@@ -531,14 +539,13 @@ namespace NuGetGallery.Controllers
                         new AdminLockPackageIdentity { Id = "my.package" },
                         new AdminLockPackageIdentity { Id = "Other.Package" }
                     ],
+                    Locked = true,
                     Reason = "dedupe test"
                 };
 
-                var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request),
-                    lockPackageService: lockPackageService);
+                var controller = CreateController(lockPackageService: lockPackageService);
 
-                var result = await controller.LockPackageAsync() as JsonResult;
+                var result = await controller.LockPackageAsync(request) as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.Accepted, controller.Response.StatusCode);
@@ -549,39 +556,6 @@ namespace NuGetGallery.Controllers
                 lockPackageService.Verify(
                     s => s.SetLockStateAsync(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<string>(), It.IsAny<string>()),
                     Times.Exactly(2));
-            }
-
-            [Fact]
-            public async Task ReturnsInvalidForNullIdAsync()
-            {
-                var lockPackageService = new Mock<ILockPackageService>();
-                lockPackageService
-                    .Setup(s => s.SetLockStateAsync(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<string>(), It.IsAny<string>()))
-                    .ReturnsAsync(LockPackageServiceResult.Success);
-
-                var request = new AdminLockPackageRequest
-                {
-                    Packages =
-                    [
-                        new AdminLockPackageIdentity { Id = null },
-                        new AdminLockPackageIdentity { Id = "Valid.Package" }
-                    ],
-                    Reason = "null test"
-                };
-
-                var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request),
-                    lockPackageService: lockPackageService);
-
-                var result = await controller.LockPackageAsync() as JsonResult;
-
-                Assert.NotNull(result);
-                Assert.Equal((int)HttpStatusCode.Accepted, controller.Response.StatusCode);
-
-                var response = GetResponseData<AdminLockPackageResponse>(result);
-                Assert.Equal(2, response.Results.Count);
-                Assert.Equal(AdminLockPackageStatus.Invalid, response.Results[0].Status);
-                Assert.Equal(AdminLockPackageStatus.Accepted, response.Results[1].Status);
             }
 
             [Theory]
@@ -601,11 +575,9 @@ namespace NuGetGallery.Controllers
                     Reason = "toggle test"
                 };
 
-                var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request),
-                    lockPackageService: lockPackageService);
+                var controller = CreateController(lockPackageService: lockPackageService);
 
-                await controller.LockPackageAsync();
+                await controller.LockPackageAsync(request);
 
                 lockPackageService.Verify(
                     s => s.SetLockStateAsync("My.Package", locked, "toggle test", It.IsAny<string>()),
@@ -623,15 +595,15 @@ namespace NuGetGallery.Controllers
                 var request = new AdminLockPackageRequest
                 {
                     Packages = [new AdminLockPackageIdentity { Id = "My.Package" }],
+                    Locked = true,
                     Reason = "security incident"
                 };
 
                 var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request),
                     callerAzp: "my-service-principal",
                     lockPackageService: lockPackageService);
 
-                await controller.LockPackageAsync();
+                await controller.LockPackageAsync(request);
 
                 lockPackageService.Verify(
                     s => s.SetLockStateAsync("My.Package", true, "security incident", "my-service-principal"),
@@ -642,11 +614,12 @@ namespace NuGetGallery.Controllers
         public class TheLockUserMethod : TestContainer
         {
             [Fact]
-            public async Task Returns400WhenBodyIsInvalidJsonAsync()
+            public async Task Returns400WhenModelStateIsInvalidAsync()
             {
-                var controller = CreateController(requestBody: "{invalid json");
+                var controller = CreateController();
+                controller.ModelState.AddModelError("Users", "The users field is required.");
 
-                var result = await controller.LockUserAsync() as JsonResult;
+                var result = await controller.LockUserAsync(new AdminLockUserRequest()) as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
@@ -655,11 +628,11 @@ namespace NuGetGallery.Controllers
             [Fact]
             public async Task Returns400WhenUsersIsNullAsync()
             {
-                var request = new AdminLockUserRequest { Users = null };
-                var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request));
+                var request = new AdminLockUserRequest { Users = null, Locked = true, Reason = "test" };
+                var controller = CreateController();
+                ValidateModel(controller, request);
 
-                var result = await controller.LockUserAsync() as JsonResult;
+                var result = await controller.LockUserAsync(request) as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
@@ -668,11 +641,11 @@ namespace NuGetGallery.Controllers
             [Fact]
             public async Task Returns400WhenUsersIsEmptyAsync()
             {
-                var request = new AdminLockUserRequest { Users = [] };
-                var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request));
+                var request = new AdminLockUserRequest { Users = [], Locked = true, Reason = "test" };
+                var controller = CreateController();
+                ValidateModel(controller, request);
 
-                var result = await controller.LockUserAsync() as JsonResult;
+                var result = await controller.LockUserAsync(request) as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
@@ -687,39 +660,32 @@ namespace NuGetGallery.Controllers
                     users.Add(new AdminUserIdentity { Username = $"user{i}" });
                 }
 
-                var request = new AdminLockUserRequest { Users = users };
-                var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request));
+                var request = new AdminLockUserRequest { Users = users, Locked = true, Reason = "test" };
+                var controller = CreateController();
+                ValidateModel(controller, request);
 
-                var result = await controller.LockUserAsync() as JsonResult;
+                var result = await controller.LockUserAsync(request) as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
             }
 
             [Fact]
-            public async Task Returns400WhenAllUsersInvalidAsync()
+            public async Task Returns400WhenLockedIsMissingAsync()
             {
                 var request = new AdminLockUserRequest
                 {
-                    Users =
-                    [
-                        new AdminUserIdentity { Username = null },
-                        new AdminUserIdentity { Username = "" }
-                    ]
+                    Users = [new AdminUserIdentity { Username = "testuser" }],
+                    Reason = "test"
                 };
 
-                var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request));
+                var controller = CreateController();
+                ValidateModel(controller, request);
 
-                var result = await controller.LockUserAsync() as JsonResult;
+                var result = await controller.LockUserAsync(request) as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
-
-                var response = GetResponseData<AdminLockUserResponse>(result);
-                Assert.Equal(2, response.Results.Count);
-                Assert.All(response.Results, r => Assert.Equal(AdminLockUserStatus.Invalid, r.Status));
             }
 
             [Fact]
@@ -733,15 +699,15 @@ namespace NuGetGallery.Controllers
                 var request = new AdminLockUserRequest
                 {
                     Users = [new AdminUserIdentity { Username = "badactor42" }],
+                    Locked = true,
                     Reason = "TOS violation"
                 };
 
                 var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request),
                     callerAzp: "test-app",
                     lockUserService: lockUserService);
 
-                var result = await controller.LockUserAsync() as JsonResult;
+                var result = await controller.LockUserAsync(request) as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.Accepted, controller.Response.StatusCode);
@@ -771,14 +737,13 @@ namespace NuGetGallery.Controllers
                         new AdminUserIdentity { Username = "alice" },
                         new AdminUserIdentity { Username = "Bob" }
                     ],
+                    Locked = true,
                     Reason = "dedupe test"
                 };
 
-                var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request),
-                    lockUserService: lockUserService);
+                var controller = CreateController(lockUserService: lockUserService);
 
-                var result = await controller.LockUserAsync() as JsonResult;
+                var result = await controller.LockUserAsync(request) as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.Accepted, controller.Response.StatusCode);
@@ -789,39 +754,6 @@ namespace NuGetGallery.Controllers
                 lockUserService.Verify(
                     s => s.SetLockStateAsync(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<string>(), It.IsAny<string>()),
                     Times.Exactly(2));
-            }
-
-            [Fact]
-            public async Task ReturnsInvalidForNullUsernameAsync()
-            {
-                var lockUserService = new Mock<ILockUserService>();
-                lockUserService
-                    .Setup(s => s.SetLockStateAsync(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<string>(), It.IsAny<string>()))
-                    .ReturnsAsync(LockUserServiceResult.Success);
-
-                var request = new AdminLockUserRequest
-                {
-                    Users =
-                    [
-                        new AdminUserIdentity { Username = null },
-                        new AdminUserIdentity { Username = "validuser" }
-                    ],
-                    Reason = "null test"
-                };
-
-                var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request),
-                    lockUserService: lockUserService);
-
-                var result = await controller.LockUserAsync() as JsonResult;
-
-                Assert.NotNull(result);
-                Assert.Equal((int)HttpStatusCode.Accepted, controller.Response.StatusCode);
-
-                var response = GetResponseData<AdminLockUserResponse>(result);
-                Assert.Equal(2, response.Results.Count);
-                Assert.Equal(AdminLockUserStatus.Invalid, response.Results[0].Status);
-                Assert.Equal(AdminLockUserStatus.Accepted, response.Results[1].Status);
             }
 
             [Theory]
@@ -841,11 +773,9 @@ namespace NuGetGallery.Controllers
                     Reason = "toggle test"
                 };
 
-                var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request),
-                    lockUserService: lockUserService);
+                var controller = CreateController(lockUserService: lockUserService);
 
-                await controller.LockUserAsync();
+                await controller.LockUserAsync(request);
 
                 lockUserService.Verify(
                     s => s.SetLockStateAsync("testuser", locked, "toggle test", It.IsAny<string>()),
@@ -863,15 +793,15 @@ namespace NuGetGallery.Controllers
                 var request = new AdminLockUserRequest
                 {
                     Users = [new AdminUserIdentity { Username = "testuser" }],
+                    Locked = true,
                     Reason = "TOS violation"
                 };
 
                 var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request),
                     callerAzp: "my-service-principal",
                     lockUserService: lockUserService);
 
-                await controller.LockUserAsync();
+                await controller.LockUserAsync(request);
 
                 lockUserService.Verify(
                     s => s.SetLockStateAsync("testuser", true, "TOS violation", "my-service-principal"),
@@ -918,11 +848,12 @@ namespace NuGetGallery.Controllers
             }
 
             [Fact]
-            public async Task Returns400WhenBodyIsInvalidJsonAsync()
+            public async Task Returns400WhenModelStateIsInvalidAsync()
             {
-                var controller = CreateController(requestBody: "{invalid json");
+                var controller = CreateController();
+                controller.ModelState.AddModelError("Packages", "The packages field is required.");
 
-                var result = await controller.SoftDeletePackageAsync() as JsonResult;
+                var result = await controller.SoftDeletePackageAsync(new AdminSoftDeletePackageRequest()) as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
@@ -931,11 +862,11 @@ namespace NuGetGallery.Controllers
             [Fact]
             public async Task Returns400WhenPackagesIsNullAsync()
             {
-                var request = new AdminSoftDeletePackageRequest { Packages = null };
-                var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request));
+                var request = new AdminSoftDeletePackageRequest { Packages = null, Reason = "test" };
+                var controller = CreateController();
+                ValidateModel(controller, request);
 
-                var result = await controller.SoftDeletePackageAsync() as JsonResult;
+                var result = await controller.SoftDeletePackageAsync(request) as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
@@ -944,11 +875,11 @@ namespace NuGetGallery.Controllers
             [Fact]
             public async Task Returns400WhenPackagesIsEmptyAsync()
             {
-                var request = new AdminSoftDeletePackageRequest { Packages = [] };
-                var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request));
+                var request = new AdminSoftDeletePackageRequest { Packages = [], Reason = "test" };
+                var controller = CreateController();
+                ValidateModel(controller, request);
 
-                var result = await controller.SoftDeletePackageAsync() as JsonResult;
+                var result = await controller.SoftDeletePackageAsync(request) as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
@@ -963,11 +894,53 @@ namespace NuGetGallery.Controllers
                     packages.Add(new AdminSoftDeletePackageIdentity { Id = $"Pkg{i}", Version = "1.0.0" });
                 }
 
-                var request = new AdminSoftDeletePackageRequest { Packages = packages };
-                var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request));
+                var request = new AdminSoftDeletePackageRequest { Packages = packages, Reason = "test" };
+                var controller = CreateController();
+                ValidateModel(controller, request);
 
-                var result = await controller.SoftDeletePackageAsync() as JsonResult;
+                var result = await controller.SoftDeletePackageAsync(request) as JsonResult;
+
+                Assert.NotNull(result);
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public async Task Returns400WhenReasonIsMissingAsync()
+            {
+                var request = new AdminSoftDeletePackageRequest
+                {
+                    Packages =
+                    [
+                        new AdminSoftDeletePackageIdentity { Id = "A", Version = "1.0.0" }
+                    ]
+                };
+
+                var controller = CreateController();
+                ValidateModel(controller, request);
+
+                var result = await controller.SoftDeletePackageAsync(request) as JsonResult;
+
+                Assert.NotNull(result);
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public async Task Returns400WhenVersionIsInvalidAsync()
+            {
+                var request = new AdminSoftDeletePackageRequest
+                {
+                    Packages =
+                    [
+                        new AdminSoftDeletePackageIdentity { Id = "A", Version = "not-a-version" }
+                    ],
+                    Reason = "test"
+                };
+
+                var controller = CreateController();
+                ValidateModel(controller, request);
+                ValidateModelItems(controller, request.Packages);
+
+                var result = await controller.SoftDeletePackageAsync(request) as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
@@ -985,11 +958,9 @@ namespace NuGetGallery.Controllers
                     Reason = "test"
                 };
 
-                var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request),
-                    packageService: _packageServiceMock);
+                var controller = CreateController(packageService: _packageServiceMock);
 
-                var result = await controller.SoftDeletePackageAsync() as JsonResult;
+                var result = await controller.SoftDeletePackageAsync(request) as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
@@ -1012,12 +983,11 @@ namespace NuGetGallery.Controllers
                 };
 
                 var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request),
                     callerAzp: "test-app",
                     packageService: _packageServiceMock,
                     packageDeleteService: _packageDeleteServiceMock);
 
-                var result = await controller.SoftDeletePackageAsync() as JsonResult;
+                var result = await controller.SoftDeletePackageAsync(request) as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.Accepted, controller.Response.StatusCode);
@@ -1050,11 +1020,10 @@ namespace NuGetGallery.Controllers
                 };
 
                 var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request),
                     packageService: _packageServiceMock,
                     packageDeleteService: _packageDeleteServiceMock);
 
-                var result = await controller.SoftDeletePackageAsync() as JsonResult;
+                var result = await controller.SoftDeletePackageAsync(request) as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.Accepted, controller.Response.StatusCode);
@@ -1064,35 +1033,6 @@ namespace NuGetGallery.Controllers
                 Assert.Equal(AdminSoftDeletePackageStatus.Accepted, response.Results[0].Status);
                 Assert.Equal(AdminSoftDeletePackageStatus.NotFound, response.Results[1].Status);
                 Assert.Equal(AdminSoftDeletePackageStatus.Accepted, response.Results[2].Status);
-            }
-
-            [Fact]
-            public async Task ReturnsInvalidForBadVersionStringAsync()
-            {
-                var request = new AdminSoftDeletePackageRequest
-                {
-                    Packages =
-                    [
-                        new AdminSoftDeletePackageIdentity { Id = "BadVersion", Version = "not-a-version" },
-                        new AdminSoftDeletePackageIdentity { Id = _availablePackage.Id, Version = _availablePackage.Version }
-                    ],
-                    Reason = "version test"
-                };
-
-                var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request),
-                    packageService: _packageServiceMock,
-                    packageDeleteService: _packageDeleteServiceMock);
-
-                var result = await controller.SoftDeletePackageAsync() as JsonResult;
-
-                Assert.NotNull(result);
-                Assert.Equal((int)HttpStatusCode.Accepted, controller.Response.StatusCode);
-
-                var response = GetResponseData<AdminSoftDeletePackageResponse>(result);
-                Assert.Equal(2, response.Results.Count);
-                Assert.Equal(AdminSoftDeletePackageStatus.Invalid, response.Results[0].Status);
-                Assert.Equal(AdminSoftDeletePackageStatus.Accepted, response.Results[1].Status);
             }
 
             [Fact]
@@ -1110,11 +1050,10 @@ namespace NuGetGallery.Controllers
                 };
 
                 var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request),
                     packageService: _packageServiceMock,
                     packageDeleteService: _packageDeleteServiceMock);
 
-                var result = await controller.SoftDeletePackageAsync() as JsonResult;
+                var result = await controller.SoftDeletePackageAsync(request) as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.Accepted, controller.Response.StatusCode);
@@ -1122,37 +1061,6 @@ namespace NuGetGallery.Controllers
                 var response = GetResponseData<AdminSoftDeletePackageResponse>(result);
                 Assert.Equal(2, response.Results.Count);
                 Assert.All(response.Results, r => Assert.Equal(AdminSoftDeletePackageStatus.Accepted, r.Status));
-            }
-
-            [Fact]
-            public async Task ReturnsInvalidForNullIdOrVersionAsync()
-            {
-                var request = new AdminSoftDeletePackageRequest
-                {
-                    Packages =
-                    [
-                        new AdminSoftDeletePackageIdentity { Id = null, Version = "1.0.0" },
-                        new AdminSoftDeletePackageIdentity { Id = "My.Package", Version = null },
-                        new AdminSoftDeletePackageIdentity { Id = _availablePackage.Id, Version = _availablePackage.Version }
-                    ],
-                    Reason = "null test"
-                };
-
-                var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request),
-                    packageService: _packageServiceMock,
-                    packageDeleteService: _packageDeleteServiceMock);
-
-                var result = await controller.SoftDeletePackageAsync() as JsonResult;
-
-                Assert.NotNull(result);
-                Assert.Equal((int)HttpStatusCode.Accepted, controller.Response.StatusCode);
-
-                var response = GetResponseData<AdminSoftDeletePackageResponse>(result);
-                Assert.Equal(3, response.Results.Count);
-                Assert.Equal(AdminSoftDeletePackageStatus.Invalid, response.Results[0].Status);
-                Assert.Equal(AdminSoftDeletePackageStatus.Invalid, response.Results[1].Status);
-                Assert.Equal(AdminSoftDeletePackageStatus.Accepted, response.Results[2].Status);
             }
 
             [Fact]
@@ -1167,11 +1075,9 @@ namespace NuGetGallery.Controllers
                     Reason = "deleted test"
                 };
 
-                var controller = CreateController(
-                    requestBody: JsonConvert.SerializeObject(request),
-                    packageService: _packageServiceMock);
+                var controller = CreateController(packageService: _packageServiceMock);
 
-                var result = await controller.SoftDeletePackageAsync() as JsonResult;
+                var result = await controller.SoftDeletePackageAsync(request) as JsonResult;
 
                 Assert.NotNull(result);
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);

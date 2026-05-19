@@ -5,11 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Newtonsoft.Json;
+using NuGet.Packaging.Core;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Areas.Admin.Models;
@@ -20,9 +22,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
     [AdminApiAuth]
     public class AdminApiController : AppController
     {
-        private const int MaxPackageCount = 100;
-        private const int MaxUserCount = 10;
-
         private readonly IPackageService _packageService;
         private readonly IReflowPackageService _reflowPackageService;
         private readonly ILockPackageService _lockPackageService;
@@ -45,71 +44,34 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         [HttpPost]
         [ActionName("ReflowPackage")]
-        public virtual async Task<ActionResult> ReflowPackageAsync()
+        public virtual async Task<ActionResult> ReflowPackageAsync(AdminReflowPackageRequest request)
         {
-            AdminReflowPackageRequest request;
-            try
+            if (!ModelState.IsValid)
             {
-                request = ReadJsonBody<AdminReflowPackageRequest>();
-            }
-            catch (JsonException)
-            {
-                return Json(HttpStatusCode.BadRequest, new { error = "Invalid JSON in request body." });
+                return BadRequestFromModelState();
             }
 
-            if (request?.Packages == null || request.Packages.Count == 0)
-            {
-                return Json(HttpStatusCode.BadRequest, new { error = "The 'packages' field is required and must contain at least one entry." });
-            }
-
-            if (request.Packages.Count > MaxPackageCount)
-            {
-                return Json(HttpStatusCode.BadRequest, new { error = $"The 'packages' field must contain at most {MaxPackageCount} entries." });
-            }
-
-            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var seen = new HashSet<PackageIdentity>();
             var results = new List<AdminReflowPackageResult>();
-            var acceptedPackages = new List<(string Id, string Version)>();
+            var acceptedPackages = new List<PackageIdentity>();
 
             foreach (var entry in request.Packages)
             {
-                if (string.IsNullOrWhiteSpace(entry?.Id) || string.IsNullOrWhiteSpace(entry?.Version))
-                {
-                    results.Add(new AdminReflowPackageResult
-                    {
-                        Id = entry?.Id ?? string.Empty,
-                        Version = entry?.Version ?? string.Empty,
-                        Status = AdminReflowPackageStatus.Invalid
-                    });
+                var nugetVersion = NuGetVersion.Parse(entry.Version.Trim());
+                var identity = new PackageIdentity(entry.Id.Trim(), nugetVersion);
 
-                    continue;
-                }
-
-                if (!NuGetVersion.TryParse(entry.Version, out var nugetVersion))
-                {
-                    results.Add(new AdminReflowPackageResult
-                    {
-                        Id = entry.Id,
-                        Version = entry.Version,
-                        Status = AdminReflowPackageStatus.Invalid
-                    });
-
-                    continue;
-                }
-
-                var normalizedVersion = nugetVersion.ToNormalizedString();
-                var dedupeKey = $"{entry.Id}/{normalizedVersion}";
-                if (!seen.Add(dedupeKey))
+                if (!seen.Add(identity))
                 {
                     continue;
                 }
 
-                var package = _packageService.FindPackageByIdAndVersionStrict(entry.Id, normalizedVersion);
+                var normalizedVersion = identity.Version.ToNormalizedString();
+                var package = _packageService.FindPackageByIdAndVersionStrict(identity.Id, normalizedVersion);
                 if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
                 {
                     results.Add(new AdminReflowPackageResult
                     {
-                        Id = entry.Id,
+                        Id = identity.Id,
                         Version = normalizedVersion,
                         Status = AdminReflowPackageStatus.NotFound
                     });
@@ -119,26 +81,33 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
                 results.Add(new AdminReflowPackageResult
                 {
-                    Id = entry.Id,
+                    Id = identity.Id,
                     Version = normalizedVersion,
                     Status = AdminReflowPackageStatus.Accepted
                 });
 
-                acceptedPackages.Add((entry.Id, normalizedVersion));
+                acceptedPackages.Add(identity);
             }
 
             if (acceptedPackages.Count == 0)
             {
-                return Json(HttpStatusCode.BadRequest, new AdminReflowPackageResponse { Results = results });
+                return Json(HttpStatusCode.BadRequest, new AdminReflowPackageResponse
+                {
+                    Results = results
+                });
             }
 
             var callerAzp = HttpContext.Items[AdminApiAuthAttribute.AzpItemKey] as string;
 
-            foreach (var (id, version) in acceptedPackages)
+            foreach (var packageIdentity in acceptedPackages)
             {
                 try
                 {
-                    await _reflowPackageService.ReflowAsync(id, version, request.Reason, callerAzp);
+                    await _reflowPackageService.ReflowAsync(
+                        packageIdentity.Id,
+                        packageIdentity.Version.ToNormalizedString(),
+                        request.Reason,
+                        callerAzp);
                 }
                 catch (Exception ex)
                 {
@@ -146,31 +115,19 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 }
             }
 
-            return Json(HttpStatusCode.Accepted, new AdminReflowPackageResponse { Results = results });
+            return Json(HttpStatusCode.Accepted, new AdminReflowPackageResponse
+            {
+                Results = results
+            });
         }
 
         [HttpPost]
         [ActionName("LockPackage")]
-        public virtual async Task<ActionResult> LockPackageAsync()
+        public virtual async Task<ActionResult> LockPackageAsync(AdminLockPackageRequest request)
         {
-            AdminLockPackageRequest request;
-            try
+            if (!ModelState.IsValid)
             {
-                request = ReadJsonBody<AdminLockPackageRequest>();
-            }
-            catch (JsonException)
-            {
-                return Json(HttpStatusCode.BadRequest, new { error = "Invalid JSON in request body." });
-            }
-
-            if (request?.Packages == null || request.Packages.Count == 0)
-            {
-                return Json(HttpStatusCode.BadRequest, new { error = "The 'packages' field is required and must contain at least one entry." });
-            }
-
-            if (request.Packages.Count > MaxPackageCount)
-            {
-                return Json(HttpStatusCode.BadRequest, new { error = $"The 'packages' field must contain at most {MaxPackageCount} entries." });
+                return BadRequestFromModelState();
             }
 
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -179,34 +136,28 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             foreach (var entry in request.Packages)
             {
-                if (string.IsNullOrWhiteSpace(entry?.Id))
-                {
-                    results.Add(new AdminLockPackageResult
-                    {
-                        Id = entry?.Id ?? string.Empty,
-                        Status = AdminLockPackageStatus.Invalid
-                    });
+                var packageId = entry.Id.Trim();
 
-                    continue;
-                }
-
-                if (!seen.Add(entry.Id))
+                if (!seen.Add(packageId))
                 {
                     continue;
                 }
 
                 results.Add(new AdminLockPackageResult
                 {
-                    Id = entry.Id,
+                    Id = packageId,
                     Status = AdminLockPackageStatus.Accepted
                 });
 
-                acceptedPackageIds.Add(entry.Id);
+                acceptedPackageIds.Add(packageId);
             }
 
             if (acceptedPackageIds.Count == 0)
             {
-                return Json(HttpStatusCode.BadRequest, new AdminLockPackageResponse { Results = results });
+                return Json(HttpStatusCode.BadRequest, new AdminLockPackageResponse
+                {
+                    Results = results
+                });
             }
 
             var callerAzp = HttpContext.Items[AdminApiAuthAttribute.AzpItemKey] as string;
@@ -215,7 +166,11 @@ namespace NuGetGallery.Areas.Admin.Controllers
             {
                 try
                 {
-                    await _lockPackageService.SetLockStateAsync(packageId, isLocked: request.Locked, request.Reason, callerAzp);
+                    await _lockPackageService.SetLockStateAsync(
+                        packageId,
+                        isLocked: request.Locked.Value,
+                        request.Reason,
+                        callerAzp);
                 }
                 catch (Exception ex)
                 {
@@ -223,31 +178,19 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 }
             }
 
-            return Json(HttpStatusCode.Accepted, new AdminLockPackageResponse { Results = results });
+            return Json(HttpStatusCode.Accepted, new AdminLockPackageResponse
+            {
+                Results = results
+            });
         }
 
         [HttpPost]
         [ActionName("LockUser")]
-        public virtual async Task<ActionResult> LockUserAsync()
+        public virtual async Task<ActionResult> LockUserAsync(AdminLockUserRequest request)
         {
-            AdminLockUserRequest request;
-            try
+            if (!ModelState.IsValid)
             {
-                request = ReadJsonBody<AdminLockUserRequest>();
-            }
-            catch (JsonException)
-            {
-                return Json(HttpStatusCode.BadRequest, new { error = "Invalid JSON in request body." });
-            }
-
-            if (request?.Users == null || request.Users.Count == 0)
-            {
-                return Json(HttpStatusCode.BadRequest, new { error = "The 'users' field is required and must contain at least one entry." });
-            }
-
-            if (request.Users.Count > MaxUserCount)
-            {
-                return Json(HttpStatusCode.BadRequest, new { error = $"The 'users' field must contain at most {MaxUserCount} entries." });
+                return BadRequestFromModelState();
             }
 
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -256,34 +199,28 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             foreach (var entry in request.Users)
             {
-                if (string.IsNullOrWhiteSpace(entry?.Username))
-                {
-                    results.Add(new AdminLockUserResult
-                    {
-                        Username = entry?.Username ?? string.Empty,
-                        Status = AdminLockUserStatus.Invalid
-                    });
+                var username = entry.Username.Trim();
 
-                    continue;
-                }
-
-                if (!seen.Add(entry.Username))
+                if (!seen.Add(username))
                 {
                     continue;
                 }
 
                 results.Add(new AdminLockUserResult
                 {
-                    Username = entry.Username,
+                    Username = username,
                     Status = AdminLockUserStatus.Accepted
                 });
 
-                acceptedUsers.Add(entry.Username);
+                acceptedUsers.Add(username);
             }
 
             if (acceptedUsers.Count == 0)
             {
-                return Json(HttpStatusCode.BadRequest, new AdminLockUserResponse { Results = results });
+                return Json(HttpStatusCode.BadRequest, new AdminLockUserResponse
+                {
+                    Results = results
+                });
             }
 
             var callerAzp = HttpContext.Items[AdminApiAuthAttribute.AzpItemKey] as string;
@@ -292,7 +229,11 @@ namespace NuGetGallery.Areas.Admin.Controllers
             {
                 try
                 {
-                    await _lockUserService.SetLockStateAsync(username, isLocked: request.Locked, request.Reason, callerAzp);
+                    await _lockUserService.SetLockStateAsync(
+                        username,
+                        isLocked: request.Locked.Value,
+                        request.Reason,
+                        callerAzp);
                 }
                 catch (Exception ex)
                 {
@@ -300,76 +241,43 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 }
             }
 
-            return Json(HttpStatusCode.Accepted, new AdminLockUserResponse { Results = results });
+            return Json(HttpStatusCode.Accepted, new AdminLockUserResponse
+            {
+                Results = results
+            });
         }
 
         [HttpPost]
         [ActionName("SoftDeletePackage")]
-        public virtual async Task<ActionResult> SoftDeletePackageAsync()
+        public virtual async Task<ActionResult> SoftDeletePackageAsync(AdminSoftDeletePackageRequest request)
         {
-            AdminSoftDeletePackageRequest request;
-            try
+            if (!ModelState.IsValid)
             {
-                request = ReadJsonBody<AdminSoftDeletePackageRequest>();
-            }
-            catch (JsonException)
-            {
-                return Json(HttpStatusCode.BadRequest, new { error = "Invalid JSON in request body." });
+                return BadRequestFromModelState();
             }
 
-            if (request?.Packages == null || request.Packages.Count == 0)
-            {
-                return Json(HttpStatusCode.BadRequest, new { error = "The 'packages' field is required and must contain at least one entry." });
-            }
-
-            if (request.Packages.Count > MaxPackageCount)
-            {
-                return Json(HttpStatusCode.BadRequest, new { error = $"The 'packages' field must contain at most {MaxPackageCount} entries." });
-            }
-
-            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var seen = new HashSet<PackageIdentity>();
             var results = new List<AdminSoftDeletePackageResult>();
-            var acceptedPackageEntities = new List<Package>();
+            var acceptedPackages = new List<Package>();
 
             foreach (var entry in request.Packages)
             {
-                if (string.IsNullOrWhiteSpace(entry?.Id) || string.IsNullOrWhiteSpace(entry?.Version))
-                {
-                    results.Add(new AdminSoftDeletePackageResult
-                    {
-                        Id = entry?.Id ?? string.Empty,
-                        Version = entry?.Version ?? string.Empty,
-                        Status = AdminSoftDeletePackageStatus.Invalid
-                    });
+                var packageId = entry.Id.Trim();
+                var nugetVersion = NuGetVersion.Parse(entry.Version.Trim());
+                var identity = new PackageIdentity(packageId, nugetVersion);
 
-                    continue;
-                }
-
-                if (!NuGetVersion.TryParse(entry.Version, out var nugetVersion))
-                {
-                    results.Add(new AdminSoftDeletePackageResult
-                    {
-                        Id = entry.Id,
-                        Version = entry.Version,
-                        Status = AdminSoftDeletePackageStatus.Invalid
-                    });
-
-                    continue;
-                }
-
-                var normalizedVersion = nugetVersion.ToNormalizedString();
-                var dedupeKey = $"{entry.Id}/{normalizedVersion}";
-                if (!seen.Add(dedupeKey))
+                if (!seen.Add(identity))
                 {
                     continue;
                 }
 
-                var package = _packageService.FindPackageByIdAndVersionStrict(entry.Id, normalizedVersion);
+                var normalizedVersion = identity.Version.ToNormalizedString();
+                var package = _packageService.FindPackageByIdAndVersionStrict(packageId, normalizedVersion);
                 if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
                 {
                     results.Add(new AdminSoftDeletePackageResult
                     {
-                        Id = entry.Id,
+                        Id = packageId,
                         Version = normalizedVersion,
                         Status = AdminSoftDeletePackageStatus.NotFound
                     });
@@ -379,17 +287,20 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
                 results.Add(new AdminSoftDeletePackageResult
                 {
-                    Id = entry.Id,
+                    Id = packageId,
                     Version = normalizedVersion,
                     Status = AdminSoftDeletePackageStatus.Accepted
                 });
 
-                acceptedPackageEntities.Add(package);
+                acceptedPackages.Add(package);
             }
 
-            if (acceptedPackageEntities.Count == 0)
+            if (acceptedPackages.Count == 0)
             {
-                return Json(HttpStatusCode.BadRequest, new AdminSoftDeletePackageResponse { Results = results });
+                return Json(HttpStatusCode.BadRequest, new AdminSoftDeletePackageResponse
+                {
+                    Results = results
+                });
             }
 
             var callerAzp = HttpContext.Items[AdminApiAuthAttribute.AzpItemKey] as string;
@@ -397,9 +308,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
             try
             {
                 await _packageDeleteService.SoftDeletePackagesAsync(
-                    acceptedPackageEntities,
+                    acceptedPackages,
                     deletedBy: null,
-                    reason: request.Reason ?? string.Empty,
+                    reason: request.Reason,
                     signature: callerAzp);
             }
             catch (Exception ex)
@@ -407,15 +318,47 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 QuietLog.LogHandledException(ex);
             }
 
-            return Json(HttpStatusCode.Accepted, new AdminSoftDeletePackageResponse { Results = results });
+            return Json(HttpStatusCode.Accepted, new AdminSoftDeletePackageResponse
+            {
+                Results = results
+            });
         }
 
-        private T ReadJsonBody<T>() where T : class
+        private JsonResult BadRequestFromModelState()
         {
-            Request.InputStream.Position = 0;
-            using var reader = new StreamReader(Request.InputStream, Encoding.UTF8, true, 4096, leaveOpen: true);
-            var body = reader.ReadToEnd();
-            return JsonConvert.DeserializeObject<T>(body);
+            var errors = new Dictionary<string, string[]>();
+
+            foreach (var entry in ModelState)
+            {
+                var modelState = entry.Value;
+                if (modelState.Errors.Count == 0)
+                {
+                    continue;
+                }
+
+                errors[entry.Key] = [.. modelState.Errors.Select(GetErrorMessage)];
+            }
+
+            return Json(HttpStatusCode.BadRequest, new
+            {
+                message = "The request is invalid.",
+                errors
+            });
+        }
+
+        private static string GetErrorMessage(ModelError error)
+        {
+            if (!string.IsNullOrWhiteSpace(error.ErrorMessage))
+            {
+                return error.ErrorMessage;
+            }
+
+            if (error.Exception != null)
+            {
+                return error.Exception.Message;
+            }
+
+            return "The value is invalid.";
         }
     }
 }
