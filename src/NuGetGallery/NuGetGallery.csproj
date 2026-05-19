@@ -2373,10 +2373,3 @@
     </VisualStudio>
   </ProjectExtensions>
 </Project>
-  <PropertyGroup>
-    <PreBuildEvent>
-      copy "$(ProjectDir)..\Bootstrap\dist\css\bootstrap.min.css" "$(ProjectDir)Content\gallery\css" &gt;NUL
-      copy "$(ProjectDir)..\Bootstrap\dist\js\bootstrap.js" "$(ProjectDir)Scripts\gallery" &gt;NUL
-    </PreBuildEvent>
-  </PropertyGroup>
-</Project>
