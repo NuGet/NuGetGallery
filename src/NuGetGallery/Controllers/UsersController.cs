@@ -467,10 +467,10 @@ namespace NuGetGallery
         {
             var currentUser = GetCurrentUser();
 
-            // SUNNY customer: redirect to Trusted Publishing when any owned package has a GitHub repo link,
+            // All customers are redirected to Trusted Publishing,
             // unless they explicitly opted to visit API Keys from the Trusted Publishing page.
             var forceApiKeys = Request?.QueryString?["forceApiKeys"] == "true";
-            if (!forceApiKeys && UserHasGitHubRepositoryPackage(currentUser))
+            if (!forceApiKeys)
             {
                 return Redirect(Url.ManageMyTrustedPublishing() + "?fromApiKeys=true");
             }
@@ -520,18 +520,6 @@ namespace NuGetGallery
                                 .Select(p => p.Id)
                                 .OrderBy(i => i)
                                 .ToList());
-        }
-
-        /// <summary>
-        /// Returns true if the current user (or any organization they belong to) owns at least one package
-        /// that has a GitHub repository URL — i.e. a "SUNNY" customer.
-        /// </summary>
-        private bool UserHasGitHubRepositoryPackage(User currentUser)
-        {
-            var ownerKeys = new List<int> { currentUser.Key };
-            ownerKeys.AddRange(currentUser.Organizations.Select(o => o.OrganizationKey));
-
-            return PackageService.HasGitHubRepositoryPackage(ownerKeys);
         }
 
         private static bool IsGitHubUrl(string url)
