@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Web.Mvc;
+using NuGetGallery.Areas.Admin.Controllers;
 using NuGetGallery.Filters;
 using Xunit;
 using Xunit.Abstractions;

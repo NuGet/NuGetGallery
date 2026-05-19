@@ -12,6 +12,7 @@ using System.Web.Routing;
 using Moq;
 using Newtonsoft.Json;
 using NuGet.Services.Entities;
+using NuGetGallery.Areas.Admin.Controllers;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Filters;
 using NuGetGallery.Framework;

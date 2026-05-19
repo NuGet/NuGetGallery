@@ -15,7 +15,7 @@ using NuGet.Versioning;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Filters;
 
-namespace NuGetGallery.Controllers
+namespace NuGetGallery.Areas.Admin.Controllers
 {
     [AdminApiAuth]
     public class AdminApiController : AppController
