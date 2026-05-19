@@ -19,8 +19,8 @@ namespace NuGetGallery.Areas.Admin.Models
 
     public static class AdminLockUserStatus
     {
-        public const string Accepted = "accepted";
-        public const string NotFound = "notFound";
-        public const string Invalid = "invalid";
+        public const string Accepted = nameof(Accepted);
+        public const string NotFound = nameof(NotFound);
+        public const string Invalid = nameof(Invalid);
     }
 }
