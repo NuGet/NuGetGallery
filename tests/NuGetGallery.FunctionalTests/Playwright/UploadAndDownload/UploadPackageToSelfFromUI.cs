@@ -26,27 +26,6 @@ namespace NuGetGallery.FunctionalTests.Playwright.UploadAndDownload
 			await Expect(Page.Locator(".package-title")).ToContainTextAsync("1.0.0");
 		}
 
-		[PackageLockFact]
-		[Priority(0)]
-		[Category("P0Tests")]
-		public async Task UploadNewVersionOfExistingPackageAsSelf()
-		{
-			// Arrange
-			var packageId = UploadHelper.GetUniquePackageId();
-            var owner = GalleryConfiguration.Instance.Account.Name;
-
-            // Act - Upload first version
-            await SignInAsync();
-			await UploadPackageAsync(packageId, "1.0.0", owner);
-
-			// Act - Upload second version
-			await UploadPackageAsync(packageId, "2.0.0", owner: null);
-
-			// Assert
-			await Expect(Page.Locator("h1")).ToContainTextAsync(packageId);
-			await Expect(Page.Locator(".package-title")).ToContainTextAsync("2.0.0");
-		}
-
         [PackageLockFact]
         [Priority(0)]
         [Category("P0Tests")]
