@@ -55,7 +55,7 @@ namespace NuGetGallery.FunctionalTests.Playwright
             }
 
             await Page.Locator("input[type='button'][value='Submit']").ClickAsync();
-            await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await Page.WaitForURLAsync($"**/packages/{packageId}/**");
 
             return packagePath;
         }
