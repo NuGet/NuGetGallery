@@ -8,23 +8,24 @@
     const DeleteErrorMessage = "An error occurred while deleting the Trusted Publisher Policy. Please try again.";
 
     const GitHubActionsPublisherName = "GitHubActions"; // must match the PublisherType in GitHubPolicyDetailsViewModel.cs
+    const GitLabCIPublisherName = "GitLabCI"; // must match the PublisherType in GitLabPolicyDetailsViewModel.cs
 
 
     ko.bindingHandlers.trimmedValue = {
-        init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+        init: function (element, valueAccessor, allBindings, viewModel, bindingContext) {
             // Handle the initial value and user input
             var observable = valueAccessor();
             var interceptor = ko.pureComputed({
                 read: observable,
-                write: function(value) {
+                write: function (value) {
                     observable(typeof value === "string" ? value.trim() : value);
                 }
             });
-            
+
             // Use the standard value binding with our interceptor
-            ko.bindingHandlers.value.init(element, function() { return interceptor; }, allBindings, viewModel, bindingContext);
+            ko.bindingHandlers.value.init(element, function () { return interceptor; }, allBindings, viewModel, bindingContext);
         },
-        update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+        update: function (element, valueAccessor, allBindings, viewModel, bindingContext) {
             // Use the standard value binding for updates
             ko.bindingHandlers.value.update(element, valueAccessor, allBindings, viewModel, bindingContext);
         }
@@ -50,6 +51,7 @@
             }, self);
         }
 
+        // ===== GitHub Actions provider details =====
         var _gitHubDetails = {};
         _gitHubDetails.Initialize = function (self) {
             // Create a gitHub object to hold all GitHub-related properties
@@ -192,7 +194,7 @@
                     properties.httpStatus = jqXHR.status;
                     properties.responseText = jqXHR.responseText;
                 },
-                complete: function() {
+                complete: function () {
                     window.nuget.sendMetric('GitHubRepositoryLookup', 1, properties);
                     callback();
                 }
@@ -225,6 +227,84 @@
             return JSON.stringify(githubData);
         }
 
+        // ===== GitLab CI/CD provider details =====
+        var _gitLabDetails = {};
+        _gitLabDetails.Initialize = function (self) {
+            self.gitLab = {
+                NamespacePath: ko.observable(),
+                PendingNamespacePath: ko.observable(),
+                NamespacePathUid: computedUid(self, "gitlab-namespace-path"),
+
+                ProjectPath: ko.observable(),
+                PendingProjectPath: ko.observable(),
+                ProjectPathUid: computedUid(self, "gitlab-project-path"),
+
+                Ref: ko.observable(),
+                PendingRef: ko.observable(),
+                RefUid: computedUid(self, "gitlab-ref"),
+
+                Environment: ko.observable(),
+                PendingEnvironment: ko.observable(),
+                EnvironmentUid: computedUid(self, "gitlab-environment"),
+            };
+        };
+
+        _gitLabDetails.Update = function (self, data) {
+            const details = data.PublisherName !== GitLabCIPublisherName ? {} : data.PolicyDetails || {};
+            const gitLab = self.gitLab;
+
+            gitLab.NamespacePath(details.NamespacePath || '');
+            gitLab.PendingNamespacePath(details.NamespacePath || '');
+
+            gitLab.ProjectPath(details.ProjectPath || '');
+            gitLab.PendingProjectPath(details.ProjectPath || '');
+
+            gitLab.Ref(details.Ref || '');
+            gitLab.PendingRef(details.Ref || '');
+
+            gitLab.Environment(details.Environment || '');
+            gitLab.PendingEnvironment(details.Environment || '');
+        };
+
+        _gitLabDetails.CancelEdit = function (self) {
+            const gitLab = self.gitLab;
+            gitLab.PendingNamespacePath(gitLab.NamespacePath());
+            gitLab.PendingProjectPath(gitLab.ProjectPath());
+            gitLab.PendingRef(gitLab.Ref());
+            gitLab.PendingEnvironment(gitLab.Environment());
+        };
+
+        _gitLabDetails.AttachExtensions = function (self, validator) {
+            const gitLab = self.gitLab;
+            validator.submitted[gitLab.NamespacePathUid()] = null;
+            validator.submitted[gitLab.ProjectPathUid()] = null;
+        };
+
+        _gitLabDetails.Valid = function (self) {
+            const gitLab = self.gitLab;
+            return gitLab.PendingNamespacePath() && gitLab.PendingProjectPath();
+        };
+
+        _gitLabDetails.CreatePendingCriteria = function (self) {
+            // MUST MATCH GitLab details deserialization in GitLabPolicyDetailsViewModel.cs.
+            const gitLab = self.gitLab;
+            return JSON.stringify({
+                Name: GitLabCIPublisherName,
+                NamespacePath: gitLab.PendingNamespacePath() || '',
+                ProjectPath: gitLab.PendingProjectPath() || '',
+                Ref: gitLab.PendingRef() || '',
+                Environment: gitLab.PendingEnvironment() || ''
+            });
+        };
+
+        // ===== Helper to get the current provider details handler =====
+        function _getProviderDetails(self) {
+            if (self.SelectedProvider() === GitLabCIPublisherName) {
+                return _gitLabDetails;
+            }
+            return _gitHubDetails;
+        }
+
         function PolicyViewModel(parent, packageOwners, data) {
             var self = this;
             data = data || {};
@@ -235,10 +315,19 @@
             this.PendingPolicyName = ko.observable();
             this.Owner = ko.observable();
             this.PublisherName = ko.observable();
-            
+
+            // Provider selection
+            this.AvailableProviders = [
+                { label: 'GitHub Actions', value: GitHubActionsPublisherName },
+                { label: 'GitLab CI/CD', value: GitLabCIPublisherName }
+            ];
+            this.SelectedProvider = ko.observable(GitHubActionsPublisherName);
+            this.ProviderUid = computedUid(self, "provider");
+
             // Provider specific properties
             _gitHubDetails.Initialize(this);
-            
+            _gitLabDetails.Initialize(this);
+
             this._UpdateData = function (data) {
                 this.Key(data.Key || 0);
                 this.PolicyName(data.PolicyName || null);
@@ -246,6 +335,13 @@
                 this.PendingPolicyName(data.PolicyName || null);
                 this.Owner(data.Owner || null);
                 this.PublisherName(data.PublisherName || null);
+
+                // Set provider from existing data
+                if (data.PublisherName === GitLabCIPublisherName) {
+                    this.SelectedProvider(GitLabCIPublisherName);
+                } else {
+                    this.SelectedProvider(GitHubActionsPublisherName);
+                }
 
                 if (this.Owner()) {
                     var existingOwner = ko.utils.arrayFirst(
@@ -263,8 +359,9 @@
 
                 // Provider specific properties
                 _gitHubDetails.Update(this, data);
+                _gitLabDetails.Update(this, data);
             };
-            
+
             this.PackageOwners = packageOwners;
             this.packageViewModels = [];
 
@@ -283,8 +380,15 @@
             this.PolicyNameUid = computedUid(self, "policy-name");
             this.PackageOwnerUid = computedUid(self, "package-owner");
             this.IconUrl = ko.pureComputed(function () {
-                // Use disabled icon if there's an invalid reason or if enabled days left is 0 or less
-                if (!this.IsOwnerValid() || this.gitHub.EnabledDaysLeft() <= 0) {
+                if (!this.IsOwnerValid()) {
+                    return initialData.ImageUrls.DisabledTrustedPolicy;
+                }
+                // GitLab policies are always "permanently enabled"
+                if (this.PublisherName() === GitLabCIPublisherName) {
+                    return initialData.ImageUrls.TrustedPolicy;
+                }
+                // GitHub-specific icon logic
+                if (this.gitHub.EnabledDaysLeft() <= 0) {
                     return initialData.ImageUrls.DisabledTrustedPolicy;
                 }
                 if (!this.gitHub.IsPermamentlyEnabled()) {
@@ -294,7 +398,13 @@
             }, this);
             this.IconUrlFallback = ko.pureComputed(function () {
                 var url = initialData.ImageUrls.TrustedPolicyFallback;
-                if (!this.IsOwnerValid() || this.gitHub.EnabledDaysLeft() <= 0) {
+                if (!this.IsOwnerValid()) {
+                    return initialData.ImageUrls.DisabledTrustedPolicyFallback;
+                }
+                if (this.PublisherName() === GitLabCIPublisherName) {
+                    return "this.src='" + url + "'; this.onerror = null;";
+                }
+                if (this.gitHub.EnabledDaysLeft() <= 0) {
                     return initialData.ImageUrls.DisabledTrustedPolicyFallback;
                 }
                 if (!this.gitHub.IsPermamentlyEnabled()) {
@@ -320,18 +430,25 @@
 
                 // Immediately validate the PolicyName
                 $validator.submitted[self.PolicyNameUid()] = null;
-                _gitHubDetails.AttachExtensions(self, $validator);
+
+                // Attach provider-specific validation
+                var provider = _getProviderDetails(self);
+                provider.AttachExtensions(self, $validator);
             }
 
             this.Valid = function () {
                 // Execute form validation.
                 const $form = $("#" + this.FormUid());
                 const formError = !$form.valid();
-                
+
                 // Check if PackageOwner is selected
                 const packageOwnerError = !this.PackageOwner();
-                const gitHubValid = _gitHubDetails.Valid(this);
-                return !formError && !packageOwnerError && gitHubValid;
+
+                // Validate provider-specific fields
+                var provider = _getProviderDetails(this);
+                const providerValid = provider.Valid(this);
+
+                return !formError && !packageOwnerError && providerValid;
             }
 
             this.CancelEdit = function () {
@@ -342,6 +459,7 @@
                 // Reset the field values.
                 self.PendingPolicyName(self.PolicyName());
                 _gitHubDetails.CancelEdit(self);
+                _gitLabDetails.CancelEdit(self);
 
                 // Reset PackageOwner to null for new items, or to the current Owner for existing items
                 if (!self.Key()) {
@@ -432,20 +550,27 @@
                 // Set loading state immediately
                 this.PendingCreateOrEdit(true);
 
-                // Get owner and repo IDs first
-                _gitHubDetails.LookupGitHubIdentifiers(self, parent.Policies(),
-                    function () {
-                        self.CreateAfterLookup();
-                    }
-                );
+                if (this.SelectedProvider() === GitHubActionsPublisherName) {
+                    // GitHub needs to look up owner/repo IDs first
+                    _gitHubDetails.LookupGitHubIdentifiers(self, parent.Policies(),
+                        function () {
+                            self.CreateAfterLookup();
+                        }
+                    );
+                } else {
+                    // GitLab has no pre-create lookup
+                    this.CreateAfterLookup();
+                }
             };
 
             this.CreateAfterLookup = function () {
-                // Build the request.
+                // Build the request using the appropriate provider's criteria
+                var provider = _getProviderDetails(this);
                 var data = {
                     policyName: this.PendingPolicyName(),
                     owner: this.PackageOwner(),
-                    criteria: _gitHubDetails.CreatePendingCriteria(this)
+                    criteria: provider.CreatePendingCriteria(this),
+                    publisherType: this.SelectedProvider()
                 };
                 window.nuget.addAjaxAntiForgeryToken(data);
 
@@ -477,10 +602,11 @@
             };
 
             this.Edit = function () {
-                // Build the request.
+                // Build the request using the appropriate provider's criteria
+                var provider = _getProviderDetails(this);
                 var data = {
                     federatedCredentialKey: this.Key(),
-                    criteria: _gitHubDetails.CreatePendingCriteria(this),
+                    criteria: provider.CreatePendingCriteria(this),
                     policyName: this.PendingPolicyName()
                 };
                 window.nuget.addAjaxAntiForgeryToken(data);

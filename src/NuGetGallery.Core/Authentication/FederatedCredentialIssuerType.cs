@@ -5,10 +5,11 @@
 
 namespace NuGetGallery.Services.Authentication
 {
-    public enum FederatedCredentialIssuerType
-    {
-        Unsupported,
-        EntraId,
-        GitHubActions,
-    }
+	public enum FederatedCredentialIssuerType
+	{
+		Unsupported,
+		EntraId,
+		GitHubActions,
+		GitLabCI,
+	}
 }
