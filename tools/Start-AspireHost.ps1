@@ -291,7 +291,7 @@ foreach ($url in $HealthUrls)
 {
 	try
 	{
-		$response = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 10 -MaximumRedirection 5 -ErrorAction Stop
+		$response = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 30 -MaximumRedirection 5 -ErrorAction Stop
 		$httpCode = $response.StatusCode
 	}
 	catch
