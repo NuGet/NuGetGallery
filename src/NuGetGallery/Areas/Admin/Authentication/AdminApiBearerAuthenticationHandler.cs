@@ -5,52 +5,41 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using Microsoft.Ajax.Utilities;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.IdentityModel.Validators;
-using Microsoft.Owin;
+using Microsoft.Owin.Security;
+using Microsoft.Owin.Security.Infrastructure;
 using NuGetGallery.Configuration;
 using NuGetGallery.Services.Authentication;
 
-namespace NuGetGallery.Filters
+namespace NuGetGallery.Areas.Admin.Authentication
 {
     /// <summary>
-    /// OWIN middleware that validates Entra ID bearer tokens for Admin API requests.
-    /// This runs natively async in the OWIN pipeline, avoiding the sync-over-async
-    /// pattern that would be required in an MVC <see cref="IAuthorizationFilter"/>.
+    /// OWIN authentication handler that validates Entra ID bearer tokens for Admin API
+    /// requests. Uses the OWIN authentication framework so it integrates with IIS pipeline
+    /// stages via <see cref="Microsoft.Owin.Extensions.IntegratedPipelineExtensions.UseStageMarker"/>.
     /// </summary>
-    public class AdminApiBearerAuthMiddleware : OwinMiddleware
+    public class AdminApiBearerAuthenticationHandler
+        : AuthenticationHandler<AdminApiBearerAuthenticationOptions>
     {
-        internal const string PathPrefix = "/api/admin/";
-
         internal const string TidClaim = "tid";
         internal const string AzpClaim = "azp";
+        internal const string CallerIdentityClaim = "AdminApi.CallerIdentity";
 
-        public AdminApiBearerAuthMiddleware(OwinMiddleware next) : base(next)
+        protected override async Task<AuthenticationTicket> AuthenticateCoreAsync()
         {
-        }
-
-        public override async Task Invoke(IOwinContext context)
-        {
-            if (!context.Request.Path.HasValue ||
-                !context.Request.Path.Value.StartsWith(PathPrefix, StringComparison.OrdinalIgnoreCase))
-            {
-                await Next.Invoke(context);
-                return;
-            }
-
-            var token = ExtractBearerToken(context.Request);
+            var token = ExtractBearerToken();
             if (string.IsNullOrEmpty(token))
             {
-                await WriteErrorResponseAsync(context, HttpStatusCode.Unauthorized,
-                    "A valid Bearer token must be provided in the Authorization header.");
-                return;
+                StoreAuthError(HttpStatusCode.Unauthorized, "A valid Bearer token must be provided in the Authorization header.");
+                return null;
             }
 
             var configService = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
@@ -58,19 +47,42 @@ namespace NuGetGallery.Filters
 
             if (result.StatusCode != 0)
             {
-                await WriteErrorResponseAsync(context, (HttpStatusCode)result.StatusCode, result.Message);
-                return;
+                StoreAuthError((HttpStatusCode)result.StatusCode, result.Message);
+                return null;
             }
 
-            context.Environment[AdminApiAuthAttribute.CallerIdentityItemKey] =
-                $"Tenant ID: {result.TenantId}, Client ID: {result.AuthorizedParty}";
+            var callerIdentity = $"Tenant ID: {result.TenantId}, Client ID: {result.AuthorizedParty}";
 
-            await Next.Invoke(context);
+            var identity = new ClaimsIdentity(Options.AuthenticationType, ClaimTypes.Name, ClaimTypes.Role);
+            identity.AddClaim(new Claim(TidClaim, result.TenantId));
+            identity.AddClaim(new Claim(AzpClaim, result.AuthorizedParty));
+            identity.AddClaim(new Claim(CallerIdentityClaim, callerIdentity));
+
+            return new AuthenticationTicket(identity, new AuthenticationProperties());
         }
 
-        internal static string ExtractBearerToken(IOwinRequest request)
+        protected override Task ApplyResponseChallengeAsync()
         {
-            var authHeader = request.Headers["Authorization"];
+            if (Response.StatusCode == 401)
+            {
+                var challenge = Helper.LookupChallenge(Options.AuthenticationType, Options.AuthenticationMode);
+                if (challenge != null)
+                {
+                    Response.Headers.Append("WWW-Authenticate", $"Bearer realm=\"{Request.Uri.Host}\"");
+                }
+            }
+
+            return Task.CompletedTask;
+        }
+
+        private void StoreAuthError(HttpStatusCode statusCode, string message)
+        {
+            Context.Environment[AdminApiBearerAuthenticationOptions.AuthErrorEnvironmentKey] = new AuthError { StatusCode = statusCode, Message = message };
+        }
+
+        private string ExtractBearerToken()
+        {
+            var authHeader = Request.Headers["Authorization"];
             if (string.IsNullOrEmpty(authHeader))
             {
                 return null;
@@ -226,13 +238,6 @@ namespace NuGetGallery.Filters
             return result;
         }
 
-        private static async Task WriteErrorResponseAsync(IOwinContext context, HttpStatusCode statusCode, string message)
-        {
-            context.Response.StatusCode = (int)statusCode;
-            context.Response.ContentType = "text/plain";
-            await context.Response.WriteAsync(message);
-        }
-
         internal class AuthResult
         {
             public int StatusCode { get; set; }
@@ -245,6 +250,12 @@ namespace NuGetGallery.Filters
         {
             public string TenantId { get; set; }
             public string AuthorizedParty { get; set; }
+        }
+
+        internal class AuthError
+        {
+            public HttpStatusCode StatusCode { get; set; }
+            public string Message { get; set; }
         }
     }
 }

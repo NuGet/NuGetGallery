@@ -14,11 +14,11 @@ using Newtonsoft.Json;
 using NuGet.Services.Entities;
 using NuGetGallery.Areas.Admin.Controllers;
 using NuGetGallery.Areas.Admin.Models;
-using NuGetGallery.Filters;
+using NuGetGallery.Areas.Admin.Filters;
 using NuGetGallery.Framework;
 using Xunit;
 
-namespace NuGetGallery.Controllers
+namespace NuGetGallery.Areas.Admin.Controllers
 {
     public class AdminApiControllerFacts
     {

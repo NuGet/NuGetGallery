@@ -68,29 +68,23 @@ function Invoke-AdminApi {
             -Headers $headers `
             -Body $jsonBody `
             -UseBasicParsing `
+            -SkipCertificateCheck `
+            -SkipHttpErrorCheck `
             -ErrorAction Stop
 
-        Write-Host "`nStatus: $($response.StatusCode) $($response.StatusDescription)" -ForegroundColor Green
-        Write-Host "Response:" -ForegroundColor Gray
-        $response.Content | ConvertFrom-Json | ConvertTo-Json -Depth 5 | Write-Host
-    }
-    catch {
-        $ex = $_.Exception
-        if ($ex.Response) {
-            $statusCode = [int]$ex.Response.StatusCode
-            Write-Host "`nStatus: $statusCode" -ForegroundColor Yellow
+        $color = if ($response.StatusCode -ge 200 -and $response.StatusCode -lt 300) { "Green" } else { "Yellow" }
+        Write-Host "`nStatus: $($response.StatusCode)" -ForegroundColor $color
+        if ($response.Content) {
+            Write-Host "Response:" -ForegroundColor Gray
             try {
-                $reader = New-Object System.IO.StreamReader($ex.Response.GetResponseStream())
-                $responseBody = $reader.ReadToEnd()
-                Write-Host "Response:" -ForegroundColor Gray
-                Write-Host $responseBody
+                $response.Content | ConvertFrom-Json | ConvertTo-Json -Depth 5 | Write-Host
             } catch {
-                Write-Host "(Could not read response body)"
+                Write-Host $response.Content
             }
         }
-        else {
-            Write-Host "`nError: $($ex.Message)" -ForegroundColor Red
-        }
+    }
+    catch {
+        Write-Host "`nError: $($_.Exception.Message)" -ForegroundColor Red
     }
 }
 

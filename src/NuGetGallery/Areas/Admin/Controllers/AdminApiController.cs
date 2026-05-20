@@ -12,7 +12,7 @@ using NuGet.Packaging.Core;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Areas.Admin.Models;
-using NuGetGallery.Filters;
+using NuGetGallery.Areas.Admin.Filters;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {

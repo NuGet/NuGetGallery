@@ -248,8 +248,10 @@
     <Compile Include="Extensions\UserSafeExceptionExtensions.cs" />
     <Compile Include="Filters\AdminActionAttribute.cs" />
     <Compile Include="Filters\RequiresUserAgentAttribute.cs" />
-    <Compile Include="Filters\AdminApiAuthAttribute.cs" />
-    <Compile Include="Filters\AdminApiBearerAuthMiddleware.cs" />
+    <Compile Include="Areas\Admin\Filters\AdminApiAuthAttribute.cs" />
+    <Compile Include="Areas\Admin\Authentication\AdminApiBearerAuthenticationMiddleware.cs" />
+    <Compile Include="Areas\Admin\Authentication\AdminApiBearerAuthenticationHandler.cs" />
+    <Compile Include="Areas\Admin\Authentication\AdminApiBearerAuthenticationOptions.cs" />
     <Compile Include="Helpers\AdminHelper.cs" />
     <Compile Include="Helpers\CSPHelper.cs" />
     <Compile Include="Helpers\InvalidZipEntry.cs" />
