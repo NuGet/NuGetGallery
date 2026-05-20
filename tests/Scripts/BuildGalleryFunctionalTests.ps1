@@ -13,6 +13,7 @@ $msbuild = Join-Path $VsInstallationPath "MSBuild\Current\Bin\msbuild"
 $nuget = Join-Path $parentDir "nuget.exe"
 & (Join-Path $PSScriptRoot "DownloadLatestNuGetExeRelease.ps1") $parentDir
 
+Write-Host "##[group]Restoring and building functional tests"
 Write-Host "Restoring solution tools"
 & $nuget install (Join-Path $repoDir "packages.config") -SolutionDirectory $repoDir -NonInteractive -ExcludeVersion
 
@@ -34,10 +35,12 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host "Copying nuget.exe to functional tests directory"
 $functionalTestsDirectory = Join-Path $parentDir "NuGetGallery.FunctionalTests\bin\$Configuration\net472"
 Copy-Item $nuget $functionalTestsDirectory
+Write-Host "##[endgroup]"
 
-Write-Host "Setting up Playwright browsers..."
+Write-Host "##[group]Installing Playwright browsers"
 # used to suppress Node.js warnings about url.parse deprecation
 # https://github.com/microsoft/playwright/issues/36404
 $env:NODE_NO_WARNINGS = "1"
 & "$functionalTestsDirectory\playwright.ps1" install
 $env:NODE_NO_WARNINGS = ""
+Write-Host "##[endgroup]"
