@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using Microsoft.Ajax.Utilities;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Protocols;
@@ -174,12 +175,12 @@ namespace NuGetGallery.Filters
                 };
             }
 
-            if (string.IsNullOrEmpty(tid) || string.IsNullOrEmpty(azp))
+            if (string.IsNullOrWhiteSpace(tid) || string.IsNullOrWhiteSpace(azp))
             {
                 return new AuthResult
                 {
                     StatusCode = (int)HttpStatusCode.Forbidden,
-                    Message = $"Token is missing required claims. tid={!string.IsNullOrEmpty(tid)}, azp={!string.IsNullOrEmpty(azp)}."
+                    Message = $"Token is missing required claims. tid={!string.IsNullOrWhiteSpace(tid)}, azp={!string.IsNullOrWhiteSpace(azp)}."
                 };
             }
 
