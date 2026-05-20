@@ -16,6 +16,10 @@ namespace NuGetGallery.FunctionalTests.Playwright
             // Uncomment this to make Playwright run in headed mode (visible browser) for debugging.
             // System.Environment.SetEnvironmentVariable("HEADED", "1");
             await base.InitializeAsync();
+
+            // IIS Express on CI runners can be slow to respond, especially on cold starts.
+            // The default 30s navigation timeout is too tight for these environments.
+            Page.SetDefaultNavigationTimeout(120_000);
         }
 
         public async Task SignInAsync(string? email = null, string? password = null)
