@@ -17,7 +17,7 @@ namespace NuGet.Services.GitHub.Configuration
         {
             var keyVaultUseManagedIdentity = configurationRoot.GetValue<bool>(Constants.KeyVaultUseManagedIdentity, false);
             var keyVaultName = configurationRoot[Constants.KeyVaultVaultNameKey] ?? throw new InvalidOperationException("Key vault name is not configured.");
-            var keyVaultManagedIdentityClientId = configurationRoot[Constants.ManagedIdentityClientIdKey];
+            var keyVaultManagedIdentityClientId = string.IsNullOrWhiteSpace(configurationRoot[Constants.KeyVaultClientIdKey]) ? configurationRoot[Constants.ManagedIdentityClientIdKey] : configurationRoot[Constants.KeyVaultClientIdKey];
 
             return builder.Register(ctx =>
             {
