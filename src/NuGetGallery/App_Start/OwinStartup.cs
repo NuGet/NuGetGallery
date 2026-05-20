@@ -149,6 +149,13 @@ namespace NuGetGallery
                 auther.Startup(config, app).Wait();
             }
 
+            // Admin API bearer token auth (only register when the feature is enabled,
+            // matching the conditional route registration in Routes.cs)
+            if (config.Current.AdminApiEnabled)
+            {
+                app.Use<Filters.AdminApiBearerAuthMiddleware>();
+            }
+
             // enables Content-Security-Policy with nonce and strict dynamic
             app.Use(async (context, next) =>
             {

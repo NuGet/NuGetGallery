@@ -15,6 +15,7 @@ using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Owin;
 using Moq;
 using NuGetGallery.Configuration;
 using Xunit;
@@ -26,10 +27,10 @@ namespace NuGetGallery.Filters
         public class TheOnAuthorizationMethod
         {
             [Fact]
-            public void Returns404WhenGenevaAdminApiDisabled()
+            public void Returns404WhenAdminApiDisabled()
             {
                 // Arrange
-                var context = BuildAuthorizationContext(headers: []);
+                var context = BuildAuthorizationContext(azpInItems: null);
                 SetupConfigService(adminApiEnabled: false);
 
                 var attribute = new AdminApiAuthAttribute();
@@ -44,10 +45,10 @@ namespace NuGetGallery.Filters
             }
 
             [Fact]
-            public void Returns401WhenNoAuthorizationHeader()
+            public void Returns401WhenMiddlewareDidNotSetAzp()
             {
                 // Arrange
-                var context = BuildAuthorizationContext(headers: []);
+                var context = BuildAuthorizationContext(azpInItems: null);
                 SetupConfigService(adminApiEnabled: true);
 
                 var attribute = new AdminApiAuthAttribute();
@@ -61,15 +62,11 @@ namespace NuGetGallery.Filters
                 Assert.Equal((int)HttpStatusCode.Unauthorized, result.StatusCode);
             }
 
-            [Theory]
-            [InlineData("")]
-            [InlineData("Basic abc123")]
-            [InlineData("NotBearer xyz")]
-            public void Returns401WhenAuthorizationHeaderIsNotBearer(string authHeader)
+            [Fact]
+            public void SetsNoResultWhenMiddlewareAuthenticated()
             {
                 // Arrange
-                var headers = new NameValueCollection { { "Authorization", authHeader } };
-                var context = BuildAuthorizationContext(headers: headers);
+                var context = BuildAuthorizationContext(azpInItems: "test-app");
                 SetupConfigService(adminApiEnabled: true);
 
                 var attribute = new AdminApiAuthAttribute();
@@ -78,20 +75,13 @@ namespace NuGetGallery.Filters
                 attribute.OnAuthorization(context.Object);
 
                 // Assert
-                var result = context.Object.Result as HttpStatusCodeResult;
-                Assert.NotNull(result);
-                Assert.Equal((int)HttpStatusCode.Unauthorized, result.StatusCode);
+                Assert.Null(context.Object.Result);
             }
 
-            private static void SetupConfigService(
-                bool adminApiEnabled,
-                string audience = "https://admin-api.nuget.org",
-                string allowedCallers = "tenant1:party1")
+            private static void SetupConfigService(bool adminApiEnabled)
             {
                 var mockConfig = new Mock<IAppConfiguration>();
                 mockConfig.Setup(c => c.AdminApiEnabled).Returns(adminApiEnabled);
-                mockConfig.Setup(c => c.AdminApiAudience).Returns(audience);
-                mockConfig.Setup(c => c.AdminApiAllowedCallers).Returns(allowedCallers);
 
                 var mockConfigService = new Mock<IGalleryConfigurationService>();
                 mockConfigService.Setup(s => s.Current).Returns(mockConfig.Object);
@@ -104,19 +94,26 @@ namespace NuGetGallery.Filters
                 DependencyResolver.SetResolver(mockDependencyResolver.Object);
             }
 
-            private static Mock<AuthorizationContext> BuildAuthorizationContext(NameValueCollection headers)
+            private static Mock<AuthorizationContext> BuildAuthorizationContext(string azpInItems)
             {
                 var mockController = new Mock<AppController>();
 
                 var mockRequest = new Mock<HttpRequestBase>();
-                mockRequest.Setup(r => r.Headers).Returns(headers);
+                mockRequest.Setup(r => r.Headers).Returns([]);
+
+                var items = new Dictionary<object, object>
+                {
+                    { "owin.Environment", new Dictionary<string, object>() }
+                };
+
+                if (azpInItems != null)
+                {
+                    items[AdminApiAuthAttribute.AzpItemKey] = azpInItems;
+                }
 
                 var mockHttpContext = new Mock<HttpContextBase>();
                 mockHttpContext.Setup(c => c.Request).Returns(mockRequest.Object);
-                mockHttpContext.SetupGet(c => c.Items).Returns(new Dictionary<object, object>
-                {
-                    { "owin.Environment", new Dictionary<string, object>() }
-                });
+                mockHttpContext.SetupGet(c => c.Items).Returns(items);
                 mockHttpContext.SetupGet(c => c.Response.Cache)
                     .Returns(new Mock<HttpCachePolicyBase>().Object);
 
@@ -142,10 +139,10 @@ namespace NuGetGallery.Filters
             [Fact]
             public void ReturnsNullWhenNoAuthorizationHeader()
             {
-                var mockRequest = new Mock<HttpRequestBase>();
-                mockRequest.Setup(r => r.Headers).Returns([]);
+                var mockRequest = new Mock<IOwinRequest>();
+                mockRequest.Setup(r => r.Headers).Returns(new HeaderDictionary(new Dictionary<string, string[]>()));
 
-                var result = AdminApiAuthAttribute.ExtractBearerToken(mockRequest.Object);
+                var result = AdminApiBearerAuthMiddleware.ExtractBearerToken(mockRequest.Object);
 
                 Assert.Null(result);
             }
@@ -153,11 +150,14 @@ namespace NuGetGallery.Filters
             [Fact]
             public void ReturnsTokenWhenBearerPrefix()
             {
-                var headers = new NameValueCollection { { "Authorization", "Bearer mytoken123" } };
-                var mockRequest = new Mock<HttpRequestBase>();
+                var headers = new HeaderDictionary(new Dictionary<string, string[]>
+                {
+                    { "Authorization", new[] { "Bearer mytoken123" } }
+                });
+                var mockRequest = new Mock<IOwinRequest>();
                 mockRequest.Setup(r => r.Headers).Returns(headers);
 
-                var result = AdminApiAuthAttribute.ExtractBearerToken(mockRequest.Object);
+                var result = AdminApiBearerAuthMiddleware.ExtractBearerToken(mockRequest.Object);
 
                 Assert.Equal("mytoken123", result);
             }
@@ -165,11 +165,14 @@ namespace NuGetGallery.Filters
             [Fact]
             public void ReturnsNullWhenNonBearerScheme()
             {
-                var headers = new NameValueCollection { { "Authorization", "Basic abc123" } };
-                var mockRequest = new Mock<HttpRequestBase>();
+                var headers = new HeaderDictionary(new Dictionary<string, string[]>
+                {
+                    { "Authorization", new[] { "Basic abc123" } }
+                });
+                var mockRequest = new Mock<IOwinRequest>();
                 mockRequest.Setup(r => r.Headers).Returns(headers);
 
-                var result = AdminApiAuthAttribute.ExtractBearerToken(mockRequest.Object);
+                var result = AdminApiBearerAuthMiddleware.ExtractBearerToken(mockRequest.Object);
 
                 Assert.Null(result);
             }
@@ -177,11 +180,14 @@ namespace NuGetGallery.Filters
             [Fact]
             public void IsCaseInsensitive()
             {
-                var headers = new NameValueCollection { { "Authorization", "bearer mytoken" } };
-                var mockRequest = new Mock<HttpRequestBase>();
+                var headers = new HeaderDictionary(new Dictionary<string, string[]>
+                {
+                    { "Authorization", new[] { "bearer mytoken" } }
+                });
+                var mockRequest = new Mock<IOwinRequest>();
                 mockRequest.Setup(r => r.Headers).Returns(headers);
 
-                var result = AdminApiAuthAttribute.ExtractBearerToken(mockRequest.Object);
+                var result = AdminApiBearerAuthMiddleware.ExtractBearerToken(mockRequest.Object);
 
                 Assert.Equal("mytoken", result);
             }
@@ -192,7 +198,7 @@ namespace NuGetGallery.Filters
             [Fact]
             public void ReturnsEmptyForNull()
             {
-                var result = AdminApiAuthAttribute.ParseAllowedCallers(null);
+                var result = AdminApiBearerAuthMiddleware.ParseAllowedCallers(null);
 
                 Assert.Empty(result);
             }
@@ -200,7 +206,7 @@ namespace NuGetGallery.Filters
             [Fact]
             public void ReturnsEmptyForEmptyString()
             {
-                var result = AdminApiAuthAttribute.ParseAllowedCallers("");
+                var result = AdminApiBearerAuthMiddleware.ParseAllowedCallers("");
 
                 Assert.Empty(result);
             }
@@ -208,7 +214,7 @@ namespace NuGetGallery.Filters
             [Fact]
             public void ParsesSinglePair()
             {
-                var result = AdminApiAuthAttribute.ParseAllowedCallers("tid1:azp1");
+                var result = AdminApiBearerAuthMiddleware.ParseAllowedCallers("tid1:azp1");
 
                 Assert.Single(result);
                 Assert.Equal("tid1", result[0].TenantId);
@@ -218,7 +224,7 @@ namespace NuGetGallery.Filters
             [Fact]
             public void ParsesMultiplePairs()
             {
-                var result = AdminApiAuthAttribute.ParseAllowedCallers("tid1:azp1;tid2:azp2;tid3:azp3");
+                var result = AdminApiBearerAuthMiddleware.ParseAllowedCallers("tid1:azp1;tid2:azp2;tid3:azp3");
 
                 Assert.Equal(3, result.Count);
                 Assert.Equal("tid1", result[0].TenantId);
@@ -232,7 +238,7 @@ namespace NuGetGallery.Filters
             [Fact]
             public void IgnoresInvalidEntries()
             {
-                var result = AdminApiAuthAttribute.ParseAllowedCallers("tid1:azp1;;:;invalid;tid2:azp2");
+                var result = AdminApiBearerAuthMiddleware.ParseAllowedCallers("tid1:azp1;;:;invalid;tid2:azp2");
 
                 Assert.Equal(2, result.Count);
                 Assert.Equal("tid1", result[0].TenantId);
@@ -242,7 +248,7 @@ namespace NuGetGallery.Filters
             [Fact]
             public void TrimsWhitespace()
             {
-                var result = AdminApiAuthAttribute.ParseAllowedCallers(" tid1 : azp1 ");
+                var result = AdminApiBearerAuthMiddleware.ParseAllowedCallers(" tid1 : azp1 ");
 
                 Assert.Single(result);
                 Assert.Equal("tid1", result[0].TenantId);
@@ -268,7 +274,7 @@ namespace NuGetGallery.Filters
             {
                 var configService = CreateMockConfigService();
 
-                var result = await AdminApiAuthAttribute.ValidateAndAuthorizeAsync(
+                var result = await AdminApiBearerAuthMiddleware.ValidateAndAuthorizeAsync(
                     "garbage-not-a-jwt", configService.Object);
 
                 Assert.Equal((int)HttpStatusCode.Unauthorized, result.StatusCode);
@@ -279,7 +285,7 @@ namespace NuGetGallery.Filters
             {
                 var configService = CreateMockConfigService();
 
-                var result = await AdminApiAuthAttribute.ValidateAndAuthorizeAsync(
+                var result = await AdminApiBearerAuthMiddleware.ValidateAndAuthorizeAsync(
                     "", configService.Object);
 
                 Assert.Equal((int)HttpStatusCode.Unauthorized, result.StatusCode);
@@ -297,7 +303,7 @@ namespace NuGetGallery.Filters
                 };
                 var token = CreateTestJwt(signingKey: wrongKey);
 
-                var result = await AdminApiAuthAttribute.ValidateAndAuthorizeAsync(
+                var result = await AdminApiBearerAuthMiddleware.ValidateAndAuthorizeAsync(
                     token, configService.Object);
 
                 Assert.Equal((int)HttpStatusCode.Unauthorized, result.StatusCode);
@@ -310,7 +316,7 @@ namespace NuGetGallery.Filters
 
                 var token = CreateTestJwt(audience: "https://wrong-audience.example.com");
 
-                var result = await AdminApiAuthAttribute.ValidateAndAuthorizeAsync(
+                var result = await AdminApiBearerAuthMiddleware.ValidateAndAuthorizeAsync(
                     token, configService.Object);
 
                 Assert.Equal((int)HttpStatusCode.Unauthorized, result.StatusCode);
@@ -328,7 +334,7 @@ namespace NuGetGallery.Filters
                     tenantId: "test-tenant-id",
                     azp: "test-authorized-party");
 
-                var result = await AdminApiAuthAttribute.ValidateAndAuthorizeAsync(
+                var result = await AdminApiBearerAuthMiddleware.ValidateAndAuthorizeAsync(
                     token, configService.Object);
 
                 Assert.Equal(0, result.StatusCode);
@@ -347,7 +353,7 @@ namespace NuGetGallery.Filters
                     tenantId: "wrong-tenant",
                     azp: "test-authorized-party");
 
-                var result = await AdminApiAuthAttribute.ValidateAndAuthorizeAsync(
+                var result = await AdminApiBearerAuthMiddleware.ValidateAndAuthorizeAsync(
                     token, configService.Object);
 
                 Assert.Equal((int)HttpStatusCode.Forbidden, result.StatusCode);
@@ -365,7 +371,7 @@ namespace NuGetGallery.Filters
                     tenantId: "test-tenant-id",
                     azp: "wrong-app");
 
-                var result = await AdminApiAuthAttribute.ValidateAndAuthorizeAsync(
+                var result = await AdminApiBearerAuthMiddleware.ValidateAndAuthorizeAsync(
                     token, configService.Object);
 
                 Assert.Equal((int)HttpStatusCode.Forbidden, result.StatusCode);
@@ -384,7 +390,7 @@ namespace NuGetGallery.Filters
                     azp: "test-authorized-party",
                     includeTid: false);
 
-                var result = await AdminApiAuthAttribute.ValidateAndAuthorizeAsync(
+                var result = await AdminApiBearerAuthMiddleware.ValidateAndAuthorizeAsync(
                     token, configService.Object);
 
                 // Without tid claim, AadIssuerValidator may reject → 401,
@@ -408,7 +414,7 @@ namespace NuGetGallery.Filters
                     azp: "test-authorized-party",
                     includeazp: false);
 
-                var result = await AdminApiAuthAttribute.ValidateAndAuthorizeAsync(
+                var result = await AdminApiBearerAuthMiddleware.ValidateAndAuthorizeAsync(
                     token, configService.Object);
 
                 Assert.Equal((int)HttpStatusCode.Forbidden, result.StatusCode);
@@ -426,7 +432,7 @@ namespace NuGetGallery.Filters
                     tenantId: "test-tenant-id",
                     azp: "test-authorized-party");
 
-                var result = await AdminApiAuthAttribute.ValidateAndAuthorizeAsync(
+                var result = await AdminApiBearerAuthMiddleware.ValidateAndAuthorizeAsync(
                     token, configService.Object);
 
                 Assert.Equal(0, result.StatusCode);
@@ -445,7 +451,7 @@ namespace NuGetGallery.Filters
                     tenantId: "test-tenant-id",
                     azp: "test-authorized-party");
 
-                var result = await AdminApiAuthAttribute.ValidateAndAuthorizeAsync(
+                var result = await AdminApiBearerAuthMiddleware.ValidateAndAuthorizeAsync(
                     token, configService.Object);
 
                 Assert.Equal(0, result.StatusCode);
@@ -463,7 +469,7 @@ namespace NuGetGallery.Filters
                     tenantId: "test-tenant-id",
                     azp: "test-authorized-party");
 
-                var result = await AdminApiAuthAttribute.ValidateAndAuthorizeAsync(
+                var result = await AdminApiBearerAuthMiddleware.ValidateAndAuthorizeAsync(
                     token, configService.Object);
 
                 Assert.Equal((int)HttpStatusCode.Forbidden, result.StatusCode);

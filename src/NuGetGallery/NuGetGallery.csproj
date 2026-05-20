@@ -249,6 +249,7 @@
     <Compile Include="Filters\AdminActionAttribute.cs" />
     <Compile Include="Filters\RequiresUserAgentAttribute.cs" />
     <Compile Include="Filters\AdminApiAuthAttribute.cs" />
+    <Compile Include="Filters\AdminApiBearerAuthMiddleware.cs" />
     <Compile Include="Helpers\AdminHelper.cs" />
     <Compile Include="Helpers\CSPHelper.cs" />
     <Compile Include="Helpers\InvalidZipEntry.cs" />
