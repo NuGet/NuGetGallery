@@ -19,12 +19,169 @@ env:
   DOTNET_NOLOGO: true
 
 jobs:
-  # NOTE: Non-Aspire jobs temporarily disabled for flaky test investigation.
-  # common:
-  # gallery:
-  # jobs:
-  # statslogparser:
-  # artifacts:
+  common:
+    name: NuGet.Server.Common build and test
+    runs-on: windows-2025-vs2026
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Build
+        shell: pwsh
+        run: |
+          $buildNumber = "${{ github.run_number }}"
+          $branch = "${{ github.ref_name }}" -replace '[_/]', '-'
+          .\build.ps1 `
+            -Configuration $env:BuildConfiguration `
+            -BuildNumber $buildNumber `
+            -SkipArtifacts -SkipGallery -SkipJobs `
+            -CommonAssemblyVersion $env:CommonAssemblyVersion `
+            -CommonPackageVersion "$env:CommonAssemblyVersion-$branch-$buildNumber" `
+            -GalleryAssemblyVersion $env:GalleryAssemblyVersion `
+            -GalleryPackageVersion "$env:GalleryAssemblyVersion-$branch-$buildNumber" `
+            -JobsAssemblyVersion $env:JobsAssemblyVersion `
+            -JobsPackageVersion "$env:JobsAssemblyVersion-$branch-$buildNumber" `
+            -Branch "${{ github.ref_name }}" `
+            -CommitSHA "${{ github.sha }}"
+
+      - name: Run tests
+        shell: pwsh
+        run: |
+          .\test.ps1 `
+            -Configuration $env:BuildConfiguration `
+            -BuildNumber ${{ github.run_number }} `
+            -SkipGallery -SkipJobs
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-common
+          path: Results.Common.*.xml
+
+
+  gallery:
+    name: NuGetGallery build and test
+    runs-on: windows-2025-vs2026
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Build
+        shell: pwsh
+        run: |
+          $buildNumber = "${{ github.run_number }}"
+          $branch = "${{ github.ref_name }}" -replace '[_/]', '-'
+          .\build.ps1 `
+            -Configuration $env:BuildConfiguration `
+            -BuildNumber $buildNumber `
+            -SkipArtifacts -SkipCommon -SkipJobs `
+            -CommonAssemblyVersion $env:CommonAssemblyVersion `
+            -CommonPackageVersion "$env:CommonAssemblyVersion-$branch-$buildNumber" `
+            -GalleryAssemblyVersion $env:GalleryAssemblyVersion `
+            -GalleryPackageVersion "$env:GalleryAssemblyVersion-$branch-$buildNumber" `
+            -JobsAssemblyVersion $env:JobsAssemblyVersion `
+            -JobsPackageVersion "$env:JobsAssemblyVersion-$branch-$buildNumber" `
+            -Branch "${{ github.ref_name }}" `
+            -CommitSHA "${{ github.sha }}"
+
+      - name: Run tests
+        shell: pwsh
+        run: |
+          .\test.ps1 `
+            -Configuration $env:BuildConfiguration `
+            -BuildNumber ${{ github.run_number }} `
+            -SkipCommon -SkipJobs
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-gallery
+          path: Results.Gallery.*.xml
+
+
+  jobs:
+    name: NuGet.Jobs build and test
+    runs-on: windows-2025-vs2026
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Build
+        shell: pwsh
+        run: |
+          $buildNumber = "${{ github.run_number }}"
+          $branch = "${{ github.ref_name }}" -replace '[_/]', '-'
+          .\build.ps1 `
+            -Configuration $env:BuildConfiguration `
+            -BuildNumber $buildNumber `
+            -SkipArtifacts -SkipCommon -SkipGallery `
+            -CommonAssemblyVersion $env:CommonAssemblyVersion `
+            -CommonPackageVersion "$env:CommonAssemblyVersion-$branch-$buildNumber" `
+            -GalleryAssemblyVersion $env:GalleryAssemblyVersion `
+            -GalleryPackageVersion "$env:GalleryAssemblyVersion-$branch-$buildNumber" `
+            -JobsAssemblyVersion $env:JobsAssemblyVersion `
+            -JobsPackageVersion "$env:JobsAssemblyVersion-$branch-$buildNumber" `
+            -Branch "${{ github.ref_name }}" `
+            -CommitSHA "${{ github.sha }}"
+
+      - name: Run tests
+        shell: pwsh
+        run: |
+          .\test.ps1 `
+            -Configuration $env:BuildConfiguration `
+            -BuildNumber ${{ github.run_number }} `
+            -SkipCommon -SkipGallery
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-jobs
+          path: Results.Jobs.*.xml
+
+
+  statslogparser:
+    name: StatsLogParser build and test
+    runs-on: windows-2025-vs2026
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Install Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install tools and run tests
+        shell: cmd
+        working-directory: python/StatsLogParser
+        run: |
+          python -m pip install --user pipx
+          set PATH=%USERPROFILE%\.local\bin;%PATH%
+          pipx install poetry
+          poetry install
+          poetry build
+          poetry run pytest tests/ --cov loginterpretation --cov-report html --junitxml=../../Results.StatsLogParser.xml
+
+      - name: Upload StatsLogParser artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: StatsLogParser
+          path: python/StatsLogParser/dist
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-statslogparser
+          path: Results.StatsLogParser.xml
+
 
   aspire:
     name: Aspire Functional Tests
@@ -100,3 +257,29 @@ jobs:
         with:
           name: test-results-aspire
           path: tests/TestResults/*.trx
+
+
+  artifacts:
+    name: Build artifacts
+    runs-on: windows-2025-vs2026
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Build
+        shell: powershell
+        run: |
+          $buildNumber = "${{ github.run_number }}"
+          $branch = "${{ github.ref_name }}" -replace '[_/]', '-'
+          .\build.ps1 `
+            -Configuration $env:BuildConfiguration `
+            -BuildNumber $buildNumber `
+            -CommonAssemblyVersion $env:CommonAssemblyVersion `
+            -CommonPackageVersion "$env:CommonAssemblyVersion-$branch-$buildNumber" `
+            -GalleryAssemblyVersion $env:GalleryAssemblyVersion `
+            -GalleryPackageVersion "$env:GalleryAssemblyVersion-$branch-$buildNumber" `
+            -JobsAssemblyVersion $env:JobsAssemblyVersion `
+            -JobsPackageVersion "$env:JobsAssemblyVersion-$branch-$buildNumber" `
+            -Branch "${{ github.ref_name }}" `
+            -CommitSHA "${{ github.sha }}"
