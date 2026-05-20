@@ -28,7 +28,7 @@
 
 .EXAMPLE
     .\Test-LocalAdminApi.ps1 -BaseUrl https://localhost -SkipAuth
-    .\Test-LocalAdminApi.ps1 -BearerToken (az account get-access-token --resource api://nuget-admin-api --query accessToken -o tsv)
+    .\Test-LocalAdminApi.ps1 -BearerToken (az account get-access-token --resource api://nuget-admin-api-dev --query accessToken -o tsv)
 #>
 [CmdletBinding()]
 param (
