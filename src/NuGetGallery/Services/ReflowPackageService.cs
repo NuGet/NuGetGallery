@@ -90,8 +90,7 @@ namespace NuGetGallery
                         _telemetryService.TrackPackageReflow(package);
 
                         // 7) Audit the reflow operation.
-                        var auditRecord = new PackageAuditRecord(package, AuditedPackageAction.Reflow, reason);
-                        auditRecord.CallerIdentity = callerIdentity;
+                        var auditRecord = new PackageAuditRecord(package, AuditedPackageAction.Reflow, reason, callerIdentity);
                         await _auditingService.SaveAuditRecordAsync(auditRecord);
 
                         // 8) Save and profit
