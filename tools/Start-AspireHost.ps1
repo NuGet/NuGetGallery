@@ -100,11 +100,17 @@ Write-Host "=== Waiting for $primaryUrl ==="
 Start-Sleep -Seconds 20
 $elapsed = 20
 $healthy = $false
+$stdoutLinesSeen = 0
+$stderrLinesSeen = 0
+$lastDiagnosticDump = 0
+
 while ($elapsed -lt $Timeout)
 {
 	if ($proc.HasExited)
 	{
+		Write-Host "=== AppHost stdout (full) ==="
 		Get-Content $stdoutLog -ErrorAction SilentlyContinue | Out-Host
+		Write-Host "=== AppHost stderr (full) ==="
 		Get-Content $stderrLog -ErrorAction SilentlyContinue | Out-Host
 		Write-Error "AppHost exited prematurely with code $($proc.ExitCode)."
 		exit 1
@@ -118,6 +124,7 @@ while ($elapsed -lt $Timeout)
 	catch
 	{
 		$httpCode = 0
+		$healthError = $_.Exception.Message
 	}
 	if ($httpCode -eq 200)
 	{
@@ -125,19 +132,94 @@ while ($elapsed -lt $Timeout)
 		$healthy = $true
 		break
 	}
-	Write-Host "  Waiting... ($elapsed s) Status=$httpCode"
+	Write-Host "  Waiting... ($elapsed s) Status=$httpCode $(if ($healthError) { "($healthError)" })"
+
+	# Stream new AppHost log lines every poll iteration
+	if (Test-Path $stdoutLog)
+	{
+		$allStdout = Get-Content $stdoutLog -ErrorAction SilentlyContinue
+		if ($allStdout -and $allStdout.Count -gt $stdoutLinesSeen)
+		{
+			$newLines = $allStdout[$stdoutLinesSeen..($allStdout.Count - 1)]
+			foreach ($line in $newLines) { Write-Host "  [stdout] $line" }
+			$stdoutLinesSeen = $allStdout.Count
+		}
+	}
+	if (Test-Path $stderrLog)
+	{
+		$allStderr = Get-Content $stderrLog -ErrorAction SilentlyContinue
+		if ($allStderr -and $allStderr.Count -gt $stderrLinesSeen)
+		{
+			$newLines = $allStderr[$stderrLinesSeen..($allStderr.Count - 1)]
+			foreach ($line in $newLines) { Write-Host "  [stderr] $line" }
+			$stderrLinesSeen = $allStderr.Count
+		}
+	}
+
+	# Dump diagnostic info about child processes and ports every 60 seconds
+	if ($elapsed - $lastDiagnosticDump -ge 60)
+	{
+		$lastDiagnosticDump = $elapsed
+		Write-Host "  --- Diagnostic snapshot at $elapsed s ---"
+		Write-Host "  AppHost process (PID $($proc.Id)): Running=$(-not $proc.HasExited)"
+
+		$childProcesses = Get-CimInstance Win32_Process | Where-Object { $_.ParentProcessId -eq $proc.Id } | Select-Object ProcessId, Name, CommandLine
+		if ($childProcesses)
+		{
+			foreach ($cp in $childProcesses)
+			{
+				Write-Host "  Child PID=$($cp.ProcessId) Name=$($cp.Name) Cmd=$($cp.CommandLine)"
+			}
+		}
+		else
+		{
+			Write-Host "  No child processes found for PID $($proc.Id)"
+		}
+
+		$iisProcs = Get-Process -Name "iisexpress" -ErrorAction SilentlyContinue
+		if ($iisProcs)
+		{
+			foreach ($iis in $iisProcs) { Write-Host "  IIS Express PID=$($iis.Id)" }
+		}
+		else
+		{
+			Write-Host "  IIS Express: not running"
+		}
+
+		$listeners = netstat -ano 2>$null | Select-String ":80\s|:443\s" | Select-Object -First 10
+		if ($listeners)
+		{
+			foreach ($l in $listeners) { Write-Host "  $($l.Line.Trim())" }
+		}
+		Write-Host "  --- End diagnostic snapshot ---"
+	}
+
 	Start-Sleep -Seconds 15
 	$elapsed += 15
 }
 
 if (-not $healthy)
 {
+	Write-Host "=== TIMEOUT: AppHost stdout (full) ==="
+	Get-Content $stdoutLog -ErrorAction SilentlyContinue | Out-Host
+	Write-Host "=== TIMEOUT: AppHost stderr (full) ==="
+	Get-Content $stderrLog -ErrorAction SilentlyContinue | Out-Host
+
+	Write-Host "=== TIMEOUT: Process tree ==="
+	Get-CimInstance Win32_Process | Where-Object { $_.ParentProcessId -eq $proc.Id } | ForEach-Object {
+		Write-Host "  Child PID=$($_.ProcessId) Name=$($_.Name) Cmd=$($_.CommandLine)"
+	}
+	Get-Process -Name "iisexpress" -ErrorAction SilentlyContinue | ForEach-Object {
+		Write-Host "  IIS Express PID=$($_.Id)"
+	}
+
+	Write-Host "=== TIMEOUT: Port listeners ==="
+	netstat -ano 2>$null | Select-String ":80\s|:443\s" | ForEach-Object { Write-Host "  $($_.Line.Trim())" }
+
 	if (-not $proc.HasExited)
 	{
 		Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
 	}
-	Get-Content $stdoutLog -Tail 50 -ErrorAction SilentlyContinue | Out-Host
-	Get-Content $stderrLog -Tail 50 -ErrorAction SilentlyContinue | Out-Host
 	Write-Error "Primary health URL did not respond within $Timeout seconds."
 	exit 1
 }
