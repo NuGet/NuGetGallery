@@ -97,7 +97,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 });
             }
 
-            var callerAzp = HttpContext.Items[AdminApiAuthAttribute.AzpItemKey] as string;
+            var callerIdentity = HttpContext.Items[AdminApiAuthAttribute.CallerIdentityItemKey] as string;
 
             foreach (var packageIdentity in acceptedPackages)
             {
@@ -107,7 +107,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                         packageIdentity.Id,
                         packageIdentity.Version.ToNormalizedString(),
                         request.Reason,
-                        callerAzp);
+                        callerIdentity);
                 }
                 catch (Exception ex)
                 {
@@ -160,7 +160,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 });
             }
 
-            var callerAzp = HttpContext.Items[AdminApiAuthAttribute.AzpItemKey] as string;
+            var callerIdentity = HttpContext.Items[AdminApiAuthAttribute.CallerIdentityItemKey] as string;
 
             foreach (var packageId in acceptedPackageIds)
             {
@@ -170,7 +170,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                         packageId,
                         isLocked: request.Locked.Value,
                         request.Reason,
-                        callerAzp);
+                        callerIdentity);
                 }
                 catch (Exception ex)
                 {
@@ -223,7 +223,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 });
             }
 
-            var callerAzp = HttpContext.Items[AdminApiAuthAttribute.AzpItemKey] as string;
+            var callerIdentity = HttpContext.Items[AdminApiAuthAttribute.CallerIdentityItemKey] as string;
 
             foreach (var username in acceptedUsers)
             {
@@ -233,7 +233,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                         username,
                         isLocked: request.Locked.Value,
                         request.Reason,
-                        callerAzp);
+                        callerIdentity);
                 }
                 catch (Exception ex)
                 {
@@ -303,7 +303,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 });
             }
 
-            var callerAzp = HttpContext.Items[AdminApiAuthAttribute.AzpItemKey] as string;
+            var callerIdentity = HttpContext.Items[AdminApiAuthAttribute.CallerIdentityItemKey] as string;
 
             try
             {
@@ -311,7 +311,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     acceptedPackages,
                     deletedBy: null,
                     reason: request.Reason,
-                    signature: callerAzp);
+                    signature: callerIdentity);
             }
             catch (Exception ex)
             {

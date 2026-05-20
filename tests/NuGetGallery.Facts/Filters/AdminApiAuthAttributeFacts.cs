@@ -108,7 +108,7 @@ namespace NuGetGallery.Filters
 
                 if (azpInItems != null)
                 {
-                    items[AdminApiAuthAttribute.AzpItemKey] = azpInItems;
+                    items[AdminApiAuthAttribute.CallerIdentityItemKey] = azpInItems;
                 }
 
                 var mockHttpContext = new Mock<HttpContextBase>();

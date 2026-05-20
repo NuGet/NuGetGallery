@@ -61,7 +61,8 @@ namespace NuGetGallery.Filters
                 return;
             }
 
-            context.Environment[AdminApiAuthAttribute.AzpItemKey] = result.AuthorizedParty;
+            context.Environment[AdminApiAuthAttribute.CallerIdentityItemKey] =
+                $"Tenant ID: {result.TenantId}, Client ID: {result.AuthorizedParty}";
 
             await Next.Invoke(context);
         }
@@ -194,7 +195,7 @@ namespace NuGetGallery.Filters
                 };
             }
 
-            return new AuthResult { StatusCode = 0, AuthorizedParty = azp };
+            return new AuthResult { StatusCode = 0, AuthorizedParty = azp, TenantId = tid };
         }
 
         internal static List<AllowedCaller> ParseAllowedCallers(string configValue)
@@ -236,6 +237,7 @@ namespace NuGetGallery.Filters
             public int StatusCode { get; set; }
             public string Message { get; set; }
             public string AuthorizedParty { get; set; }
+            public string TenantId { get; set; }
         }
 
         internal class AllowedCaller

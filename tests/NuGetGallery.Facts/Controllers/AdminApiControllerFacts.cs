@@ -53,7 +53,7 @@ namespace NuGetGallery.Controllers
 
             if (callerAzp != null)
             {
-                items[AdminApiAuthAttribute.AzpItemKey] = callerAzp;
+                items[AdminApiAuthAttribute.CallerIdentityItemKey] = callerAzp;
             }
 
             var mockHttpContext = new Mock<HttpContextBase>();

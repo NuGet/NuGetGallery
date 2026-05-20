@@ -23,7 +23,7 @@ namespace NuGetGallery.Filters
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false)]
     public class AdminApiAuthAttribute : FilterAttribute, IAuthorizationFilter
     {
-        internal static readonly string AzpItemKey = "AdminApi.AuthorizedParty";
+        internal static readonly string CallerIdentityItemKey = "AdminApi.CallerIdentity";
 
         public void OnAuthorization(AuthorizationContext filterContext)
         {
@@ -43,8 +43,8 @@ namespace NuGetGallery.Filters
             // The OWIN middleware (AdminApiBearerAuthMiddleware) has already validated the
             // bearer token and stored the authorized party in the OWIN environment.
             // Read it from HttpContext.Items (which wraps the OWIN environment).
-            var azp = filterContext.HttpContext.Items[AzpItemKey] as string;
-            if (string.IsNullOrEmpty(azp))
+            var callerIdentity = filterContext.HttpContext.Items[CallerIdentityItemKey] as string;
+            if (string.IsNullOrEmpty(callerIdentity))
             {
                 // Middleware did not authenticate the request. It already wrote a
                 // 401/403 response, but MVC may still try to execute the action if
