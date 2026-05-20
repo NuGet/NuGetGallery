@@ -18,7 +18,7 @@
                 @ViewHelpers.Alert(
                         @<text><b>API keys are strongly discouraged for automated publishing</b> and should be replaced with <a href="https://aka.ms/nuget/trusted-publishing" target="_blank">Trusted Publishing</a>, which is currently supported for GitHub Actions, with broader CI/CD support coming soon.
                             We strongly recommend updating now to Trusted Publishing to ensure a seamless transition.
-                            <br />For publishing from command line or unsupported CI/CD workflows, <a href="@(Url.ManageMyApiKeys() + "?forceApiKeys=true")">API keys</a> continue to work.</text>, "info", icon: null)}
+                            For publishing from command line or unsupported CI/CD workflows, <a href="@(Url.ManageMyApiKeys() + "?forceApiKeys=true")">API keys</a> continue to work.</text>, "info", icon: null)}
 
             <p>
                 <strong>Trusted Publishing</strong> lets you publish NuGet packages securely without managing API keys.
