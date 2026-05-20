@@ -39,24 +39,6 @@ param (
 
 $ErrorActionPreference = "Stop"
 
-# Allow self-signed certs for local dev
-if ($BaseUrl -match "localhost") {
-    [System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
-    try {
-        Add-Type @"
-using System.Net;
-using System.Net.Security;
-using System.Security.Cryptography.X509Certificates;
-public class TrustAllCertsPolicy : ICertificatePolicy {
-    public bool CheckValidationResult(ServicePoint sp, X509Certificate cert, WebRequest req, int problem) { return true; }
-}
-"@
-        [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
-    } catch {
-        # Type may already be added
-    }
-}
-
 $endpoint = "$BaseUrl/api/admin/reflow-package"
 
 function Invoke-AdminApi {
