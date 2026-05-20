@@ -123,7 +123,6 @@ namespace NuGetGallery.Controllers
 
         public class TheReflowMethod : TestContainer
         {
-            private readonly Mock<IPackageService> _packageServiceMock;
             private readonly Mock<IReflowPackageService> _reflowPackageServiceMock;
 
             private readonly Package _availablePackage;
@@ -132,7 +131,6 @@ namespace NuGetGallery.Controllers
 
             public TheReflowMethod()
             {
-                _packageServiceMock = new Mock<IPackageService>();
                 _reflowPackageServiceMock = new Mock<IReflowPackageService>();
 
                 _availablePackage = new Package
@@ -156,7 +154,19 @@ namespace NuGetGallery.Controllers
                     PackageStatusKey = PackageStatus.Deleted
                 };
 
-                SetupPackages(_packageServiceMock, [_availablePackage, _availablePackage2, _deletedPackage]);
+                // ReflowAsync returns the package for available packages, null for deleted
+                _reflowPackageServiceMock
+                    .Setup(s => s.ReflowAsync(_availablePackage.Id, _availablePackage.Version, It.IsAny<string>(), It.IsAny<string>()))
+                    .ReturnsAsync(_availablePackage);
+
+                _reflowPackageServiceMock
+                    .Setup(s => s.ReflowAsync(_availablePackage2.Id, _availablePackage2.Version, It.IsAny<string>(), It.IsAny<string>()))
+                    .ReturnsAsync(_availablePackage2);
+
+                // Deleted package returns null from the service (not found internally)
+                _reflowPackageServiceMock
+                    .Setup(s => s.ReflowAsync(_deletedPackage.Id, _deletedPackage.Version, It.IsAny<string>(), It.IsAny<string>()))
+                    .ReturnsAsync((Package)null);
             }
 
             [Fact]
@@ -270,7 +280,7 @@ namespace NuGetGallery.Controllers
                     Reason = "test"
                 };
 
-                var controller = CreateController(packageService: _packageServiceMock);
+                var controller = CreateController(reflowPackageService: _reflowPackageServiceMock);
 
                 var result = await controller.ReflowPackageAsync(request) as JsonResult;
 
@@ -296,7 +306,6 @@ namespace NuGetGallery.Controllers
 
                 var controller = CreateController(
                     callerAzp: "test-app",
-                    packageService: _packageServiceMock,
                     reflowPackageService: _reflowPackageServiceMock);
 
                 var result = await controller.ReflowPackageAsync(request) as JsonResult;
@@ -327,7 +336,7 @@ namespace NuGetGallery.Controllers
                     Reason = "mixed test"
                 };
 
-                var controller = CreateController(packageService: _packageServiceMock);
+                var controller = CreateController(reflowPackageService: _reflowPackageServiceMock);
 
                 var result = await controller.ReflowPackageAsync(request) as JsonResult;
 
@@ -356,7 +365,6 @@ namespace NuGetGallery.Controllers
                 };
 
                 var controller = CreateController(
-                    packageService: _packageServiceMock,
                     reflowPackageService: _reflowPackageServiceMock);
 
                 var result = await controller.ReflowPackageAsync(request) as JsonResult;
@@ -386,7 +394,7 @@ namespace NuGetGallery.Controllers
                     Reason = "deleted test"
                 };
 
-                var controller = CreateController(packageService: _packageServiceMock);
+                var controller = CreateController(reflowPackageService: _reflowPackageServiceMock);
 
                 var result = await controller.ReflowPackageAsync(request) as JsonResult;
 
@@ -419,7 +427,6 @@ namespace NuGetGallery.Controllers
                 };
 
                 var controller = CreateController(
-                    packageService: _packageServiceMock,
                     reflowPackageService: _reflowPackageServiceMock);
 
                 var result = await controller.ReflowPackageAsync(request) as JsonResult;
@@ -647,6 +654,33 @@ namespace NuGetGallery.Controllers
                     s => s.SetLockStateAsync("My.Package", true, "security incident", "my-service-principal"),
                     Times.Once);
             }
+
+            [Fact]
+            public async Task ReturnsNotFoundWhenPackageDoesNotExistAsync()
+            {
+                var lockPackageService = new Mock<ILockPackageService>();
+                lockPackageService
+                    .Setup(s => s.SetLockStateAsync(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<string>(), It.IsAny<string>()))
+                    .ReturnsAsync(LockPackageServiceResult.PackageNotFound);
+
+                var request = new AdminLockPackageRequest
+                {
+                    Packages = [new AdminLockPackageIdentity { Id = "DoesNotExist" }],
+                    Locked = true,
+                    Reason = "test"
+                };
+
+                var controller = CreateController(lockPackageService: lockPackageService);
+
+                var result = await controller.LockPackageAsync(request) as JsonResult;
+
+                Assert.NotNull(result);
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+
+                var response = GetResponseData<AdminLockPackageResponse>(result);
+                Assert.Single(response.Results);
+                Assert.Equal(AdminLockPackageStatus.NotFound, response.Results[0].Status);
+            }
         }
 
         public class TheLockUserMethod : TestContainer
@@ -844,6 +878,33 @@ namespace NuGetGallery.Controllers
                 lockUserService.Verify(
                     s => s.SetLockStateAsync("testuser", true, "TOS violation", "my-service-principal"),
                     Times.Once);
+            }
+
+            [Fact]
+            public async Task ReturnsNotFoundWhenUserDoesNotExistAsync()
+            {
+                var lockUserService = new Mock<ILockUserService>();
+                lockUserService
+                    .Setup(s => s.SetLockStateAsync(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<string>(), It.IsAny<string>()))
+                    .ReturnsAsync(LockUserServiceResult.UserNotFound);
+
+                var request = new AdminLockUserRequest
+                {
+                    Users = [new AdminUserIdentity { Username = "nonexistentuser" }],
+                    Locked = true,
+                    Reason = "test"
+                };
+
+                var controller = CreateController(lockUserService: lockUserService);
+
+                var result = await controller.LockUserAsync(request) as JsonResult;
+
+                Assert.NotNull(result);
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+
+                var response = GetResponseData<AdminLockUserResponse>(result);
+                Assert.Single(response.Results);
+                Assert.Equal(AdminLockUserStatus.NotFound, response.Results[0].Status);
             }
         }
 

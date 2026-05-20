@@ -67,29 +67,24 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 }
 
                 var normalizedVersion = identity.Version.ToNormalizedString();
-                var package = _packageService.FindPackageByIdAndVersionStrict(identity.Id, normalizedVersion);
-                if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
-                {
-                    results.Add(new AdminReflowPackageResult
-                    {
-                        Id = identity.Id,
-                        Version = normalizedVersion,
-                        Status = AdminReflowPackageStatus.NotFound
-                    });
-
-                    continue;
-                }
-
                 var status = AdminReflowPackageStatus.Accepted;
+
                 try
                 {
-                    await _reflowPackageService.ReflowAsync(
+                    var package = await _reflowPackageService.ReflowAsync(
                         identity.Id,
                         normalizedVersion,
                         request.Reason,
                         callerIdentity);
 
-                    hasAccepted = true;
+                    if (package != null)
+                    {
+                        hasAccepted = true;
+                    }
+                    else
+                    {
+                        status = AdminReflowPackageStatus.NotFound;
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -138,13 +133,20 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 var status = AdminLockPackageStatus.Accepted;
                 try
                 {
-                    await _lockPackageService.SetLockStateAsync(
+                    var serviceResult = await _lockPackageService.SetLockStateAsync(
                         packageId,
                         isLocked: request.Locked.Value,
                         request.Reason,
                         callerIdentity);
 
-                    hasAccepted = true;
+                    if (serviceResult == LockPackageServiceResult.PackageNotFound)
+                    {
+                        status = AdminLockPackageStatus.NotFound;
+                    }
+                    else
+                    {
+                        hasAccepted = true;
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -192,13 +194,20 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 var status = AdminLockUserStatus.Accepted;
                 try
                 {
-                    await _lockUserService.SetLockStateAsync(
+                    var serviceResult = await _lockUserService.SetLockStateAsync(
                         username,
                         isLocked: request.Locked.Value,
                         request.Reason,
                         callerIdentity);
 
-                    hasAccepted = true;
+                    if (serviceResult == LockUserServiceResult.UserNotFound)
+                    {
+                        status = AdminLockUserStatus.NotFound;
+                    }
+                    else
+                    {
+                        hasAccepted = true;
+                    }
                 }
                 catch (Exception ex)
                 {
