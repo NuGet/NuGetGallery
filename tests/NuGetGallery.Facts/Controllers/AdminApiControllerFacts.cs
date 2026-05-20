@@ -1,6 +1,7 @@
 // Copyright(c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
@@ -396,9 +397,43 @@ namespace NuGetGallery.Controllers
                 Assert.Single(response.Results);
                 Assert.Equal(AdminReflowPackageStatus.NotFound, response.Results[0].Status);
             }
+
+            [Fact]
+            public async Task ReturnsFailedStatusWhenReflowThrowsAsync()
+            {
+                _reflowPackageServiceMock
+                    .Setup(s => s.ReflowAsync(
+                        _availablePackage.Id,
+                        _availablePackage.Version,
+                        It.IsAny<string>(),
+                        It.IsAny<string>()))
+                    .ThrowsAsync(new InvalidOperationException("reflow error"));
+
+                var request = new AdminReflowPackageRequest
+                {
+                    Packages =
+                    [
+                        new AdminReflowPackageIdentity { Id = _availablePackage.Id, Version = _availablePackage.Version }
+                    ],
+                    Reason = "test"
+                };
+
+                var controller = CreateController(
+                    packageService: _packageServiceMock,
+                    reflowPackageService: _reflowPackageServiceMock);
+
+                var result = await controller.ReflowPackageAsync(request) as JsonResult;
+
+                Assert.NotNull(result);
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+
+                var response = GetResponseData<AdminReflowPackageResponse>(result);
+                Assert.Single(response.Results);
+                Assert.Equal(AdminReflowPackageStatus.Failed, response.Results[0].Status);
+            }
         }
 
-        public class TheLockPackageMethod : TestContainer
+        public class TheLockPackageMethod: TestContainer
         {
             [Fact]
             public async Task Returns400WhenModelStateIsInvalidAsync()

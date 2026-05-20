@@ -4,13 +4,10 @@
 #pragma warning disable CA3147 // No need to validate Antiforgery Token with API request
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using Newtonsoft.Json;
 using NuGet.Packaging.Core;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
@@ -54,9 +51,10 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 return BadRequestFromModelState();
             }
 
+            var callerIdentity = HttpContext.Items[AdminApiAuthAttribute.CallerIdentityItemKey] as string;
             var seen = new HashSet<PackageIdentity>();
             var results = new List<AdminReflowPackageResult>();
-            var acceptedPackages = new List<PackageIdentity>();
+            var hasAccepted = false;
 
             foreach (var entry in request.Packages)
             {
@@ -82,43 +80,33 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     continue;
                 }
 
+                var status = AdminReflowPackageStatus.Accepted;
+                try
+                {
+                    await _reflowPackageService.ReflowAsync(
+                        identity.Id,
+                        normalizedVersion,
+                        request.Reason,
+                        callerIdentity);
+
+                    hasAccepted = true;
+                }
+                catch (Exception ex)
+                {
+                    status = AdminReflowPackageStatus.Failed;
+                    QuietLog.LogHandledException(ex);
+                }
+
                 results.Add(new AdminReflowPackageResult
                 {
                     Id = identity.Id,
                     Version = normalizedVersion,
-                    Status = AdminReflowPackageStatus.Accepted
-                });
-
-                acceptedPackages.Add(identity);
-            }
-
-            if (acceptedPackages.Count == 0)
-            {
-                return Json(HttpStatusCode.BadRequest, new AdminReflowPackageResponse
-                {
-                    Results = results
+                    Status = status
                 });
             }
 
-            var callerIdentity = HttpContext.Items[AdminApiAuthAttribute.CallerIdentityItemKey] as string;
-
-            foreach (var packageIdentity in acceptedPackages)
-            {
-                try
-                {
-                    await _reflowPackageService.ReflowAsync(
-                        packageIdentity.Id,
-                        packageIdentity.Version.ToNormalizedString(),
-                        request.Reason,
-                        callerIdentity);
-                }
-                catch (Exception ex)
-                {
-                    QuietLog.LogHandledException(ex);
-                }
-            }
-
-            return Json(HttpStatusCode.Accepted, new AdminReflowPackageResponse
+            var statusCode = hasAccepted ? HttpStatusCode.Accepted : HttpStatusCode.BadRequest;
+            return Json(statusCode, new AdminReflowPackageResponse
             {
                 Results = results
             });
@@ -133,9 +121,10 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 return BadRequestFromModelState();
             }
 
+            var callerIdentity = HttpContext.Items[AdminApiAuthAttribute.CallerIdentityItemKey] as string;
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var results = new List<AdminLockPackageResult>();
-            var acceptedPackageIds = new List<string>();
+            var hasAccepted = false;
 
             foreach (var entry in request.Packages)
             {
@@ -146,27 +135,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     continue;
                 }
 
-                results.Add(new AdminLockPackageResult
-                {
-                    Id = packageId,
-                    Status = AdminLockPackageStatus.Accepted
-                });
-
-                acceptedPackageIds.Add(packageId);
-            }
-
-            if (acceptedPackageIds.Count == 0)
-            {
-                return Json(HttpStatusCode.BadRequest, new AdminLockPackageResponse
-                {
-                    Results = results
-                });
-            }
-
-            var callerIdentity = HttpContext.Items[AdminApiAuthAttribute.CallerIdentityItemKey] as string;
-
-            foreach (var packageId in acceptedPackageIds)
-            {
+                var status = AdminLockPackageStatus.Accepted;
                 try
                 {
                     await _lockPackageService.SetLockStateAsync(
@@ -174,14 +143,24 @@ namespace NuGetGallery.Areas.Admin.Controllers
                         isLocked: request.Locked.Value,
                         request.Reason,
                         callerIdentity);
+
+                    hasAccepted = true;
                 }
                 catch (Exception ex)
                 {
+                    status = AdminLockPackageStatus.Failed;
                     QuietLog.LogHandledException(ex);
                 }
+
+                results.Add(new AdminLockPackageResult
+                {
+                    Id = packageId,
+                    Status = status
+                });
             }
 
-            return Json(HttpStatusCode.Accepted, new AdminLockPackageResponse
+            var statusCode = hasAccepted ? HttpStatusCode.Accepted : HttpStatusCode.BadRequest;
+            return Json(statusCode, new AdminLockPackageResponse
             {
                 Results = results
             });
@@ -196,9 +175,10 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 return BadRequestFromModelState();
             }
 
+            var callerIdentity = HttpContext.Items[AdminApiAuthAttribute.CallerIdentityItemKey] as string;
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var results = new List<AdminLockUserResult>();
-            var acceptedUsers = new List<string>();
+            var hasAccepted = false;
 
             foreach (var entry in request.Users)
             {
@@ -209,27 +189,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     continue;
                 }
 
-                results.Add(new AdminLockUserResult
-                {
-                    Username = username,
-                    Status = AdminLockUserStatus.Accepted
-                });
-
-                acceptedUsers.Add(username);
-            }
-
-            if (acceptedUsers.Count == 0)
-            {
-                return Json(HttpStatusCode.BadRequest, new AdminLockUserResponse
-                {
-                    Results = results
-                });
-            }
-
-            var callerIdentity = HttpContext.Items[AdminApiAuthAttribute.CallerIdentityItemKey] as string;
-
-            foreach (var username in acceptedUsers)
-            {
+                var status = AdminLockUserStatus.Accepted;
                 try
                 {
                     await _lockUserService.SetLockStateAsync(
@@ -237,14 +197,24 @@ namespace NuGetGallery.Areas.Admin.Controllers
                         isLocked: request.Locked.Value,
                         request.Reason,
                         callerIdentity);
+
+                    hasAccepted = true;
                 }
                 catch (Exception ex)
                 {
+                    status = AdminLockUserStatus.Failed;
                     QuietLog.LogHandledException(ex);
                 }
+
+                results.Add(new AdminLockUserResult
+                {
+                    Username = username,
+                    Status = status
+                });
             }
 
-            return Json(HttpStatusCode.Accepted, new AdminLockUserResponse
+            var statusCode = hasAccepted ? HttpStatusCode.Accepted : HttpStatusCode.BadRequest;
+            return Json(statusCode, new AdminLockUserResponse
             {
                 Results = results
             });
@@ -264,6 +234,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 return BadRequestFromModelState();
             }
 
+            var callerIdentity = HttpContext.Items[AdminApiAuthAttribute.CallerIdentityItemKey] as string;
             var seen = new HashSet<PackageIdentity>();
             var results = new List<AdminSoftDeletePackageResult>();
             var acceptedPackages = new List<Package>();
@@ -311,8 +282,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 });
             }
 
-            var callerIdentity = HttpContext.Items[AdminApiAuthAttribute.CallerIdentityItemKey] as string;
-
             try
             {
                 await _packageDeleteService.SoftDeletePackagesAsync(
@@ -323,7 +292,20 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
             catch (Exception ex)
             {
+                foreach (var result in results)
+                {
+                    if (result.Status == AdminSoftDeletePackageStatus.Accepted)
+                    {
+                        result.Status = AdminSoftDeletePackageStatus.Failed;
+                    }
+                }
+
                 QuietLog.LogHandledException(ex);
+
+                return Json(HttpStatusCode.BadRequest, new AdminSoftDeletePackageResponse
+                {
+                    Results = results
+                });
             }
 
             return Json(HttpStatusCode.Accepted, new AdminSoftDeletePackageResponse

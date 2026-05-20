@@ -22,6 +22,7 @@ namespace NuGetGallery.Areas.Admin.Models
     public static class AdminSoftDeletePackageStatus
     {
         public const string Accepted = nameof(Accepted);
+        public const string Failed = nameof(Failed);
         public const string NotFound = nameof(NotFound);
         public const string Invalid = nameof(Invalid);
     }
