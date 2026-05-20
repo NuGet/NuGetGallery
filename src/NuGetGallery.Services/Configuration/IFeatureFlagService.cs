@@ -374,5 +374,10 @@ namespace NuGetGallery
         /// when enabled, the package details page shows short version lists.
         /// </summary>
         bool IsReducedVersionListsEnabled();
+
+        /// <summary>
+        /// Whether the Admin API soft delete endpoint is enabled.
+        /// </summary>
+        bool IsAdminApiSoftDeleteEnabled();
     }
 }

@@ -27,20 +27,23 @@ namespace NuGetGallery.Controllers
             Mock<IReflowPackageService> reflowPackageService = null,
             Mock<ILockPackageService> lockPackageService = null,
             Mock<ILockUserService> lockUserService = null,
-            Mock<IPackageDeleteService> packageDeleteService = null)
+            Mock<IPackageDeleteService> packageDeleteService = null,
+            Mock<IFeatureFlagService> featureFlagService = null)
         {
             packageService ??= new Mock<IPackageService>();
             reflowPackageService ??= new Mock<IReflowPackageService>();
             lockPackageService ??= new Mock<ILockPackageService>();
             lockUserService ??= new Mock<ILockUserService>();
             packageDeleteService ??= new Mock<IPackageDeleteService>();
+            featureFlagService ??= new Mock<IFeatureFlagService>();
 
             var controller = new AdminApiController(
                 packageService.Object,
                 reflowPackageService.Object,
                 lockPackageService.Object,
                 lockUserService.Object,
-                packageDeleteService.Object);
+                packageDeleteService.Object,
+                featureFlagService.Object);
 
             var mockResponse = new Mock<HttpResponseBase>();
             mockResponse.SetupProperty(r => r.StatusCode);
@@ -813,6 +816,7 @@ namespace NuGetGallery.Controllers
         {
             private readonly Mock<IPackageService> _packageServiceMock;
             private readonly Mock<IPackageDeleteService> _packageDeleteServiceMock;
+            private readonly Mock<IFeatureFlagService> _featureFlagServiceMock;
 
             private readonly Package _availablePackage;
             private readonly Package _availablePackage2;
@@ -822,6 +826,8 @@ namespace NuGetGallery.Controllers
             {
                 _packageServiceMock = new Mock<IPackageService>();
                 _packageDeleteServiceMock = new Mock<IPackageDeleteService>();
+                _featureFlagServiceMock = new Mock<IFeatureFlagService>();
+                _featureFlagServiceMock.Setup(f => f.IsAdminApiSoftDeleteEnabled()).Returns(true);
 
                 _availablePackage = new Package
                 {
@@ -847,10 +853,22 @@ namespace NuGetGallery.Controllers
                 SetupPackages(_packageServiceMock, [_availablePackage, _availablePackage2, _deletedPackage]);
             }
 
+            private AdminApiController CreateSoftDeleteController(
+                string callerAzp = null,
+                Mock<IPackageService> packageService = null,
+                Mock<IPackageDeleteService> packageDeleteService = null)
+            {
+                return CreateController(
+                    callerAzp: callerAzp,
+                    packageService: packageService,
+                    packageDeleteService: packageDeleteService,
+                    featureFlagService: _featureFlagServiceMock);
+            }
+
             [Fact]
             public async Task Returns400WhenModelStateIsInvalidAsync()
             {
-                var controller = CreateController();
+                var controller = CreateSoftDeleteController();
                 controller.ModelState.AddModelError("Packages", "The packages field is required.");
 
                 var result = await controller.SoftDeletePackageAsync(new AdminSoftDeletePackageRequest()) as JsonResult;
@@ -863,7 +881,7 @@ namespace NuGetGallery.Controllers
             public async Task Returns400WhenPackagesIsNullAsync()
             {
                 var request = new AdminSoftDeletePackageRequest { Packages = null, Reason = "test" };
-                var controller = CreateController();
+                var controller = CreateSoftDeleteController();
                 ValidateModel(controller, request);
 
                 var result = await controller.SoftDeletePackageAsync(request) as JsonResult;
@@ -876,7 +894,7 @@ namespace NuGetGallery.Controllers
             public async Task Returns400WhenPackagesIsEmptyAsync()
             {
                 var request = new AdminSoftDeletePackageRequest { Packages = [], Reason = "test" };
-                var controller = CreateController();
+                var controller = CreateSoftDeleteController();
                 ValidateModel(controller, request);
 
                 var result = await controller.SoftDeletePackageAsync(request) as JsonResult;
@@ -895,7 +913,7 @@ namespace NuGetGallery.Controllers
                 }
 
                 var request = new AdminSoftDeletePackageRequest { Packages = packages, Reason = "test" };
-                var controller = CreateController();
+                var controller = CreateSoftDeleteController();
                 ValidateModel(controller, request);
 
                 var result = await controller.SoftDeletePackageAsync(request) as JsonResult;
@@ -915,7 +933,7 @@ namespace NuGetGallery.Controllers
                     ]
                 };
 
-                var controller = CreateController();
+                var controller = CreateSoftDeleteController();
                 ValidateModel(controller, request);
 
                 var result = await controller.SoftDeletePackageAsync(request) as JsonResult;
@@ -936,7 +954,7 @@ namespace NuGetGallery.Controllers
                     Reason = "test"
                 };
 
-                var controller = CreateController();
+                var controller = CreateSoftDeleteController();
                 ValidateModel(controller, request);
                 ValidateModelItems(controller, request.Packages);
 
@@ -958,7 +976,7 @@ namespace NuGetGallery.Controllers
                     Reason = "test"
                 };
 
-                var controller = CreateController(packageService: _packageServiceMock);
+                var controller = CreateSoftDeleteController(packageService: _packageServiceMock);
 
                 var result = await controller.SoftDeletePackageAsync(request) as JsonResult;
 
@@ -982,7 +1000,7 @@ namespace NuGetGallery.Controllers
                     Reason = "malware"
                 };
 
-                var controller = CreateController(
+                var controller = CreateSoftDeleteController(
                     callerAzp: "test-app",
                     packageService: _packageServiceMock,
                     packageDeleteService: _packageDeleteServiceMock);
@@ -1019,7 +1037,7 @@ namespace NuGetGallery.Controllers
                     Reason = "mixed test"
                 };
 
-                var controller = CreateController(
+                var controller = CreateSoftDeleteController(
                     packageService: _packageServiceMock,
                     packageDeleteService: _packageDeleteServiceMock);
 
@@ -1049,7 +1067,7 @@ namespace NuGetGallery.Controllers
                     Reason = "dedupe test"
                 };
 
-                var controller = CreateController(
+                var controller = CreateSoftDeleteController(
                     packageService: _packageServiceMock,
                     packageDeleteService: _packageDeleteServiceMock);
 
@@ -1075,7 +1093,7 @@ namespace NuGetGallery.Controllers
                     Reason = "deleted test"
                 };
 
-                var controller = CreateController(packageService: _packageServiceMock);
+                var controller = CreateSoftDeleteController(packageService: _packageServiceMock);
 
                 var result = await controller.SoftDeletePackageAsync(request) as JsonResult;
 

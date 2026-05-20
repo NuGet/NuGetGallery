@@ -27,19 +27,22 @@ namespace NuGetGallery.Areas.Admin.Controllers
         private readonly ILockPackageService _lockPackageService;
         private readonly ILockUserService _lockUserService;
         private readonly IPackageDeleteService _packageDeleteService;
+        private readonly IFeatureFlagService _featureFlagService;
 
         public AdminApiController(
             IPackageService packageService,
             IReflowPackageService reflowPackageService,
             ILockPackageService lockPackageService,
             ILockUserService lockUserService,
-            IPackageDeleteService packageDeleteService)
+            IPackageDeleteService packageDeleteService,
+            IFeatureFlagService featureFlagService)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _reflowPackageService = reflowPackageService ?? throw new ArgumentNullException(nameof(reflowPackageService));
             _lockPackageService = lockPackageService ?? throw new ArgumentNullException(nameof(lockPackageService));
             _lockUserService = lockUserService ?? throw new ArgumentNullException(nameof(lockUserService));
             _packageDeleteService = packageDeleteService ?? throw new ArgumentNullException(nameof(packageDeleteService));
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
         }
 
         [HttpPost]
@@ -251,6 +254,11 @@ namespace NuGetGallery.Areas.Admin.Controllers
         [ActionName("SoftDeletePackage")]
         public virtual async Task<ActionResult> SoftDeletePackageAsync(AdminSoftDeletePackageRequest request)
         {
+            if (_featureFlagService == null || !_featureFlagService.IsAdminApiSoftDeleteEnabled())
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+            }
+
             if (!ModelState.IsValid)
             {
                 return BadRequestFromModelState();
