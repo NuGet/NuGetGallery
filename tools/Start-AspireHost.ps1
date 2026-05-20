@@ -80,122 +80,182 @@ if ($TrustDevCert)
 	Remove-Item $crt, ($crt -replace '\.crt$', '.key') -ErrorAction SilentlyContinue
 }
 
-# Step 3: Start Aspire host
-Write-Host "=== Starting Aspire Host (profile=$AppHostProfile, launch=$LaunchProfile) ==="
+# Step 3: Start Aspire host (with retry for silent IIS Express launch failures)
 $env:APPHOST_PROFILE = $AppHostProfile
 
-$stdoutLog = Join-Path $repoRoot "aspire-stdout.log"
-$stderrLog = Join-Path $repoRoot "aspire-stderr.log"
-
-$argLine = "run --project `"$appHostProject`" -c $Configuration --no-build --launch-profile $LaunchProfile"
-$proc = Start-Process dotnet -ArgumentList $argLine `
-	-RedirectStandardOutput $stdoutLog -RedirectStandardError $stderrLog `
-	-PassThru
-
-Write-Host "AppHost started with PID $($proc.Id)"
-
-# Step 4: Poll first URL for readiness
-$primaryUrl = $HealthUrls[0]
-Write-Host "=== Waiting for $primaryUrl ==="
-Start-Sleep -Seconds 20
-$elapsed = 20
+$maxAttempts = 3
+# After this many seconds without IIS Express, abort and retry
+$iisExpressGracePeriod = 180
 $healthy = $false
-$stdoutLinesSeen = 0
-$stderrLinesSeen = 0
-$lastDiagnosticDump = 0
+$proc = $null
 
-while ($elapsed -lt $Timeout)
+function Find-GalleryIISExpress
 {
-	if ($proc.HasExited)
-	{
-		Write-Host "=== AppHost stdout (full) ==="
-		Get-Content $stdoutLog -ErrorAction SilentlyContinue | Out-Host
-		Write-Host "=== AppHost stderr (full) ==="
-		Get-Content $stderrLog -ErrorAction SilentlyContinue | Out-Host
-		Write-Error "AppHost exited prematurely with code $($proc.ExitCode)."
-		exit 1
-	}
+	# Find the specific IIS Express instance for the NuGet Gallery site
+	Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
+		Where-Object { $_.Name -eq "iisexpress.exe" -and $_.CommandLine -match "NuGet Gallery" }
+}
 
-	try
+function Stop-AppHostProcessTree([System.Diagnostics.Process]$hostProc)
+{
+	if ($hostProc -and -not $hostProc.HasExited)
 	{
-		$response = Invoke-WebRequest -Uri $primaryUrl -UseBasicParsing -TimeoutSec 5 -ErrorAction Stop
-		$httpCode = $response.StatusCode
-	}
-	catch
-	{
-		$httpCode = 0
-		$healthError = $_.Exception.Message
-	}
-	if ($httpCode -eq 200)
-	{
-		Write-Host "  $primaryUrl -> 200 OK ($elapsed s)"
-		$healthy = $true
-		break
-	}
-	Write-Host "  Waiting... ($elapsed s) Status=$httpCode $(if ($healthError) { "($healthError)" })"
-
-	# Stream new AppHost log lines every poll iteration
-	if (Test-Path $stdoutLog)
-	{
-		$allStdout = Get-Content $stdoutLog -ErrorAction SilentlyContinue
-		if ($allStdout -and $allStdout.Count -gt $stdoutLinesSeen)
-		{
-			$newLines = $allStdout[$stdoutLinesSeen..($allStdout.Count - 1)]
-			foreach ($line in $newLines) { Write-Host "  [stdout] $line" }
-			$stdoutLinesSeen = $allStdout.Count
+		Write-Host "  Stopping AppHost process tree (PID $($hostProc.Id))..."
+		# Kill IIS Express first
+		Find-GalleryIISExpress | ForEach-Object {
+			Write-Host "  Stopping IIS Express PID=$($_.ProcessId)"
+			Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue
 		}
-	}
-	if (Test-Path $stderrLog)
-	{
-		$allStderr = Get-Content $stderrLog -ErrorAction SilentlyContinue
-		if ($allStderr -and $allStderr.Count -gt $stderrLinesSeen)
-		{
-			$newLines = $allStderr[$stderrLinesSeen..($allStderr.Count - 1)]
-			foreach ($line in $newLines) { Write-Host "  [stderr] $line" }
-			$stderrLinesSeen = $allStderr.Count
+		# Kill all child processes
+		Get-CimInstance Win32_Process | Where-Object { $_.ParentProcessId -eq $hostProc.Id } | ForEach-Object {
+			Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue
 		}
+		Stop-Process -Id $hostProc.Id -Force -ErrorAction SilentlyContinue
+		Start-Sleep -Seconds 2
 	}
+}
 
-	# Dump diagnostic info about child processes and ports every 60 seconds
-	if ($elapsed - $lastDiagnosticDump -ge 60)
+for ($attempt = 1; $attempt -le $maxAttempts; $attempt++)
+{
+	Write-Host "=== Starting Aspire Host (attempt $attempt/$maxAttempts, profile=$AppHostProfile, launch=$LaunchProfile) ==="
+
+	$stdoutLog = Join-Path $repoRoot "aspire-stdout-attempt$attempt.log"
+	$stderrLog = Join-Path $repoRoot "aspire-stderr-attempt$attempt.log"
+
+	$argLine = "run --project `"$appHostProject`" -c $Configuration --no-build --launch-profile $LaunchProfile"
+	$proc = Start-Process dotnet -ArgumentList $argLine `
+		-RedirectStandardOutput $stdoutLog -RedirectStandardError $stderrLog `
+		-PassThru
+
+	Write-Host "AppHost started with PID $($proc.Id)"
+
+	$primaryUrl = $HealthUrls[0]
+	Write-Host "=== Waiting for $primaryUrl ==="
+	Start-Sleep -Seconds 20
+	$elapsed = 20
+	$stdoutLinesSeen = 0
+	$stderrLinesSeen = 0
+	$lastDiagnosticDump = 0
+	$abortAttempt = $false
+
+	while ($elapsed -lt $Timeout)
 	{
-		$lastDiagnosticDump = $elapsed
-		Write-Host "  --- Diagnostic snapshot at $elapsed s ---"
-		Write-Host "  AppHost process (PID $($proc.Id)): Running=$(-not $proc.HasExited)"
-
-		$childProcesses = Get-CimInstance Win32_Process | Where-Object { $_.ParentProcessId -eq $proc.Id } | Select-Object ProcessId, Name, CommandLine
-		if ($childProcesses)
+		if ($proc.HasExited)
 		{
-			foreach ($cp in $childProcesses)
+			Write-Host "=== AppHost stdout (full) ==="
+			Get-Content $stdoutLog -ErrorAction SilentlyContinue | Out-Host
+			Write-Host "=== AppHost stderr (full) ==="
+			Get-Content $stderrLog -ErrorAction SilentlyContinue | Out-Host
+			Write-Error "AppHost exited prematurely with code $($proc.ExitCode)."
+			exit 1
+		}
+
+		try
+		{
+			$response = Invoke-WebRequest -Uri $primaryUrl -UseBasicParsing -TimeoutSec 5 -ErrorAction Stop
+			$httpCode = $response.StatusCode
+		}
+		catch
+		{
+			$httpCode = 0
+			$healthError = $_.Exception.Message
+		}
+		if ($httpCode -eq 200)
+		{
+			Write-Host "  $primaryUrl -> 200 OK ($elapsed s)"
+			$healthy = $true
+			break
+		}
+		Write-Host "  Waiting... ($elapsed s) Status=$httpCode $(if ($healthError) { "($healthError)" })"
+
+		# Stream new AppHost log lines every poll iteration
+		if (Test-Path $stdoutLog)
+		{
+			$allStdout = Get-Content $stdoutLog -ErrorAction SilentlyContinue
+			if ($allStdout -and $allStdout.Count -gt $stdoutLinesSeen)
 			{
-				Write-Host "  Child PID=$($cp.ProcessId) Name=$($cp.Name) Cmd=$($cp.CommandLine)"
+				$newLines = $allStdout[$stdoutLinesSeen..($allStdout.Count - 1)]
+				foreach ($line in $newLines) { Write-Host "  [stdout] $line" }
+				$stdoutLinesSeen = $allStdout.Count
 			}
 		}
-		else
+		if (Test-Path $stderrLog)
 		{
-			Write-Host "  No child processes found for PID $($proc.Id)"
+			$allStderr = Get-Content $stderrLog -ErrorAction SilentlyContinue
+			if ($allStderr -and $allStderr.Count -gt $stderrLinesSeen)
+			{
+				$newLines = $allStderr[$stderrLinesSeen..($allStderr.Count - 1)]
+				foreach ($line in $newLines) { Write-Host "  [stderr] $line" }
+				$stderrLinesSeen = $allStderr.Count
+			}
 		}
 
-		$iisProcs = Get-Process -Name "iisexpress" -ErrorAction SilentlyContinue
-		if ($iisProcs)
+		# Check if IIS Express has started; if not after grace period, abort this attempt
+		if ($elapsed -ge $iisExpressGracePeriod -and $attempt -lt $maxAttempts)
 		{
-			foreach ($iis in $iisProcs) { Write-Host "  IIS Express PID=$($iis.Id)" }
-		}
-		else
-		{
-			Write-Host "  IIS Express: not running"
+			$iisProc = Find-GalleryIISExpress
+			if (-not $iisProc)
+			{
+				Write-Host "  IIS Express has not started after $elapsed s. Aborting attempt $attempt and retrying..."
+				Write-Host "  === Attempt $attempt AppHost stdout ==="
+				Get-Content $stdoutLog -ErrorAction SilentlyContinue | Out-Host
+				Write-Host "  === Attempt $attempt AppHost stderr ==="
+				Get-Content $stderrLog -ErrorAction SilentlyContinue | Out-Host
+				Stop-AppHostProcessTree $proc
+				$abortAttempt = $true
+				break
+			}
 		}
 
-		$listeners = netstat -ano 2>$null | Select-String ":80\s|:443\s" | Select-Object -First 10
-		if ($listeners)
+		# Dump diagnostic info about child processes and ports every 60 seconds
+		if ($elapsed - $lastDiagnosticDump -ge 60)
 		{
-			foreach ($l in $listeners) { Write-Host "  $($l.Line.Trim())" }
+			$lastDiagnosticDump = $elapsed
+			Write-Host "  --- Diagnostic snapshot at $elapsed s ---"
+			Write-Host "  AppHost process (PID $($proc.Id)): Running=$(-not $proc.HasExited)"
+
+			$childProcesses = Get-CimInstance Win32_Process | Where-Object { $_.ParentProcessId -eq $proc.Id } | Select-Object ProcessId, Name, CommandLine
+			if ($childProcesses)
+			{
+				foreach ($cp in $childProcesses)
+				{
+					Write-Host "  Child PID=$($cp.ProcessId) Name=$($cp.Name) Cmd=$($cp.CommandLine)"
+				}
+			}
+			else
+			{
+				Write-Host "  No child processes found for PID $($proc.Id)"
+			}
+
+			$iisProcs = Find-GalleryIISExpress
+			if ($iisProcs)
+			{
+				foreach ($iis in $iisProcs) { Write-Host "  IIS Express PID=$($iis.ProcessId)" }
+			}
+			else
+			{
+				Write-Host "  IIS Express: not running"
+			}
+
+			$listeners = netstat -ano 2>$null | Select-String ":80\s|:443\s" | Select-Object -First 10
+			if ($listeners)
+			{
+				foreach ($l in $listeners) { Write-Host "  $($l.Line.Trim())" }
+			}
+			Write-Host "  --- End diagnostic snapshot ---"
 		}
-		Write-Host "  --- End diagnostic snapshot ---"
+
+		Start-Sleep -Seconds 15
+		$elapsed += 15
 	}
 
-	Start-Sleep -Seconds 15
-	$elapsed += 15
+	if ($healthy -or (-not $abortAttempt))
+	{
+		break
+	}
+
+	Write-Host "=== Attempt $attempt failed. Cleaning up before retry... ==="
+	Start-Sleep -Seconds 5
 }
 
 if (-not $healthy)
@@ -209,8 +269,8 @@ if (-not $healthy)
 	Get-CimInstance Win32_Process | Where-Object { $_.ParentProcessId -eq $proc.Id } | ForEach-Object {
 		Write-Host "  Child PID=$($_.ProcessId) Name=$($_.Name) Cmd=$($_.CommandLine)"
 	}
-	Get-Process -Name "iisexpress" -ErrorAction SilentlyContinue | ForEach-Object {
-		Write-Host "  IIS Express PID=$($_.Id)"
+	Find-GalleryIISExpress | ForEach-Object {
+		Write-Host "  IIS Express PID=$($_.ProcessId) Cmd=$($_.CommandLine)"
 	}
 
 	Write-Host "=== TIMEOUT: Port listeners ==="
@@ -220,7 +280,7 @@ if (-not $healthy)
 	{
 		Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
 	}
-	Write-Error "Primary health URL did not respond within $Timeout seconds."
+	Write-Error "Primary health URL did not respond within $Timeout seconds (after $maxAttempts attempts)."
 	exit 1
 }
 
