@@ -215,10 +215,8 @@ jobs:
 
           try {
             # 2. Seed functional test data
-            Write-Host "##[group]Seeding functional test data"
             & "$repoRoot\tools\Seed-FunctionalTestData.ps1" -Configuration $config
             if ($LASTEXITCODE -ne 0) { throw "Seed failed with exit code $LASTEXITCODE" }
-            Write-Host "##[endgroup]"
 
             # 3. Build functional tests
             & "$repoRoot\tests\Scripts\BuildGalleryFunctionalTests.ps1" -Configuration $config
