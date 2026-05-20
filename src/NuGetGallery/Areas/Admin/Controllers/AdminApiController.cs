@@ -345,6 +345,33 @@ namespace NuGetGallery.Areas.Admin.Controllers
             });
         }
 
+        protected override void OnException(ExceptionContext filterContext)
+        {
+            if (filterContext.Exception.StackTrace?.Contains("JsonValueProviderFactory") == true)
+            {
+                filterContext.ExceptionHandled = true;
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                Response.TrySkipIisCustomErrors = true;
+                filterContext.Result = new JsonResult
+                {
+                    Data = new { message = "The request body contains invalid JSON." },
+                    ContentType = "application/json",
+                    JsonRequestBehavior = JsonRequestBehavior.AllowGet
+                };
+                return;
+            }
+
+            filterContext.ExceptionHandled = true;
+            Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            Response.TrySkipIisCustomErrors = true;
+            filterContext.Result = new JsonResult
+            {
+                Data = new { message = "An unexpected error occurred." },
+                ContentType = "application/json",
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet
+            };
+        }
+
         private static string GetErrorMessage(ModelError error)
         {
             if (!string.IsNullOrWhiteSpace(error.ErrorMessage))
