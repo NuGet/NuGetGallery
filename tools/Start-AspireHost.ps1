@@ -48,7 +48,7 @@ $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $appHostProject = Join-Path $repoRoot "src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj"
 
 # Step 1: Build AppHost
-Write-Host "=== Building NuGetGallery.AppHost ==="
+Write-Host "##[group]Building NuGetGallery.AppHost"
 dotnet build $appHostProject -c $Configuration | Out-Host
 if ($LASTEXITCODE -ne 0)
 {
@@ -56,11 +56,12 @@ if ($LASTEXITCODE -ne 0)
 	exit 1
 }
 Write-Host "AppHost build succeeded."
+Write-Host "##[endgroup]"
 
 # Step 2: Trust dev certificate (optional)
 if ($TrustDevCert)
 {
-	Write-Host "=== Trusting dev certificate ==="
+	Write-Host "##[group]Trusting dev certificate"
 	$crt = Join-Path $env:TEMP "aspire-dev-cert.crt"
 	dotnet dev-certs https -ep $crt --format Pem --no-password | Out-Host
 	if ($LASTEXITCODE -ne 0)
@@ -78,6 +79,7 @@ if ($TrustDevCert)
 
 	Write-Host "Dev certificate trusted successfully."
 	Remove-Item $crt, ($crt -replace '\.crt$', '.key') -ErrorAction SilentlyContinue
+	Write-Host "##[endgroup]"
 }
 
 # Step 3: Start Aspire host (with retry for silent IIS Express launch failures)
@@ -131,21 +133,20 @@ for ($attempt = 1; $attempt -le $maxAttempts; $attempt++)
 
 	$primaryUrl = $HealthUrls[0]
 	Write-Host "=== Waiting for $primaryUrl ==="
-	Start-Sleep -Seconds 20
-	$elapsed = 20
-	$stdoutLinesSeen = 0
-	$stderrLinesSeen = 0
+	$stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
 	$lastDiagnosticDump = 0
 	$abortAttempt = $false
 
-	while ($elapsed -lt $Timeout)
+	while ($true)
 	{
+		$elapsed = [int]$stopwatch.Elapsed.TotalSeconds
+		if ($elapsed -ge $Timeout) { break }
 		if ($proc.HasExited)
 		{
-			Write-Host "=== AppHost stdout (full) ==="
+			Write-Host "##[group]AppHost crashed - stdout/stderr"
 			Get-Content $stdoutLog -ErrorAction SilentlyContinue | Out-Host
-			Write-Host "=== AppHost stderr (full) ==="
 			Get-Content $stderrLog -ErrorAction SilentlyContinue | Out-Host
+			Write-Host "##[endgroup]"
 			Write-Error "AppHost exited prematurely with code $($proc.ExitCode)."
 			exit 1
 		}
@@ -160,6 +161,7 @@ for ($attempt = 1; $attempt -le $maxAttempts; $attempt++)
 			$httpCode = 0
 			$healthError = $_.Exception.Message
 		}
+
 		if ($httpCode -eq 200)
 		{
 			Write-Host "  $primaryUrl -> 200 OK ($elapsed s)"
@@ -168,28 +170,6 @@ for ($attempt = 1; $attempt -le $maxAttempts; $attempt++)
 		}
 		Write-Host "  Waiting... ($elapsed s) Status=$httpCode $(if ($healthError) { "($healthError)" })"
 
-		# Stream new AppHost log lines every poll iteration
-		if (Test-Path $stdoutLog)
-		{
-			$allStdout = Get-Content $stdoutLog -ErrorAction SilentlyContinue
-			if ($allStdout -and $allStdout.Count -gt $stdoutLinesSeen)
-			{
-				$newLines = $allStdout[$stdoutLinesSeen..($allStdout.Count - 1)]
-				foreach ($line in $newLines) { Write-Host "  [stdout] $line" }
-				$stdoutLinesSeen = $allStdout.Count
-			}
-		}
-		if (Test-Path $stderrLog)
-		{
-			$allStderr = Get-Content $stderrLog -ErrorAction SilentlyContinue
-			if ($allStderr -and $allStderr.Count -gt $stderrLinesSeen)
-			{
-				$newLines = $allStderr[$stderrLinesSeen..($allStderr.Count - 1)]
-				foreach ($line in $newLines) { Write-Host "  [stderr] $line" }
-				$stderrLinesSeen = $allStderr.Count
-			}
-		}
-
 		# Check if IIS Express has started; if not after grace period, abort this attempt
 		if ($elapsed -ge $iisExpressGracePeriod -and $attempt -lt $maxAttempts)
 		{
@@ -197,36 +177,16 @@ for ($attempt = 1; $attempt -le $maxAttempts; $attempt++)
 			if (-not $iisProc)
 			{
 				Write-Host "  IIS Express has not started after $elapsed s. Aborting attempt $attempt and retrying..."
-				Write-Host "  === Attempt $attempt AppHost stdout ==="
-				Get-Content $stdoutLog -ErrorAction SilentlyContinue | Out-Host
-				Write-Host "  === Attempt $attempt AppHost stderr ==="
-				Get-Content $stderrLog -ErrorAction SilentlyContinue | Out-Host
 				Stop-AppHostProcessTree $proc
 				$abortAttempt = $true
 				break
 			}
 		}
 
-		# Dump diagnostic info about child processes and ports every 60 seconds
+		# Log IIS Express status once per 60 seconds
 		if ($elapsed - $lastDiagnosticDump -ge 60)
 		{
 			$lastDiagnosticDump = $elapsed
-			Write-Host "  --- Diagnostic snapshot at $elapsed s ---"
-			Write-Host "  AppHost process (PID $($proc.Id)): Running=$(-not $proc.HasExited)"
-
-			$childProcesses = Get-CimInstance Win32_Process | Where-Object { $_.ParentProcessId -eq $proc.Id } | Select-Object ProcessId, Name, CommandLine
-			if ($childProcesses)
-			{
-				foreach ($cp in $childProcesses)
-				{
-					Write-Host "  Child PID=$($cp.ProcessId) Name=$($cp.Name) Cmd=$($cp.CommandLine)"
-				}
-			}
-			else
-			{
-				Write-Host "  No child processes found for PID $($proc.Id)"
-			}
-
 			$iisProcs = Find-GalleryIISExpress
 			if ($iisProcs)
 			{
@@ -236,17 +196,9 @@ for ($attempt = 1; $attempt -le $maxAttempts; $attempt++)
 			{
 				Write-Host "  IIS Express: not running"
 			}
-
-			$listeners = netstat -ano 2>$null | Select-String ":80\s|:443\s" | Select-Object -First 10
-			if ($listeners)
-			{
-				foreach ($l in $listeners) { Write-Host "  $($l.Line.Trim())" }
-			}
-			Write-Host "  --- End diagnostic snapshot ---"
 		}
 
 		Start-Sleep -Seconds 15
-		$elapsed += 15
 	}
 
 	if ($healthy -or (-not $abortAttempt))
@@ -260,21 +212,10 @@ for ($attempt = 1; $attempt -le $maxAttempts; $attempt++)
 
 if (-not $healthy)
 {
-	Write-Host "=== TIMEOUT: AppHost stdout (full) ==="
+	Write-Host "##[group]Timeout - AppHost stdout/stderr"
 	Get-Content $stdoutLog -ErrorAction SilentlyContinue | Out-Host
-	Write-Host "=== TIMEOUT: AppHost stderr (full) ==="
 	Get-Content $stderrLog -ErrorAction SilentlyContinue | Out-Host
-
-	Write-Host "=== TIMEOUT: Process tree ==="
-	Get-CimInstance Win32_Process | Where-Object { $_.ParentProcessId -eq $proc.Id } | ForEach-Object {
-		Write-Host "  Child PID=$($_.ProcessId) Name=$($_.Name) Cmd=$($_.CommandLine)"
-	}
-	Find-GalleryIISExpress | ForEach-Object {
-		Write-Host "  IIS Express PID=$($_.ProcessId) Cmd=$($_.CommandLine)"
-	}
-
-	Write-Host "=== TIMEOUT: Port listeners ==="
-	netstat -ano 2>$null | Select-String ":80\s|:443\s" | ForEach-Object { Write-Host "  $($_.Line.Trim())" }
+	Write-Host "##[endgroup]"
 
 	if (-not $proc.HasExited)
 	{
@@ -285,7 +226,7 @@ if (-not $healthy)
 }
 
 # Step 5: Verify all health URLs
-Write-Host "=== Verifying all health URLs ==="
+Write-Host "##[group]Verifying all health URLs"
 $allPassed = $true
 foreach ($url in $HealthUrls)
 {
@@ -309,6 +250,7 @@ foreach ($url in $HealthUrls)
 		$allPassed = $false
 	}
 }
+Write-Host "##[endgroup]"
 
 if (-not $allPassed)
 {
