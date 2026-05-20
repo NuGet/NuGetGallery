@@ -16,11 +16,10 @@
             @if (fromApiKeys)
             {
                 @ViewHelpers.Alert(
-                        @<text><b>API keys will be deprecated soon</b> and replaced with a more secure <a href="https://aka.ms/nuget/trusted-publishing" target="_blank">Trusted Publishing</a> workflow using GitHub Actions.
+                        @<text><b>API keys are strongly discouraged for automated publishing</b> and should be replaced with <a href="https://aka.ms/nuget/trusted-publishing" target="_blank">Trusted Publishing</a>, which is currently supported for GitHub Actions, with broader CI/CD support coming soon.
                             We strongly recommend updating now to Trusted Publishing to ensure a seamless transition.
-                            If you're unable to use GitHub Actions or still require API keys, please <a href="@(Url.ManageMyApiKeys() + "?forceApiKeys=true")">click here</a>.</text>,"info", icon: null)
-            }
-            
+                            <br />For publishing from command line or unsupported CI/CD workflows, <a href="@(Url.ManageMyApiKeys() + "?forceApiKeys=true")">API keys</a> continue to work.</text>, "info", icon: null)}
+
             <p>
                 <strong>Trusted Publishing</strong> lets you publish NuGet packages securely without managing API keys.
                 It currently supports publishing from <strong>GitHub Actions</strong>.
@@ -31,10 +30,10 @@
             @if (!CurrentUser.Confirmed)
             {
                 @ViewHelpers.AlertWarning(
-                                                    @<text>
-                                                        To register a Trusted Publisher you will need to
-                                                        <a href="@Url.ConfirmationRequired()">confirm your account</a>.
-                                                    </text>)
+                                                                    @<text>
+                                                                        To register a Trusted Publisher you will need to
+                                                                        <a href="@Url.ConfirmationRequired()">confirm your account</a>.
+                                                                    </text>)
             }
             else
             {
@@ -43,31 +42,31 @@
                 if (Model.PackageOwners == null || Model.PackageOwners.Count == 0)
                 {
                     @ViewHelpers.AlertInfo(
-                                                    @<text>
-                                                        You or one of the organizations you are a member of need to be an owner of at least one package to create Trusted Publishing policies.
-                                                    </text>)
+                                                                    @<text>
+                                                                        You or one of the organizations you are a member of need to be an owner of at least one package to create Trusted Publishing policies.
+                                                                    </text>)
                 }
                 else
                 {
                     @ViewHelpers.Section(this,
                                       "create",
                                       "Create",
-                                                    @<text>
-                                                        <div class="upsert-policy">
-                                                            <div class="panel-body" data-bind="template: { name: 'upsert-policy', data: NewPolicy }"></div>
-                                                        </div>
-                                                    </text>,
-            expanded: false,
-            expandedIcon: "Subtraction",
-            collapsedIcon: "Add")
+                                                                    @<text>
+                                                                        <div class="upsert-policy">
+                                                                            <div class="panel-body" data-bind="template: { name: 'upsert-policy', data: NewPolicy }"></div>
+                                                                        </div>
+                                                                    </text>,
+expanded: false,
+expandedIcon: "Subtraction",
+collapsedIcon: "Add")
                 }
 
                 @ViewHelpers.Section(this,
                                         "manage",
                                         "Manage",
-                                                    @<text>
-                                                        <div data-bind="template: 'manage-policies'"></div>
-                                                    </text>)
+                                                                    @<text>
+                                                                        <div data-bind="template: 'manage-policies'"></div>
+                                                                    </text>)
             }
         </div>
     </div>
