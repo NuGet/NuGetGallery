@@ -136,6 +136,14 @@ namespace NuGetGallery
                 ExpireTimeSpan = TimeSpan.FromMinutes(5)
             });
 
+            // Admin API bearer token auth. Registered before the non-cookie auth
+            // providers because ApiKeyAuthenticator uses app.Map("/api", ...) which
+            // creates a branched pipeline that bypasses later middleware.
+            if (config.Current.AdminApiEnabled)
+            {
+                app.Use<Filters.AdminApiBearerAuthMiddleware>();
+            }
+
             // Attach non-cookie auth providers
             var nonCookieAuthers = auth
                 .Authenticators
@@ -147,13 +155,6 @@ namespace NuGetGallery
             foreach (var auther in nonCookieAuthers)
             {
                 auther.Startup(config, app).Wait();
-            }
-
-            // Admin API bearer token auth (only register when the feature is enabled,
-            // matching the conditional route registration in Routes.cs)
-            if (config.Current.AdminApiEnabled)
-            {
-                app.Use<Filters.AdminApiBearerAuthMiddleware>();
             }
 
             // enables Content-Security-Policy with nonce and strict dynamic

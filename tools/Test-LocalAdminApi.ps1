@@ -158,7 +158,7 @@ Write-Host "All tests complete." -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Notes:" -ForegroundColor Gray
-Write-Host "  - If you got 404, ensure Gallery.GenevaAdminApiEnabled=true and"
-Write-Host "    Gallery.AdminPanelEnabled=true in your dev web.config appSettings."
+Write-Host "  - If you got 404, ensure Gallery.GenevaAdminApiEnabled=true in your"
+Write-Host "    dev web.config appSettings."
 Write-Host "  - If you got 401, provide a valid -BearerToken or use -SkipAuth for local dev."
 Write-Host "  - To get a token: az account get-access-token --resource <your-audience>"

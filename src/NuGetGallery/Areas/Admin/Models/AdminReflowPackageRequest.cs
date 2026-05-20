@@ -52,8 +52,7 @@ namespace NuGetGallery.Areas.Admin.Models
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
-            if (!string.IsNullOrWhiteSpace(Version) &&
-                !NuGetVersion.TryParse(Version, out _))
+            if (!string.IsNullOrWhiteSpace(Version) && !NuGetVersion.TryParse(Version, out _))
             {
                 yield return new ValidationResult("The version field must be a valid NuGet version.", [nameof(Version)]);
             }
