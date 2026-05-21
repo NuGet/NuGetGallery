@@ -56,17 +56,17 @@
                                 <div class="panel-body" data-bind="template: { name: 'upsert-policy', data: NewPolicy }"></div>
                             </div>
                         </text>,
-expanded: false,
-expandedIcon: "Subtraction",
-collapsedIcon: "Add")
+                        expanded: false,
+                        expandedIcon: "Subtraction",
+                        collapsedIcon: "Add")
                 }
 
                 @ViewHelpers.Section(this,
                          "manage",
                          "Manage",
-                         @<text>
-                             <div data-bind="template: 'manage-policies'"></div>
-                         </text>)
+                        @<text>
+                            <div data-bind="template: 'manage-policies'"></div>
+                        </text>)
             }
         </div>
     </div>
