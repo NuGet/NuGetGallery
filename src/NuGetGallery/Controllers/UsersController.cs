@@ -522,16 +522,6 @@ namespace NuGetGallery
                                 .ToList());
         }
 
-        private static bool IsGitHubUrl(string url)
-        {
-            if (string.IsNullOrWhiteSpace(url))
-            {
-                return false;
-            }
-
-            return url.IndexOf("github.com", StringComparison.OrdinalIgnoreCase) >= 0;
-        }
-
         [HttpGet]
         [UIAuthorize(allowDiscontinuedLogins: true)]
         public virtual ActionResult Thanks()
@@ -662,7 +652,7 @@ namespace NuGetGallery
         [ValidateRecaptchaResponse]
         public virtual async Task<ActionResult> ForgotPassword(ForgotPasswordViewModel model)
         {
-            if (!_featureFlagService.IsNuGetAccountPasswordLoginEnabled() && !ContentObjectService.LoginDiscontinuationConfiguration.IsEmailInExceptionsList(model.Email))
+            if(!_featureFlagService.IsNuGetAccountPasswordLoginEnabled() && !ContentObjectService.LoginDiscontinuationConfiguration.IsEmailInExceptionsList(model.Email))
             {
                 ModelState.AddModelError(string.Empty, Strings.ForgotPassword_Disabled_Error);
 
@@ -1221,8 +1211,6 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> RemoveTrustedPublisherPolicy(int? federatedCredentialKey)
         {
-            User currentUser = GetCurrentUser();
-
             var result = GetFederatedCredentialPolicy(federatedCredentialKey);
             if (result.policy == null)
             {
