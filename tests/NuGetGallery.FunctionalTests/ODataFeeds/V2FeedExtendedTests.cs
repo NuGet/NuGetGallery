@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using NuGetGallery.FunctionalTests.Helpers;
+using NuGetGallery.FunctionalTests.XunitExtensions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -186,7 +187,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         /// <summary>
         /// Double-checks whether feed and stats page rankings are the same.
         /// </summary>
-        [Fact]
+        [NeedsStatisticsServiceFact]
         [Description("Verify the most downloaded package list returned by the feed is the same with that shown on the statistics page")]
         [Priority(1)]
         [Category("P1Tests")]

@@ -51,6 +51,7 @@ namespace Ng
             { Arguments.StoragePath, Arguments.StoragePath },
             { Arguments.StorageSuffix, Arguments.StorageSuffix },
             { Arguments.StorageUseManagedIdentity, Arguments.StorageUseManagedIdentity },
+            { Arguments.StorageConnectionString, Arguments.StorageConnectionString },
             { Arguments.StorageUseServerSideCopy, Arguments.StorageUseServerSideCopy },
             { Arguments.StorageOperationMaxExecutionTimeInSeconds, Arguments.StorageOperationMaxExecutionTimeInSeconds },
             { Arguments.StorageServerTimeoutInSeconds, Arguments.StorageServerTimeoutInSeconds },
@@ -171,6 +172,7 @@ namespace Ng
                 { Arguments.StorageBaseAddress, Arguments.StorageBaseAddress + suffix },
                 { Arguments.StorageAccountName, Arguments.StorageAccountName + suffix },
                 { Arguments.StorageUseManagedIdentity, Arguments.StorageUseManagedIdentity + suffix },
+                { Arguments.StorageConnectionString, Arguments.StorageConnectionString + suffix },
                 { Arguments.StorageKeyValue, Arguments.StorageKeyValue + suffix },
                 { Arguments.StorageSasValue, Arguments.StorageSasValue + suffix },
                 { Arguments.StorageContainer, Arguments.StorageContainer + suffix },
@@ -434,6 +436,17 @@ namespace Ng
             IDictionary<string, string> arguments,
             IDictionary<string, string> argumentNameMap)
         {
+            // If a full connection string is provided (e.g. UseDevelopmentStorage=true for Azurite),
+            // use it directly and bypass endpoint construction.
+            if (argumentNameMap.TryGetValue(Arguments.StorageConnectionString, out var connStrArgName))
+            {
+                var storageConnectionString = arguments.GetOrDefault<string>(connStrArgName);
+                if (!string.IsNullOrEmpty(storageConnectionString))
+                {
+                    return new BlobServiceClientFactory(storageConnectionString);
+                }
+            }
+
             bool storageUseManagedIdentity = arguments.GetOrDefault(argumentNameMap[Arguments.StorageUseManagedIdentity], defaultValue: false);
             bool useManagedIdentity = storageUseManagedIdentity || arguments.GetOrDefault(argumentNameMap[Arguments.UseManagedIdentity], defaultValue: false);
 

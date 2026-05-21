@@ -189,6 +189,17 @@ namespace NuGetGallery
         public const string AccountDeletedIsOrganization = "AccountDeletedIsOrganization";
         public const string CreatedDateForAccountToBeDeleted = "CreatedDateForAccountToBeDeleted";
         public const string AccountDeleteSucceeded = "AccountDeleteSucceeded";
+        public const string DeletedUsername = "DeletedUsername";
+        public const string DeletedByUsername = "DeletedByUsername";
+        public const string DeletedAccountKey = "DeletedAccountKey";
+        public const string DeletedByAccountKey = "DeletedByAccountKey";
+
+        // User properties
+        public const string Username = "Username";
+        public const string AccountKey = "AccountKey";
+
+        // Organization user properties
+        public const string OrganizationUsername = "OrganizationUsername";
 
         // Package metadata compliance properties
         public const string ComplianceFailures = "ComplianceFailures";
@@ -454,7 +465,7 @@ namespace NuGetGallery
             });
         }
 
-        public void TrackUserPackageDeleteExecuted(int packageKey, string packageId, string packageVersion, ReportPackageReason reason, bool success)
+        public void TrackUserPackageDeleteExecuted(int packageKey, string packageId, string packageVersion, ReportPackageReason reason, bool success, User user)
         {
             if (packageId == null)
             {
@@ -466,6 +477,11 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(packageVersion));
             }
 
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
             TrackMetric(Events.UserPackageDeleteExecuted, 1, properties =>
             {
                 properties.Add(PackageKey, packageKey.ToString());
@@ -473,6 +489,8 @@ namespace NuGetGallery
                 properties.Add(PackageVersion, packageVersion);
                 properties.Add(ReportPackageReason, reason.ToString());
                 properties.Add(Success, success.ToString());
+                properties.Add(Username, user.Username);
+                properties.Add(AccountKey, user.Key.ToString());
             });
         }
 
@@ -583,14 +601,14 @@ namespace NuGetGallery
             TrackMetricForCertificateActivity(Events.CertificateAdded, thumbprint);
         }
 
-        public void TrackCertificateActivated(string thumbprint)
+        public void TrackCertificateActivated(string thumbprint, User account)
         {
-            TrackMetricForCertificateActivity(Events.CertificateActivated, thumbprint);
+            TrackMetricForCertificateActivity(Events.CertificateActivated, thumbprint, account);
         }
 
-        public void TrackCertificateDeactivated(string thumbprint)
+        public void TrackCertificateDeactivated(string thumbprint, User account)
         {
-            TrackMetricForCertificateActivity(Events.CertificateDeactivated, thumbprint);
+            TrackMetricForCertificateActivity(Events.CertificateDeactivated, thumbprint, account);
         }
 
         public void TrackRequiredSignerSet(string packageId)
@@ -669,6 +687,26 @@ namespace NuGetGallery
             TrackMetric(eventName, 1, properties =>
             {
                 properties.Add(Sha256Thumbprint, thumbprint);
+            });
+        }
+
+        private void TrackMetricForCertificateActivity(string eventName, string thumbprint, User account)
+        {
+            if (string.IsNullOrEmpty(thumbprint))
+            {
+                throw new ArgumentException(ServicesStrings.ArgumentCannotBeNullOrEmpty, nameof(thumbprint));
+            }
+
+            if (account == null)
+            {
+                throw new ArgumentNullException(nameof(account));
+            }
+
+            TrackMetric(eventName, 1, properties =>
+            {
+                properties.Add(Sha256Thumbprint, thumbprint);
+                properties.Add(Username, account.Username);
+                properties.Add(AccountKey, account.Key.ToString());
             });
         }
         private static string GetClientVersion()
@@ -863,6 +901,7 @@ namespace NuGetGallery
             TrackMetric(metricName, 1, properties =>
             {
                 properties.Add(OrganizationAccountKey, user.Key.ToString());
+                properties.Add(OrganizationUsername, user.Username);
                 properties.Add(AccountCreationDate, GetAccountCreationDate(user));
                 properties.Add(OrganizationIsRestrictedToOrganizationTenantPolicy, user.IsRestrictedToOrganizationTenantPolicy().ToString());
                 addProperties?.Invoke(properties);
@@ -911,6 +950,10 @@ namespace NuGetGallery
                 properties.Add(AccountIsSelfDeleted, $"{deletedUser.Key == deletedBy.Key}");
                 properties.Add(AccountDeletedIsOrganization, $"{deletedUser is Organization}");
                 properties.Add(AccountDeleteSucceeded, $"{success}");
+                properties.Add(DeletedUsername, deletedUser.Username);
+                properties.Add(DeletedByUsername, deletedBy.Username);
+                properties.Add(DeletedAccountKey, deletedUser.Key.ToString());
+                properties.Add(DeletedByAccountKey, deletedBy.Key.ToString());
             });
         }
 
@@ -924,6 +967,8 @@ namespace NuGetGallery
             TrackMetric(Events.AccountDeleteRequested, 1, properties =>
             {
                 properties.Add(CreatedDateForAccountToBeDeleted, $"{user.CreatedUtc}");
+                properties.Add(Username, user.Username);
+                properties.Add(AccountKey, user.Key.ToString());
             });
         }
 

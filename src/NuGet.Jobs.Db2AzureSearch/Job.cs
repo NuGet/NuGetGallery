@@ -27,11 +27,17 @@ namespace NuGet.Jobs
                 configurationRoot.GetSection(DevelopmentConfigurationSectionName));
             services.Configure<Db2AzureSearchDevelopmentConfiguration>(
                 configurationRoot.GetSection(DevelopmentConfigurationSectionName));
-            services.AddDownloadsV1JsonClient(provider =>
-            {
-                var jsonConfigurationAccessor = provider.GetRequiredService<IOptionsSnapshot<Db2AzureSearchConfiguration>>();
-                return jsonConfigurationAccessor.Value.DownloadsV1JsonUrl;
-            });
+            services.AddDownloadsV1JsonClient(
+                provider =>
+                {
+                    var jsonConfigurationAccessor = provider.GetRequiredService<IOptionsSnapshot<Db2AzureSearchConfiguration>>();
+                    return jsonConfigurationAccessor.Value.DownloadsV1JsonUrl;
+                },
+                provider =>
+                {
+                    var jsonConfigurationAccessor = provider.GetRequiredService<IOptionsSnapshot<Db2AzureSearchConfiguration>>();
+                    return jsonConfigurationAccessor.Value.DownloadsV1JsonConnectionString;
+                });
         }
     }
 }

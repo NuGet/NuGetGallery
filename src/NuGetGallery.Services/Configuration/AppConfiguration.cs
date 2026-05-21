@@ -324,6 +324,11 @@ namespace NuGetGallery.Configuration
         public string ExternalPrivacyPolicyUrl { get; set; }
 
         /// <summary>
+        /// Gets/sets a string that is a link to an external "Your Privacy Choices" page
+        /// </summary>
+        public string ExternalYourPrivacyChoicesUrl { get; set; }
+
+        /// <summary>
         /// Gets/sets a string that is a link to an external terms of use document
         /// </summary>
         public string ExternalTermsOfUseUrl { get; set; }

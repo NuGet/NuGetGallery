@@ -338,6 +338,8 @@ namespace NuGetGallery.Infrastructure
         [Theory]
         [InlineData("Id", "NuGet.Core")]
         [InlineData("id", "NuGet.Core")]
+        [InlineData("PackageId", "NuGet.Core")]
+        [InlineData("packageid", "NuGet.Core")]
         [InlineData("title", "NuGet.Core")]
         [InlineData("TITLE", "NuGet.Core")]
         [InlineData("Owner", "NugetCoreOwner")]
@@ -407,6 +409,68 @@ namespace NuGetGallery.Infrastructure
             results = IndexAndSearch(packages, field + ":" + term, semVerLevel: "2.0.0");
             Assert.NotEmpty(results);
             Assert.Equal("NuGet.Core", results[0].Title);
+            Assert.Equal("NuGet.Core", results[0].PackageRegistration.Id);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("2.0.0")]
+        public void SearchWithPackageIdReturnsExactMatchOnly(string semVerLevel)
+        {
+            var packages = new List<Package>
+            {
+                new Package
+                {
+                    Key = 144,
+                    PackageRegistrationKey = 12,
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "NuGet.Core",
+                        Key = 12,
+                        DownloadCount = 41,
+                        IsVerified = false,
+                    },
+                    Description = "NuGet.Core is the core framework assembly for NuGet.",
+                    Listed = true,
+                    IsLatest = true,
+                    IsLatestSemVer2 = true,
+                    IsLatestStable = true,
+                    IsLatestStableSemVer2 = true,
+                    FlattenedAuthors = "MSC",
+                    Title = "NuGet.Core",
+                    Version = "1.5.0",
+                },
+                new Package
+                {
+                    Key = 145,
+                    PackageRegistrationKey = 13,
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "SomeotherNuGet.Core.SimilarlyNamedPackage",
+                        Key = 13,
+                        DownloadCount = 2,
+                        IsVerified = false,
+                    },
+                    Description = "Not the real NuGet.Core.",
+                    Listed = true,
+                    IsLatest = true,
+                    IsLatestSemVer2 = true,
+                    IsLatestStable = true,
+                    IsLatestStableSemVer2 = true,
+                    FlattenedAuthors = "Other",
+                    Title = "SomeotherNuGet.Core.SimilarlyNamedPackage",
+                    Version = "1.0.0",
+                }
+            };
+
+            // PackageId: should return only the exact match, not the similarly-named package
+            var results = IndexAndSearch(packages, "PackageId:NuGet.Core", semVerLevel);
+            Assert.Single(results);
+            Assert.Equal("NuGet.Core", results[0].PackageRegistration.Id);
+
+            // Case-insensitive
+            results = IndexAndSearch(packages, "packageid:nuget.core", semVerLevel);
+            Assert.Single(results);
             Assert.Equal("NuGet.Core", results[0].PackageRegistration.Id);
         }
 

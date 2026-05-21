@@ -18,6 +18,7 @@
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <UseIISExpress>true</UseIISExpress>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <MSBuildWarningsAsErrors>MSB3247</MSBuildWarningsAsErrors>
     <OldToolsVersion>12.0</OldToolsVersion>
     <TargetFrameworkProfile />
     <IISExpressSSLPort>443</IISExpressSSLPort>
@@ -1412,6 +1413,7 @@
     <Content Include="Content\gallery\img\default-package-icon-white.png" />
     <Content Include="Content\gallery\img\dotnet-foundation-42x42.png" />
     <Content Include="Content\gallery\img\dotnet-foundation.svg" />
+    <Content Include="Content\gallery\img\privacy-choices.svg" />
     <Content Include="Content\gallery\img\git-32x32.png" />
     <Content Include="Content\gallery\img\git.svg" />
     <Content Include="Content\gallery\img\git-white.svg" />
@@ -2354,10 +2356,4 @@
       </FlavorProperties>
     </VisualStudio>
   </ProjectExtensions>
-  <PropertyGroup>
-    <PreBuildEvent>
-      copy "$(ProjectDir)..\Bootstrap\dist\css\bootstrap.min.css" "$(ProjectDir)Content\gallery\css" &gt;NUL
-      copy "$(ProjectDir)..\Bootstrap\dist\js\bootstrap.js" "$(ProjectDir)Scripts\gallery" &gt;NUL
-    </PreBuildEvent>
-  </PropertyGroup>
 </Project>

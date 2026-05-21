@@ -117,7 +117,7 @@ namespace NuGetGallery
                 await _auditingService.SaveAuditRecordAsync(
                     new CertificateAuditRecord(AuditedCertificateAction.Activate, certificate.Thumbprint));
 
-                _telemetryService.TrackCertificateActivated(thumbprint);
+                _telemetryService.TrackCertificateActivated(thumbprint, account);
             }
         }
 
@@ -151,7 +151,7 @@ namespace NuGetGallery
                 await _auditingService.SaveAuditRecordAsync(
                     new CertificateAuditRecord(AuditedCertificateAction.Deactivate, certificate.Thumbprint));
 
-                _telemetryService.TrackCertificateDeactivated(thumbprint);
+                _telemetryService.TrackCertificateDeactivated(thumbprint, account);
             }
         }
 

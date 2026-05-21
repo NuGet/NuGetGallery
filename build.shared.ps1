@@ -23,6 +23,8 @@ $JobsSolution = Join-Path $PSScriptRoot "NuGet.Jobs.sln"
 $JobsProjects = Get-SolutionProjects $JobsSolution
 $JobsFunctionalTestsSolution = Join-Path $PSScriptRoot "NuGet.Jobs.FunctionalTests.sln"
 $JobsFunctionalTestsProjects = Get-SolutionProjects $JobsFunctionalTestsSolution
+$AspireSolution = Join-Path $PSScriptRoot "NuGetGallery.Aspire.slnx"
+$AspireProjects = if (Test-Path $AspireSolution) { Get-SolutionProjects $AspireSolution } else { @() }
 
 $SharedCommonProjects = New-Object System.Collections.ArrayList
 $SharedGalleryProjects = New-Object System.Collections.ArrayList
@@ -30,6 +32,9 @@ $SharedJobsProjects = New-Object System.Collections.ArrayList
 
 Invoke-BuildStep 'Analyzing project files' {
         # Projects are shared between the solutions. Find all projects shared between the solutions
+        # Note: Aspire solution is only included for the "all projects in a solution" check below.
+        # It is excluded from shared project validation since it's a dev-only solution that
+        # overlaps heavily with the Jobs solution by design.
         $solutions =
             $CommonProjects,
             $GalleryProjects,
@@ -44,6 +49,8 @@ Invoke-BuildStep 'Analyzing project files' {
             }
             $all += $solutionProjects
         }
+        # Include Aspire projects in the full list for coverage validation, but not in shared analysis.
+        $all += $AspireProjects
         $all = $all | Sort-Object -Property RelativePath | Get-Unique -AsString
         Trace-Log "Total projects: $($all.Count)"
         $shared = $shared | Sort-Object -Property RelativePath | Get-Unique -AsString

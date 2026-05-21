@@ -1,0 +1,7 @@
+catalog2registration-dev.json
+catalog2azuresearch-dev.json
+db2azuresearch-dev.json
+auxiliary2azuresearch-dev.json
+azurite-data/
+# Generated Gallery config (also gitignored in src/NuGetGallery/)
+appsettings.Aspire.config
