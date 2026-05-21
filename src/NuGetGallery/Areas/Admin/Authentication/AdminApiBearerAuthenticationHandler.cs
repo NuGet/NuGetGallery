@@ -123,20 +123,32 @@ namespace NuGetGallery.Areas.Admin.Authentication
                     new OpenIdConnectConfigurationRetriever());
             }
 
+            var isTestMode = config.AdminApiTestModeEnabled;
+
             var tokenValidationParameters = new TokenValidationParameters
             {
-                IssuerValidator = AadIssuerValidator
-                    .GetAadIssuerValidator(EntraIdTokenPolicyValidator.Issuer).Validate,
-                ValidAudience = config.AdminApiAudience,
                 ConfigurationManager = oidcConfigManager,
             };
 
-            tokenValidationParameters.EnableAadSigningKeyIssuerValidation();
+            if (isTestMode)
+            {
+                // Test mode: skip all token validation so that self-signed
+                // test JWTs can exercise the claims and allowed-callers checks.
+                tokenValidationParameters.ValidateIssuer = false;
+                tokenValidationParameters.ValidateAudience = false;
+                tokenValidationParameters.ValidateLifetime = false;
+                tokenValidationParameters.ValidateIssuerSigningKey = false;
+                tokenValidationParameters.SignatureValidator = (token, parameters) => new JsonWebToken(token);
 
-#if DEBUG
-            IdentityModelEventSource.ShowPII = true;
-            IdentityModelEventSource.LogCompleteSecurityArtifact = true;
-#endif
+                IdentityModelEventSource.ShowPII = true;
+                IdentityModelEventSource.LogCompleteSecurityArtifact = true;
+            }
+            else
+            {
+                tokenValidationParameters.IssuerValidator = AadIssuerValidator.GetAadIssuerValidator(EntraIdTokenPolicyValidator.Issuer).Validate;
+                tokenValidationParameters.ValidAudience = config.AdminApiAudience;
+                tokenValidationParameters.EnableAadSigningKeyIssuerValidation();
+            }
 
             TokenValidationResult validationResult;
             try

@@ -136,6 +136,13 @@ namespace NuGetGallery.Configuration
         string AdminApiAllowedCallers { get; set; }
 
         /// <summary>
+        /// When true, Admin API token validation skips signature, issuer,
+        /// audience, and lifetime checks. Claims and allowed-callers checks
+        /// still apply. Intended for functional testing only.
+        /// </summary>
+        bool AdminApiTestModeEnabled { get; set; }
+
+        /// <summary>
         /// Gets a boolean indicating whether asynchronous package validation is enabled.
         /// </summary>
         bool AsynchronousPackageValidationEnabled { get; set; }

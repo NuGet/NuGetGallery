@@ -89,6 +89,9 @@ namespace NuGetGallery.Configuration
 
         public string AdminApiAllowedCallers { get; set; }
 
+        [DefaultValue(false)]
+        public bool AdminApiTestModeEnabled { get; set; }
+
         public bool AsynchronousPackageValidationEnabled { get; set; }
 
         public bool BlockingAsynchronousPackageValidationEnabled { get; set; }

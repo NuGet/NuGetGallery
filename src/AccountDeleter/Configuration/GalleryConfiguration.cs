@@ -124,5 +124,6 @@ namespace NuGetGallery.AccountDeleter
         public bool AdminApiEnabled { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string AdminApiAudience { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string AdminApiAllowedCallers { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public bool AdminApiTestModeEnabled { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
     }
 }
