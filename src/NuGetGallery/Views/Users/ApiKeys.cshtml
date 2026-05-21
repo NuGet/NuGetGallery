@@ -18,7 +18,7 @@
                         If you're using GitHub Actions, we recommend switching to
                         <a href="@Url.ManageMyTrustedPublishing()">Trusted Publishing</a> since it eliminates the need to manage API keys.
                     </text>,
-            "info", icon: null)
+           "info", icon: null)
 
             <p>
                 An API key is a token that can identify you to @(Config.Current.Brand). The
@@ -49,9 +49,9 @@
                                 <div class="panel-body" data-bind="template: { name: 'upsert-api-key', data: NewApiKey }"></div>
                             </div>
                         </text>,
-  expanded: false,
-  expandedIcon: "Subtraction",
-  collapsedIcon: "Add")
+     expanded: false,
+     expandedIcon: "Subtraction",
+     collapsedIcon: "Add")
 
                 @ViewHelpers.Section(this,
                     "manage",
@@ -74,32 +74,32 @@
     <!-- ko if: RevocationDescriptions().length > 0 -->
     @ViewHelpers.AlertWarning(
         @<text>
-            Your API
-            <!-- ko if: RevocationDescriptions().length === 1 -->
-            key
-            <!-- /ko -->
-            <!-- ko ifnot: RevocationDescriptions().length === 1 -->
-            keys
-            <!-- /ko -->
-            <!-- ko text: window.nuget.commaJoin(RevocationDescriptions().map(function(d) { return "'" + d + "'"; } )) --><!-- /ko -->
-            <!-- ko if: RevocationDescriptions().length === 1 -->
-            has
-            <!-- /ko -->
-            <!-- ko ifnot: RevocationDescriptions().length === 1 -->
-            have
-            <!-- /ko -->
-            been revoked.
-            <br />
-            Please check the email from @Config.Current.GalleryOwner.Address for details, and regenerate or create
-            <!-- ko if: RevocationDescriptions().length === 1 -->
-            a new API key
-            <!-- /ko -->
-            <!-- ko ifnot: RevocationDescriptions().length === 1 -->
-            new API keys
-            <!-- /ko -->
-            to use.
+        Your API
+        <!-- ko if: RevocationDescriptions().length === 1 -->
+        key
+        <!-- /ko -->
+        <!-- ko ifnot: RevocationDescriptions().length === 1 -->
+        keys
+        <!-- /ko -->
+        <!-- ko text: window.nuget.commaJoin(RevocationDescriptions().map(function(d) { return "'" + d + "'"; } )) --><!-- /ko -->
+        <!-- ko if: RevocationDescriptions().length === 1 -->
+        has
+        <!-- /ko -->
+        <!-- ko ifnot: RevocationDescriptions().length === 1 -->
+        have
+        <!-- /ko -->
+        been revoked.
+        <br />
+        Please check the email from @Config.Current.GalleryOwner.Address for details, and regenerate or create
+        <!-- ko if: RevocationDescriptions().length === 1 -->
+        a new API key
+        <!-- /ko -->
+        <!-- ko ifnot: RevocationDescriptions().length === 1 -->
+        new API keys
+        <!-- /ko -->
+        to use.
         </text>,
-     isAlertRole: true)
+        isAlertRole: true)
     <!-- /ko -->
     <!-- ko if: ExpiredDescriptions().length > 0 -->
     @ViewHelpers.AlertWarning(
@@ -120,7 +120,7 @@
         <!-- /ko -->
         expired.
         </text>,
-     isAlertRole: true)
+        isAlertRole: true)
     <!-- /ko -->
     <!-- ko if: AnyJustCreated -->
     @ViewHelpers.AlertWarning(
@@ -138,7 +138,7 @@
         <b>Copy</b>
         button below. You will not be able to do so again.
         </text>,
-     isAlertRole: true)
+        isAlertRole: true)
     <!-- /ko -->
     <div data-bind="template: { name: 'api-key-details', foreach: ApiKeys }">
     </div>
@@ -177,9 +177,9 @@
                         @if (Config.Current.ExpirationInDaysForApiKeyV1 > 0)
                         {
                             <text>
-                                (<a href="https://aka.ms/nugetlegacyapikeys">if used every
-                                @Config.Current.ExpirationInDaysForApiKeyV1
-                                day@(Config.Current.ExpirationInDaysForApiKeyV1 != 1 ? "s" : string.Empty)</a>)
+                            (<a href="https://aka.ms/nugetlegacyapikeys">if used every
+                            @Config.Current.ExpirationInDaysForApiKeyV1
+                            day@(Config.Current.ExpirationInDaysForApiKeyV1 != 1 ? "s" : string.Empty)</a>)
                             </text>
                         }
                         <!-- /ko -->
