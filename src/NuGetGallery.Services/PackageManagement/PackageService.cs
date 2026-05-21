@@ -1174,13 +1174,5 @@ namespace NuGetGallery
                 .Select(p => (PackageStatus?)p.PackageStatusKey)
                 .FirstOrDefault();
         }
-
-        public bool HasGitHubRepositoryPackage(IList<int> ownerKeys)
-        {
-            return _packageRepository.GetAll()
-                .Any(p => p.PackageRegistration.Owners.Any(o => ownerKeys.Contains(o.Key))
-                       && (p.RepositoryUrl.Contains("github.com")
-                        || p.ProjectUrl.Contains("github.com")));
-        }
     }
 }
