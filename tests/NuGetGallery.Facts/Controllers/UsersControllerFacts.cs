@@ -1529,7 +1529,6 @@ namespace NuGetGallery
 
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
-
                 var inputModel = new UserAccountViewModel()
                 {
                     ChangePassword = new ChangePasswordViewModel()
