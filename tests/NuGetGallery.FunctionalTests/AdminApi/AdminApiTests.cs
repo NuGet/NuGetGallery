@@ -387,8 +387,7 @@ namespace NuGetGallery.FunctionalTests.AdminApi
 
                 Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
                 var json = await ReadJsonAsync(response);
-                AssertHasFieldError(json, "Packages");
-                AssertHasFieldError(json, "Reason");
+                AssertHasFieldError(json, "Locked");
             }
 
             [Fact]
@@ -442,7 +441,7 @@ namespace NuGetGallery.FunctionalTests.AdminApi
 
                 Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
                 var json = await ReadJsonAsync(response);
-                AssertHasFieldError(json, "Users");
+                AssertHasFieldError(json, "Locked");
             }
 
             [Fact]
