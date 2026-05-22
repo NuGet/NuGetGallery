@@ -14,7 +14,7 @@ namespace NuGetGallery.Packaging
 {
     public class ManifestValidator
     {
-        public static IEnumerable<ValidationResult> Validate(Stream nuspecStream, out NuspecReader nuspecReader, out PackageMetadata packageMetadata)
+        public static IEnumerable<ValidationResult> Validate(Stream nuspecStream, Func<string, bool> isInvalidPackageIdAllowed, out NuspecReader nuspecReader, out PackageMetadata packageMetadata)
         {
             packageMetadata = null;
 
@@ -25,7 +25,7 @@ namespace NuGetGallery.Packaging
                 if (rawMetadata != null && rawMetadata.Any())
                 {
                     packageMetadata = PackageMetadata.FromNuspecReader(nuspecReader, strict: true);
-                    return ValidateCore(packageMetadata);
+                    return ValidateCore(packageMetadata, isInvalidPackageIdAllowed);
                 }
             }
             catch (Exception ex)
@@ -38,7 +38,7 @@ namespace NuGetGallery.Packaging
             return Enumerable.Empty<ValidationResult>();
         }
 
-        private static IEnumerable<ValidationResult> ValidateCore(PackageMetadata packageMetadata)
+        private static IEnumerable<ValidationResult> ValidateCore(PackageMetadata packageMetadata, Func<string, bool> isInvalidPackageIdAllowed)
         {
             // Validate the ID
             if (string.IsNullOrEmpty(packageMetadata.Id))
@@ -51,7 +51,7 @@ namespace NuGetGallery.Packaging
                 {
                     yield return new ValidationResult(CoreStrings.Manifest_IdTooLong);
                 }
-                else if (!PackageIdValidator.IsValidPackageId(packageMetadata.Id))
+                else if (!PackageIdValidator.IsValidPackageId(packageMetadata.Id) && !isInvalidPackageIdAllowed(packageMetadata.Id))
                 {
                     yield return new ValidationResult(String.Format(
                         CultureInfo.CurrentCulture,

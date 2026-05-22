@@ -374,5 +374,7 @@ namespace NuGetGallery
         /// when enabled, the package details page shows short version lists.
         /// </summary>
         bool IsReducedVersionListsEnabled();
+
+        bool IsInvalidPackageIdAllowedForExistingPackages();
     }
 }

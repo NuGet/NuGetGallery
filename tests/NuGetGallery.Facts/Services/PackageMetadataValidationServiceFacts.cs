@@ -521,7 +521,7 @@ namespace NuGetGallery
                 // Act & Assert
                 Assert.Throws<ArgumentNullException>(() =>
                 {
-                    PackageMetadataValidationService.CheckPackageIdForBannedCharacters(packageMetadata, new PackageIdentity(packageId, new NuGetVersion("1.0.0")));
+                    PackageMetadataValidationService.CheckPackageIdForBannedCharacters(packageMetadata, new PackageIdentity(packageId, new NuGetVersion("1.0.0")), (string id) => { return false;  });
                 });
             }
 

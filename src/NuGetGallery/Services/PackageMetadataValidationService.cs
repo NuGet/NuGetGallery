@@ -142,7 +142,8 @@ namespace NuGetGallery
                 return result;
             }
 
-            result = CheckPackageIdForBannedCharacters(packageMetadata, nuGetPackage.GetIdentity());
+            result = CheckPackageIdForBannedCharacters(packageMetadata, nuGetPackage.GetIdentity(),
+                (string id) => { return _packageService.FindPackageRegistrationById(id) != null && _featureFlagService.IsInvalidPackageIdAllowedForExistingPackages(); });
 
             if (result != null)
             {
@@ -240,7 +241,8 @@ namespace NuGetGallery
             return null;
         }
 
-        public static PackageValidationResult CheckPackageIdForBannedCharacters(PackageMetadata packageMetadata, PackageIdentity packageIdentity)
+        public static PackageValidationResult CheckPackageIdForBannedCharacters(PackageMetadata packageMetadata, PackageIdentity packageIdentity,
+            Func<string, bool> isInvalidPackageIdAllowed)
         {
             var packageId = packageMetadata?.Id;
             if (string.IsNullOrWhiteSpace(packageId))
@@ -259,7 +261,10 @@ namespace NuGetGallery
             if (!NuGet.Packaging.PackageIdValidator.IsValidPackageId(packageId)
                 || !NuGetGallery.Packaging.PackageIdValidator.IsValidPackageId(packageId))
             {
-                return PackageValidationResult.Invalid(Strings.UploadPackage_PackageIdInvalid);
+                if (!isInvalidPackageIdAllowed(packageId))
+                {
+                    return PackageValidationResult.Invalid(Strings.UploadPackage_PackageIdInvalid);
+                }
             }
 
             // reject package IDs that normalize using Form C to different strings
@@ -294,7 +299,10 @@ namespace NuGetGallery
                         || !NuGetGallery.Packaging.PackageIdValidator.IsValidPackageId(lower)
                         || !NuGetGallery.Packaging.PackageIdValidator.IsValidPackageId(upper))
                     {
-                        return PackageValidationResult.Invalid(Strings.UploadPackage_PackageIdNormalizationInvalid);
+                        if (!isInvalidPackageIdAllowed(packageId))
+                        {
+                            return PackageValidationResult.Invalid(Strings.UploadPackage_PackageIdNormalizationInvalid);
+                        }
                     }
                 }
 

@@ -423,7 +423,9 @@ namespace NuGetGallery
                     PackageArchiveReader packageArchiveReader = CreatePackage(uploadStream);
                     NuspecReader nuspec;
                     PackageMetadata packageMetadata;
-                    var errors = ManifestValidator.Validate(packageArchiveReader.GetNuspec(), out nuspec, out packageMetadata).ToArray();
+                    var errors = ManifestValidator.Validate(packageArchiveReader.GetNuspec(),
+                        (string id) => { return _packageService.FindPackageRegistrationById(id) != null && _featureFlagService.IsInvalidPackageIdAllowedForExistingPackages(); },
+                        out nuspec, out packageMetadata).ToArray();
                     if (errors.Length > 0)
                     {
                         var errorStrings = new List<JsonValidationMessage>();

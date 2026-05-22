@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -27,11 +27,16 @@ namespace NuGetGallery
             ".p7s"
         };
 
+        private readonly IFeatureFlagService _featureFlagService;
+
         public SymbolPackageService(
             IEntityRepository<SymbolPackage> symbolPackageRepository,
-            IPackageService packageService)
+            IPackageService packageService,
+            IFeatureFlagService featureFlagService)
             : base(symbolPackageRepository, packageService)
-        { }
+        {
+            _featureFlagService = featureFlagService;
+        }
 
         /// <summary>
         /// When no exceptions thrown, this method ensures the symbol package metadata is valid.
@@ -65,7 +70,8 @@ namespace NuGetGallery
                     throw new InvalidPackageException(Strings.SymbolsPackage_NotSymbolPackage);
                 }
 
-                ValidateSymbolPackage(symbolPackageArchiveReader, packageMetadata);
+                ValidateSymbolPackage(symbolPackageArchiveReader, packageMetadata,
+                    (string id) => { return _corePackageService.FindPackageRegistrationById(id) != null && _featureFlagService.IsInvalidPackageIdAllowedForExistingPackages(); });
 
                 // This will throw if the package contains an entry which will extract outside of the target extraction directory
                 await symbolPackageArchiveReader.ValidatePackageEntriesAsync(CancellationToken.None);
@@ -115,12 +121,12 @@ namespace NuGetGallery
             }
         }
 
-        private static void ValidateSymbolPackage(PackageArchiveReader symbolPackage, PackageMetadata metadata)
+        private static void ValidateSymbolPackage(PackageArchiveReader symbolPackage, PackageMetadata metadata, Func<string, bool> isInvalidPackageIdAllowed)
         {
             PackageHelper.ValidateNuGetPackageMetadata(metadata);
 
             // Validate nuspec manifest.
-            var errors = ManifestValidator.Validate(symbolPackage.GetNuspec(), out var nuspec, out var packageMetadata).ToArray();
+            var errors = ManifestValidator.Validate(symbolPackage.GetNuspec(), isInvalidPackageIdAllowed, out var nuspec, out var packageMetadata).ToArray();
             if (errors.Length > 0)
             {
                 var errorsString = string.Join("', '", errors.Select(error => error.ErrorMessage));

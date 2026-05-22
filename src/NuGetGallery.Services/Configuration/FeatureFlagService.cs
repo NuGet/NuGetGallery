@@ -72,6 +72,7 @@ namespace NuGetGallery
         private const string McpServerPackageDisplayFeatureName = GalleryPrefix + "McpServerPackageDisplay";
         private const string EnableApiKeyV5ForOIDCFeatureName = GalleryPrefix + "EnableApiKeyV5ForOIDC";
         private const string ReducedVersionLists = GalleryPrefix + "ReducedVersionLists";
+        private const string AllowInvalidPackageIdForExistingPackages = GalleryPrefix + "AllowInvalidPackageIdForExistingPackages";
 
         private const string ODataV1GetAllNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllNonHijacked";
         private const string ODataV1GetAllCountNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllCountNonHijacked";
@@ -465,6 +466,11 @@ namespace NuGetGallery
         public bool IsReducedVersionListsEnabled()
         {
             return _client.IsEnabled(ReducedVersionLists, defaultValue: false);
+        }
+
+        public bool IsInvalidPackageIdAllowedForExistingPackages()
+        {
+            return _client.IsEnabled(AllowInvalidPackageIdForExistingPackages, defaultValue: true);
         }
     }
 }
