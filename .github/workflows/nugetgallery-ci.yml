@@ -69,6 +69,18 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Verify Bootstrap output is up to date
+        shell: pwsh
+        run: |
+          .\tools\Build-Bootstrap.ps1
+          $diff = git diff --name-only
+          if ($diff) {
+            Write-Error "Bootstrap output is out of date. Run .\tools\Build-Bootstrap.ps1 and commit the changes."
+            git diff --stat
+            exit 1
+          }
+          Write-Host "Bootstrap output is up to date."
+
       - name: Build
         shell: pwsh
         run: |
