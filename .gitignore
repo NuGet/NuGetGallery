@@ -430,10 +430,6 @@ tests/NuGetGallery.FunctionalTests/settings.CI.json
 # Aspire-generated copy with absolute paths (never commit)
 .vs/config/applicationhost.aspire.config
 
-# Files are created at build time
-src/NuGetGallery/Content/gallery/css/bootstrap-theme.css
-src/NuGetGallery/Content/gallery/css/bootstrap.css
-src/NuGetGallery/Scripts/gallery/bootstrap.js
 
 # NuGetGallery Specific Ignores
 src/NuGetGallery/App_Data/*
