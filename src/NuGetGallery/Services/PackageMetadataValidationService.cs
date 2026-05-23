@@ -143,7 +143,7 @@ namespace NuGetGallery
             }
 
             result = CheckPackageIdForBannedCharacters(packageMetadata, nuGetPackage.GetIdentity(),
-                (string id) => { return _packageService.FindPackageRegistrationById(id) != null && _featureFlagService.IsInvalidPackageIdAllowedForExistingPackages(); });
+                (string id) => { return _featureFlagService.IsInvalidPackageIdAllowedForExistingPackages() && _packageService.FindPackageRegistrationById(id) != null; });
 
             if (result != null)
             {
