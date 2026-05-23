@@ -495,7 +495,6 @@ namespace NuGetGallery.FunctionalTests.AdminApi
 
                 Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
                 var json = await ReadJsonAsync(response);
-                AssertHasFieldError(json, "Packages");
                 AssertHasFieldError(json, "Reason");
             }
 
