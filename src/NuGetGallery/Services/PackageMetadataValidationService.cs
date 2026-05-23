@@ -241,7 +241,8 @@ namespace NuGetGallery
             return null;
         }
 
-        public static PackageValidationResult CheckPackageIdForBannedCharacters(PackageMetadata packageMetadata, PackageIdentity packageIdentity,
+        public static PackageValidationResult CheckPackageIdForBannedCharacters(PackageMetadata packageMetadata,
+            PackageIdentity packageIdentity,
             Func<string, bool> isInvalidPackageIdAllowed)
         {
             var packageId = packageMetadata?.Id;

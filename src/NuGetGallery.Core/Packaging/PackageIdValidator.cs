@@ -18,6 +18,7 @@ namespace NuGetGallery.Packaging
             @"^\w+([.-]\w+)*$",
             RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture);
 
+        // Block new packages with invalid characters
         public static bool IsValidPackageId(string packageId)
         {
             if (!IsValid(packageId))
@@ -28,6 +29,7 @@ namespace NuGetGallery.Packaging
             return IdRegex.IsMatch(packageId);
         }
 
+        // Support reading and depending on existing packages
         public static bool IsValidPackageIdForRead(string packageId)
         {
             if (!IsValid(packageId))

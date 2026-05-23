@@ -618,7 +618,7 @@ namespace NuGetGallery
                             NuspecReader nuspec;
                             PackageMetadata packageMetadata;
                             var errors = ManifestValidator.Validate(packageToPush.GetNuspec(),
-                                (string id) => { return PackageService.FindPackageRegistrationById(id) != null && FeatureFlagService.IsInvalidPackageIdAllowedForExistingPackages(); },
+                                (string id) => { return FeatureFlagService.IsInvalidPackageIdAllowedForExistingPackages() && PackageService.FindPackageRegistrationById(id) != null; },
                                 out nuspec, out packageMetadata).ToArray();
                             if (errors.Length > 0)
                             {

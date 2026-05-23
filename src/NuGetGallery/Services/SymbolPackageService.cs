@@ -71,7 +71,7 @@ namespace NuGetGallery
                 }
 
                 ValidateSymbolPackage(symbolPackageArchiveReader, packageMetadata,
-                    (string id) => { return _corePackageService.FindPackageRegistrationById(id) != null && _featureFlagService.IsInvalidPackageIdAllowedForExistingPackages(); });
+                    (string id) => { return _featureFlagService.IsInvalidPackageIdAllowedForExistingPackages() && _corePackageService.FindPackageRegistrationById(id) != null; });
 
                 // This will throw if the package contains an entry which will extract outside of the target extraction directory
                 await symbolPackageArchiveReader.ValidatePackageEntriesAsync(CancellationToken.None);
