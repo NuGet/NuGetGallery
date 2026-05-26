@@ -8,7 +8,7 @@ $parentDir = Resolve-Path (Join-Path $PSScriptRoot "..")
 $repoDir = Resolve-Path (Join-Path $parentDir "..")
 
 # Required tools
-$xunit = Join-Path $repoDir "packages\xunit.runner.console\tools\net472\xunit.console.exe"
+$xunit = Join-Path $repoDir "packages\xunit.runner.console\tools\net8.0\xunit.console.exe"
 
 # Test results files
 $functionalTestsResults = Join-Path $parentDir "functionaltests.$TestCategory.xml"
@@ -16,7 +16,7 @@ $functionalTestsResults = Join-Path $parentDir "functionaltests.$TestCategory.xm
 # Clean previous test results
 Remove-Item $functionalTestsResults -ErrorAction Ignore
 
-$functionalTestsDirectory = Join-Path $parentDir "NuGetGallery.FunctionalTests\bin\$Configuration\net472"
+$functionalTestsDirectory = Join-Path $parentDir "NuGetGallery.FunctionalTests\bin\$Configuration\net8.0"
 
 # Run functional tests
 $fullTestCategory = "$($testCategory)Tests"

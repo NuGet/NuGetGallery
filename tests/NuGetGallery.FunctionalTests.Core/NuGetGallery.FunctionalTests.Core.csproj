@@ -1,15 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\VisualStudioSearchPath.props" />
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>NuGetGallery.FunctionalTests</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System.IO.Compression" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" />
     <PackageReference Include="Microsoft.Playwright.Xunit" />
+    <PackageReference Include="System.CodeDom" />
     <PackageReference Include="Microsoft.Web.Xdt" />
     <PackageReference Include="NuGet.Core" />
     <PackageReference Include="NuGet.Versioning" />

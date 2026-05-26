@@ -33,7 +33,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "Copying nuget.exe to functional tests directory"
-$functionalTestsDirectory = Join-Path $parentDir "NuGetGallery.FunctionalTests\bin\$Configuration\net472"
+$functionalTestsDirectory = Join-Path $parentDir "NuGetGallery.FunctionalTests\bin\$Configuration\net8.0"
 Copy-Item $nuget $functionalTestsDirectory
 Write-Host "##[endgroup]"
 
