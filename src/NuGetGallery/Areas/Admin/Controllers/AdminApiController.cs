@@ -251,36 +251,87 @@ namespace NuGetGallery.Areas.Admin.Controllers
             foreach (var entry in request.Packages)
             {
                 var packageId = entry.Id.Trim();
-                var nugetVersion = NuGetVersion.Parse(entry.Version.Trim());
-                var identity = new PackageIdentity(packageId, nugetVersion);
 
-                if (!seen.Add(identity))
+                if (entry.IsAllVersions)
                 {
-                    continue;
+                    var allVersions = _packageService.FindPackagesById(packageId);
+                    if (allVersions == null || allVersions.Count == 0)
+                    {
+                        results.Add(new AdminSoftDeletePackageResult
+                        {
+                            Id = packageId,
+                            Version = AdminSoftDeletePackageIdentity.AllVersionsWildcard,
+                            Status = AdminSoftDeletePackageStatus.NotFound
+                        });
+
+                        continue;
+                    }
+
+                    foreach (var package in allVersions)
+                    {
+                        var normalizedVersion = NuGetVersion.Parse(package.Version).ToNormalizedString();
+                        var identity = new PackageIdentity(packageId, NuGetVersion.Parse(normalizedVersion));
+
+                        if (!seen.Add(identity))
+                        {
+                            continue;
+                        }
+
+                        if (package.PackageStatusKey == PackageStatus.Deleted)
+                        {
+                            results.Add(new AdminSoftDeletePackageResult
+                            {
+                                Id = packageId,
+                                Version = normalizedVersion,
+                                Status = AdminSoftDeletePackageStatus.NotFound
+                            });
+
+                            continue;
+                        }
+
+                        results.Add(new AdminSoftDeletePackageResult
+                        {
+                            Id = packageId,
+                            Version = normalizedVersion,
+                            Status = AdminSoftDeletePackageStatus.Accepted
+                        });
+
+                        acceptedPackages.Add(package);
+                    }
                 }
-
-                var normalizedVersion = identity.Version.ToNormalizedString();
-                var package = _packageService.FindPackageByIdAndVersionStrict(packageId, normalizedVersion);
-                if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
+                else
                 {
+                    var nugetVersion = NuGetVersion.Parse(entry.Version.Trim());
+                    var identity = new PackageIdentity(packageId, nugetVersion);
+
+                    if (!seen.Add(identity))
+                    {
+                        continue;
+                    }
+
+                    var normalizedVersion = identity.Version.ToNormalizedString();
+                    var package = _packageService.FindPackageByIdAndVersionStrict(packageId, normalizedVersion);
+                    if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
+                    {
+                        results.Add(new AdminSoftDeletePackageResult
+                        {
+                            Id = packageId,
+                            Version = normalizedVersion,
+                            Status = AdminSoftDeletePackageStatus.NotFound
+                        });
+
+                        continue;
+                    }
+
                     results.Add(new AdminSoftDeletePackageResult
                     {
                         Id = packageId,
                         Version = normalizedVersion,
-                        Status = AdminSoftDeletePackageStatus.NotFound
+                        Status = AdminSoftDeletePackageStatus.Accepted
                     });
 
-                    continue;
+                    acceptedPackages.Add(package);
                 }
-
-                results.Add(new AdminSoftDeletePackageResult
-                {
-                    Id = packageId,
-                    Version = normalizedVersion,
-                    Status = AdminSoftDeletePackageStatus.Accepted
-                });
-
-                acceptedPackages.Add(package);
             }
 
             if (acceptedPackages.Count == 0)

@@ -713,6 +713,50 @@ namespace NuGetGallery.FunctionalTests.AdminApi
                 Assert.Single(results);
                 Assert.Equal("NotFound", results[0]["Status"]?.ToString());
             }
+            [Fact]
+            [Priority(2)]
+            [Category("AdminApiTests")]
+            public async Task WildcardSoftDeletesAllVersions()
+            {
+                var config = GalleryConfiguration.Instance.AdminApi;
+                var body = JsonConvert.SerializeObject(new
+                {
+                    packages = new[] { new { id = config.SoftDeletePackageId, version = "*" } },
+                    reason = "Functional test wildcard soft-delete"
+                });
+
+                var response = await PostAuthenticatedJsonAsync("/api/admin/soft-delete-package", body);
+
+                var json = await ReadJsonAsync(response);
+                TestOutputHelper.WriteLine($"Response: {json}");
+
+                var results = json["Results"] as JArray;
+                Assert.NotNull(results);
+                Assert.NotEmpty(results);
+                Assert.True(
+                    results.Any(r => r["Status"]?.ToString() == "Accepted"),
+                    "Expected at least one version to be accepted for deletion.");
+            }
+
+            [Fact]
+            [Priority(2)]
+            [Category("AdminApiTests")]
+            public async Task WildcardReturnsNotFoundForNonexistentPackage()
+            {
+                var body = JsonConvert.SerializeObject(new
+                {
+                    packages = new[] { new { id = "This.Package.Does.Not.Exist", version = "*" } },
+                    reason = "Functional test wildcard not found"
+                });
+
+                var response = await PostAuthenticatedJsonAsync("/api/admin/soft-delete-package", body);
+
+                var json = await ReadJsonAsync(response);
+                var results = json["Results"] as JArray;
+                Assert.NotNull(results);
+                Assert.Single(results);
+                Assert.Equal("NotFound", results[0]["Status"]?.ToString());
+            }
         }
 
         // ================================================================

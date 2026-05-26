@@ -33,17 +33,21 @@ namespace NuGetGallery.Areas.Admin.Models
 
     public class AdminSoftDeletePackageIdentity : IValidatableObject
     {
+        public const string AllVersionsWildcard = "*";
+
         [Required(AllowEmptyStrings = false, ErrorMessage = "The package id field is required.")]
         public string Id { get; set; }
 
-        [Required(AllowEmptyStrings = false, ErrorMessage = "The package version field is required.")]
+        [Required(AllowEmptyStrings = false, ErrorMessage = "The package version field is required. Use \"*\" to target all versions.")]
         public string Version { get; set; }
+
+        public bool IsAllVersions => string.Equals(Version?.Trim(), AllVersionsWildcard, System.StringComparison.Ordinal);
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
-            if (!string.IsNullOrWhiteSpace(Version) && !NuGetVersion.TryParse(Version, out _))
+            if (!string.IsNullOrWhiteSpace(Version) && !IsAllVersions && !NuGetVersion.TryParse(Version, out _))
             {
-                yield return new ValidationResult("The package version field must be a valid NuGet version.", [nameof(Version)]);
+                yield return new ValidationResult("The package version field must be a valid NuGet version or \"*\" for all versions.", [nameof(Version)]);
             }
         }
     }
