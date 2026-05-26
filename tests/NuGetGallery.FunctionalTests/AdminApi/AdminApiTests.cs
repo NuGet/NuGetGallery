@@ -713,6 +713,7 @@ namespace NuGetGallery.FunctionalTests.AdminApi
                 Assert.Single(results);
                 Assert.Equal("NotFound", results[0]["Status"]?.ToString());
             }
+
             [Fact]
             [Priority(2)]
             [Category("AdminApiTests")]
