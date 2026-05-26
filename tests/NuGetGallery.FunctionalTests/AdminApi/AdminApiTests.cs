@@ -720,10 +720,11 @@ namespace NuGetGallery.FunctionalTests.AdminApi
             [Category("AdminApiTests")]
             public async Task WildcardSoftDeletesAllVersions()
             {
-                var config = GalleryConfiguration.Instance.AdminApi;
+                // Uses a dedicated package ID (AdminApiTest.SoftDeleteAll) with two
+                // seeded versions so this test doesn't conflict with SoftDeletesExistingPackage.
                 var body = JsonConvert.SerializeObject(new
                 {
-                    packages = new[] { new { id = config.SoftDeletePackageId, version = "*" } },
+                    packages = new[] { new { id = "AdminApiTest.SoftDeleteAll", version = "*" } },
                     reason = "Functional test wildcard soft-delete"
                 });
 
@@ -732,12 +733,13 @@ namespace NuGetGallery.FunctionalTests.AdminApi
                 var json = await ReadJsonAsync(response);
                 TestOutputHelper.WriteLine($"Response: {json}");
 
+                Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
                 var results = json["Results"] as JArray;
                 Assert.NotNull(results);
-                Assert.NotEmpty(results);
+                Assert.True(results.Count >= 2, "Expected at least two versions in the results.");
                 Assert.True(
-                    results.Any(r => r["Status"]?.ToString() == "Accepted"),
-                    "Expected at least one version to be accepted for deletion.");
+                    results.All(r => r["Status"]?.ToString() == "Accepted"),
+                    "Expected all versions to be accepted for deletion.");
             }
 
             [Fact]
