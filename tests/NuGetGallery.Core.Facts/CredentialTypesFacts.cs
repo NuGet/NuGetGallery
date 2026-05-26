@@ -41,7 +41,7 @@ namespace NuGetGallery
         public void IsSupportedCredential(string credentialType)
         {
             var credential = new Credential(credentialType, "testcredential");
-            Assert.False(credential.IsSupportedCredential()); // intentionally broken
+            Assert.True(credential.IsSupportedCredential());
         }
     }
 }
