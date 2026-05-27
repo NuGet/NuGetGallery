@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Net;
 using System.Security.Claims;
@@ -14,6 +15,7 @@ using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.IdentityModel.Validators;
+using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Infrastructure;
 using NuGetGallery.Configuration;
@@ -49,6 +51,28 @@ namespace NuGetGallery.Areas.Admin.Authentication
             {
                 StoreAuthError((HttpStatusCode)result.StatusCode, result.Message);
                 return null;
+            }
+
+            // Run additional validators (e.g. MISE) loaded from the add-ins directory.
+            // This mirrors the pattern used by FederatedCredentialPolicyEvaluator for
+            // trusted publishing. Both MSAL and MISE validation must pass.
+            var additionalValidators = DependencyResolver.Current.GetService<IReadOnlyList<IFederatedCredentialValidator>>();
+            if (additionalValidators != null)
+            {
+                var requestHeaders = ToNameValueCollection(Request.Headers);
+                foreach (var validator in additionalValidators)
+                {
+                    var validationResult = await validator.ValidateAsync(
+                        requestHeaders,
+                        FederatedCredentialIssuerType.EntraId,
+                        unvalidatedClaims: null);
+
+                    if (validationResult.Type == FederatedCredentialValidationType.Unauthorized)
+                    {
+                        StoreAuthError(HttpStatusCode.Unauthorized, "Additional token validation failed.");
+                        return null;
+                    }
+                }
             }
 
             var callerIdentity = $"Tenant ID: {result.TenantId}, Client ID: {result.AuthorizedParty}";
@@ -95,6 +119,20 @@ namespace NuGetGallery.Areas.Admin.Authentication
             }
 
             return null;
+        }
+
+        private static NameValueCollection ToNameValueCollection(IHeaderDictionary headers)
+        {
+            var nvc = new NameValueCollection();
+            foreach (var pair in headers)
+            {
+                foreach (var value in pair.Value)
+                {
+                    nvc.Add(pair.Key, value);
+                }
+            }
+
+            return nvc;
         }
 
         internal static async Task<AuthResult> ValidateAndAuthorizeAsync(
