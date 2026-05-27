@@ -7,8 +7,6 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
-using Azure.Identity;
-using Azure.Security.KeyVault.Keys.Cryptography;
 using GitHubVulnerabilities2Db.Gallery;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -126,24 +124,7 @@ namespace VerifyGitHubVulnerabilities
                 .As<IKeyVaultDataSigner>();
 
             containerBuilder
-                .RegisterType<GitHubPersonalAccessTokenAuthProvider>()
-                .AsSelf()
-                .SingleInstance();
-
-            containerBuilder
-                .RegisterType<GitHubAppAuthProvider>()
-                .AsSelf()
-                .SingleInstance();
-
-            containerBuilder
-                .Register<IGitHubAuthProvider>(ctx => {
-                    var config = ctx.Resolve<VerifyGitHubVulnerabilitiesConfiguration>();
-                    if (string.IsNullOrWhiteSpace(config.GitHubAppId))
-                    {
-                        return ctx.Resolve<GitHubPersonalAccessTokenAuthProvider>();
-                    }
-                    return ctx.Resolve<GitHubAppAuthProvider>();
-                })
+                .RegisterGitHubAuthProvider<VerifyGitHubVulnerabilitiesConfiguration>()
                 .As<IGitHubAuthProvider>()
                 .SingleInstance();
 

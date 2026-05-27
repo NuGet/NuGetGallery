@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
 using Azure.Identity;
-using Azure.Security.KeyVault.Keys.Cryptography;
 using GitHubVulnerabilities2Db.Configuration;
 using GitHubVulnerabilities2Db.Fakes;
 using GitHubVulnerabilities2Db.Gallery;
@@ -15,7 +14,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Identity.Web;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
 using NuGet.Services.Cursor;
@@ -30,13 +28,11 @@ using NuGetGallery;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 using NuGetGallery.Security;
-using Constants = NuGet.Services.Configuration.Constants;
 
 namespace GitHubVulnerabilities2Db
 {
     public class Job : JsonConfigurationJob, IDisposable
     {
-        private const string ManagedIdentityClientIdKey = "UserManagedIdentityClientId";
         private readonly HttpClient _client = new HttpClient();
 
         public override async Task Run()
@@ -157,24 +153,7 @@ namespace GitHubVulnerabilities2Db
                 .As<IKeyVaultDataSigner>();
 
             containerBuilder
-                .RegisterType<GitHubPersonalAccessTokenAuthProvider>()
-                .AsSelf()
-                .SingleInstance();
-
-            containerBuilder
-                .RegisterType<GitHubAppAuthProvider>()
-                .AsSelf()
-                .SingleInstance();
-
-            containerBuilder
-                .Register<IGitHubAuthProvider>(ctx => {
-                    var config = ctx.Resolve<GitHubVulnerabilities2DbConfiguration>();
-                    if (string.IsNullOrWhiteSpace(config.GitHubAppId))
-                    {
-                        return ctx.Resolve<GitHubPersonalAccessTokenAuthProvider>();
-                    }
-                    return ctx.Resolve<GitHubAppAuthProvider>();
-                })
+                .RegisterGitHubAuthProvider<GitHubVulnerabilities2DbConfiguration>()
                 .As<IGitHubAuthProvider>()
                 .SingleInstance();
 

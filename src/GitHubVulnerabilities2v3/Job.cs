@@ -8,8 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
 using Azure.Identity;
-using Azure.Security.KeyVault.Keys.Cryptography;
-using Azure.Storage.Blobs;
 using GitHubVulnerabilities2v3.Configuration;
 using GitHubVulnerabilities2v3.Extensions;
 using GitHubVulnerabilities2v3.Telemetry;
@@ -18,7 +16,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Jobs;
-using NuGet.Services.Configuration;
 using NuGet.Services.Cursor;
 using NuGet.Services.GitHub.Authentication;
 using NuGet.Services.GitHub.Collector;
@@ -113,24 +110,7 @@ namespace GitHubVulnerabilities2v3
                 .As<IKeyVaultDataSigner>();
 
             containerBuilder
-                .RegisterType<GitHubPersonalAccessTokenAuthProvider>()
-                .AsSelf()
-                .SingleInstance();
-
-            containerBuilder
-                .RegisterType<GitHubAppAuthProvider>()
-                .AsSelf()
-                .SingleInstance();
-
-            containerBuilder
-                .Register<IGitHubAuthProvider>(ctx => {
-                    var config = ctx.Resolve<GitHubVulnerabilities2v3Configuration>();
-                    if (string.IsNullOrWhiteSpace(config.GitHubAppId))
-                    {
-                        return ctx.Resolve<GitHubPersonalAccessTokenAuthProvider>();
-                    }
-                    return ctx.Resolve<GitHubAppAuthProvider>();
-                })
+                .RegisterGitHubAuthProvider<GitHubVulnerabilities2v3Configuration>()
                 .As<IGitHubAuthProvider>()
                 .SingleInstance();
 

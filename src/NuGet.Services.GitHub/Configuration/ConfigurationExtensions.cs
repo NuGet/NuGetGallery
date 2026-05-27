@@ -8,6 +8,7 @@ using Azure.Identity;
 using Azure.Security.KeyVault.Keys.Cryptography;
 using Microsoft.Extensions.Configuration;
 using NuGet.Services.Configuration;
+using NuGet.Services.GitHub.Authentication;
 using NuGet.Services.KeyVault;
 
 namespace NuGet.Services.GitHub.Configuration
@@ -45,6 +46,31 @@ namespace NuGet.Services.GitHub.Configuration
                 CryptographyClient cryptographyClient = new CryptographyClient(keyUri, credential);
                 return new KeyVaultDataSigner(cryptographyClient);
             });
+        }
+
+        public static IRegistrationBuilder<IGitHubAuthProvider, SimpleActivatorData, SingleRegistrationStyle>
+            RegisterGitHubAuthProvider<TConfiguration>(this ContainerBuilder builder)
+            where TConfiguration : GraphQLQueryConfiguration
+        {
+            builder
+                .RegisterType<GitHubPersonalAccessTokenAuthProvider>()
+                .AsSelf()
+                .SingleInstance();
+
+            builder
+                .RegisterType<GitHubAppAuthProvider>()
+                .AsSelf()
+                .SingleInstance();
+
+            return builder
+                .Register<IGitHubAuthProvider>(ctx => {
+                    var config = ctx.Resolve<TConfiguration>();
+                    if (string.IsNullOrWhiteSpace(config.GitHubAppId))
+                    {
+                        return ctx.Resolve<GitHubPersonalAccessTokenAuthProvider>();
+                    }
+                    return ctx.Resolve<GitHubAppAuthProvider>();
+                });
         }
     }
 }
