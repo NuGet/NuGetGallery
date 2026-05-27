@@ -3084,7 +3084,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The package ID must only contain alphanumeric characters, periods, hyphens and underscores..
+        ///   Looks up a localized string similar to The package ID must start with a letter, number or underscore ( _ ), can only contain letters, numbers, underscores ( _ ), dots ( . ), or dashes ( - ), and cannot contain consecutive dots ( . ) or dashes ( - )..
         /// </summary>
         public static string UploadPackage_PackageIdInvalid {
             get {

@@ -205,7 +205,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The package manifest contains an invalid ID: &apos;{0}&apos;. The package ID must only contain alphanumeric characters, periods, hyphens and underscores..
+        ///   Looks up a localized string similar to The package manifest contains an invalid ID: &apos;{0}&apos;, because it must start with a letter, number or underscore ( _ ), can only contain letters, numbers, underscores ( _ ), dots ( . ), or dashes ( - ), and cannot contain consecutive dots ( . ) or dashes ( - )..
         /// </summary>
         public static string Manifest_InvalidId {
             get {
