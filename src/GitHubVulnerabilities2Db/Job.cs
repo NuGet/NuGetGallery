@@ -33,6 +33,7 @@ namespace GitHubVulnerabilities2Db
 {
     public class Job : JsonConfigurationJob, IDisposable
     {
+        private const string ManagedIdentityClientIdKey = "UserManagedIdentityClientId";
         private readonly HttpClient _client = new HttpClient();
 
         public override async Task Run()
