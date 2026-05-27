@@ -142,7 +142,7 @@ namespace NuGet.Jobs
 
                 for (int i = 0; i < allArgsList.Count; i++)
                 {
-                    if (!allArgsList[i].StartsWith("-"))
+                    if (!allArgsList[i].StartsWith("-", StringComparison.Ordinal))
                     {
                         throw new ArgumentException("Argument Name does not start with a hyphen ('-')");
                     }

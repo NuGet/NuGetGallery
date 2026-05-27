@@ -354,7 +354,7 @@ namespace NuGetGallery
                 return null;
             }
 
-            if (markdown.StartsWith("#"))
+            if (markdown.StartsWith("#", StringComparison.Ordinal))
             {
                 return "<h2>" + markdown.Trim('#', ' ') + "</h2>";
             }

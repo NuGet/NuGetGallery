@@ -809,12 +809,12 @@ namespace CatalogTests.Dnx
             // Assert
             var unlistedPackage100 = _catalogToDnxStorage
                 .Content
-                .FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/unlistedpackage/1.0.0/unlistedpackage.1.0.0.nupkg"));
+                .FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/unlistedpackage/1.0.0/unlistedpackage.1.0.0.nupkg", StringComparison.Ordinal));
             Assert.NotNull(unlistedPackage100.Key);
 
             var listedPackage101 = _catalogToDnxStorage
                 .Content
-                .FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage/1.0.1/listedpackage.1.0.1.nupkg"));
+                .FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage/1.0.1/listedpackage.1.0.1.nupkg", StringComparison.Ordinal));
             Assert.NotNull(listedPackage101.Key);
 
             var anotherPackage100 = _catalogToDnxStorage

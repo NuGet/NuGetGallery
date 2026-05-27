@@ -214,12 +214,12 @@ namespace NgTests
             await _job.RunOnceAsync(CancellationToken.None);
 
             Assert.Equal(6, _catalogStorage.Content.Count);
-            var index = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("index.json"));
-            var page0 = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("page0.json"));
-            var page1 = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("page1.json"));
-            var itemA = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith($"{packageA.PackageIdentity.ToString().ToLowerInvariant()}.json"));
-            var itemB = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith($"{packageB.PackageIdentity.ToString().ToLowerInvariant()}.json"));
-            var itemC = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith($"{packageC.PackageIdentity.ToString().ToLowerInvariant()}.json"));
+            var index = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("index.json", StringComparison.Ordinal));
+            var page0 = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("page0.json", StringComparison.Ordinal));
+            var page1 = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("page1.json", StringComparison.Ordinal));
+            var itemA = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith($"{packageA.PackageIdentity.ToString().ToLowerInvariant()}.json", StringComparison.Ordinal));
+            var itemB = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith($"{packageB.PackageIdentity.ToString().ToLowerInvariant()}.json", StringComparison.Ordinal));
+            var itemC = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith($"{packageC.PackageIdentity.ToString().ToLowerInvariant()}.json", StringComparison.Ordinal));
 
             Assert.Equal(Constants.NoStoreCacheControl, index.Value.CacheControl);
             Assert.Equal("max-age=5678", page0.Value.CacheControl);

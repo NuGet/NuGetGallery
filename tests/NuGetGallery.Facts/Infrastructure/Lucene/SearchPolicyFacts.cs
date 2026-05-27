@@ -156,10 +156,10 @@ namespace NuGetGallery.Infrastructure.Search
 
             var r = await invalidHttpClient.GetAsync(uri);
 
-            var timeoutInfo = _logger.Informations.Count(s => s.StartsWith("Policy timeout - it will timeout after"));
-            var retryInfo = _logger.Informations.Count(s => s.StartsWith("Policy retry - it will retry after"));
-            var onCircuitBreakerfallBackInfo = _logger.Informations.Count(s => s.StartsWith("On circuit breaker fallback."));
-            var circuitBreakerWarning = _logger.Warnings.Count(s => s.StartsWith("SearchCircuitBreaker logging: Breaking the circuit for"));
+            var timeoutInfo = _logger.Informations.Count(s => s.StartsWith("Policy timeout - it will timeout after", StringComparison.Ordinal));
+            var retryInfo = _logger.Informations.Count(s => s.StartsWith("Policy retry - it will retry after", StringComparison.Ordinal));
+            var onCircuitBreakerfallBackInfo = _logger.Informations.Count(s => s.StartsWith("On circuit breaker fallback.", StringComparison.Ordinal));
+            var circuitBreakerWarning = _logger.Warnings.Count(s => s.StartsWith("SearchCircuitBreaker logging: Breaking the circuit for", StringComparison.Ordinal));
 
             Assert.Equal(1, timeoutInfo);
             Assert.Equal(0, retryInfo);

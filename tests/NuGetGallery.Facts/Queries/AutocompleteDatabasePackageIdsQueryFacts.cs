@@ -118,7 +118,7 @@ namespace NuGetGallery.Queries
                 var allIdsStartsWithPartialId = queryResult.All(id =>
                 {
                     _packageDictionary.TryGetValue(id, out var package);
-                    return package.PackageRegistration.Id.StartsWith("n");
+                    return package.PackageRegistration.Id.StartsWith("n", StringComparison.Ordinal);
                 });
 
                 Assert.True(allIdsStartsWithPartialId);

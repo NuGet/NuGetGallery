@@ -313,7 +313,7 @@ namespace Ng
                 // because there may be multiple potential cursors representing the state of a search service.
                 var matchingCursors = instanceNameToSearchCursorUri
                     .Keys
-                    .Where(x => x.StartsWith(instanceName))
+                    .Where(x => x.StartsWith(instanceName, StringComparison.Ordinal))
                     .OrderBy(x => x)
                     .ToList();
 

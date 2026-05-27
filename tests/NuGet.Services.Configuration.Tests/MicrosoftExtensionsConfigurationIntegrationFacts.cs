@@ -168,7 +168,7 @@ namespace NuGet.Services.Configuration.Tests
                 {
                     var prefix = parentPath == null ? "" : parentPath + ConfigurationPath.KeyDelimiter;
                     return new[] { nameof(TestConfiguration.Property) }
-                        .Where(s => s.StartsWith(prefix))
+                        .Where(s => s.StartsWith(prefix, StringComparison.Ordinal))
                         .Concat(earlierKeys);
                 });
 

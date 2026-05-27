@@ -162,9 +162,9 @@ namespace NuGet.Services.Metadata.Catalog.JsonLDIntegration
         bool HandleTriple(IRdfHandler handler, string subject, string predicate, string obj, string datatype, bool isLiteral)
         {
             INode subjectNode;
-            if (subject.StartsWith("_"))
+            if (subject.StartsWith("_", StringComparison.Ordinal))
             {
-                string nodeId = subject.Substring(subject.IndexOf(":") + 1);
+                string nodeId = subject.Substring(subject.IndexOf(":", StringComparison.Ordinal) + 1);
                 subjectNode = handler.CreateBlankNode(nodeId);
             }
             else
