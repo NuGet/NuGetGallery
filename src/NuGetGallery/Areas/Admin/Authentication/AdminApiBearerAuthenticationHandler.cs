@@ -123,13 +123,12 @@ namespace NuGetGallery.Areas.Admin.Authentication
                     new OpenIdConnectConfigurationRetriever());
             }
 
-            var isTestMode = config.AdminApiTestModeEnabled;
-
             var tokenValidationParameters = new TokenValidationParameters
             {
                 ConfigurationManager = oidcConfigManager,
             };
 
+            var isTestMode = config.AdminApiTestModeEnabled;
             if (isTestMode)
             {
                 // Test mode: skip all token validation so that self-signed
