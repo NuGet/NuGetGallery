@@ -15,7 +15,13 @@ Write-Host "##[group]Restoring and building functional tests"
 # Restore and build using dotnet CLI
 Write-Host "Restoring and building solution"
 $solutionPath = Join-Path $repoDir "NuGetGallery.FunctionalTests.sln"
-& dotnet build $solutionPath --configuration $Configuration
+& dotnet restore $solutionPath
+if ($LASTEXITCODE -ne 0) {
+    throw "Failed to restore packages!"
+}
+
+Write-Host "Building solution"
+& dotnet build $solutionPath --configuration $Configuration --no-restore
 if ($LASTEXITCODE -ne 0) {
     throw "Failed to build solution!"
 }
