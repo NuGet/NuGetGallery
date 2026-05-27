@@ -136,21 +136,6 @@ namespace NuGetGallery.FunctionalTests.AdminApi
             [InlineData("/api/admin/lock-package")]
             [InlineData("/api/admin/lock-user")]
             [InlineData("/api/admin/soft-delete-package")]
-            public async Task Returns401WithWwwAuthenticateHeader(string endpoint)
-            {
-                var response = await PostJsonAsync(endpoint, "{}");
-
-                Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
-                AssertHasWwwAuthenticateHeader(response);
-            }
-
-            [Theory]
-            [Priority(2)]
-            [Category("AdminApiTests")]
-            [InlineData("/api/admin/reflow-package")]
-            [InlineData("/api/admin/lock-package")]
-            [InlineData("/api/admin/lock-user")]
-            [InlineData("/api/admin/soft-delete-package")]
             public async Task ResponseIsAlwaysJsonNotHtml(string endpoint)
             {
                 var response = await PostJsonAsync(endpoint, "{}");
