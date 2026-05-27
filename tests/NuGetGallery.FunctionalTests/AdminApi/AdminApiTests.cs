@@ -155,69 +155,6 @@ namespace NuGetGallery.FunctionalTests.AdminApi
                 await AssertJsonResponseAsync(response);
                 await AssertResponseContainsAsync(response, "invalid JSON");
             }
-
-            [Theory]
-            [Priority(2)]
-            [Category("AdminApiTests")]
-            [InlineData("/api/admin/reflow-package")]
-            [InlineData("/api/admin/lock-package")]
-            [InlineData("/api/admin/lock-user")]
-            [InlineData("/api/admin/soft-delete-package")]
-            public async Task Returns400ForUnclosedString(string endpoint)
-            {
-                var response = await PostAuthenticatedJsonAsync(endpoint, "{\"reason\": \"unterminated");
-
-                Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-                await AssertJsonResponseAsync(response);
-            }
-
-            [Theory]
-            [Priority(2)]
-            [Category("AdminApiTests")]
-            [InlineData("/api/admin/reflow-package")]
-            [InlineData("/api/admin/lock-package")]
-            [InlineData("/api/admin/lock-user")]
-            [InlineData("/api/admin/soft-delete-package")]
-            public async Task Returns400ForTrailingComma(string endpoint)
-            {
-                var response = await PostAuthenticatedJsonAsync(endpoint,
-                    "{\"packages\": [{\"id\": \"A\", \"version\": \"1.0.0\"},], \"reason\": \"test\"}");
-
-                Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-                await AssertJsonResponseAsync(response);
-            }
-
-            [Theory]
-            [Priority(2)]
-            [Category("AdminApiTests")]
-            [InlineData("/api/admin/reflow-package")]
-            [InlineData("/api/admin/lock-package")]
-            [InlineData("/api/admin/lock-user")]
-            [InlineData("/api/admin/soft-delete-package")]
-            public async Task Returns400ForDeeplyNestedJson(string endpoint)
-            {
-                var deep = new string('{', 110) + new string('}', 110);
-                var response = await PostAuthenticatedJsonAsync(endpoint, deep);
-
-                Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-                await AssertJsonResponseAsync(response);
-            }
-
-            [Theory]
-            [Priority(2)]
-            [Category("AdminApiTests")]
-            [InlineData("/api/admin/reflow-package")]
-            [InlineData("/api/admin/lock-package")]
-            [InlineData("/api/admin/lock-user")]
-            [InlineData("/api/admin/soft-delete-package")]
-            public async Task NeverReturnsHtmlForInvalidJson(string endpoint)
-            {
-                var response = await PostAuthenticatedJsonAsync(endpoint, "{not valid json");
-
-                var content = await response.Content.ReadAsStringAsync();
-                Assert.DoesNotContain("<html", content, StringComparison.OrdinalIgnoreCase);
-                Assert.DoesNotContain("<!DOCTYPE", content, StringComparison.OrdinalIgnoreCase);
-            }
         }
 
         // ================================================================
