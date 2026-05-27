@@ -781,6 +781,26 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
 
             [Fact]
+            public async Task Returns400WhenUsernameIsNullAsync()
+            {
+                var request = new AdminLockUserRequest
+                {
+                    Users = [new AdminUserIdentity { Username = null }],
+                    Locked = true,
+                    Reason = "test"
+                };
+
+                var controller = CreateController();
+                ValidateModel(controller, request);
+                ValidateModelItems(controller, request.Users);
+
+                var result = await controller.LockUserAsync(request) as JsonResult;
+
+                Assert.NotNull(result);
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+            }
+
+            [Fact]
             public async Task Returns400WhenLockedIsMissingAsync()
             {
                 var request = new AdminLockUserRequest
