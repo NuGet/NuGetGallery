@@ -236,7 +236,7 @@ jobs:
 
             # 4. Run functional tests
             Write-Host "=== Running P0, P1, and P2 functional tests ==="
-            $testDll = "$repoRoot\tests\NuGetGallery.FunctionalTests\bin\$config\net8.0\NuGetGallery.FunctionalTests.dll"
+            $testDll = "$repoRoot\tests\NuGetGallery.FunctionalTests\bin\$config\net10.0\NuGetGallery.FunctionalTests.dll"
             $resultsDir = "$repoRoot\tests\TestResults"
             New-Item -ItemType Directory -Path $resultsDir -Force | Out-Null
 

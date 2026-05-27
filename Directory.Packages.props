@@ -6,7 +6,7 @@
     <NuGetClientPackageVersion>6.13.2</NuGetClientPackageVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="A11yInsights.PlaywrightChecker" Version="1.9.0" />
+    <PackageVersion Include="A11yInsights.PlaywrightChecker" Version="1.9.2" />
     <PackageVersion Include="Aspire.Hosting.Azure.Search" Version="13.2.1" />
     <PackageVersion Include="Aspire.Hosting.Azure.Storage" Version="13.2.1" />
     <PackageVersion Include="Autofac.Extensions.DependencyInjection" Version="4.4.0" />
