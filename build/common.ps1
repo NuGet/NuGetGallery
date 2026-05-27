@@ -679,9 +679,16 @@ function Get-SolutionProjects($SolutionPath) {
         $projectPath = Join-Path $solutionDir $_
         $projectRelativeDir = Split-Path $_
         $projectDir = Join-Path $solutionDir $projectRelativeDir
+        $isTestByPath = $projectRelativeDir -like "test*"
+        $isTestProject = if ($isTestByPath) {
+            $isTestProjectProp = Select-Xml -Path $projectPath -XPath "/Project/PropertyGroup/IsTestProject" | Select-Object -First 1 -ExpandProperty Node
+            $isTestProjectProp -eq $null -or $isTestProjectProp.InnerText -ne "false"
+        } else {
+            $false
+        }
         return [PSCustomObject]@{
             IsSrc = $projectRelativeDir -like "src*";
-            IsTest = $projectRelativeDir -like "test*";
+            IsTest = $isTestProject;
             IsTool = $projectRelativeDir -like "tool*";
             Directory = $projectDir;
             Path = $projectPath;
