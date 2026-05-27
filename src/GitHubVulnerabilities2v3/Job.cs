@@ -24,6 +24,7 @@ using NuGet.Services.GitHub.GraphQL;
 using NuGet.Services.GitHub.Ingest;
 using NuGet.Services.KeyVault;
 using NuGet.Services.Storage;
+using Constants = NuGet.Services.Configuration.Constants;
 
 namespace GitHubVulnerabilities2v3
 {

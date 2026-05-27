@@ -28,12 +28,12 @@ using NuGetGallery;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 using NuGetGallery.Security;
+using Constants = NuGet.Services.Configuration.Constants;
 
 namespace GitHubVulnerabilities2Db
 {
     public class Job : JsonConfigurationJob, IDisposable
     {
-        private const string ManagedIdentityClientIdKey = "UserManagedIdentityClientId";
         private readonly HttpClient _client = new HttpClient();
 
         public override async Task Run()
@@ -180,7 +180,7 @@ namespace GitHubVulnerabilities2Db
 #if DEBUG
                     var credential = new DefaultAzureCredential();
 #else
-                    var credential = new ManagedIdentityCredential(configurationRoot[ManagedIdentityClientIdKey]);
+                    var credential = new ManagedIdentityCredential(configurationRoot[Constants.ManagedIdentityClientIdKey]);
 #endif
                     return new BlobServiceClientFactory(new Uri(config.StorageConnectionString), credential);
                 })
