@@ -128,22 +128,6 @@ namespace NuGetGallery.FunctionalTests.AdminApi
 
                 Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
             }
-
-            [Theory]
-            [Priority(2)]
-            [Category("AdminApiTests")]
-            [InlineData("/api/admin/reflow-package")]
-            [InlineData("/api/admin/lock-package")]
-            [InlineData("/api/admin/lock-user")]
-            [InlineData("/api/admin/soft-delete-package")]
-            public async Task ResponseIsAlwaysJsonNotHtml(string endpoint)
-            {
-                var response = await PostJsonAsync(endpoint, "{}");
-
-                var content = await response.Content.ReadAsStringAsync();
-                Assert.DoesNotContain("<html", content, StringComparison.OrdinalIgnoreCase);
-                Assert.DoesNotContain("<!DOCTYPE", content, StringComparison.OrdinalIgnoreCase);
-            }
         }
 
         // ================================================================
@@ -152,7 +136,9 @@ namespace NuGetGallery.FunctionalTests.AdminApi
 
         public class TheJsonErrorHandling : AdminApiTests
         {
-            public TheJsonErrorHandling(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
+            public TheJsonErrorHandling(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+            {
+            }
 
             [Theory]
             [Priority(2)]
@@ -240,7 +226,9 @@ namespace NuGetGallery.FunctionalTests.AdminApi
 
         public class TheReflowPackageValidation : AdminApiTests
         {
-            public TheReflowPackageValidation(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
+            public TheReflowPackageValidation(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+            {
+            }
 
             [Fact]
             [Priority(2)]
@@ -362,7 +350,9 @@ namespace NuGetGallery.FunctionalTests.AdminApi
 
         public class TheLockPackageValidation : AdminApiTests
         {
-            public TheLockPackageValidation(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
+            public TheLockPackageValidation(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+            {
+            }
 
             [Fact]
             [Priority(2)]
@@ -416,7 +406,9 @@ namespace NuGetGallery.FunctionalTests.AdminApi
 
         public class TheLockUserValidation : AdminApiTests
         {
-            public TheLockUserValidation(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
+            public TheLockUserValidation(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+            {
+            }
 
             [Fact]
             [Priority(2)]
@@ -470,7 +462,9 @@ namespace NuGetGallery.FunctionalTests.AdminApi
 
         public class TheSoftDeletePackageValidation : AdminApiTests
         {
-            public TheSoftDeletePackageValidation(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
+            public TheSoftDeletePackageValidation(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+            {
+            }
 
             [Fact]
             [Priority(2)]
@@ -509,7 +503,9 @@ namespace NuGetGallery.FunctionalTests.AdminApi
 
         public class TheReflowPackageOperation : AdminApiTests
         {
-            public TheReflowPackageOperation(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
+            public TheReflowPackageOperation(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+            {
+            }
 
             [Fact]
             [Priority(2)]
@@ -557,7 +553,9 @@ namespace NuGetGallery.FunctionalTests.AdminApi
 
         public class TheLockPackageOperation : AdminApiTests
         {
-            public TheLockPackageOperation(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
+            public TheLockPackageOperation(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+            {
+            }
 
             [Fact]
             [Priority(2)]
@@ -607,7 +605,9 @@ namespace NuGetGallery.FunctionalTests.AdminApi
 
         public class TheLockUserOperation : AdminApiTests
         {
-            public TheLockUserOperation(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
+            public TheLockUserOperation(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+            {
+            }
 
             [Fact]
             [Priority(2)]
@@ -655,7 +655,9 @@ namespace NuGetGallery.FunctionalTests.AdminApi
 
         public class TheSoftDeletePackageOperation : AdminApiTests
         {
-            public TheSoftDeletePackageOperation(ITestOutputHelper testOutputHelper) : base(testOutputHelper) { }
+            public TheSoftDeletePackageOperation(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+            {
+            }
 
             [Fact]
             [Priority(2)]
@@ -791,7 +793,7 @@ namespace NuGetGallery.FunctionalTests.AdminApi
                 .Replace('/', '_');
         }
 
-        private string CreateAuthenticatedToken()
+        private static string CreateAuthenticatedToken()
         {
             return CreateFakeJwt(GetAllowedTenantId(), GetAllowedClientId());
         }
