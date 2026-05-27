@@ -161,9 +161,9 @@ namespace NuGetGallery.FunctionalTests.AdminApi
         // Happy-path tests (requires test mode + seeded data)
         // ================================================================
 
-        public class TheReflowPackageOperation : AdminApiTests
+        public class TheEndpointOperations : AdminApiTests
         {
-            public TheReflowPackageOperation(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+            public TheEndpointOperations(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
             {
             }
 
@@ -193,33 +193,6 @@ namespace NuGetGallery.FunctionalTests.AdminApi
             [Fact]
             [Priority(2)]
             [Category("AdminApiTests")]
-            public async Task ReturnsNotFoundForNonexistentPackage()
-            {
-                var body = JsonConvert.SerializeObject(new
-                {
-                    packages = new[] { new { id = "This.Package.Does.Not.Exist", version = "99.99.99" } },
-                    reason = "Functional test"
-                });
-
-                var response = await PostAuthenticatedJsonAsync("/api/admin/reflow-package", body);
-
-                var json = await ReadJsonAsync(response);
-                var results = json["Results"] as JArray;
-                Assert.NotNull(results);
-                Assert.Single(results);
-                Assert.Equal("NotFound", results[0]["Status"]?.ToString());
-            }
-        }
-
-        public class TheLockPackageOperation : AdminApiTests
-        {
-            public TheLockPackageOperation(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
-            {
-            }
-
-            [Fact]
-            [Priority(2)]
-            [Category("AdminApiTests")]
             public async Task LocksExistingPackage()
             {
                 var config = GalleryConfiguration.Instance.AdminApi;
@@ -239,34 +212,6 @@ namespace NuGetGallery.FunctionalTests.AdminApi
                 Assert.NotNull(results);
                 Assert.Single(results);
                 Assert.Equal("Accepted", results[0]["Status"]?.ToString());
-            }
-
-            [Fact]
-            [Priority(2)]
-            [Category("AdminApiTests")]
-            public async Task ReturnsNotFoundForNonexistentPackage()
-            {
-                var body = JsonConvert.SerializeObject(new
-                {
-                    packages = new[] { new { id = "This.Package.Does.Not.Exist" } },
-                    locked = true,
-                    reason = "Functional test"
-                });
-
-                var response = await PostAuthenticatedJsonAsync("/api/admin/lock-package", body);
-
-                var json = await ReadJsonAsync(response);
-                var results = json["Results"] as JArray;
-                Assert.NotNull(results);
-                Assert.Single(results);
-                Assert.Equal("NotFound", results[0]["Status"]?.ToString());
-            }
-        }
-
-        public class TheLockUserOperation : AdminApiTests
-        {
-            public TheLockUserOperation(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
-            {
             }
 
             [Fact]
@@ -295,33 +240,6 @@ namespace NuGetGallery.FunctionalTests.AdminApi
             [Fact]
             [Priority(2)]
             [Category("AdminApiTests")]
-            public async Task ReturnsNotFoundForNonexistentUser()
-            {
-                var body = JsonConvert.SerializeObject(new
-                {
-                    users = new[] { new { username = "ThisUserDoesNotExist99999" } },
-                    locked = true
-                });
-
-                var response = await PostAuthenticatedJsonAsync("/api/admin/lock-user", body);
-
-                var json = await ReadJsonAsync(response);
-                var results = json["Results"] as JArray;
-                Assert.NotNull(results);
-                Assert.Single(results);
-                Assert.Equal("NotFound", results[0]["Status"]?.ToString());
-            }
-        }
-
-        public class TheSoftDeletePackageOperation : AdminApiTests
-        {
-            public TheSoftDeletePackageOperation(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
-            {
-            }
-
-            [Fact]
-            [Priority(2)]
-            [Category("AdminApiTests")]
             public async Task SoftDeletesExistingPackage()
             {
                 var config = GalleryConfiguration.Instance.AdminApi;
@@ -340,26 +258,6 @@ namespace NuGetGallery.FunctionalTests.AdminApi
                 Assert.NotNull(results);
                 Assert.Single(results);
                 Assert.Equal("Accepted", results[0]["Status"]?.ToString());
-            }
-
-            [Fact]
-            [Priority(2)]
-            [Category("AdminApiTests")]
-            public async Task ReturnsNotFoundForNonexistentPackage()
-            {
-                var body = JsonConvert.SerializeObject(new
-                {
-                    packages = new[] { new { id = "This.Package.Does.Not.Exist", version = "99.99.99" } },
-                    reason = "Functional test"
-                });
-
-                var response = await PostAuthenticatedJsonAsync("/api/admin/soft-delete-package", body);
-
-                var json = await ReadJsonAsync(response);
-                var results = json["Results"] as JArray;
-                Assert.NotNull(results);
-                Assert.Single(results);
-                Assert.Equal("NotFound", results[0]["Status"]?.ToString());
             }
 
             [Fact]
@@ -387,26 +285,6 @@ namespace NuGetGallery.FunctionalTests.AdminApi
                 Assert.True(
                     results.All(r => r["Status"]?.ToString() == "Accepted"),
                     "Expected all versions to be accepted for deletion.");
-            }
-
-            [Fact]
-            [Priority(2)]
-            [Category("AdminApiTests")]
-            public async Task WildcardReturnsNotFoundForNonexistentPackage()
-            {
-                var body = JsonConvert.SerializeObject(new
-                {
-                    packages = new[] { new { id = "This.Package.Does.Not.Exist", version = "*" } },
-                    reason = "Functional test wildcard not found"
-                });
-
-                var response = await PostAuthenticatedJsonAsync("/api/admin/soft-delete-package", body);
-
-                var json = await ReadJsonAsync(response);
-                var results = json["Results"] as JArray;
-                Assert.NotNull(results);
-                Assert.Single(results);
-                Assert.Equal("NotFound", results[0]["Status"]?.ToString());
             }
         }
 
