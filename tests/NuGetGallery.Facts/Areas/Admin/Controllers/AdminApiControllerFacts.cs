@@ -481,6 +481,25 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
 
             [Fact]
+            public async Task Returns400WhenPackageEntryIsNullAsync()
+            {
+                var request = new AdminLockPackageRequest
+                {
+                    Packages = [null],
+                    Locked = true,
+                    Reason = "test"
+                };
+
+                var controller = CreateController();
+                ValidateModel(controller, request);
+
+                var result = await controller.LockPackageAsync(request) as JsonResult;
+
+                Assert.NotNull(result);
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+            }
+
+            [Fact]
             public async Task Returns400WhenPackagesExceeds100Async()
             {
                 var packages = new List<AdminLockPackageIdentity>();
@@ -733,6 +752,25 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 }
 
                 var request = new AdminLockUserRequest { Users = users, Locked = true, Reason = "test" };
+                var controller = CreateController();
+                ValidateModel(controller, request);
+
+                var result = await controller.LockUserAsync(request) as JsonResult;
+
+                Assert.NotNull(result);
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public async Task Returns400WhenUserEntryIsNullAsync()
+            {
+                var request = new AdminLockUserRequest
+                {
+                    Users = [null],
+                    Locked = true,
+                    Reason = "test"
+                };
+
                 var controller = CreateController();
                 ValidateModel(controller, request);
 
@@ -1019,6 +1057,24 @@ namespace NuGetGallery.Areas.Admin.Controllers
             public async Task Returns400WhenPackagesIsEmptyAsync()
             {
                 var request = new AdminSoftDeletePackageRequest { Packages = [], Reason = "test" };
+                var controller = CreateSoftDeleteController();
+                ValidateModel(controller, request);
+
+                var result = await controller.SoftDeletePackageAsync(request) as JsonResult;
+
+                Assert.NotNull(result);
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public async Task Returns400WhenPackageEntryIsNullAsync()
+            {
+                var request = new AdminSoftDeletePackageRequest
+                {
+                    Packages = [null],
+                    Reason = "test"
+                };
+
                 var controller = CreateSoftDeleteController();
                 ValidateModel(controller, request);
 

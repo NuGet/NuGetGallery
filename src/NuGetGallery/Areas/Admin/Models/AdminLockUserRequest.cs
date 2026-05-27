@@ -32,6 +32,14 @@ namespace NuGetGallery.Areas.Admin.Models
             {
                 yield return new ValidationResult($"The users field must contain at most {AdminRequestLimits.MaxUserCount} entries.", [nameof(Users)]);
             }
+
+            for (var i = 0; i < Users.Count; i++)
+            {
+                if (Users[i] == null)
+                {
+                    yield return new ValidationResult("User entry must not be null.", [$"{nameof(Users)}[{i}]"]);
+                }
+            }
         }
     }
 }

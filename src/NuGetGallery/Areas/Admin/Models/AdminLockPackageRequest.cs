@@ -33,6 +33,14 @@ namespace NuGetGallery.Areas.Admin.Models
             {
                 yield return new ValidationResult($"The packages field must contain at most {AdminRequestLimits.MaxPackageCount} entries.", [nameof(Packages)]);
             }
+
+            for (var i = 0; i < Packages.Count; i++)
+            {
+                if (Packages[i] == null)
+                {
+                    yield return new ValidationResult("Package entry must not be null.", [$"{nameof(Packages)}[{i}]"]);
+                }
+            }
         }
     }
 
