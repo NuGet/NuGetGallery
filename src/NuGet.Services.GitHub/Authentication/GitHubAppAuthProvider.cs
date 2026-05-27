@@ -130,6 +130,5 @@ namespace NuGet.Services.GitHub.Authentication
                 Credentials = new Credentials(jwt, AuthenticationType.Bearer)
             };
         }
-
-            }
-        }
+    }
+}
