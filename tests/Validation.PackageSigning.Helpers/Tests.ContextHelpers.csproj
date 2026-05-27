@@ -3,6 +3,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>Validation.PackageSigning.Helpers</RootNamespace>
     <AssemblyName>Validation.PackageSigning.Helpers</AssemblyName>
+    <IsTestProject>false</IsTestProject>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="xunit" />
