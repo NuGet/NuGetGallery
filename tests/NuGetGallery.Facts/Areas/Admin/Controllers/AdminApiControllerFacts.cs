@@ -819,6 +819,24 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
 
             [Fact]
+            public async Task Returns400WhenReasonIsMissingAsync()
+            {
+                var request = new AdminLockUserRequest
+                {
+                    Users = [new AdminUserIdentity { Username = "testuser" }],
+                    Locked = true
+                };
+
+                var controller = CreateController();
+                ValidateModel(controller, request);
+
+                var result = await controller.LockUserAsync(request) as JsonResult;
+
+                Assert.NotNull(result);
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+            }
+
+            [Fact]
             public async Task Returns202WithAcceptedUsersAsync()
             {
                 var lockUserService = new Mock<ILockUserService>();

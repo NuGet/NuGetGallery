@@ -13,6 +13,7 @@ namespace NuGetGallery.Areas.Admin.Models
         [Required(ErrorMessage = "The locked field is required.")]
         public bool? Locked { get; set; }
 
+        [Required(AllowEmptyStrings = false, ErrorMessage = "The reason field is required.")]
         public string Reason { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
