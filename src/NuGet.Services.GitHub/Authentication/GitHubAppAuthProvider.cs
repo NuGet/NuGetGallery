@@ -105,22 +105,7 @@ namespace NuGet.Services.GitHub.Authentication
                     {
                         var jwt = await CreateSignedJwtAsync();
                         GitHubClient client = CreateGitHubClient(jwt);
-
-                        if (_installationId == -1)
-                        {
-                            _installationId = await GetInstallationIdAsync(client);
-                        }
-
-                        _accessToken = await client.GitHubApps.CreateInstallationToken(_installationId);
-
-                        if (_accessToken is null)
-                        {
-                            throw new InvalidOperationException("Failed to retrieve GitHub App installation token.");
-                        }
-                        if (string.IsNullOrWhiteSpace(_accessToken.Token))
-                        {
-                            throw new InvalidOperationException("GitHub App installation token is empty.");
-                        }
+                        await RefreshAccessTokenAsync(client);
                     }
                 }
                 finally
@@ -130,6 +115,29 @@ namespace NuGet.Services.GitHub.Authentication
             }
 
 			return _accessToken.Token;
+        }
+
+        private async Task RefreshAccessTokenAsync(GitHubClient client)
+        {
+            if (client is null)
+            {
+                throw new ArgumentNullException(nameof(client));
+            }
+
+            if (_installationId < 0)
+            {
+                _installationId = await GetInstallationIdAsync(client);
+            }
+
+            _accessToken = await client.GitHubApps.CreateInstallationToken(_installationId);
+            if (_accessToken is null)
+            {
+                throw new InvalidOperationException("Failed to retrieve GitHub App installation token.");
+            }
+            if (string.IsNullOrWhiteSpace(_accessToken.Token))
+            {
+                throw new InvalidOperationException("GitHub App installation token is empty.");
+            }
         }
 
         private GitHubClient CreateGitHubClient(string jwt)
