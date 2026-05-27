@@ -112,6 +112,15 @@ namespace NuGet.Services.GitHub.Authentication
                         }
 
                         _accessToken = await client.GitHubApps.CreateInstallationToken(_installationId);
+
+                        if (_accessToken is null)
+                        {
+                            throw new InvalidOperationException("Failed to retrieve GitHub App installation token.");
+                        }
+                        if (string.IsNullOrWhiteSpace(_accessToken.Token))
+                        {
+                            throw new InvalidOperationException("GitHub App installation token is empty.");
+                        }
                     }
                 }
                 finally
