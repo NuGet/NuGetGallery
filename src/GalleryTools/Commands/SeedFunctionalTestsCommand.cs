@@ -149,11 +149,6 @@ namespace GalleryTools.Commands
             }
 
             // ─── 6. Write settings.CI.json ───────────────────────────────────────────
-            // Admin API test credentials must match the Gallery.AdminApiAllowedCallers
-            // value in Web.config ("your-tid:your-azp").
-            const string adminApiTestTenantId = "your-tid";
-            const string adminApiTestClientId = "your-azp";
-
             var settings = new JObject(
                 new JProperty("DefaultSecurityPoliciesEnforced", true),
                 new JProperty("TestPackageLock", true),
@@ -176,8 +171,8 @@ namespace GalleryTools.Commands
                     new JProperty("Name", collaboratorOrgName),
                     new JProperty("ApiKey", collabOrgApiKey))),
                 new JProperty("AdminApi", new JObject(
-                    new JProperty("AllowedTenantId", adminApiTestTenantId),
-                    new JProperty("AllowedClientId", adminApiTestClientId),
+                    new JProperty("AllowedTenantId", "your-tid"),
+                    new JProperty("AllowedClientId", "your-azp"),
                     new JProperty("ReflowPackageId", "AdminApiTest.Reflow"),
                     new JProperty("ReflowPackageVersion", "1.0.0"),
                     new JProperty("LockPackageId", "AdminApiTest.Lock"),
