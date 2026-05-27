@@ -17,14 +17,6 @@ namespace NuGetGallery.FunctionalTests.AdminApi
 {
     public class AdminApiTests : GalleryTestBase, IDisposable
     {
-        private static readonly string[] Endpoints =
-        {
-            "/api/admin/reflow-package",
-            "/api/admin/lock-package",
-            "/api/admin/lock-user",
-            "/api/admin/soft-delete-package",
-        };
-
         private readonly HttpClient _httpClient;
 
         public AdminApiTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
