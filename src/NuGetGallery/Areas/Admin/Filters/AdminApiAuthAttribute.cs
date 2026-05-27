@@ -57,8 +57,7 @@ namespace NuGetGallery.Areas.Admin.Filters
 
             if (errorObj is AdminApiBearerAuthenticationHandler.AuthError authError)
             {
-                filterContext.Result = new HttpStatusCodeWithBodyResult(
-                    authError.StatusCode, authError.Message);
+                filterContext.Result = new HttpStatusCodeWithBodyResult(authError.StatusCode, authError.Message);
             }
             else
             {
