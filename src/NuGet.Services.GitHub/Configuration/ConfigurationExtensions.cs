@@ -26,13 +26,14 @@ namespace NuGet.Services.GitHub.Configuration
             return builder.Register(ctx =>
             {
                 var config = ctx.Resolve<TConfiguration>();
+#if DEBUG
+                var credential = new DefaultAzureCredential();
+#else
                 if (!keyVaultUseManagedIdentity)
                 {
                     throw new InvalidOperationException("Only managed identity authentication is supported.");
                 }
-#if DEBUG
-                var credential = new DefaultAzureCredential();
-#else
+
                 if (string.IsNullOrWhiteSpace(keyVaultManagedIdentityClientId))
                 {
                     throw new InvalidOperationException("Managed identity client ID is not configured.");
