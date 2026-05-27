@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
+using NuGetGallery.FunctionalTests.XunitExtensions;
 
 namespace NuGetGallery.FunctionalTests.ODataFeeds
 {
@@ -51,7 +52,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             Assert.True(containsResponseText);
         }
 
-        [Fact]
+        [NeedsStatisticsServiceFact]
         [Description("Verify the webresponse from top30 packages feed contains Newtonsoft.Json")]
         [Priority(0)]
         [Category("P0Tests")]
@@ -82,7 +83,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             await _odataHelper.DownloadPackageFromV2FeedWithOperation(Constants.TestPackageId, "1.0.0", "Restore");
         }
 
-        [Theory]
+        [NeedsSearchServiceTheory]
         [InlineData("Packages?$orderby=DownloadCount+asc&$select=Id&$top=3")]
         [Description("Performs a OData request that will be rejected if not found by the search engine. The feature needs to be enabled for this test to pass.")]
         [Priority(0)]

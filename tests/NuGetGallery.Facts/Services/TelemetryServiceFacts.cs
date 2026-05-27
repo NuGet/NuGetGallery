@@ -45,7 +45,7 @@ namespace NuGetGallery
                     var package = packages.First();
                     var identity = Fakes.ToIdentity(fakes.User);
                     yield return new object[] { "CertificateActivated",
-                        (TrackAction)(s => s.TrackCertificateActivated("thumbprint"))
+                        (TrackAction)(s => s.TrackCertificateActivated("thumbprint", fakes.User))
                     };
 
                     yield return new object[] { "CertificateAdded",
@@ -53,7 +53,7 @@ namespace NuGetGallery
                     };
 
                     yield return new object[] { "CertificateDeactivated",
-                        (TrackAction)(s => s.TrackCertificateDeactivated("thumbprint"))
+                        (TrackAction)(s => s.TrackCertificateDeactivated("thumbprint", fakes.User))
                     };
 
                     yield return new object[] { "PackageRegistrationRequiredSignerSet",
@@ -201,7 +201,8 @@ namespace NuGetGallery
                             "NuGet.Versioning",
                             "4.5.0",
                             ReportPackageReason.ReleasedInPublicByAccident,
-                            success: true))
+                            success: true,
+                            user: fakes.User))
                     };
 
                     yield return new object[] { "OrganizationTransformInitiated",
@@ -539,7 +540,8 @@ namespace NuGetGallery
                         packageId: null,
                         packageVersion: "4.5.0",
                         reason: ReportPackageReason.ReleasedInPublicByAccident,
-                        success: true));
+                        success: true,
+                        user: fakes.User));
             }
 
             [Fact]
@@ -555,7 +557,8 @@ namespace NuGetGallery
                         packageId: "NuGet.Versioning",
                         packageVersion: null,
                         reason: ReportPackageReason.ReleasedInPublicByAccident,
-                        success: true));
+                        success: true,
+                        user: fakes.User));
             }
 
             [Fact]
@@ -645,7 +648,7 @@ namespace NuGetGallery
             {
                 var service = CreateService();
                 var exception = Assert.Throws<ArgumentException>(
-                    () => service.TrackCertificateActivated(thumbprint));
+                    () => service.TrackCertificateActivated(thumbprint, fakes.User));
 
                 Assert.Equal("thumbprint", exception.ParamName);
                 Assert.StartsWith("The argument cannot be null or empty.", exception.Message);
@@ -656,9 +659,19 @@ namespace NuGetGallery
             {
                 const string thumbprint = "a";
 
-                var service = CreateServiceForCertificateTelemetry("CertificateActivated", thumbprint);
+                var service = CreateService();
 
-                service.TrackCertificateActivated(thumbprint);
+                service.TelemetryClient.Setup(
+                   x => x.TrackMetric(
+                       It.Is<string>(name => name == "CertificateActivated"),
+                       It.Is<double>(value => value == 1),
+                       It.Is<IDictionary<string, string>>(
+                           properties => properties.Count == 3 &&
+                               properties["Sha256Thumbprint"] == thumbprint &&
+                               properties["Username"] == fakes.User.Username &&
+                               properties["AccountKey"] == fakes.User.Key.ToString())));
+
+                service.TrackCertificateActivated(thumbprint, fakes.User);
 
                 service.TelemetryClient.VerifyAll();
             }
@@ -670,7 +683,7 @@ namespace NuGetGallery
             {
                 var service = CreateService();
                 var exception = Assert.Throws<ArgumentException>(
-                    () => service.TrackCertificateDeactivated(thumbprint));
+                    () => service.TrackCertificateDeactivated(thumbprint, fakes.User));
 
                 Assert.Equal("thumbprint", exception.ParamName);
                 Assert.StartsWith("The argument cannot be null or empty.", exception.Message);
@@ -681,9 +694,19 @@ namespace NuGetGallery
             {
                 const string thumbprint = "a";
 
-                var service = CreateServiceForCertificateTelemetry("CertificateDeactivated", thumbprint);
+                var service = CreateService();
 
-                service.TrackCertificateDeactivated(thumbprint);
+                service.TelemetryClient.Setup(
+                   x => x.TrackMetric(
+                       It.Is<string>(name => name == "CertificateDeactivated"),
+                       It.Is<double>(value => value == 1),
+                       It.Is<IDictionary<string, string>>(
+                           properties => properties.Count == 3 &&
+                               properties["Sha256Thumbprint"] == thumbprint &&
+                               properties["Username"] == fakes.User.Username &&
+                               properties["AccountKey"] == fakes.User.Key.ToString())));
+
+                service.TrackCertificateDeactivated(thumbprint, fakes.User);
 
                 service.TelemetryClient.VerifyAll();
             }
@@ -745,11 +768,15 @@ namespace NuGetGallery
                        It.Is<string>(name => name == "AccountDeleteCompleted"),
                        It.Is<double>(value => value == 1),
                        It.Is<IDictionary<string, string>>(
-                           properties => properties.Count == 4 &&
+                           properties => properties.Count == 8 &&
                                properties["AccountDeletedByRole"] == "[\"Admins\"]" &&
                                properties["AccountIsSelfDeleted"] == "False" &&
                                properties["AccountDeletedIsOrganization"] == "True" &&
-                               properties["AccountDeleteSucceeded"] == "True")
+                               properties["AccountDeleteSucceeded"] == "True" &&
+                               properties["DeletedUsername"] == "testOrganization" &&
+                               properties["DeletedByUsername"] == "testAdmin" &&
+                               properties["DeletedAccountKey"] == fakes.Organization.Key.ToString() &&
+                               properties["DeletedByAccountKey"] == fakes.Admin.Key.ToString())
                                ));
 
                 service.TrackAccountDeletionCompleted(fakes.Organization, fakes.Admin, true);
@@ -779,8 +806,10 @@ namespace NuGetGallery
                        It.Is<string>(name => name == "AccountDeleteRequested"),
                        It.Is<double>(value => value == 1),
                        It.Is<IDictionary<string, string>>(
-                           properties => properties.Count == 1 &&
-                               properties["CreatedDateForAccountToBeDeleted"] == $"{user.CreatedUtc}"
+                           properties => properties.Count == 3 &&
+                               properties["CreatedDateForAccountToBeDeleted"] == $"{user.CreatedUtc}" &&
+                               properties["Username"] == "testUser" &&
+                               properties["AccountKey"] == user.Key.ToString()
                                )));
 
                 service.TrackRequestForAccountDeletion(fakes.User);

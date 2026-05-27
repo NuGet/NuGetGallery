@@ -333,7 +333,8 @@ namespace NuGetGallery.Services
                         record.Thumbprint == _sha256Thumbprint)))
                 .Returns(Task.CompletedTask);
             _telemetryService.Setup(x => x.TrackCertificateActivated(
-                It.Is<string>(thumbprint => thumbprint == _sha256Thumbprint)));
+                It.Is<string>(thumbprint => thumbprint == _sha256Thumbprint),
+                It.Is<User>(account => account == _user)));
 
             var service = GetCertificateService();
 
@@ -461,7 +462,8 @@ namespace NuGetGallery.Services
                         record.Thumbprint == _sha256Thumbprint)))
                 .Returns(Task.CompletedTask);
             _telemetryService.Setup(x => x.TrackCertificateDeactivated(
-                It.Is<string>(thumbprint => thumbprint == _sha256Thumbprint)));
+                It.Is<string>(thumbprint => thumbprint == _sha256Thumbprint),
+                It.Is<User>(account => account == _user)));
 
             var service = GetCertificateService();
 

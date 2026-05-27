@@ -1683,7 +1683,8 @@ namespace NuGetGallery
                     package.PackageRegistration.Id,
                     package.NormalizedVersion,
                     reportForm.Reason.Value,
-                    deleted);
+                    deleted,
+                    user);
             }
 
             if (!deleted)

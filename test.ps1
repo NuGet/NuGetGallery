@@ -47,6 +47,9 @@ Invoke-BuildStep 'Running common tests' {
             $TestResultFile = Join-Path $PSScriptRoot "Results.Common.$TestCount.xml"
             Trace-Log "Testing $($_.Path)"
             dotnet test $_.Path --no-restore --no-build --configuration $Configuration "-l:trx;LogFileName=$TestResultFile"
+            if ($LASTEXITCODE -ne 0) {
+                Write-Error "Tests failed for $($_.Path) with exit code $LASTEXITCODE"
+            }
             if (-not (Test-Path $TestResultFile)) {
                 Write-Error "The test run failed to produce a result file";
                 exit 1;
@@ -66,6 +69,9 @@ Invoke-BuildStep 'Running gallery tests' {
             $TestResultFile = Join-Path $PSScriptRoot "Results.Gallery.$TestCount.xml"
             Trace-Log "Testing $($_.Path)"
             dotnet test $_.Path --no-restore --no-build --configuration $Configuration "-l:trx;LogFileName=$TestResultFile"
+            if ($LASTEXITCODE -ne 0) {
+                Write-Error "Tests failed for $($_.Path) with exit code $LASTEXITCODE"
+            }
             if (-not (Test-Path $TestResultFile)) {
                 Write-Error "The test run failed to produce a result file";
                 exit 1;
@@ -88,6 +94,9 @@ Invoke-BuildStep 'Running jobs tests' {
             $TestResultFile = Join-Path $PSScriptRoot "Results.Jobs.$TestCount.xml"
             Trace-Log "Testing $($_.Path)"
             dotnet test $_.Path --no-restore --no-build --configuration $Configuration "-l:trx;LogFileName=$TestResultFile"
+            if ($LASTEXITCODE -ne 0) {
+                Write-Error "Tests failed for $($_.Path) with exit code $LASTEXITCODE"
+            }
             if (-not (Test-Path $TestResultFile)) {
                 Write-Error "The test run failed to produce a result file";
                 exit 1;
