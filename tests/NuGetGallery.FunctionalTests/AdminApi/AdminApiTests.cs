@@ -164,16 +164,17 @@ namespace NuGetGallery.FunctionalTests.AdminApi
             [Category("AdminApiTests")]
             public async Task ReflowsExistingPackage()
             {
-                var config = GalleryConfiguration.Instance.AdminApi;
+                const string packageId = "BaseTestPackage";
+                const string packageVersion = "1.0.0";
 
                 // Capture LastEdited before reflow
                 var odataHelper = new ODataHelper(TestOutputHelper);
                 var lastEditedBefore = await odataHelper.GetTimestampOfPackageFromResponse(
-                    config.ReflowPackageId, config.ReflowPackageVersion, "LastEdited");
+                    packageId, packageVersion, "LastEdited");
 
                 var body = JsonConvert.SerializeObject(new
                 {
-                    packages = new[] { new { id = config.ReflowPackageId, version = config.ReflowPackageVersion } },
+                    packages = new[] { new { id = packageId, version = packageVersion } },
                     reason = "Functional test reflow"
                 });
 
@@ -189,7 +190,7 @@ namespace NuGetGallery.FunctionalTests.AdminApi
 
                 // Verify LastEdited was updated by the reflow
                 var lastEditedAfter = await odataHelper.GetTimestampOfPackageFromResponse(
-                    config.ReflowPackageId, config.ReflowPackageVersion, "LastEdited");
+                    packageId, packageVersion, "LastEdited");
                 Assert.NotNull(lastEditedAfter);
                 if (lastEditedBefore.HasValue)
                 {
@@ -203,12 +204,12 @@ namespace NuGetGallery.FunctionalTests.AdminApi
             [Category("AdminApiTests")]
             public async Task LocksAndUnlocksExistingPackage()
             {
-                var config = GalleryConfiguration.Instance.AdminApi;
+                const string packageId = "BaseTestPackage";
 
                 // Lock the package
                 var lockBody = JsonConvert.SerializeObject(new
                 {
-                    packages = new[] { new { id = config.LockPackageId } },
+                    packages = new[] { new { id = packageId } },
                     locked = true,
                     reason = "Functional test lock"
                 });
@@ -226,7 +227,7 @@ namespace NuGetGallery.FunctionalTests.AdminApi
                 // Unlock the package (verifies round-trip and cleans up)
                 var unlockBody = JsonConvert.SerializeObject(new
                 {
-                    packages = new[] { new { id = config.LockPackageId } },
+                    packages = new[] { new { id = packageId } },
                     locked = false,
                     reason = "Functional test unlock"
                 });

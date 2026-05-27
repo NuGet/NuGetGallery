@@ -173,9 +173,6 @@ namespace GalleryTools.Commands
                 new JProperty("AdminApi", new JObject(
                     new JProperty("AllowedTenantId", "your-tid"),
                     new JProperty("AllowedClientId", "your-azp"),
-                    new JProperty("ReflowPackageId", "AdminApiTest.Reflow"),
-                    new JProperty("ReflowPackageVersion", "1.0.0"),
-                    new JProperty("LockPackageId", "AdminApiTest.Lock"),
                     new JProperty("SoftDeletePackageId", "AdminApiTest.SoftDelete"),
                     new JProperty("SoftDeletePackageVersion", "1.0.0"),
                     new JProperty("LockUsername", adminApiLockUserTarget))),
