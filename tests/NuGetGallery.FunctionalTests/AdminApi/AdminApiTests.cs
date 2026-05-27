@@ -165,6 +165,12 @@ namespace NuGetGallery.FunctionalTests.AdminApi
             public async Task ReflowsExistingPackage()
             {
                 var config = GalleryConfiguration.Instance.AdminApi;
+
+                // Capture LastEdited before reflow
+                var odataHelper = new ODataHelper(TestOutputHelper);
+                var lastEditedBefore = await odataHelper.GetTimestampOfPackageFromResponse(
+                    config.ReflowPackageId, config.ReflowPackageVersion, "LastEdited");
+
                 var body = JsonConvert.SerializeObject(new
                 {
                     packages = new[] { new { id = config.ReflowPackageId, version = config.ReflowPackageVersion } },
@@ -180,53 +186,104 @@ namespace NuGetGallery.FunctionalTests.AdminApi
                 Assert.NotNull(results);
                 Assert.Single(results);
                 Assert.Equal("Accepted", results[0]["Status"]?.ToString());
+
+                // Verify LastEdited was updated by the reflow
+                var lastEditedAfter = await odataHelper.GetTimestampOfPackageFromResponse(
+                    config.ReflowPackageId, config.ReflowPackageVersion, "LastEdited");
+                Assert.NotNull(lastEditedAfter);
+                if (lastEditedBefore.HasValue)
+                {
+                    Assert.True(lastEditedAfter > lastEditedBefore,
+                        $"Expected LastEdited to advance after reflow. Before: {lastEditedBefore}, After: {lastEditedAfter}");
+                }
             }
 
             [Fact]
             [Priority(2)]
             [Category("AdminApiTests")]
-            public async Task LocksExistingPackage()
+            public async Task LocksAndUnlocksExistingPackage()
             {
                 var config = GalleryConfiguration.Instance.AdminApi;
-                var body = JsonConvert.SerializeObject(new
+
+                // Lock the package
+                var lockBody = JsonConvert.SerializeObject(new
                 {
                     packages = new[] { new { id = config.LockPackageId } },
                     locked = true,
                     reason = "Functional test lock"
                 });
 
-                var response = await PostAuthenticatedJsonAsync("/api/admin/lock-package", body);
+                var lockResponse = await PostAuthenticatedJsonAsync("/api/admin/lock-package", lockBody);
 
-                var json = await ReadJsonAsync(response);
-                TestOutputHelper.WriteLine($"Response: {json}");
-                Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
-                var results = json["Results"] as JArray;
-                Assert.NotNull(results);
-                Assert.Single(results);
-                Assert.Equal("Accepted", results[0]["Status"]?.ToString());
+                var lockJson = await ReadJsonAsync(lockResponse);
+                TestOutputHelper.WriteLine($"Lock response: {lockJson}");
+                Assert.Equal(HttpStatusCode.Accepted, lockResponse.StatusCode);
+                var lockResults = lockJson["Results"] as JArray;
+                Assert.NotNull(lockResults);
+                Assert.Single(lockResults);
+                Assert.Equal("Accepted", lockResults[0]["Status"]?.ToString());
+
+                // Unlock the package (verifies round-trip and cleans up)
+                var unlockBody = JsonConvert.SerializeObject(new
+                {
+                    packages = new[] { new { id = config.LockPackageId } },
+                    locked = false,
+                    reason = "Functional test unlock"
+                });
+
+                var unlockResponse = await PostAuthenticatedJsonAsync("/api/admin/lock-package", unlockBody);
+
+                var unlockJson = await ReadJsonAsync(unlockResponse);
+                TestOutputHelper.WriteLine($"Unlock response: {unlockJson}");
+                Assert.Equal(HttpStatusCode.Accepted, unlockResponse.StatusCode);
+                var unlockResults = unlockJson["Results"] as JArray;
+                Assert.NotNull(unlockResults);
+                Assert.Single(unlockResults);
+                Assert.Equal("Accepted", unlockResults[0]["Status"]?.ToString());
             }
 
             [Fact]
             [Priority(2)]
             [Category("AdminApiTests")]
-            public async Task LocksExistingUser()
+            public async Task LocksAndUnlocksExistingUser()
             {
                 var config = GalleryConfiguration.Instance.AdminApi;
-                var body = JsonConvert.SerializeObject(new
+
+                // Lock the user
+                var lockBody = JsonConvert.SerializeObject(new
                 {
                     users = new[] { new { username = config.LockUsername } },
-                    locked = true
+                    locked = true,
+                    reason = "Functional test lock"
                 });
 
-                var response = await PostAuthenticatedJsonAsync("/api/admin/lock-user", body);
+                var lockResponse = await PostAuthenticatedJsonAsync("/api/admin/lock-user", lockBody);
 
-                var json = await ReadJsonAsync(response);
-                TestOutputHelper.WriteLine($"Response: {json}");
-                Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
-                var results = json["Results"] as JArray;
-                Assert.NotNull(results);
-                Assert.Single(results);
-                Assert.Equal("Accepted", results[0]["Status"]?.ToString());
+                var lockJson = await ReadJsonAsync(lockResponse);
+                TestOutputHelper.WriteLine($"Lock response: {lockJson}");
+                Assert.Equal(HttpStatusCode.Accepted, lockResponse.StatusCode);
+                var lockResults = lockJson["Results"] as JArray;
+                Assert.NotNull(lockResults);
+                Assert.Single(lockResults);
+                Assert.Equal("Accepted", lockResults[0]["Status"]?.ToString());
+
+                // Unlock the user (verifies round-trip and cleans up)
+                var unlockBody = JsonConvert.SerializeObject(new
+                {
+                    users = new[] { new { username = config.LockUsername } },
+                    locked = false,
+                    reason = "Functional test unlock"
+                });
+
+                var unlockResponse = await PostAuthenticatedJsonAsync("/api/admin/lock-user", unlockBody);
+
+                var unlockJson = await ReadJsonAsync(unlockResponse);
+                TestOutputHelper.WriteLine($"Unlock response: {unlockJson}");
+                Assert.Equal(HttpStatusCode.Accepted, unlockResponse.StatusCode);
+                var unlockResults = unlockJson["Results"] as JArray;
+                Assert.NotNull(unlockResults);
+                Assert.Single(unlockResults);
+                Assert.Equal("Accepted", unlockResults[0]["Status"]?.ToString());
             }
 
             [Fact]
@@ -235,6 +292,13 @@ namespace NuGetGallery.FunctionalTests.AdminApi
             public async Task SoftDeletesExistingPackage()
             {
                 var config = GalleryConfiguration.Instance.AdminApi;
+
+                // Verify the package exists before deletion
+                var packageUrl = $"{UrlHelper.V2FeedRootUrl}Packages(Id='{config.SoftDeletePackageId}',Version='{config.SoftDeletePackageVersion}')?hijack=false";
+                var beforeResponse = await _httpClient.GetAsync(packageUrl);
+                TestOutputHelper.WriteLine($"Before delete: {(int)beforeResponse.StatusCode} for {packageUrl}");
+                Assert.Equal(HttpStatusCode.OK, beforeResponse.StatusCode);
+
                 var body = JsonConvert.SerializeObject(new
                 {
                     packages = new[] { new { id = config.SoftDeletePackageId, version = config.SoftDeletePackageVersion } },
@@ -250,6 +314,11 @@ namespace NuGetGallery.FunctionalTests.AdminApi
                 Assert.NotNull(results);
                 Assert.Single(results);
                 Assert.Equal("Accepted", results[0]["Status"]?.ToString());
+
+                // Verify the package is no longer available in the V2 feed
+                var afterResponse = await _httpClient.GetAsync(packageUrl);
+                TestOutputHelper.WriteLine($"After delete: {(int)afterResponse.StatusCode} for {packageUrl}");
+                Assert.Equal(HttpStatusCode.NotFound, afterResponse.StatusCode);
             }
 
             [Fact]
@@ -259,9 +328,17 @@ namespace NuGetGallery.FunctionalTests.AdminApi
             {
                 // Uses a dedicated package ID (AdminApiTest.SoftDeleteAll) with two
                 // seeded versions so this test doesn't conflict with SoftDeletesExistingPackage.
+                var packageId = "AdminApiTest.SoftDeleteAll";
+
+                // Verify at least one version exists before deletion
+                var findUrl = $"{UrlHelper.V2FeedRootUrl}FindPackagesById()?id='{packageId}'&hijack=false";
+                var beforeResponse = await _httpClient.GetStringAsync(findUrl);
+                TestOutputHelper.WriteLine($"Before delete: found package in feed = {beforeResponse.Contains(packageId)}");
+                Assert.Contains(packageId, beforeResponse, StringComparison.OrdinalIgnoreCase);
+
                 var body = JsonConvert.SerializeObject(new
                 {
-                    packages = new[] { new { id = "AdminApiTest.SoftDeleteAll", version = "*" } },
+                    packages = new[] { new { id = packageId, version = "*" } },
                     reason = "Functional test wildcard soft-delete"
                 });
 
@@ -277,6 +354,11 @@ namespace NuGetGallery.FunctionalTests.AdminApi
                 Assert.True(
                     results.All(r => r["Status"]?.ToString() == "Accepted"),
                     "Expected all versions to be accepted for deletion.");
+
+                // Verify no versions remain in the V2 feed
+                var afterResponse = await _httpClient.GetStringAsync(findUrl);
+                TestOutputHelper.WriteLine($"After delete: found package in feed = {afterResponse.Contains(packageId)}");
+                Assert.DoesNotContain(packageId, afterResponse, StringComparison.OrdinalIgnoreCase);
             }
         }
 
