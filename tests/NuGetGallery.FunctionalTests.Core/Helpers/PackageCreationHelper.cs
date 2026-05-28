@@ -5,6 +5,8 @@ using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
 using System.Threading.Tasks;
 using Xunit.Abstractions;
 
@@ -171,14 +173,15 @@ namespace NuGetGallery.FunctionalTests
         }
 
         /// <summary>
-        /// Writes a minimal valid PE file to serve as a dummy assembly in test packages.
-        /// CSharpCodeProvider.CompileAssemblyFromSource is not supported on .NET 5+.
+        /// Writes a minimal valid managed assembly.
+        /// CSharpCodeProvider.CompileAssemblyFromSource is not supported on .NET 5+,
+        /// so we use PersistedAssemblyBuilder (.NET 9+) to emit a real PE instead.
         /// </summary>
         private static void WriteDummyAssembly(string outputPath)
         {
-            // Minimal valid PE (Portable Executable) that satisfies NuGet packaging.
-            // The tests verify gallery push/search behavior, not assembly loading.
-            File.WriteAllBytes(outputPath, new byte[512]);
+            var assemblyName = new AssemblyName(Path.GetFileNameWithoutExtension(outputPath));
+            var assemblyBuilder = new PersistedAssemblyBuilder(assemblyName, typeof(object).Assembly);
+            assemblyBuilder.Save(outputPath);
         }
         
         /// <summary>

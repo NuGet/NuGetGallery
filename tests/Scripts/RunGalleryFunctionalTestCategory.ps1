@@ -7,22 +7,19 @@ param(
 $parentDir = Resolve-Path (Join-Path $PSScriptRoot "..")
 $repoDir = Resolve-Path (Join-Path $parentDir "..")
 
-# Required tools
-$xunit = Join-Path $repoDir "packages\xunit.runner.console\tools\net10.0\xunit.console.exe"
-
 # Test results files
 $functionalTestsResults = Join-Path $parentDir "functionaltests.$TestCategory.xml"
 
 # Clean previous test results
 Remove-Item $functionalTestsResults -ErrorAction Ignore
 
-$functionalTestsDirectory = Join-Path $parentDir "NuGetGallery.FunctionalTests\bin\$Configuration\net10.0"
+$functionalTestsProject = Join-Path $parentDir "NuGetGallery.FunctionalTests\NuGetGallery.FunctionalTests.csproj"
 
 # Run functional tests
 $fullTestCategory = "$($testCategory)Tests"
 $exitCode = 0
 
-& $xunit "$functionalTestsDirectory\NuGetGallery.FunctionalTests.dll" "-trait" "Category=$fullTestCategory" "-xml" $functionalTestsResults
+& dotnet test $functionalTestsProject --configuration $Configuration --no-build --filter "Category=$fullTestCategory" --results-directory (Split-Path $functionalTestsResults) --logger "trx;LogFileName=$(Split-Path $functionalTestsResults -Leaf)"
 if ($LASTEXITCODE -ne 0) {
     $exitCode = 1
 }

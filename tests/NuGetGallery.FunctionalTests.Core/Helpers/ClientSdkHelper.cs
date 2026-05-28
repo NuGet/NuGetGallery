@@ -693,8 +693,14 @@ namespace NuGetGallery.FunctionalTests
                 resource.CopyNupkgToStreamAsync(packageId, NuGetVersion.Parse(version), fileStream, cacheContext, NullLogger.Instance, CancellationToken.None).Wait();
             }
 
-            Assert.True(CheckIfPackageVersionInstalled(packageId, version),
-                "Package install failed. Either the file is not present on disk or it is corrupted. Check logs for details");
+            // Verify the downloaded nupkg is a valid package with the expected identity.
+            using (var reader = new PackageArchiveReader(nupkgPath))
+            {
+                var identity = reader.GetIdentity();
+                Assert.Equal(packageId, identity.Id);
+                Assert.Equal(version, identity.Version.ToNormalizedString());
+                Assert.NotEmpty(reader.GetFiles());
+            }
         }
 
         public void CleanCreatedPackage(string packageFullPath)
