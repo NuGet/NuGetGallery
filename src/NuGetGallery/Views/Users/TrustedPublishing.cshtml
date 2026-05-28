@@ -1,4 +1,4 @@
-﻿﻿@using Newtonsoft.Json
+﻿@using Newtonsoft.Json
 @model TrustedPublisherPolicyListViewModel
 @using NuGetGallery.Authentication
 @{
@@ -11,6 +11,14 @@
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             @ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, true, @<text>Trusted Publishing</text>)
+
+            @if (Request.QueryString["fromApiKeys"] == "true")
+            {
+                @ViewHelpers.Alert(
+                        @<text><b>API keys are strongly discouraged for automated publishing</b> and should be replaced with <a href="https://aka.ms/nuget/trusted-publishing" target="_blank">Trusted Publishing</a>, which is currently supported for GitHub Actions, with broader CI/CD support coming soon.
+                            We strongly recommend updating now to Trusted Publishing to ensure a seamless transition.
+                            For publishing from command line or unsupported CI/CD workflows, <a href="@(Url.ManageMyApiKeys() + "?forceApiKeys=true")">API keys</a> continue to work.</text>, "info", icon: null)}
+
             <p>
                 <strong>Trusted Publishing</strong> lets you publish NuGet packages securely without managing API keys.
                 It currently supports publishing from <strong>GitHub Actions</strong>.
