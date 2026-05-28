@@ -181,6 +181,7 @@ namespace NuGetGallery.FunctionalTests
         {
             var assemblyName = new AssemblyName(Path.GetFileNameWithoutExtension(outputPath));
             var assemblyBuilder = new PersistedAssemblyBuilder(assemblyName, typeof(object).Assembly);
+            assemblyBuilder.DefineDynamicModule(assemblyName.Name);
             assemblyBuilder.Save(outputPath);
         }
         
