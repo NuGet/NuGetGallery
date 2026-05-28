@@ -4,7 +4,6 @@
 @{
     ViewBag.Title = "Trusted Publishing";
     ViewBag.MdPageColumns = GalleryConstants.ColumnsFormMd;
-    var fromApiKeys = Request.QueryString["fromApiKeys"] == "true";
 }
 
 <section role="main" class="container main-container page-trusted-publishing">
@@ -13,7 +12,7 @@
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             @ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, true, @<text>Trusted Publishing</text>)
 
-            @if (fromApiKeys)
+            @if (Request.QueryString["fromApiKeys"] == "true")
             {
                 @ViewHelpers.Alert(
                         @<text><b>API keys are strongly discouraged for automated publishing</b> and should be replaced with <a href="https://aka.ms/nuget/trusted-publishing" target="_blank">Trusted Publishing</a>, which is currently supported for GitHub Actions, with broader CI/CD support coming soon.
