@@ -17,17 +17,24 @@ Write-Host "Restoring and building solution"
 $solutionPath = Join-Path $repoDir "NuGetGallery.FunctionalTests.sln"
 $nugetConfig = Join-Path $repoDir "NuGet.config"
 
-# Diagnostic: show what sources dotnet sees with and without the repo config
+# Diagnostic: show what sources dotnet sees
 Write-Host "##[group]NuGet source diagnostics"
-Write-Host "--- Sources without --configfile (full hierarchy) ---"
+Write-Host "--- Sources (full hierarchy) ---"
 & dotnet nuget list source
-Write-Host "--- Sources with --configfile (repo config only) ---"
+Write-Host "--- Sources (repo config only) ---"
 & dotnet nuget list source --configfile $nugetConfig
-Write-Host "--- All NuGet.config files on disk ---"
-Get-ChildItem -Path (Split-Path $repoDir -Qualifier) -Filter "NuGet.config" -Recurse -ErrorAction SilentlyContinue -Depth 6 | ForEach-Object { Write-Host $_.FullName }
 Write-Host "##[endgroup]"
 
-& dotnet restore $solutionPath --configfile $nugetConfig
+# The nuget-server-upstreams source may be registered at the machine/user level on build agents
+# (e.g., by the Azure Artifacts credential provider during a prior nuget.exe restore).
+# It requires devdiv org credentials that CI agents don't have. Remove it if present.
+$sourceCheck = & dotnet nuget list source 2>&1 | Out-String
+if ($sourceCheck -match 'nuget-server-upstreams') {
+    Write-Host "Removing nuget-server-upstreams source (not needed, causes 401 on public agents)"
+    & dotnet nuget remove source nuget-server-upstreams 2>$null
+}
+
+& dotnet restore $solutionPath
 if ($LASTEXITCODE -ne 0) {
     throw "Failed to restore packages!"
 }
