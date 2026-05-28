@@ -15,7 +15,19 @@ Write-Host "##[group]Restoring and building functional tests"
 # Restore and build using dotnet CLI
 Write-Host "Restoring and building solution"
 $solutionPath = Join-Path $repoDir "NuGetGallery.FunctionalTests.sln"
-& dotnet restore $solutionPath
+$nugetConfig = Join-Path $repoDir "NuGet.config"
+
+# Diagnostic: show what sources dotnet sees with and without the repo config
+Write-Host "##[group]NuGet source diagnostics"
+Write-Host "--- Sources without --configfile (full hierarchy) ---"
+& dotnet nuget list source
+Write-Host "--- Sources with --configfile (repo config only) ---"
+& dotnet nuget list source --configfile $nugetConfig
+Write-Host "--- All NuGet.config files on disk ---"
+Get-ChildItem -Path (Split-Path $repoDir -Qualifier) -Filter "NuGet.config" -Recurse -ErrorAction SilentlyContinue -Depth 6 | ForEach-Object { Write-Host $_.FullName }
+Write-Host "##[endgroup]"
+
+& dotnet restore $solutionPath --configfile $nugetConfig
 if ($LASTEXITCODE -ne 0) {
     throw "Failed to restore packages!"
 }
