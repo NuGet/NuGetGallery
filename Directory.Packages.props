@@ -110,7 +110,6 @@
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageVersion Include="NuGet.CommandLine" Version="$(NuGetClientPackageVersion)" />
     <PackageVersion Include="NuGet.Commands" Version="$(NuGetClientPackageVersion)" />
-    <PackageVersion Include="NuGet.Core" Version="2.8.6" />
     <PackageVersion Include="NuGet.Frameworks" Version="$(NuGetClientPackageVersion)" />
     <PackageVersion Include="NuGet.PackageManagement" Version="$(NuGetClientPackageVersion)" />
     <PackageVersion Include="NuGet.Packaging" Version="$(NuGetClientPackageVersion)" />
@@ -138,7 +137,6 @@
     <PackageVersion Include="SerilogTraceListener" Version="3.2.0" />
     <PackageVersion Include="SharpZipLib" Version="1.3.3" />
     <PackageVersion Include="Strathweb.CacheOutput.WebApi2.StrongName" Version="0.9.0" />
-    <PackageVersion Include="System.CodeDom" Version="8.0.0" />
     <PackageVersion Include="System.ComponentModel.Annotations" Version="5.0.0" />
     <PackageVersion Include="System.ServiceModel.Syndication" Version="8.0.0" />
     <PackageVersion Include="System.ComponentModel.EventBasedAsync" Version="4.0.11" />

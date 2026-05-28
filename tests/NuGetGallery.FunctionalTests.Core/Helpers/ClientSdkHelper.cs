@@ -6,8 +6,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
-using NuGet;
+using NuGet.Common;
+using NuGet.Configuration;
+using NuGet.Packaging;
+using NuGet.Protocol;
+using NuGet.Protocol.Core.Types;
 using NuGet.Versioning;
 using NuGetGallery.FunctionalTests.Helpers;
 using Xunit;
@@ -38,12 +43,18 @@ namespace NuGetGallery.FunctionalTests
             }
         }
 
-        /// <summary>
-        /// Clears the local machine cache.
-        /// </summary>
-        public static void ClearMachineCache()
+        private static async Task<IEnumerable<IPackageSearchMetadata>> GetPackageMetadataAsync(
+            string packageId,
+            bool includePrerelease = true,
+            bool includeUnlisted = true,
+            string sourceUrl = null)
         {
-            MachineCache.Default.Clear();
+            var resource = Repository.Factory.GetCoreV2(new PackageSource(sourceUrl ?? SourceUrl))
+                .GetResource<PackageMetadataResource>();
+            using var cacheContext = new SourceCacheContext { NoCache = true };
+            return await resource.GetMetadataAsync(
+                packageId, includePrerelease, includeUnlisted,
+                cacheContext, NullLogger.Instance, CancellationToken.None);
         }
 
         /// <summary>
@@ -52,9 +63,7 @@ namespace NuGetGallery.FunctionalTests
         public bool CheckIfPackageExistsInSource(string packageId, string sourceUrl)
         {
             WriteLine("Checking if package {0} exists in source {1}... ", packageId, sourceUrl);
-            var packageRepository = PackageRepositoryFactory.Default.CreateRepository(sourceUrl);
-            IPackage package = packageRepository.FindPackage(packageId);
-            var packageExistsInSource = (package != null);
+            var packageExistsInSource = GetPackageMetadataAsync(packageId, sourceUrl: sourceUrl).Result.Any();
             if (packageExistsInSource)
             {
                 WriteLine("Found!");
@@ -113,16 +122,15 @@ namespace NuGetGallery.FunctionalTests
         private async Task<bool> CheckIfPackageVersionExistsInV2AndV3Async(string packageId, string version)
         {
             var sourceUrl = UrlHelper.V2FeedRootUrl;
-            var repo = PackageRepositoryFactory.Default.CreateRepository(sourceUrl);
-            NuGet.SemanticVersion semVersion = NuGet.SemanticVersion.Parse(version);
+            var nugetVersion = NuGetVersion.Parse(version);
 
             return await VerifyWithRetryAsync(
                 $"Verifying that package {packageId} {version} exists on source {sourceUrl} (hijacked).",
-                () =>
+                async () =>
                 {
-                    var package = repo.FindPackage(packageId, semVersion);
+                    var metadata = await GetPackageMetadataAsync(packageId, sourceUrl: sourceUrl);
 
-                    return Task.FromResult(package != null);
+                    return metadata.Any(m => m.Identity.Version == nugetVersion);
                 });
         }
 
@@ -550,36 +558,27 @@ namespace NuGetGallery.FunctionalTests
         /// </summary>
         public static string GetLatestStableVersion(string packageId)
         {
-            var repo = PackageRepositoryFactory.Default.CreateRepository(SourceUrl);
-            var packages = repo.FindPackagesById(packageId).ToList();
-            packages = packages.Where(item => item.IsListed()).ToList();
-            packages = packages.Where(item => item.IsReleaseVersion()).ToList();
-            var version = packages.Max(item => item.Version);
+            var packages = GetPackageMetadataAsync(packageId, includePrerelease: false, includeUnlisted: false).Result;
+            var version = packages.Max(item => item.Identity.Version);
             return version.ToString();
         }
 
         public async Task VerifyVersionCountAsync(string packageId, int expectedVersionCount, bool allowPreRelease = true)
         {
-            var repo = PackageRepositoryFactory.Default.CreateRepository(SourceUrl);
-
             // To verify the count of package versions, the FindPackagesById() V2 OData endpoint is used. When the
             // gallery handles this request, it delegates to the search service. Since the search service can lag being
             // the gallery database (due to the time it takes for packages to make it through the V3 pipeline and into
             // an active Lucene index), we retry the request for a while.
             Assert.True(await VerifyWithRetryAsync(
                 $"Verifying count of {packageId} versions is {expectedVersionCount}",
-                () =>
+                async () =>
                 {
-                    var packages = repo.FindPackagesById(packageId).ToList();
-                    if (!allowPreRelease)
-                    {
-                        packages = packages.Where(item => item.IsReleaseVersion()).ToList();
-                    }
+                    var packages = (await GetPackageMetadataAsync(packageId, includePrerelease: allowPreRelease)).ToList();
                     var actualVersionCount = packages.Count;
 
-                    var versionsDisplay = string.Join(", ", packages.Select(p => p.Version));
+                    var versionsDisplay = string.Join(", ", packages.Select(p => p.Identity.Version));
                     WriteLine($"{actualVersionCount} versions of {packageId} found: {versionsDisplay}");
-                    return Task.FromResult(actualVersionCount == expectedVersionCount);
+                    return actualVersionCount == expectedVersionCount;
                 }));
         }
 
@@ -588,11 +587,11 @@ namespace NuGetGallery.FunctionalTests
         /// </summary>
         public static int GetPackageCountForSearchTerm(string searchQuery)
         {
-            var repo = PackageRepositoryFactory.Default.CreateRepository(SourceUrl);
-
-            var packages = repo.Search(searchQuery, false).ToList();
-
-            return packages.Count;
+            var repository = Repository.Factory.GetCoreV2(new PackageSource(SourceUrl));
+            var resource = repository.GetResource<PackageSearchResource>();
+            using var cacheContext = new SourceCacheContext { NoCache = true };
+            var packages = resource.SearchAsync(searchQuery, new SearchFilter(includePrerelease: false), skip: 0, take: 1000, log: NullLogger.Instance, cancellationToken: CancellationToken.None).Result;
+            return packages.Count();
         }
 
         /// <summary>
@@ -602,12 +601,13 @@ namespace NuGetGallery.FunctionalTests
         {
             try
             {
-                ZipPackage pack = new ZipPackage(filePath);
-                return pack.Id;
+                using var reader = new PackageArchiveReader(filePath);
+                var identity = reader.GetIdentity();
+                return identity.Id;
             }
             catch (Exception e)
             {
-                WriteLine(" Exception thrown while trying to create zippackage for :{0}. Message {1}", filePath, e.Message);
+                WriteLine(" Exception thrown while trying to read nupkg for :{0}. Message {1}", filePath, e.Message);
                 return null;
             }
         }
@@ -617,10 +617,11 @@ namespace NuGetGallery.FunctionalTests
         /// </summary>
         public bool IsPackageVersionUnListed(string packageId, string version)
         {
-            IPackageRepository repo = PackageRepositoryFactory.Default.CreateRepository(SourceUrl);
-            IPackage package = repo.FindPackage(packageId, new NuGet.SemanticVersion(version), true, true);
+            var metadata = GetPackageMetadataAsync(packageId).Result;
+            var nugetVersion = NuGetVersion.Parse(version);
+            var package = metadata.FirstOrDefault(m => m.Identity.Version == nugetVersion);
             if (package != null)
-                return !package.Listed;
+                return !package.IsListed;
             else
                 return false;
         }
@@ -676,13 +677,21 @@ namespace NuGetGallery.FunctionalTests
         /// </summary>
         public void DownloadPackageAndVerify(string packageId, string version = "1.0.0")
         {
-            ClearMachineCache();
             ClearLocalPackageFolder(packageId, version);
 
-            var packageRepository = PackageRepositoryFactory.Default.CreateRepository(UrlHelper.V2FeedRootUrl);
-            var packageManager = new PackageManager(packageRepository, Environment.CurrentDirectory);
+            var repository = Repository.Factory.GetCoreV2(new PackageSource(UrlHelper.V2FeedRootUrl));
+            var resource = repository.GetResource<FindPackageByIdResource>();
+            using var cacheContext = new SourceCacheContext { NoCache = true };
 
-            packageManager.InstallPackage(packageId, new NuGet.SemanticVersion(version));
+            var expectedDownloadedNupkgFileName = packageId + "." + version;
+            var outputDir = Path.Combine(Environment.CurrentDirectory, expectedDownloadedNupkgFileName);
+            Directory.CreateDirectory(outputDir);
+            var nupkgPath = Path.Combine(outputDir, expectedDownloadedNupkgFileName + ".nupkg");
+
+            using (var fileStream = File.Create(nupkgPath))
+            {
+                resource.CopyNupkgToStreamAsync(packageId, NuGetVersion.Parse(version), fileStream, cacheContext, NullLogger.Instance, CancellationToken.None).Wait();
+            }
 
             Assert.True(CheckIfPackageVersionInstalled(packageId, version),
                 "Package install failed. Either the file is not present on disk or it is corrupted. Check logs for details");

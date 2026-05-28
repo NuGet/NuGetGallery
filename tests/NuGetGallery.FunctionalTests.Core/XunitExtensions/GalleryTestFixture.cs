@@ -10,7 +10,6 @@ using Xunit;
 namespace NuGetGallery.FunctionalTests
 {
     public class GalleryTestFixture
-        : ClearMachineCacheFixture
     {
         public GalleryTestFixture()
         {
