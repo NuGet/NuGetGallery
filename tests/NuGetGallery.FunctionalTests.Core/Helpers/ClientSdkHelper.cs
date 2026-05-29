@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Common;
@@ -675,23 +676,37 @@ namespace NuGetGallery.FunctionalTests
         /// <summary>
         /// Downloads a package to local folder and see if the download is successful. Used to individual tests which extend the download scenarios.
         /// </summary>
-        public void DownloadPackageAndVerify(string packageId, string version = "1.0.0")
+        public async Task DownloadPackageAndVerifyAsync(string packageId, string version = "1.0.0")
         {
             ClearLocalPackageFolder(packageId, version);
-
-            var repository = Repository.Factory.GetCoreV2(new PackageSource(UrlHelper.V2FeedRootUrl));
-            var resource = repository.GetResource<FindPackageByIdResource>();
-            using var cacheContext = new SourceCacheContext { NoCache = true };
 
             var expectedDownloadedNupkgFileName = packageId + "." + version;
             var outputDir = Path.Combine(Environment.CurrentDirectory, expectedDownloadedNupkgFileName);
             Directory.CreateDirectory(outputDir);
             var nupkgPath = Path.Combine(outputDir, expectedDownloadedNupkgFileName + ".nupkg");
 
+            // Download via direct HTTP instead of NuGet SDK.
+            // .NET 9+ unconditionally blocks HTTPS→HTTP redirect downgrades in SocketsHttpHandler
+            // (including inside the NuGet SDK’s own HttpClient). In Aspire environments the gallery
+            // (HTTPS) redirects package downloads to Azurite blob storage (HTTP), so we follow
+            // such redirects manually.
+            var requestUri = UrlHelper.V2FeedRootUrl + "Package/" + packageId + "/" + version;
+            using var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
+            var response = await client.GetAsync(requestUri);
+            if (response.StatusCode == HttpStatusCode.Found ||
+                response.StatusCode == HttpStatusCode.MovedPermanently)
+            {
+                var redirectUri = response.Headers.Location;
+                response.Dispose();
+                response = await client.GetAsync(redirectUri);
+            }
+            response.EnsureSuccessStatusCode();
+
             using (var fileStream = File.Create(nupkgPath))
             {
-                resource.CopyNupkgToStreamAsync(packageId, NuGetVersion.Parse(version), fileStream, cacheContext, NullLogger.Instance, CancellationToken.None).Wait();
+                await response.Content.CopyToAsync(fileStream);
             }
+            response.Dispose();
 
             // Verify the downloaded nupkg is a valid package with the expected identity.
             using (var reader = new PackageArchiveReader(nupkgPath))

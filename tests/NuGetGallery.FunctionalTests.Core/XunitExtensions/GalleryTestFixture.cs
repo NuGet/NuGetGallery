@@ -13,11 +13,6 @@ namespace NuGetGallery.FunctionalTests
     {
         public GalleryTestFixture()
         {
-            // .NET 10+ blocks HTTPS→HTTP redirect downgrades by default.
-            // In local Aspire environments the gallery (HTTPS) redirects package
-            // downloads to Azurite blob storage (HTTP), so allow insecure redirects.
-            AppContext.SetSwitch("System.Net.Http.AllowInsecureHttpRedirects", true);
-
             Task.Run(async () =>
             {
                 await CheckIfBaseTestPackageExistsAsync();

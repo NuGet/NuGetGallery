@@ -166,7 +166,7 @@ namespace NuGetGallery.FunctionalTests
         private async Task<string> DownloadPackageFromFeed(string packageId, string version, string operation = "Install")
         {
             string filename;
-            var client = new HttpClient();
+            var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
             var requestUri = UrlHelper.V2FeedRootUrl + @"Package/" + packageId + @"/" + version;
 
             TestOutputHelper.WriteLine("GET " + requestUri);
@@ -176,6 +176,18 @@ namespace NuGetGallery.FunctionalTests
             request.Headers.Add("NuGet-Operation", operation);
 
             var responseMessage = await client.SendAsync(request);
+
+            // .NET 9+ unconditionally blocks HTTPS→HTTP redirect downgrades in SocketsHttpHandler.
+            // In Aspire environments the gallery (HTTPS) redirects package downloads to
+            // Azurite blob storage (HTTP), so follow such redirects manually.
+            if (responseMessage.StatusCode == HttpStatusCode.Found ||
+                responseMessage.StatusCode == HttpStatusCode.MovedPermanently)
+            {
+                var redirectUri = responseMessage.Headers.Location;
+                TestOutputHelper.WriteLine("Following redirect to: " + redirectUri);
+                responseMessage.Dispose();
+                responseMessage = await client.GetAsync(redirectUri);
+            }
 
             if (responseMessage.StatusCode == HttpStatusCode.OK)
             {
