@@ -200,6 +200,7 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    WinDivertSharp 1.4.3.3                    |    05/18/2026    |   Potentially Malicious  |
 |    Aigio.WinDivertSharp 1.4.4.3              |    05/18/2026    |   Potentially Malicious  |
 |    DeepSeekV4.SDK                            |    05/26/2026    |   Untrustworthy  |
+|    qPapel.Auth                               |    05/29/2026    |   Malicous  |
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.
