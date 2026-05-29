@@ -285,7 +285,7 @@ namespace NuGet.Services.Storage
                 }
 
                 var decoded = Uri.UnescapeDataString(piece);
-                if (decoded.StartsWith(".") || decoded.EndsWith("."))
+                if (decoded.StartsWith(".", StringComparison.Ordinal) || decoded.EndsWith(".", StringComparison.Ordinal))
                 {
                     throw new ArgumentException($"{nameof(relativeUri)} '{relativeUri}' must not have a path segment ending in a dot.");
                 }
@@ -300,7 +300,7 @@ namespace NuGet.Services.Storage
         protected Uri GetUri(string name)
         {
             string address = BaseAddress.ToString();
-            if (!address.EndsWith("/"))
+            if (!address.EndsWith("/", StringComparison.Ordinal))
             {
                 address += "/";
             }

@@ -58,11 +58,11 @@ namespace NuGetGallery.Infrastructure.Search
 
             var r = await invalidHttpClient.GetAsync(uri);
 
-            var retryInfo = _logger.Informations.Count(s => s.StartsWith("Policy retry - it will retry after"));
-            var onCircuitBreakerfallBackInfo = _logger.Informations.Count(s => s.StartsWith("On circuit breaker fallback."));
-            var circuitBreakerWarning = _logger.Warnings.Count(s => s.StartsWith("SearchCircuitBreaker logging: Breaking the circuit for"));
-            var onCircuitBreakerReset = _logger.Informations.Count(s => s.StartsWith("SearchCircuitBreaker logging: Call ok! Closed the circuit again!"));
-            var onCircuitBreakerHalfOpen = _logger.Informations.Count(s => s.StartsWith("SearchCircuitBreaker logging: Half-open: Next call is a trial!"));
+            var retryInfo = _logger.Informations.Count(s => s.StartsWith("Policy retry - it will retry after", StringComparison.Ordinal));
+            var onCircuitBreakerfallBackInfo = _logger.Informations.Count(s => s.StartsWith("On circuit breaker fallback.", StringComparison.Ordinal));
+            var circuitBreakerWarning = _logger.Warnings.Count(s => s.StartsWith("SearchCircuitBreaker logging: Breaking the circuit for", StringComparison.Ordinal));
+            var onCircuitBreakerReset = _logger.Informations.Count(s => s.StartsWith("SearchCircuitBreaker logging: Call ok! Closed the circuit again!", StringComparison.Ordinal));
+            var onCircuitBreakerHalfOpen = _logger.Informations.Count(s => s.StartsWith("SearchCircuitBreaker logging: Half-open: Next call is a trial!", StringComparison.Ordinal));
 
             Assert.Equal(2, retryInfo);
             Assert.Equal(1, onCircuitBreakerfallBackInfo);
@@ -74,9 +74,9 @@ namespace NuGetGallery.Infrastructure.Search
             // Request again. The circuit breaker should be open and not allowing requests to pass through
             var r2 = await invalidHttpClient.GetAsync(uri);
 
-            retryInfo = _logger.Informations.Count(s => s.StartsWith("Policy retry - it will retry after"));
-            onCircuitBreakerfallBackInfo = _logger.Informations.Count(s => s.StartsWith("On circuit breaker fallback."));
-            circuitBreakerWarning = _logger.Warnings.Count(s => s.StartsWith("SearchCircuitBreaker logging: Breaking the circuit for"));
+            retryInfo = _logger.Informations.Count(s => s.StartsWith("Policy retry - it will retry after", StringComparison.Ordinal));
+            onCircuitBreakerfallBackInfo = _logger.Informations.Count(s => s.StartsWith("On circuit breaker fallback.", StringComparison.Ordinal));
+            circuitBreakerWarning = _logger.Warnings.Count(s => s.StartsWith("SearchCircuitBreaker logging: Breaking the circuit for", StringComparison.Ordinal));
 
             // No other info added 
             Assert.Equal(2, retryInfo);
@@ -89,9 +89,9 @@ namespace NuGetGallery.Infrastructure.Search
             // Request again with correct uri. The circuit breaker should be open and not allowing requests to pass through
             var r3 = await invalidHttpClient.GetAsync(validUri);
 
-            retryInfo = _logger.Informations.Count(s => s.StartsWith("Policy retry - it will retry after"));
-            onCircuitBreakerfallBackInfo = _logger.Informations.Count(s => s.StartsWith("On circuit breaker fallback."));
-            circuitBreakerWarning = _logger.Warnings.Count(s => s.StartsWith("SearchCircuitBreaker logging: Breaking the circuit for"));
+            retryInfo = _logger.Informations.Count(s => s.StartsWith("Policy retry - it will retry after", StringComparison.Ordinal));
+            onCircuitBreakerfallBackInfo = _logger.Informations.Count(s => s.StartsWith("On circuit breaker fallback.", StringComparison.Ordinal));
+            circuitBreakerWarning = _logger.Warnings.Count(s => s.StartsWith("SearchCircuitBreaker logging: Breaking the circuit for", StringComparison.Ordinal));
 
             // No other info added 
             Assert.Equal(2, retryInfo);
@@ -111,9 +111,9 @@ namespace NuGetGallery.Infrastructure.Search
 
             var r = await invalidHttpClient.GetAsync(uri);
 
-            var retryInfo = _logger.Informations.Count(s => s.StartsWith("Policy retry - it will retry after"));
-            var onCircuitBreakerfallBackInfo = _logger.Informations.Count(s => s.StartsWith("On circuit breaker fallback."));
-            var circuitBreakerWarning = _logger.Warnings.Count(s => s.StartsWith("SearchCircuitBreaker logging: Breaking the circuit for"));
+            var retryInfo = _logger.Informations.Count(s => s.StartsWith("Policy retry - it will retry after", StringComparison.Ordinal));
+            var onCircuitBreakerfallBackInfo = _logger.Informations.Count(s => s.StartsWith("On circuit breaker fallback.", StringComparison.Ordinal));
+            var circuitBreakerWarning = _logger.Warnings.Count(s => s.StartsWith("SearchCircuitBreaker logging: Breaking the circuit for", StringComparison.Ordinal));
 
             Assert.Equal(0, retryInfo);
             Assert.Equal(1, onCircuitBreakerfallBackInfo);
@@ -123,9 +123,9 @@ namespace NuGetGallery.Infrastructure.Search
             // Request again. The circuit breaker should be open and not allowing requests to pass through
             var r2 = await invalidHttpClient.GetAsync(uri);
 
-            retryInfo = _logger.Informations.Count(s => s.StartsWith("Policy retry - it will retry after"));
-            onCircuitBreakerfallBackInfo = _logger.Informations.Count(s => s.StartsWith("On circuit breaker fallback."));
-            circuitBreakerWarning = _logger.Warnings.Count(s => s.StartsWith("SearchCircuitBreaker logging: Breaking the circuit for"));
+            retryInfo = _logger.Informations.Count(s => s.StartsWith("Policy retry - it will retry after", StringComparison.Ordinal));
+            onCircuitBreakerfallBackInfo = _logger.Informations.Count(s => s.StartsWith("On circuit breaker fallback.", StringComparison.Ordinal));
+            circuitBreakerWarning = _logger.Warnings.Count(s => s.StartsWith("SearchCircuitBreaker logging: Breaking the circuit for", StringComparison.Ordinal));
 
             // No other info added 
             Assert.Equal(0, retryInfo);
@@ -136,9 +136,9 @@ namespace NuGetGallery.Infrastructure.Search
             // Request again with correct uri. The circuit breaker should be open and not allowing requests to pass through
             var r3 = await invalidHttpClient.GetAsync(validUri);
 
-            retryInfo = _logger.Informations.Count(s => s.StartsWith("Policy retry - it will retry after"));
-            onCircuitBreakerfallBackInfo = _logger.Informations.Count(s => s.StartsWith("On circuit breaker fallback."));
-            circuitBreakerWarning = _logger.Warnings.Count(s => s.StartsWith("SearchCircuitBreaker logging: Breaking the circuit for"));
+            retryInfo = _logger.Informations.Count(s => s.StartsWith("Policy retry - it will retry after", StringComparison.Ordinal));
+            onCircuitBreakerfallBackInfo = _logger.Informations.Count(s => s.StartsWith("On circuit breaker fallback.", StringComparison.Ordinal));
+            circuitBreakerWarning = _logger.Warnings.Count(s => s.StartsWith("SearchCircuitBreaker logging: Breaking the circuit for", StringComparison.Ordinal));
 
             // No other info added 
             Assert.Equal(0, retryInfo);
@@ -170,10 +170,10 @@ namespace NuGetGallery.Infrastructure.Search
             // Request again. The circuit breaker should be open and not allowing requests to pass through
             var r2 = await invalidHttpClient.GetAsync(uri);
 
-            timeoutInfo = _logger.Informations.Count(s => s.StartsWith("Policy timeout - it will timeout after"));
-            retryInfo = _logger.Informations.Count(s => s.StartsWith("Policy retry - it will retry after"));
-            onCircuitBreakerfallBackInfo = _logger.Informations.Count(s => s.StartsWith("On circuit breaker fallback."));
-            circuitBreakerWarning = _logger.Warnings.Count(s => s.StartsWith("SearchCircuitBreaker logging: Breaking the circuit for"));
+            timeoutInfo = _logger.Informations.Count(s => s.StartsWith("Policy timeout - it will timeout after", StringComparison.Ordinal));
+            retryInfo = _logger.Informations.Count(s => s.StartsWith("Policy retry - it will retry after", StringComparison.Ordinal));
+            onCircuitBreakerfallBackInfo = _logger.Informations.Count(s => s.StartsWith("On circuit breaker fallback.", StringComparison.Ordinal));
+            circuitBreakerWarning = _logger.Warnings.Count(s => s.StartsWith("SearchCircuitBreaker logging: Breaking the circuit for", StringComparison.Ordinal));
 
             Assert.Equal(2, timeoutInfo);
             Assert.Equal(0, retryInfo);
@@ -184,10 +184,10 @@ namespace NuGetGallery.Infrastructure.Search
             // Request again with correct uri. The circuit breaker should be open and not allowing requests to pass through
             var r3 = await invalidHttpClient.GetAsync(validUri);
 
-            timeoutInfo = _logger.Informations.Count(s => s.StartsWith("Policy timeout - it will timeout after"));
-            retryInfo = _logger.Informations.Count(s => s.StartsWith("Policy retry - it will retry after"));
-            onCircuitBreakerfallBackInfo = _logger.Informations.Count(s => s.StartsWith("On circuit breaker fallback."));
-            circuitBreakerWarning = _logger.Warnings.Count(s => s.StartsWith("SearchCircuitBreaker logging: Breaking the circuit for"));
+            timeoutInfo = _logger.Informations.Count(s => s.StartsWith("Policy timeout - it will timeout after", StringComparison.Ordinal));
+            retryInfo = _logger.Informations.Count(s => s.StartsWith("Policy retry - it will retry after", StringComparison.Ordinal));
+            onCircuitBreakerfallBackInfo = _logger.Informations.Count(s => s.StartsWith("On circuit breaker fallback.", StringComparison.Ordinal));
+            circuitBreakerWarning = _logger.Warnings.Count(s => s.StartsWith("SearchCircuitBreaker logging: Breaking the circuit for", StringComparison.Ordinal));
 
             Assert.Equal(2, timeoutInfo);
             Assert.Equal(0, retryInfo);
@@ -205,11 +205,11 @@ namespace NuGetGallery.Infrastructure.Search
 
             var r = await invalidHttpClient.GetAsync(uri);
 
-            var retryInfo = _logger.Informations.Count(s => s.StartsWith("Policy retry - it will retry after"));
-            var onCircuitBreakerfallBackInfo = _logger.Informations.Count(s => s.StartsWith("On circuit breaker fallback."));
-            var circuitBreakerWarning = _logger.Warnings.Count(s => s.StartsWith("SearchCircuitBreaker logging: Breaking the circuit for"));
-            var onCircuitBreakerReset = _logger.Informations.Count(s => s.StartsWith("SearchCircuitBreaker logging: Call ok! Closed the circuit again!"));
-            var onCircuitBreakerHalfOpen = _logger.Informations.Count(s => s.StartsWith("SearchCircuitBreaker logging: Half-open: Next call is a trial!"));
+            var retryInfo = _logger.Informations.Count(s => s.StartsWith("Policy retry - it will retry after", StringComparison.Ordinal));
+            var onCircuitBreakerfallBackInfo = _logger.Informations.Count(s => s.StartsWith("On circuit breaker fallback.", StringComparison.Ordinal));
+            var circuitBreakerWarning = _logger.Warnings.Count(s => s.StartsWith("SearchCircuitBreaker logging: Breaking the circuit for", StringComparison.Ordinal));
+            var onCircuitBreakerReset = _logger.Informations.Count(s => s.StartsWith("SearchCircuitBreaker logging: Call ok! Closed the circuit again!", StringComparison.Ordinal));
+            var onCircuitBreakerHalfOpen = _logger.Informations.Count(s => s.StartsWith("SearchCircuitBreaker logging: Half-open: Next call is a trial!", StringComparison.Ordinal));
 
             Assert.Equal(2, retryInfo);
             Assert.Equal(1, onCircuitBreakerfallBackInfo);
@@ -223,11 +223,11 @@ namespace NuGetGallery.Infrastructure.Search
             // Request again with correct uri. The circuit breaker delay should be expired and will do the trial and pass 
             var r2 = await invalidHttpClient.GetAsync(validUri);
 
-            retryInfo = _logger.Informations.Count(s => s.StartsWith("Policy retry - it will retry after"));
-            onCircuitBreakerfallBackInfo = _logger.Informations.Count(s => s.StartsWith("On circuit breaker fallback."));
-            circuitBreakerWarning = _logger.Warnings.Count(s => s.StartsWith("SearchCircuitBreaker logging: Breaking the circuit for"));
-            onCircuitBreakerReset = _logger.Informations.Count(s => s.StartsWith("SearchCircuitBreaker logging: Call ok! Closed the circuit again!"));
-            onCircuitBreakerHalfOpen = _logger.Informations.Count(s => s.StartsWith("SearchCircuitBreaker logging: Half-open: Next call is a trial!"));
+            retryInfo = _logger.Informations.Count(s => s.StartsWith("Policy retry - it will retry after", StringComparison.Ordinal));
+            onCircuitBreakerfallBackInfo = _logger.Informations.Count(s => s.StartsWith("On circuit breaker fallback.", StringComparison.Ordinal));
+            circuitBreakerWarning = _logger.Warnings.Count(s => s.StartsWith("SearchCircuitBreaker logging: Breaking the circuit for", StringComparison.Ordinal));
+            onCircuitBreakerReset = _logger.Informations.Count(s => s.StartsWith("SearchCircuitBreaker logging: Call ok! Closed the circuit again!", StringComparison.Ordinal));
+            onCircuitBreakerHalfOpen = _logger.Informations.Count(s => s.StartsWith("SearchCircuitBreaker logging: Half-open: Next call is a trial!", StringComparison.Ordinal));
 
             // No other info added 
             Assert.Equal(2, retryInfo);
@@ -246,11 +246,11 @@ namespace NuGetGallery.Infrastructure.Search
 
             var r = await validClient.GetAsync(uri);
 
-            var retryInfo = _logger.Informations.Count(s => s.StartsWith("Policy retry - it will retry after"));
-            var onCircuitBreakerfallBackInfo = _logger.Informations.Count(s => s.StartsWith("On circuit breaker fallback."));
-            var circuitBreakerWarning = _logger.Warnings.Count(s => s.StartsWith("SearchCircuitBreaker logging: Breaking the circuit for"));
-            var onCircuitBreakerReset = _logger.Informations.Count(s => s.StartsWith("SearchCircuitBreaker logging: Call ok! Closed the circuit again!"));
-            var onCircuitBreakerHalfOpen = _logger.Informations.Count(s => s.StartsWith("SearchCircuitBreaker logging: Half-open: Next call is a trial!"));
+            var retryInfo = _logger.Informations.Count(s => s.StartsWith("Policy retry - it will retry after", StringComparison.Ordinal));
+            var onCircuitBreakerfallBackInfo = _logger.Informations.Count(s => s.StartsWith("On circuit breaker fallback.", StringComparison.Ordinal));
+            var circuitBreakerWarning = _logger.Warnings.Count(s => s.StartsWith("SearchCircuitBreaker logging: Breaking the circuit for", StringComparison.Ordinal));
+            var onCircuitBreakerReset = _logger.Informations.Count(s => s.StartsWith("SearchCircuitBreaker logging: Call ok! Closed the circuit again!", StringComparison.Ordinal));
+            var onCircuitBreakerHalfOpen = _logger.Informations.Count(s => s.StartsWith("SearchCircuitBreaker logging: Half-open: Next call is a trial!", StringComparison.Ordinal));
 
             Assert.Equal(0, retryInfo);
             Assert.Equal(0, onCircuitBreakerfallBackInfo);
@@ -268,11 +268,11 @@ namespace NuGetGallery.Infrastructure.Search
 
             var r = await invalidClient.GetAsync(uri);
 
-            var retryInfo = _logger.Informations.Count(s => s.StartsWith("Policy retry - it will retry after"));
-            var onCircuitBreakerfallBackInfo = _logger.Informations.Count(s => s.StartsWith("On circuit breaker fallback."));
-            var circuitBreakerWarning = _logger.Warnings.Count(s => s.StartsWith("SearchCircuitBreaker logging: Breaking the circuit for"));
-            var onCircuitBreakerReset = _logger.Informations.Count(s => s.StartsWith("SearchCircuitBreaker logging: Call ok! Closed the circuit again!"));
-            var onCircuitBreakerHalfOpen = _logger.Informations.Count(s => s.StartsWith("SearchCircuitBreaker logging: Half-open: Next call is a trial!"));
+            var retryInfo = _logger.Informations.Count(s => s.StartsWith("Policy retry - it will retry after", StringComparison.Ordinal));
+            var onCircuitBreakerfallBackInfo = _logger.Informations.Count(s => s.StartsWith("On circuit breaker fallback.", StringComparison.Ordinal));
+            var circuitBreakerWarning = _logger.Warnings.Count(s => s.StartsWith("SearchCircuitBreaker logging: Breaking the circuit for", StringComparison.Ordinal));
+            var onCircuitBreakerReset = _logger.Informations.Count(s => s.StartsWith("SearchCircuitBreaker logging: Call ok! Closed the circuit again!", StringComparison.Ordinal));
+            var onCircuitBreakerHalfOpen = _logger.Informations.Count(s => s.StartsWith("SearchCircuitBreaker logging: Half-open: Next call is a trial!", StringComparison.Ordinal));
 
             Assert.Equal(_retryCount_2, retryInfo);
             Assert.Equal(1, onCircuitBreakerfallBackInfo);

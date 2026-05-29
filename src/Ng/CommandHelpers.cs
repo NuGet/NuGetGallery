@@ -356,7 +356,7 @@ namespace Ng
                     }
                     else if (instanceNameToSearchCursorSasValue.TryGetValue(suffix, out var sas))
                     {
-                        if (sas.StartsWith("?"))
+                        if (sas.StartsWith("?", StringComparison.Ordinal))
                         {
                             // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
                             sas = sas.Substring(1);
@@ -399,7 +399,7 @@ namespace Ng
         private static Dictionary<string, T> GetSuffixToValue<T>(IDictionary<string, string> arguments, string prefix)
         {
             var suffixToUri = new Dictionary<string, T>();
-            foreach (var key in arguments.Keys.Where(x => x.StartsWith(prefix)))
+            foreach (var key in arguments.Keys.Where(x => x.StartsWith(prefix, StringComparison.Ordinal)))
             {
                 var suffix = key.Substring(prefix.Length);
                 suffixToUri[suffix] = arguments.GetOrThrow<T>(key);
@@ -521,7 +521,7 @@ namespace Ng
             if (string.IsNullOrEmpty(storageKeyValue))
             {
                 var storageSasValue = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageSasValue]);
-                if (storageSasValue.StartsWith("?"))
+                if (storageSasValue.StartsWith("?", StringComparison.Ordinal))
                 {
                     // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
                     storageSasValue = storageSasValue.Substring(1);

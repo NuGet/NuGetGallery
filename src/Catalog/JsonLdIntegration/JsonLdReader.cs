@@ -187,9 +187,9 @@ namespace NuGet.Services.Metadata.Catalog.JsonLDIntegration
             }
             else
             {
-                if (obj.StartsWith("_"))
+                if (obj.StartsWith("_", StringComparison.Ordinal))
                 {
-                    string nodeId = obj.Substring(obj.IndexOf(":") + 1);
+                    string nodeId = obj.Substring(obj.IndexOf(":", StringComparison.Ordinal) + 1);
                     objNode = handler.CreateBlankNode(nodeId);
                 }
                 else

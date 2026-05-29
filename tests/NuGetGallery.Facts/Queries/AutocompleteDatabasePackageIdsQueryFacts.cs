@@ -104,7 +104,7 @@ namespace NuGetGallery.Queries
                 var allIdsAreFromTheSamePackage = queryResult.All(id =>
                 {
                     _packageDictionary.TryGetValue(id, out var package);
-                    return package.PackageRegistration.Id.StartsWith("n");
+                    return package.PackageRegistration.Id.StartsWith("n", StringComparison.Ordinal);
                 });
 
                 Assert.True(allIdsAreFromTheSamePackage);
@@ -133,7 +133,7 @@ namespace NuGetGallery.Queries
                 var allIdsAreOrderedById = queryResult.All(id =>
                 {
                     _packageDictionary.TryGetValue(id, out var package);
-                    var comparisonResult = previousId.CompareTo(package.PackageRegistration.Id);
+                    var comparisonResult = string.Compare(previousId, package.PackageRegistration.Id, StringComparison.Ordinal);
                     previousId = package.PackageRegistration.Id;
                     return comparisonResult <= 0;
                 });

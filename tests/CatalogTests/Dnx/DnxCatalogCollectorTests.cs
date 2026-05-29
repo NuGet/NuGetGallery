@@ -819,7 +819,7 @@ namespace CatalogTests.Dnx
 
             var anotherPackage100 = _catalogToDnxStorage
                 .Content
-                .FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/anotherpackage/1.0.0/anotherpackage.1.0.0.nupkg"));
+                .FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/anotherpackage/1.0.0/anotherpackage.1.0.0.nupkg", StringComparison.Ordinal));
             Assert.NotNull(anotherPackage100.Key);
 
             Assert.Equal(MemoryCursor.MinValue, cursorBeforeRetry);

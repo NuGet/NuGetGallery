@@ -141,11 +141,11 @@ namespace NgTests
             await _job.RunOnceAsync(CancellationToken.None);
 
             Assert.Equal(5, _catalogStorage.Content.Count);
-            var index = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("index.json"));
-            var page0 = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("page0.json"));
-            var page1 = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("page1.json"));
-            var itemA = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith($"{packageA.PackageIdentity.ToString().ToLowerInvariant()}.json"));
-            var itemB = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith($"{packageB.PackageIdentity.ToString().ToLowerInvariant()}.json"));
+            var index = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("index.json", StringComparison.Ordinal));
+            var page0 = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("page0.json", StringComparison.Ordinal));
+            var page1 = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("page1.json", StringComparison.Ordinal));
+            var itemA = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith($"{packageA.PackageIdentity.ToString().ToLowerInvariant()}.json", StringComparison.Ordinal));
+            var itemB = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith($"{packageB.PackageIdentity.ToString().ToLowerInvariant()}.json", StringComparison.Ordinal));
 
             Assert.Equal(Constants.NoStoreCacheControl, index.Value.CacheControl);
             Assert.Equal(Constants.NoStoreCacheControl, page0.Value.CacheControl);
@@ -177,11 +177,11 @@ namespace NgTests
             await _job.RunOnceAsync(CancellationToken.None);
 
             Assert.Equal(5, _catalogStorage.Content.Count);
-            var index = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("index.json"));
-            var page0 = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("page0.json"));
-            var page1 = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("page1.json"));
-            var itemA = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith($"{packageA.PackageIdentity.ToString().ToLowerInvariant()}.json"));
-            var itemB = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith($"{packageB.PackageIdentity.ToString().ToLowerInvariant()}.json"));
+            var index = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("index.json", StringComparison.Ordinal));
+            var page0 = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("page0.json", StringComparison.Ordinal));
+            var page1 = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("page1.json", StringComparison.Ordinal));
+            var itemA = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith($"{packageA.PackageIdentity.ToString().ToLowerInvariant()}.json", StringComparison.Ordinal));
+            var itemB = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith($"{packageB.PackageIdentity.ToString().ToLowerInvariant()}.json", StringComparison.Ordinal));
 
             Assert.Equal(Constants.NoStoreCacheControl, index.Value.CacheControl);
             Assert.Equal("max-age=5678", page0.Value.CacheControl);
@@ -263,11 +263,11 @@ namespace NgTests
             await Assert.ThrowsAsync<InvalidOperationException>(() => _job.RunOnceAsync(CancellationToken.None));
 
             Assert.Equal(5, _catalogStorage.Content.Count);
-            var index = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("index.json"));
-            var page0 = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("page0.json"));
-            var page1 = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("page1.json"));
-            var itemA = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith($"{packageA.PackageIdentity.ToString().ToLowerInvariant()}.json"));
-            var itemB = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith($"{packageB.PackageIdentity.ToString().ToLowerInvariant()}.json"));
+            var index = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("index.json", StringComparison.Ordinal));
+            var page0 = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("page0.json", StringComparison.Ordinal));
+            var page1 = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith("page1.json", StringComparison.Ordinal));
+            var itemA = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith($"{packageA.PackageIdentity.ToString().ToLowerInvariant()}.json", StringComparison.Ordinal));
+            var itemB = Assert.Single(_catalogStorage.Content, pair => pair.Key.AbsoluteUri.EndsWith($"{packageB.PackageIdentity.ToString().ToLowerInvariant()}.json", StringComparison.Ordinal));
 
             Assert.Equal(Constants.NoStoreCacheControl, index.Value.CacheControl);
             Assert.Equal(Constants.NoStoreCacheControl, page0.Value.CacheControl);
@@ -900,14 +900,14 @@ namespace NgTests
             Assert.Equal(7, catalogStorage.Content.Count);
 
             // Ensure catalog has index.json
-            var catalogIndex = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("index.json"));
+            var catalogIndex = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("index.json", StringComparison.Ordinal));
             Assert.NotNull(catalogIndex.Key);
             Assert.Contains("\"nuget:lastCreated\":\"2015-01-01T00:00:00Z\"", catalogIndex.Value.GetContentString());
             Assert.Contains("\"nuget:lastDeleted\":\"2015-01-01T01:01:01.0748028Z\"", catalogIndex.Value.GetContentString());
             Assert.Contains("\"nuget:lastEdited\":\"2015-01-01T00:00:00Z\"", catalogIndex.Value.GetContentString());
 
             // Ensure catalog has page0.json
-            var pageZero = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("page0.json"));
+            var pageZero = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("page0.json", StringComparison.Ordinal));
             Assert.NotNull(pageZero.Key);
             Assert.Contains("\"parent\":\"http://tempuri.org/index.json\",", pageZero.Value.GetContentString());
 
@@ -928,31 +928,31 @@ namespace NgTests
             Assert.Contains("\"nuget:version\":\"1.0.0-alpha.1+githash\"", pageZero.Value.GetContentString());
 
             // Check individual package entries
-            var package1 = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage.1.0.0.json"));
+            var package1 = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage.1.0.0.json", StringComparison.Ordinal));
             Assert.NotNull(package1.Key);
             Assert.Contains("\"PackageDetails\",", package1.Value.GetContentString());
             Assert.Contains("\"id\": \"ListedPackage\",", package1.Value.GetContentString());
             Assert.Contains("\"version\": \"1.0.0\",", package1.Value.GetContentString());
 
-            var package2 = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage.1.0.1.json"));
+            var package2 = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage.1.0.1.json", StringComparison.Ordinal));
             Assert.NotNull(package2.Key);
             Assert.Contains("\"PackageDetails\",", package2.Value.GetContentString());
             Assert.Contains("\"id\": \"ListedPackage\",", package2.Value.GetContentString());
             Assert.Contains("\"version\": \"1.0.1\",", package2.Value.GetContentString());
 
-            var package3 = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/unlistedpackage.1.0.0.json"));
+            var package3 = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/unlistedpackage.1.0.0.json", StringComparison.Ordinal));
             Assert.NotNull(package3.Key);
             Assert.Contains("\"PackageDetails\",", package3.Value.GetContentString());
             Assert.Contains("\"id\": \"UnlistedPackage\",", package3.Value.GetContentString());
             Assert.Contains("\"version\": \"1.0.0\",", package3.Value.GetContentString());
 
-            var package4 = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/testpackage.semver2.1.0.0-alpha.1.json"));
+            var package4 = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/testpackage.semver2.1.0.0-alpha.1.json", StringComparison.Ordinal));
             Assert.NotNull(package4.Key);
             Assert.Contains("\"PackageDetails\",", package4.Value.GetContentString());
             Assert.Contains("\"id\": \"TestPackage.SemVer2\",", package4.Value.GetContentString());
             Assert.Contains("\"version\": \"1.0.0-alpha.1+githash\",", package4.Value.GetContentString());
 
-            var package5 = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/otherpackage.1.0.0.json"));
+            var package5 = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/otherpackage.1.0.0.json", StringComparison.Ordinal));
             Assert.NotNull(package5.Key);
             Assert.Contains("\"PackageDelete\",", package5.Value.GetContentString());
             Assert.Contains("\"id\": \"OtherPackage\",", package5.Value.GetContentString());
@@ -1023,14 +1023,14 @@ namespace NgTests
             Assert.Equal(6, catalogStorage.Content.Count);
 
             // Ensure catalog has index.json
-            var catalogIndex = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("index.json"));
+            var catalogIndex = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("index.json", StringComparison.Ordinal));
             Assert.NotNull(catalogIndex.Key);
             Assert.Contains("\"nuget:lastCreated\":\"2015-01-01T00:00:00Z\"", catalogIndex.Value.GetContentString());
             Assert.Contains("\"nuget:lastDeleted\":\"2015-01-01T01:01:01", catalogIndex.Value.GetContentString());
             Assert.Contains("\"nuget:lastEdited\":\"2015-01-01T00:00:00", catalogIndex.Value.GetContentString());
 
             // Ensure catalog has page0.json
-            var pageZero = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("page0.json"));
+            var pageZero = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("page0.json", StringComparison.Ordinal));
             Assert.NotNull(pageZero.Key);
             Assert.Contains("\"parent\":\"http://tempuri.org/index.json\",", pageZero.Value.GetContentString());
 
@@ -1051,26 +1051,26 @@ namespace NgTests
             Assert.Contains("\"nuget:version\":\"1.0.0\"", pageZero.Value.GetContentString());
 
             // Check individual package entries
-            var package1 = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage.1.0.0.json"));
+            var package1 = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage.1.0.0.json", StringComparison.Ordinal));
             Assert.NotNull(package1.Key);
             Assert.Contains("\"PackageDetails\",", package1.Value.GetContentString());
             Assert.Contains("\"id\": \"ListedPackage\",", package1.Value.GetContentString());
             Assert.Contains("\"version\": \"1.0.0\",", package1.Value.GetContentString());
 
-            var package2 = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage.1.0.1.json"));
+            var package2 = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage.1.0.1.json", StringComparison.Ordinal));
             Assert.NotNull(package2.Key);
             Assert.Contains("\"PackageDetails\",", package2.Value.GetContentString());
             Assert.Contains("\"id\": \"ListedPackage\",", package2.Value.GetContentString());
             Assert.Contains("\"version\": \"1.0.1\",", package2.Value.GetContentString());
 
-            var package3 = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/unlistedpackage.1.0.0.json"));
+            var package3 = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/unlistedpackage.1.0.0.json", StringComparison.Ordinal));
             Assert.NotNull(package3.Key);
             Assert.Contains("\"PackageDetails\",", package3.Value.GetContentString());
             Assert.Contains("\"id\": \"UnlistedPackage\",", package3.Value.GetContentString());
             Assert.Contains("\"version\": \"1.0.0\",", package3.Value.GetContentString());
 
             // Ensure catalog has the delete of "OtherPackage"
-            var package4 = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/otherpackage.1.0.0.json"));
+            var package4 = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/otherpackage.1.0.0.json", StringComparison.Ordinal));
             Assert.NotNull(package4.Key);
             Assert.Contains("\"PackageDelete\",", package4.Value.GetContentString());
             Assert.Contains("\"id\": \"OtherPackage\",", package4.Value.GetContentString());
@@ -1143,14 +1143,14 @@ namespace NgTests
             Assert.Equal(7, catalogStorage.Content.Count);
 
             // Ensure catalog has index.json
-            var catalogIndex = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("index.json"));
+            var catalogIndex = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("index.json", StringComparison.Ordinal));
             Assert.NotNull(catalogIndex.Key);
             Assert.Contains("\"nuget:lastCreated\":\"2015-01-01T01:01:03Z\"", catalogIndex.Value.GetContentString());
             Assert.Contains("\"nuget:lastDeleted\":\"2015-01-01T01:01:01", catalogIndex.Value.GetContentString());
             Assert.Contains("\"nuget:lastEdited\":\"2015-01-01T00:00:00", catalogIndex.Value.GetContentString());
 
             // Ensure catalog has page0.json
-            var pageZero = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("page0.json"));
+            var pageZero = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("page0.json", StringComparison.Ordinal));
             Assert.NotNull(pageZero.Key);
             Assert.Contains("\"parent\":\"http://tempuri.org/index.json\",", pageZero.Value.GetContentString());
 
@@ -1171,19 +1171,19 @@ namespace NgTests
             Assert.Contains("\"nuget:version\":\"1.0.0\"", pageZero.Value.GetContentString());
 
             // Check individual package entries
-            var package1 = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage.1.0.0.json"));
+            var package1 = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage.1.0.0.json", StringComparison.Ordinal));
             Assert.NotNull(package1.Key);
             Assert.Contains("\"PackageDetails\",", package1.Value.GetContentString());
             Assert.Contains("\"id\": \"ListedPackage\",", package1.Value.GetContentString());
             Assert.Contains("\"version\": \"1.0.0\",", package1.Value.GetContentString());
 
-            var package2 = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage.1.0.1.json"));
+            var package2 = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage.1.0.1.json", StringComparison.Ordinal));
             Assert.NotNull(package2.Key);
             Assert.Contains("\"PackageDetails\",", package2.Value.GetContentString());
             Assert.Contains("\"id\": \"ListedPackage\",", package2.Value.GetContentString());
             Assert.Contains("\"version\": \"1.0.1\",", package2.Value.GetContentString());
 
-            var package3 = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/unlistedpackage.1.0.0.json"));
+            var package3 = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/unlistedpackage.1.0.0.json", StringComparison.Ordinal));
             Assert.NotNull(package3.Key);
             Assert.Contains("\"PackageDetails\",", package3.Value.GetContentString());
             Assert.Contains("\"id\": \"UnlistedPackage\",", package3.Value.GetContentString());
@@ -1191,7 +1191,7 @@ namespace NgTests
 
             // Ensure catalog has the delete of "OtherPackage"
             var package4 = catalogStorage.Content.FirstOrDefault(pair =>
-                pair.Key.PathAndQuery.EndsWith("/otherpackage.1.0.0.json")
+                pair.Key.PathAndQuery.EndsWith("/otherpackage.1.0.0.json", StringComparison.Ordinal)
                 && pair.Value.GetContentString().Contains("\"PackageDelete\""));
             Assert.NotNull(package4.Key);
             Assert.Contains("\"PackageDelete\",", package4.Value.GetContentString());
@@ -1200,7 +1200,7 @@ namespace NgTests
 
             // Ensure catalog has the insert of "OtherPackage"
             var package5 = catalogStorage.Content.FirstOrDefault(pair =>
-                pair.Key.PathAndQuery.EndsWith("/otherpackage.1.0.0.json")
+                pair.Key.PathAndQuery.EndsWith("/otherpackage.1.0.0.json", StringComparison.Ordinal)
                 && pair.Value.GetContentString().Contains("\"PackageDetails\""));
             Assert.NotNull(package5.Key);
             Assert.Contains("\"PackageDetails\",", package5.Value.GetContentString());
