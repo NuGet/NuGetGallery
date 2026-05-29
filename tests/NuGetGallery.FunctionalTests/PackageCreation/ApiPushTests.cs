@@ -29,22 +29,21 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
         [Description("Pushes many packages of the same ID and version. Verifies exactly one push succeeds and the rest fail with a conflict.")]
         [Priority(1)]
         [Category("AppServiceTests")]
-        // This test fires 160 concurrent push requests (10 versions × 16 parallel pushes each)
-        // using an async gate to maximize race conditions. It can technically run locally but is
-        // flaky on resource-constrained environments due to the extreme load on IIS Express.
+        // This test fires 16 concurrent push requests per version (10 versions sequentially)
+        // using an async gate to maximize race conditions. Versions are pushed sequentially
+        // because .NET 10's SocketsHttpHandler allows unlimited concurrent connections per
+        // server (unlike .NET Framework's ServicePointManager.DefaultConnectionLimit of 2),
+        // and 160 simultaneous pushes can overwhelm the gallery.
         public async Task DuplicatePushesAreRejectedAndNotDeleted()
         {
             // Arrange
             var packageId = $"{nameof(DuplicatePushesAreRejectedAndNotDeleted)}.{Guid.NewGuid():N}";
 
             int pushVersionCount = 10;
-            var duplicatePushTasks = new List<Task>();
             for (var duplicateTaskIndex = 0; duplicateTaskIndex < pushVersionCount; duplicateTaskIndex++)
             {
-                duplicatePushTasks.Add(PushDuplicates(packageId, $"1.0.{duplicateTaskIndex}", duplicateTaskIndex == 0));
+                await PushDuplicates(packageId, $"1.0.{duplicateTaskIndex}", duplicateTaskIndex == 0);
             }
-
-            await Task.WhenAll(duplicatePushTasks);
         }
 
         private async Task PushDuplicates(string packageId, string packageVersion, bool isFirstTask)
@@ -82,11 +81,15 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
 
                 var statusCodes = await Task.WhenAll(tasks);
 
-                // Assert
+                // Assert push results first to fail fast with clear diagnostics instead
+                // of waiting 30 minutes for the V2 verification timeout.
                 for (var taskIndex = 1; taskIndex <= statusCodes.Length; taskIndex++)
                 {
                     TestOutputHelper.WriteLine($"{packageId}/{packageVersion} Task {taskIndex:D2} push:     HTTP {(int)statusCodes[taskIndex - 1]}");
                 }
+
+                Assert.Equal(1, statusCodes.Count(x => x == HttpStatusCode.Created));
+                Assert.Equal(TaskCount - 1, statusCodes.Count(x => x == HttpStatusCode.Conflict));
 
                 //Wait for the packages to be available in V2(due to async validation)
                 await _clientSdkHelper.VerifyPackageExistsInV2Async(packageId, packageVersion);
@@ -106,9 +109,6 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
                         Assert.Equal(packageVersion, packageReader.NuspecReader.GetVersion().ToNormalizedString());
                     }
                 }
-
-                Assert.Equal(1, statusCodes.Count(x => x == HttpStatusCode.Created));
-                Assert.Equal(TaskCount - 1, statusCodes.Count(x => x == HttpStatusCode.Conflict));
             }
         }
 
