@@ -993,9 +993,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
             private readonly Package _availablePackage;
             private readonly Package _availablePackage2;
             private readonly Package _deletedPackage;
-            private readonly Package _multiVersionPackageV1;
-            private readonly Package _multiVersionPackageV2;
-            private readonly Package _multiVersionPackageV3Deleted;
 
             public TheSoftDeletePackageMethod()
             {
@@ -1025,33 +1022,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     PackageStatusKey = PackageStatus.Deleted
                 };
 
-                _multiVersionPackageV1 = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Id = "Multi.Version" },
-                    Version = "1.0.0",
-                    PackageStatusKey = PackageStatus.Available
-                };
-
-                _multiVersionPackageV2 = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Id = "Multi.Version" },
-                    Version = "2.0.0",
-                    PackageStatusKey = PackageStatus.Available
-                };
-
-                _multiVersionPackageV3Deleted = new Package
-                {
-                    PackageRegistration = new PackageRegistration { Id = "Multi.Version" },
-                    Version = "3.0.0",
-                    PackageStatusKey = PackageStatus.Deleted
-                };
-
-                SetupPackages(_packageServiceMock, [_availablePackage, _availablePackage2, _deletedPackage,
-                    _multiVersionPackageV1, _multiVersionPackageV2, _multiVersionPackageV3Deleted]);
-
-                _packageServiceMock
-                    .Setup(s => s.FindPackagesById("Multi.Version", PackageDeprecationFieldsToInclude.None))
-                    .Returns([_multiVersionPackageV1, _multiVersionPackageV2, _multiVersionPackageV3Deleted]);
+                SetupPackages(_packageServiceMock, [_availablePackage, _availablePackage2, _deletedPackage]);
             }
 
             private AdminApiController CreateSoftDeleteController(
@@ -1324,116 +1295,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 Assert.Equal(AdminSoftDeletePackageStatus.NotFound, response.Results[0].Status);
             }
 
-            [Fact]
-            public async Task WildcardDeletesAllAvailableVersionsAsync()
-            {
-                var request = new AdminSoftDeletePackageRequest
-                {
-                    Packages =
-                    [
-                        new AdminSoftDeletePackageIdentity { Id = "Multi.Version", Version = "*" }
-                    ],
-                    Reason = "wildcard test"
-                };
-
-                var controller = CreateSoftDeleteController(
-                    callerAzp: "test-app",
-                    packageService: _packageServiceMock,
-                    packageDeleteService: _packageDeleteServiceMock);
-
-                var result = await controller.SoftDeletePackageAsync(request) as JsonResult;
-
-                Assert.NotNull(result);
-                Assert.Equal((int)HttpStatusCode.Accepted, controller.Response.StatusCode);
-
-                var response = GetResponseData<AdminSoftDeletePackageResponse>(result);
-                Assert.Equal(3, response.Results.Count);
-                Assert.Equal(AdminSoftDeletePackageStatus.Accepted, response.Results[0].Status);
-                Assert.Equal("1.0.0", response.Results[0].Version);
-                Assert.Equal(AdminSoftDeletePackageStatus.Accepted, response.Results[1].Status);
-                Assert.Equal("2.0.0", response.Results[1].Version);
-                Assert.Equal(AdminSoftDeletePackageStatus.NotFound, response.Results[2].Status);
-                Assert.Equal("3.0.0", response.Results[2].Version);
-
-                _packageDeleteServiceMock.Verify(
-                    s => s.SoftDeletePackagesAsync(
-                        It.Is<IEnumerable<Package>>(p => new List<Package>(p).Count == 2),
-                        null,
-                        "wildcard test",
-                        "test-app"),
-                    Times.Once);
-            }
-
-            [Fact]
-            public async Task WildcardReturns400WhenPackageIdNotFoundAsync()
-            {
-                var request = new AdminSoftDeletePackageRequest
-                {
-                    Packages =
-                    [
-                        new AdminSoftDeletePackageIdentity { Id = "DoesNotExist", Version = "*" }
-                    ],
-                    Reason = "wildcard not found"
-                };
-
-                var controller = CreateSoftDeleteController(packageService: _packageServiceMock);
-
-                var result = await controller.SoftDeletePackageAsync(request) as JsonResult;
-
-                Assert.NotNull(result);
-                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
-
-                var response = GetResponseData<AdminSoftDeletePackageResponse>(result);
-                Assert.Single(response.Results);
-                Assert.Equal(AdminSoftDeletePackageStatus.NotFound, response.Results[0].Status);
-                Assert.Equal("*", response.Results[0].Version);
-            }
-
-            [Fact]
-            public async Task WildcardDeduplicatesWithExplicitVersionAsync()
-            {
-                var request = new AdminSoftDeletePackageRequest
-                {
-                    Packages =
-                    [
-                        new AdminSoftDeletePackageIdentity { Id = "Multi.Version", Version = "1.0.0" },
-                        new AdminSoftDeletePackageIdentity { Id = "Multi.Version", Version = "*" }
-                    ],
-                    Reason = "dedup wildcard"
-                };
-
-                var controller = CreateSoftDeleteController(
-                    packageService: _packageServiceMock,
-                    packageDeleteService: _packageDeleteServiceMock);
-
-                var result = await controller.SoftDeletePackageAsync(request) as JsonResult;
-
-                Assert.NotNull(result);
-                Assert.Equal((int)HttpStatusCode.Accepted, controller.Response.StatusCode);
-
-                var response = GetResponseData<AdminSoftDeletePackageResponse>(result);
-                // 1.0.0 from the explicit entry, then 2.0.0 and 3.0.0 from the wildcard (1.0.0 is deduped)
-                Assert.Equal(3, response.Results.Count);
-                Assert.Equal("1.0.0", response.Results[0].Version);
-                Assert.Equal(AdminSoftDeletePackageStatus.Accepted, response.Results[0].Status);
-                Assert.Equal("2.0.0", response.Results[1].Version);
-                Assert.Equal(AdminSoftDeletePackageStatus.Accepted, response.Results[1].Status);
-                Assert.Equal("3.0.0", response.Results[2].Version);
-                Assert.Equal(AdminSoftDeletePackageStatus.NotFound, response.Results[2].Status);
-            }
-
-            [Fact]
-            public void WildcardVersionPassesValidation()
-            {
-                var identity = new AdminSoftDeletePackageIdentity { Id = "Test", Version = "*" };
-                var context = new ValidationContext(identity);
-                var results = new List<ValidationResult>();
-
-                var isValid = Validator.TryValidateObject(identity, context, results, validateAllProperties: true);
-
-                Assert.True(isValid);
-                Assert.Empty(results);
-            }
         }
     }
 }

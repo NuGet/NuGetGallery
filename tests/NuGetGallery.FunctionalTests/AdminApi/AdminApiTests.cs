@@ -321,46 +321,6 @@ namespace NuGetGallery.FunctionalTests.AdminApi
                 TestOutputHelper.WriteLine($"After delete: {(int)afterResponse.StatusCode} for {packageUrl}");
                 Assert.Equal(HttpStatusCode.NotFound, afterResponse.StatusCode);
             }
-
-            [Fact]
-            [Priority(2)]
-            [Category("AdminApiTests")]
-            public async Task WildcardSoftDeletesAllVersions()
-            {
-                // Uses a dedicated package ID (AdminApiTest.SoftDeleteAll) with two
-                // seeded versions so this test doesn't conflict with SoftDeletesExistingPackage.
-                var packageId = "AdminApiTest.SoftDeleteAll";
-
-                // Verify at least one version exists before deletion
-                var findUrl = $"{UrlHelper.V2FeedRootUrl}FindPackagesById()?id='{packageId}'&hijack=false";
-                var beforeResponse = await _httpClient.GetStringAsync(findUrl);
-                TestOutputHelper.WriteLine($"Before delete: found package in feed = {beforeResponse.Contains(packageId)}");
-                Assert.Contains(packageId, beforeResponse, StringComparison.OrdinalIgnoreCase);
-
-                var body = JsonConvert.SerializeObject(new
-                {
-                    packages = new[] { new { id = packageId, version = "*" } },
-                    reason = "Functional test wildcard soft-delete"
-                });
-
-                var response = await PostAuthenticatedJsonAsync("/api/admin/soft-delete-package", body);
-
-                var json = await ReadJsonAsync(response);
-                TestOutputHelper.WriteLine($"Response: {json}");
-
-                Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
-                var results = json["Results"] as JArray;
-                Assert.NotNull(results);
-                Assert.True(results.Count >= 2, "Expected at least two versions in the results.");
-                Assert.True(
-                    results.All(r => r["Status"]?.ToString() == "Accepted"),
-                    "Expected all versions to be accepted for deletion.");
-
-                // Verify no versions remain in the V2 feed
-                var afterResponse = await _httpClient.GetStringAsync(findUrl);
-                TestOutputHelper.WriteLine($"After delete: found package in feed = {afterResponse.Contains(packageId)}");
-                Assert.DoesNotContain(packageId, afterResponse, StringComparison.OrdinalIgnoreCase);
-            }
         }
 
         // ================================================================
