@@ -557,9 +557,9 @@ namespace NuGetGallery.FunctionalTests
         /// <summary>
         /// Returns the latest stable version string for the given package.
         /// </summary>
-        public static string GetLatestStableVersion(string packageId)
+        public static async Task<string> GetLatestStableVersionAsync(string packageId)
         {
-            var packages = GetPackageMetadataAsync(packageId, includePrerelease: false, includeUnlisted: false).Result;
+            var packages = await GetPackageMetadataAsync(packageId, includePrerelease: false, includeUnlisted: false);
             var version = packages.Max(item => item.Identity.Version);
             return version.ToString();
         }
@@ -586,12 +586,12 @@ namespace NuGetGallery.FunctionalTests
         /// <summary>
         /// Searchs the gallery to get the packages matching the specific search term and returns their count.
         /// </summary>
-        public static int GetPackageCountForSearchTerm(string searchQuery)
+        public static async Task<int> GetPackageCountForSearchTermAsync(string searchQuery)
         {
             var repository = Repository.Factory.GetCoreV2(new PackageSource(SourceUrl));
             var resource = repository.GetResource<PackageSearchResource>();
             using var cacheContext = new SourceCacheContext { NoCache = true };
-            var packages = resource.SearchAsync(searchQuery, new SearchFilter(includePrerelease: false), skip: 0, take: 1000, log: NullLogger.Instance, cancellationToken: CancellationToken.None).Result;
+            var packages = await resource.SearchAsync(searchQuery, new SearchFilter(includePrerelease: false), skip: 0, take: 1000, log: NullLogger.Instance, cancellationToken: CancellationToken.None);
             return packages.Count();
         }
 
@@ -642,9 +642,9 @@ namespace NuGetGallery.FunctionalTests
         /// <summary>
         /// Given a package checks if it is installed properly in the current dir.
         /// </summary>
-        public bool CheckIfPackageInstalled(string packageId)
+        public async Task<bool> CheckIfPackageInstalledAsync(string packageId)
         {
-            string packageVersion = GetLatestStableVersion(packageId);
+            string packageVersion = await GetLatestStableVersionAsync(packageId);
             return CheckIfPackageVersionInstalled(packageId, packageVersion);
         }
 
