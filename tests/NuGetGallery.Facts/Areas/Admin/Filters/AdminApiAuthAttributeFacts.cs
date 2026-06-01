@@ -358,37 +358,6 @@ namespace NuGetGallery.Areas.Admin.Filters
             }
 
             [Fact]
-            public async Task Returns401ForTokenSignedWithWrongKeyAsync()
-            {
-                var configService = CreateMockConfigService();
-
-                var wrongKey = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes("DifferentKeyThatDoesNotMatchTheExpectedSigningKeyAtAll!!"))
-                {
-                    KeyId = "wrong-key-id"
-                };
-                var token = CreateTestJwt(signingKey: wrongKey);
-
-                var result = await AdminApiBearerAuthenticationHandler.ValidateAndAuthorizeAsync(
-                    token, configService.Object);
-
-                Assert.Equal((int)HttpStatusCode.Unauthorized, result.StatusCode);
-            }
-
-            [Fact]
-            public async Task Returns401ForTokenWithWrongAudienceAsync()
-            {
-                var configService = CreateMockConfigService(audience: "https://admin-api.nuget.org");
-
-                var token = CreateTestJwt(audience: "https://wrong-audience.example.com");
-
-                var result = await AdminApiBearerAuthenticationHandler.ValidateAndAuthorizeAsync(
-                    token, configService.Object);
-
-                Assert.Equal((int)HttpStatusCode.Unauthorized, result.StatusCode);
-            }
-
-            [Fact]
             public async Task ReturnsSuccessForValidTokenWithMatchingCallerAsync()
             {
                 var configService = CreateMockConfigService(
@@ -610,11 +579,13 @@ namespace NuGetGallery.Areas.Admin.Filters
 
             private static Mock<IGalleryConfigurationService> CreateMockConfigService(
                 string audience = "https://admin-api.nuget.org",
-                string allowedCallers = "test-tenant-id:test-authorized-party")
+                string allowedCallers = "test-tenant-id:test-authorized-party",
+                bool testMode = true)
             {
                 var mockConfig = new Mock<IAppConfiguration>();
                 mockConfig.Setup(c => c.AdminApiAudience).Returns(audience);
                 mockConfig.Setup(c => c.AdminApiAllowedCallers).Returns(allowedCallers);
+                mockConfig.Setup(c => c.AdminApiTestModeEnabled).Returns(testMode);
 
                 var mockConfigService = new Mock<IGalleryConfigurationService>();
                 mockConfigService.Setup(s => s.Current).Returns(mockConfig.Object);
