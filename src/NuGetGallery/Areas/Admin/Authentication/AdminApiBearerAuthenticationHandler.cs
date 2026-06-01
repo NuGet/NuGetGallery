@@ -87,7 +87,7 @@ namespace NuGetGallery.Areas.Admin.Authentication
 
         protected override Task ApplyResponseChallengeAsync()
         {
-            if (Response.StatusCode == 401)
+            if (Response.StatusCode == (int)HttpStatusCode.Unauthorized)
             {
                 var challenge = Helper.LookupChallenge(Options.AuthenticationType, Options.AuthenticationMode);
                 if (challenge != null)
