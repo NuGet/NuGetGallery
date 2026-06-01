@@ -124,11 +124,11 @@ namespace NuGetGallery.Areas.Admin.Authentication
         private static NameValueCollection ToNameValueCollection(IHeaderDictionary headers)
         {
             var nvc = new NameValueCollection();
-            foreach (var pair in headers)
+            foreach (var header in headers)
             {
-                foreach (var value in pair.Value)
+                foreach (var value in header.Value)
                 {
-                    nvc.Add(pair.Key, value);
+                    nvc.Add(header.Key, value);
                 }
             }
 
