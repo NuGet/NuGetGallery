@@ -33,7 +33,7 @@ namespace NuGetGallery
                 .GetAll()
                 .SingleOrDefault(pr => pr.Id == packageId);
 
-            if (packageRegistration == null)
+            if (packageRegistration is null)
             {
                 return LockPackageServiceResult.PackageNotFound;
             }

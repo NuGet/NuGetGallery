@@ -37,7 +37,7 @@ namespace NuGetGallery
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
 
-            if (package == null)
+            if (package is null)
             {
                 return null;
             }

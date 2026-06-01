@@ -33,7 +33,7 @@ namespace NuGetGallery
                 .GetAll()
                 .SingleOrDefault(u => u.Username == username);
 
-            if (user == null)
+            if (user is null)
             {
                 return LockUserServiceResult.UserNotFound;
             }
