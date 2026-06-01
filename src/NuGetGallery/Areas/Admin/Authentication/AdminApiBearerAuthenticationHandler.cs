@@ -141,25 +141,10 @@ namespace NuGetGallery.Areas.Admin.Authentication
         {
             var config = configService.Current;
 
-            JsonWebTokenHandler handler;
-            ConfigurationManager<OpenIdConnectConfiguration> oidcConfigManager;
-
-            try
-            {
-                handler = DependencyResolver.Current.GetService<JsonWebTokenHandler>() ??
-                    new JsonWebTokenHandler();
-                oidcConfigManager = DependencyResolver.Current.GetService<ConfigurationManager<OpenIdConnectConfiguration>>() ??
-                    new ConfigurationManager<OpenIdConnectConfiguration>(
-                        EntraIdTokenPolicyValidator.MetadataAddress,
-                        new OpenIdConnectConfigurationRetriever());
-            }
-            catch
-            {
-                handler = new JsonWebTokenHandler();
-                oidcConfigManager = new ConfigurationManager<OpenIdConnectConfiguration>(
-                    EntraIdTokenPolicyValidator.MetadataAddress,
-                    new OpenIdConnectConfigurationRetriever());
-            }
+            var handler = new JsonWebTokenHandler();
+            var oidcConfigManager = new ConfigurationManager<OpenIdConnectConfiguration>(
+                EntraIdTokenPolicyValidator.MetadataAddress,
+                new OpenIdConnectConfigurationRetriever());
 
             var tokenValidationParameters = new TokenValidationParameters
             {
