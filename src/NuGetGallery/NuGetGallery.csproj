@@ -91,7 +91,7 @@
   </PropertyGroup>
   <!-- WARNING: This constant disables Admin API token validation for functional testing.
        It must NEVER be set in release or deployment builds. -->
-  <PropertyGroup Condition="'$(UnsafeAdminApiAuthBypass)' == 'true'">
+  <PropertyGroup Condition="'$(UnsafeAdminApiAuthBypassForTesting)' == 'true'">
     <DefineConstants>$(DefineConstants);UNSAFE_ADMIN_API_AUTH_BYPASS_FOR_TESTING</DefineConstants>
   </PropertyGroup>
   <ItemGroup>

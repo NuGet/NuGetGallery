@@ -19,7 +19,7 @@ param (
     [string]$VerifyMicrosoftPackageVersion = $null,
     # WARNING: This flag compiles in an auth bypass for Admin API functional testing.
     # It must NEVER be used in release or deployment builds.
-    [switch]$UnsafeAdminApiAuthBypass
+    [switch]$UnsafeAdminApiAuthBypassForTesting
 )
 
 Set-StrictMode -Version 1.0
@@ -73,8 +73,8 @@ Invoke-BuildStep 'Building common solution' {
 Invoke-BuildStep 'Building gallery solution' { 
         $MvcBuildViews = $Configuration -eq "Release"
         $extraProps = "/p:MvcBuildViews=$MvcBuildViews"
-        if ($UnsafeAdminApiAuthBypass) {
-            $extraProps += " /p:UnsafeAdminApiAuthBypass=true"
+        if ($UnsafeAdminApiAuthBypassForTesting) {
+            $extraProps += " /p:UnsafeAdminApiAuthBypassForTesting=true"
         }
         Build-Solution -Configuration $Configuration -BuildNumber $BuildNumber -SolutionPath $GallerySolution -SkipRestore:$SkipRestore -MSBuildProperties $extraProps `
     } `

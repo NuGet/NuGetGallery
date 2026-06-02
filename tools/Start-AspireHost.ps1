@@ -43,7 +43,7 @@ param(
 	[switch]$TrustDevCert,
 	# WARNING: This flag compiles in an auth bypass for Admin API functional testing.
 	# It must NEVER be used in release or deployment builds.
-	[switch]$UnsafeAdminApiAuthBypass
+	[switch]$UnsafeAdminApiAuthBypassForTesting
 )
 
 $ErrorActionPreference = "Stop"
@@ -53,8 +53,8 @@ $appHostProject = Join-Path $repoRoot "src\NuGetGallery.AppHost\NuGetGallery.App
 # Step 1: Build AppHost
 Write-Host "##[group]Building NuGetGallery.AppHost"
 $buildArgs = @($appHostProject, "-c", $Configuration)
-if ($UnsafeAdminApiAuthBypass) {
-	$buildArgs += "/p:UnsafeAdminApiAuthBypass=true"
+if ($UnsafeAdminApiAuthBypassForTesting) {
+	$buildArgs += "/p:UnsafeAdminApiAuthBypassForTesting=true"
 }
 dotnet build @buildArgs | Out-Host
 if ($LASTEXITCODE -ne 0)
