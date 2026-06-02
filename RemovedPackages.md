@@ -204,6 +204,7 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    DeepSeekV4.SDK                            |    05/26/2026    |   Untrustworthy  |
 |    qPapel.Auth                               |    05/29/2026    |   Malware  |
 |    Sicoob.Sdk                                |    05/29/2026    |   Malware  |
+|    Cyberx.CyberKit                           |    06/02/2026    |   Malware  |
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.
