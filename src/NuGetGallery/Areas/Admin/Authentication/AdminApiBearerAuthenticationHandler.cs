@@ -151,11 +151,14 @@ namespace NuGetGallery.Areas.Admin.Authentication
                 ConfigurationManager = oidcConfigManager,
             };
 
+#if UNSAFE_ADMIN_API_AUTH_BYPASS_FOR_TESTING
             var isTestMode = config.AdminApiTestModeEnabled;
             if (isTestMode)
             {
                 // Test mode: skip all token validation so that self-signed
                 // test JWTs can exercise the claims and allowed-callers checks.
+                // This code is conditionally compiled and must never be included
+                // in release or deployment builds.
                 tokenValidationParameters.ValidateIssuer = false;
                 tokenValidationParameters.ValidateAudience = false;
                 tokenValidationParameters.ValidateLifetime = false;
@@ -167,10 +170,13 @@ namespace NuGetGallery.Areas.Admin.Authentication
             }
             else
             {
-                tokenValidationParameters.IssuerValidator = AadIssuerValidator.GetAadIssuerValidator(EntraIdTokenPolicyValidator.Issuer).Validate;
-                tokenValidationParameters.ValidAudience = config.AdminApiAudience;
-                tokenValidationParameters.EnableAadSigningKeyIssuerValidation();
+                throw new InvalidOperationException("The application was compiled with UNSAFE_ADMIN_API_AUTH_BYPASS_FOR_TESTING but AdminApiTestModeEnabled is false.");
             }
+#else
+            tokenValidationParameters.IssuerValidator = AadIssuerValidator.GetAadIssuerValidator(EntraIdTokenPolicyValidator.Issuer).Validate;
+            tokenValidationParameters.ValidAudience = config.AdminApiAudience;
+            tokenValidationParameters.EnableAadSigningKeyIssuerValidation();
+#endif
 
             TokenValidationResult validationResult;
             try
@@ -221,6 +227,11 @@ namespace NuGetGallery.Areas.Admin.Authentication
                 };
             }
 
+            return AuthorizeCaller(tid, azp, config.AdminApiAllowedCallers);
+        }
+
+        internal static AuthResult AuthorizeCaller(string tid, string azp, string allowedCallersConfig)
+        {
             if (string.IsNullOrWhiteSpace(tid) || string.IsNullOrWhiteSpace(azp))
             {
                 return new AuthResult
@@ -230,7 +241,7 @@ namespace NuGetGallery.Areas.Admin.Authentication
                 };
             }
 
-            var allowedCallers = ParseAllowedCallers(config.AdminApiAllowedCallers);
+            var allowedCallers = ParseAllowedCallers(allowedCallersConfig);
             if (!allowedCallers.Any(c =>
                 string.Equals(c.TenantId, tid, StringComparison.OrdinalIgnoreCase) &&
                 string.Equals(c.AuthorizedParty, azp, StringComparison.OrdinalIgnoreCase)))

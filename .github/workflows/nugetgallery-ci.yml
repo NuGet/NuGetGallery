@@ -206,7 +206,9 @@ jobs:
 
       - name: Build AppHost
         shell: pwsh
-        run: dotnet build src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj -c $env:BuildConfiguration
+        # WARNING: UnsafeAdminApiAuthBypass enables self-signed test tokens for functional tests.
+        # This property must NEVER be used in release or deployment builds.
+        run: dotnet build src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj -c $env:BuildConfiguration /p:UnsafeAdminApiAuthBypass=true
 
       - name: Setup Dev Environment
         shell: pwsh
@@ -222,7 +224,7 @@ jobs:
 
           # 1. Start Aspire Host
           Write-Host "=== Starting Aspire Host ==="
-          $hostPid = & "$repoRoot\tools\Start-AspireHost.ps1" -Configuration $config -TrustDevCert
+          $hostPid = & "$repoRoot\tools\Start-AspireHost.ps1" -Configuration $config -TrustDevCert -UnsafeAdminApiAuthBypass
           Write-Host "Aspire Host PID: $hostPid"
 
           try {

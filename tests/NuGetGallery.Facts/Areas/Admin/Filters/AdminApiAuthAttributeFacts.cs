@@ -5,16 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Security.Claims;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
-using Microsoft.IdentityModel.JsonWebTokens;
-using Microsoft.IdentityModel.Protocols;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.Owin;
 using Moq;
 using NuGetGallery.Areas.Admin.Authentication;
@@ -322,275 +315,99 @@ namespace NuGetGallery.Areas.Admin.Filters
             }
         }
 
-        public class TheValidateAndAuthorizeAsyncMethod
+        public class TheAuthorizeCallerMethod
         {
-            private static readonly SymmetricSecurityKey TestSigningKey = new(
-                Encoding.UTF8.GetBytes("SuperSecretTestKeyThatIsAtLeast256BitsLongForHmacSha256Validation!!"))
-            {
-                KeyId = "test-key-id"
-            };
-
-            public TheValidateAndAuthorizeAsyncMethod()
-            {
-                SetupDependencyResolverForValidation();
-            }
-
             [Fact]
-            public async Task Returns401ForGarbageTokenAsync()
+            public void ReturnsSuccessForMatchingCaller()
             {
-                var configService = CreateMockConfigService();
-
-                var result = await AdminApiBearerAuthenticationHandler.ValidateAndAuthorizeAsync(
-                    "garbage-not-a-jwt", configService.Object);
-
-                Assert.Equal((int)HttpStatusCode.Unauthorized, result.StatusCode);
-            }
-
-            [Fact]
-            public async Task Returns401ForEmptyTokenAsync()
-            {
-                var configService = CreateMockConfigService();
-
-                var result = await AdminApiBearerAuthenticationHandler.ValidateAndAuthorizeAsync(
-                    "", configService.Object);
-
-                Assert.Equal((int)HttpStatusCode.Unauthorized, result.StatusCode);
-            }
-
-            [Fact]
-            public async Task ReturnsSuccessForValidTokenWithMatchingCallerAsync()
-            {
-                var configService = CreateMockConfigService(
-                    audience: "https://admin-api.nuget.org",
-                    allowedCallers: "test-tenant-id:test-authorized-party");
-
-                var token = CreateTestJwt(
-                    audience: "https://admin-api.nuget.org",
-                    tenantId: "test-tenant-id",
-                    azp: "test-authorized-party");
-
-                var result = await AdminApiBearerAuthenticationHandler.ValidateAndAuthorizeAsync(
-                    token, configService.Object);
+                var result = AdminApiBearerAuthenticationHandler.AuthorizeCaller(
+                    "test-tenant-id", "test-app", "test-tenant-id:test-app");
 
                 Assert.Equal(0, result.StatusCode);
-                Assert.Equal("test-authorized-party", result.AuthorizedParty);
+                Assert.Equal("test-app", result.AuthorizedParty);
+                Assert.Equal("test-tenant-id", result.TenantId);
             }
 
             [Fact]
-            public async Task Returns403ForValidTokenWithNonMatchingTenantIdAsync()
+            public void Returns403ForNonMatchingTenantId()
             {
-                var configService = CreateMockConfigService(
-                    audience: "https://admin-api.nuget.org",
-                    allowedCallers: "allowed-tenant:test-authorized-party");
-
-                var token = CreateTestJwt(
-                    audience: "https://admin-api.nuget.org",
-                    tenantId: "wrong-tenant",
-                    azp: "test-authorized-party");
-
-                var result = await AdminApiBearerAuthenticationHandler.ValidateAndAuthorizeAsync(
-                    token, configService.Object);
+                var result = AdminApiBearerAuthenticationHandler.AuthorizeCaller(
+                    "wrong-tenant", "test-app", "test-tenant-id:test-app");
 
                 Assert.Equal((int)HttpStatusCode.Forbidden, result.StatusCode);
             }
 
             [Fact]
-            public async Task Returns403ForValidTokenWithNonMatchingazpAsync()
+            public void Returns403ForNonMatchingAzp()
             {
-                var configService = CreateMockConfigService(
-                    audience: "https://admin-api.nuget.org",
-                    allowedCallers: "test-tenant-id:allowed-azp");
-
-                var token = CreateTestJwt(
-                    audience: "https://admin-api.nuget.org",
-                    tenantId: "test-tenant-id",
-                    azp: "wrong-app");
-
-                var result = await AdminApiBearerAuthenticationHandler.ValidateAndAuthorizeAsync(
-                    token, configService.Object);
+                var result = AdminApiBearerAuthenticationHandler.AuthorizeCaller(
+                    "test-tenant-id", "wrong-app", "test-tenant-id:test-app");
 
                 Assert.Equal((int)HttpStatusCode.Forbidden, result.StatusCode);
             }
 
             [Fact]
-            public async Task Returns403ForValidTokenMissingTidClaimAsync()
+            public void Returns403WhenTidIsNull()
             {
-                var configService = CreateMockConfigService(
-                    audience: "https://admin-api.nuget.org",
-                    allowedCallers: "test-tenant-id:test-authorized-party");
-
-                var token = CreateTestJwt(
-                    audience: "https://admin-api.nuget.org",
-                    tenantId: "test-tenant-id",
-                    azp: "test-authorized-party",
-                    includeTid: false);
-
-                var result = await AdminApiBearerAuthenticationHandler.ValidateAndAuthorizeAsync(
-                    token, configService.Object);
-
-                // Without tid claim, AadIssuerValidator may reject → 401,
-                // or if it passes, the missing claim → 403.
-                Assert.True(
-                    result.StatusCode == (int)HttpStatusCode.Unauthorized ||
-                    result.StatusCode == (int)HttpStatusCode.Forbidden,
-                    $"Expected 401 or 403 but got {result.StatusCode}");
-            }
-
-            [Fact]
-            public async Task Returns403ForValidTokenMissingAzpClaimAsync()
-            {
-                var configService = CreateMockConfigService(
-                    audience: "https://admin-api.nuget.org",
-                    allowedCallers: "test-tenant-id:test-authorized-party");
-
-                var token = CreateTestJwt(
-                    audience: "https://admin-api.nuget.org",
-                    tenantId: "test-tenant-id",
-                    azp: "test-authorized-party",
-                    includeazp: false);
-
-                var result = await AdminApiBearerAuthenticationHandler.ValidateAndAuthorizeAsync(
-                    token, configService.Object);
+                var result = AdminApiBearerAuthenticationHandler.AuthorizeCaller(
+                    null, "test-app", "test-tenant-id:test-app");
 
                 Assert.Equal((int)HttpStatusCode.Forbidden, result.StatusCode);
             }
 
             [Fact]
-            public async Task ReturnsSuccessWhenCallerMatchesCaseInsensitivelyAsync()
+            public void Returns403WhenAzpIsNull()
             {
-                var configService = CreateMockConfigService(
-                    audience: "https://admin-api.nuget.org",
-                    allowedCallers: "TEST-TENANT-ID:test-authorized-party");
+                var result = AdminApiBearerAuthenticationHandler.AuthorizeCaller(
+                    "test-tenant-id", null, "test-tenant-id:test-app");
 
-                var token = CreateTestJwt(
-                    audience: "https://admin-api.nuget.org",
-                    tenantId: "test-tenant-id",
-                    azp: "test-authorized-party");
+                Assert.Equal((int)HttpStatusCode.Forbidden, result.StatusCode);
+            }
 
-                var result = await AdminApiBearerAuthenticationHandler.ValidateAndAuthorizeAsync(
-                    token, configService.Object);
+            [Fact]
+            public void Returns403WhenTidIsEmpty()
+            {
+                var result = AdminApiBearerAuthenticationHandler.AuthorizeCaller(
+                    "", "test-app", "test-tenant-id:test-app");
+
+                Assert.Equal((int)HttpStatusCode.Forbidden, result.StatusCode);
+            }
+
+            [Fact]
+            public void Returns403WhenAzpIsEmpty()
+            {
+                var result = AdminApiBearerAuthenticationHandler.AuthorizeCaller(
+                    "test-tenant-id", "", "test-tenant-id:test-app");
+
+                Assert.Equal((int)HttpStatusCode.Forbidden, result.StatusCode);
+            }
+
+            [Fact]
+            public void MatchesCaseInsensitively()
+            {
+                var result = AdminApiBearerAuthenticationHandler.AuthorizeCaller(
+                    "TEST-TENANT-ID", "TEST-APP", "test-tenant-id:test-app");
 
                 Assert.Equal(0, result.StatusCode);
-                Assert.Equal("test-authorized-party", result.AuthorizedParty);
+                Assert.Equal("TEST-APP", result.AuthorizedParty);
             }
 
             [Fact]
-            public async Task ReturnsSuccessWhenCallerMatchesSecondAllowedPairAsync()
+            public void MatchesSecondAllowedPair()
             {
-                var configService = CreateMockConfigService(
-                    audience: "https://admin-api.nuget.org",
-                    allowedCallers: "other-tenant:other-app;test-tenant-id:test-authorized-party");
-
-                var token = CreateTestJwt(
-                    audience: "https://admin-api.nuget.org",
-                    tenantId: "test-tenant-id",
-                    azp: "test-authorized-party");
-
-                var result = await AdminApiBearerAuthenticationHandler.ValidateAndAuthorizeAsync(
-                    token, configService.Object);
+                var result = AdminApiBearerAuthenticationHandler.AuthorizeCaller(
+                    "second-tenant", "second-app", "first-tenant:first-app;second-tenant:second-app");
 
                 Assert.Equal(0, result.StatusCode);
             }
 
             [Fact]
-            public async Task Returns403WhenAllowedCallersConfigIsEmptyAsync()
+            public void Returns403WhenAllowedCallersConfigIsEmpty()
             {
-                var configService = CreateMockConfigService(
-                    audience: "https://admin-api.nuget.org",
-                    allowedCallers: "");
-
-                var token = CreateTestJwt(
-                    audience: "https://admin-api.nuget.org",
-                    tenantId: "test-tenant-id",
-                    azp: "test-authorized-party");
-
-                var result = await AdminApiBearerAuthenticationHandler.ValidateAndAuthorizeAsync(
-                    token, configService.Object);
+                var result = AdminApiBearerAuthenticationHandler.AuthorizeCaller(
+                    "test-tenant-id", "test-app", "");
 
                 Assert.Equal((int)HttpStatusCode.Forbidden, result.StatusCode);
-            }
-
-            private static string CreateTestJwt(
-                string audience = "https://admin-api.nuget.org",
-                string tenantId = "test-tenant-id",
-                string azp = "test-authorized-party",
-                bool includeTid = true,
-                bool includeazp = true,
-                string[] roles = null,
-                SymmetricSecurityKey signingKey = null)
-            {
-                signingKey ??= TestSigningKey;
-                var handler = new JsonWebTokenHandler();
-                var claims = new Dictionary<string, object>();
-                if (includeTid) claims["tid"] = tenantId;
-                if (includeazp) claims["azp"] = azp;
-                if (roles != null) claims["roles"] = roles;
-
-                var descriptor = new SecurityTokenDescriptor
-                {
-                    Issuer = $"https://login.microsoftonline.com/{tenantId}/v2.0",
-                    Audience = audience,
-                    Claims = claims,
-                    SigningCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256),
-                    Expires = DateTime.UtcNow.AddHours(1),
-                    IssuedAt = DateTime.UtcNow,
-                    NotBefore = DateTime.UtcNow.AddMinutes(-5),
-                };
-
-                return handler.CreateToken(descriptor);
-            }
-
-            private static ConfigurationManager<OpenIdConnectConfiguration> CreateTestConfigManager()
-            {
-                var oidcConfig = new OpenIdConnectConfiguration
-                {
-                    Issuer = "https://login.microsoftonline.com/{tenantid}/v2.0"
-                };
-                oidcConfig.SigningKeys.Add(TestSigningKey);
-
-                var retriever = new Mock<IConfigurationRetriever<OpenIdConnectConfiguration>>();
-                retriever
-                    .Setup(r => r.GetConfigurationAsync(
-                        It.IsAny<string>(),
-                        It.IsAny<IDocumentRetriever>(),
-                        It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(oidcConfig);
-
-                return new ConfigurationManager<OpenIdConnectConfiguration>(
-                    "https://test-metadata/.well-known/openid-configuration",
-                    retriever.Object);
-            }
-
-            private static void SetupDependencyResolverForValidation()
-            {
-                var handler = new JsonWebTokenHandler();
-                var configManager = CreateTestConfigManager();
-
-                var mockDependencyResolver = new Mock<IDependencyResolver>();
-                mockDependencyResolver
-                    .Setup(r => r.GetService(typeof(JsonWebTokenHandler)))
-                    .Returns(handler);
-                mockDependencyResolver
-                    .Setup(r => r.GetService(typeof(ConfigurationManager<OpenIdConnectConfiguration>)))
-                    .Returns(configManager);
-
-                DependencyResolver.SetResolver(mockDependencyResolver.Object);
-            }
-
-            private static Mock<IGalleryConfigurationService> CreateMockConfigService(
-                string audience = "https://admin-api.nuget.org",
-                string allowedCallers = "test-tenant-id:test-authorized-party",
-                bool testMode = true)
-            {
-                var mockConfig = new Mock<IAppConfiguration>();
-                mockConfig.Setup(c => c.AdminApiAudience).Returns(audience);
-                mockConfig.Setup(c => c.AdminApiAllowedCallers).Returns(allowedCallers);
-                mockConfig.Setup(c => c.AdminApiTestModeEnabled).Returns(testMode);
-
-                var mockConfigService = new Mock<IGalleryConfigurationService>();
-                mockConfigService.Setup(s => s.Current).Returns(mockConfig.Object);
-
-                return mockConfigService;
             }
         }
     }

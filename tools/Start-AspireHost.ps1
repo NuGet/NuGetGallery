@@ -40,7 +40,10 @@ param(
 		"https://localhost:17170"
 	),
 	[int]$Timeout = 600,
-	[switch]$TrustDevCert
+	[switch]$TrustDevCert,
+	# WARNING: This flag compiles in an auth bypass for Admin API functional testing.
+	# It must NEVER be used in release or deployment builds.
+	[switch]$UnsafeAdminApiAuthBypass
 )
 
 $ErrorActionPreference = "Stop"
@@ -49,7 +52,11 @@ $appHostProject = Join-Path $repoRoot "src\NuGetGallery.AppHost\NuGetGallery.App
 
 # Step 1: Build AppHost
 Write-Host "##[group]Building NuGetGallery.AppHost"
-dotnet build $appHostProject -c $Configuration | Out-Host
+$buildArgs = @($appHostProject, "-c", $Configuration)
+if ($UnsafeAdminApiAuthBypass) {
+	$buildArgs += "/p:UnsafeAdminApiAuthBypass=true"
+}
+dotnet build @buildArgs | Out-Host
 if ($LASTEXITCODE -ne 0)
 {
 	Write-Error "AppHost build failed."

@@ -89,6 +89,11 @@
     <Prefer32Bit>false</Prefer32Bit>
     <PublishDatabases>false</PublishDatabases>
   </PropertyGroup>
+  <!-- WARNING: This constant disables Admin API token validation for functional testing.
+       It must NEVER be set in release or deployment builds. -->
+  <PropertyGroup Condition="'$(UnsafeAdminApiAuthBypass)' == 'true'">
+    <DefineConstants>$(DefineConstants);UNSAFE_ADMIN_API_AUTH_BYPASS_FOR_TESTING</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Build.Framework" />
     <Reference Include="Microsoft.Build.Utilities.v4.0" />
