@@ -205,6 +205,10 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    qPapel.Auth                               |    05/29/2026    |   Malware  |
 |    Sicoob.Sdk                                |    05/29/2026    |   Malware  |
 |    Cyberx.CyberKit                           |    06/02/2026    |   Malware  |
+|    Enroxes.Systiem.Text.Json                 |    06/02/2026    |   Malware  |
+|    Enroxes.Systemm.Drawing.Common            |    06/02/2026    |   Malware  |
+|    Enroxes.Commonn.Data                      |    06/02/2026    |   Malware  |
+|    Enroxes.Cryptographhy.Pkcs                |    06/02/2026    |   Malware  |
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.
