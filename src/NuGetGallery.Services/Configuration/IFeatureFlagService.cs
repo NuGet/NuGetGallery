@@ -375,8 +375,8 @@ namespace NuGetGallery
         /// </summary>
         bool IsReducedVersionListsEnabled();
 
+        // TODO: https://github.com/NuGet/Engineering/issues/6446
         bool IsInvalidPackageIdAllowedForAllPackages();
-
         bool IsInvalidPackageIdAllowedForExistingPackages();
     }
 }

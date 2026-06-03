@@ -21,26 +21,17 @@ namespace NuGetGallery.Packaging
         // Block new packages with invalid characters
         public static bool IsValidPackageId(string packageId)
         {
-            if (!IsValid(packageId))
-            {
-                return false;
-            }
-
-            return IdRegex.IsMatch(packageId);
+            return IsValid(packageId, IdRegex);
         }
 
-        // Support reading and depending on existing packages
+        // 1. Support downloading existing packages possibly with invalid characters that do not match IdRegex
+        // 2. Support new packages that require to depend on existing packages possibly with invalid characters that do not match IdRegex
         public static bool IsValidPackageIdForRead(string packageId)
         {
-            if (!IsValid(packageId))
-            {
-                return false;
-            }
-
-            return IdRegexForRead.IsMatch(packageId);
+            return IsValid(packageId, IdRegexForRead);
         }
 
-        private static bool IsValid(string packageId)
+        private static bool IsValid(string packageId, Regex regex)
         {
             if (packageId == null)
             {
@@ -48,6 +39,11 @@ namespace NuGetGallery.Packaging
             }
 
             if (string.Equals(packageId, "$id$", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            if (!regex.IsMatch(packageId))
             {
                 return false;
             }

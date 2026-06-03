@@ -157,7 +157,7 @@ namespace GalleryTools.Commands
 				var validationResult = PackageMetadataValidationService.CheckPackageIdForBannedCharacters(
                     packageMetadata,
                     new PackageIdentity(packageId, new NuGetVersion("1.0.0")),
-                    _ => { return false; });
+                    _ => false);
 
 				if (validationResult != null)
 				{

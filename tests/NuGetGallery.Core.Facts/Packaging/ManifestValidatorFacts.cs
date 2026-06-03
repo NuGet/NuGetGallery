@@ -577,7 +577,7 @@ namespace NuGetGallery.Packaging
             var nuspecStream = CreateNuspecStream(NuSpecSemVer200);
 
             // Act
-            ManifestValidator.Validate(nuspecStream, _ => { return false;  }, out var reader, out var packageMetadata);
+            ManifestValidator.Validate(nuspecStream, _ => false, out var reader, out var packageMetadata);
 
             // Assert
             Assert.NotNull(packageMetadata);
@@ -586,7 +586,7 @@ namespace NuGetGallery.Packaging
         private static string[] GetErrors(Stream nuspecStream)
         {
             return ManifestValidator
-                .Validate(nuspecStream, _ => { return false; }, out var reader, out var metadata)
+                .Validate(nuspecStream, _ => false, out var reader, out var metadata)
                 .Select(r => r.ErrorMessage)
                 .ToArray();
         }
