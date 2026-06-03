@@ -1,16 +1,7 @@
 name: NuGetGallery CI $(Build.BuildId)
 
-trigger:
-  branches:
-    include:
-      - main
-      - dev
-  batch: True
-
-pr:
-  branches:
-    include:
-      - "*"
+trigger: none
+pr: none
 
 variables:
   - name: BuildConfiguration
