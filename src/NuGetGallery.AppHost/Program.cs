@@ -740,7 +740,11 @@ public class Program
                 Setting("Gallery.AzureStorage.Revalidation.ConnectionString", connectionString),
                 Setting("Gallery.SiteRoot", "https://localhost"),
                 Setting("Gallery.SupportEmailSiteRoot", "https://localhost"),
-                Setting("Gallery.EnforceDefaultSecurityPolicies", "true")));
+                Setting("Gallery.EnforceDefaultSecurityPolicies", "true"),
+                Setting("Gallery.AdminApiEnabled", "true"),
+                Setting("Gallery.AdminApiAudience", "https://nuget.org"),
+                Setting("Gallery.AdminApiAllowedCallers", "your-tid:your-azp"),
+                Setting("Gallery.AdminApiTestModeEnabled", "true")));
 
         doc.Save(Path.Combine(galleryDir, "appsettings.Aspire.config"));
 

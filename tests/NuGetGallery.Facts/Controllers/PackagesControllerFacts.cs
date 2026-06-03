@@ -284,6 +284,8 @@ namespace NuGetGallery
 
             var diagnosticsService = new Mock<IDiagnosticsService>();
 
+            var reflowPackageService = new Mock<IReflowPackageService>();
+
             var controller = new Mock<PackagesController>(
                 packageFilter,
                 packageService.Object,
@@ -320,7 +322,8 @@ namespace NuGetGallery
                 iconUrlProvider.Object,
                 markdownService.Object,
                 compatibilityFactory.Object,
-                sponsorshipUrlService.Object);
+                sponsorshipUrlService.Object,
+                reflowPackageService.Object);
 
             controller.CallBase = true;
             controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());

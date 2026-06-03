@@ -149,5 +149,6 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
         public bool IsMcpServerPackageDisplayEnabled() => throw new NotImplementedException();
 
         public bool IsReducedVersionListsEnabled() => throw new NotImplementedException();
+        public bool IsAdminApiSoftDeleteEnabled() => throw new NotImplementedException();
     }
 }
