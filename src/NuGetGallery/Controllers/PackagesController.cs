@@ -424,7 +424,10 @@ namespace NuGetGallery
                     NuspecReader nuspec;
                     PackageMetadata packageMetadata;
                     var errors = ManifestValidator.Validate(packageArchiveReader.GetNuspec(),
-                        (string id) => { return _featureFlagService.IsInvalidPackageIdAllowedForExistingPackages() && _packageService.FindPackageRegistrationById(id) != null; },
+                        (string id) => {
+                            return _featureFlagService.IsInvalidPackageIdAllowedForAllPackages() ||
+                                   (_featureFlagService.IsInvalidPackageIdAllowedForExistingPackages() && _packageService.FindPackageRegistrationById(id) != null);
+                        },
                         out nuspec, out packageMetadata).ToArray();
                     if (errors.Length > 0)
                     {

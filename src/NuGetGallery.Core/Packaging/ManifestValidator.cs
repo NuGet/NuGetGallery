@@ -51,7 +51,8 @@ namespace NuGetGallery.Packaging
                 {
                     yield return new ValidationResult(CoreStrings.Manifest_IdTooLong);
                 }
-                else if (!PackageIdValidator.IsValidPackageId(packageMetadata.Id) && !isInvalidPackageIdAllowed(packageMetadata.Id))
+                else if (!PackageIdValidator.IsValidPackageIdForRead(packageMetadata.Id) ||
+                    (!PackageIdValidator.IsValidPackageId(packageMetadata.Id) && !isInvalidPackageIdAllowed(packageMetadata.Id)))
                 {
                     yield return new ValidationResult(String.Format(
                         CultureInfo.CurrentCulture,

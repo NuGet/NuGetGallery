@@ -375,6 +375,8 @@ namespace NuGetGallery
         /// </summary>
         bool IsReducedVersionListsEnabled();
 
+        bool IsInvalidPackageIdAllowedForAllPackages();
+
         bool IsInvalidPackageIdAllowedForExistingPackages();
     }
 }
