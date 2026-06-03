@@ -3,6 +3,8 @@
 
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Microsoft.Extensions.Configuration;
 
 /// <summary>
@@ -43,6 +45,8 @@ static class SeedBlobsTool
 				if (fileName.Equals("flags.json", StringComparison.OrdinalIgnoreCase))
 				{
 					seededFlags = true;
+					await SeedPatchedFlagsAsync(blobService, cfg.Containers.Content, file);
+					continue;
 				}
 				var contentType = Path.GetExtension(file).ToLowerInvariant() switch
 				{
@@ -192,5 +196,22 @@ static class SeedBlobsTool
 			},
 			cancellationToken: default);
 		Console.WriteLine($"  {containerName}/{blobName}");
+	}
+
+	/// <summary>
+	/// Reads flags.json, enables feature flags needed for local/CI testing,
+	/// and uploads the patched version.
+	/// </summary>
+	static async Task SeedPatchedFlagsAsync(BlobServiceClient blobService,
+		string containerName, string filePath)
+	{
+		var json = JsonNode.Parse(await File.ReadAllTextAsync(filePath))!;
+		var features = json["Features"]!.AsObject();
+
+		features["NuGetGallery.AdminApiSoftDelete"] = "Enabled";
+
+		var patched = json.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
+		await SeedAsync(blobService, containerName, "flags.json", patched);
+		Console.WriteLine("  (patched flags.json with local/CI feature overrides)");
 	}
 }

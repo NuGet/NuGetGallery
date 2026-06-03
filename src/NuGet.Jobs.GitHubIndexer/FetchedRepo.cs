@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
 
@@ -67,7 +68,30 @@ namespace NuGet.Jobs.GitHubIndexer
             string mainBranchRef = "refs/remotes/origin/" + _repoInfo.MainBranch;
             _repo.CheckoutPaths(mainBranchRef, filePaths, new CheckoutOptions());
 
-            return filePaths.Select(x => (ICheckedOutFile)new CheckedOutFile(Path.Combine(_repoFolder, x), _repoInfo.Id)).ToList();
+            var checkedOutFiles = new List<ICheckedOutFile>();
+            foreach (var filePath in filePaths)
+            {
+                var fullPath = Path.Combine(_repoFolder, filePath);
+
+                // CheckoutPaths can silently skip files when it cannot create
+                // intermediate directories on Windows — e.g. paths containing
+                // characters that are valid on Linux/GitHub but problematic on
+                // NTFS, or directories matching Windows reserved device names
+                // (AUX, CON, PRN, etc.).
+                if (File.Exists(fullPath))
+                {
+                    checkedOutFiles.Add(new CheckedOutFile(fullPath, _repoInfo.Id));
+                }
+                else
+                {
+                    _logger.LogWarning(
+                        "[{RepoName}] File was not checked out to disk: {FilePath}",
+                        _repoInfo.Id,
+                        filePath);
+                }
+            }
+
+            return checkedOutFiles;
         }
 
         /// <summary>
@@ -105,7 +129,9 @@ namespace NuGet.Jobs.GitHubIndexer
         }
 
         /// <summary>
-        /// Recursivly deletes all the files and sub-directories in a directory
+        /// Recursively deletes all the files and sub-directories in a directory.
+        /// Delegates to <see cref="DirectoryHelper"/> for robust handling of
+        /// read-only files, NTFS race conditions, and Windows reserved device names.
         /// </summary>
         private void CleanDirectory(DirectoryInfo dir)
         {
@@ -114,30 +140,7 @@ namespace NuGet.Jobs.GitHubIndexer
                 return;
             }
 
-            // I manually delete the dirs/folders because, for some reason, the Directory.Delete() 
-            // doesn't handle deleting Readonly files really well (which some files in the .git folder are).
-            //
-            // An alternative would have been to set the FileAttribute for each file and then call Directory.Delete(...)
-            // but that would be redundant
-            foreach (var childDir in dir.GetDirectories())
-            {
-                CleanDirectory(childDir);
-            }
-
-            foreach (var file in dir.GetFiles())
-            {
-                file.IsReadOnly = false;
-                file.Delete();
-            }
-
-            if (dir.GetFiles().Length == 0)
-            {
-                dir.Delete();
-            }
-            else
-            {
-                _logger.LogError("The directory {DirName} is not empty!", dir.FullName);
-            }
+            DirectoryHelper.DeleteDirectoryWithRetries(dir.FullName, _logger);
         }
     }
 }

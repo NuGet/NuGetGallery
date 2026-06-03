@@ -4,29 +4,24 @@
 <#
 .SYNOPSIS
     Stops the Aspire AppHost process started by Start-AspireHost.ps1.
+
+.PARAMETER HostPid
+    The process ID of the Aspire AppHost to stop.
 #>
+param(
+	[Parameter(Mandatory = $true)]
+	[int]$HostPid
+)
 
-$repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
-$pidFile = Join-Path $repoRoot "aspire-host.pid"
-
-if (-not (Test-Path $pidFile))
-{
-	Write-Host "No Aspire host PID file found. Nothing to stop."
-	exit 0
-}
-
-$hostPid = [int](Get-Content $pidFile -Raw).Trim()
-$proc = Get-Process -Id $hostPid -ErrorAction SilentlyContinue
+$proc = Get-Process -Id $HostPid -ErrorAction SilentlyContinue
 
 if ($proc)
 {
-	Write-Host "Stopping Aspire host (PID $hostPid)..."
-	Stop-Process -Id $hostPid -Force -ErrorAction SilentlyContinue
+	Write-Host "Stopping Aspire host (PID $HostPid)..."
+	Stop-Process -Id $HostPid -Force -ErrorAction SilentlyContinue
 	Write-Host "Aspire host stopped."
 }
 else
 {
-	Write-Host "Aspire host process (PID $hostPid) is not running."
+	Write-Host "Aspire host process (PID $HostPid) is not running."
 }
-
-Remove-Item $pidFile -ErrorAction SilentlyContinue

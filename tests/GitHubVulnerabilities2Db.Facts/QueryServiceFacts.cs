@@ -10,8 +10,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using GitHubVulnerabilities2Db.Configuration;
 using Microsoft.Extensions.Logging;
+using Moq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NuGet.Services.GitHub.Authentication;
 using NuGet.Services.GitHub.GraphQL;
 using NuGetGallery.TestUtils;
 using Xunit;
@@ -24,6 +26,7 @@ namespace GitHubVulnerabilities2Db.Facts
 		private readonly GitHubVulnerabilities2DbConfiguration _configuration;
 		private readonly MockHandler _mockHandler;
 		private readonly QueryService _service;
+        private readonly Mock<IGitHubAuthProvider> _authProviderMock;
 		private Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> _handlerFunction;
 
 		public QueryServiceFacts(ITestOutputHelper output)
@@ -38,10 +41,11 @@ namespace GitHubVulnerabilities2Db.Facts
 			{
 				Content = new StringContent("{}")
 			});
-			_mockHandler = new MockHandler((r, c) => _handlerFunction(r, c));
+            _mockHandler = new MockHandler((r, c) => _handlerFunction(r, c));
+            _authProviderMock = new Mock<IGitHubAuthProvider>();
 
 			var loggerFactory = new LoggerFactory().AddXunit(output);
-			_service = new QueryService(_configuration, new HttpClient(_mockHandler), loggerFactory.CreateLogger<QueryService>());
+			_service = new QueryService(_configuration, new HttpClient(_mockHandler), _authProviderMock.Object, loggerFactory.CreateLogger<QueryService>());
 		}
 
 		[Fact]
@@ -139,27 +143,14 @@ namespace GitHubVulnerabilities2Db.Facts
 		}
 
 		[Fact]
-		public async Task QueryAsync_SetsUserAgentAndAuthorizationHeaders()
+		public async Task QueryAsync_ConfiguresGitHubAuth()
 		{
-			// Arrange
-			HttpRequestMessage capturedRequest = null;
-			_handlerFunction = (req, ct) =>
-			{
-				capturedRequest = req;
-				return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
-				{
-					Content = new StringContent(JsonConvert.SerializeObject(new QueryResponse { Data = new QueryResponseData() }))
-				});
-			};
-
 			// Act
 			await _service.QueryAsync("query { test }", CancellationToken.None);
 
-			// Assert
-			Assert.NotNull(capturedRequest);
-			Assert.Equal("Bearer", capturedRequest.Headers.Authorization?.Scheme);
-			Assert.Equal(_configuration.GitHubPersonalAccessToken, capturedRequest.Headers.Authorization?.Parameter);
-			Assert.Contains(_configuration.UserAgent, capturedRequest.Headers.UserAgent.ToString());
+            // Assert
+            _authProviderMock
+                .Verify(ap => ap.AddAuthentication(It.IsAny<HttpRequestMessage>()), Times.AtLeastOnce);
 		}
 
 		[Fact]

@@ -11,7 +11,9 @@ using Ganss.Xss;
 using Markdig;
 using Markdig.Extensions.AutoIdentifiers;
 using Markdig.Extensions.EmphasisExtras;
+using Markdig.Extensions.TaskLists;
 using Markdig.Renderers;
+using Markdig.Renderers.Html;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
 
@@ -45,6 +47,7 @@ namespace NuGetGallery
             //Configure allowed tags, attributes for the sanitizer
             _htmlSanitizer.AllowedAttributes.Add("id");
             _htmlSanitizer.AllowedAttributes.Add("class");
+            _htmlSanitizer.AllowedAttributes.Add("aria-label");
         }
 
         private string SanitizeText(string input)
@@ -304,6 +307,11 @@ namespace NuGetGallery
                                     linkInline.Url = readyUriString;
                                 }
                             }
+                        }
+                        else if (node is TaskList taskList)
+                        {
+                            // Add aria-label to task list checkboxes for accessibility.
+                            taskList.GetAttributes().AddProperty("aria-label", taskList.Checked ? "Completed" : "Not completed");
                         }
                     }
                 }
