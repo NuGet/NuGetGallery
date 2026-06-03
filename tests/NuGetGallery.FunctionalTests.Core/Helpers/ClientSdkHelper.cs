@@ -61,10 +61,10 @@ namespace NuGetGallery.FunctionalTests
         /// <summary>
         /// Checks if the given package is present in the source.
         /// </summary>
-        public bool CheckIfPackageExistsInSource(string packageId, string sourceUrl)
+        public async Task<bool> CheckIfPackageExistsInSourceAsync(string packageId, string sourceUrl)
         {
             WriteLine("Checking if package {0} exists in source {1}... ", packageId, sourceUrl);
-            var packageExistsInSource = GetPackageMetadataAsync(packageId, sourceUrl: sourceUrl).Result.Any();
+            var packageExistsInSource = (await GetPackageMetadataAsync(packageId, sourceUrl: sourceUrl)).Any();
             if (packageExistsInSource)
             {
                 WriteLine("Found!");
@@ -616,9 +616,9 @@ namespace NuGetGallery.FunctionalTests
         /// <summary>
         /// Given the path to the nupkg file, returns the corresponding package ID.
         /// </summary>
-        public bool IsPackageVersionUnListed(string packageId, string version)
+        public async Task<bool> IsPackageVersionUnListedAsync(string packageId, string version)
         {
-            var metadata = GetPackageMetadataAsync(packageId).Result;
+            var metadata = await GetPackageMetadataAsync(packageId);
             var nugetVersion = NuGetVersion.Parse(version);
             var package = metadata.FirstOrDefault(m => m.Identity.Version == nugetVersion);
             if (package != null)
@@ -686,20 +686,12 @@ namespace NuGetGallery.FunctionalTests
             var nupkgPath = Path.Combine(outputDir, expectedDownloadedNupkgFileName + ".nupkg");
 
             // Download via direct HTTP instead of NuGet SDK.
-            // .NET 9+ unconditionally blocks HTTPS→HTTP redirect downgrades in SocketsHttpHandler
-            // (including inside the NuGet SDK’s own HttpClient). In Aspire environments the gallery
-            // (HTTPS) redirects package downloads to Azurite blob storage (HTTP), so we follow
-            // such redirects manually.
+            // The NuGet SDK's own HttpClient also uses SocketsHttpHandler, which blocks
+            // HTTPS-to-HTTP redirect downgrades.
             var requestUri = UrlHelper.V2FeedRootUrl + "Package/" + packageId + "/" + version;
             using var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
-            var response = await client.GetAsync(requestUri);
-            if (response.StatusCode == HttpStatusCode.Found ||
-                response.StatusCode == HttpStatusCode.MovedPermanently)
-            {
-                var redirectUri = response.Headers.Location;
-                response.Dispose();
-                response = await client.GetAsync(redirectUri);
-            }
+            var response = await ODataHelper.SendFollowingRedirectsAsync(
+                client, new HttpRequestMessage(HttpMethod.Get, requestUri));
             response.EnsureSuccessStatusCode();
 
             using (var fileStream = File.Create(nupkgPath))

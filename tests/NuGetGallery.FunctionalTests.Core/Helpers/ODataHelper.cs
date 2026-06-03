@@ -175,19 +175,7 @@ namespace NuGetGallery.FunctionalTests
             request.Headers.Add("user-agent", "TestAgent");
             request.Headers.Add("NuGet-Operation", operation);
 
-            var responseMessage = await client.SendAsync(request);
-
-            // .NET 9+ unconditionally blocks HTTPS→HTTP redirect downgrades in SocketsHttpHandler.
-            // In Aspire environments the gallery (HTTPS) redirects package downloads to
-            // Azurite blob storage (HTTP), so follow such redirects manually.
-            if (responseMessage.StatusCode == HttpStatusCode.Found ||
-                responseMessage.StatusCode == HttpStatusCode.MovedPermanently)
-            {
-                var redirectUri = responseMessage.Headers.Location;
-                TestOutputHelper.WriteLine("Following redirect to: " + redirectUri);
-                responseMessage.Dispose();
-                responseMessage = await client.GetAsync(redirectUri);
-            }
+            var responseMessage = await SendFollowingRedirectsAsync(client, request);
 
             if (responseMessage.StatusCode == HttpStatusCode.OK)
             {
@@ -223,6 +211,24 @@ namespace NuGetGallery.FunctionalTests
             }
 
             return filename;
+        }
+
+        /// <summary>
+        /// Sends an HTTP request and manually follows any redirect response.
+        /// .NET 9+ unconditionally blocks HTTPS-to-HTTP redirect downgrades in SocketsHttpHandler.
+        /// </summary>
+        public static async Task<HttpResponseMessage> SendFollowingRedirectsAsync(
+            HttpClient client, HttpRequestMessage request)
+        {
+            var response = await client.SendAsync(request);
+            if (response.StatusCode == HttpStatusCode.Found ||
+                response.StatusCode == HttpStatusCode.MovedPermanently)
+            {
+                var redirectUri = response.Headers.Location;
+                response.Dispose();
+                response = await client.GetAsync(redirectUri);
+            }
+            return response;
         }
     }
 }

@@ -44,7 +44,7 @@ namespace NuGetGallery.FunctionalTests
             try
             {
                 var clientSdkHelper = new ClientSdkHelper(ConsoleTestOutputHelper.New);
-                if (!clientSdkHelper.CheckIfPackageExistsInSource(Constants.TestPackageId, UrlHelper.V2FeedRootUrl))
+                if (!await clientSdkHelper.CheckIfPackageExistsInSourceAsync(Constants.TestPackageId, UrlHelper.V2FeedRootUrl))
                 {
                     var testOutputHelper = ConsoleTestOutputHelper.New;
                     var commandlineHelper = new CommandlineHelper(testOutputHelper);

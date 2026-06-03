@@ -88,7 +88,7 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
                     TestOutputHelper.WriteLine($"{packageId}/{packageVersion} Task {taskIndex:D2} push:     HTTP {(int)statusCodes[taskIndex - 1]}");
                 }
 
-                Assert.Equal(1, statusCodes.Count(x => x == HttpStatusCode.Created));
+                Assert.Single(statusCodes, x => x == HttpStatusCode.Created);
                 Assert.Equal(TaskCount - 1, statusCodes.Count(x => x == HttpStatusCode.Conflict));
 
                 //Wait for the packages to be available in V2(due to async validation)
