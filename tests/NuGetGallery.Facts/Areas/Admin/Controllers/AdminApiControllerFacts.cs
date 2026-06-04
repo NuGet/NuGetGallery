@@ -1370,9 +1370,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 var request = new AdminUpdateListedPackageRequest
                 {
                     Packages =
-                    {
+                    [
                         new AdminUpdateListedPackageIdentity { Id = "TestPackage", Version = "not-a-version" }
-                    },
+                    ],
                     Listed = false,
                     Reason = "Test reason"
                 };
@@ -1409,9 +1409,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 var request = new AdminUpdateListedPackageRequest
                 {
                     Packages =
-                    {
+                    [
                         new AdminUpdateListedPackageIdentity { Id = "TestPackage", Version = "1.0.0" }
-                    },
+                    ],
                     Listed = false,
                     Reason = "Test reason"
                 };
@@ -1449,10 +1449,10 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 var request = new AdminUpdateListedPackageRequest
                 {
                     Packages =
-                    {
+                    [
                         new AdminUpdateListedPackageIdentity { Id = "TestPackage", Version = "1.0.0" },
                         new AdminUpdateListedPackageIdentity { Id = "TestPackage", Version = "1.0.0" }
-                    },
+                    ],
                     Listed = false,
                     Reason = "Test reason"
                 };
@@ -1494,9 +1494,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 var request = new AdminUpdateListedPackageRequest
                 {
                     Packages =
-                    {
+                    [
                         new AdminUpdateListedPackageIdentity { Id = "NonExistent", Version = "1.0.0" }
-                    },
+                    ],
                     Listed = false,
                     Reason = "Test reason"
                 };
@@ -1536,9 +1536,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 var request = new AdminUpdateListedPackageRequest
                 {
                     Packages =
-                    {
+                    [
                         new AdminUpdateListedPackageIdentity { Id = "TestPackage", Version = "1.0.0" }
-                    },
+                    ],
                     Listed = true,
                     Reason = "Relisting for production"
                 };
