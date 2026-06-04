@@ -13,11 +13,11 @@ namespace NuGet.Services.Metadata.Catalog.Icons
 {
     /// <summary>
     /// Default <see cref="IExternalIconUrlPolicy"/> that mitigates SSRF by only
-    /// permitting http/https URLs on the default port whose host resolves
-    /// exclusively to public, routable IP addresses. Any failure to resolve, a
-    /// non-default port, or any address that falls inside loopback, private,
-    /// link-local, multicast, broadcast, carrier-grade NAT, or other reserved
-    /// ranges causes the URL to be rejected.
+    /// permitting http/https URLs whose host resolves exclusively to public,
+    /// routable IP addresses. Any failure to resolve, or any address that falls
+    /// inside loopback, private, link-local, multicast, broadcast,
+    /// carrier-grade NAT, or other reserved ranges causes the URL to be
+    /// rejected.
     /// </summary>
     public class PublicExternalIconUrlPolicy : IExternalIconUrlPolicy
     {
@@ -44,14 +44,6 @@ namespace NuGet.Services.Metadata.Catalog.Icons
             if (iconUrl.Scheme != Uri.UriSchemeHttp && iconUrl.Scheme != Uri.UriSchemeHttps)
             {
                 _logger.LogInformation("Rejecting icon URL {IconUrl} due to disallowed scheme {Scheme}", iconUrl, iconUrl.Scheme);
-                return false;
-            }
-
-            // Restrict to default ports (80/443). Allowing arbitrary ports
-            // dramatically widens the SSRF blast radius into internal services.
-            if (!iconUrl.IsDefaultPort)
-            {
-                _logger.LogInformation("Rejecting icon URL {IconUrl} due to non-default port {Port}", iconUrl, iconUrl.Port);
                 return false;
             }
 

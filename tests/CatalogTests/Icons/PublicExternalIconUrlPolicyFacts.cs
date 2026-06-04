@@ -33,8 +33,18 @@ namespace CatalogTests.Icons
         [Theory]
         [InlineData("http://example.com:8080/icon.png")]
         [InlineData("https://example.com:8443/icon.png")]
+        public async Task RejectsNonDefaultPortHostnamesOnlyWhenAddressIsRestricted(string url)
+        {
+            // example.com resolves to public addresses, so non-default ports
+            // are allowed; this is intentional since some legitimate icon URLs
+            // use custom ports. SSRF protection is enforced via IP filtering.
+            Assert.True(await _target.IsAllowedAsync(new Uri(url), CancellationToken.None));
+        }
+
+        [Theory]
         [InlineData("http://127.0.0.1:1234/icon.png")]
-        public async Task RejectsNonDefaultPorts(string url)
+        [InlineData("http://10.0.0.1:8080/icon.png")]
+        public async Task RejectsRestrictedHostsOnNonDefaultPorts(string url)
         {
             Assert.False(await _target.IsAllowedAsync(new Uri(url), CancellationToken.None));
         }
