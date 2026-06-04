@@ -191,6 +191,8 @@
     <Compile Include="Areas\Admin\Migrations\SupportRequestMigrationsConfiguration.cs" />
     <Compile Include="Areas\Admin\Models\AdminReflowPackageRequest.cs" />
     <Compile Include="Areas\Admin\Models\AdminReflowPackageResponse.cs" />
+    <Compile Include="Areas\Admin\Models\AdminUpdateListedPackageRequest.cs" />
+    <Compile Include="Areas\Admin\Models\AdminUpdateListedPackageResponse.cs" />
     <Compile Include="Areas\Admin\Models\RevokeApiKeysRequest.cs" />
     <Compile Include="Areas\Admin\Models\ValidateAccountResult.cs" />
     <Compile Include="Areas\Admin\Models\ValidateUsernameResult.cs" />
@@ -1500,6 +1502,8 @@
     <Compile Include="Services\ILockPackageService.cs" />
     <Compile Include="Services\ILockUserService.cs" />
     <Compile Include="Services\IReflowPackageService.cs" />
+    <Compile Include="Services\IUpdateListedService.cs" />
+    <Compile Include="Services\UpdateListedService.cs" />
     <Compile Include="Services\IPackageDeleteService.cs" />
     <Compile Include="Services\IRawSearchService.cs" />
     <Compile Include="Services\IStatusService.cs" />
