@@ -931,6 +931,12 @@ namespace NuGetGallery
                 "api/admin/pending-validations",
                 new { controller = "AdminApi", action = "PendingValidations" },
                 new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
+                RouteName.AdminRevalidatePackage,
+                "api/admin/revalidate-package",
+                new { controller = "AdminApi", action = "RevalidatePackage" },
+                new { httpMethod = new HttpMethodConstraint("POST") });
         }
     }
 }

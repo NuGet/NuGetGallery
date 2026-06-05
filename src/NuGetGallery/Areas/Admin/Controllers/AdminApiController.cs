@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGet.Packaging.Core;
 using NuGet.Services.Entities;
+using NuGet.Services.Validation;
 using NuGet.Versioning;
 using NuGetGallery.Areas.Admin.Filters;
 using NuGetGallery.Areas.Admin.Models;
@@ -28,6 +29,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
         private readonly IFeatureFlagService _featureFlagService;
         private readonly IUpdateListedService _updateListedService;
         private readonly ValidationAdminService _validationAdminService;
+        private readonly IValidationService _validationService;
+        private readonly ISymbolPackageService _symbolPackageService;
 
         public AdminApiController(
             IPackageService packageService,
@@ -37,7 +40,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
             IPackageDeleteService packageDeleteService,
             IFeatureFlagService featureFlagService,
             IUpdateListedService updateListedService,
-            ValidationAdminService validationAdminService)
+            ValidationAdminService validationAdminService,
+            IValidationService validationService,
+            ISymbolPackageService symbolPackageService)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _reflowPackageService = reflowPackageService ?? throw new ArgumentNullException(nameof(reflowPackageService));
@@ -47,6 +52,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _updateListedService = updateListedService ?? throw new ArgumentNullException(nameof(updateListedService));
             _validationAdminService = validationAdminService ?? throw new ArgumentNullException(nameof(validationAdminService));
+            _validationService = validationService ?? throw new ArgumentNullException(nameof(validationService));
+            _symbolPackageService = symbolPackageService ?? throw new ArgumentNullException(nameof(symbolPackageService));
         }
 
         [HttpPost]
@@ -463,6 +470,96 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
 
             return Json(HttpStatusCode.OK, new AdminPendingValidationsResponse { Results = results }, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        [ActionName("RevalidatePackage")]
+        public virtual async Task<ActionResult> RevalidatePackageAsync(AdminRevalidatePackageRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequestFromModelState();
+            }
+
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var results = new List<AdminRevalidatePackageResult>();
+            var hasAccepted = false;
+
+            foreach (var entry in request.Packages)
+            {
+                var nugetVersion = NuGetVersion.Parse(entry.Version.Trim());
+                var normalizedVersion = nugetVersion.ToNormalizedString();
+                var packageId = entry.Id.Trim();
+                var validatingType = entry.ValidatingType.Trim();
+                var dedupeKey = $"{packageId}/{normalizedVersion}/{validatingType}";
+
+                if (!seen.Add(dedupeKey))
+                {
+                    continue;
+                }
+
+                var status = AdminRevalidatePackageStatus.Accepted;
+
+                try
+                {
+                    if (validatingType == nameof(ValidatingType.Package))
+                    {
+                        var package = _packageService.FindPackageByIdAndVersionStrict(packageId, normalizedVersion);
+
+                        if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
+                        {
+                            status = AdminRevalidatePackageStatus.NotFound;
+                        }
+                        else
+                        {
+                            await _validationService.RevalidateAsync(package);
+                            hasAccepted = true;
+                        }
+                    }
+                    else if (validatingType == nameof(ValidatingType.SymbolPackage))
+                    {
+                        var package = _packageService.FindPackageByIdAndVersionStrict(packageId, normalizedVersion);
+
+                        if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
+                        {
+                            status = AdminRevalidatePackageStatus.NotFound;
+                        }
+                        else
+                        {
+                            var latestSymbolPackage = package.LatestSymbolPackage();
+
+                            if (latestSymbolPackage == null || latestSymbolPackage.StatusKey == PackageStatus.Deleted)
+                            {
+                                status = AdminRevalidatePackageStatus.NotFound;
+                            }
+                            else
+                            {
+                                await _validationService.RevalidateAsync(latestSymbolPackage);
+                                hasAccepted = true;
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    status = AdminRevalidatePackageStatus.Failed;
+                    QuietLog.LogHandledException(ex);
+                }
+
+                results.Add(new AdminRevalidatePackageResult
+                {
+                    Id = packageId,
+                    Version = normalizedVersion,
+                    ValidatingType = validatingType,
+                    Status = status
+                });
+            }
+
+            var statusCode = hasAccepted ? HttpStatusCode.Accepted : HttpStatusCode.BadRequest;
+            return Json(statusCode, new AdminRevalidatePackageResponse
+            {
+                Results = results
+            });
         }
 
         private JsonResult BadRequestFromModelState()
