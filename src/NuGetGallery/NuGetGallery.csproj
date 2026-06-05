@@ -187,6 +187,8 @@
     <Compile Include="Areas\Admin\Models\AdminLockUserResponse.cs" />
     <Compile Include="Areas\Admin\Models\AdminLockPackageResponse.cs" />
     <Compile Include="Areas\Admin\Models\AdminPendingValidationsResponse.cs" />
+    <Compile Include="Areas\Admin\Models\AdminRevalidatePackageRequest.cs" />
+    <Compile Include="Areas\Admin\Models\AdminRevalidatePackageResponse.cs" />
     <Compile Include="Areas\Admin\Models\AdminUserIdentity.cs" />
     <Compile Include="Areas\Admin\Models\DeletedStatus.cs" />
     <Compile Include="Areas\Admin\Migrations\SupportRequestMigrationsConfiguration.cs" />

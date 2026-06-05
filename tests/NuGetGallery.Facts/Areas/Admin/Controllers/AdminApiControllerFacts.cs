@@ -34,7 +34,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
             Mock<IPackageDeleteService> packageDeleteService = null,
             Mock<IFeatureFlagService> featureFlagService = null,
             Mock<IUpdateListedService> updateListedService = null,
-            ValidationAdminService validationAdminService = null)
+            ValidationAdminService validationAdminService = null,
+            Mock<IValidationService> validationService = null,
+            Mock<ISymbolPackageService> symbolPackageService = null)
         {
             packageService ??= new Mock<IPackageService>();
             reflowPackageService ??= new Mock<IReflowPackageService>();
@@ -44,6 +46,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
             featureFlagService ??= new Mock<IFeatureFlagService>();
             updateListedService ??= new Mock<IUpdateListedService>();
             validationAdminService ??= CreateValidationAdminService();
+            validationService ??= new Mock<IValidationService>();
+            symbolPackageService ??= new Mock<ISymbolPackageService>();
 
             var controller = new AdminApiController(
                 packageService.Object,
@@ -53,7 +57,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 packageDeleteService.Object,
                 featureFlagService.Object,
                 updateListedService.Object,
-                validationAdminService);
+                validationAdminService,
+                validationService.Object,
+                symbolPackageService.Object);
 
             var mockResponse = new Mock<HttpResponseBase>();
             mockResponse.SetupProperty(r => r.StatusCode);
@@ -1820,6 +1826,333 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 var symbolResult = response.Results.Single(r => r.ValidatingType == "SymbolPackage");
                 Assert.Equal(2, symbolResult.PackageKey);
                 Assert.Single(symbolResult.ValidationSets);
+            }
+        }
+
+        public class TheRevalidatePackageMethod
+        {
+            [Fact]
+            public async Task Returns400WhenModelStateIsInvalidAsync()
+            {
+                var controller = CreateController();
+                controller.ModelState.AddModelError("Packages", "The packages field is required.");
+
+                var result = await controller.RevalidatePackageAsync(new AdminRevalidatePackageRequest()) as JsonResult;
+
+                Assert.NotNull(result);
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public async Task ReturnsAcceptedForValidPackageAsync()
+            {
+                // Arrange
+                var packageService = new Mock<IPackageService>();
+                var validationService = new Mock<IValidationService>();
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = "TestPackage" },
+                    Version = "1.0.0",
+                    PackageStatusKey = PackageStatus.Available
+                };
+
+                packageService
+                    .Setup(s => s.FindPackageByIdAndVersionStrict("TestPackage", "1.0.0"))
+                    .Returns(package);
+
+                var controller = CreateController(
+                    packageService: packageService,
+                    validationService: validationService);
+
+                var request = new AdminRevalidatePackageRequest
+                {
+                    Packages =
+                    [
+                        new AdminRevalidatePackageEntry { Id = "TestPackage", Version = "1.0.0", ValidatingType = "Package" }
+                    ],
+                    Reason = "test"
+                };
+
+                // Act
+                var result = await controller.RevalidatePackageAsync(request) as JsonResult;
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal((int)HttpStatusCode.Accepted, controller.Response.StatusCode);
+
+                var response = GetResponseData<AdminRevalidatePackageResponse>(result);
+                Assert.Single(response.Results);
+                Assert.Equal(AdminRevalidatePackageStatus.Accepted, response.Results[0].Status);
+                Assert.Equal("Package", response.Results[0].ValidatingType);
+
+                validationService.Verify(s => s.RevalidateAsync(package), Times.Once);
+            }
+
+            [Fact]
+            public async Task ReturnsNotFoundForMissingPackageAsync()
+            {
+                // Arrange
+                var packageService = new Mock<IPackageService>();
+                packageService
+                    .Setup(s => s.FindPackageByIdAndVersionStrict("Missing", "1.0.0"))
+                    .Returns((Package)null);
+
+                var controller = CreateController(packageService: packageService);
+
+                var request = new AdminRevalidatePackageRequest
+                {
+                    Packages =
+                    [
+                        new AdminRevalidatePackageEntry { Id = "Missing", Version = "1.0.0", ValidatingType = "Package" }
+                    ],
+                    Reason = "test"
+                };
+
+                // Act
+                var result = await controller.RevalidatePackageAsync(request) as JsonResult;
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+
+                var response = GetResponseData<AdminRevalidatePackageResponse>(result);
+                Assert.Single(response.Results);
+                Assert.Equal(AdminRevalidatePackageStatus.NotFound, response.Results[0].Status);
+            }
+
+            [Fact]
+            public async Task ReturnsNotFoundForDeletedPackageAsync()
+            {
+                // Arrange
+                var packageService = new Mock<IPackageService>();
+                packageService
+                    .Setup(s => s.FindPackageByIdAndVersionStrict("Deleted", "1.0.0"))
+                    .Returns(new Package
+                    {
+                        PackageRegistration = new PackageRegistration { Id = "Deleted" },
+                        Version = "1.0.0",
+                        PackageStatusKey = PackageStatus.Deleted
+                    });
+
+                var controller = CreateController(packageService: packageService);
+
+                var request = new AdminRevalidatePackageRequest
+                {
+                    Packages =
+                    [
+                        new AdminRevalidatePackageEntry { Id = "Deleted", Version = "1.0.0", ValidatingType = "Package" }
+                    ],
+                    Reason = "test"
+                };
+
+                // Act
+                var result = await controller.RevalidatePackageAsync(request) as JsonResult;
+
+                // Assert
+                var response = GetResponseData<AdminRevalidatePackageResponse>(result);
+                Assert.Single(response.Results);
+                Assert.Equal(AdminRevalidatePackageStatus.NotFound, response.Results[0].Status);
+            }
+
+            [Fact]
+            public async Task ReturnsAcceptedForValidSymbolPackageAsync()
+            {
+                // Arrange
+                var packageService = new Mock<IPackageService>();
+                var validationService = new Mock<IValidationService>();
+
+                var symbolPackage = new SymbolPackage
+                {
+                    Key = 1,
+                    StatusKey = PackageStatus.Available,
+                    Created = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                };
+
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = "TestPackage" },
+                    Version = "1.0.0",
+                    PackageStatusKey = PackageStatus.Available,
+                    SymbolPackages = new List<SymbolPackage> { symbolPackage }
+                };
+                symbolPackage.Package = package;
+
+                packageService
+                    .Setup(s => s.FindPackageByIdAndVersionStrict("TestPackage", "1.0.0"))
+                    .Returns(package);
+
+                var controller = CreateController(
+                    packageService: packageService,
+                    validationService: validationService);
+
+                var request = new AdminRevalidatePackageRequest
+                {
+                    Packages =
+                    [
+                        new AdminRevalidatePackageEntry { Id = "TestPackage", Version = "1.0.0", ValidatingType = "SymbolPackage" }
+                    ],
+                    Reason = "test"
+                };
+
+                // Act
+                var result = await controller.RevalidatePackageAsync(request) as JsonResult;
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.Accepted, controller.Response.StatusCode);
+
+                var response = GetResponseData<AdminRevalidatePackageResponse>(result);
+                Assert.Single(response.Results);
+                Assert.Equal(AdminRevalidatePackageStatus.Accepted, response.Results[0].Status);
+                Assert.Equal("SymbolPackage", response.Results[0].ValidatingType);
+
+                validationService.Verify(s => s.RevalidateAsync(symbolPackage), Times.Once);
+            }
+
+            [Fact]
+            public async Task ReturnsNotFoundForDeletedSymbolPackageAsync()
+            {
+                // Arrange
+                var packageService = new Mock<IPackageService>();
+
+                var symbolPackage = new SymbolPackage
+                {
+                    Key = 1,
+                    StatusKey = PackageStatus.Deleted,
+                    Created = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                };
+
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = "TestPackage" },
+                    Version = "1.0.0",
+                    PackageStatusKey = PackageStatus.Available,
+                    SymbolPackages = new List<SymbolPackage> { symbolPackage }
+                };
+                symbolPackage.Package = package;
+
+                packageService
+                    .Setup(s => s.FindPackageByIdAndVersionStrict("TestPackage", "1.0.0"))
+                    .Returns(package);
+
+                var controller = CreateController(packageService: packageService);
+
+                var request = new AdminRevalidatePackageRequest
+                {
+                    Packages =
+                    [
+                        new AdminRevalidatePackageEntry { Id = "TestPackage", Version = "1.0.0", ValidatingType = "SymbolPackage" }
+                    ],
+                    Reason = "test"
+                };
+
+                // Act
+                var result = await controller.RevalidatePackageAsync(request) as JsonResult;
+
+                // Assert
+                var response = GetResponseData<AdminRevalidatePackageResponse>(result);
+                Assert.Single(response.Results);
+                Assert.Equal(AdminRevalidatePackageStatus.NotFound, response.Results[0].Status);
+            }
+
+            [Fact]
+            public async Task HandlesMixedPackageAndSymbolPackageEntriesAsync()
+            {
+                // Arrange
+                var packageService = new Mock<IPackageService>();
+                var validationService = new Mock<IValidationService>();
+
+                var symbolPackage = new SymbolPackage
+                {
+                    Key = 1,
+                    StatusKey = PackageStatus.Validating,
+                    Created = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                };
+
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = "TestPackage" },
+                    Version = "1.0.0",
+                    PackageStatusKey = PackageStatus.Available,
+                    SymbolPackages = new List<SymbolPackage> { symbolPackage }
+                };
+                symbolPackage.Package = package;
+
+                packageService
+                    .Setup(s => s.FindPackageByIdAndVersionStrict("TestPackage", "1.0.0"))
+                    .Returns(package);
+                packageService
+                    .Setup(s => s.FindPackageByIdAndVersionStrict("Missing", "2.0.0"))
+                    .Returns((Package)null);
+
+                var controller = CreateController(
+                    packageService: packageService,
+                    validationService: validationService);
+
+                var request = new AdminRevalidatePackageRequest
+                {
+                    Packages =
+                    [
+                        new AdminRevalidatePackageEntry { Id = "TestPackage", Version = "1.0.0", ValidatingType = "Package" },
+                        new AdminRevalidatePackageEntry { Id = "TestPackage", Version = "1.0.0", ValidatingType = "SymbolPackage" },
+                        new AdminRevalidatePackageEntry { Id = "Missing", Version = "2.0.0", ValidatingType = "Package" },
+                    ],
+                    Reason = "test"
+                };
+
+                // Act
+                var result = await controller.RevalidatePackageAsync(request) as JsonResult;
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.Accepted, controller.Response.StatusCode);
+
+                var response = GetResponseData<AdminRevalidatePackageResponse>(result);
+                Assert.Equal(3, response.Results.Count);
+                Assert.Equal(AdminRevalidatePackageStatus.Accepted, response.Results[0].Status);
+                Assert.Equal(AdminRevalidatePackageStatus.Accepted, response.Results[1].Status);
+                Assert.Equal(AdminRevalidatePackageStatus.NotFound, response.Results[2].Status);
+
+                validationService.Verify(s => s.RevalidateAsync(package), Times.Once);
+                validationService.Verify(s => s.RevalidateAsync(symbolPackage), Times.Once);
+            }
+
+            [Fact]
+            public async Task DeduplicatesEntriesAsync()
+            {
+                // Arrange
+                var packageService = new Mock<IPackageService>();
+                var validationService = new Mock<IValidationService>();
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = "TestPackage" },
+                    Version = "1.0.0",
+                    PackageStatusKey = PackageStatus.Available
+                };
+
+                packageService
+                    .Setup(s => s.FindPackageByIdAndVersionStrict("TestPackage", "1.0.0"))
+                    .Returns(package);
+
+                var controller = CreateController(
+                    packageService: packageService,
+                    validationService: validationService);
+
+                var request = new AdminRevalidatePackageRequest
+                {
+                    Packages =
+                    [
+                        new AdminRevalidatePackageEntry { Id = "TestPackage", Version = "1.0.0", ValidatingType = "Package" },
+                        new AdminRevalidatePackageEntry { Id = "TestPackage", Version = "1.0.0", ValidatingType = "Package" },
+                    ],
+                    Reason = "test"
+                };
+
+                // Act
+                var result = await controller.RevalidatePackageAsync(request) as JsonResult;
+
+                // Assert
+                var response = GetResponseData<AdminRevalidatePackageResponse>(result);
+                Assert.Single(response.Results);
+
+                validationService.Verify(s => s.RevalidateAsync(package), Times.Once);
             }
         }
     }
