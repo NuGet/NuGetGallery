@@ -29,7 +29,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
             Mock<ILockPackageService> lockPackageService = null,
             Mock<ILockUserService> lockUserService = null,
             Mock<IPackageDeleteService> packageDeleteService = null,
-            Mock<IFeatureFlagService> featureFlagService = null)
+            Mock<IFeatureFlagService> featureFlagService = null,
+            Mock<IUpdateListedService> updateListedService = null)
         {
             packageService ??= new Mock<IPackageService>();
             reflowPackageService ??= new Mock<IReflowPackageService>();
@@ -37,6 +38,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             lockUserService ??= new Mock<ILockUserService>();
             packageDeleteService ??= new Mock<IPackageDeleteService>();
             featureFlagService ??= new Mock<IFeatureFlagService>();
+            updateListedService ??= new Mock<IUpdateListedService>();
 
             var controller = new AdminApiController(
                 packageService.Object,
@@ -44,7 +46,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 lockPackageService.Object,
                 lockUserService.Object,
                 packageDeleteService.Object,
-                featureFlagService.Object);
+                featureFlagService.Object,
+                updateListedService.Object);
 
             var mockResponse = new Mock<HttpResponseBase>();
             mockResponse.SetupProperty(r => r.StatusCode);
@@ -1295,6 +1298,261 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 Assert.Equal(AdminSoftDeletePackageStatus.NotFound, response.Results[0].Status);
             }
 
+        }
+
+        public class TheUpdateListedMethod : TestContainer
+        {
+            private readonly Mock<IUpdateListedService> _updateListedServiceMock;
+
+            public TheUpdateListedMethod()
+            {
+                _updateListedServiceMock = new Mock<IUpdateListedService>();
+            }
+
+            [Fact]
+            public async Task Returns400WhenModelStateIsInvalid()
+            {
+                var controller = CreateController(updateListedService: _updateListedServiceMock);
+                controller.ModelState.AddModelError("Packages", "The packages field is required.");
+
+                var result = await controller.UpdateListedPackageAsync(new AdminUpdateListedPackageRequest()) as JsonResult;
+
+                Assert.NotNull(result);
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public async Task Returns400WhenListedIsNull()
+            {
+                var controller = CreateController(updateListedService: _updateListedServiceMock);
+                var request = new AdminUpdateListedPackageRequest
+                {
+                    Packages =
+                    [
+                        new AdminUpdateListedPackageIdentity { Id = "TestPackage", Version = "1.0.0" }
+                    ],
+                    Reason = "Test reason"
+                };
+
+                ValidateModel(controller, request);
+
+                var result = await controller.UpdateListedPackageAsync(request) as JsonResult;
+
+                Assert.NotNull(result);
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public async Task Returns400WhenReasonIsMissing()
+            {
+                var controller = CreateController(updateListedService: _updateListedServiceMock);
+                var request = new AdminUpdateListedPackageRequest
+                {
+                    Packages =
+                    [
+                        new AdminUpdateListedPackageIdentity { Id = "TestPackage", Version = "1.0.0" }
+                    ],
+                    Listed = false
+                };
+
+                ValidateModel(controller, request);
+
+                var result = await controller.UpdateListedPackageAsync(request) as JsonResult;
+
+                Assert.NotNull(result);
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public async Task Returns400WhenPackageVersionIsInvalid()
+            {
+                var controller = CreateController(updateListedService: _updateListedServiceMock);
+                var request = new AdminUpdateListedPackageRequest
+                {
+                    Packages =
+                    [
+                        new AdminUpdateListedPackageIdentity { Id = "TestPackage", Version = "not-a-version" }
+                    ],
+                    Listed = false,
+                    Reason = "Test reason"
+                };
+
+                ValidateModel(controller, request);
+                ValidateModelItems(controller, request.Packages);
+
+                var result = await controller.UpdateListedPackageAsync(request) as JsonResult;
+
+                Assert.NotNull(result);
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public async Task ReturnsAcceptedWhenRequestIsValid()
+            {
+                _updateListedServiceMock
+                    .Setup(s => s.UpdateListedAsync(
+                        It.IsAny<IReadOnlyList<UpdateListedPackageIdentity>>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>()))
+                    .ReturnsAsync(
+                    [
+                        new UpdateListedPackageResult
+                        {
+                            Id = "TestPackage",
+                            Version = "1.0.0",
+                            Result = UpdateListedServiceResult.Success
+                        }
+                    ]);
+
+                var controller = CreateController(updateListedService: _updateListedServiceMock);
+                var request = new AdminUpdateListedPackageRequest
+                {
+                    Packages =
+                    [
+                        new AdminUpdateListedPackageIdentity { Id = "TestPackage", Version = "1.0.0" }
+                    ],
+                    Listed = false,
+                    Reason = "Test reason"
+                };
+
+                var result = await controller.UpdateListedPackageAsync(request) as JsonResult;
+
+                Assert.NotNull(result);
+                Assert.Equal((int)HttpStatusCode.Accepted, controller.Response.StatusCode);
+
+                var response = GetResponseData<AdminUpdateListedPackageResponse>(result);
+                Assert.Single(response.Results);
+                Assert.Equal(AdminUpdateListedPackageStatus.Accepted, response.Results[0].Status);
+            }
+
+            [Fact]
+            public async Task DeduplicatesPackageEntries()
+            {
+                _updateListedServiceMock
+                    .Setup(s => s.UpdateListedAsync(
+                        It.IsAny<IReadOnlyList<UpdateListedPackageIdentity>>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>()))
+                    .ReturnsAsync(
+                    [
+                        new UpdateListedPackageResult
+                        {
+                            Id = "TestPackage",
+                            Version = "1.0.0",
+                            Result = UpdateListedServiceResult.Success
+                        }
+                    ]);
+
+                var controller = CreateController(updateListedService: _updateListedServiceMock);
+                var request = new AdminUpdateListedPackageRequest
+                {
+                    Packages =
+                    [
+                        new AdminUpdateListedPackageIdentity { Id = "TestPackage", Version = "1.0.0" },
+                        new AdminUpdateListedPackageIdentity { Id = "TestPackage", Version = "1.0.0" }
+                    ],
+                    Listed = false,
+                    Reason = "Test reason"
+                };
+
+                var result = await controller.UpdateListedPackageAsync(request) as JsonResult;
+
+                Assert.NotNull(result);
+                Assert.Equal((int)HttpStatusCode.Accepted, controller.Response.StatusCode);
+
+                _updateListedServiceMock.Verify(
+                    s => s.UpdateListedAsync(
+                        It.Is<IReadOnlyList<UpdateListedPackageIdentity>>(p => p.Count == 1),
+                        It.IsAny<bool>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>()),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task Returns400WhenAllPackagesNotFound()
+            {
+                _updateListedServiceMock
+                    .Setup(s => s.UpdateListedAsync(
+                        It.IsAny<IReadOnlyList<UpdateListedPackageIdentity>>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>()))
+                    .ReturnsAsync(
+                    [
+                        new UpdateListedPackageResult
+                        {
+                            Id = "NonExistent",
+                            Version = "1.0.0",
+                            Result = UpdateListedServiceResult.PackageNotFound
+                        }
+                    ]);
+
+                var controller = CreateController(updateListedService: _updateListedServiceMock);
+                var request = new AdminUpdateListedPackageRequest
+                {
+                    Packages =
+                    [
+                        new AdminUpdateListedPackageIdentity { Id = "NonExistent", Version = "1.0.0" }
+                    ],
+                    Listed = false,
+                    Reason = "Test reason"
+                };
+
+                var result = await controller.UpdateListedPackageAsync(request) as JsonResult;
+
+                Assert.NotNull(result);
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+
+                var response = GetResponseData<AdminUpdateListedPackageResponse>(result);
+                Assert.Single(response.Results);
+                Assert.Equal(AdminUpdateListedPackageStatus.NotFound, response.Results[0].Status);
+            }
+
+            [Fact]
+            public async Task PassesReasonAndCallerIdentityToService()
+            {
+                _updateListedServiceMock
+                    .Setup(s => s.UpdateListedAsync(
+                        It.IsAny<IReadOnlyList<UpdateListedPackageIdentity>>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>()))
+                    .ReturnsAsync(
+                    [
+                        new UpdateListedPackageResult
+                        {
+                            Id = "TestPackage",
+                            Version = "1.0.0",
+                            Result = UpdateListedServiceResult.Success
+                        }
+                    ]);
+
+                var controller = CreateController(
+                    callerAzp: "test-client-id",
+                    updateListedService: _updateListedServiceMock);
+                var request = new AdminUpdateListedPackageRequest
+                {
+                    Packages =
+                    [
+                        new AdminUpdateListedPackageIdentity { Id = "TestPackage", Version = "1.0.0" }
+                    ],
+                    Listed = true,
+                    Reason = "Relisting for production"
+                };
+
+                await controller.UpdateListedPackageAsync(request);
+
+                _updateListedServiceMock.Verify(
+                    s => s.UpdateListedAsync(
+                        It.IsAny<IReadOnlyList<UpdateListedPackageIdentity>>(),
+                        true,
+                        "Relisting for production",
+                        "test-client-id"),
+                    Times.Once);
+            }
         }
     }
 }

@@ -342,6 +342,10 @@ namespace NuGetGallery
                 .As<IPackageDeleteService>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<UpdateListedService>()
+                .As<IUpdateListedService>()
+                .InstancePerLifetimeScope();
+
             RegisterDeleteAccountService(builder, configuration);
 
             builder.RegisterType<PackageOwnerRequestService>()

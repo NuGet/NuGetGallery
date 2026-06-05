@@ -919,6 +919,12 @@ namespace NuGetGallery
                 "api/admin/soft-delete-package",
                 new { controller = "AdminApi", action = "SoftDeletePackage" },
                 new { httpMethod = new HttpMethodConstraint("POST") });
+
+            routes.MapRoute(
+                RouteName.AdminListPackage,
+                "api/admin/list-package",
+                new { controller = "AdminApi", action = "ListPackage" },
+                new { httpMethod = new HttpMethodConstraint("POST") });
         }
     }
 }

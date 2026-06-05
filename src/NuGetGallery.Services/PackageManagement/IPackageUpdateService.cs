@@ -24,7 +24,9 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="packages">The packages to update.</param>
         /// <param name="listed">True to make the packages listed, false to make the packages unlisted.</param>
-        Task UpdateListedInBulkAsync(IReadOnlyList<Package> packages, bool listed);
+        /// <param name="reason">Optional reason for the listing change, recorded in the audit log.</param>
+        /// <param name="callerIdentity">Optional caller identity, recorded in the audit log.</param>
+        Task UpdateListedInBulkAsync(IReadOnlyList<Package> packages, bool listed, string reason = null, string callerIdentity = null);
 
         /// <summary>
         /// Marks <paramref name="package"/> as listed.

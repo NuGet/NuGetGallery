@@ -25,6 +25,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         private readonly ILockUserService _lockUserService;
         private readonly IPackageDeleteService _packageDeleteService;
         private readonly IFeatureFlagService _featureFlagService;
+        private readonly IUpdateListedService _updateListedService;
 
         public AdminApiController(
             IPackageService packageService,
@@ -32,7 +33,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
             ILockPackageService lockPackageService,
             ILockUserService lockUserService,
             IPackageDeleteService packageDeleteService,
-            IFeatureFlagService featureFlagService)
+            IFeatureFlagService featureFlagService,
+            IUpdateListedService updateListedService)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _reflowPackageService = reflowPackageService ?? throw new ArgumentNullException(nameof(reflowPackageService));
@@ -40,6 +42,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             _lockUserService = lockUserService ?? throw new ArgumentNullException(nameof(lockUserService));
             _packageDeleteService = packageDeleteService ?? throw new ArgumentNullException(nameof(packageDeleteService));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
+            _updateListedService = updateListedService ?? throw new ArgumentNullException(nameof(updateListedService));
         }
 
         [HttpPost]
@@ -318,6 +321,92 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
 
             return Json(HttpStatusCode.Accepted, new AdminSoftDeletePackageResponse
+            {
+                Results = results
+            });
+        }
+
+        [HttpPost]
+        [ActionName("ListPackage")]
+        public virtual async Task<ActionResult> UpdateListedPackageAsync(AdminUpdateListedPackageRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequestFromModelState();
+            }
+
+            var callerIdentity = HttpContext.Items[AdminApiAuthAttribute.CallerIdentityItemKey] as string;
+            var seen = new HashSet<PackageIdentity>();
+            var results = new List<AdminUpdateListedPackageResult>();
+            var hasAccepted = false;
+
+            var deduped = new List<UpdateListedPackageIdentity>();
+            foreach (var entry in request.Packages)
+            {
+                var nugetVersion = NuGetVersion.Parse(entry.Version.Trim());
+                var identity = new PackageIdentity(entry.Id.Trim(), nugetVersion);
+
+                if (!seen.Add(identity))
+                {
+                    continue;
+                }
+
+                deduped.Add(new UpdateListedPackageIdentity
+                {
+                    Id = identity.Id,
+                    Version = identity.Version.ToNormalizedString()
+                });
+            }
+
+            try
+            {
+                var serviceResults = await _updateListedService.UpdateListedAsync(
+                    deduped,
+                    request.Listed.Value,
+                    request.Reason,
+                    callerIdentity);
+
+                foreach (var serviceResult in serviceResults)
+                {
+                    var status = serviceResult.Result == UpdateListedServiceResult.Success
+                        ? AdminUpdateListedPackageStatus.Accepted
+                        : AdminUpdateListedPackageStatus.NotFound;
+
+                    if (serviceResult.Result == UpdateListedServiceResult.Success)
+                    {
+                        hasAccepted = true;
+                    }
+
+                    results.Add(new AdminUpdateListedPackageResult
+                    {
+                        Id = serviceResult.Id,
+                        Version = serviceResult.Version,
+                        Status = status
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                foreach (var entry in deduped)
+                {
+                    results.Add(new AdminUpdateListedPackageResult
+                    {
+                        Id = entry.Id,
+                        Version = entry.Version,
+                        Status = AdminUpdateListedPackageStatus.Failed
+                    });
+                }
+
+                QuietLog.LogHandledException(ex);
+
+                return Json(HttpStatusCode.BadRequest, new AdminUpdateListedPackageResponse
+                {
+                    Results = results
+                });
+            }
+
+            var statusCode = hasAccepted ? HttpStatusCode.Accepted : HttpStatusCode.BadRequest;
+            return Json(statusCode, new AdminUpdateListedPackageResponse
             {
                 Results = results
             });

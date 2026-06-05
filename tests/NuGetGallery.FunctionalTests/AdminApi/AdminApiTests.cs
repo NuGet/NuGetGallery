@@ -43,6 +43,7 @@ namespace NuGetGallery.FunctionalTests.AdminApi
             [InlineData("/api/admin/lock-package")]
             [InlineData("/api/admin/lock-user")]
             [InlineData("/api/admin/soft-delete-package")]
+            [InlineData("/api/admin/list-package")]
             public async Task Returns401WhenNoAuthorizationHeader(string endpoint)
             {
                 var response = await PostJsonAsync(endpoint, "{}");
@@ -58,6 +59,7 @@ namespace NuGetGallery.FunctionalTests.AdminApi
             [InlineData("/api/admin/lock-package")]
             [InlineData("/api/admin/lock-user")]
             [InlineData("/api/admin/soft-delete-package")]
+            [InlineData("/api/admin/list-package")]
             public async Task Returns401WhenWrongScheme(string endpoint)
             {
                 var request = CreatePostRequest(endpoint, "{}");
@@ -75,6 +77,7 @@ namespace NuGetGallery.FunctionalTests.AdminApi
             [InlineData("/api/admin/lock-package")]
             [InlineData("/api/admin/lock-user")]
             [InlineData("/api/admin/soft-delete-package")]
+            [InlineData("/api/admin/list-package")]
             public async Task Returns401WhenGarbageBearerToken(string endpoint)
             {
                 var request = CreatePostRequest(endpoint, "{}");
@@ -92,6 +95,7 @@ namespace NuGetGallery.FunctionalTests.AdminApi
             [InlineData("/api/admin/lock-package")]
             [InlineData("/api/admin/lock-user")]
             [InlineData("/api/admin/soft-delete-package")]
+            [InlineData("/api/admin/list-package")]
             public async Task Returns403WhenWrongTenant(string endpoint)
             {
                 var token = CreateFakeJwt("wrong-tenant-id", GetAllowedClientId());
@@ -110,6 +114,7 @@ namespace NuGetGallery.FunctionalTests.AdminApi
             [InlineData("/api/admin/lock-package")]
             [InlineData("/api/admin/lock-user")]
             [InlineData("/api/admin/soft-delete-package")]
+            [InlineData("/api/admin/list-package")]
             public async Task Returns403WhenWrongClientId(string endpoint)
             {
                 var token = CreateFakeJwt(GetAllowedTenantId(), "wrong-client-id");
@@ -139,6 +144,7 @@ namespace NuGetGallery.FunctionalTests.AdminApi
             [InlineData("/api/admin/lock-package")]
             [InlineData("/api/admin/lock-user")]
             [InlineData("/api/admin/soft-delete-package")]
+            [InlineData("/api/admin/list-package")]
             public async Task Returns400ForMalformedJson(string endpoint)
             {
                 var response = await PostAuthenticatedJsonAsync(endpoint, "{not valid json");
@@ -285,6 +291,51 @@ namespace NuGetGallery.FunctionalTests.AdminApi
                 Assert.NotNull(unlockResults);
                 Assert.Single(unlockResults);
                 Assert.Equal("Accepted", unlockResults[0]["Status"]?.ToString());
+            }
+
+            [Fact]
+            [Priority(2)]
+            [Category("AdminApiTests")]
+            public async Task UnlistsAndRelistsExistingPackage()
+            {
+                const string packageId = "BaseTestPackage";
+                const string packageVersion = "1.0.0";
+
+                // Unlist the package
+                var unlistBody = JsonConvert.SerializeObject(new
+                {
+                    packages = new[] { new { id = packageId, version = packageVersion } },
+                    listed = false,
+                    reason = "Functional test unlist"
+                });
+
+                var unlistResponse = await PostAuthenticatedJsonAsync("/api/admin/list-package", unlistBody);
+
+                var unlistJson = await ReadJsonAsync(unlistResponse);
+                TestOutputHelper.WriteLine($"Unlist response: {unlistJson}");
+                Assert.Equal(HttpStatusCode.Accepted, unlistResponse.StatusCode);
+                var unlistResults = unlistJson["Results"] as JArray;
+                Assert.NotNull(unlistResults);
+                Assert.Single(unlistResults);
+                Assert.Equal("Accepted", unlistResults[0]["Status"]?.ToString());
+
+                // Relist the package (verifies round-trip and cleans up)
+                var relistBody = JsonConvert.SerializeObject(new
+                {
+                    packages = new[] { new { id = packageId, version = packageVersion } },
+                    listed = true,
+                    reason = "Functional test relist"
+                });
+
+                var relistResponse = await PostAuthenticatedJsonAsync("/api/admin/list-package", relistBody);
+
+                var relistJson = await ReadJsonAsync(relistResponse);
+                TestOutputHelper.WriteLine($"Relist response: {relistJson}");
+                Assert.Equal(HttpStatusCode.Accepted, relistResponse.StatusCode);
+                var relistResults = relistJson["Results"] as JArray;
+                Assert.NotNull(relistResults);
+                Assert.Single(relistResults);
+                Assert.Equal("Accepted", relistResults[0]["Status"]?.ToString());
             }
 
             [Fact]

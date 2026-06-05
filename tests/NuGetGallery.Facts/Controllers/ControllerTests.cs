@@ -81,6 +81,7 @@ namespace NuGetGallery.Controllers
                 new ControllerActionRuleException(typeof(AdminApiController), nameof(AdminApiController.LockPackageAsync)),
                 new ControllerActionRuleException(typeof(AdminApiController), nameof(AdminApiController.LockUserAsync)),
                 new ControllerActionRuleException(typeof(AdminApiController), nameof(AdminApiController.SoftDeletePackageAsync)),
+                new ControllerActionRuleException(typeof(AdminApiController), nameof(AdminApiController.UpdateListedPackageAsync)),
             };
 
             // Act
