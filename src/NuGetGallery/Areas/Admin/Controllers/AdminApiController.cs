@@ -11,8 +11,9 @@ using System.Web.Mvc;
 using NuGet.Packaging.Core;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
-using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Areas.Admin.Filters;
+using NuGetGallery.Areas.Admin.Models;
+using NuGetGallery.Areas.Admin.Services;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
@@ -26,6 +27,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         private readonly IPackageDeleteService _packageDeleteService;
         private readonly IFeatureFlagService _featureFlagService;
         private readonly IUpdateListedService _updateListedService;
+        private readonly ValidationAdminService _validationAdminService;
 
         public AdminApiController(
             IPackageService packageService,
@@ -34,7 +36,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
             ILockUserService lockUserService,
             IPackageDeleteService packageDeleteService,
             IFeatureFlagService featureFlagService,
-            IUpdateListedService updateListedService)
+            IUpdateListedService updateListedService,
+            ValidationAdminService validationAdminService)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _reflowPackageService = reflowPackageService ?? throw new ArgumentNullException(nameof(reflowPackageService));
@@ -43,6 +46,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             _packageDeleteService = packageDeleteService ?? throw new ArgumentNullException(nameof(packageDeleteService));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _updateListedService = updateListedService ?? throw new ArgumentNullException(nameof(updateListedService));
+            _validationAdminService = validationAdminService ?? throw new ArgumentNullException(nameof(validationAdminService));
         }
 
         [HttpPost]
@@ -410,6 +414,55 @@ namespace NuGetGallery.Areas.Admin.Controllers
             {
                 Results = results
             });
+        }
+
+        [HttpGet]
+        [ActionName("PendingValidations")]
+        public virtual ActionResult GetPendingValidations()
+        {
+            var validationSets = _validationAdminService.GetPending();
+
+            var groups = validationSets
+                .GroupBy(s => new { s.PackageKey, s.ValidatingType })
+                .OrderBy(g => g.First().PackageId, StringComparer.OrdinalIgnoreCase)
+                .ThenByDescending(g => g.First().PackageNormalizedVersion);
+
+            var results = new List<AdminPendingValidationResult>();
+            foreach (var group in groups)
+            {
+                var first = group.First();
+                results.Add(new AdminPendingValidationResult
+                {
+                    PackageKey = first.PackageKey.Value,
+                    PackageId = first.PackageId,
+                    PackageVersion = first.PackageNormalizedVersion,
+                    ValidatingType = group.Key.ValidatingType.ToString(),
+                    ValidationSets = group
+                        .OrderByDescending(s => s.Created)
+                        .Select(s => new AdminPendingValidationSetResult
+                        {
+                            Key = s.Key,
+                            ValidationTrackingId = s.ValidationTrackingId,
+                            ValidationSetStatus = s.ValidationSetStatus.ToString(),
+                            Created = s.Created,
+                            Updated = s.Updated,
+                            Validations = s.PackageValidations
+                                ?.OrderBy(v => v.Started)
+                                .Select(v => new AdminPendingValidationStepResult
+                                {
+                                    Key = v.Key,
+                                    Type = v.Type,
+                                    Status = v.ValidationStatus.ToString(),
+                                    Started = v.Started,
+                                    ValidationStatusTimestamp = v.ValidationStatusTimestamp
+                                })
+                                .ToList() ?? []
+                        })
+                        .ToList()
+                });
+            }
+
+            return Json(HttpStatusCode.OK, new AdminPendingValidationsResponse { Results = results }, JsonRequestBehavior.AllowGet);
         }
 
         private JsonResult BadRequestFromModelState()
