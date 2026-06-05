@@ -40,9 +40,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
             IPackageDeleteService packageDeleteService,
             IFeatureFlagService featureFlagService,
             IUpdateListedService updateListedService,
-            ValidationAdminService validationAdminService,
-            IValidationService validationService,
-            ISymbolPackageService symbolPackageService)
+            ValidationAdminService validationAdminService = null,
+            IValidationService validationService = null,
+            ISymbolPackageService symbolPackageService = null)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _reflowPackageService = reflowPackageService ?? throw new ArgumentNullException(nameof(reflowPackageService));
@@ -51,9 +51,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
             _packageDeleteService = packageDeleteService ?? throw new ArgumentNullException(nameof(packageDeleteService));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _updateListedService = updateListedService ?? throw new ArgumentNullException(nameof(updateListedService));
-            _validationAdminService = validationAdminService ?? throw new ArgumentNullException(nameof(validationAdminService));
-            _validationService = validationService ?? throw new ArgumentNullException(nameof(validationService));
-            _symbolPackageService = symbolPackageService ?? throw new ArgumentNullException(nameof(symbolPackageService));
+            _validationAdminService = validationAdminService;
+            _validationService = validationService;
+            _symbolPackageService = symbolPackageService;
         }
 
         [HttpPost]
@@ -427,6 +427,11 @@ namespace NuGetGallery.Areas.Admin.Controllers
         [ActionName("PendingValidations")]
         public virtual ActionResult GetPendingValidations()
         {
+            if (_validationAdminService == null)
+            {
+                return Json(HttpStatusCode.ServiceUnavailable, new { error = "Validation is not configured." }, JsonRequestBehavior.AllowGet);
+            }
+
             var validationSets = _validationAdminService.GetPending();
 
             var groups = validationSets
@@ -476,6 +481,11 @@ namespace NuGetGallery.Areas.Admin.Controllers
         [ActionName("RevalidatePackage")]
         public virtual async Task<ActionResult> RevalidatePackageAsync(AdminRevalidatePackageRequest request)
         {
+            if (_validationService == null)
+            {
+                return Json(HttpStatusCode.ServiceUnavailable, new { error = "Validation is not configured." });
+            }
+
             if (!ModelState.IsValid)
             {
                 return BadRequestFromModelState();
