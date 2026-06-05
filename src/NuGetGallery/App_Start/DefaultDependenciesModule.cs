@@ -1217,6 +1217,10 @@ namespace NuGetGallery
                     .SingleInstance()
                     .Keyed<ITopicClient>(BindingKeys.SymbolsPackageValidationTopic)
                     .OnRelease(x => _ = x.CloseAsync());
+
+                builder.RegisterType<ValidationAdminService>()
+                    .AsSelf()
+                    .InstancePerLifetimeScope();
             }
             else
             {
@@ -1225,10 +1229,6 @@ namespace NuGetGallery
                     .RegisterGeneric(typeof(ImmediateValidationMessageEmitter<>))
                     .As(typeof(IValidationMessageEmitter<>));
             }
-
-            builder.RegisterType<ValidationAdminService>()
-                .AsSelf()
-                .InstancePerLifetimeScope();
 
             builder.RegisterType<RevalidationAdminService>()
                 .AsSelf()
