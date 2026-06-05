@@ -90,7 +90,7 @@ namespace NuGetGallery
 
                 if (eligible.Count > 0)
                 {
-                    await _packageUpdateService.UpdateListedInBulkAsync(eligible, listed);
+                    await _packageUpdateService.UpdateListedInBulkAsync(eligible, listed, reason, callerIdentity);
                 }
             }
 

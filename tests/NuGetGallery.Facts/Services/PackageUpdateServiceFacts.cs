@@ -136,7 +136,7 @@ namespace NuGetGallery.Services
                 var service = Get<PackageUpdateService>();
 
                 // Act
-                await service.UpdateListedInBulkAsync(packages, listed);
+                await service.UpdateListedInBulkAsync(packages, listed, "test reason", "test-caller");
 
                 // Assert
                 packageServiceMock.Verify();
@@ -147,7 +147,10 @@ namespace NuGetGallery.Services
 
                 Assert.Equal(listed, listedPackage.Listed);
                 Assert.Equal(listed, unlistedPackage.Listed);
-                auditingService.WroteRecord<PackageAuditRecord>(r => r.Action == action);
+                auditingService.WroteRecord<PackageAuditRecord>(r =>
+                    r.Action == action &&
+                    r.Reason == "test reason" &&
+                    r.CallerIdentity == "test-caller");
             }
         }
 
