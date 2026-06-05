@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web;
@@ -12,9 +13,11 @@ using System.Web.Routing;
 using Moq;
 using Newtonsoft.Json;
 using NuGet.Services.Entities;
+using NuGet.Services.Validation;
 using NuGetGallery.Areas.Admin.Controllers;
-using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Areas.Admin.Filters;
+using NuGetGallery.Areas.Admin.Models;
+using NuGetGallery.Areas.Admin.Services;
 using NuGetGallery.Framework;
 using Xunit;
 
@@ -30,7 +33,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
             Mock<ILockUserService> lockUserService = null,
             Mock<IPackageDeleteService> packageDeleteService = null,
             Mock<IFeatureFlagService> featureFlagService = null,
-            Mock<IUpdateListedService> updateListedService = null)
+            Mock<IUpdateListedService> updateListedService = null,
+            ValidationAdminService validationAdminService = null)
         {
             packageService ??= new Mock<IPackageService>();
             reflowPackageService ??= new Mock<IReflowPackageService>();
@@ -39,6 +43,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             packageDeleteService ??= new Mock<IPackageDeleteService>();
             featureFlagService ??= new Mock<IFeatureFlagService>();
             updateListedService ??= new Mock<IUpdateListedService>();
+            validationAdminService ??= CreateValidationAdminService();
 
             var controller = new AdminApiController(
                 packageService.Object,
@@ -47,7 +52,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 lockUserService.Object,
                 packageDeleteService.Object,
                 featureFlagService.Object,
-                updateListedService.Object);
+                updateListedService.Object,
+                validationAdminService);
 
             var mockResponse = new Mock<HttpResponseBase>();
             mockResponse.SetupProperty(r => r.StatusCode);
@@ -122,6 +128,43 @@ namespace NuGetGallery.Areas.Admin.Controllers
             {
                 ValidateModel(controller, item);
             }
+        }
+
+        private static ValidationAdminService CreateValidationAdminService(
+            Mock<IEntityRepository<PackageValidationSet>> validationSets = null,
+            Mock<IEntityRepository<Package>> packages = null,
+            Mock<IEntityRepository<SymbolPackage>> symbolPackages = null)
+        {
+            if (validationSets == null)
+            {
+                validationSets = new Mock<IEntityRepository<PackageValidationSet>>();
+                validationSets
+                    .Setup(x => x.GetAll())
+                    .Returns(() => Enumerable.Empty<PackageValidationSet>().AsQueryable());
+            }
+
+            if (packages == null)
+            {
+                packages = new Mock<IEntityRepository<Package>>();
+                packages
+                    .Setup(x => x.GetAll())
+                    .Returns(() => Enumerable.Empty<Package>().AsQueryable());
+            }
+
+            if (symbolPackages == null)
+            {
+                symbolPackages = new Mock<IEntityRepository<SymbolPackage>>();
+                symbolPackages
+                    .Setup(x => x.GetAll())
+                    .Returns(() => Enumerable.Empty<SymbolPackage>().AsQueryable());
+            }
+
+            return new ValidationAdminService(
+                validationSets.Object,
+                new Mock<IEntityRepository<PackageValidation>>().Object,
+                packages.Object,
+                symbolPackages.Object,
+                new Mock<IValidationService>().Object);
         }
 
         public class TheReflowMethod : TestContainer
@@ -1552,6 +1595,231 @@ namespace NuGetGallery.Areas.Admin.Controllers
                         "Relisting for production",
                         "test-client-id"),
                     Times.Once);
+            }
+        }
+
+        public class TheGetPendingValidationsMethod
+        {
+            [Fact]
+            public void ReturnsEmptyResultsWhenNoPendingValidations()
+            {
+                // Arrange
+                var controller = CreateController();
+
+                // Act
+                var result = controller.GetPendingValidations() as JsonResult;
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(JsonRequestBehavior.AllowGet, result.JsonRequestBehavior);
+                Assert.Equal((int)HttpStatusCode.OK, controller.Response.StatusCode);
+
+                var response = GetResponseData<AdminPendingValidationsResponse>(result);
+                Assert.NotNull(response.Results);
+                Assert.Empty(response.Results);
+            }
+
+            [Fact]
+            public void ReturnsPopulatedResultsForPendingPackageValidations()
+            {
+                // Arrange
+                var packages = new Mock<IEntityRepository<Package>>();
+                packages
+                    .Setup(x => x.GetAll())
+                    .Returns(() => new[]
+                    {
+                        new Package { Key = 1, PackageStatusKey = PackageStatus.Validating },
+                        new Package { Key = 2, PackageStatusKey = PackageStatus.Available },
+                    }.AsQueryable());
+
+                var validationSets = new Mock<IEntityRepository<PackageValidationSet>>();
+                var validationSet = new PackageValidationSet
+                {
+                    Key = 100,
+                    ValidationTrackingId = Guid.Parse("11111111-1111-1111-1111-111111111111"),
+                    PackageKey = 1,
+                    PackageId = "TestPackage",
+                    PackageNormalizedVersion = "1.0.0",
+                    ValidatingType = ValidatingType.Package,
+                    ValidationSetStatus = ValidationSetStatus.InProgress,
+                    Created = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                    Updated = new DateTime(2026, 1, 1, 1, 0, 0, DateTimeKind.Utc),
+                    PackageValidations = new List<PackageValidation>
+                    {
+                        new PackageValidation
+                        {
+                            Key = Guid.Parse("22222222-2222-2222-2222-222222222222"),
+                            Type = "PackageSigning",
+                            ValidationStatus = ValidationStatus.Incomplete,
+                            Started = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                            ValidationStatusTimestamp = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                        }
+                    }
+                };
+
+                validationSets
+                    .Setup(x => x.GetAll())
+                    .Returns(() => new[] { validationSet }.AsQueryable());
+
+                var service = CreateValidationAdminService(validationSets, packages);
+                var controller = CreateController(validationAdminService: service);
+
+                // Act
+                var result = controller.GetPendingValidations() as JsonResult;
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal((int)HttpStatusCode.OK, controller.Response.StatusCode);
+
+                var response = GetResponseData<AdminPendingValidationsResponse>(result);
+                Assert.Single(response.Results);
+
+                var pkg = response.Results[0];
+                Assert.Equal(1, pkg.PackageKey);
+                Assert.Equal("TestPackage", pkg.PackageId);
+                Assert.Equal("1.0.0", pkg.PackageVersion);
+                Assert.Equal("Package", pkg.ValidatingType);
+                Assert.Single(pkg.ValidationSets);
+
+                var set = pkg.ValidationSets[0];
+                Assert.Equal(100, set.Key);
+                Assert.Equal("InProgress", set.ValidationSetStatus);
+                Assert.Single(set.Validations);
+
+                var step = set.Validations[0];
+                Assert.Equal("PackageSigning", step.Type);
+                Assert.Equal("Incomplete", step.Status);
+            }
+
+            [Fact]
+            public void GroupsMultipleValidationSetsByPackageKey()
+            {
+                // Arrange
+                var packages = new Mock<IEntityRepository<Package>>();
+                packages
+                    .Setup(x => x.GetAll())
+                    .Returns(() => new[]
+                    {
+                        new Package { Key = 1, PackageStatusKey = PackageStatus.Validating },
+                    }.AsQueryable());
+
+                var validationSets = new Mock<IEntityRepository<PackageValidationSet>>();
+                var set1 = new PackageValidationSet
+                {
+                    Key = 100,
+                    ValidationTrackingId = Guid.NewGuid(),
+                    PackageKey = 1,
+                    PackageId = "TestPackage",
+                    PackageNormalizedVersion = "1.0.0",
+                    ValidatingType = ValidatingType.Package,
+                    ValidationSetStatus = ValidationSetStatus.Completed,
+                    Created = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                    Updated = new DateTime(2026, 1, 1, 1, 0, 0, DateTimeKind.Utc),
+                    PackageValidations = new List<PackageValidation>()
+                };
+                var set2 = new PackageValidationSet
+                {
+                    Key = 101,
+                    ValidationTrackingId = Guid.NewGuid(),
+                    PackageKey = 1,
+                    PackageId = "TestPackage",
+                    PackageNormalizedVersion = "1.0.0",
+                    ValidatingType = ValidatingType.Package,
+                    ValidationSetStatus = ValidationSetStatus.InProgress,
+                    Created = new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc),
+                    Updated = new DateTime(2026, 1, 2, 1, 0, 0, DateTimeKind.Utc),
+                    PackageValidations = new List<PackageValidation>()
+                };
+
+                validationSets
+                    .Setup(x => x.GetAll())
+                    .Returns(() => new[] { set1, set2 }.AsQueryable());
+
+                var service = CreateValidationAdminService(validationSets, packages);
+                var controller = CreateController(validationAdminService: service);
+
+                // Act
+                var result = controller.GetPendingValidations() as JsonResult;
+
+                // Assert
+                var response = GetResponseData<AdminPendingValidationsResponse>(result);
+                Assert.Single(response.Results);
+                Assert.Equal(2, response.Results[0].ValidationSets.Count);
+
+                // Newest set should be first (ordered by Created descending)
+                Assert.Equal(101, response.Results[0].ValidationSets[0].Key);
+                Assert.Equal(100, response.Results[0].ValidationSets[1].Key);
+            }
+
+            [Fact]
+            public void ReturnsBothPackageAndSymbolPackageValidations()
+            {
+                // Arrange
+                var packages = new Mock<IEntityRepository<Package>>();
+                packages
+                    .Setup(x => x.GetAll())
+                    .Returns(() => new[]
+                    {
+                        new Package { Key = 1, PackageStatusKey = PackageStatus.Validating },
+                    }.AsQueryable());
+
+                var symbolPackages = new Mock<IEntityRepository<SymbolPackage>>();
+                symbolPackages
+                    .Setup(x => x.GetAll())
+                    .Returns(() => new[]
+                    {
+                        new SymbolPackage { Key = 2, StatusKey = PackageStatus.Validating },
+                    }.AsQueryable());
+
+                var validationSets = new Mock<IEntityRepository<PackageValidationSet>>();
+                var packageSet = new PackageValidationSet
+                {
+                    Key = 100,
+                    ValidationTrackingId = Guid.NewGuid(),
+                    PackageKey = 1,
+                    PackageId = "TestPackage",
+                    PackageNormalizedVersion = "1.0.0",
+                    ValidatingType = ValidatingType.Package,
+                    ValidationSetStatus = ValidationSetStatus.InProgress,
+                    Created = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                    Updated = new DateTime(2026, 1, 1, 1, 0, 0, DateTimeKind.Utc),
+                    PackageValidations = new List<PackageValidation>()
+                };
+                var symbolSet = new PackageValidationSet
+                {
+                    Key = 200,
+                    ValidationTrackingId = Guid.NewGuid(),
+                    PackageKey = 2,
+                    PackageId = "TestPackage",
+                    PackageNormalizedVersion = "1.0.0",
+                    ValidatingType = ValidatingType.SymbolPackage,
+                    ValidationSetStatus = ValidationSetStatus.InProgress,
+                    Created = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                    Updated = new DateTime(2026, 1, 1, 1, 0, 0, DateTimeKind.Utc),
+                    PackageValidations = new List<PackageValidation>()
+                };
+
+                validationSets
+                    .Setup(x => x.GetAll())
+                    .Returns(() => new[] { packageSet, symbolSet }.AsQueryable());
+
+                var service = CreateValidationAdminService(validationSets, packages, symbolPackages);
+                var controller = CreateController(validationAdminService: service);
+
+                // Act
+                var result = controller.GetPendingValidations() as JsonResult;
+
+                // Assert
+                var response = GetResponseData<AdminPendingValidationsResponse>(result);
+                Assert.Equal(2, response.Results.Count);
+
+                var packageResult = response.Results.Single(r => r.ValidatingType == "Package");
+                Assert.Equal(1, packageResult.PackageKey);
+                Assert.Single(packageResult.ValidationSets);
+
+                var symbolResult = response.Results.Single(r => r.ValidatingType == "SymbolPackage");
+                Assert.Equal(2, symbolResult.PackageKey);
+                Assert.Single(symbolResult.ValidationSets);
             }
         }
     }
