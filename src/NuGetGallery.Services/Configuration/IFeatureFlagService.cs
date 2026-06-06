@@ -379,5 +379,9 @@ namespace NuGetGallery
         /// Whether the Admin API soft delete endpoint is enabled.
         /// </summary>
         bool IsAdminApiSoftDeleteEnabled();
+
+        // TODO: https://github.com/NuGet/Engineering/issues/6446
+        bool IsInvalidPackageIdAllowedForAllPackages();
+        bool IsInvalidPackageIdAllowedForExistingPackages();
     }
 }

@@ -142,7 +142,10 @@ namespace NuGetGallery
                 return result;
             }
 
-            result = CheckPackageIdForBannedCharacters(packageMetadata, nuGetPackage.GetIdentity());
+            result = CheckPackageIdForBannedCharacters(packageMetadata, nuGetPackage.GetIdentity(),
+                (string id) => {
+                    return _featureFlagService.IsInvalidPackageIdAllowedForAllPackages() ||
+                           (_featureFlagService.IsInvalidPackageIdAllowedForExistingPackages() && _packageService.FindPackageRegistrationById(id) != null); });
 
             if (result != null)
             {
@@ -240,7 +243,9 @@ namespace NuGetGallery
             return null;
         }
 
-        public static PackageValidationResult CheckPackageIdForBannedCharacters(PackageMetadata packageMetadata, PackageIdentity packageIdentity)
+        public static PackageValidationResult CheckPackageIdForBannedCharacters(PackageMetadata packageMetadata,
+            PackageIdentity packageIdentity,
+            Func<string, bool> isInvalidPackageIdAllowed)
         {
             var packageId = packageMetadata?.Id;
             if (string.IsNullOrWhiteSpace(packageId))
@@ -257,9 +262,10 @@ namespace NuGetGallery
             // we use both the Gallery validator and the NuGet packaging validator to ensure both pass
             // these should have the same definition but we check both as a defensive measure
             if (!NuGet.Packaging.PackageIdValidator.IsValidPackageId(packageId)
-                || !NuGetGallery.Packaging.PackageIdValidator.IsValidPackageId(packageId))
+                || !NuGetGallery.Packaging.PackageIdValidator.IsValidPackageIdForRead(packageId)
+                || (!NuGetGallery.Packaging.PackageIdValidator.IsValidPackageId(packageId) && !isInvalidPackageIdAllowed(packageId)))
             {
-                return PackageValidationResult.Invalid(Strings.UploadPackage_PackageIdNormalizationInvalid);
+                return PackageValidationResult.Invalid(Strings.UploadPackage_PackageIdInvalid);
             }
 
             // reject package IDs that normalize using Form C to different strings
@@ -291,8 +297,10 @@ namespace NuGetGallery
                 {
                     if (!NuGet.Packaging.PackageIdValidator.IsValidPackageId(lower)
                         || !NuGet.Packaging.PackageIdValidator.IsValidPackageId(upper)
-                        || !NuGetGallery.Packaging.PackageIdValidator.IsValidPackageId(lower)
-                        || !NuGetGallery.Packaging.PackageIdValidator.IsValidPackageId(upper))
+                        || !NuGetGallery.Packaging.PackageIdValidator.IsValidPackageIdForRead(lower)
+                        || !NuGetGallery.Packaging.PackageIdValidator.IsValidPackageIdForRead(upper)
+                        || (!NuGetGallery.Packaging.PackageIdValidator.IsValidPackageId(lower) && !isInvalidPackageIdAllowed(packageId))
+                        || (!NuGetGallery.Packaging.PackageIdValidator.IsValidPackageId(upper) && !isInvalidPackageIdAllowed(packageId)))
                     {
                         return PackageValidationResult.Invalid(Strings.UploadPackage_PackageIdNormalizationInvalid);
                     }
