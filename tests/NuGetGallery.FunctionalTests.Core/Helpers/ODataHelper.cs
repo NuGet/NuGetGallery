@@ -175,7 +175,7 @@ namespace NuGetGallery.FunctionalTests
             request.Headers.Add("user-agent", "TestAgent");
             request.Headers.Add("NuGet-Operation", operation);
 
-            var responseMessage = await SendFollowingRedirectsAsync(client, request);
+            var responseMessage = await HttpHelper.SendFollowingRedirectsAsync(client, request);
 
             if (responseMessage.StatusCode == HttpStatusCode.OK)
             {
@@ -211,24 +211,6 @@ namespace NuGetGallery.FunctionalTests
             }
 
             return filename;
-        }
-
-        /// <summary>
-        /// Sends an HTTP request and manually follows any redirect response.
-        /// .NET 9+ unconditionally blocks HTTPS-to-HTTP redirect downgrades in SocketsHttpHandler.
-        /// </summary>
-        public static async Task<HttpResponseMessage> SendFollowingRedirectsAsync(
-            HttpClient client, HttpRequestMessage request)
-        {
-            var response = await client.SendAsync(request);
-            if (response.StatusCode == HttpStatusCode.Found ||
-                response.StatusCode == HttpStatusCode.MovedPermanently)
-            {
-                var redirectUri = response.Headers.Location;
-                response.Dispose();
-                response = await client.GetAsync(redirectUri);
-            }
-            return response;
         }
     }
 }

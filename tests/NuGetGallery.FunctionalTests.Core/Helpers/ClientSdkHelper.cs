@@ -690,7 +690,7 @@ namespace NuGetGallery.FunctionalTests
             // HTTPS-to-HTTP redirect downgrades.
             var requestUri = UrlHelper.V2FeedRootUrl + "Package/" + packageId + "/" + version;
             using var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
-            var response = await ODataHelper.SendFollowingRedirectsAsync(
+            var response = await HttpHelper.SendFollowingRedirectsAsync(
                 client, new HttpRequestMessage(HttpMethod.Get, requestUri));
             response.EnsureSuccessStatusCode();
 
