@@ -195,7 +195,7 @@ namespace NuGetGallery
             // some security paranoia about URL hacking somehow creating e.g. open redirects
             // validate user input: explicit calls to the same validators used during Package Registrations
             // Ideally shouldn't be necessary?
-            if (!PackageIdValidator.IsValidPackageId(id ?? string.Empty))
+            if (!PackageIdValidator.IsValidPackageIdForRead(id ?? string.Empty))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, "The format of the package id is invalid");
             }
@@ -232,7 +232,7 @@ namespace NuGetGallery
             // some security paranoia about URL hacking somehow creating e.g. open redirects
             // validate user input: explicit calls to the same validators used during Package Registrations
             // Ideally shouldn't be necessary?
-            if (!PackageIdValidator.IsValidPackageId(id ?? string.Empty))
+            if (!PackageIdValidator.IsValidPackageIdForRead(id ?? string.Empty))
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, "The format of the package id is invalid");
             }
@@ -617,7 +617,12 @@ namespace NuGetGallery
 
                             NuspecReader nuspec;
                             PackageMetadata packageMetadata;
-                            var errors = ManifestValidator.Validate(packageToPush.GetNuspec(), out nuspec, out packageMetadata).ToArray();
+                            var errors = ManifestValidator.Validate(packageToPush.GetNuspec(),
+                                (string id) => {
+                                    return FeatureFlagService.IsInvalidPackageIdAllowedForAllPackages() ||
+                                           (FeatureFlagService.IsInvalidPackageIdAllowedForExistingPackages() && PackageService.FindPackageRegistrationById(id) != null);
+                                },
+                                out nuspec, out packageMetadata).ToArray();
                             if (errors.Length > 0)
                             {
                                 var errorsString = string.Join("', '", errors.Select(error => error.ErrorMessage));
