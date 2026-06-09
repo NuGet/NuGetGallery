@@ -162,9 +162,9 @@ namespace NuGet.Services.Metadata.Catalog.JsonLDIntegration
         bool HandleTriple(IRdfHandler handler, string subject, string predicate, string obj, string datatype, bool isLiteral)
         {
             INode subjectNode;
-            if (subject.StartsWith("_"))
+            if (subject.StartsWith("_", StringComparison.Ordinal))
             {
-                string nodeId = subject.Substring(subject.IndexOf(":") + 1);
+                string nodeId = subject.Substring(subject.IndexOf(":", StringComparison.Ordinal) + 1);
                 subjectNode = handler.CreateBlankNode(nodeId);
             }
             else
@@ -187,9 +187,9 @@ namespace NuGet.Services.Metadata.Catalog.JsonLDIntegration
             }
             else
             {
-                if (obj.StartsWith("_"))
+                if (obj.StartsWith("_", StringComparison.Ordinal))
                 {
-                    string nodeId = obj.Substring(obj.IndexOf(":") + 1);
+                    string nodeId = obj.Substring(obj.IndexOf(":", StringComparison.Ordinal) + 1);
                     objNode = handler.CreateBlankNode(nodeId);
                 }
                 else

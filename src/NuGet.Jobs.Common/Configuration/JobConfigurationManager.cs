@@ -142,7 +142,7 @@ namespace NuGet.Jobs
 
                 for (int i = 0; i < allArgsList.Count; i++)
                 {
-                    if (!allArgsList[i].StartsWith("-"))
+                    if (!allArgsList[i].StartsWith("-", StringComparison.Ordinal))
                     {
                         throw new ArgumentException("Argument Name does not start with a hyphen ('-')");
                     }
@@ -154,7 +154,7 @@ namespace NuGet.Jobs
                     }
 
                     var nextString = allArgsList.Count > i + 1 ? allArgsList[i + 1] : null;
-                    if (string.IsNullOrEmpty(nextString) || nextString.StartsWith("-"))
+                    if (string.IsNullOrEmpty(nextString) || nextString.StartsWith("-", StringComparison.Ordinal))
                     {
                         // If the key already exists, don't add. This means that first added value is preferred
                         // Since command line args are added before args from environment variable, this is the desired behavior

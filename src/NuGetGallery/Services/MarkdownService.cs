@@ -111,7 +111,7 @@ namespace NuGetGallery
 
             var markdownWithoutComments = HtmlCommentPattern.Replace(markdownString, "");
 
-            var markdownWithoutBom = markdownWithoutComments.StartsWith("\ufeff") ? markdownWithoutComments.Replace("\ufeff", "") : markdownWithoutComments;
+            var markdownWithoutBom = markdownWithoutComments.StartsWith("\ufeff", StringComparison.Ordinal) ? markdownWithoutComments.Replace("\ufeff", "") : markdownWithoutComments;
 
             // HTML encode markdown, except for block quotes, to block inline html.
             var encodedMarkdown = EncodedBlockQuotePattern.Replace(HttpUtility.HtmlEncode(markdownWithoutBom), "> ");
@@ -297,7 +297,7 @@ namespace NuGetGallery
                                 // Allow only http or https links in markdown. Transform link to https for known domains.
                                 if (!PackageHelper.TryPrepareUrlForRendering(linkInline.Url, out string readyUriString))
                                 {
-                                    if (linkInline.Url != null && !linkInline.Url.StartsWith("#")) //allow internal section links
+                                    if (linkInline.Url != null && !linkInline.Url.StartsWith("#", StringComparison.Ordinal)) //allow internal section links
                                     {
                                         linkInline.Url = string.Empty;
                                     }
