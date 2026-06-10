@@ -302,10 +302,37 @@ namespace NuGetGallery
                 includeDeprecations: includeDeprecations,
                 includeDeprecationRelationships: false,
                 includeSupportedFrameworks: includeSupportedFrameworks)
-                .OrderByDescending(p => p.IsLatestSemVer2 || p.IsLatestStableSemVer2)
-                    .ThenByDescending(p => p.Key)
+                .OrderByDescending(p => p.Key)
                 .Take(maxCount + 1)
                 .ToList();
+
+            var hasLatestSemVer2 = packages.Any(p => p.IsLatestSemVer2);
+            var hasLatestStableSemVer2 = packages.Any(p => p.IsLatestStableSemVer2);
+            if (!hasLatestSemVer2 || !hasLatestStableSemVer2)
+            {
+                var latestSemVer2Packages = GetPackagesByIdQueryable(
+                    id,
+                    includeLicenseReports: false,
+                    includePackageRegistration: includePackageRegistration,
+                    includeUser: false,
+                    includeSymbolPackages: false,
+                    includeDeprecations: includeDeprecations,
+                    includeDeprecationRelationships: false,
+                    includeSupportedFrameworks: includeSupportedFrameworks)
+                    .Where(p => p.IsLatestSemVer2 || p.IsLatestStableSemVer2)
+                    .ToList();
+
+                var latestSemVer2PackageKeys = latestSemVer2Packages.Select(lsp => lsp.Key).ToList();
+                packages.RemoveAll(p => latestSemVer2PackageKeys.Contains(p.Key));
+                packages.AddRange(latestSemVer2Packages);
+
+                _telemetryService.TrackGetLatestSemVer2PackageVersions(id, latestSemVer2Packages);
+            }
+
+            packages = packages.OrderByDescending(p => p.IsLatestSemVer2 || p.IsLatestStableSemVer2)
+                               .ThenByDescending(p => p.Key)
+                               .Take(maxCount + 1)
+                               .ToList();
 
             bool moreAvailable = packages.Count > maxCount;
 
