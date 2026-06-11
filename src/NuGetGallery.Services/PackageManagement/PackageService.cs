@@ -324,15 +324,12 @@ namespace NuGetGallery
 
                 var latestSemVer2PackageKeys = latestSemVer2Packages.Select(lsp => lsp.Key).ToList();
                 packages.RemoveAll(p => latestSemVer2PackageKeys.Contains(p.Key));
-                packages.AddRange(latestSemVer2Packages);
+                packages.InsertRange(0, latestSemVer2Packages);
+
+                packages = packages.Take(maxCount + 1).ToList();
 
                 _telemetryService.TrackGetLatestSemVer2PackageVersions(id, latestSemVer2Packages);
             }
-
-            packages = packages.OrderByDescending(p => p.IsLatestSemVer2 || p.IsLatestStableSemVer2)
-                               .ThenByDescending(p => p.Key)
-                               .Take(maxCount + 1)
-                               .ToList();
 
             bool moreAvailable = packages.Count > maxCount;
 
