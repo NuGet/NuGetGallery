@@ -1389,6 +1389,24 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public void ReturnsHighestSemanticVersionIfNoLatestVersionIsAvailable()
+            {
+                // Arrange
+                var packageRegistration = new PackageRegistration { Id = Id };
+                var package1 = new Package { Version = "1.0.11", PackageRegistration = packageRegistration, IsLatest = false, Listed = false };
+                var package2 = new Package { Version = "1.0.10", PackageRegistration = packageRegistration, IsLatest = false, Listed = false };
+                var package3 = new Package { Version = "1.0.9", PackageRegistration = packageRegistration, IsLatest = false, Listed = false };
+
+                // Act
+                var result = InvokeMethod(new[] { package1, package2, package3 });
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal("1.0.11", result.Version);
+            }
+
+
+            [Fact]
             public void ThrowsIfPackagesNull()
             {
                 Assert.Throws<ArgumentNullException>(() => InvokeMethod(null));
