@@ -497,9 +497,15 @@ namespace NuGetGallery
 
             // If we couldn't find a package marked as latest, then return the most recent one.
             // Prereleases were already filtered out if appropriate.
+            // Uses normalized package version for semantic ordering.
             if (package == null)
             {
-                package = packages.OrderByDescending(p => p.Version).FirstOrDefault();
+                package = packages
+                    .OrderByDescending(p => {
+                        NuGetVersion.TryParse(NuGetVersionFormatter.GetNormalizedPackageVersion(p), out var v);
+                        return v;
+                    })
+                    .FirstOrDefault();
             }
 
             return package;
