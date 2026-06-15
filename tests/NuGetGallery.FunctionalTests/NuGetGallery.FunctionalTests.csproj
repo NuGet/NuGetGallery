@@ -1,16 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System.ServiceModel" />
-  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGetGallery.FunctionalTests.Core\NuGetGallery.FunctionalTests.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FluentLinkChecker" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="NuGet.Packaging" />
+    <PackageReference Include="System.ServiceModel.Syndication" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
