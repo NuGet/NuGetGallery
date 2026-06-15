@@ -384,6 +384,14 @@
     <Compile Include="Migrations\202509042111492_AddSponsorshipUrlsToPackageRegistrations.Designer.cs">
       <DependentUpon>202509042111492_AddSponsorshipUrlsToPackageRegistrations.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202606090008452_UpdatePackageKeyIndexOnPackageFrameworks.cs" />
+    <Compile Include="Migrations\202606090008452_UpdatePackageKeyIndexOnPackageFrameworks.Designer.cs">
+      <DependentUpon>202606090008452_UpdatePackageKeyIndexOnPackageFrameworks.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202606092223210_UpdatePackageKeyIndexOnPackageDeprecations.cs" />
+    <Compile Include="Migrations\202606092223210_UpdatePackageKeyIndexOnPackageDeprecations.Designer.cs">
+      <DependentUpon>202606092223210_UpdatePackageKeyIndexOnPackageDeprecations.cs</DependentUpon>
+    </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
     <Compile Include="RequestModels\UpdateListedRequest.cs" />
@@ -1765,6 +1773,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202509042111492_AddSponsorshipUrlsToPackageRegistrations.resx">
       <DependentUpon>202509042111492_AddSponsorshipUrlsToPackageRegistrations.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202606090008452_UpdatePackageKeyIndexOnPackageFrameworks.resx">
+      <DependentUpon>202606090008452_UpdatePackageKeyIndexOnPackageFrameworks.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202606092223210_UpdatePackageKeyIndexOnPackageDeprecations.resx">
+      <DependentUpon>202606092223210_UpdatePackageKeyIndexOnPackageDeprecations.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
