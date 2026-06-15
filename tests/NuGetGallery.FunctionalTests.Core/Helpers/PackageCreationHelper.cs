@@ -2,12 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.CodeDom.Compiler;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
 using System.Threading.Tasks;
-using Microsoft.CSharp;
 using Xunit.Abstractions;
 
 namespace NuGetGallery.FunctionalTests
@@ -156,13 +156,8 @@ namespace NuGetGallery.FunctionalTests
         internal static void AddLib(string nuspecFileDir)
         {
             Directory.CreateDirectory(Path.Combine(nuspecFileDir, "Lib"));
-            var parameters = new CompilerParameters();
-            parameters.GenerateExecutable = false;
-            parameters.CompilerOptions = "/optimize /unsafe";
-            parameters.OutputAssembly = (Path.Combine(nuspecFileDir, @"Lib", DateTime.Now.Ticks + ".dll"));
-            var provider = new CSharpCodeProvider();
-            string source = "using System; namespace CodeDom { public class B {public static int k=7;}}";
-            provider.CompileAssemblyFromSource(parameters, source);
+            var outputPath = Path.Combine(nuspecFileDir, "Lib", DateTime.Now.Ticks + ".dll");
+            WriteDummyAssembly(outputPath);
         }
 
         /// <summary>
@@ -172,14 +167,22 @@ namespace NuGetGallery.FunctionalTests
         /// <param name="frameworkVersion"></param>
         internal static void AddLib(string nuspecFileDir, string frameworkVersion)
         {
-            Directory.CreateDirectory(Path.Combine(nuspecFileDir, "Lib\\" + frameworkVersion));
-            var parameters = new CompilerParameters();
-            parameters.GenerateExecutable = false;
-            parameters.CompilerOptions = "/optimize /unsafe";
-            parameters.OutputAssembly = (Path.Combine(nuspecFileDir, "Lib\\" + frameworkVersion, DateTime.Now.Ticks + ".dll"));
-            var provider = new CSharpCodeProvider();
-            string source = "using System; namespace CodeDom { public class B {public static int k=7;}}";
-            provider.CompileAssemblyFromSource(parameters, source);
+            Directory.CreateDirectory(Path.Combine(nuspecFileDir, "Lib", frameworkVersion));
+            var outputPath = Path.Combine(nuspecFileDir, "Lib", frameworkVersion, DateTime.Now.Ticks + ".dll");
+            WriteDummyAssembly(outputPath);
+        }
+
+        /// <summary>
+        /// Writes a minimal valid managed assembly.
+        /// CSharpCodeProvider.CompileAssemblyFromSource is not supported on .NET 5+,
+        /// so we use PersistedAssemblyBuilder (.NET 9+) to emit a real PE instead.
+        /// </summary>
+        private static void WriteDummyAssembly(string outputPath)
+        {
+            var assemblyName = new AssemblyName(Path.GetFileNameWithoutExtension(outputPath));
+            var assemblyBuilder = new PersistedAssemblyBuilder(assemblyName, typeof(object).Assembly);
+            assemblyBuilder.DefineDynamicModule(assemblyName.Name);
+            assemblyBuilder.Save(outputPath);
         }
         
         /// <summary>
