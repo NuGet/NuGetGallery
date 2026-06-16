@@ -340,7 +340,7 @@
                                             options: PackageOwners, value: PackageOwner, optionsText: 'Owner', optionsCaption: 'Select an owner...' "></select>
                 <div class="has-error-brand">
                     <span class="field-validation-valid help-block"
-                          data-bind="text: PackageOwner() ?  '' : 'A package owner must be selected.'" aria-live="polite" role="alert"></span>
+                          data-bind="text: (HasAttemptedSubmit() && !PackageOwner()) ? 'A package owner must be selected.' : ''" aria-live="polite" role="alert"></span>
                 </div>
             </div>
         </div>

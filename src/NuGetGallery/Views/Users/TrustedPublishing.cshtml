@@ -256,7 +256,7 @@
                                                   'aria-labelledby': PackageOwnerUid() + '-label' },
                                           options: PackageOwners, value: PackageOwner, optionsCaption: 'Select an owner...' "></select>
                 <div class="has-error-brand">
-                    <span class="field-validation-valid help-block" data-bind="text: PackageOwner() ?  '' : 'Package owner should be provided.'" aria-live="polite" role="alert"></span>
+                    <span class="field-validation-valid help-block" data-bind="text: (HasAttemptedSubmit() && !PackageOwner()) ? 'Package owner should be provided.' : ''" aria-live="polite" role="alert"></span>
                 </div>
                 <span>The owner of packages allowed for publishing or updates</span>
             </div>
