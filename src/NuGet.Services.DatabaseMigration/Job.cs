@@ -21,8 +21,12 @@ namespace NuGet.Services.DatabaseMigration
     {
         private string _migrationTargetDatabase;
         private IMigrationContextFactory _migrationContextFactory;
+        private bool _initializeNewDatabase;
 
         private const string MigrationTargetDatabaseArgument = "MigrationTargetDatabase";
+        // Set this argument to true when initializing a new database and bypass the check on empty database migrations
+        private const string InitializeNewDatabaseArgument = "InitializeNewDatabase";
+
         // There is a Gallery migration file which doens't exist in the local migration folder;
         // Need to skip this migration file for the validation check.
         private const string SkipGalleryDatabaseMigrationFile = "201304262247205_CuratedPackagesUniqueIndex";
@@ -36,6 +40,7 @@ namespace NuGet.Services.DatabaseMigration
         {
             base.Init(serviceContainer, jobArgsDictionary);
             _migrationTargetDatabase = JobConfigurationManager.GetArgument(jobArgsDictionary, MigrationTargetDatabaseArgument);
+            _initializeNewDatabase = JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, InitializeNewDatabaseArgument, defaultValue: false);
         }
 
         public override async Task Run()
@@ -46,6 +51,11 @@ namespace NuGet.Services.DatabaseMigration
             {
                 ExecuteDatabaseMigration(migrationContext.GetDbMigrator, migrationContext.SqlConnection);
             }
+        }
+
+        public void SetInitializeNewDatabase(bool initializeNewDatabase)
+        {
+            _initializeNewDatabase = initializeNewDatabase;
         }
 
         public void CheckIsValidMigration(List<string> databaseMigrations, List<string> localMigrations)
@@ -60,7 +70,7 @@ namespace NuGet.Services.DatabaseMigration
                 throw new ArgumentNullException(nameof(localMigrations));
             }
 
-            if (databaseMigrations.Count == 0)
+            if (databaseMigrations.Count == 0 && !_initializeNewDatabase)
             {
                 throw new InvalidOperationException("Migration validation failed: Unexpected empty history of database migrations.");
             }

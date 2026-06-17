@@ -68,6 +68,22 @@ namespace NuGet.Services.DatabaseMigration.Facts
             }
         }
 
+        [Fact]
+        public void ValidateMigrationsWhenInitializingNewDatabase()
+        {
+            try
+            {
+                _migrationJob.SetInitializeNewDatabase(initializeNewDatabase: true);
+                _migrationJob.CheckIsValidMigration(new List<string>(), new List<string> { "2011_Migration_1", "2012_Migration_2" });
+            }
+            catch (Exception)
+            {
+                Assert.True(false);
+            }
+
+            Assert.True(true);
+        }
+
         [Theory]
         [MemberData(nameof(ValidMigrations))]
         public void ValidateMigrationsDoesNotThrowExceptions(List<string> databaseMigrations, List<string> localMigrations)
