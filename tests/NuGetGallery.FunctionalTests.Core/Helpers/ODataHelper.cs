@@ -166,7 +166,7 @@ namespace NuGetGallery.FunctionalTests
         private async Task<string> DownloadPackageFromFeed(string packageId, string version, string operation = "Install")
         {
             string filename;
-            var client = new HttpClient();
+            var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
             var requestUri = UrlHelper.V2FeedRootUrl + @"Package/" + packageId + @"/" + version;
 
             TestOutputHelper.WriteLine("GET " + requestUri);
@@ -175,7 +175,7 @@ namespace NuGetGallery.FunctionalTests
             request.Headers.Add("user-agent", "TestAgent");
             request.Headers.Add("NuGet-Operation", operation);
 
-            var responseMessage = await client.SendAsync(request);
+            var responseMessage = await HttpHelper.SendFollowingRedirectsAsync(client, request);
 
             if (responseMessage.StatusCode == HttpStatusCode.OK)
             {

@@ -40,12 +40,12 @@ namespace NuGetGallery.FunctionalTests.Commandline
         public async Task DownloadPackage()
         {
             string packageId = Constants.TestPackageId; //try to download a pre-defined test package.
-            _clientSdkHelper.ClearLocalPackageFolder(packageId, ClientSdkHelper.GetLatestStableVersion(packageId));
+            _clientSdkHelper.ClearLocalPackageFolder(packageId, await ClientSdkHelper.GetLatestStableVersionAsync(packageId));
 
             var result = await _commandlineHelper.InstallPackageAsync(packageId, UrlHelper.V2FeedRootUrl, Environment.CurrentDirectory);
 
             Assert.True(result.ExitCode == 0, Constants.PackageDownloadFailureMessage);
-            Assert.True(_clientSdkHelper.CheckIfPackageInstalled(packageId), Constants.PackageInstallFailureMessage);
+            Assert.True(await _clientSdkHelper.CheckIfPackageInstalledAsync(packageId), Constants.PackageInstallFailureMessage);
         }
 
         public enum ApiKeyType
@@ -152,7 +152,7 @@ namespace NuGetGallery.FunctionalTests.Commandline
                 File.Delete(packageFullPath);
                 Directory.Delete(Path.GetFullPath(Path.GetDirectoryName(packageFullPath)), true);
             }
-            _clientSdkHelper.DownloadPackageAndVerify(packageId, version);
+            await _clientSdkHelper.DownloadPackageAndVerifyAsync(packageId, version);
         }
 
         [PackageLockFact]
