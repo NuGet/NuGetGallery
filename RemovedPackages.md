@@ -211,6 +211,7 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    Enroxes.Cryptographhy.Pkcs                |    06/02/2026    |   Malware  |
 |    test-package                              |    06/18/2026    |   Potentially Malicious  |
 |    test-package-2                            |    06/18/2026    |   Potentially Malicious  |
+|    BaseTestPackage 1.0.0                     |    06/18/2026    |   Malware  |
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.
