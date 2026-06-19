@@ -138,7 +138,7 @@ namespace NgTests.Infrastructure
 
         public override bool Exists(string fileName)
         {
-            return Content.Keys.Any(k => k.PathAndQuery.EndsWith(fileName));
+            return Content.Keys.Any(k => k.PathAndQuery.EndsWith(fileName, StringComparison.Ordinal));
         }
 
         public override Task<IEnumerable<StorageListItem>> ListAsync(CancellationToken cancellationToken)

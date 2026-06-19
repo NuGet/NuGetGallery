@@ -415,5 +415,10 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
         {
             throw new NotImplementedException();
         }
+
+        public void TrackGetLatestSemVer2PackageVersions(string packageId, IReadOnlyList<Package> packages)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

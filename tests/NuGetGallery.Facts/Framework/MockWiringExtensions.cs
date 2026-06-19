@@ -28,7 +28,7 @@ namespace NuGetGallery.Framework
                 .Where(pi => pi.CanWrite))
             {
                 Type propertyType = propertyInfo.PropertyType;
-                if (!propertyType.Namespace.StartsWith("System.") && context.IsRegistered(propertyType))
+                if (!propertyType.Namespace.StartsWith("System.", StringComparison.Ordinal) && context.IsRegistered(propertyType))
                 {
                     MethodInfo[] accessors = propertyInfo.GetAccessors(false);
                     if (accessors.Length > 0 && accessors[0].ReturnType != typeof(void) && !accessors[0].ReturnType.IsValueType)

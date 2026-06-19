@@ -188,7 +188,7 @@ namespace NuGetGallery.FunctionalTests.StaticAssets
                 while ((absolutePath = reader.ReadLine()) != null)
                 {
                     var fullPath = Path.GetFullPath(absolutePath);
-                    if (!fullPath.StartsWith(galleryDir))
+                    if (!fullPath.StartsWith(galleryDir, StringComparison.Ordinal))
                     {
                         continue;
                     }
