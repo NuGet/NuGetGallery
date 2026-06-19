@@ -1405,6 +1405,41 @@ namespace NuGetGallery
                 Assert.Equal("1.0.11", result.Version);
             }
 
+            [Fact]
+            public void ReturnsHighestKeyWhenAllVersionsFailToParseAndNoLatestVersionIsAvailable()
+            {
+                // Arrange
+                var packageRegistration = new PackageRegistration { Id = Id };
+                var package1 = new Package { Key = 1, Version = "not-an-accepted-version", PackageRegistration = packageRegistration, IsLatest = false, Listed = false };
+                var package2 = new Package { Key = 2, Version = "fails-2-parse-2", PackageRegistration = packageRegistration, IsLatest = false, Listed = false };
+                var package3 = new Package { Key = 3, Version = "fails-2-parse", PackageRegistration = packageRegistration, IsLatest = false, Listed = false };
+
+                // Act
+                var result = InvokeMethod(new[] { package1, package2, package3 });
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(3, result.Key);
+            }
+
+            [Fact]
+            public void ReturnsHighestSemanticVersionIfSomeVersionsFailToParseAndNoLatestVersionIsAvailable()
+            {
+                // Arrange
+                var packageRegistration = new PackageRegistration { Id = Id };
+                var package1 = new Package { Key = 1, Version = "1.10.11", PackageRegistration = packageRegistration, IsLatest = false, Listed = false };
+                var package2 = new Package { Key = 2, Version = "fails-2-parse-2", PackageRegistration = packageRegistration, IsLatest = false, Listed = false };
+                var package3 = new Package { Key = 3, Version = "fails-2-parse", PackageRegistration = packageRegistration, IsLatest = false, Listed = false };
+                var package4 = new Package { Key = 4, Version = "1.10.9", PackageRegistration = packageRegistration, IsLatest = false, Listed = false };
+
+                // Act
+                var result = InvokeMethod(new[] { package1, package2, package3, package4 });
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal("1.10.11", result.Version);
+            }
+
 
             [Fact]
             public void ThrowsIfPackagesNull()

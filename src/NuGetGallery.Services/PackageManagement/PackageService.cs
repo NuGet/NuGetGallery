@@ -527,9 +527,10 @@ namespace NuGetGallery
             {
                 package = packages
                     .OrderByDescending(p => {
-                        NuGetVersion.TryParse(NuGetVersionFormatter.GetNormalizedPackageVersion(p), out var v);
+                        _ = NuGetVersion.TryParse(NuGetVersionFormatter.GetNormalizedPackageVersion(p), out var v);
                         return v;
                     })
+                        .ThenByDescending(p => p.Key)
                     .FirstOrDefault();
             }
 
