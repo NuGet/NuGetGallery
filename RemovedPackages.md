@@ -210,6 +210,7 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    Enroxes.Commonn.Data                      |    06/02/2026    |   Malware  |
 |    Enroxes.Cryptographhy.Pkcs                |    06/02/2026    |   Malware  |
 |    MemorySDK 2.0.0                           |    06/19/2026    |   Potentially Malicious  |
+|    Decentraland.RustEthereum 99.0.0          |    06/19/2026    |   Malware  |
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.
