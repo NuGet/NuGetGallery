@@ -76,7 +76,7 @@ namespace NuGetGallery.FunctionalTests
             var timestampStartTag = "<d:" + timestampPropertyName + " m:type=\"Edm.DateTime\">";
             var timestampEndTag = "</d:" + timestampPropertyName + ">";
 
-            var timestampTagIndex = packageResponse.IndexOf(timestampStartTag);
+            var timestampTagIndex = packageResponse.IndexOf(timestampStartTag, StringComparison.Ordinal);
             if (timestampTagIndex < 0)
             {
                 WriteLine($"Package data does not contain '{timestampPropertyName}' timestamp!");
@@ -84,7 +84,7 @@ namespace NuGetGallery.FunctionalTests
             }
 
             var timestampStartIndex = timestampTagIndex + timestampStartTag.Length;
-            var timestampLength = packageResponse.Substring(timestampStartIndex).IndexOf(timestampEndTag);
+            var timestampLength = packageResponse.Substring(timestampStartIndex).IndexOf(timestampEndTag, StringComparison.Ordinal);
 
             var timestamp = DateTime.Parse(packageResponse.Substring(timestampStartIndex, timestampLength));
             WriteLine($"'{timestampPropertyName}' timestamp of package '{packageId}' with version '{version}' is '{timestamp}'");
@@ -100,7 +100,7 @@ namespace NuGetGallery.FunctionalTests
             var packageString = @"<id>" + UrlHelper.V2FeedRootUrl + @"Packages(Id='" + packageId + @"',Version='" + (string.IsNullOrEmpty(version) ? "" : version + "')</id>");
             var endEntryTag = "</entry>";
 
-            var startingIndex = responseText.IndexOf(packageString);
+            var startingIndex = responseText.IndexOf(packageString, StringComparison.Ordinal);
 
             if (startingIndex < 0)
             {
@@ -108,7 +108,7 @@ namespace NuGetGallery.FunctionalTests
                 return null;
             }
 
-            var endingIndex = responseText.IndexOf(endEntryTag, startingIndex);
+            var endingIndex = responseText.IndexOf(endEntryTag, startingIndex, StringComparison.Ordinal);
 
             return responseText.Substring(startingIndex, endingIndex - startingIndex);
         }
@@ -166,7 +166,7 @@ namespace NuGetGallery.FunctionalTests
         private async Task<string> DownloadPackageFromFeed(string packageId, string version, string operation = "Install")
         {
             string filename;
-            var client = new HttpClient();
+            var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
             var requestUri = UrlHelper.V2FeedRootUrl + @"Package/" + packageId + @"/" + version;
 
             TestOutputHelper.WriteLine("GET " + requestUri);
@@ -175,7 +175,7 @@ namespace NuGetGallery.FunctionalTests
             request.Headers.Add("user-agent", "TestAgent");
             request.Headers.Add("NuGet-Operation", operation);
 
-            var responseMessage = await client.SendAsync(request);
+            var responseMessage = await HttpHelper.SendFollowingRedirectsAsync(client, request);
 
             if (responseMessage.StatusCode == HttpStatusCode.OK)
             {

@@ -42,7 +42,11 @@ namespace NuGetGallery.Auditing
         /// </summary>
         public AuditedUserSecurityPolicy[] AffectedPolicies { get; }
 
-        public UserAuditRecord(User user, AuditedUserAction action)
+        public string Reason { get; private set; }
+
+        public string CallerIdentity { get; private set; }
+
+        public UserAuditRecord(User user, AuditedUserAction action, string reason = null, string callerIdentity = null)
             : base(action)
         {
             if (user == null)
@@ -60,6 +64,8 @@ namespace NuGetGallery.Auditing
 
             AffectedCredential = Array.Empty<CredentialAuditRecord>();
             AffectedPolicies = Array.Empty<AuditedUserSecurityPolicy>();
+            Reason = reason;
+            CallerIdentity = callerIdentity;
         }
 
         public UserAuditRecord(User user, AuditedUserAction action, Credential affected, string revocationSource)

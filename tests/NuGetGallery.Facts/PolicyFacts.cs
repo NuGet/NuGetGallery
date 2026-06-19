@@ -21,6 +21,7 @@ namespace NuGetGallery
         {
             var failingTypes = (from t in TypesInTheSameNamespaceAs(typeof(AdminControllerBase))
                                 where t.GetInterfaces().Contains(typeof(IController))
+                                where t != typeof(AdminApiController) // Uses bearer token auth via AdminApiAuthAttribute
                                 let a = t.GetCustomAttribute<AuthorizeAttribute>(inherit: true)
                                 where a == null || !String.Equals(a.Roles, CoreConstants.AdminRoleName)
                                 select t)

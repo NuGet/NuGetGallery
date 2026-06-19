@@ -23,6 +23,9 @@ namespace NuGetGallery.Auditing
         public string ActorRole { get; private set; }
         public DateTime? DatabaseTimestamp { get; private set; }
 
+        public string Reason { get; }
+        public string CallerIdentity { get; }
+
         public PackageRegistrationAuditRecord(
             string id, AuditedPackageRegistration registrationRecord, AuditedPackageRegistrationAction action, string owner)
             : base(action)
@@ -33,9 +36,11 @@ namespace NuGetGallery.Auditing
         }
 
         public PackageRegistrationAuditRecord(
-            PackageRegistration packageRegistration, AuditedPackageRegistrationAction action, string owner)
+            PackageRegistration packageRegistration, AuditedPackageRegistrationAction action, string owner, string reason = null, string callerIdentity = null)
             : this(packageRegistration.Id, AuditedPackageRegistration.CreateFrom(packageRegistration), action, owner)
         {
+            Reason = reason;
+            CallerIdentity = callerIdentity;
         }
 
         public override string GetPath()

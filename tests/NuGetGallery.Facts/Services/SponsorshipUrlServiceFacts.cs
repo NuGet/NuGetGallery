@@ -324,7 +324,7 @@ namespace NuGetGallery.Services
 
 				// Assert
 				Assert.Equal(2, result.Count);
-				Assert.All(result, entry => Assert.True(entry.Url.StartsWith("https://"), 
+				Assert.All(result, entry => Assert.True(entry.Url.StartsWith("https://", StringComparison.Ordinal),
 					$"Expected HTTPS URL but got: {entry.Url}"));
 			}
 		}

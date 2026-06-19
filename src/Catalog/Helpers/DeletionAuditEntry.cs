@@ -255,7 +255,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         private static bool IsPackageDelete(StorageListItem auditRecord)
         {
             var fileName = GetAuditRecordFileName(auditRecord.Uri);
-            return FileNameSuffixes.Any(suffix => fileName.EndsWith(suffix));
+            return FileNameSuffixes.Any(suffix => fileName.EndsWith(suffix, StringComparison.Ordinal));
         }
     }
 }

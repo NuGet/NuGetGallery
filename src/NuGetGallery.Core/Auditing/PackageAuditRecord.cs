@@ -19,12 +19,15 @@ namespace NuGetGallery.Auditing
 
         public string Reason { get; }
 
+        public string CallerIdentity { get; }
+
         public PackageAuditRecord(
             string id, string version, string hash,
             AuditedPackage packageRecord,
             AuditedPackageRegistration registrationRecord,
             AuditedPackageDeprecation deprecationRecord,
-            AuditedPackageAction action, string reason)
+            AuditedPackageAction action, string reason,
+            string callerIdentity = null)
             : base(action)
         {
             Id = id;
@@ -34,6 +37,7 @@ namespace NuGetGallery.Auditing
             RegistrationRecord = registrationRecord;
             DeprecationRecord = deprecationRecord;
             Reason = reason;
+            CallerIdentity = callerIdentity;
         }
 
         public PackageAuditRecord(string id, string version, AuditedPackageAction action, string reason)
@@ -47,7 +51,7 @@ namespace NuGetGallery.Auditing
                   reason: reason)
         { }
 
-        public PackageAuditRecord(Package package, AuditedPackageAction action, string reason)
+        public PackageAuditRecord(Package package, AuditedPackageAction action, string reason, string callerIdentity = null)
             : this(package.PackageRegistration.Id,
                   package.Version,
                   package.Hash,
@@ -55,7 +59,8 @@ namespace NuGetGallery.Auditing
                   registrationRecord: null,
                   deprecationRecord: null,
                   action: action,
-                  reason: reason)
+                  reason: reason,
+                  callerIdentity: callerIdentity)
         {
             PackageRecord = AuditedPackage.CreateFrom(package);
             RegistrationRecord = AuditedPackageRegistration.CreateFrom(package.PackageRegistration);

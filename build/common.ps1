@@ -849,7 +849,8 @@ Function New-WebAppPackage {
         [string]$MSBuildVersion = $DefaultMSBuildVersion,
         [bool]$PackageAsSingleFile=$true,
         [string]$SignType,
-        [switch]$BinLog
+        [switch]$BinLog,
+        [switch]$UseDotnet
     )
     Trace-Log "Creating web app package from @""$TargetFilePath"""
 
@@ -875,8 +876,14 @@ Function New-WebAppPackage {
         $opts += "/bl"
     }
 
-    Trace-Log "$MsBuildExe $opts"
-    & $MsBuildExe $opts
+    if ($UseDotnet){
+        Trace-Log "dotnet msbuild $opts"
+        & dotnet msbuild $opts
+    }
+    else {
+        Trace-Log "$MsBuildExe $opts"
+        & $MsBuildExe $opts
+    }
     if (-not $?) {
         Error-Log "Creating web app package failed for @""$TargetFilePath"". Code: ${LASTEXITCODE}"
     }

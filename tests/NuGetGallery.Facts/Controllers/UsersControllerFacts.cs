@@ -638,6 +638,14 @@ namespace NuGetGallery
 
             private ApiKeyListViewModel GetModelForApiKeys(User currentUser)
             {
+                GetMock<IPackageService>()
+                    .Setup(p => p.FindPackageRegistrationsByOwner(It.IsAny<User>()))
+                    .Returns(Enumerable.Empty<PackageRegistration>().AsQueryable());
+
+                var mockHttpContext = GetMock<HttpContextBase>();
+                mockHttpContext.Setup(c => c.Request.QueryString)
+                    .Returns(new System.Collections.Specialized.NameValueCollection { { "forceApiKeys", "true" } });
+
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(currentUser);
 

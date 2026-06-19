@@ -17,7 +17,7 @@ namespace Stats.AzureCdnLogs.Common
             }
 
             // ignore comment rows (i.e., first row listing the column headers
-            if (line.StartsWith("#"))
+            if (line.StartsWith("#", StringComparison.Ordinal))
             {
                 return null;
             }

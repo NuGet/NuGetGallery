@@ -436,5 +436,10 @@ namespace NuGetGallery
         IDisposable TrackAsyncSqlConnectionCreationDuration();
 
         void TrackFullVersionListLoadRequest();
+
+        /// <summary>
+        /// Track when it gets latest SemVer2 package versions for the package details page
+        /// </summary>
+        void TrackGetLatestSemVer2PackageVersions(string packageId, IReadOnlyList<Package> packages);
     }
 }
