@@ -61,9 +61,11 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 ValidationSet.PackageValidations = new System.Collections.Generic.List<PackageValidation>();
 
                 Message = PackageValidationMessageData.NewFailValidationSet(
-                    ValidationSet.ValidationTrackingId,
                     ValidationSet.PackageId,
-                    ValidationSet.PackageNormalizedVersion);
+                    ValidationSet.PackageNormalizedVersion,
+                    ValidationSet.ValidationTrackingId,
+                    ValidatingType.Package,
+                    ValidationSet.PackageKey);
 
                 ValidationStorageService
                     .Setup(x => x.GetValidationSetAsync(It.IsAny<Guid>()))

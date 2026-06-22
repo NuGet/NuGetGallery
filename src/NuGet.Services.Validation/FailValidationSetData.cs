@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using NuGet.Versioning;
 
 namespace NuGet.Services.Validation
 {
@@ -10,30 +11,38 @@ namespace NuGet.Services.Validation
 	/// </summary>
 	public class FailValidationSetData
 	{
-		public FailValidationSetData(Guid validationTrackingId, string packageId, string packageVersion)
+		public FailValidationSetData(
+			string packageId,
+			string packageVersion,
+			Guid validationTrackingId,
+			ValidatingType validatingType,
+			int? entityKey)
 		{
 			if (validationTrackingId == Guid.Empty)
 			{
 				throw new ArgumentOutOfRangeException(nameof(validationTrackingId));
 			}
 
-			if (string.IsNullOrEmpty(packageId))
+			if (validatingType == ValidatingType.Generic)
 			{
-				throw new ArgumentException("Package ID is required", nameof(packageId));
+				throw new ArgumentException(
+					$"The validating type must be {nameof(ValidatingType.Package)} or {nameof(ValidatingType.SymbolPackage)}",
+					nameof(validatingType));
 			}
 
-			if (string.IsNullOrEmpty(packageVersion))
-			{
-				throw new ArgumentException("Package version is required", nameof(packageVersion));
-			}
-
-			ValidationTrackingId = validationTrackingId;
 			PackageId = packageId;
 			PackageVersion = packageVersion;
+			PackageNormalizedVersion = NuGetVersion.Parse(packageVersion).ToNormalizedString();
+			ValidationTrackingId = validationTrackingId;
+			ValidatingType = validatingType;
+			EntityKey = entityKey;
 		}
 
-		public Guid ValidationTrackingId { get; }
 		public string PackageId { get; }
 		public string PackageVersion { get; }
+		public string PackageNormalizedVersion { get; }
+		public Guid ValidationTrackingId { get; }
+		public ValidatingType ValidatingType { get; }
+		public int? EntityKey { get; }
 	}
 }

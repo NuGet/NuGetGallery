@@ -115,6 +115,20 @@ namespace NuGetGallery
             _telemetryService.TrackSymbolPackageRevalidate(symbolPackage.Id, symbolPackage.Version);
         }
 
+        public async Task FailValidationAsync(Package package)
+        {
+            var packageStatus = await _packageValidationInitiator.FailValidationAsync(package);
+
+            await UpdatePackageInternalAsync(package, packageStatus);
+        }
+
+        public async Task FailValidationAsync(SymbolPackage symbolPackage)
+        {
+            var symbolPackageStatus = await _symbolPackageValidationInitiator.FailValidationAsync(symbolPackage);
+
+            await UpdateSymbolPackageInternalAsync(symbolPackage, symbolPackageStatus);
+        }
+
         private async Task UpdatePackageInternalAsync(Package package, PackageStatus packageStatus)
         {
             await _packageService.UpdatePackageStatusAsync(

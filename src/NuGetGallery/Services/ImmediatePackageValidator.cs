@@ -20,5 +20,10 @@ namespace NuGetGallery
         {
             return Task.FromResult(PackageStatus.Available);
         }
+
+        public Task<PackageStatus> FailValidationAsync(TPackageEntity package)
+        {
+            return Task.FromResult(PackageStatus.FailedValidation);
+        }
     }
 }

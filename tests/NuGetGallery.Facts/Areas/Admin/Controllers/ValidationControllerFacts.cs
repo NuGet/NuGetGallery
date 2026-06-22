@@ -1,7 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Moq;
@@ -13,201 +13,98 @@ using Xunit;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
-	public class ValidationControllerFacts
-	{
-		public class TheForceFailValidationMethod : FactsBase
-		{
-			[Fact]
-			public async Task ReturnsErrorWhenPackageIdIsEmpty()
-			{
-				var result = await _target.ForceFailValidation(packageId: "", packageVersion: null);
+    public class ValidationControllerFacts
+    {
+        public class TheForceFailValidationMethod : FactsBase
+        {
+            [Fact]
+            public async Task ForcesFailureForPendingPackages()
+            {
+                _packages
+                    .Setup(x => x.GetAll())
+                    .Returns(() => new[]
+                    {
+                        new Package { Key = 1, PackageStatusKey = PackageStatus.Available },
+                        new Package { Key = 2, PackageStatusKey = PackageStatus.Validating },
+                        new Package { Key = 3, PackageStatusKey = PackageStatus.Validating },
+                    }.AsQueryable());
 
-				var redirect = Assert.IsType<RedirectToRouteResult>(result);
-				Assert.Equal("Index", redirect.RouteValues["action"]);
-				Assert.Equal("Package ID is required.", _target.TempData["ErrorMessage"]);
-			}
+                var result = await _target.ForceFailValidation(ValidatingType.Package);
 
-			[Fact]
-			public async Task ReturnsErrorWhenPackageIdIsWhitespace()
-			{
-				var result = await _target.ForceFailValidation(packageId: "  ", packageVersion: null);
+                var redirect = Assert.IsType<RedirectToRouteResult>(result);
+                Assert.Equal("Pending", redirect.RouteValues["action"]);
+                _validationService.Verify(x => x.FailValidationAsync(It.IsAny<Package>()), Times.Exactly(2));
+                Assert.Contains("2", (string)_target.TempData["Message"]);
+                Assert.Contains(PackageStatus.FailedValidation.ToString(), (string)_target.TempData["Message"]);
+            }
 
-				var redirect = Assert.IsType<RedirectToRouteResult>(result);
-				Assert.Equal("Index", redirect.RouteValues["action"]);
-				Assert.Equal("Package ID is required.", _target.TempData["ErrorMessage"]);
-			}
+            [Fact]
+            public async Task ForcesFailureForPendingSymbolPackages()
+            {
+                _symbolPackages
+                    .Setup(x => x.GetAll())
+                    .Returns(() => new[]
+                    {
+                        new SymbolPackage { Key = 1, StatusKey = PackageStatus.Available },
+                        new SymbolPackage { Key = 2, StatusKey = PackageStatus.Validating },
+                    }.AsQueryable());
 
-			[Fact]
-			public async Task ReturnsErrorWhenPackageNotFound()
-			{
-				_packageService
-					.Setup(x => x.FindPackageByIdAndVersion("NonExistent", null))
-					.Returns((Package)null);
+                var result = await _target.ForceFailValidation(ValidatingType.SymbolPackage);
 
-				var result = await _target.ForceFailValidation("NonExistent", packageVersion: null);
+                var redirect = Assert.IsType<RedirectToRouteResult>(result);
+                Assert.Equal("Pending", redirect.RouteValues["action"]);
+                _validationService.Verify(x => x.FailValidationAsync(It.IsAny<SymbolPackage>()), Times.Once);
+            }
 
-				var redirect = Assert.IsType<RedirectToRouteResult>(result);
-				Assert.Equal("Index", redirect.RouteValues["action"]);
-				Assert.Contains("not found", (string)_target.TempData["ErrorMessage"]);
-			}
+            [Fact]
+            public async Task ReportsWhenThereAreNoPendingValidations()
+            {
+                _packages
+                    .Setup(x => x.GetAll())
+                    .Returns(() => Enumerable.Empty<Package>().AsQueryable());
 
-			[Fact]
-			public async Task ReturnsErrorWhenPackageVersionNotFound()
-			{
-				_packageService
-					.Setup(x => x.FindPackageByIdAndVersionStrict("TestPackage", "1.0.0"))
-					.Returns((Package)null);
+                var result = await _target.ForceFailValidation(ValidatingType.Package);
 
-				var result = await _target.ForceFailValidation("TestPackage", "1.0.0");
+                var redirect = Assert.IsType<RedirectToRouteResult>(result);
+                Assert.Equal("Pending", redirect.RouteValues["action"]);
+                _validationService.Verify(x => x.FailValidationAsync(It.IsAny<Package>()), Times.Never);
+                Assert.Contains("no", (string)_target.TempData["Message"]);
+            }
+        }
 
-				var redirect = Assert.IsType<RedirectToRouteResult>(result);
-				Assert.Equal("Index", redirect.RouteValues["action"]);
-				Assert.Contains("not found", (string)_target.TempData["ErrorMessage"]);
-				Assert.Contains("1.0.0", (string)_target.TempData["ErrorMessage"]);
-			}
+        public abstract class FactsBase : TestContainer
+        {
+            protected readonly Mock<IEntityRepository<Package>> _packages;
+            protected readonly Mock<IEntityRepository<SymbolPackage>> _symbolPackages;
+            protected readonly Mock<IValidationService> _validationService;
+            protected readonly ValidationAdminService _validationAdminService;
+            protected readonly ValidationController _target;
 
-			[Fact]
-			public async Task ReturnsInfoWhenPackageAlreadyFailedValidation()
-			{
-				SetupPackage(PackageStatus.FailedValidation);
+            public FactsBase()
+            {
+                _packages = new Mock<IEntityRepository<Package>>();
+                _symbolPackages = new Mock<IEntityRepository<SymbolPackage>>();
+                _validationService = new Mock<IValidationService>();
 
-				var result = await _target.ForceFailValidation("TestPackage", "1.0.0");
+                _validationAdminService = new ValidationAdminService(
+                    Mock.Of<IEntityRepository<PackageValidationSet>>(),
+                    Mock.Of<IEntityRepository<PackageValidation>>(),
+                    _packages.Object,
+                    _symbolPackages.Object,
+                    _validationService.Object);
 
-				var redirect = Assert.IsType<RedirectToRouteResult>(result);
-				Assert.Equal("Index", redirect.RouteValues["action"]);
-				Assert.Contains("already in FailedValidation", (string)_target.TempData["Message"]);
-			}
+                _target = new ValidationController(
+                    _validationAdminService);
+            }
 
-			[Fact]
-			public async Task ReturnsErrorWhenPackageIsAvailable()
-			{
-				SetupPackage(PackageStatus.Available);
-
-				var result = await _target.ForceFailValidation("TestPackage", "1.0.0");
-
-				var redirect = Assert.IsType<RedirectToRouteResult>(result);
-				Assert.Equal("Index", redirect.RouteValues["action"]);
-				Assert.Contains("Available", (string)_target.TempData["ErrorMessage"]);
-				Assert.Contains("cannot be transitioned", (string)_target.TempData["ErrorMessage"]);
-			}
-
-			[Fact]
-			public async Task ReturnsErrorWhenPackageIsDeleted()
-			{
-				SetupPackage(PackageStatus.Deleted);
-
-				var result = await _target.ForceFailValidation("TestPackage", "1.0.0");
-
-				var redirect = Assert.IsType<RedirectToRouteResult>(result);
-				Assert.Equal("Index", redirect.RouteValues["action"]);
-				Assert.Contains("Deleted", (string)_target.TempData["ErrorMessage"]);
-				Assert.Contains("cannot be modified", (string)_target.TempData["ErrorMessage"]);
-			}
-
-			[Fact]
-			public async Task ReturnsErrorWhenInitiatorIsNotAsynchronous()
-			{
-				SetupPackage(PackageStatus.Validating);
-
-				// Default _packageValidationInitiator mock is not AsynchronousPackageValidationInitiator
-				var result = await _target.ForceFailValidation("TestPackage", "1.0.0");
-
-				var redirect = Assert.IsType<RedirectToRouteResult>(result);
-				Assert.Equal("Index", redirect.RouteValues["action"]);
-				Assert.Contains("not configured for asynchronous validation", (string)_target.TempData["ErrorMessage"]);
-			}
-
-			[Fact]
-			public async Task FindsLatestVersionWhenVersionNotSpecified()
-			{
-				SetupPackage(PackageStatus.Validating);
-
-				await _target.ForceFailValidation("TestPackage", packageVersion: null);
-
-				_packageService.Verify(
-					x => x.FindPackageByIdAndVersion("TestPackage", null),
-					Times.Once);
-			}
-
-			[Fact]
-			public async Task FindsSpecificVersionWhenVersionSpecified()
-			{
-				SetupPackage(PackageStatus.Validating);
-
-				await _target.ForceFailValidation("TestPackage", "1.0.0");
-
-				_packageService.Verify(
-					x => x.FindPackageByIdAndVersionStrict("TestPackage", "1.0.0"),
-					Times.Once);
-			}
-
-			[Fact]
-			public async Task ReturnsErrorOnException()
-			{
-				_packageService
-					.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
-					.Throws(new InvalidOperationException("Something went wrong"));
-
-				var result = await _target.ForceFailValidation("TestPackage", "1.0.0");
-
-				var redirect = Assert.IsType<RedirectToRouteResult>(result);
-				Assert.Equal("Index", redirect.RouteValues["action"]);
-				Assert.Contains("Something went wrong", (string)_target.TempData["ErrorMessage"]);
-			}
-
-			private void SetupPackage(PackageStatus status)
-			{
-				var package = new Package
-				{
-					Key = 1,
-					PackageRegistration = new PackageRegistration { Id = "TestPackage" },
-					NormalizedVersion = "1.0.0",
-					Version = "1.0.0",
-					PackageStatusKey = status,
-				};
-
-				_packageService
-					.Setup(x => x.FindPackageByIdAndVersion("TestPackage", null))
-					.Returns(package);
-				_packageService
-					.Setup(x => x.FindPackageByIdAndVersionStrict("TestPackage", "1.0.0"))
-					.Returns(package);
-			}
-		}
-
-		public abstract class FactsBase : TestContainer
-		{
-			protected readonly Mock<IPackageService> _packageService;
-			protected readonly Mock<IPackageValidationInitiator<Package>> _packageValidationInitiator;
-			protected readonly ValidationAdminService _validationAdminService;
-			protected readonly ValidationController _target;
-
-			public FactsBase()
-			{
-				_packageService = new Mock<IPackageService>();
-				_packageValidationInitiator = new Mock<IPackageValidationInitiator<Package>>();
-
-				_validationAdminService = new ValidationAdminService(
-					Mock.Of<IEntityRepository<PackageValidationSet>>(),
-					Mock.Of<IEntityRepository<PackageValidation>>(),
-					Mock.Of<IEntityRepository<Package>>(),
-					Mock.Of<IEntityRepository<SymbolPackage>>(),
-					Mock.Of<IValidationService>());
-
-				_target = new ValidationController(
-					_validationAdminService,
-					_packageService.Object,
-					_packageValidationInitiator.Object);
-			}
-
-			protected override void Dispose(bool disposing)
-			{
-				if (disposing)
-				{
-					_target?.Dispose();
-					base.Dispose(disposing);
-				}
-			}
-		}
-	}
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing)
+                {
+                    _target?.Dispose();
+                    base.Dispose(disposing);
+                }
+            }
+        }
+    }
 }

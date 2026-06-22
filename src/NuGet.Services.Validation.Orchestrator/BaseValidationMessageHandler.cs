@@ -389,7 +389,7 @@ namespace NuGet.Services.Validation.Orchestrator
                             LeaseTime);
 
                     var postponeUntil = DateTimeOffset.UtcNow + LeaseTime;
-                    var messageData = PackageValidationMessageData.NewFailValidationSet(message.ValidationTrackingId, message.PackageId, message.PackageVersion);
+                    var messageData = PackageValidationMessageData.NewFailValidationSet(message.PackageId, message.PackageVersion, message.ValidationTrackingId, message.ValidatingType, message.EntityKey);
                     await _validationEnqueuer.SendMessageAsync(messageData, postponeUntil);
                     return true;
                 }

@@ -72,9 +72,10 @@ namespace NuGetGallery
 
         public async Task<PackageStatus> FailValidationAsync(TPackageEntity package)
         {
-            ValidateAndGetType(package);
+            var validatingType = ValidateAndGetType(package);
 
-            var data = PackageValidationMessageData.NewFailValidationSet(Guid.NewGuid(), package.Id, package.Version);
+            var entityKey = package.Key == default(int) ? (int?)null : package.Key;
+            var data = PackageValidationMessageData.NewFailValidationSet(package.Id, package.Version, Guid.NewGuid(), validatingType, entityKey);
 
             var activityName = "Enqueuing asynchronous package validation failure: " +
                 $"{package.Id} {package.Version} ({data.FailValidationSet.ValidationTrackingId})";
