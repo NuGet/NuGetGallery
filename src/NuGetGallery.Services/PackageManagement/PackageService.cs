@@ -306,9 +306,11 @@ namespace NuGetGallery
                 .Take(maxCount + 1)
                 .ToList();
 
+            var moreAvailable = packages.Count > maxCount;
+
             var hasLatestSemVer2 = packages.Any(p => p.IsLatestSemVer2);
             var hasLatestStableSemVer2 = packages.Any(p => p.IsLatestStableSemVer2);
-            if (!hasLatestSemVer2 || !hasLatestStableSemVer2)
+            if (moreAvailable && (!hasLatestSemVer2 || !hasLatestStableSemVer2))
             {
                 var latestSemVer2Packages = GetPackagesByIdQueryable(
                     id,
@@ -331,8 +333,7 @@ namespace NuGetGallery
                 _telemetryService.TrackGetLatestSemVer2PackageVersions(id, latestSemVer2Packages);
             }
 
-            bool moreAvailable = packages.Count > maxCount;
-
+            moreAvailable = packages.Count > maxCount;
             if (moreAvailable)
             {
                 // if we have list longer than requested, trim it, making sure we don't trim includeVersion if it happens to be last
