@@ -13,17 +13,13 @@ namespace NuGetGallery.Areas.Admin.Controllers
 {
     public class CorrectIsLatestController : AdminControllerBase
     {
-        private readonly IPackageService _packageService;
         private readonly IEntitiesContext _entitiesContext;
-        private readonly IPackageFileService _packageFileService;
-        private readonly ITelemetryService _telemetryService;
+        private readonly IReflowPackageService _reflowPackageService;
 
-        public CorrectIsLatestController(IPackageService packageService, IEntitiesContext entitiesContext, IPackageFileService packageFileService, ITelemetryService telemetryService)
+        public CorrectIsLatestController(IEntitiesContext entitiesContext, IReflowPackageService reflowPackageService)
         {
-            _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
-            _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
-            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
+            _reflowPackageService = reflowPackageService ?? throw new ArgumentNullException(nameof(reflowPackageService));
         }
 
         [HttpGet]
@@ -75,12 +71,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 return Json(HttpStatusCode.BadRequest, "Packages cannot be null or empty.", JsonRequestBehavior.AllowGet);
             }
 
-            var reflowPackageService = new ReflowPackageService(
-                _entitiesContext,
-                (PackageService)_packageService,
-                _packageFileService,
-                _telemetryService);
-
             var totalPackagesReflowed = 0;
             var totalPackagesFailReflowed = 0;
 
@@ -88,7 +78,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             {
                 try
                 {
-                    await reflowPackageService.ReflowAsync(package.Id, package.Version);
+                    await _reflowPackageService.ReflowAsync(package.Id, package.Version);
                     totalPackagesReflowed++;
                 }
                 catch (Exception ex)

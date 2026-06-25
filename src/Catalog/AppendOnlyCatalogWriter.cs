@@ -112,7 +112,7 @@ namespace NuGet.Services.Metadata.Catalog
 
             foreach (KeyValuePair<string, CatalogItemSummary> entry in currentPageEntries)
             {
-                int first = entry.Key.IndexOf("page") + 4;
+                int first = entry.Key.IndexOf("page", StringComparison.Ordinal) + 4;
                 int last = first;
                 while (last < entry.Key.Length && char.IsNumber(entry.Key, last))
                 {

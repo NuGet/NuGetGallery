@@ -473,7 +473,7 @@ namespace NuGetGallery
 
         private static bool IsBlobStorageUri(Uri uri)
         {
-            return uri.Authority.EndsWith(".blob.core.windows.net");
+            return uri.Authority.EndsWith(".blob.core.windows.net", StringComparison.Ordinal);
         }
 
         private Response UpdateEtag(Response response)

@@ -8,7 +8,6 @@ namespace NuGetGallery.FunctionalTests
     [CollectionDefinition(GalleryTestCollection.Definition)]
     public class GalleryTestCollection
         : ICollectionFixture<GalleryTestFixture>
-        , IClassFixture<ClearMachineCacheFixture>
     {
         public const string Definition = "Gallery test collection";
 

@@ -7,37 +7,34 @@ $parentDir = Resolve-Path (Join-Path $PSScriptRoot "..")
 $repoDir = Resolve-Path (Join-Path $parentDir "..")
 
 # Required tools
-$BuiltInVsWhereExe = "${Env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
-$VsInstallationPath = & $BuiltInVsWhereExe -latest -prerelease -property installationPath
-$msbuild = Join-Path $VsInstallationPath "MSBuild\Current\Bin\msbuild"
 $nuget = Join-Path $parentDir "nuget.exe"
 & (Join-Path $PSScriptRoot "DownloadLatestNuGetExeRelease.ps1") $parentDir
 
-Write-Host "Restoring solution tools"
-& $nuget install (Join-Path $repoDir "packages.config") -SolutionDirectory $repoDir -NonInteractive -ExcludeVersion
+Write-Host "##[group]Restoring and building functional tests"
 
-# Restore packages
-Write-Host "Restoring solution"
+# Restore and build using dotnet CLI
+Write-Host "Restoring and building solution"
 $solutionPath = Join-Path $repoDir "NuGetGallery.FunctionalTests.sln"
-& $nuget restore $solutionPath -NonInteractive
+& dotnet restore $solutionPath
 if ($LASTEXITCODE -ne 0) {
     throw "Failed to restore packages!"
 }
 
-# Build the solution
 Write-Host "Building solution"
-& $msbuild $solutionPath "/p:Configuration=$Configuration" ('/p:VSINSTALLDIR=' + $VsInstallationPath)
+& dotnet build $solutionPath --configuration $Configuration --no-restore
 if ($LASTEXITCODE -ne 0) {
     throw "Failed to build solution!"
 }
 
 Write-Host "Copying nuget.exe to functional tests directory"
-$functionalTestsDirectory = Join-Path $parentDir "NuGetGallery.FunctionalTests\bin\$Configuration\net472"
+$functionalTestsDirectory = Join-Path $parentDir "NuGetGallery.FunctionalTests\bin\$Configuration\net10.0"
 Copy-Item $nuget $functionalTestsDirectory
+Write-Host "##[endgroup]"
 
-Write-Host "Setting up Playwright browsers..."
+Write-Host "##[group]Installing Playwright browsers"
 # used to suppress Node.js warnings about url.parse deprecation
 # https://github.com/microsoft/playwright/issues/36404
 $env:NODE_NO_WARNINGS = "1"
 & "$functionalTestsDirectory\playwright.ps1" install
 $env:NODE_NO_WARNINGS = ""
+Write-Host "##[endgroup]"

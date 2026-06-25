@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Globalization;
 using System.Linq;
 using System.Net;
@@ -465,6 +466,14 @@ namespace NuGetGallery
         public virtual ActionResult ApiKeys()
         {
             var currentUser = GetCurrentUser();
+
+            // All customers are redirected to Trusted Publishing,
+            // unless they explicitly opted to visit API Keys from the Trusted Publishing page.
+            var forceApiKeys = Request?.QueryString?["forceApiKeys"] == "true";
+            if (!forceApiKeys)
+            {
+                return Redirect(Url.ManageMyTrustedPublishing() + "?fromApiKeys=true");
+            }
 
             // Get API keys
             if (!GetCredentialGroups(currentUser).TryGetValue(CredentialKind.Token, out List<CredentialViewModel> credentials))

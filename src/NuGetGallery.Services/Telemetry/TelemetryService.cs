@@ -98,6 +98,7 @@ namespace NuGetGallery
             public const string ApiRequest = "ApiRequest";
             public const string CreateSqlConnectionDurationMs = "CreateSqlConnectionDurationMs";
             public const string FullVersionListRequest = "FullVersionListRequest";
+            public const string GetLatestSemVer2PackageVersions = "GetLatestSemVer2PackageVersions";
         }
 
         private readonly IDiagnosticsSource _diagnosticsSource;
@@ -1213,6 +1214,15 @@ namespace NuGetGallery
         public void TrackFullVersionListLoadRequest()
         {
             TrackMetric(Events.FullVersionListRequest, 1, _ => { });
+        }
+
+        public void TrackGetLatestSemVer2PackageVersions(string packageId, IReadOnlyList<Package> packages)
+        {
+            TrackMetric(Events.GetLatestSemVer2PackageVersions, 1, properties =>
+            {
+                properties.Add(PackageId, packageId);
+                properties.Add(PackageVersions, BuildArrayProperty(packages.Select(p => p.NormalizedVersion).ToList()));
+            });
         }
 
         private IDisposable TrackSqlConnectionCreationDuration(string kind)

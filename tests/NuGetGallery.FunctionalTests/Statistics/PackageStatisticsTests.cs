@@ -29,7 +29,7 @@ namespace NuGetGallery.FunctionalTests.Statistics
                 responseText = await httpClient.GetStringAsync(requestUrl);
             }
 
-            string firstPackage = responseText.Substring(responseText.IndexOf("{"), responseText.IndexOf("}") - responseText.IndexOf("{"));
+            string firstPackage = responseText.Substring(responseText.IndexOf("{", StringComparison.Ordinal), responseText.IndexOf("}", StringComparison.Ordinal) - responseText.IndexOf("{", StringComparison.Ordinal));
 
             Assert.True(firstPackage.Contains(@"""PackageId"": """), "Expected PackageId field is missing.");
             Assert.True(firstPackage.Contains(@"""PackageVersion"": """), "Expected PackageVersion field is missing.");

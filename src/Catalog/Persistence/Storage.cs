@@ -203,7 +203,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         public virtual Uri GetUri(string name)
         {
             string address = BaseAddress.ToString();
-            if (!address.EndsWith("/"))
+            if (!address.EndsWith("/", StringComparison.Ordinal))
             {
                 address += "/";
             }

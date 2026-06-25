@@ -18,6 +18,7 @@
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <UseIISExpress>true</UseIISExpress>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <MSBuildWarningsAsErrors>MSB3247</MSBuildWarningsAsErrors>
     <OldToolsVersion>12.0</OldToolsVersion>
     <TargetFrameworkProfile />
     <IISExpressSSLPort>443</IISExpressSSLPort>
@@ -88,6 +89,11 @@
     <Prefer32Bit>false</Prefer32Bit>
     <PublishDatabases>false</PublishDatabases>
   </PropertyGroup>
+  <!-- WARNING: This constant disables Admin API token validation for functional testing.
+       It must NEVER be set in release or deployment builds. -->
+  <PropertyGroup Condition="'$(UnsafeAdminApiAuthBypassForTesting)' == 'true'">
+    <DefineConstants>$(DefineConstants);UNSAFE_ADMIN_API_AUTH_BYPASS_FOR_TESTING</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Build.Framework" />
     <Reference Include="Microsoft.Build.Utilities.v4.0" />
@@ -125,6 +131,7 @@
     <Compile Include="App_Start\StorageDependent.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="App_Start\AutofacConfig.cs" />
+    <Compile Include="Areas\Admin\Controllers\AdminApiController.cs" />
     <Compile Include="Areas\Admin\Controllers\ApiKeysController.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteAccountController.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteController.cs" />
@@ -172,8 +179,20 @@
     <Compile Include="Areas\Admin\Migrations\201805221605033_DropPagerDutyColumn.Designer.cs">
       <DependentUpon>201805221605033_DropPagerDutyColumn.cs</DependentUpon>
     </Compile>
+    <Compile Include="Areas\Admin\Models\AdminRequestLimits.cs" />
+    <Compile Include="Areas\Admin\Models\AdminSoftDeletePackageRequest.cs" />
+    <Compile Include="Areas\Admin\Models\AdminSoftDeletePackageResponse.cs" />
+    <Compile Include="Areas\Admin\Models\AdminLockUserRequest.cs" />
+    <Compile Include="Areas\Admin\Models\AdminLockPackageRequest.cs" />
+    <Compile Include="Areas\Admin\Models\AdminLockUserResponse.cs" />
+    <Compile Include="Areas\Admin\Models\AdminLockPackageResponse.cs" />
+    <Compile Include="Areas\Admin\Models\AdminUserIdentity.cs" />
     <Compile Include="Areas\Admin\Models\DeletedStatus.cs" />
     <Compile Include="Areas\Admin\Migrations\SupportRequestMigrationsConfiguration.cs" />
+    <Compile Include="Areas\Admin\Models\AdminReflowPackageRequest.cs" />
+    <Compile Include="Areas\Admin\Models\AdminReflowPackageResponse.cs" />
+    <Compile Include="Areas\Admin\Models\AdminUpdateListedPackageRequest.cs" />
+    <Compile Include="Areas\Admin\Models\AdminUpdateListedPackageResponse.cs" />
     <Compile Include="Areas\Admin\Models\RevokeApiKeysRequest.cs" />
     <Compile Include="Areas\Admin\Models\ValidateAccountResult.cs" />
     <Compile Include="Areas\Admin\Models\ValidateUsernameResult.cs" />
@@ -236,6 +255,10 @@
     <Compile Include="Extensions\UserSafeExceptionExtensions.cs" />
     <Compile Include="Filters\AdminActionAttribute.cs" />
     <Compile Include="Filters\RequiresUserAgentAttribute.cs" />
+    <Compile Include="Areas\Admin\Filters\AdminApiAuthAttribute.cs" />
+    <Compile Include="Areas\Admin\Authentication\AdminApiBearerAuthenticationMiddleware.cs" />
+    <Compile Include="Areas\Admin\Authentication\AdminApiBearerAuthenticationHandler.cs" />
+    <Compile Include="Areas\Admin\Authentication\AdminApiBearerAuthenticationOptions.cs" />
     <Compile Include="Helpers\AdminHelper.cs" />
     <Compile Include="Helpers\CSPHelper.cs" />
     <Compile Include="Helpers\InvalidZipEntry.cs" />
@@ -360,6 +383,14 @@
     <Compile Include="Migrations\202509042111492_AddSponsorshipUrlsToPackageRegistrations.cs" />
     <Compile Include="Migrations\202509042111492_AddSponsorshipUrlsToPackageRegistrations.Designer.cs">
       <DependentUpon>202509042111492_AddSponsorshipUrlsToPackageRegistrations.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202606090008452_UpdatePackageKeyIndexOnPackageFrameworks.cs" />
+    <Compile Include="Migrations\202606090008452_UpdatePackageKeyIndexOnPackageFrameworks.Designer.cs">
+      <DependentUpon>202606090008452_UpdatePackageKeyIndexOnPackageFrameworks.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202606092223210_UpdatePackageKeyIndexOnPackageDeprecations.cs" />
+    <Compile Include="Migrations\202606092223210_UpdatePackageKeyIndexOnPackageDeprecations.Designer.cs">
+      <DependentUpon>202606092223210_UpdatePackageKeyIndexOnPackageDeprecations.cs</DependentUpon>
     </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
@@ -1330,6 +1361,8 @@
     <Compile Include="RequestModels\DeletePackagesRequest.cs" />
     <Compile Include="RequestModels\EditPackageVersionRequest.cs" />
     <Compile Include="RequestModels\VerifyPackageRequest.cs" />
+    <Compile Include="Services\LockPackageService.cs" />
+    <Compile Include="Services\LockUserService.cs" />
     <Compile Include="Services\ReflowPackageService.cs" />
     <Compile Include="ViewModels\ManageOrganizationsItemViewModel.cs" />
     <Compile Include="ViewModels\ManageOrganizationsViewModel.cs" />
@@ -1474,6 +1507,11 @@
     <Compile Include="Services\ConfirmOwnershipResult.cs" />
     <Compile Include="Services\DownloadCountObjectMaterializedInterceptor.cs" />
     <Compile Include="Services\IDownloadCountService.cs" />
+    <Compile Include="Services\ILockPackageService.cs" />
+    <Compile Include="Services\ILockUserService.cs" />
+    <Compile Include="Services\IReflowPackageService.cs" />
+    <Compile Include="Services\IUpdateListedService.cs" />
+    <Compile Include="Services\UpdateListedService.cs" />
     <Compile Include="Services\IPackageDeleteService.cs" />
     <Compile Include="Services\IRawSearchService.cs" />
     <Compile Include="Services\IStatusService.cs" />
@@ -1735,6 +1773,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202509042111492_AddSponsorshipUrlsToPackageRegistrations.resx">
       <DependentUpon>202509042111492_AddSponsorshipUrlsToPackageRegistrations.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202606090008452_UpdatePackageKeyIndexOnPackageFrameworks.resx">
+      <DependentUpon>202606090008452_UpdatePackageKeyIndexOnPackageFrameworks.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202606092223210_UpdatePackageKeyIndexOnPackageDeprecations.resx">
+      <DependentUpon>202606092223210_UpdatePackageKeyIndexOnPackageDeprecations.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
@@ -2355,10 +2399,4 @@
       </FlavorProperties>
     </VisualStudio>
   </ProjectExtensions>
-  <PropertyGroup>
-    <PreBuildEvent>
-      copy "$(ProjectDir)..\Bootstrap\dist\css\bootstrap.min.css" "$(ProjectDir)Content\gallery\css" &gt;NUL
-      copy "$(ProjectDir)..\Bootstrap\dist\js\bootstrap.js" "$(ProjectDir)Scripts\gallery" &gt;NUL
-    </PreBuildEvent>
-  </PropertyGroup>
 </Project>

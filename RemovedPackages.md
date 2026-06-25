@@ -198,6 +198,18 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    pionehelper 1.0.3                         |    04/10/2026    |   Malware  |
 |    Nova.GtkSharp 1.0.0.1-nova                |    04/10/2026    |   Malware  |
 |    IR.Infrastructure.DataService.Core 2.1.57 |    05/07/2026    |   Potentially Malicious  |
+|    WinDivertSharp 1.4.3.3                    |    05/18/2026    |   Potentially Malicious  |
+|    Aigio.WinDivertSharp 1.4.4.3              |    05/18/2026    |   Potentially Malicious  |
+|    Everest-Org-Common-Packages 1.0.1         |    05/22/2026    |   Malware  |
+|    Everest-Org-Common-Packages 1.0.0         |    05/22/2026    |   Malware  |
+|    DeepSeekV4.SDK                            |    05/26/2026    |   Untrustworthy  |
+|    qPapel.Auth                               |    05/29/2026    |   Malware  |
+|    Sicoob.Sdk                                |    05/29/2026    |   Malware  |
+|    Cyberx.CyberKit                           |    06/02/2026    |   Malware  |
+|    Enroxes.Systiem.Text.Json                 |    06/02/2026    |   Malware  |
+|    Enroxes.Systemm.Drawing.Common            |    06/02/2026    |   Malware  |
+|    Enroxes.Commonn.Data                      |    06/02/2026    |   Malware  |
+|    Enroxes.Cryptographhy.Pkcs                |    06/02/2026    |   Malware  |
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.

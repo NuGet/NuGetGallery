@@ -69,6 +69,18 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Verify Bootstrap output is up to date
+        shell: pwsh
+        run: |
+          .\tools\Build-Bootstrap.ps1
+          $diff = git diff --name-only
+          if ($diff) {
+            Write-Error "Bootstrap output is out of date. Run .\tools\Build-Bootstrap.ps1 and commit the changes."
+            git diff --stat
+            exit 1
+          }
+          Write-Host "Bootstrap output is up to date."
+
       - name: Build
         shell: pwsh
         run: |
@@ -194,7 +206,9 @@ jobs:
 
       - name: Build AppHost
         shell: pwsh
-        run: dotnet build src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj -c $env:BuildConfiguration
+        # WARNING: UnsafeAdminApiAuthBypassForTesting enables self-signed test tokens for functional tests.
+        # This property must NEVER be used in release or deployment builds.
+        run: dotnet build src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj -c $env:BuildConfiguration /p:UnsafeAdminApiAuthBypassForTesting=true
 
       - name: Setup Dev Environment
         shell: pwsh
@@ -210,29 +224,27 @@ jobs:
 
           # 1. Start Aspire Host
           Write-Host "=== Starting Aspire Host ==="
-          $hostPid = & "$repoRoot\tools\Start-AspireHost.ps1" -Configuration $config -TrustDevCert
+          $hostPid = & "$repoRoot\tools\Start-AspireHost.ps1" -Configuration $config -TrustDevCert -UnsafeAdminApiAuthBypassForTesting
           Write-Host "Aspire Host PID: $hostPid"
 
           try {
             # 2. Seed functional test data
-            Write-Host "=== Seeding functional test data ==="
             & "$repoRoot\tools\Seed-FunctionalTestData.ps1" -Configuration $config
             if ($LASTEXITCODE -ne 0) { throw "Seed failed with exit code $LASTEXITCODE" }
 
             # 3. Build functional tests
-            Write-Host "=== Building functional tests ==="
             & "$repoRoot\tests\Scripts\BuildGalleryFunctionalTests.ps1" -Configuration $config
             if ($LASTEXITCODE -ne 0) { throw "Build functional tests failed with exit code $LASTEXITCODE" }
 
             # 4. Run functional tests
-            Write-Host "=== Running P0, P1, and P2 functional tests ==="
-            $testDll = "$repoRoot\tests\NuGetGallery.FunctionalTests\bin\$config\net472\NuGetGallery.FunctionalTests.dll"
+            Write-Host "=== Running P0, P1, P2 and Admin API functional tests ==="
+            $testDll = "$repoRoot\tests\NuGetGallery.FunctionalTests\bin\$config\net10.0\NuGetGallery.FunctionalTests.dll"
             $resultsDir = "$repoRoot\tests\TestResults"
             New-Item -ItemType Directory -Path $resultsDir -Force | Out-Null
 
             dotnet test $testDll `
               --blame-hang-timeout 600s `
-              --filter "Category=P0Tests|Category=P1Tests|Category=P2Tests" `
+              --filter "Category=P0Tests|Category=P1Tests|Category=P2Tests|Category=AdminApiTests" `
               --logger "trx;LogFileName=FunctionalTests.trx" `
               --results-directory $resultsDir
 

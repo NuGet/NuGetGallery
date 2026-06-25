@@ -42,7 +42,7 @@ else
 	Write-Host "WARNING: $configFile not found. GalleryTools will use defaults."
 }
 
-Write-Host "=== Seeding functional test data ==="
+Write-Host "##[group]Seeding functional test data"
 
 & $galleryToolsExe seedfunctionaltests `
 	--output $settingsOutput `
@@ -51,6 +51,7 @@ Write-Host "=== Seeding functional test data ==="
 
 if ($LASTEXITCODE -ne 0)
 {
+	Write-Host "##[endgroup]"
 	Write-Host "=== Seed failed. Dumping diagnostics ==="
 	Write-Host "=== aspire-stderr.log (last 30 lines) ==="
 	Get-Content (Join-Path $repoRoot "aspire-stderr.log") -Tail 30 -ErrorAction SilentlyContinue
@@ -63,4 +64,4 @@ if ($LASTEXITCODE -ne 0)
 $env:ConfigurationFilePath = $settingsOutput
 Write-Host "ConfigurationFilePath = $settingsOutput"
 
-Write-Host "=== Functional test data seeding complete ==="
+Write-Host "##[endgroup]"

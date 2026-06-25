@@ -1,16 +1,7 @@
 name: NuGetGallery CI $(Build.BuildId)
 
-trigger:
-  branches:
-    include:
-      - main
-      - dev
-  batch: True
-
-pr:
-  branches:
-    include:
-      - "*"
+trigger: none
+pr: none
 
 variables:
   - name: BuildConfiguration
@@ -254,7 +245,7 @@ stages:
 
                   # 4. Run functional tests
                   Write-Host "=== Running P0, P1, and P2 functional tests ==="
-                  $testDll = "$repoRoot\tests\NuGetGallery.FunctionalTests\bin\$config\net472\NuGetGallery.FunctionalTests.dll"
+                  $testDll = "$repoRoot\tests\NuGetGallery.FunctionalTests\bin\$config\net10.0\NuGetGallery.FunctionalTests.dll"
                   $resultsDir = "$repoRoot\tests\TestResults"
                   New-Item -ItemType Directory -Path $resultsDir -Force | Out-Null
 

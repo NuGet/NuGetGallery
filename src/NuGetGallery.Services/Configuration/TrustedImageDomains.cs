@@ -66,7 +66,7 @@ namespace NuGetGallery.Services
         {
             if (domain.Split('.').Length > 2)
             {
-                var lastIndex = domain.LastIndexOf(".");
+                var lastIndex = domain.LastIndexOf(".", StringComparison.Ordinal);
                 var index = domain.LastIndexOf('.', lastIndex - 1);
 
                 return domain.Substring(0, index);

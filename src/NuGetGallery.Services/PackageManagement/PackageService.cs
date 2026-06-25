@@ -302,13 +302,38 @@ namespace NuGetGallery
                 includeDeprecations: includeDeprecations,
                 includeDeprecationRelationships: false,
                 includeSupportedFrameworks: includeSupportedFrameworks)
-                .OrderByDescending(p => p.IsLatestSemVer2 || p.IsLatestStableSemVer2)
-                    .ThenByDescending(p => p.Key)
+                .OrderByDescending(p => p.Key)
                 .Take(maxCount + 1)
                 .ToList();
 
-            bool moreAvailable = packages.Count > maxCount;
+            var moreAvailable = packages.Count > maxCount;
 
+            var hasLatestSemVer2 = packages.Any(p => p.IsLatestSemVer2);
+            var hasLatestStableSemVer2 = packages.Any(p => p.IsLatestStableSemVer2);
+            if (moreAvailable && (!hasLatestSemVer2 || !hasLatestStableSemVer2))
+            {
+                var latestSemVer2Packages = GetPackagesByIdQueryable(
+                    id,
+                    includeLicenseReports: false,
+                    includePackageRegistration: includePackageRegistration,
+                    includeUser: false,
+                    includeSymbolPackages: false,
+                    includeDeprecations: includeDeprecations,
+                    includeDeprecationRelationships: false,
+                    includeSupportedFrameworks: includeSupportedFrameworks)
+                    .Where(p => p.IsLatestSemVer2 || p.IsLatestStableSemVer2)
+                    .ToList();
+
+                var latestSemVer2PackageKeys = latestSemVer2Packages.Select(lsp => lsp.Key).ToList();
+                packages.RemoveAll(p => latestSemVer2PackageKeys.Contains(p.Key));
+                packages.InsertRange(0, latestSemVer2Packages);
+
+                packages = packages.Take(maxCount + 1).ToList();
+
+                _telemetryService.TrackGetLatestSemVer2PackageVersions(id, latestSemVer2Packages);
+            }
+
+            moreAvailable = packages.Count > maxCount;
             if (moreAvailable)
             {
                 // if we have list longer than requested, trim it, making sure we don't trim includeVersion if it happens to be last

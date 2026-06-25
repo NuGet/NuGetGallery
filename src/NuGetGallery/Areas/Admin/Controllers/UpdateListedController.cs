@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using NuGet.Services.Entities;
 using NuGetGallery.Areas.Admin.ViewModels;
 
 namespace NuGetGallery.Areas.Admin.Controllers
@@ -14,14 +13,14 @@ namespace NuGetGallery.Areas.Admin.Controllers
     public class UpdateListedController : AdminControllerBase
     {
         private readonly IPackageService _packageService;
-        private readonly IPackageUpdateService _packageUpdateService;
+        private readonly IUpdateListedService _updateListedService;
 
         public UpdateListedController(
             IPackageService packageService,
-            IPackageUpdateService packageUpdateService)
+            IUpdateListedService updateListedService)
         {
             _packageService = packageService;
-            _packageUpdateService = packageUpdateService;
+            _updateListedService = updateListedService;
         }
 
         [HttpGet]
@@ -47,57 +46,30 @@ namespace NuGetGallery.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> UpdateListed(UpdateListedRequest updateListed)
         {
-            var idToVersions = updateListed
+            var packageIdentities = updateListed
                 .Packages
-                .Select(x => x.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries))
+                .Select(x => x.Split(['|'], StringSplitOptions.RemoveEmptyEntries))
                 .Where(x => x.Length == 2)
-                .GroupBy(x => x[0], x => x[1], StringComparer.OrdinalIgnoreCase);
-
-            var packageRegistrationCount = 0;
-            var packageCount = 0;
-            var noOpCount = 0;
-            foreach (var group in idToVersions)
-            {
-                var normalizedVersions = group
-                    .Select(x => NuGetVersionFormatter.Normalize(x))
-                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-                List<Package> packages;
-                if (normalizedVersions.Count == 1)
+                .Select(x => new UpdateListedPackageIdentity
                 {
-                    packages = new List<Package>();
-                    var package = _packageService.FindPackageByIdAndVersionStrict(group.Key, normalizedVersions.First());
-                    if (package != null)
-                    {
-                        packages.Add(package);
-                    }
-                }
-                else
-                {
-                    // Include the deprecation information since it is used in the auditing event.
-                    packages = _packageService.FindPackagesById(
-                            group.Key,
-                            PackageDeprecationFieldsToInclude.DeprecationAndRelationships)
-                        .Where(x => normalizedVersions.Contains(x.NormalizedVersion))
-                        .ToList();
-                }
+                    Id = x[0],
+                    Version = x[1]
+                })
+                .ToList();
 
-                packages = packages
-                    .Where(x => x.PackageStatusKey != PackageStatus.Deleted)
-                    .Where(x => x.PackageStatusKey != PackageStatus.FailedValidation)
-                    .ToList();
+            var serviceResults = await _updateListedService.UpdateListedAsync(
+                packageIdentities,
+                updateListed.Listed);
 
-                packageCount += packages.Count;
-                noOpCount += normalizedVersions.Count - packages.Count;
+            var packageCount = serviceResults.Count(r => r.Result == UpdateListedServiceResult.Success);
+            var noOpCount = serviceResults.Count(r => r.Result == UpdateListedServiceResult.PackageNotFound);
+            var registrationCount = serviceResults
+                .Where(r => r.Result == UpdateListedServiceResult.Success)
+                .Select(r => r.Id)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Count();
 
-                if (packages.Any())
-                {
-                    packageRegistrationCount++;
-                    await _packageUpdateService.UpdateListedInBulkAsync(packages, updateListed.Listed);
-                }
-            }
-
-            TempData["Message"] = $"{packageCount} packages across {packageRegistrationCount} package IDs have " +
+            TempData["Message"] = $"{packageCount} packages across {registrationCount} package IDs have " +
                 $"been {(updateListed.Listed ? "relisted" : "unlisted")}. {noOpCount} packages were skipped because " +
                 "they are deleted or they failed validation.";
 
