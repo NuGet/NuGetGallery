@@ -40,21 +40,28 @@ namespace NuGetGallery.FunctionalTests.Commandline
         public async Task DownloadPackage()
         {
             string packageId = Constants.TestPackageId; //try to download a pre-defined test package.
-            _clientSdkHelper.ClearLocalPackageFolder(packageId, ClientSdkHelper.GetLatestStableVersion(packageId));
+            _clientSdkHelper.ClearLocalPackageFolder(packageId, await ClientSdkHelper.GetLatestStableVersionAsync(packageId));
 
             var result = await _commandlineHelper.InstallPackageAsync(packageId, UrlHelper.V2FeedRootUrl, Environment.CurrentDirectory);
 
             Assert.True(result.ExitCode == 0, Constants.PackageDownloadFailureMessage);
-            Assert.True(_clientSdkHelper.CheckIfPackageInstalled(packageId), Constants.PackageInstallFailureMessage);
+            Assert.True(await _clientSdkHelper.CheckIfPackageInstalledAsync(packageId), Constants.PackageInstallFailureMessage);
+        }
+
+        public enum ApiKeyType
+        {
+            Default,
+            AdminOrganization,
+            CollaboratorOrganization,
         }
 
         public static IEnumerable<object[]> UploadAndUnlistPackages_Data
         {
             get
             {
-                yield return new object[] { null };
-                yield return new object[] { GalleryConfiguration.Instance.AdminOrganization.ApiKey };
-                yield return new object[] { GalleryConfiguration.Instance.CollaboratorOrganization.ApiKey };
+                yield return new object[] { ApiKeyType.Default };
+                yield return new object[] { ApiKeyType.AdminOrganization };
+                yield return new object[] { ApiKeyType.CollaboratorOrganization };
             }
         }
 
@@ -63,8 +70,10 @@ namespace NuGetGallery.FunctionalTests.Commandline
         [Description("Tests upload and unlist scenarios with API key")]
         [Priority(2)]
         [Category("P2Tests")]
-        public async Task UploadAndUnlistPackages(string apiKey)
+        public async Task UploadAndUnlistPackages(ApiKeyType apiKeyType)
         {
+            var apiKey = ResolveApiKey(apiKeyType);
+
             // Can push new package ID
             await _clientSdkHelper.UploadPackage(apiKey);
 
@@ -73,6 +82,17 @@ namespace NuGetGallery.FunctionalTests.Commandline
 
             // Can unlist versions of an existing package
             await _clientSdkHelper.UnlistPackage(apiKey);
+        }
+
+        private static string ResolveApiKey(ApiKeyType apiKeyType)
+        {
+            return apiKeyType switch
+            {
+                ApiKeyType.Default => null,
+                ApiKeyType.AdminOrganization => GalleryConfiguration.Instance.AdminOrganization.ApiKey,
+                ApiKeyType.CollaboratorOrganization => GalleryConfiguration.Instance.CollaboratorOrganization.ApiKey,
+                _ => throw new ArgumentOutOfRangeException(nameof(apiKeyType)),
+            };
         }
 
         [Fact]
@@ -132,7 +152,7 @@ namespace NuGetGallery.FunctionalTests.Commandline
                 File.Delete(packageFullPath);
                 Directory.Delete(Path.GetFullPath(Path.GetDirectoryName(packageFullPath)), true);
             }
-            _clientSdkHelper.DownloadPackageAndVerify(packageId, version);
+            await _clientSdkHelper.DownloadPackageAndVerifyAsync(packageId, version);
         }
 
         [PackageLockFact]

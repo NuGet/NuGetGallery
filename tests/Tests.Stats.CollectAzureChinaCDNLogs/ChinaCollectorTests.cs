@@ -197,7 +197,7 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
             outputLines = GetStreamLines(outputStream);
             Assert.True(writeSucceeded);
             Assert.Single(outputLines);
-            Assert.False(outputLines[0].StartsWith("#Fields"));
+            Assert.False(outputLines[0].StartsWith("#Fields", StringComparison.Ordinal));
         }
 
         [Fact]

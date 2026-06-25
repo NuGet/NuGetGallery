@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -42,20 +43,34 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
         [InlineData("/", "__Controller::TempData", "<script>alert(1)</script>", 400)]
         public async Task RejectedCookie(string relativePath, string name, string value, int statusCode)
         {
-            // Arrange
-            _httpClientHandler.UseCookies = false;
-            var requestUri = GetRequestUri(relativePath);
-            using (var request = new HttpRequestMessage(HttpMethod.Get, requestUri))
+            // Arrange — use a dedicated handler that allows non-ASCII header bytes.
+            // .NET 10 enforces ASCII-only headers; net472 (which this project was migrated
+            // from) did a simple (byte)char truncation. We replicate that encoding so the
+            // server receives the same bytes it would have under net472.
+            using var handler = new SocketsHttpHandler
             {
-                request.Headers.TryAddWithoutValidation("Cookie", $"{name}={value}");
+                AllowAutoRedirect = false,
+                UseCookies = false,
+                RequestHeaderEncodingSelector = (_, _) => Encoding.Latin1,
+            };
+            using var client = new HttpClient(handler);
 
-                // Act
-                var response = await GetTestResponseAsync(relativePath, request);
+            var requestUri = GetRequestUri(relativePath);
+            using var request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+            request.Headers.TryAddWithoutValidation("Cookie", $"{name}={TruncateToNet472Bytes(value)}");
 
-                // Assert
-                Assert.Equal((HttpStatusCode)statusCode, response.StatusCode);
-            }
+            // Act
+            using var httpResponse = await client.SendAsync(request);
+
+            // Assert
+            Assert.Equal((HttpStatusCode)statusCode, httpResponse.StatusCode);
         }
+
+        /// <summary>
+        /// Emulates net472's HTTP header encoding: truncate each char to its low byte.
+        /// </summary>
+        private static string TruncateToNet472Bytes(string value) =>
+            new(value.Select(c => (char)(byte)c).ToArray());
 
         /// <summary>
         /// Verify the behavior when a URL with restricted characters is used.
@@ -82,7 +97,7 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
         /// </summary>
         [Theory]
         [Priority(2)]
-        [Category("P2Tests")]
+        [Category("AppServiceTests")]
         [InlineData("/api/does-not-exist", false)]
         [InlineData("/pages/does-not-exist", true)]
         [InlineData("/api/v2/curated-feed/microsoftdotnet/DoesNotExist()", false)]
@@ -113,7 +128,7 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
         /// </summary>
         [Theory]
         [Priority(2)]
-        [Category("P2Tests")]
+        [Category("AppServiceTests")]
         [InlineData("DELETE", "/api/v2", 405)]
         // The following have non-ideal behavior.
         [InlineData("DELETE", "/api/status", 500)]
@@ -163,7 +178,7 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
         /// </summary>
         [Fact]
         [Priority(2)]
-        [Category("P2Tests")]
+        [Category("AppServiceTests")]
         public async Task ErrorInErrorPageWithPathToSelf()
         {
             // Arrange
@@ -186,7 +201,7 @@ namespace NuGetGallery.FunctionalTests.ErrorHandling
         /// </summary>
         [Theory]
         [Priority(2)]
-        [Category("P2Tests")]
+        [Category("AppServiceTests")]
         [MemberData(nameof(AllTestData))]
         public async Task SimulateError(EndpointType endpointType, SimulatedErrorType simulatedErrorType)
         {

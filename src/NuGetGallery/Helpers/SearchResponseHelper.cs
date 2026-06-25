@@ -37,8 +37,8 @@ namespace NuGetGallery.Helpers
                         if (!string.IsNullOrEmpty(range) && !string.IsNullOrEmpty(id))
                         {
                             var version = string.Empty;
-                            var commaIndex = range.IndexOf(",");
-                            if (range.StartsWith("[") && commaIndex > 0)
+                            var commaIndex = range.IndexOf(",", StringComparison.Ordinal);
+                            if (range.StartsWith("[", StringComparison.Ordinal) && commaIndex > 0)
                             {
                                 var startIndex = 1;
                                 version = range.Substring(startIndex, commaIndex - startIndex);

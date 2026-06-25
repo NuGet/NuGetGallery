@@ -95,7 +95,7 @@ namespace NuGet.Jobs.Validation.Symbols.Core
                    {
                        string destinationPath = Path.GetFullPath(Path.Combine(targetDirectory, e.FullName));
                        string fullTargetDirectory = Path.GetFullPath(targetDirectory + Path.DirectorySeparatorChar);
-                       if (!destinationPath.StartsWith(fullTargetDirectory))
+                       if (!destinationPath.StartsWith(fullTargetDirectory, StringComparison.Ordinal))
                        {
                            throw new InvalidDataException($"Invalid zip entry '{e.FullName}'.");
                        }

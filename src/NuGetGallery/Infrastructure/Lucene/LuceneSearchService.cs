@@ -22,7 +22,7 @@ namespace NuGetGallery
     {
         private readonly Lucene.Net.Store.Directory _directory;
 
-        private static readonly string[] FieldAliases = new[] { "Id", "Title", "Tag", "Tags", "Description", "Author", "Authors", "Owner", "Owners" };
+        private static readonly string[] FieldAliases = new[] { "Id", "PackageId", "Title", "Tag", "Tags", "Description", "Author", "Authors", "Owner", "Owners" };
         private static readonly string[] Fields = new[] { "Id", "Title", "Tags", "Description", "Authors", "Owners" };
 
         public bool ContainsAllVersions => false;
@@ -214,9 +214,19 @@ namespace NuGetGallery
 
             // Convert terms to appropriate Lucene Query objects
             var analyzer = new PerFieldAnalyzer();
-            var fieldSpecificQueries = fieldSpecificTerms
+
+            // Separate PackageId (exact match) from other field-specific terms (tokenized match)
+            var packageIdTerms = fieldSpecificTerms.Where(c => c.Field == "PackageId");
+            var otherFieldTerms = fieldSpecificTerms.Where(c => c.Field != "PackageId");
+
+            var packageIdQueries = packageIdTerms
+                .Select(c => (Query)new TermQuery(new Term("Id-Exact", c.TermOrPhrase.ToLowerInvariant())))
+                .ToList();
+
+            var fieldSpecificQueries = otherFieldTerms
                 .Select(c => AnalysisHelper.GetFieldQuery(analyzer, c.Field, c.TermOrPhrase))
                 .Where(q => !IsDegenerateQuery(q))
+                .Concat(packageIdQueries)
                 .ToList();
 
             var generalQueries = generalTerms

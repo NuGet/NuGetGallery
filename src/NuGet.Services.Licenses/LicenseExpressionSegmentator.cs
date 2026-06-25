@@ -98,7 +98,7 @@ namespace NuGet.Services.Licenses
             var startIndex = 0;
             foreach (var segment in segments)
             {
-                var currentSegmentStartIndex = licenseExpression.IndexOf(segment.Value, startIndex);
+                var currentSegmentStartIndex = licenseExpression.IndexOf(segment.Value, startIndex, StringComparison.Ordinal);
                 if (currentSegmentStartIndex < 0)
                 {
                     throw new InvalidOperationException($"Unable to find '{segment.Value}' portion of the license expression starting from {startIndex} in '{licenseExpression}'");

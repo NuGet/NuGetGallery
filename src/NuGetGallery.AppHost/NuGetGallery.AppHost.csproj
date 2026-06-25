@@ -59,7 +59,7 @@
       <_VsMSBuild>$(_VsInstallDir)\MSBuild\Current\bin\msbuild.exe</_VsMSBuild>
     </PropertyGroup>
     <Error Text="VS MSBuild not found at $(_VsMSBuild)" Condition="!Exists('$(_VsMSBuild)')" />
-    <Exec Command="&quot;$(_VsMSBuild)&quot; &quot;$(MSBuildThisFileDirectory)..\GalleryTools\GalleryTools.csproj&quot; /t:Restore;Build /p:Configuration=$(Configuration) /v:minimal /nologo /m" />
+    <Exec Command="&quot;$(_VsMSBuild)&quot; &quot;$(MSBuildThisFileDirectory)..\GalleryTools\GalleryTools.csproj&quot; /t:Restore;Build /p:Configuration=$(Configuration) /p:UnsafeAdminApiAuthBypassForTesting=$(UnsafeAdminApiAuthBypassForTesting) /v:minimal /nologo /m" />
   </Target>
 
   <!-- Generate a C# source file with the ef6.exe path baked in as a compile-time constant. -->

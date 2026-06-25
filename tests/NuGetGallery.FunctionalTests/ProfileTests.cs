@@ -26,7 +26,7 @@ namespace NuGetGallery.FunctionalTests
         {
             // Act
             using (var httpClient = new HttpClient())
-            using (var response = await httpClient.GetAsync(UrlHelper.GetAvatarUrl("microsoft")))
+            using (var response = await httpClient.GetAsync(UrlHelper.GetAvatarUrl(GalleryConfiguration.Instance.Account.Name)))
             using (var memoryStream = new MemoryStream())
             {
                 using (var contentStream = await response.Content.ReadAsStreamAsync())

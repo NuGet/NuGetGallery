@@ -16,7 +16,7 @@ namespace NuGetGallery.FunctionalTests.Playwright.BasicPages
 		{
 			// Arrange
 			var packageId = Constants.TestPackageId;
-			var latestStableVersion = ClientSdkHelper.GetLatestStableVersion(packageId);
+			var latestStableVersion = await ClientSdkHelper.GetLatestStableVersionAsync(packageId);
 			var packagePageUrl = UrlHelper.BaseUrl + "/Packages/" + packageId;
 			var expectedText = $"{packageId} {latestStableVersion}";
 

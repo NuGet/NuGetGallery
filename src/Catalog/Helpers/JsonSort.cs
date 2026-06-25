@@ -91,12 +91,12 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                     return 1;
                 }
 
-                if (xProp.Name.StartsWith("@") && !yProp.Name.StartsWith("@"))
+                if (xProp.Name.StartsWith("@", StringComparison.Ordinal) && !yProp.Name.StartsWith("@", StringComparison.Ordinal))
                 {
                     return 1;
                 }
 
-                if (!xProp.Name.StartsWith("@") && yProp.Name.StartsWith("@"))
+                if (!xProp.Name.StartsWith("@", StringComparison.Ordinal) && yProp.Name.StartsWith("@", StringComparison.Ordinal))
                 {
                     return -1;
                 }
