@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -148,11 +148,13 @@ namespace NuGet.Services.Validation.Orchestrator
             }
             else
             {
+                // Malicious packages are deliberately held in the validating state — do not send
+                // "taking too long" notifications or count them as stuck in validation.
                 await ScheduleCheckIfNotTimedOut(
                     validationSet,
                     validatingEntity,
                     scheduleNextCheck,
-                    tooLongNotificationAllowed: true);
+                    tooLongNotificationAllowed: !HasMaliciousValidation(validationSet));
             }
         }
 
@@ -205,7 +207,8 @@ namespace NuGet.Services.Validation.Orchestrator
         {
             return packageValidationSet
                 .PackageValidations
-                .Any(pv => pv.ValidationStatus == ValidationStatus.Incomplete
+                .Any(pv => (pv.ValidationStatus == ValidationStatus.Incomplete
+                        || pv.ValidationStatus == ValidationStatus.MaliciousPackage)
                     && GetValidationConfigurationItemByName(pv.Type)?.FailureBehavior == ValidationFailureBehavior.AllowedToFail);
         }
 
@@ -228,6 +231,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 return duration > config?.TrackAfter;
             }
 
+            // MaliciousPackage is intentionally excluded — it is not counted as stuck in validation.
             return packageValidationSet
                 .PackageValidations
                 .Where(v => v.ValidationStatus == ValidationStatus.Incomplete)
@@ -321,8 +325,25 @@ namespace NuGet.Services.Validation.Orchestrator
                     validationSet.PackageNormalizedVersion,
                     validationSetDuration,
                     _validationConfiguration.TimeoutValidationSetAfter);
-                _telemetryService.TrackValidationSetTimeout(validationSet.PackageId, validationSet.PackageNormalizedVersion, validationSet.ValidationTrackingId);
+
+                // Do not fire the timeout metric for malicious packages — they are intentionally
+                // held in the validating state and must not be counted as stuck in validation.
+                if (!HasMaliciousValidation(validationSet))
+                {
+                    _telemetryService.TrackValidationSetTimeout(validationSet.PackageId, validationSet.PackageNormalizedVersion, validationSet.ValidationTrackingId);
+                }
             }
+        }
+
+        /// <summary>
+        /// Returns <c>true</c> if any validation in the set has the
+        /// <see cref="ValidationStatus.MaliciousPackage"/> status.
+        /// </summary>
+        private bool HasMaliciousValidation(PackageValidationSet packageValidationSet)
+        {
+            return packageValidationSet
+                .PackageValidations
+                .Any(pv => pv.ValidationStatus == ValidationStatus.MaliciousPackage);
         }
     }
 }

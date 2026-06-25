@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -81,6 +81,19 @@ namespace NuGetGallery
         {
             if (package.PackageStatusKey == PackageStatus.Validating)
             {
+                // Malicious packages are deliberately held in the validating state — do not
+                // count them as validating too long.
+                var hasMaliciousValidation = _validationSets?
+                    .GetAll()
+                    .Any(s => s.PackageKey == package.Key
+                        && s.ValidatingType == ValidatingType.Package
+                        && s.PackageValidations.Any(v => v.ValidationStatus == ValidationStatus.Malicious));
+
+                if (hasMaliciousValidation == true)
+                {
+                    return false;
+                }
+
                 return ((DateTime.UtcNow - package.Created) >= _appConfiguration.ValidationExpectedTime);
             }
 
