@@ -109,19 +109,19 @@ namespace Ng.Jobs
                     "PreferredPackageSourceStorage",
                     arguments,
                     Verbose,
-                    new SemaphoreSlimThrottle(new SemaphoreSlim(ServicePointManager.DefaultConnectionLimit)));
+                    new SemaphoreSlimThrottle(new SemaphoreSlim(CatalogParallelism.Degree)));
             }
 
             var catalogStorageFactory = CommandHelpers.CreateStorageFactory(
                 arguments,
                 Verbose,
-                new SemaphoreSlimThrottle(new SemaphoreSlim(ServicePointManager.DefaultConnectionLimit)));
+                new SemaphoreSlimThrottle(new SemaphoreSlim(CatalogParallelism.Degree)));
 
             var auditingStorageFactory = CommandHelpers.CreateSuffixedStorageFactory(
                 "Auditing",
                 arguments,
                 Verbose,
-                new SemaphoreSlimThrottle(new SemaphoreSlim(ServicePointManager.DefaultConnectionLimit)));
+                new SemaphoreSlimThrottle(new SemaphoreSlim(CatalogParallelism.Degree)));
 
             Logger.LogInformation("CONFIG source: \"{ConfigSource}\" storage: \"{Storage}\" preferred package source storage: \"{PreferredPackageSourceStorage}\"",
                 GalleryDbConnection,
