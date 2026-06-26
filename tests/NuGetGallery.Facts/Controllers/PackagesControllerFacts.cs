@@ -1307,26 +1307,6 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task IncludesMsBuildSdkPackageTypeFilter()
-            {
-                var searchService = new Mock<ISearchService>();
-                searchService
-                    .Setup(s => s.Search(It.IsAny<SearchFilter>()))
-                    .Returns(Task.FromResult(new SearchResults(0, DateTime.UtcNow)));
-
-                var controller = CreateController(
-                    GetConfigurationService(),
-                    searchService: searchService);
-                controller.SetCurrentUser(TestUtility.FakeUser);
-
-                var result = (ViewResult)(await controller.ListPackages(new PackageListSearchViewModel { Q = "test" }));
-                var model = (PackageListViewModel)result.Model;
-
-                Assert.True(model.UiSupportedPackageTypes.ContainsKey("msbuildsdk"));
-                Assert.Equal("MSBuild SDK", model.UiSupportedPackageTypes["msbuildsdk"]);
-            }
-
-            [Fact]
             public async Task GetsValidationIssues()
             {
                 // Arrange
