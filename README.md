@@ -1,4 +1,4 @@
-﻿[NuGet Gallery](https://www.nuget.org/) — Where packages are found 
+﻿[NuGet Gallery](https://www.nuget.org/) — Where packages are found  qwewe
 =======================================================================
 
 This project powers [nuget.org](https://www.nuget.org), the home for .NET's open-source ecosystem. For information about NuGet, visit the [Home repository](https://github.com/nuget/home).
