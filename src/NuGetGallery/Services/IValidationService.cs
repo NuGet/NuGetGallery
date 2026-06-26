@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
@@ -62,6 +62,22 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="symbolPackage">The symbols package to start validation for.</param>
         Task RevalidateAsync(SymbolPackage symbolPackage);
+
+        /// <summary>
+        /// Forces the validation for the provided package to fail and puts the package into the
+        /// <see cref="PackageStatus.FailedValidation"/> status. The commit to the database is the responsibility of the caller.
+        /// </summary>
+        /// <param name="package">The package to fail validation for.</param>
+        /// <remarks>This method only updates the object passed into it, no database commit is performed.</remarks>
+        Task FailValidationAsync(Package package);
+
+        /// <summary>
+        /// Forces the validation for the provided symbol package to fail and puts the symbol package into the
+        /// <see cref="PackageStatus.FailedValidation"/> status. The commit to the database is the responsibility of the caller.
+        /// </summary>
+        /// <param name="symbolPackage">The symbol package to fail validation for.</param>
+        /// <remarks>This method only updates the object passed into it, no database commit is performed.</remarks>
+        Task FailValidationAsync(SymbolPackage symbolPackage);
 
         /// <summary>
         /// Whether the package's validation time exceeds the expected validation time.

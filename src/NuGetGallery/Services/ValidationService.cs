@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -113,6 +113,20 @@ namespace NuGetGallery
             await _symbolPackageValidationInitiator.StartValidationAsync(symbolPackage);
 
             _telemetryService.TrackSymbolPackageRevalidate(symbolPackage.Id, symbolPackage.Version);
+        }
+
+        public async Task FailValidationAsync(Package package)
+        {
+            var packageStatus = await _packageValidationInitiator.FailValidationAsync(package);
+
+            await UpdatePackageInternalAsync(package, packageStatus);
+        }
+
+        public async Task FailValidationAsync(SymbolPackage symbolPackage)
+        {
+            var symbolPackageStatus = await _symbolPackageValidationInitiator.FailValidationAsync(symbolPackage);
+
+            await UpdateSymbolPackageInternalAsync(symbolPackage, symbolPackageStatus);
         }
 
         private async Task UpdatePackageInternalAsync(Package package, PackageStatus packageStatus)

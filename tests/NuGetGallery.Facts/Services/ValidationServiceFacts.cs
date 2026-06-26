@@ -184,6 +184,45 @@ namespace NuGetGallery
             }
         }
 
+        public class TheFailValidationMethod : FactsBase
+        {
+            [Fact]
+            public async Task InitiatesTheValidationFailureForPackage()
+            {
+                // Arrange
+                _packageInitiator
+                    .Setup(x => x.FailValidationAsync(It.IsAny<Package>()))
+                    .ReturnsAsync(PackageStatus.FailedValidation);
+
+                // Act
+                await _target.FailValidationAsync(_package);
+
+                // Assert
+                _packageInitiator.Verify(x => x.FailValidationAsync(_package), Times.Once);
+                _packageService.Verify(
+                    x => x.UpdatePackageStatusAsync(_package, PackageStatus.FailedValidation, false),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task InitiatesTheValidationFailureForSymbolPackage()
+            {
+                // Arrange
+                _symbolInitiator
+                    .Setup(x => x.FailValidationAsync(It.IsAny<SymbolPackage>()))
+                    .ReturnsAsync(PackageStatus.FailedValidation);
+
+                // Act
+                await _target.FailValidationAsync(_symbolPackage);
+
+                // Assert
+                _symbolInitiator.Verify(x => x.FailValidationAsync(_symbolPackage), Times.Once);
+                _symbolPackageService.Verify(
+                    x => x.UpdateStatusAsync(_symbolPackage, PackageStatus.FailedValidation, false),
+                    Times.Once);
+            }
+        }
+
         public class TheIsValidatingTooLongMethod : FactsBase
         {
             public static IEnumerable<object[]> ReturnsTrueIfPackageIsValidatingTooLongData()

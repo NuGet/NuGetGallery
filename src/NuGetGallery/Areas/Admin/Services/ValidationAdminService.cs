@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -116,6 +116,55 @@ namespace NuGetGallery.Areas.Admin.Services
                 foreach (var symbolPackage in pendingSymbolPackages)
                 {
                     await _validationService.RevalidateAsync(symbolPackage);
+                }
+
+                return pendingSymbolPackages.Count;
+            }
+            else
+            {
+                throw new NotSupportedException("The validating type " + validatingType + " is not supported.");
+            }
+        }
+
+        public async Task<int> ForceFailValidationPendingAsync(ValidatingType validatingType)
+        {
+            if (validatingType == ValidatingType.Package)
+            {
+                var pendingPackages = _packages
+                    .GetAll()
+                    .Include(p => p.PackageRegistration)
+                    .Where(p => p.PackageStatusKey == PackageStatus.Validating)
+                    .ToList();
+
+                foreach (var package in pendingPackages)
+                {
+                    await _validationService.FailValidationAsync(package);
+                }
+
+                if (pendingPackages.Count > 0)
+                {
+                    await _packages.CommitChangesAsync();
+                }
+
+                return pendingPackages.Count;
+            }
+            else if (validatingType == ValidatingType.SymbolPackage)
+            {
+                var pendingSymbolPackages = _symbolPackages
+                    .GetAll()
+                    .Include(p => p.Package)
+                    .Include(p => p.Package.PackageRegistration)
+                    .Where(s => s.StatusKey == PackageStatus.Validating)
+                    .ToList();
+
+                foreach (var symbolPackage in pendingSymbolPackages)
+                {
+                    await _validationService.FailValidationAsync(symbolPackage);
+                }
+
+                if (pendingSymbolPackages.Count > 0)
+                {
+                    await _symbolPackages.CommitChangesAsync();
                 }
 
                 return pendingSymbolPackages.Count;

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -14,9 +14,11 @@ namespace NuGet.Services.Validation
 
         private const string StartValidationSchemaName = "StartValidation";
         private const string CheckValidationSetSchemaName = "CheckValidationSet";
+        private const string FailValidationSetSchemaName = "FailValidationSet";
 
         private static readonly BrokeredMessageSerializer<StartValidationData1> _startValidationSerializer = new BrokeredMessageSerializer<StartValidationData1>();
         private static readonly BrokeredMessageSerializer<ProcessValidationSetData1> _processValidationSetSerializer = new BrokeredMessageSerializer<ProcessValidationSetData1>();
+        private static readonly BrokeredMessageSerializer<FailValidationSetData1> _failValidationSetSerializer = new BrokeredMessageSerializer<FailValidationSetData1>();
         private static readonly BrokeredMessageSerializer<CheckValidationSetData1> _checkValidationSetSerializer = new BrokeredMessageSerializer<CheckValidationSetData1>();
         private static readonly BrokeredMessageSerializer<CheckValidatorData1> _checkValidatorSerializer = new BrokeredMessageSerializer<CheckValidatorData1>();
 
@@ -41,6 +43,16 @@ namespace NuGet.Services.Validation
                         ValidationTrackingId = message.ProcessValidationSet.ValidationTrackingId,
                         ValidatingType = message.ProcessValidationSet.ValidatingType,
                         EntityKey = message.ProcessValidationSet.EntityKey,
+                    });
+                case PackageValidationMessageType.FailValidationSet:
+                    return _failValidationSetSerializer.Serialize(new FailValidationSetData1
+                    {
+                        PackageId = message.FailValidationSet.PackageId,
+                        PackageVersion = message.FailValidationSet.PackageVersion,
+                        PackageNormalizedVersion = message.FailValidationSet.PackageNormalizedVersion,
+                        ValidationTrackingId = message.FailValidationSet.ValidationTrackingId,
+                        ValidatingType = message.FailValidationSet.ValidatingType,
+                        EntityKey = message.FailValidationSet.EntityKey,
                     });
                 case PackageValidationMessageType.CheckValidationSet:
                     return _checkValidationSetSerializer.Serialize(new CheckValidationSetData1
@@ -73,6 +85,7 @@ namespace NuGet.Services.Validation
                             startValidation.ContentUrl,
                             startValidation.Properties),
                         processValidationSet: null,
+                        failValidationSet: null,
                         checkValidationSet: null,
                         checkValidator: null,
                         deliveryCount: message.DeliveryCount);
@@ -87,6 +100,7 @@ namespace NuGet.Services.Validation
                             processValidationSet.ValidationTrackingId,
                             processValidationSet.ValidatingType,
                             processValidationSet.EntityKey),
+                        failValidationSet: null,
                         checkValidationSet: null,
                         checkValidator: null,
                         deliveryCount: message.DeliveryCount);
@@ -96,6 +110,7 @@ namespace NuGet.Services.Validation
                         PackageValidationMessageType.CheckValidationSet,
                         startValidation: null,
                         processValidationSet: null,
+                        failValidationSet: null,
                         checkValidationSet: new CheckValidationSetData(
                             checkValidationSet.ValidationTrackingId,
                             checkValidationSet.ExtendExpiration),
@@ -107,9 +122,25 @@ namespace NuGet.Services.Validation
                         PackageValidationMessageType.CheckValidator,
                         startValidation: null,
                         processValidationSet: null,
+                        failValidationSet: null,
                         checkValidationSet: null,
                         checkValidator: new CheckValidatorData(checkValidator.ValidationId),
                         deliveryCount: message.DeliveryCount);
+                case FailValidationSetSchemaName :
+                    var failValidationSet = _failValidationSetSerializer.Deserialize(message);
+                    return new PackageValidationMessageData(
+                        PackageValidationMessageType.FailValidationSet,
+                        startValidation: null,
+                        processValidationSet: null,
+                        failValidationSet: new FailValidationSetData(
+                            failValidationSet.PackageId,
+                            failValidationSet.PackageVersion,
+                            failValidationSet.ValidationTrackingId,
+                            failValidationSet.ValidatingType,
+                            failValidationSet.EntityKey),
+                        checkValidationSet: null,
+                        checkValidator: null,
+                        deliveryCount: message.DeliveryCount);  
                 default:
                     throw new FormatException($"The provided schema name '{schemaName}' is not supported.");
             }
@@ -126,6 +157,17 @@ namespace NuGet.Services.Validation
 
         [Schema(Name = ProcessValidationSetSchemaName, Version = 1)]
         private class ProcessValidationSetData1
+        {
+            public string PackageId { get; set; }
+            public string PackageVersion { get; set; }
+            public string PackageNormalizedVersion { get; set; }
+            public Guid ValidationTrackingId { get; set; }
+            public ValidatingType ValidatingType { get; set; }
+            public int? EntityKey { get; set; }
+        }
+
+        [Schema(Name = FailValidationSetSchemaName, Version = 1)]
+        private class FailValidationSetData1
         {
             public string PackageId { get; set; }
             public string PackageVersion { get; set; }
