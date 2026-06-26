@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -78,7 +78,8 @@ namespace NuGet.Services.Validation.Orchestrator
 
         private async Task ProcessIncompleteValidations(PackageValidationSet validationSet, ValidationSetProcessorResult processorStats)
         {
-            foreach (var packageValidation in validationSet.PackageValidations.Where(v => v.ValidationStatus == ValidationStatus.Incomplete))
+            foreach (var packageValidation in validationSet.PackageValidations.Where(v => v.ValidationStatus == ValidationStatus.Incomplete
+                || v.ValidationStatus == ValidationStatus.MaliciousPackage))
             {
                 using (_logger.BeginScope("Incomplete {ValidationType} Key {ValidationId}", packageValidation.Type, packageValidation.Key))
                 {
@@ -99,7 +100,8 @@ namespace NuGet.Services.Validation.Orchestrator
                     var validationRequest = await CreateNuGetValidationRequest(packageValidation.PackageValidationSet, packageValidation);
                     var validationResponse = await validator.GetResponseAsync(validationRequest);
 
-                    if (validationResponse.Status != ValidationStatus.Incomplete)
+                    if (validationResponse.Status != ValidationStatus.Incomplete
+                        && validationResponse.Status != ValidationStatus.MaliciousPackage)
                     {
                         _logger.LogInformation(
                             "New status for validation {ValidationType} for {PackageId} {PackageVersion} is " +
@@ -127,6 +129,12 @@ namespace NuGet.Services.Validation.Orchestrator
                     switch (validationResponse.Status)
                     {
                         case ValidationStatus.Incomplete:
+                            break;
+
+                        case ValidationStatus.MaliciousPackage:
+                            // Persist the malicious status so the DB reflects it, but do not clean up or
+                            // count this as a success — the package remains in the validating state.
+                            await _validationStorageService.UpdateValidationStatusAsync(packageValidation, validationResponse);
                             break;
 
                         case ValidationStatus.Failed:
