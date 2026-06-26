@@ -197,6 +197,7 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    pionehelper 1.0.2                         |    04/10/2026    |   Malware  |
 |    pionehelper 1.0.3                         |    04/10/2026    |   Malware  |
 |    Nova.GtkSharp 1.0.0.1-nova                |    04/10/2026    |   Malware  |
+|    IR.Infrastructure.DataService.Core 2.1.57 |    05/07/2026    |   Potentially Malicious  |
 |    WinDivertSharp 1.4.3.3                    |    05/18/2026    |   Potentially Malicious  |
 |    Aigio.WinDivertSharp 1.4.4.3              |    05/18/2026    |   Potentially Malicious  |
 |    Everest-Org-Common-Packages 1.0.1         |    05/22/2026    |   Malware  |
