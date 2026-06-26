@@ -10,9 +10,11 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGet.Packaging.Core;
 using NuGet.Services.Entities;
+using NuGet.Services.Validation;
 using NuGet.Versioning;
-using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Areas.Admin.Filters;
+using NuGetGallery.Areas.Admin.Models;
+using NuGetGallery.Areas.Admin.Services;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
@@ -26,6 +28,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
         private readonly IPackageDeleteService _packageDeleteService;
         private readonly IFeatureFlagService _featureFlagService;
         private readonly IUpdateListedService _updateListedService;
+        private readonly ValidationAdminService _validationAdminService;
+        private readonly IValidationService _validationService;
+        private readonly ISymbolPackageService _symbolPackageService;
 
         public AdminApiController(
             IPackageService packageService,
@@ -34,7 +39,10 @@ namespace NuGetGallery.Areas.Admin.Controllers
             ILockUserService lockUserService,
             IPackageDeleteService packageDeleteService,
             IFeatureFlagService featureFlagService,
-            IUpdateListedService updateListedService)
+            IUpdateListedService updateListedService,
+            ValidationAdminService validationAdminService = null,
+            IValidationService validationService = null,
+            ISymbolPackageService symbolPackageService = null)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _reflowPackageService = reflowPackageService ?? throw new ArgumentNullException(nameof(reflowPackageService));
@@ -43,6 +51,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
             _packageDeleteService = packageDeleteService ?? throw new ArgumentNullException(nameof(packageDeleteService));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _updateListedService = updateListedService ?? throw new ArgumentNullException(nameof(updateListedService));
+            _validationAdminService = validationAdminService;
+            _validationService = validationService;
+            _symbolPackageService = symbolPackageService;
         }
 
         [HttpPost]
@@ -407,6 +418,155 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             var statusCode = hasAccepted ? HttpStatusCode.Accepted : HttpStatusCode.BadRequest;
             return Json(statusCode, new AdminUpdateListedPackageResponse
+            {
+                Results = results
+            });
+        }
+
+        [HttpGet]
+        [ActionName("PendingValidations")]
+        public virtual ActionResult GetPendingValidations()
+        {
+            if (_validationAdminService == null)
+            {
+                return Json(HttpStatusCode.ServiceUnavailable, new { error = "Validation is not configured." }, JsonRequestBehavior.AllowGet);
+            }
+
+            var validationSets = _validationAdminService.GetPending();
+
+            var groups = validationSets
+                .GroupBy(s => new { s.PackageKey, s.ValidatingType })
+                .OrderBy(g => g.First().PackageId, StringComparer.OrdinalIgnoreCase)
+                .ThenByDescending(g => g.First().PackageNormalizedVersion);
+
+            var results = new List<AdminPendingValidationResult>();
+            foreach (var group in groups)
+            {
+                var first = group.First();
+                results.Add(new AdminPendingValidationResult
+                {
+                    PackageKey = first.PackageKey.Value,
+                    PackageId = first.PackageId,
+                    PackageVersion = first.PackageNormalizedVersion,
+                    ValidatingType = group.Key.ValidatingType.ToString(),
+                    ValidationSets = group
+                        .OrderByDescending(s => s.Created)
+                        .Select(s => new AdminPendingValidationSetResult
+                        {
+                            Key = s.Key,
+                            ValidationTrackingId = s.ValidationTrackingId,
+                            ValidationSetStatus = s.ValidationSetStatus.ToString(),
+                            Created = s.Created,
+                            Updated = s.Updated,
+                            Validations = s.PackageValidations
+                                ?.OrderBy(v => v.Started)
+                                .Select(v => new AdminPendingValidationStepResult
+                                {
+                                    Key = v.Key,
+                                    Type = v.Type,
+                                    Status = v.ValidationStatus.ToString(),
+                                    Started = v.Started,
+                                    ValidationStatusTimestamp = v.ValidationStatusTimestamp
+                                })
+                                .ToList() ?? []
+                        })
+                        .ToList()
+                });
+            }
+
+            return Json(HttpStatusCode.OK, new AdminPendingValidationsResponse { Results = results }, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        [ActionName("RevalidatePackage")]
+        public virtual async Task<ActionResult> RevalidatePackageAsync(AdminRevalidatePackageRequest request)
+        {
+            if (_validationService == null)
+            {
+                return Json(HttpStatusCode.ServiceUnavailable, new { error = "Validation is not configured." });
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequestFromModelState();
+            }
+
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var results = new List<AdminRevalidatePackageResult>();
+            var hasAccepted = false;
+
+            foreach (var entry in request.Packages)
+            {
+                var nugetVersion = NuGetVersion.Parse(entry.Version.Trim());
+                var normalizedVersion = nugetVersion.ToNormalizedString();
+                var packageId = entry.Id.Trim();
+                var validatingType = entry.ValidatingType.Trim();
+                var dedupeKey = $"{packageId}/{normalizedVersion}/{validatingType}";
+
+                if (!seen.Add(dedupeKey))
+                {
+                    continue;
+                }
+
+                var status = AdminRevalidatePackageStatus.Accepted;
+
+                try
+                {
+                    if (validatingType == nameof(ValidatingType.Package))
+                    {
+                        var package = _packageService.FindPackageByIdAndVersionStrict(packageId, normalizedVersion);
+
+                        if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
+                        {
+                            status = AdminRevalidatePackageStatus.NotFound;
+                        }
+                        else
+                        {
+                            await _validationService.RevalidateAsync(package);
+                            hasAccepted = true;
+                        }
+                    }
+                    else if (validatingType == nameof(ValidatingType.SymbolPackage))
+                    {
+                        var package = _packageService.FindPackageByIdAndVersionStrict(packageId, normalizedVersion);
+
+                        if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
+                        {
+                            status = AdminRevalidatePackageStatus.NotFound;
+                        }
+                        else
+                        {
+                            var latestSymbolPackage = package.LatestSymbolPackage();
+
+                            if (latestSymbolPackage == null || latestSymbolPackage.StatusKey == PackageStatus.Deleted)
+                            {
+                                status = AdminRevalidatePackageStatus.NotFound;
+                            }
+                            else
+                            {
+                                await _validationService.RevalidateAsync(latestSymbolPackage);
+                                hasAccepted = true;
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    status = AdminRevalidatePackageStatus.Failed;
+                    QuietLog.LogHandledException(ex);
+                }
+
+                results.Add(new AdminRevalidatePackageResult
+                {
+                    Id = packageId,
+                    Version = normalizedVersion,
+                    ValidatingType = validatingType,
+                    Status = status
+                });
+            }
+
+            var statusCode = hasAccepted ? HttpStatusCode.Accepted : HttpStatusCode.BadRequest;
+            return Json(statusCode, new AdminRevalidatePackageResponse
             {
                 Results = results
             });
