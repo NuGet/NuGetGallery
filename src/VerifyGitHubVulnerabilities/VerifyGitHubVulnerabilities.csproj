@@ -2,6 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <OutputType>Exe</OutputType>
+    <PackageVersion Condition="'$(PackageVersion)' == ''">$(GalleryPackageVersion)</PackageVersion>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\GitHubVulnerabilities2Db\GitHubVulnerabilities2Db.csproj" />
