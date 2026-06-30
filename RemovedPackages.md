@@ -213,6 +213,9 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    MemorySDK 2.0.0                           |    06/19/2026    |   Potentially Malicious  |
 |    Decentraland.RustEthereum 99.0.0          |    06/19/2026    |   Malware  |
 |    Upscayl 2.10.1                            |    06/26/2026    |   Malware  |
+|    ZapClient.CSharpSDK 0.0.9                 |    06/29/2026    |   Malware  |
+|    ZapClient.CSharpSDK 0.1.1                 |    06/29/2026    |   Malware  |
+|    ZapClient.CSharpSDK 0.1.2                 |    06/29/2026    |   Malware  |
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.
