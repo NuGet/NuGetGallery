@@ -84,6 +84,61 @@ namespace NuGetGallery.Areas.Admin.Services
             }
         }
 
+        public class TheForceFailValidationPendingMethod : FactsBase
+        {
+            [Fact]
+            public async Task FailsValidatingPackagesAsync()
+            {
+                _packages
+                    .Setup(x => x.GetAll())
+                    .Returns(() => new[]
+                    {
+                        new Package { Key = 1, PackageStatusKey = PackageStatus.Available },
+                        new Package { Key = 2, PackageStatusKey = PackageStatus.Validating },
+                        new Package { Key = 3, PackageStatusKey = PackageStatus.Validating },
+                        new Package { Key = 4, PackageStatusKey = PackageStatus.Deleted },
+                        new Package { Key = 5, PackageStatusKey = PackageStatus.FailedValidation },
+                    }.AsQueryable());
+
+                var failedCount = await _target.ForceFailValidationPendingAsync(ValidatingType.Package);
+
+                Assert.Equal(2, failedCount);
+                _validationService.Verify(x => x.FailValidationAsync(It.IsAny<Package>()), Times.Exactly(2));
+                _validationService.Verify(x => x.FailValidationAsync(It.Is<Package>(p => p.Key == 2)), Times.Once);
+                _validationService.Verify(x => x.FailValidationAsync(It.Is<Package>(p => p.Key == 3)), Times.Once);
+                _packages.Verify(x => x.CommitChangesAsync(), Times.Once);
+            }
+
+            [Fact]
+            public async Task FailsValidatingSymbolsPackagesAsync()
+            {
+                _symbolPackages
+                    .Setup(x => x.GetAll())
+                    .Returns(() => new[]
+                    {
+                        new SymbolPackage { Key = 1, StatusKey = PackageStatus.Available },
+                        new SymbolPackage { Key = 2, StatusKey = PackageStatus.Validating },
+                        new SymbolPackage { Key = 3, StatusKey = PackageStatus.Validating },
+                        new SymbolPackage { Key = 4, StatusKey = PackageStatus.Deleted },
+                        new SymbolPackage { Key = 5, StatusKey = PackageStatus.FailedValidation },
+                    }.AsQueryable());
+
+                var failedCount = await _target.ForceFailValidationPendingAsync(ValidatingType.SymbolPackage);
+
+                Assert.Equal(2, failedCount);
+                _validationService.Verify(x => x.FailValidationAsync(It.IsAny<SymbolPackage>()), Times.Exactly(2));
+                _validationService.Verify(x => x.FailValidationAsync(It.Is<SymbolPackage>(p => p.Key == 2)), Times.Once);
+                _validationService.Verify(x => x.FailValidationAsync(It.Is<SymbolPackage>(p => p.Key == 3)), Times.Once);
+                _symbolPackages.Verify(x => x.CommitChangesAsync(), Times.Once);
+            }
+
+            [Fact]
+            public async Task RejectsUnknownPackageStatusKey()
+            {
+                await Assert.ThrowsAsync<NotSupportedException>(() => _target.ForceFailValidationPendingAsync(ValidatingType.Generic));
+            }
+        }
+
         public class TheGetPackageDeletedStatusMethod : FactsBase
         {
             [Fact]

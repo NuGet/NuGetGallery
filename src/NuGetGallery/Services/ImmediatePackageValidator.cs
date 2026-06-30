@@ -1,6 +1,7 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
 
@@ -19,6 +20,11 @@ namespace NuGetGallery
         public Task<PackageStatus> StartValidationAsync(TPackageEntity package)
         {
             return Task.FromResult(PackageStatus.Available);
+        }
+
+        public Task<PackageStatus> FailValidationAsync(TPackageEntity package, Guid validationTrackingId)
+        {
+            return Task.FromResult(PackageStatus.FailedValidation);
         }
     }
 }

@@ -1,6 +1,7 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
 
@@ -36,5 +37,17 @@ namespace NuGetGallery
         /// The task which signals the completion of the validation initiation. The result of the <see cref="Task"/>
         /// is the <see cref="PackageStatus"/> that should be applied to the package.</returns>
         Task<PackageStatus> StartValidationAsync(TPackageEntity package);
+
+        /// <summary>
+        /// Forces the validation for the specified IPackageEntity to fail. This is typically used to move a package
+        /// that is stuck in the <see cref="PackageStatus.Validating"/> state into the
+        /// <see cref="PackageStatus.FailedValidation"/> state.
+        /// </summary>
+        /// <param name="package">The <see cref="TPackageEntity"/> to fail validation for.</param>
+        /// <param name="validationTrackingId">The tracking ID of the existing validation set to fail.</param>
+        /// <returns>
+        /// The task which signals the completion of the validation failure initiation. The result of the
+        /// <see cref="Task"/> is the <see cref="PackageStatus"/> that should be applied to the package.</returns>
+        Task<PackageStatus> FailValidationAsync(TPackageEntity package, Guid validationTrackingId);
     }
 }

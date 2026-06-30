@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -115,6 +115,22 @@ namespace NuGetGallery
             _telemetryService.TrackSymbolPackageRevalidate(symbolPackage.Id, symbolPackage.Version);
         }
 
+        public async Task FailValidationAsync(Package package)
+        {
+            var validationTrackingId = GetValidationTrackingId(package.Key, ValidatingType.Package);
+            var packageStatus = await _packageValidationInitiator.FailValidationAsync(package, validationTrackingId);
+
+            await UpdatePackageInternalAsync(package, packageStatus);
+        }
+
+        public async Task FailValidationAsync(SymbolPackage symbolPackage)
+        {
+            var validationTrackingId = GetValidationTrackingId(symbolPackage.Key, ValidatingType.SymbolPackage);
+            var symbolPackageStatus = await _symbolPackageValidationInitiator.FailValidationAsync(symbolPackage, validationTrackingId);
+
+            await UpdateSymbolPackageInternalAsync(symbolPackage, symbolPackageStatus);
+        }
+
         private async Task UpdatePackageInternalAsync(Package package, PackageStatus packageStatus)
         {
             await _packageService.UpdatePackageStatusAsync(
@@ -128,6 +144,33 @@ namespace NuGetGallery
             await _symbolPackageService.UpdateStatusAsync(symbolPackage,
                 symbolPackageStatus,
                 commitChanges: false);
+        }
+
+        private Guid GetValidationTrackingId(int entityKey, ValidatingType validatingType)
+        {
+            // When asynchronous validation is disabled the immediate validator is used, which ignores the
+            // tracking ID and never enqueues a message, so there is no validation set to look up.
+            if (_validationSets == null)
+            {
+                return Guid.Empty;
+            }
+
+            // The orchestrator fails an *existing* validation set by its tracking ID, so we must send the
+            // tracking ID of the package's most recent validation set rather than a new GUID.
+            var validationTrackingId = _validationSets
+                .GetAll()
+                .Where(s => s.PackageKey == entityKey && s.ValidatingType == validatingType)
+                .OrderByDescending(s => s.Created)
+                .Select(s => (Guid?)s.ValidationTrackingId)
+                .FirstOrDefault();
+
+            if (validationTrackingId == null)
+            {
+                throw new InvalidOperationException(
+                    $"No validation set was found for {validatingType} with key {entityKey}; unable to fail its validation.");
+            }
+
+            return validationTrackingId.Value;
         }
 
         private IReadOnlyList<ValidationIssue> GetValidationIssues(int entityKey, PackageStatus status, ValidatingType validatingType)

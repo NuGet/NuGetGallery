@@ -47,8 +47,37 @@
             {
                 { "validatingType", ValidatingType.SymbolPackage.ToString() },
             })
+        |
+        @ViewHelpers.PostLink(
+            this,
+            formId: "force-fail-validation-package",
+            linkText: "Force Fail validation for pending packages",
+            actionName: "ForceFailValidation",
+            controllerName: "Validation",
+            role: string.Empty,
+            area: "Admin",
+            classes: "form-inline-empty",
+            formValues: new Dictionary<string, string>
+            {
+                { "validatingType", ValidatingType.Package.ToString() },
+            })
+        |
+        @ViewHelpers.PostLink(
+            this,
+            formId: "force-fail-validation-symbol-package",
+            linkText: "Force Fail validation for pending symbol packages",
+            actionName: "ForceFailValidation",
+            controllerName: "Validation",
+            role: string.Empty,
+            area: "Admin",
+            classes: "form-inline-empty",
+            formValues: new Dictionary<string, string>
+            {
+                { "validatingType", ValidatingType.SymbolPackage.ToString() },
+            })
     </div>
 
+    
     <form method="get" action="@Url.Action(actionName: "Search")">
         <p>
             <textarea name="q" placeholder="Search for package validations..." autocomplete="off" autofocus style="width: 100%" rows="5" class="textarea-brand">@Model.Query</textarea>
@@ -234,7 +263,7 @@
 @section BottomScripts {
     <script>
     $(document).ready(function () {
-        $('#revalidate-pending-packages, #revalidate-pending-symbol-packages').submit(function (e) {
+        $('#revalidate-pending-packages, #revalidate-pending-symbol-packages, #force-fail-validation-package, #force-fail-validation-symbol-package').submit(function (e) {
             var operation = $(".post-link[data-form-id='" + e.target.id + "']").text().toLowerCase();
             if (!operation || !confirm('Are you sure you want to ' + operation + '?')) {
                 e.preventDefault();

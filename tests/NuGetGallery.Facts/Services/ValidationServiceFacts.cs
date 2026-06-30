@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -181,6 +181,69 @@ namespace NuGetGallery
 
                 // Assert
                 _telemetryService.Verify(x => x.TrackPackageRevalidate(_package), Times.Once);
+            }
+        }
+
+        public class TheFailValidationMethod : FactsBase
+        {
+            [Fact]
+            public async Task InitiatesTheValidationFailureForPackage()
+            {
+                // Arrange
+                var validationTrackingId = Guid.NewGuid();
+                _validationSets
+                    .Setup(x => x.GetAll())
+                    .Returns(new[]
+                    {
+                        new PackageValidationSet
+                        {
+                            PackageKey = _package.Key,
+                            ValidatingType = ValidatingType.Package,
+                            ValidationTrackingId = validationTrackingId,
+                        }
+                    }.AsQueryable());
+                _packageInitiator
+                    .Setup(x => x.FailValidationAsync(It.IsAny<Package>(), It.IsAny<Guid>()))
+                    .ReturnsAsync(PackageStatus.FailedValidation);
+
+                // Act
+                await _target.FailValidationAsync(_package);
+
+                // Assert
+                _packageInitiator.Verify(x => x.FailValidationAsync(_package, validationTrackingId), Times.Once);
+                _packageService.Verify(
+                    x => x.UpdatePackageStatusAsync(_package, PackageStatus.FailedValidation, false),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task InitiatesTheValidationFailureForSymbolPackage()
+            {
+                // Arrange
+                var validationTrackingId = Guid.NewGuid();
+                _validationSets
+                    .Setup(x => x.GetAll())
+                    .Returns(new[]
+                    {
+                        new PackageValidationSet
+                        {
+                            PackageKey = _symbolPackage.Key,
+                            ValidatingType = ValidatingType.SymbolPackage,
+                            ValidationTrackingId = validationTrackingId,
+                        }
+                    }.AsQueryable());
+                _symbolInitiator
+                    .Setup(x => x.FailValidationAsync(It.IsAny<SymbolPackage>(), It.IsAny<Guid>()))
+                    .ReturnsAsync(PackageStatus.FailedValidation);
+
+                // Act
+                await _target.FailValidationAsync(_symbolPackage);
+
+                // Assert
+                _symbolInitiator.Verify(x => x.FailValidationAsync(_symbolPackage, validationTrackingId), Times.Once);
+                _symbolPackageService.Verify(
+                    x => x.UpdateStatusAsync(_symbolPackage, PackageStatus.FailedValidation, false),
+                    Times.Once);
             }
         }
 
