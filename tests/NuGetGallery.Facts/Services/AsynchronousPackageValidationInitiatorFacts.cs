@@ -141,18 +141,18 @@ namespace NuGetGallery
         public class TheFailValidationAsyncMethod : FactsBase
         {
             [Fact]
-            public async Task UsesADifferentValidationTrackingIdEachTime()
+            public async Task UsesTheProvidedValidationTrackingId()
             {
                 // Arrange
                 var package = GetPackage();
+                var validationTrackingId = Guid.NewGuid();
 
                 // Act
-                await _target.FailValidationAsync(package);
-                await _target.FailValidationAsync(package);
+                await _target.FailValidationAsync(package, validationTrackingId);
 
                 // Assert
-                Assert.Equal(2, _data.Count);
-                Assert.NotEqual(_data[0].FailValidationSet.ValidationTrackingId, _data[1].FailValidationSet.ValidationTrackingId);
+                Assert.Single(_data);
+                Assert.Equal(validationTrackingId, _data[0].FailValidationSet.ValidationTrackingId);
             }
 
             [Fact]
@@ -162,7 +162,7 @@ namespace NuGetGallery
                 var package = GetPackage();
 
                 // Act
-                await _target.FailValidationAsync(package);
+                await _target.FailValidationAsync(package, Guid.NewGuid());
 
                 // Assert
                 _enqueuer.Verify(
@@ -188,7 +188,7 @@ namespace NuGetGallery
 
                 // Act & Assert
                 var exception = await Assert.ThrowsAsync<ReadOnlyModeException>(
-                    () => _target.FailValidationAsync(package));
+                    () => _target.FailValidationAsync(package, Guid.NewGuid()));
                 Assert.Equal(Strings.CannotEnqueueDueToReadOnly, exception.Message);
                 _enqueuer.Verify(
                     x => x.SendMessageAsync(It.IsAny<PackageValidationMessageData>()),
@@ -202,7 +202,7 @@ namespace NuGetGallery
                 var package = GetPackage();
 
                 // Act
-                var actual = await _target.FailValidationAsync(package);
+                var actual = await _target.FailValidationAsync(package, Guid.NewGuid());
 
                 // Assert
                 Assert.Equal(PackageStatus.FailedValidation, actual);
@@ -355,18 +355,18 @@ namespace NuGetGallery
         public class TheFailSymbolsPackageValidationAsyncMethod : FactsBase
         {
             [Fact]
-            public async Task UsesADifferentValidationTrackingIdEachTime()
+            public async Task UsesTheProvidedValidationTrackingId()
             {
                 // Arrange
                 var symbolPackage = GetSymbolPackage();
+                var validationTrackingId = Guid.NewGuid();
 
                 // Act
-                await _target.FailValidationAsync(symbolPackage);
-                await _target.FailValidationAsync(symbolPackage);
+                await _target.FailValidationAsync(symbolPackage, validationTrackingId);
 
                 // Assert
-                Assert.Equal(2, _data.Count);
-                Assert.NotEqual(_data[0].FailValidationSet.ValidationTrackingId, _data[1].FailValidationSet.ValidationTrackingId);
+                Assert.Single(_data);
+                Assert.Equal(validationTrackingId, _data[0].FailValidationSet.ValidationTrackingId);
             }
 
             [Fact]
@@ -376,7 +376,7 @@ namespace NuGetGallery
                 var symbolPackage = GetSymbolPackage();
 
                 // Act
-                await _target.FailValidationAsync(symbolPackage);
+                await _target.FailValidationAsync(symbolPackage, Guid.NewGuid());
 
                 // Assert
                 _enqueuer.Verify(
@@ -402,7 +402,7 @@ namespace NuGetGallery
 
                 // Act & Assert
                 var exception = await Assert.ThrowsAsync<ReadOnlyModeException>(
-                    () => _target.FailValidationAsync(symbolPackage));
+                    () => _target.FailValidationAsync(symbolPackage, Guid.NewGuid()));
                 Assert.Equal(Strings.CannotEnqueueDueToReadOnly, exception.Message);
                 _enqueuer.Verify(
                     x => x.SendMessageAsync(It.IsAny<PackageValidationMessageData>()),
@@ -416,7 +416,7 @@ namespace NuGetGallery
                 var symbolPackage = GetSymbolPackage();
 
                 // Act
-                var actual = await _target.FailValidationAsync(symbolPackage);
+                var actual = await _target.FailValidationAsync(symbolPackage, Guid.NewGuid());
 
                 // Assert
                 Assert.Equal(PackageStatus.FailedValidation, actual);
