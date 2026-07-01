@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -58,7 +58,7 @@ namespace NuGet.Services.Metadata.Catalog
             var interner = new StringInterner();
 
             var tasks = Enumerable
-                .Range(0, ServicePointManager.DefaultConnectionLimit)
+                .Range(0, CatalogParallelism.Degree)
                 .Select(i => ProcessPageUris(pageUriBag, entries, interner))
                 .ToList();
 

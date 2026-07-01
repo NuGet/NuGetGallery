@@ -197,6 +197,7 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    pionehelper 1.0.2                         |    04/10/2026    |   Malware  |
 |    pionehelper 1.0.3                         |    04/10/2026    |   Malware  |
 |    Nova.GtkSharp 1.0.0.1-nova                |    04/10/2026    |   Malware  |
+|    IR.Infrastructure.DataService.Core 2.1.57 |    05/07/2026    |   Potentially Malicious  |
 |    WinDivertSharp 1.4.3.3                    |    05/18/2026    |   Potentially Malicious  |
 |    Aigio.WinDivertSharp 1.4.4.3              |    05/18/2026    |   Potentially Malicious  |
 |    Everest-Org-Common-Packages 1.0.1         |    05/22/2026    |   Malware  |
@@ -209,6 +210,9 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    Enroxes.Systemm.Drawing.Common            |    06/02/2026    |   Malware  |
 |    Enroxes.Commonn.Data                      |    06/02/2026    |   Malware  |
 |    Enroxes.Cryptographhy.Pkcs                |    06/02/2026    |   Malware  |
+|    MemorySDK 2.0.0                           |    06/19/2026    |   Potentially Malicious  |
+|    Decentraland.RustEthereum 99.0.0          |    06/19/2026    |   Malware  |
+|    Upscayl 2.10.1                            |    06/26/2026    |   Malware  |
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.

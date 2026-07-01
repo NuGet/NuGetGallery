@@ -97,7 +97,7 @@ namespace Ng.Jobs
                 "Auditing",
                 arguments,
                 verbose,
-                new SemaphoreSlimThrottle(new SemaphoreSlim(ServicePointManager.DefaultConnectionLimit)));
+                new SemaphoreSlimThrottle(new SemaphoreSlim(CatalogParallelism.Degree)));
 
             _auditingStorage = auditingStorageFactory.Create();
 
