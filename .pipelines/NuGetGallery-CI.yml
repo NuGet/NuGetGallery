@@ -67,6 +67,10 @@ extends:
                 clean: true
                 fetchTags: false
                 path: $(NuGetGalleryDirectory)
+              - task: UseDotNet@2
+                displayName: Install .NET 10
+                inputs:
+                  version: 10.x
               - task: PowerShell@1
                 name: build
                 displayName: Build
@@ -103,6 +107,10 @@ extends:
                 clean: true
                 fetchTags: false
                 path: $(NuGetGalleryDirectory)
+              - task: UseDotNet@2
+                displayName: Install .NET 10
+                inputs:
+                  version: 10.x
               - task: PowerShell@1
                 name: build
                 displayName: Build
@@ -141,6 +149,10 @@ extends:
                 clean: true
                 fetchTags: false
                 path: $(NuGetGalleryDirectory)
+              - task: UseDotNet@2
+                displayName: Install .NET 10
+                inputs:
+                  version: 10.x
               - task: UsePythonVersion@0
                 inputs:
                   versionSpec: '3.10'
@@ -173,6 +185,10 @@ extends:
                 clean: true
                 fetchTags: false
                 path: $(NuGetGalleryDirectory)
+              - task: UseDotNet@2
+                displayName: Install .NET 10
+                inputs:
+                  version: 10.x
               - task: PowerShell@1
                 name: build
                 displayName: Build
@@ -209,6 +225,10 @@ extends:
                 clean: true
                 fetchTags: false
                 path: $(NuGetGalleryDirectory)
+              - task: UseDotNet@2
+                displayName: Install .NET 10
+                inputs:
+                  version: 10.x
               - task: PowerShell@1
                 name: build_artifacts
                 displayName: Build
