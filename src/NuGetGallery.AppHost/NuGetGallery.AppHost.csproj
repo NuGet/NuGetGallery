@@ -12,6 +12,13 @@
     <GenerateAssemblyFileVersionAttribute>true</GenerateAssemblyFileVersionAttribute>
     <GenerateAssemblyInformationalVersionAttribute>true</GenerateAssemblyInformationalVersionAttribute>
     <GenerateAssemblyVersionAttribute>true</GenerateAssemblyVersionAttribute>
+
+    <!-- This dev-only Aspire host is not built or deployed by ev2. Its Aspire.Hosting.*
+         packages floor several transitive dependencies (Azure.*, Microsoft.Extensions.*)
+         higher than the solution's central versions, so solution-wide transitive pinning
+         would report those as NU1109 downgrades. Opt this project out and let Aspire
+         resolve its own transitive graph. -->
+    <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
 
   <ItemGroup>
