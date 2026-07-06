@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -318,12 +317,12 @@ namespace NuGet.Services.Validation.Orchestrator
         private async Task<bool> FailValidationSetAsync(FailValidationSetData message)
         {
             using (_logger.BeginScope(
-           "Handling fail validation set message for {ValidatingType} {PackageId} {PackageVersion} " +
-         "{ValidationSetId}",
-            ValidatingType,
-             message.PackageId,
-          message.PackageVersion,
-         message.ValidationTrackingId))
+                "Handling fail validation set message for {ValidatingType} {PackageId} {PackageVersion} " +
+                "{ValidationSetId}",
+                ValidatingType,
+                message.PackageId,
+                message.PackageVersion,
+                message.ValidationTrackingId))
             {
                 // Get the validation set by validation tracking ID
                 var validationSet = await _validationStorageService.GetValidationSetAsync(message.ValidationTrackingId);
@@ -343,13 +342,13 @@ namespace NuGet.Services.Validation.Orchestrator
                 if (entity == null)
                 {
                     _logger.LogWarning(
-                     "Could not find {ValidatingType} {PackageId} {PackageVersion} {Key} for validation set {ValidationSetId}. " +
-                  "The entity was most likely hard deleted. Dropping message.",
-              ValidatingType,
-               validationSet.PackageId,
-                  validationSet.PackageNormalizedVersion,
-                    validationSet.PackageKey,
-                validationSet.ValidationTrackingId);
+                        "Could not find {ValidatingType} {PackageId} {PackageVersion} {Key} for validation set {ValidationSetId}. " +
+                        "The entity was most likely hard deleted. Dropping message.",
+                        ValidatingType,
+                        validationSet.PackageId,
+                        validationSet.PackageNormalizedVersion,
+                        validationSet.PackageKey,
+                        validationSet.ValidationTrackingId);
                     return true;
                 }
 
@@ -357,26 +356,26 @@ namespace NuGet.Services.Validation.Orchestrator
                 if (entity.Status == PackageStatus.Deleted)
                 {
                     _logger.LogWarning(
-                 "{ValidatingType} {PackageId} {PackageVersion} {Key} is soft deleted. Dropping message for " +
-                     "validation set {ValidationSetId}.",
-                      ValidatingType,
-                       validationSet.PackageId,
-                      validationSet.PackageNormalizedVersion,
-                       entity.Key,
-                   validationSet.ValidationTrackingId);
+                        "{ValidatingType} {PackageId} {PackageVersion} {Key} is soft deleted. Dropping message for " +
+                        "validation set {ValidationSetId}.",
+                        ValidatingType,
+                        validationSet.PackageId,
+                        validationSet.PackageNormalizedVersion,
+                        entity.Key,
+                        validationSet.ValidationTrackingId);
                     return true;
                 }
 
                 if (validationSet.ValidationSetStatus == ValidationSetStatus.Completed)
                 {
                     _logger.LogInformation(
-                      "The validation set {ValidatingType} {PackageId} {PackageVersion} {Key} {ValidationSetId} is " +
-                    "already completed. Discarding the message.",
-                    ValidatingType,
-                      validationSet.PackageId,
-                            validationSet.PackageNormalizedVersion,
-                       validationSet.PackageKey,
-                    validationSet.ValidationTrackingId);
+                        "The validation set {ValidatingType} {PackageId} {PackageVersion} {Key} {ValidationSetId} is " +
+                        "already completed. Discarding the message.",
+                        ValidatingType,
+                        validationSet.PackageId,
+                        validationSet.PackageNormalizedVersion,
+                        validationSet.PackageKey,
+                        validationSet.ValidationTrackingId);
                     return true;
                 }
 
@@ -385,8 +384,8 @@ namespace NuGet.Services.Validation.Orchestrator
                 {
                     _logger.LogInformation(
                         "The lease {ResourceName} is unavailable. Retrying this message in {LeaseTime}.",
-                         lease.ResourceName,
-                            LeaseTime);
+                        lease.ResourceName,
+                        LeaseTime);
 
                     var postponeUntil = DateTimeOffset.UtcNow + LeaseTime;
                     var messageData = PackageValidationMessageData.NewFailValidationSet(message.PackageId, message.PackageVersion, message.ValidationTrackingId, message.ValidatingType, message.EntityKey);
@@ -397,28 +396,18 @@ namespace NuGet.Services.Validation.Orchestrator
                 try
                 {
                     _logger.LogWarning(
-                         "Forcing validation set {ValidationSetId} for {ValidatingType} {PackageId} {PackageVersion} {Key} to fail.",
-                       validationSet.ValidationTrackingId,
-                      ValidatingType,
-                      validationSet.PackageId,
-                      validationSet.PackageNormalizedVersion,
-                     validationSet.PackageKey);
+                        "Forcing validation set {ValidationSetId} for {ValidatingType} {PackageId} {PackageVersion} {Key} to fail.",
+                        validationSet.ValidationTrackingId,
+                        ValidatingType,
+                        validationSet.PackageId,
+                        validationSet.PackageNormalizedVersion,
+                        validationSet.PackageKey);
 
-                    // Mark all incomplete validations as failed to force the validation set to fail.
-                    // We need to update individual validations to the Failed status so that the outcome processor
-                    // will recognize this as a failed validation set.
-                    foreach (var validation in validationSet.PackageValidations.Where(v => v.ValidationStatus == ValidationStatus.Incomplete || v.ValidationStatus == ValidationStatus.NotStarted))
-                    {
-                        await _validationStorageService.UpdateValidationStatusAsync(validation, NuGetValidationResponse.Failed);
-                    }
+                    // Force the validation set to fail. The validation set processor owns all validation set
+                    // state changes, so it marks the incomplete validations as failed.
+                    var processorStats = await _validationSetProcessor.ForceFailValidationSetAsync(validationSet);
 
                     // Process the validation set to let the outcome processor handle the failure
-                    var processorStats = new ValidationSetProcessorResult
-                    {
-                        AnyValidationSucceeded = false,
-                        AnyRequiredValidationSucceeded = false
-                    };
-
                     await _validationOutcomeProcessor.ProcessValidationOutcomeAsync(validationSet, entity, processorStats, scheduleNextCheck: false);
                 }
                 finally

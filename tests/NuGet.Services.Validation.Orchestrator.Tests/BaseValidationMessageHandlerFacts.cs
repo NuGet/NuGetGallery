@@ -213,10 +213,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                             m.FailValidationSet.PackageVersion == ValidationSet.PackageNormalizedVersion),
                         It.IsAny<DateTimeOffset>()),
                     Times.Once);
-                ValidationStorageService.Verify(
-                    x => x.UpdateValidationStatusAsync(
-                        It.IsAny<PackageValidation>(),
-                        It.IsAny<NuGetValidationResponse>()),
+                ValidationSetProcessor.Verify(
+                    x => x.ForceFailValidationSetAsync(It.IsAny<PackageValidationSet>()),
                     Times.Never);
                 ValidationOutcomeProcessor.Verify(
                     x => x.ProcessValidationOutcomeAsync(
@@ -229,37 +227,15 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             }
 
             [Fact]
-            public async Task MarksIncompleteValidationsAsFailedAndProcessesOutcome()
+            public async Task ForceFailsValidationSetAndProcessesOutcome()
             {
-                var validation1 = new PackageValidation { ValidationStatus = ValidationStatus.Incomplete, Type = "Validator1" };
-                var validation2 = new PackageValidation { ValidationStatus = ValidationStatus.NotStarted, Type = "Validator2" };
-                var validation3 = new PackageValidation { ValidationStatus = ValidationStatus.Succeeded, Type = "Validator3" };
-                var validation4 = new PackageValidation { ValidationStatus = ValidationStatus.Failed, Type = "Validator4" };
-
-                ValidationSet.PackageValidations = new System.Collections.Generic.List<PackageValidation>
-                {
-                    validation1,
-                    validation2,
-                    validation3,
-                    validation4
-                };
-
                 var success = await Target.HandleAsync(Message);
 
                 Assert.True(success);
                 VerifyAcquire(Times.Once);
-                ValidationStorageService.Verify(
-                    x => x.UpdateValidationStatusAsync(validation1, It.Is<NuGetValidationResponse>(r => r.Status == ValidationStatus.Failed)),
+                ValidationSetProcessor.Verify(
+                    x => x.ForceFailValidationSetAsync(ValidationSet),
                     Times.Once);
-                ValidationStorageService.Verify(
-                    x => x.UpdateValidationStatusAsync(validation2, It.Is<NuGetValidationResponse>(r => r.Status == ValidationStatus.Failed)),
-                    Times.Once);
-                ValidationStorageService.Verify(
-                    x => x.UpdateValidationStatusAsync(validation3, It.IsAny<NuGetValidationResponse>()),
-                    Times.Never);
-                ValidationStorageService.Verify(
-                    x => x.UpdateValidationStatusAsync(validation4, It.IsAny<NuGetValidationResponse>()),
-                    Times.Never);
                 ValidationOutcomeProcessor.Verify(
                     x => x.ProcessValidationOutcomeAsync(
                         ValidationSet,
@@ -275,12 +251,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             [Fact]
             public async Task ReleasesLeaseOnExceptionDuringFailure()
             {
-                var validation1 = new PackageValidation { ValidationStatus = ValidationStatus.Incomplete, Type = "Validator1" };
-                ValidationSet.PackageValidations = new System.Collections.Generic.List<PackageValidation> { validation1 };
-
                 var exception = new InvalidOperationException("Failure during update!");
-                ValidationStorageService
-                    .Setup(x => x.UpdateValidationStatusAsync(It.IsAny<PackageValidation>(), It.IsAny<NuGetValidationResponse>()))
+                ValidationSetProcessor
+                    .Setup(x => x.ForceFailValidationSetAsync(It.IsAny<PackageValidationSet>()))
                     .Throws(exception);
 
                 var actual = await Assert.ThrowsAsync<InvalidOperationException>(() => Target.HandleAsync(Message));
@@ -313,9 +286,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
                     Assert.True(success);
                     VerifyAcquire(Times.Once);
-                    ValidationStorageService.Verify(
-                        x => x.UpdateValidationStatusAsync(It.IsAny<PackageValidation>(), It.IsAny<NuGetValidationResponse>()),
-                        Times.Never);
+                    ValidationSetProcessor.Verify(
+                        x => x.ForceFailValidationSetAsync(ValidationSet),
+                        Times.Once);
                     ValidationOutcomeProcessor.Verify(
                         x => x.ProcessValidationOutcomeAsync(
                             ValidationSet,
@@ -352,12 +325,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 [Fact]
                 public async Task ReleasesAcquiredLeaseOnException()
                 {
-                    var validation1 = new PackageValidation { ValidationStatus = ValidationStatus.Incomplete, Type = "Validator1" };
-                    ValidationSet.PackageValidations = new System.Collections.Generic.List<PackageValidation> { validation1 };
-
                     var exception = new InvalidOperationException("Failure during update!");
-                    ValidationStorageService
-                        .Setup(x => x.UpdateValidationStatusAsync(It.IsAny<PackageValidation>(), It.IsAny<NuGetValidationResponse>()))
+                    ValidationSetProcessor
+                        .Setup(x => x.ForceFailValidationSetAsync(It.IsAny<PackageValidationSet>()))
                         .Throws(exception);
 
                     var actual = await Assert.ThrowsAsync<InvalidOperationException>(() => Target.HandleAsync(Message));
@@ -397,11 +367,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 public async Task SwallowsReleaseException()
                 {
                     var updateException = new InvalidOperationException("Update fail!");
-                    var validation1 = new PackageValidation { ValidationStatus = ValidationStatus.Incomplete, Type = "Validator1" };
-                    ValidationSet.PackageValidations = new System.Collections.Generic.List<PackageValidation> { validation1 };
-
-                    ValidationStorageService
-                        .Setup(x => x.UpdateValidationStatusAsync(It.IsAny<PackageValidation>(), It.IsAny<NuGetValidationResponse>()))
+                    ValidationSetProcessor
+                        .Setup(x => x.ForceFailValidationSetAsync(It.IsAny<PackageValidationSet>()))
                         .Throws(updateException);
                     var leaseException = new ArgumentException("Release fail!");
                     LeaseService
@@ -568,6 +535,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     .Returns(() => ValidatingEntity.Object);
                 ValidationSetProcessor
                     .Setup(x => x.ProcessValidationsAsync(It.IsAny<PackageValidationSet>()))
+                    .ReturnsAsync(() => ValidationSetProcessorResult);
+                ValidationSetProcessor
+                    .Setup(x => x.ForceFailValidationSetAsync(It.IsAny<PackageValidationSet>()))
                     .ReturnsAsync(() => ValidationSetProcessorResult);
                 ValidatingEntity
                     .Setup(x => x.Status)

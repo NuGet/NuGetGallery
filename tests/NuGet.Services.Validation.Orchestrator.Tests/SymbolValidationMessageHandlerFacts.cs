@@ -628,14 +628,17 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             ValidationStorageServiceMock
                 .Setup(vs => vs.GetValidationSetAsync(validationTrackingId))
                 .ReturnsAsync(validationSet);
+            ValidationSetProcessorMock
+                .Setup(vsp => vsp.ForceFailValidationSetAsync(validationSet))
+                .ReturnsAsync(new ValidationSetProcessorResult());
 
             var handler = CreateHandler();
             var result = await handler.HandleAsync(failValidationSetData);
 
             Assert.True(result);
-            ValidationStorageServiceMock.Verify(
-                vs => vs.UpdateValidationStatusAsync(It.IsAny<PackageValidation>(), It.IsAny<NuGetValidationResponse>()),
-                Times.Exactly(2));
+            ValidationSetProcessorMock.Verify(
+                vsp => vsp.ForceFailValidationSetAsync(validationSet),
+                Times.Once);
             ValidationOutcomeProcessorMock.Verify(
                 vop => vop.ProcessValidationOutcomeAsync(
                     validationSet,
@@ -666,6 +669,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             ValidationStorageServiceMock
                 .Setup(vs => vs.GetValidationSetAsync(validationTrackingId))
                 .ReturnsAsync(validationSet);
+            ValidationSetProcessorMock
+                .Setup(vsp => vsp.ForceFailValidationSetAsync(validationSet))
+                .ReturnsAsync(new ValidationSetProcessorResult());
 
             var handler = CreateHandler();
             await handler.HandleAsync(failValidationSetData);
