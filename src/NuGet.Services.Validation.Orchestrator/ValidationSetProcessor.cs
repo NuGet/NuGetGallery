@@ -79,7 +79,7 @@ namespace NuGet.Services.Validation.Orchestrator
         private async Task ProcessIncompleteValidations(PackageValidationSet validationSet, ValidationSetProcessorResult processorStats)
         {
             foreach (var packageValidation in validationSet.PackageValidations.Where(v => v.ValidationStatus == ValidationStatus.Incomplete
-                || v.ValidationStatus == ValidationStatus.MaliciousPackage))
+                || v.ValidationStatus == ValidationStatus.Malicious))
             {
                 using (_logger.BeginScope("Incomplete {ValidationType} Key {ValidationId}", packageValidation.Type, packageValidation.Key))
                 {
@@ -101,7 +101,7 @@ namespace NuGet.Services.Validation.Orchestrator
                     var validationResponse = await validator.GetResponseAsync(validationRequest);
 
                     if (validationResponse.Status != ValidationStatus.Incomplete
-                        && validationResponse.Status != ValidationStatus.MaliciousPackage)
+                        && validationResponse.Status != ValidationStatus.Malicious)
                     {
                         _logger.LogInformation(
                             "New status for validation {ValidationType} for {PackageId} {PackageVersion} is " +
@@ -131,7 +131,7 @@ namespace NuGet.Services.Validation.Orchestrator
                         case ValidationStatus.Incomplete:
                             break;
 
-                        case ValidationStatus.MaliciousPackage:
+                        case ValidationStatus.Malicious:
                             // Persist the malicious status so the DB reflects it, but do not clean up or
                             // count this as a success — the package remains in the validating state.
                             await _validationStorageService.UpdateValidationStatusAsync(packageValidation, validationResponse);

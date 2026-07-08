@@ -208,7 +208,7 @@ namespace NuGet.Services.Validation.Orchestrator
             return packageValidationSet
                 .PackageValidations
                 .Any(pv => (pv.ValidationStatus == ValidationStatus.Incomplete
-                        || pv.ValidationStatus == ValidationStatus.MaliciousPackage)
+                        || pv.ValidationStatus == ValidationStatus.Malicious)
                     && GetValidationConfigurationItemByName(pv.Type)?.FailureBehavior == ValidationFailureBehavior.AllowedToFail);
         }
 
@@ -231,7 +231,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 return duration > config?.TrackAfter;
             }
 
-            // MaliciousPackage is intentionally excluded — it is not counted as stuck in validation.
+            // Malicious is intentionally excluded — it is not counted as stuck in validation.
             return packageValidationSet
                 .PackageValidations
                 .Where(v => v.ValidationStatus == ValidationStatus.Incomplete)
@@ -337,13 +337,13 @@ namespace NuGet.Services.Validation.Orchestrator
 
         /// <summary>
         /// Returns <c>true</c> if any validation in the set has the
-        /// <see cref="ValidationStatus.MaliciousPackage"/> status.
+        /// <see cref="ValidationStatus.Malicious"/> status.
         /// </summary>
         private bool HasMaliciousValidation(PackageValidationSet packageValidationSet)
         {
             return packageValidationSet
                 .PackageValidations
-                .Any(pv => pv.ValidationStatus == ValidationStatus.MaliciousPackage);
+                .Any(pv => pv.ValidationStatus == ValidationStatus.Malicious);
         }
     }
 }
