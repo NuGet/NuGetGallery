@@ -281,12 +281,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         public async Task WaitsForValidationSetAvailabilityInValidationDBWithFailValidationSet()
         {
             var validationTrackingId = Guid.NewGuid();
-            var messageData = PackageValidationMessageData.NewFailValidationSet(
-                "packageId",
-                "1.2.3",
-                validationTrackingId,
-                ValidatingType.SymbolPackage,
-                entityKey: null);
+            var messageData = PackageValidationMessageData.NewFailValidationSet(validationTrackingId);
             var validationConfiguration = new ValidationConfiguration();
 
             ValidationStorageServiceMock
@@ -311,12 +306,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         public async Task RejectsNonSymbolPackageValidationSetWithFailValidationSet(ValidatingType validatingType)
         {
             var validationTrackingId = Guid.NewGuid();
-            var messageData = PackageValidationMessageData.NewFailValidationSet(
-                "packageId",
-                "1.2.3",
-                validationTrackingId,
-                ValidatingType.SymbolPackage,
-                entityKey: null);
+            var messageData = PackageValidationMessageData.NewFailValidationSet(validationTrackingId);
             var validationConfiguration = new ValidationConfiguration();
             var validationSet = new PackageValidationSet { PackageKey = 42, ValidatingType = validatingType };
 
@@ -340,12 +330,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         public async Task DoesNotWaitForPackageAvailabilityInGalleryDBWithFailValidationSet()
         {
             var validationTrackingId = Guid.NewGuid();
-            var messageData = PackageValidationMessageData.NewFailValidationSet(
-                "packageId",
-                "1.2.3",
-                validationTrackingId,
-                ValidatingType.SymbolPackage,
-                entityKey: null);
+            var messageData = PackageValidationMessageData.NewFailValidationSet(validationTrackingId);
             var validationConfiguration = new ValidationConfiguration();
             var validationSet = new PackageValidationSet { PackageKey = 42, ValidatingType = ValidatingType.SymbolPackage };
 
@@ -376,12 +361,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         public async Task DropsMessageIfPackageIsSoftDeletedForFailValidationSet()
         {
             var validationTrackingId = Guid.NewGuid();
-            var messageData = PackageValidationMessageData.NewFailValidationSet(
-                "packageId",
-                "1.2.3",
-                validationTrackingId,
-                ValidatingType.SymbolPackage,
-                entityKey: null);
+            var messageData = PackageValidationMessageData.NewFailValidationSet(validationTrackingId);
             var validationConfiguration = new ValidationConfiguration();
             var symbolPackage = new SymbolPackage { Key = 42, StatusKey = PackageStatus.Deleted };
             var symbolPackageValidatingEntity = new SymbolPackageValidatingEntity(symbolPackage);
@@ -412,12 +392,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         public async Task DropsMessageIfValidationSetAlreadyCompletedForFailValidationSet()
         {
             var validationTrackingId = Guid.NewGuid();
-            var messageData = PackageValidationMessageData.NewFailValidationSet(
-                "packageId",
-                "1.2.3",
-                validationTrackingId,
-                ValidatingType.SymbolPackage,
-                entityKey: null);
+            var messageData = PackageValidationMessageData.NewFailValidationSet(validationTrackingId);
             var validationConfiguration = new ValidationConfiguration();
             var symbolPackage = new SymbolPackage { Key = 42, StatusKey = PackageStatus.Validating };
             var symbolPackageValidatingEntity = new SymbolPackageValidatingEntity(symbolPackage);
@@ -606,12 +581,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         public async Task FailsValidationSetForFailValidationSet()
         {
             var validationTrackingId = Guid.NewGuid();
-            var failValidationSetData = PackageValidationMessageData.NewFailValidationSet(
-                "packageId",
-                "1.2.3",
-                validationTrackingId,
-                ValidatingType.SymbolPackage,
-                entityKey: null);
+            var failValidationSetData = PackageValidationMessageData.NewFailValidationSet(validationTrackingId);
             var validationSet = new PackageValidationSet
             {
                 PackageKey = SymbolPackage.Key,
@@ -652,12 +622,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         public async Task CallsProcessValidationOutcomeForFailValidationSet()
         {
             var validationTrackingId = Guid.NewGuid();
-            var failValidationSetData = PackageValidationMessageData.NewFailValidationSet(
-                "packageId",
-                "1.2.3",
-                validationTrackingId,
-                ValidatingType.SymbolPackage,
-                entityKey: null);
+            var failValidationSetData = PackageValidationMessageData.NewFailValidationSet(validationTrackingId);
             var validationSet = new PackageValidationSet
             {
                 PackageKey = SymbolPackage.Key,

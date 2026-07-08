@@ -47,12 +47,7 @@ namespace NuGet.Services.Validation
                 case PackageValidationMessageType.FailValidationSet:
                     return _failValidationSetSerializer.Serialize(new FailValidationSetData1
                     {
-                        PackageId = message.FailValidationSet.PackageId,
-                        PackageVersion = message.FailValidationSet.PackageVersion,
-                        PackageNormalizedVersion = message.FailValidationSet.PackageNormalizedVersion,
                         ValidationTrackingId = message.FailValidationSet.ValidationTrackingId,
-                        ValidatingType = message.FailValidationSet.ValidatingType,
-                        EntityKey = message.FailValidationSet.EntityKey,
                     });
                 case PackageValidationMessageType.CheckValidationSet:
                     return _checkValidationSetSerializer.Serialize(new CheckValidationSetData1
@@ -133,11 +128,7 @@ namespace NuGet.Services.Validation
                         startValidation: null,
                         processValidationSet: null,
                         failValidationSet: new FailValidationSetData(
-                            failValidationSet.PackageId,
-                            failValidationSet.PackageVersion,
-                            failValidationSet.ValidationTrackingId,
-                            failValidationSet.ValidatingType,
-                            failValidationSet.EntityKey),
+                            failValidationSet.ValidationTrackingId),
                         checkValidationSet: null,
                         checkValidator: null,
                         deliveryCount: message.DeliveryCount);  
@@ -169,12 +160,7 @@ namespace NuGet.Services.Validation
         [Schema(Name = FailValidationSetSchemaName, Version = 1)]
         private class FailValidationSetData1
         {
-            public string PackageId { get; set; }
-            public string PackageVersion { get; set; }
-            public string PackageNormalizedVersion { get; set; }
             public Guid ValidationTrackingId { get; set; }
-            public ValidatingType ValidatingType { get; set; }
-            public int? EntityKey { get; set; }
         }
 
         [Schema(Name = CheckValidationSetSchemaName, Version = 1)]

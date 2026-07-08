@@ -303,8 +303,6 @@ namespace NuGet.Services.Validation.Tests
                 Assert.Equal(DeliveryCount, output.DeliveryCount);
                 Assert.Equal(PackageValidationMessageType.FailValidationSet, output.Type);
                 Assert.Equal(ValidationTrackingId, output.FailValidationSet.ValidationTrackingId);
-                Assert.Equal(PackageId, output.FailValidationSet.PackageId);
-                Assert.Equal(PackageVersion, output.FailValidationSet.PackageVersion);
             }
 
             [Fact]
@@ -524,7 +522,7 @@ namespace NuGet.Services.Validation.Tests
 
             private static Mock<IReceivedBrokeredMessage> GetBrokeredMessageForFailValidationSet()
             {
-                var serializedData = $@"{{""ValidationTrackingId"":""{ValidationTrackingId}"",""PackageId"":""{PackageId}"",""PackageVersion"":""{PackageVersion}""}}";
+                var serializedData = $@"{{""ValidationTrackingId"":""{ValidationTrackingId}""}}";
                 var brokeredMessage = new Mock<IReceivedBrokeredMessage>();
                 brokeredMessage
                     .Setup(x => x.GetBody())

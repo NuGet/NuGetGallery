@@ -50,23 +50,13 @@ namespace NuGet.Services.Validation
                 deliveryCount: 0);
         }
 
-        public static PackageValidationMessageData NewFailValidationSet(
-            string packageId,
-            string packageVersion,
-            Guid validationTrackingId,
-            ValidatingType validatingType,
-            int? entityKey)
+        public static PackageValidationMessageData NewFailValidationSet(Guid validationTrackingId)
         {
             return new PackageValidationMessageData(
                 PackageValidationMessageType.FailValidationSet,
                 startValidation: null,
                 processValidationSet: null,
-                failValidationSet: new FailValidationSetData(
-                    packageId,
-                    packageVersion,
-                    validationTrackingId,
-                    validatingType,
-                    entityKey),
+                failValidationSet: new FailValidationSetData(validationTrackingId),
                 checkValidationSet: null,
                 checkValidator: null,
                 deliveryCount: 0);

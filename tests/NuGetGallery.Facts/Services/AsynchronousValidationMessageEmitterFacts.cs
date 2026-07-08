@@ -13,7 +13,7 @@ using Xunit;
 
 namespace NuGetGallery
 {
-    public class AsynchronousPackageValidationInitiatorFacts
+    public class AsynchronousValidationMessageEmitterFacts
     {
         public class TheStartValidationAsyncMethod : FactsBase
         {
@@ -173,8 +173,6 @@ namespace NuGetGallery
                 Assert.Equal(PackageValidationMessageType.FailValidationSet, _data[0].Type);
                 Assert.NotNull(_data[0].FailValidationSet);
                 Assert.NotEqual(Guid.Empty, _data[0].FailValidationSet.ValidationTrackingId);
-                Assert.Equal(package.PackageRegistration.Id, _data[0].FailValidationSet.PackageId);
-                Assert.Equal(package.Version, _data[0].FailValidationSet.PackageVersion);
             }
 
             [Fact]
@@ -387,8 +385,6 @@ namespace NuGetGallery
                 Assert.Equal(PackageValidationMessageType.FailValidationSet, _data[0].Type);
                 Assert.NotNull(_data[0].FailValidationSet);
                 Assert.NotEqual(Guid.Empty, _data[0].FailValidationSet.ValidationTrackingId);
-                Assert.Equal(symbolPackage.Package.PackageRegistration.Id, _data[0].FailValidationSet.PackageId);
-                Assert.Equal(symbolPackage.Package.Version, _data[0].FailValidationSet.PackageVersion);
             }
 
             [Fact]
@@ -447,7 +443,7 @@ namespace NuGetGallery
             protected readonly Mock<IAppConfiguration> _appConfiguration;
             protected readonly Mock<IDiagnosticsService> _diagnosticsService;
             protected readonly IList<PackageValidationMessageData> _data = new List<PackageValidationMessageData>();
-            protected readonly AsynchronousPackageValidationInitiator<IPackageEntity> _target;
+            protected readonly AsynchronousValidationMessageEmitter<IPackageEntity> _target;
 
             public FactsBase()
             {
@@ -468,7 +464,7 @@ namespace NuGetGallery
 
                 _diagnosticsService = new Mock<IDiagnosticsService>();
 
-                _target = new AsynchronousPackageValidationInitiator<IPackageEntity>(
+                _target = new AsynchronousValidationMessageEmitter<IPackageEntity>(
                     _enqueuer.Object,
                     _appConfiguration.Object,
                     _diagnosticsService.Object);

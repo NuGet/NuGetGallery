@@ -18,24 +18,24 @@ namespace NuGetGallery
         private readonly IAppConfiguration _appConfiguration;
         private readonly IPackageService _packageService;
         private readonly ISymbolPackageService _symbolPackageService;
-        private readonly IPackageValidationInitiator<Package> _packageValidationInitiator;
-        private readonly IPackageValidationInitiator<SymbolPackage> _symbolPackageValidationInitiator;
+        private readonly IValidationMessageEmitter<Package> _packageValidationMessageEmitter;
+        private readonly IValidationMessageEmitter<SymbolPackage> _symbolPackageValidationMessageEmitter;
         private readonly IEntityRepository<PackageValidationSet> _validationSets;
         private readonly ITelemetryService _telemetryService;
 
         public ValidationService(
             IAppConfiguration appConfiguration,
             IPackageService packageService,
-            IPackageValidationInitiator<Package> packageValidationInitiator,
-            IPackageValidationInitiator<SymbolPackage> symbolPackageValidationInitiator,
+            IValidationMessageEmitter<Package> packageValidationMessageEmitter,
+            IValidationMessageEmitter<SymbolPackage> symbolPackageValidationMessageEmitter,
             ITelemetryService telemetryService,
             ISymbolPackageService symbolPackageService,
             IEntityRepository<PackageValidationSet> validationSets = null)
         {
             _appConfiguration = appConfiguration ?? throw new ArgumentNullException(nameof(appConfiguration));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
-            _packageValidationInitiator = packageValidationInitiator ?? throw new ArgumentNullException(nameof(packageValidationInitiator));
-            _symbolPackageValidationInitiator = symbolPackageValidationInitiator ?? throw new ArgumentNullException(nameof(symbolPackageValidationInitiator));
+            _packageValidationMessageEmitter = packageValidationMessageEmitter ?? throw new ArgumentNullException(nameof(packageValidationMessageEmitter));
+            _symbolPackageValidationMessageEmitter = symbolPackageValidationMessageEmitter ?? throw new ArgumentNullException(nameof(symbolPackageValidationMessageEmitter));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _symbolPackageService = symbolPackageService ?? throw new ArgumentNullException(nameof(symbolPackageService));
 
@@ -51,28 +51,28 @@ namespace NuGetGallery
 
         public async Task UpdatePackageAsync(Package package)
         {
-            var packageStatus = _packageValidationInitiator.GetPackageStatus(package);
+            var packageStatus = _packageValidationMessageEmitter.GetPackageStatus(package);
 
             await UpdatePackageInternalAsync(package, packageStatus);
         }
 
         public async Task UpdatePackageAsync(SymbolPackage symbolPackage)
         {
-            var symbolPackageStatus = _symbolPackageValidationInitiator.GetPackageStatus(symbolPackage);
+            var symbolPackageStatus = _symbolPackageValidationMessageEmitter.GetPackageStatus(symbolPackage);
 
             await UpdateSymbolPackageInternalAsync(symbolPackage, symbolPackageStatus);
         }
 
         public async Task StartValidationAsync(Package package)
         {
-            var packageStatus = await _packageValidationInitiator.StartValidationAsync(package);
+            var packageStatus = await _packageValidationMessageEmitter.StartValidationAsync(package);
 
             await UpdatePackageInternalAsync(package, packageStatus);
         }
 
         public async Task RevalidateAsync(Package package)
         {
-            await _packageValidationInitiator.StartValidationAsync(package);
+            await _packageValidationMessageEmitter.StartValidationAsync(package);
 
             _telemetryService.TrackPackageRevalidate(package);
         }
@@ -104,13 +104,13 @@ namespace NuGetGallery
 
         public async Task StartValidationAsync(SymbolPackage symbolPackage)
         {
-            var symbolPackageStatus = await _symbolPackageValidationInitiator.StartValidationAsync(symbolPackage);
+            var symbolPackageStatus = await _symbolPackageValidationMessageEmitter.StartValidationAsync(symbolPackage);
             await UpdateSymbolPackageInternalAsync(symbolPackage, symbolPackageStatus);
         }
 
         public async Task RevalidateAsync(SymbolPackage symbolPackage)
         {
-            await _symbolPackageValidationInitiator.StartValidationAsync(symbolPackage);
+            await _symbolPackageValidationMessageEmitter.StartValidationAsync(symbolPackage);
 
             _telemetryService.TrackSymbolPackageRevalidate(symbolPackage.Id, symbolPackage.Version);
         }
@@ -118,7 +118,7 @@ namespace NuGetGallery
         public async Task FailValidationAsync(Package package)
         {
             var validationTrackingId = GetValidationTrackingId(package.Key, ValidatingType.Package);
-            var packageStatus = await _packageValidationInitiator.FailValidationAsync(package, validationTrackingId);
+            var packageStatus = await _packageValidationMessageEmitter.FailValidationAsync(package, validationTrackingId);
 
             await UpdatePackageInternalAsync(package, packageStatus);
         }
@@ -126,7 +126,7 @@ namespace NuGetGallery
         public async Task FailValidationAsync(SymbolPackage symbolPackage)
         {
             var validationTrackingId = GetValidationTrackingId(symbolPackage.Key, ValidatingType.SymbolPackage);
-            var symbolPackageStatus = await _symbolPackageValidationInitiator.FailValidationAsync(symbolPackage, validationTrackingId);
+            var symbolPackageStatus = await _symbolPackageValidationMessageEmitter.FailValidationAsync(symbolPackage, validationTrackingId);
 
             await UpdateSymbolPackageInternalAsync(symbolPackage, symbolPackageStatus);
         }
@@ -148,18 +148,21 @@ namespace NuGetGallery
 
         private Guid GetValidationTrackingId(int entityKey, ValidatingType validatingType)
         {
-            // When asynchronous validation is disabled the immediate validator is used, which ignores the
+            // When asynchronous validation is disabled the immediate message emitter is used, which ignores the
             // tracking ID and never enqueues a message, so there is no validation set to look up.
             if (_validationSets == null)
             {
                 return Guid.Empty;
             }
 
-            // The orchestrator fails an *existing* validation set by its tracking ID, so we must send the
-            // tracking ID of the package's most recent validation set rather than a new GUID.
+            // The orchestrator fails an *existing* validation set by its tracking ID. A package can have many
+            // validation sets over its lifetime, but only an incomplete one keeps the package in the
+            // Validating state, so we target the most recent set that has not yet completed rather than blindly
+            // the latest set (which may already be in a terminal state).
             var validationTrackingId = _validationSets
                 .GetAll()
                 .Where(s => s.PackageKey == entityKey && s.ValidatingType == validatingType)
+                .Where(s => s.ValidationSetStatus != ValidationSetStatus.Completed)
                 .OrderByDescending(s => s.Created)
                 .Select(s => (Guid?)s.ValidationTrackingId)
                 .FirstOrDefault();
@@ -167,7 +170,7 @@ namespace NuGetGallery
             if (validationTrackingId == null)
             {
                 throw new InvalidOperationException(
-                    $"No validation set was found for {validatingType} with key {entityKey}; unable to fail its validation.");
+                    $"No incomplete validation set was found for {validatingType} with key {entityKey}; unable to fail its validation.");
             }
 
             return validationTrackingId.Value;

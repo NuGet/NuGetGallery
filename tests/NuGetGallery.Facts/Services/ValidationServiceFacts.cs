@@ -25,7 +25,7 @@ namespace NuGetGallery
                 await _target.StartValidationAsync(_package);
 
                 // Assert
-                _packageInitiator.Verify(x => x.StartValidationAsync(_package), Times.Once);
+                _packageValidationMessageEmitter.Verify(x => x.StartValidationAsync(_package), Times.Once);
             }
 
             [Fact]
@@ -34,7 +34,7 @@ namespace NuGetGallery
                 // Arrange
                 var packageStatus = PackageStatus.Validating;
                 _package.PackageStatusKey = PackageStatus.Available;
-                _packageInitiator
+                _packageValidationMessageEmitter
                     .Setup(x => x.StartValidationAsync(It.IsAny<Package>()))
                     .ReturnsAsync(packageStatus);
 
@@ -59,7 +59,7 @@ namespace NuGetGallery
                 // Arrange
                 var packageStatus = PackageStatus.Validating;
                 _package.PackageStatusKey = PackageStatus.Available;
-                _packageInitiator
+                _packageValidationMessageEmitter
                     .Setup(x => x.StartValidationAsync(It.IsAny<Package>()))
                     .ReturnsAsync(packageStatus);
 
@@ -86,7 +86,7 @@ namespace NuGetGallery
                 await _target.StartValidationAsync(_symbolPackage);
 
                 // Assert
-                _symbolInitiator.Verify(x => x.StartValidationAsync(_symbolPackage), Times.Once);
+                _symbolPackageValidationMessageEmitter.Verify(x => x.StartValidationAsync(_symbolPackage), Times.Once);
             }
 
             [Fact]
@@ -95,7 +95,7 @@ namespace NuGetGallery
                 // Arrange
                 var packageStatus = PackageStatus.Validating;
                 _symbolPackage.StatusKey = PackageStatus.Available;
-                _symbolInitiator
+                _symbolPackageValidationMessageEmitter
                     .Setup(x => x.StartValidationAsync(It.IsAny<SymbolPackage>()))
                     .ReturnsAsync(packageStatus);
 
@@ -120,7 +120,7 @@ namespace NuGetGallery
                 // Arrange
                 var packageStatus = PackageStatus.Validating;
                 _symbolPackage.StatusKey = PackageStatus.Available;
-                _symbolInitiator
+                _symbolPackageValidationMessageEmitter
                     .Setup(x => x.StartValidationAsync(It.IsAny<SymbolPackage>()))
                     .ReturnsAsync(packageStatus);
 
@@ -147,7 +147,7 @@ namespace NuGetGallery
                 await _target.RevalidateAsync(_package);
 
                 // Assert
-                _packageInitiator.Verify(x => x.StartValidationAsync(_package), Times.Once);
+                _packageValidationMessageEmitter.Verify(x => x.StartValidationAsync(_package), Times.Once);
             }
 
             [Fact]
@@ -156,7 +156,7 @@ namespace NuGetGallery
                 // Arrange
                 var packageStatus = PackageStatus.Validating;
                 _package.PackageStatusKey = PackageStatus.Available;
-                _packageInitiator
+                _packageValidationMessageEmitter
                     .Setup(x => x.StartValidationAsync(It.IsAny<Package>()))
                     .ReturnsAsync(packageStatus);
 
@@ -202,7 +202,7 @@ namespace NuGetGallery
                             ValidationTrackingId = validationTrackingId,
                         }
                     }.AsQueryable());
-                _packageInitiator
+                _packageValidationMessageEmitter
                     .Setup(x => x.FailValidationAsync(It.IsAny<Package>(), It.IsAny<Guid>()))
                     .ReturnsAsync(PackageStatus.FailedValidation);
 
@@ -210,7 +210,7 @@ namespace NuGetGallery
                 await _target.FailValidationAsync(_package);
 
                 // Assert
-                _packageInitiator.Verify(x => x.FailValidationAsync(_package, validationTrackingId), Times.Once);
+                _packageValidationMessageEmitter.Verify(x => x.FailValidationAsync(_package, validationTrackingId), Times.Once);
                 _packageService.Verify(
                     x => x.UpdatePackageStatusAsync(_package, PackageStatus.FailedValidation, false),
                     Times.Once);
@@ -232,7 +232,7 @@ namespace NuGetGallery
                             ValidationTrackingId = validationTrackingId,
                         }
                     }.AsQueryable());
-                _symbolInitiator
+                _symbolPackageValidationMessageEmitter
                     .Setup(x => x.FailValidationAsync(It.IsAny<SymbolPackage>(), It.IsAny<Guid>()))
                     .ReturnsAsync(PackageStatus.FailedValidation);
 
@@ -240,7 +240,7 @@ namespace NuGetGallery
                 await _target.FailValidationAsync(_symbolPackage);
 
                 // Assert
-                _symbolInitiator.Verify(x => x.FailValidationAsync(_symbolPackage, validationTrackingId), Times.Once);
+                _symbolPackageValidationMessageEmitter.Verify(x => x.FailValidationAsync(_symbolPackage, validationTrackingId), Times.Once);
                 _symbolPackageService.Verify(
                     x => x.UpdateStatusAsync(_symbolPackage, PackageStatus.FailedValidation, false),
                     Times.Once);
@@ -535,8 +535,8 @@ namespace NuGetGallery
         {
             protected readonly Mock<IAppConfiguration> _appConfiguration;
             protected readonly Mock<IPackageService> _packageService;
-            protected readonly Mock<IPackageValidationInitiator<Package>> _packageInitiator;
-            protected readonly Mock<IPackageValidationInitiator<SymbolPackage>> _symbolInitiator;
+            protected readonly Mock<IValidationMessageEmitter<Package>> _packageValidationMessageEmitter;
+            protected readonly Mock<IValidationMessageEmitter<SymbolPackage>> _symbolPackageValidationMessageEmitter;
             protected readonly Mock<IEntityRepository<PackageValidationSet>> _validationSets;
             protected readonly Mock<ITelemetryService> _telemetryService;
             protected readonly Mock<ISymbolPackageService> _symbolPackageService;
@@ -548,8 +548,8 @@ namespace NuGetGallery
             {
                 _appConfiguration = new Mock<IAppConfiguration>();
                 _packageService = new Mock<IPackageService>();
-                _packageInitiator = new Mock<IPackageValidationInitiator<Package>>();
-                _symbolInitiator = new Mock<IPackageValidationInitiator<SymbolPackage>>();
+                _packageValidationMessageEmitter = new Mock<IValidationMessageEmitter<Package>>();
+                _symbolPackageValidationMessageEmitter = new Mock<IValidationMessageEmitter<SymbolPackage>>();
                 _validationSets = new Mock<IEntityRepository<PackageValidationSet>>();
                 _telemetryService = new Mock<ITelemetryService>();
                 _symbolPackageService = new Mock<ISymbolPackageService>();
@@ -562,8 +562,8 @@ namespace NuGetGallery
                 _target = new ValidationService(
                     _appConfiguration.Object,
                     _packageService.Object,
-                    _packageInitiator.Object,
-                    _symbolInitiator.Object,
+                    _packageValidationMessageEmitter.Object,
+                    _symbolPackageValidationMessageEmitter.Object,
                     _telemetryService.Object,
                     _symbolPackageService.Object,
                     _validationSets.Object);

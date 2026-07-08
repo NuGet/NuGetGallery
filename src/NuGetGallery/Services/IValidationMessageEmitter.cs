@@ -8,16 +8,16 @@ using NuGet.Services.Entities;
 namespace NuGetGallery
 {
     /// <summary>
-    /// Initiates validation for a specific package.
+    /// Emits the messages needed to drive a package's validation state and force it to a terminal state.
     /// </summary>
-    public interface IPackageValidationInitiator<TPackageEntity> 
+    public interface IValidationMessageEmitter<TPackageEntity> 
         where TPackageEntity: IPackageEntity
     {
         /// <summary>
         /// Returns the package status that package should go into when validation is started.
         /// Async validations typically return <see cref="PackageStatus.Validating"/>.
         /// Sync, non-blocking or no validation typically return <see cref="PackageStatus.Available"/>.
-        /// Caller still must call <see cref="IPackageValidationInitiator{TPackageEntity}.StartValidationAsync(TPackageEntity)"/>
+        /// Caller still must call <see cref="IValidationMessageEmitter{TPackageEntity}.StartValidationAsync(TPackageEntity)"/>
         /// to start the actual validation.
         /// </summary>
         /// <param name="package">The <see cref="TPackageEntity"/> to get future validation status for.</param>

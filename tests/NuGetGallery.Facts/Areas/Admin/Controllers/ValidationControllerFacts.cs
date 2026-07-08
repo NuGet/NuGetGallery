@@ -8,6 +8,7 @@ using Moq;
 using NuGet.Services.Entities;
 using NuGet.Services.Validation;
 using NuGetGallery.Areas.Admin.Services;
+using NuGetGallery.Auditing;
 using NuGetGallery.Framework;
 using Xunit;
 
@@ -91,7 +92,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     Mock.Of<IEntityRepository<PackageValidation>>(),
                     _packages.Object,
                     _symbolPackages.Object,
-                    _validationService.Object);
+                    _validationService.Object,
+                    Mock.Of<IAuditingService>());
 
                 _target = new ValidationController(
                     _validationAdminService);

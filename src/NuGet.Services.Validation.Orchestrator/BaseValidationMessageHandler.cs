@@ -317,11 +317,8 @@ namespace NuGet.Services.Validation.Orchestrator
         private async Task<bool> FailValidationSetAsync(FailValidationSetData message)
         {
             using (_logger.BeginScope(
-                "Handling fail validation set message for {ValidatingType} {PackageId} {PackageVersion} " +
-                "{ValidationSetId}",
+                "Handling fail validation set message for {ValidatingType} {ValidationSetId}",
                 ValidatingType,
-                message.PackageId,
-                message.PackageVersion,
                 message.ValidationTrackingId))
             {
                 // Get the validation set by validation tracking ID
@@ -379,7 +376,7 @@ namespace NuGet.Services.Validation.Orchestrator
                     return true;
                 }
 
-                var lease = await TryAcquireLeaseAsync(message.PackageId, message.PackageVersion);
+                var lease = await TryAcquireLeaseAsync(validationSet.PackageId, validationSet.PackageNormalizedVersion);
                 if (lease.State == LeaseContextState.Unavailable)
                 {
                     _logger.LogInformation(
@@ -388,7 +385,7 @@ namespace NuGet.Services.Validation.Orchestrator
                         LeaseTime);
 
                     var postponeUntil = DateTimeOffset.UtcNow + LeaseTime;
-                    var messageData = PackageValidationMessageData.NewFailValidationSet(message.PackageId, message.PackageVersion, message.ValidationTrackingId, message.ValidatingType, message.EntityKey);
+                    var messageData = PackageValidationMessageData.NewFailValidationSet(message.ValidationTrackingId);
                     await _validationEnqueuer.SendMessageAsync(messageData, postponeUntil);
                     return true;
                 }

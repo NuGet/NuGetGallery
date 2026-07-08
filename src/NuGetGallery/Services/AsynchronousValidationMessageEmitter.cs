@@ -14,14 +14,14 @@ namespace NuGetGallery
     /// Initiates asynchronous validation on a package by enqueuing a message containing the package identity and a new
     /// <see cref="Guid"/>. The <see cref="Guid"/> represents a unique validation request.
     /// </summary>
-    public class AsynchronousPackageValidationInitiator<TPackageEntity> : IPackageValidationInitiator<TPackageEntity> 
+    public class AsynchronousValidationMessageEmitter<TPackageEntity> : IValidationMessageEmitter<TPackageEntity> 
         where TPackageEntity: IPackageEntity
     {
         private readonly IPackageValidationEnqueuer _validationEnqueuer;
         private readonly IAppConfiguration _appConfiguration;
         private readonly IDiagnosticsSource _diagnosticsSource;
 
-        public AsynchronousPackageValidationInitiator(
+        public AsynchronousValidationMessageEmitter(
             IPackageValidationEnqueuer enqueuer,
             IAppConfiguration appConfiguration,
             IDiagnosticsService diagnosticsService)
@@ -34,7 +34,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(IDiagnosticsService));
             }
 
-            _diagnosticsSource = diagnosticsService.SafeGetSource(nameof(AsynchronousPackageValidationInitiator<TPackageEntity>));
+            _diagnosticsSource = diagnosticsService.SafeGetSource(nameof(AsynchronousValidationMessageEmitter<TPackageEntity>));
         }
 
         public PackageStatus GetPackageStatus(TPackageEntity package)
@@ -72,10 +72,11 @@ namespace NuGetGallery
 
         public async Task<PackageStatus> FailValidationAsync(TPackageEntity package, Guid validationTrackingId)
         {
-            var validatingType = ValidateAndGetType(package);
+            // Validate the entity type is supported even though only the tracking ID is sent; this fails fast on
+            // an unexpected entity type the same way StartValidationAsync does.
+            ValidateAndGetType(package);
 
-            var entityKey = package.Key == default(int) ? (int?)null : package.Key;
-            var data = PackageValidationMessageData.NewFailValidationSet(package.Id, package.Version, validationTrackingId, validatingType, entityKey);
+            var data = PackageValidationMessageData.NewFailValidationSet(validationTrackingId);
 
             var activityName = "Enqueuing asynchronous package validation failure: " +
                 $"{package.Id} {package.Version} ({data.FailValidationSet.ValidationTrackingId})";

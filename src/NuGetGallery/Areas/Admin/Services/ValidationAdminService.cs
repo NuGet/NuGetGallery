@@ -10,31 +10,36 @@ using NuGet.Services.Entities;
 using NuGet.Services.Validation;
 using NuGet.Versioning;
 using NuGetGallery.Areas.Admin.Models;
+using NuGetGallery.Auditing;
 
 namespace NuGetGallery.Areas.Admin.Services
 {
     public class ValidationAdminService
     {
         private const int PendingValidationsBatchSize = 100;
+        private const string ForceFailValidationReason = "Validation was force-failed via the admin panel.";
 
         private readonly IEntityRepository<PackageValidationSet> _validationSets;
         private readonly IEntityRepository<PackageValidation> _validations;
         private readonly IEntityRepository<Package> _packages;
         private readonly IEntityRepository<SymbolPackage> _symbolPackages;
         private readonly IValidationService _validationService;
+        private readonly IAuditingService _auditingService;
 
         public ValidationAdminService(
             IEntityRepository<PackageValidationSet> validationSets,
             IEntityRepository<PackageValidation> validations,
             IEntityRepository<Package> packages,
             IEntityRepository<SymbolPackage> symbolPackages,
-            IValidationService validationService)
+            IValidationService validationService,
+            IAuditingService auditingService)
         {
             _validationSets = validationSets ?? throw new ArgumentNullException(nameof(validationSets));
             _validations = validations ?? throw new ArgumentNullException(nameof(validations));
             _packages = packages ?? throw new ArgumentNullException(nameof(packages));
             _symbolPackages = symbolPackages ?? throw new ArgumentNullException(nameof(symbolPackages));
             _validationService = validationService ?? throw new ArgumentNullException(nameof(validationService));
+            _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
         }
 
         /// <summary>
@@ -139,6 +144,8 @@ namespace NuGetGallery.Areas.Admin.Services
                 foreach (var package in pendingPackages)
                 {
                     await _validationService.FailValidationAsync(package);
+                    await _auditingService.SaveAuditRecordAsync(
+                        new PackageAuditRecord(package, AuditedPackageAction.FailValidation, ForceFailValidationReason));
                 }
 
                 if (pendingPackages.Count > 0)
@@ -160,6 +167,8 @@ namespace NuGetGallery.Areas.Admin.Services
                 foreach (var symbolPackage in pendingSymbolPackages)
                 {
                     await _validationService.FailValidationAsync(symbolPackage);
+                    await _auditingService.SaveAuditRecordAsync(
+                        new PackageAuditRecord(symbolPackage.Package, AuditedPackageAction.SymbolsFailValidation, ForceFailValidationReason));
                 }
 
                 if (pendingSymbolPackages.Count > 0)

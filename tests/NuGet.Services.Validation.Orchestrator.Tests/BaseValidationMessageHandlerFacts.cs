@@ -60,12 +60,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             {
                 ValidationSet.PackageValidations = new System.Collections.Generic.List<PackageValidation>();
 
-                Message = PackageValidationMessageData.NewFailValidationSet(
-                    ValidationSet.PackageId,
-                    ValidationSet.PackageNormalizedVersion,
-                    ValidationSet.ValidationTrackingId,
-                    ValidatingType.Package,
-                    ValidationSet.PackageKey);
+                Message = PackageValidationMessageData.NewFailValidationSet(ValidationSet.ValidationTrackingId);
 
                 ValidationStorageService
                     .Setup(x => x.GetValidationSetAsync(It.IsAny<Guid>()))
@@ -208,9 +203,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     x => x.SendMessageAsync(
                         It.Is<PackageValidationMessageData>(m =>
                             m.Type == PackageValidationMessageType.FailValidationSet &&
-                            m.FailValidationSet.ValidationTrackingId == ValidationSet.ValidationTrackingId &&
-                            m.FailValidationSet.PackageId == ValidationSet.PackageId &&
-                            m.FailValidationSet.PackageVersion == ValidationSet.PackageNormalizedVersion),
+                            m.FailValidationSet.ValidationTrackingId == ValidationSet.ValidationTrackingId),
                         It.IsAny<DateTimeOffset>()),
                     Times.Once);
                 ValidationSetProcessor.Verify(

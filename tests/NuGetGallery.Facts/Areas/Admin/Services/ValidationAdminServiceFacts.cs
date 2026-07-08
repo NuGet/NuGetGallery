@@ -8,6 +8,7 @@ using Moq;
 using NuGet.Services.Entities;
 using NuGet.Services.Validation;
 using NuGetGallery.Areas.Admin.Models;
+using NuGetGallery.Auditing;
 using Xunit;
 
 namespace NuGetGallery.Areas.Admin.Services
@@ -93,11 +94,11 @@ namespace NuGetGallery.Areas.Admin.Services
                     .Setup(x => x.GetAll())
                     .Returns(() => new[]
                     {
-                        new Package { Key = 1, PackageStatusKey = PackageStatus.Available },
-                        new Package { Key = 2, PackageStatusKey = PackageStatus.Validating },
-                        new Package { Key = 3, PackageStatusKey = PackageStatus.Validating },
-                        new Package { Key = 4, PackageStatusKey = PackageStatus.Deleted },
-                        new Package { Key = 5, PackageStatusKey = PackageStatus.FailedValidation },
+                        new Package { Key = 1, PackageStatusKey = PackageStatus.Available, PackageRegistration = new PackageRegistration { Id = "Package1" } },
+                        new Package { Key = 2, PackageStatusKey = PackageStatus.Validating, PackageRegistration = new PackageRegistration { Id = "Package2" } },
+                        new Package { Key = 3, PackageStatusKey = PackageStatus.Validating, PackageRegistration = new PackageRegistration { Id = "Package3" } },
+                        new Package { Key = 4, PackageStatusKey = PackageStatus.Deleted, PackageRegistration = new PackageRegistration { Id = "Package4" } },
+                        new Package { Key = 5, PackageStatusKey = PackageStatus.FailedValidation, PackageRegistration = new PackageRegistration { Id = "Package5" } },
                     }.AsQueryable());
 
                 var failedCount = await _target.ForceFailValidationPendingAsync(ValidatingType.Package);
@@ -106,6 +107,9 @@ namespace NuGetGallery.Areas.Admin.Services
                 _validationService.Verify(x => x.FailValidationAsync(It.IsAny<Package>()), Times.Exactly(2));
                 _validationService.Verify(x => x.FailValidationAsync(It.Is<Package>(p => p.Key == 2)), Times.Once);
                 _validationService.Verify(x => x.FailValidationAsync(It.Is<Package>(p => p.Key == 3)), Times.Once);
+                _auditingService.Verify(
+                    x => x.SaveAuditRecordAsync(It.Is<PackageAuditRecord>(r => r.Action == AuditedPackageAction.FailValidation)),
+                    Times.Exactly(2));
                 _packages.Verify(x => x.CommitChangesAsync(), Times.Once);
             }
 
@@ -116,11 +120,11 @@ namespace NuGetGallery.Areas.Admin.Services
                     .Setup(x => x.GetAll())
                     .Returns(() => new[]
                     {
-                        new SymbolPackage { Key = 1, StatusKey = PackageStatus.Available },
-                        new SymbolPackage { Key = 2, StatusKey = PackageStatus.Validating },
-                        new SymbolPackage { Key = 3, StatusKey = PackageStatus.Validating },
-                        new SymbolPackage { Key = 4, StatusKey = PackageStatus.Deleted },
-                        new SymbolPackage { Key = 5, StatusKey = PackageStatus.FailedValidation },
+                        new SymbolPackage { Key = 1, StatusKey = PackageStatus.Available, Package = new Package { PackageRegistration = new PackageRegistration { Id = "Symbol1" } } },
+                        new SymbolPackage { Key = 2, StatusKey = PackageStatus.Validating, Package = new Package { PackageRegistration = new PackageRegistration { Id = "Symbol2" } } },
+                        new SymbolPackage { Key = 3, StatusKey = PackageStatus.Validating, Package = new Package { PackageRegistration = new PackageRegistration { Id = "Symbol3" } } },
+                        new SymbolPackage { Key = 4, StatusKey = PackageStatus.Deleted, Package = new Package { PackageRegistration = new PackageRegistration { Id = "Symbol4" } } },
+                        new SymbolPackage { Key = 5, StatusKey = PackageStatus.FailedValidation, Package = new Package { PackageRegistration = new PackageRegistration { Id = "Symbol5" } } },
                     }.AsQueryable());
 
                 var failedCount = await _target.ForceFailValidationPendingAsync(ValidatingType.SymbolPackage);
@@ -129,6 +133,9 @@ namespace NuGetGallery.Areas.Admin.Services
                 _validationService.Verify(x => x.FailValidationAsync(It.IsAny<SymbolPackage>()), Times.Exactly(2));
                 _validationService.Verify(x => x.FailValidationAsync(It.Is<SymbolPackage>(p => p.Key == 2)), Times.Once);
                 _validationService.Verify(x => x.FailValidationAsync(It.Is<SymbolPackage>(p => p.Key == 3)), Times.Once);
+                _auditingService.Verify(
+                    x => x.SaveAuditRecordAsync(It.Is<PackageAuditRecord>(r => r.Action == AuditedPackageAction.SymbolsFailValidation)),
+                    Times.Exactly(2));
                 _symbolPackages.Verify(x => x.CommitChangesAsync(), Times.Once);
             }
 
@@ -243,6 +250,7 @@ namespace NuGetGallery.Areas.Admin.Services
             protected readonly Mock<IEntityRepository<Package>> _packages;
             protected readonly Mock<IEntityRepository<SymbolPackage>> _symbolPackages;
             protected readonly Mock<IValidationService> _validationService;
+            protected readonly Mock<IAuditingService> _auditingService;
             protected readonly ValidationAdminService _target;
 
             public FactsBase()
@@ -271,6 +279,7 @@ namespace NuGetGallery.Areas.Admin.Services
                 _packages = new Mock<IEntityRepository<Package>>();
                 _symbolPackages = new Mock<IEntityRepository<SymbolPackage>>();
                 _validationService = new Mock<IValidationService>();
+                _auditingService = new Mock<IAuditingService>();
 
                 _packages
                     .Setup(x => x.GetAll())
@@ -290,7 +299,8 @@ namespace NuGetGallery.Areas.Admin.Services
                     _validations.Object,
                     _packages.Object,
                     _symbolPackages.Object,
-                    _validationService.Object);
+                    _validationService.Object,
+                    _auditingService.Object);
             }
         }
     }
