@@ -216,6 +216,11 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    ZapClient.CSharpSDK 0.0.9                 |    06/29/2026    |   Malware  |
 |    ZapClient.CSharpSDK 0.1.1                 |    06/29/2026    |   Malware  |
 |    ZapClient.CSharpSDK 0.1.2                 |    06/29/2026    |   Malware  |
+|    TBank.Telephony.HttpClientLogger 8.5.3    |    07/08/2026    |   Malware  |
+|    TBank.Telephony.SortingHat.ApiClient 8.5.3|    07/08/2026    |   Malware  |
+|    TBank.Telephony.Vault.Configuration 8.5.3 |    07/08/2026    |   Malware  |
+|    Tcs.AutoFixture 8.5.3                     |    07/08/2026    |   Malware  |
+|    Tcs.Localization.JsonLocalizer 8.5.3       |    07/08/2026    |   Malware  |
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.
