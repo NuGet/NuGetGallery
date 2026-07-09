@@ -19,13 +19,17 @@ namespace NuGetGallery.Services.Authentication
 	[DebuggerDisplay("{NamespacePath,nq}/{ProjectPath,nq}")]
 	public class GitLabCriteria
 	{
+		public const int ValidationExpirationDays = 7;
+
 		private string _namespacePath = string.Empty;
+		private string? _namespaceId = null;
 		private string _projectPath = string.Empty;
+		private string? _projectId = null;
 		private string? _ref;
 		private string? _environment;
 
 		/// <summary>
-		/// GitLab namespace (group) path, e.g. "my-group" or "my-group/my-subgroup".
+		/// GitLab namespace (group or user) path, e.g. "my-group".
 		/// </summary>
 		[JsonPropertyName("namespacePath")]
 		public string NamespacePath
@@ -35,7 +39,17 @@ namespace NuGetGallery.Services.Authentication
 		}
 
 		/// <summary>
-		/// GitLab project path (without the namespace), e.g. "my-project".
+		/// GitLab namespace numeric ID. Obtained from the token on first use (TOFU).
+		/// </summary>
+		[JsonPropertyName("namespaceId")]
+		public string? NamespaceId
+		{
+			get => _namespaceId;
+			set => _namespaceId = NormalizeOptionalValue(value);
+		}
+
+		/// <summary>
+		/// GitLab project path (without namespace prefix), e.g. "my-project".
 		/// </summary>
 		[JsonPropertyName("projectPath")]
 		public string ProjectPath
@@ -45,8 +59,17 @@ namespace NuGetGallery.Services.Authentication
 		}
 
 		/// <summary>
-		/// Optional Git ref filter, e.g. "main" or "refs/heads/main".
-		/// Matched against the "ref" claim in the GitLab OIDC token.
+		/// GitLab project numeric ID. Obtained from the token on first use (TOFU).
+		/// </summary>
+		[JsonPropertyName("projectId")]
+		public string? ProjectId
+		{
+			get => _projectId;
+			set => _projectId = NormalizeOptionalValue(value);
+		}
+
+		/// <summary>
+		/// Optional GitLab ref (branch or tag), e.g. "main".
 		/// </summary>
 		[JsonPropertyName("ref")]
 		public string? Ref
@@ -57,13 +80,47 @@ namespace NuGetGallery.Services.Authentication
 
 		/// <summary>
 		/// Optional GitLab environment name, e.g. "production".
-		/// Matched against the "environment" claim in the GitLab OIDC token.
 		/// </summary>
 		[JsonPropertyName("environment")]
 		public string? Environment
 		{
 			get => _environment;
 			set => _environment = NormalizeOptionalValue(value);
+		}
+
+		/// <summary>
+		/// UTC date and time when the publisher details need to be validated by.
+		/// </summary>
+		/// <remarks>
+		/// GitLab policy is considered validated when namespace and project IDs are set.
+		/// The policy can be created without these IDs, and later validated upon first use
+		/// or user manually updating the policy.
+		/// </remarks>
+		[JsonPropertyName("validateBy")]
+		public DateTimeOffset? ValidateByDate { get; set; }
+
+		/// <summary>
+		/// GitLab policy is permanently enabled when both namespace and project IDs are set.
+		/// </summary>
+		public bool IsPermanentlyEnabled => !string.IsNullOrEmpty(NamespaceId) && !string.IsNullOrEmpty(ProjectId);
+
+		public int EnabledDaysLeft
+		{
+			get
+			{
+				if (IsPermanentlyEnabled)
+				{
+					return int.MaxValue;
+				}
+
+				if (ValidateByDate.HasValue)
+				{
+					var daysLeft = Math.Ceiling((ValidateByDate.Value - DateTimeOffset.UtcNow).TotalDays);
+					return Math.Max((int)daysLeft, 0);
+				}
+
+				return 0;
+			}
 		}
 
 		private static string? NormalizeOptionalValue(string? value)
@@ -91,7 +148,29 @@ namespace NuGetGallery.Services.Authentication
 				errors.Add("The GitLab project path is required.");
 			}
 
+			if (!IsPermanentlyEnabled && !ValidateByDate.HasValue)
+			{
+				errors.Add("The validate-by date is required.");
+			}
+
 			return errors.Count > 0 ? string.Join(" ", errors) : null;
+		}
+
+		/// <summary>
+		/// Initializes the validation date and resets IDs if not permanently enabled.
+		/// </summary>
+		internal void InitializeValidateByDate()
+		{
+			if (IsPermanentlyEnabled)
+			{
+				ValidateByDate = null;
+			}
+			else
+			{
+				NamespaceId = ProjectId = string.Empty;
+				DateTimeOffset date = DateTimeOffset.UtcNow + TimeSpan.FromDays(ValidationExpirationDays);
+				ValidateByDate = new DateTimeOffset(date.Year, date.Month, date.Day, date.Hour, 0, 0, TimeSpan.Zero);
+			}
 		}
 
 		public GitLabCriteria Clone()
@@ -99,9 +178,12 @@ namespace NuGetGallery.Services.Authentication
 			return new GitLabCriteria
 			{
 				_namespacePath = _namespacePath,
+				_namespaceId = _namespaceId,
 				_projectPath = _projectPath,
+				_projectId = _projectId,
 				_ref = _ref,
 				_environment = _environment,
+				ValidateByDate = this.ValidateByDate,
 			};
 		}
 

@@ -2,12 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Data.Entity.Infrastructure;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using NuGet.Services.Entities;
+using NuGetGallery.Auditing;
 
 #nullable enable
 
@@ -27,19 +29,27 @@ namespace NuGetGallery.Services.Authentication
 		public const string MetadataAddress = $"{Issuer}/.well-known/openid-configuration";
 
 		private const string NamespacePathClaim = "namespace_path";
+		private const string NamespaceIdClaim = "namespace_id";
 		private const string ProjectPathClaim = "project_path";
+		private const string ProjectIdClaim = "project_id";
 		private const string RefClaim = "ref";
 		private const string EnvironmentClaim = "environment";
 
+		private readonly IFederatedCredentialRepository _federatedCredentialRepository;
+		private readonly IAuditingService _auditingService;
 		private readonly IFeatureFlagService _featureFlagService;
 
 		public GitLabTokenPolicyValidator(
+			IFederatedCredentialRepository federatedCredentialRepository,
 			ConfigurationManager<OpenIdConnectConfiguration> oidcConfigManager,
 			IFederatedCredentialConfiguration configuration,
+			IAuditingService auditingService,
 			IFeatureFlagService featureFlagService,
 			JsonWebTokenHandler jsonWebTokenHandler)
 			: base(oidcConfigManager, configuration, jsonWebTokenHandler)
 		{
+			_federatedCredentialRepository = federatedCredentialRepository ?? throw new ArgumentNullException(nameof(federatedCredentialRepository));
+			_auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
 			_featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
 		}
 
@@ -57,6 +67,7 @@ namespace NuGetGallery.Services.Authentication
 
 			GitLabCriteria criteria = GitLabCriteria.FromDatabaseJson(policy.Criteria);
 			NormalizeProjectPath(criteria);
+			criteria.InitializeValidateByDate();
 			policy.Criteria = criteria.ToDatabaseJson();
 
 			if (criteria.Validate() is string error)
@@ -86,7 +97,6 @@ namespace NuGetGallery.Services.Authentication
 		{
 			string projectPath = criteria.ProjectPath;
 
-			// Strip "https://gitlab.com/" prefix if present
 			const string httpsGitLabPrefix = "https://gitlab.com/";
 			if (projectPath.StartsWith(httpsGitLabPrefix, StringComparison.OrdinalIgnoreCase))
 			{
@@ -95,7 +105,6 @@ namespace NuGetGallery.Services.Authentication
 
 			projectPath = projectPath.TrimEnd('/');
 
-			// If the user entered "my-group/my-project", strip the namespace prefix
 			if (projectPath.Contains("/") && !string.IsNullOrEmpty(criteria.NamespacePath))
 			{
 				string expectedPrefix = criteria.NamespacePath + "/";
@@ -131,23 +140,36 @@ namespace NuGetGallery.Services.Authentication
 			return result;
 		}
 
-		public override Task<FederatedCredentialPolicyResult> EvaluatePolicyAsync(FederatedCredentialPolicy policy, JsonWebToken jwt)
+		public override async Task<FederatedCredentialPolicyResult> EvaluatePolicyAsync(FederatedCredentialPolicy policy, JsonWebToken jwt)
 		{
 			if (policy.Type != FederatedCredentialType.GitLabCI)
 			{
-				return Task.FromResult(FederatedCredentialPolicyResult.NotApplicable);
+				return FederatedCredentialPolicyResult.NotApplicable;
 			}
 
+			// Check for required claims
 			string? error = TryGetRequiredClaim(jwt, NamespacePathClaim, out _);
 			if (error != null)
 			{
-				return Task.FromResult(FederatedCredentialPolicyResult.Unauthorized(error, isErrorDisclosable: true));
+				return FederatedCredentialPolicyResult.Unauthorized(error, isErrorDisclosable: true);
 			}
 
 			error = TryGetRequiredClaim(jwt, ProjectPathClaim, out _);
 			if (error != null)
 			{
-				return Task.FromResult(FederatedCredentialPolicyResult.Unauthorized(error, isErrorDisclosable: true));
+				return FederatedCredentialPolicyResult.Unauthorized(error, isErrorDisclosable: true);
+			}
+
+			error = TryGetRequiredClaim(jwt, NamespaceIdClaim, out string namespaceId);
+			if (error != null)
+			{
+				return FederatedCredentialPolicyResult.Unauthorized(error, isErrorDisclosable: true);
+			}
+
+			error = TryGetRequiredClaim(jwt, ProjectIdClaim, out string projectId);
+			if (error != null)
+			{
+				return FederatedCredentialPolicyResult.Unauthorized(error, isErrorDisclosable: true);
 			}
 
 			var criteria = GitLabCriteria.FromDatabaseJson(policy.Criteria);
@@ -156,7 +178,7 @@ namespace NuGetGallery.Services.Authentication
 			error = ValidateClaimExactMatch(jwt, NamespacePathClaim, criteria.NamespacePath, StringComparison.OrdinalIgnoreCase);
 			if (error != null)
 			{
-				return Task.FromResult(FederatedCredentialPolicyResult.Unauthorized(error));
+				return FederatedCredentialPolicyResult.Unauthorized(error);
 			}
 
 			// Validate project_path claim (GitLab's project_path is the full path: "namespace/project")
@@ -164,10 +186,65 @@ namespace NuGetGallery.Services.Authentication
 			error = ValidateClaimExactMatch(jwt, ProjectPathClaim, expectedProjectPath, StringComparison.OrdinalIgnoreCase);
 			if (error != null)
 			{
-				return Task.FromResult(FederatedCredentialPolicyResult.Unauthorized(error));
+				return FederatedCredentialPolicyResult.Unauthorized(error);
 			}
 
-			// IMPORTANT. By now we validated namespace and project path.
+			// TOFU: on first use, capture the numeric namespace and project IDs
+			if (!criteria.IsPermanentlyEnabled)
+			{
+				if (!criteria.ValidateByDate.HasValue || DateTimeOffset.UtcNow > criteria.ValidateByDate.Value)
+				{
+					return FederatedCredentialPolicyResult.Unauthorized(
+						$"The policy '{policy.PolicyName}' has expired. Sign in and renew the trust policy on the Trusted Publishing page.",
+						isErrorDisclosable: true);
+				}
+
+				// First use: lock down the policy to the numeric IDs from this token
+				criteria.NamespaceId = namespaceId;
+				criteria.ProjectId = projectId;
+				criteria.ValidateByDate = null;
+				policy.Criteria = criteria.ToDatabaseJson();
+				try
+				{
+					await _federatedCredentialRepository.SavePoliciesAsync();
+					await _auditingService.SaveAuditRecordAsync(FederatedCredentialPolicyAuditRecord.FirstUseUpdate(policy));
+				}
+				catch (DbUpdateConcurrencyException)
+				{
+					// Concurrent first-use scenario: re-read and verify both instances captured the same IDs.
+					var updatedPolicy = _federatedCredentialRepository.GetPolicyByKey(policy.Key);
+					if (updatedPolicy == null)
+					{
+						return FederatedCredentialPolicyResult.Unauthorized("The policy was not found after concurrent first use.");
+					}
+
+					var updatedCriteria = GitLabCriteria.FromDatabaseJson(updatedPolicy.Criteria);
+					if (!string.Equals(updatedCriteria.NamespaceId, criteria.NamespaceId, StringComparison.Ordinal) ||
+						!string.Equals(updatedCriteria.ProjectId, criteria.ProjectId, StringComparison.Ordinal))
+					{
+						return FederatedCredentialPolicyResult.Unauthorized(
+							$"The policy was updated with different namespace/project IDs during concurrent first use. " +
+							$"Expected {criteria.NamespaceId}/{criteria.ProjectId}, actual {updatedCriteria.NamespaceId}/{updatedCriteria.ProjectId}");
+					}
+				}
+			}
+			else
+			{
+				// Subsequent uses: validate against the locked-in numeric IDs
+				error = ValidateClaimExactMatch(jwt, NamespaceIdClaim, criteria.NamespaceId!, StringComparison.Ordinal);
+				if (error != null)
+				{
+					return FederatedCredentialPolicyResult.Unauthorized(error);
+				}
+
+				error = ValidateClaimExactMatch(jwt, ProjectIdClaim, criteria.ProjectId!, StringComparison.Ordinal);
+				if (error != null)
+				{
+					return FederatedCredentialPolicyResult.Unauthorized(error);
+				}
+			}
+
+			// IMPORTANT. By now we validated namespace and project path including IDs.
 			// From now on we can report errors as disclosable.
 
 			// Validate ref if specified in criteria
@@ -180,9 +257,9 @@ namespace NuGetGallery.Services.Authentication
 
 				if (!string.Equals(refValue, criteria.Ref, StringComparison.OrdinalIgnoreCase))
 				{
-					return Task.FromResult(FederatedCredentialPolicyResult.Unauthorized(
+					return FederatedCredentialPolicyResult.Unauthorized(
 						$"Ref mismatch for policy '{policy.PolicyName}': expected '{criteria.Ref}', actual '{refValue}'",
-						isErrorDisclosable: true));
+						isErrorDisclosable: true);
 				}
 			}
 
@@ -196,13 +273,13 @@ namespace NuGetGallery.Services.Authentication
 
 				if (!string.Equals(environment, criteria.Environment, StringComparison.OrdinalIgnoreCase))
 				{
-					return Task.FromResult(FederatedCredentialPolicyResult.Unauthorized(
+					return FederatedCredentialPolicyResult.Unauthorized(
 						$"Environment mismatch for policy '{policy.PolicyName}': expected '{criteria.Environment}', actual '{environment}'",
-						isErrorDisclosable: true));
+						isErrorDisclosable: true);
 				}
 			}
 
-			return Task.FromResult(FederatedCredentialPolicyResult.Success);
+			return FederatedCredentialPolicyResult.Success;
 		}
 	}
 }

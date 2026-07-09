@@ -635,8 +635,10 @@ namespace NuGetGallery
 
             builder
                 .Register(c => new GitLabTokenPolicyValidator(
+                    c.Resolve<IFederatedCredentialRepository>(),
                     c.ResolveKeyed<ConfigurationManager<OpenIdConnectConfiguration>>(GitLabCIKey),
                     c.Resolve<IFederatedCredentialConfiguration>(),
+                    c.Resolve<IAuditingService>(),
                     c.Resolve<IFeatureFlagService>(),
                     c.Resolve<JsonWebTokenHandler>()))
                 .As<ITokenPolicyValidator>()
