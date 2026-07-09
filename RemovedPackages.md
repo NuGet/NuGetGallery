@@ -221,6 +221,10 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    TBank.Telephony.Vault.Configuration 8.5.3 |    07/08/2026    |   Malware  |
 |    Tcs.AutoFixture 8.5.3                     |    07/08/2026    |   Malware  |
 |    Tcs.Localization.JsonLocalizer 8.5.3       |    07/08/2026    |   Malware  |
+|    DependencyInjector.Core 1.0.0             |    07/09/2026    |   Malware  |
+|    DependencyInjector.Core 1.3.0             |    07/09/2026    |   Malware  |
+|    DependencyInjector.Core 1.4.0             |    07/09/2026    |   Malware  |
+|    DependencyInjector.Core 1.4.1             |    07/09/2026    |   Malware  |
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.
