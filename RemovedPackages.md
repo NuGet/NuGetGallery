@@ -226,6 +226,7 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    DependencyInjector.Core 1.4.0             |    07/09/2026    |   Malware  |
 |    DependencyInjector.Core 1.4.1             |    07/09/2026    |   Malware  |
 |    Braintree.Net                             |    07/09/2026    |   Malware  |
+|    praboraEx 2.1.0                           |    07/09/2026    |   Malware  |
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.
