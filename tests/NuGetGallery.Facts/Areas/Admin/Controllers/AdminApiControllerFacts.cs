@@ -1690,11 +1690,15 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 var set = pkg.ValidationSets[0];
                 Assert.Equal(100, set.Key);
                 Assert.Equal("InProgress", set.ValidationSetStatus);
+                Assert.Equal("2026-01-01T00:00:00.0000000Z", set.Created);
+                Assert.Equal("2026-01-01T01:00:00.0000000Z", set.Updated);
                 Assert.Single(set.Validations);
 
                 var step = set.Validations[0];
                 Assert.Equal("PackageSigning", step.Type);
                 Assert.Equal("Incomplete", step.Status);
+                Assert.Equal("2026-01-01T00:00:00.0000000Z", step.Started);
+                Assert.Equal("2026-01-01T00:00:00.0000000Z", step.ValidationStatusTimestamp);
             }
 
             [Fact]

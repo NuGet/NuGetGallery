@@ -32,9 +32,9 @@ namespace NuGetGallery.Areas.Admin.Models
 
         public string ValidationSetStatus { get; set; }
 
-        public DateTime Created { get; set; }
+        public string Created { get; set; }
 
-        public DateTime Updated { get; set; }
+        public string Updated { get; set; }
 
         public List<AdminPendingValidationStepResult> Validations { get; set; }
     }
@@ -47,8 +47,8 @@ namespace NuGetGallery.Areas.Admin.Models
 
         public string Status { get; set; }
 
-        public DateTime? Started { get; set; }
+        public string Started { get; set; }
 
-        public DateTime ValidationStatusTimestamp { get; set; }
+        public string ValidationStatusTimestamp { get; set; }
     }
 }

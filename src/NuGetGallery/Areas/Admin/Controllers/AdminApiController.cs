@@ -456,8 +456,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
                             Key = s.Key,
                             ValidationTrackingId = s.ValidationTrackingId,
                             ValidationSetStatus = s.ValidationSetStatus.ToString(),
-                            Created = s.Created,
-                            Updated = s.Updated,
+                            Created = s.Created.ToString("O"),
+                            Updated = s.Updated.ToString("O"),
                             Validations = s.PackageValidations
                                 ?.OrderBy(v => v.Started)
                                 .Select(v => new AdminPendingValidationStepResult
@@ -465,8 +465,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
                                     Key = v.Key,
                                     Type = v.Type,
                                     Status = v.ValidationStatus.ToString(),
-                                    Started = v.Started,
-                                    ValidationStatusTimestamp = v.ValidationStatusTimestamp
+                                    Started = v.Started?.ToString("O"),
+                                    ValidationStatusTimestamp = v.ValidationStatusTimestamp.ToString("O")
                                 })
                                 .ToList() ?? []
                         })
