@@ -25,9 +25,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     .Setup(x => x.GetAll())
                     .Returns(() => new[]
                     {
-                        new Package { Key = 1, PackageStatusKey = PackageStatus.Available },
-                        new Package { Key = 2, PackageStatusKey = PackageStatus.Validating },
-                        new Package { Key = 3, PackageStatusKey = PackageStatus.Validating },
+                        new Package { Key = 1, PackageStatusKey = PackageStatus.Available, PackageRegistration = new PackageRegistration { Id = "Package1" } },
+                        new Package { Key = 2, PackageStatusKey = PackageStatus.Validating, PackageRegistration = new PackageRegistration { Id = "Package2" } },
+                        new Package { Key = 3, PackageStatusKey = PackageStatus.Validating, PackageRegistration = new PackageRegistration { Id = "Package3" } },
                     }.AsQueryable());
 
                 var result = await _target.ForceFailValidation(ValidatingType.Package);
@@ -46,8 +46,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     .Setup(x => x.GetAll())
                     .Returns(() => new[]
                     {
-                        new SymbolPackage { Key = 1, StatusKey = PackageStatus.Available },
-                        new SymbolPackage { Key = 2, StatusKey = PackageStatus.Validating },
+                        new SymbolPackage { Key = 1, StatusKey = PackageStatus.Available, Package = new Package { PackageRegistration = new PackageRegistration { Id = "Symbol1" } } },
+                        new SymbolPackage { Key = 2, StatusKey = PackageStatus.Validating, Package = new Package { PackageRegistration = new PackageRegistration { Id = "Symbol2" } } },
                     }.AsQueryable());
 
                 var result = await _target.ForceFailValidation(ValidatingType.SymbolPackage);
