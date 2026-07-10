@@ -156,7 +156,7 @@ namespace NuGetGallery
                 commitChanges: false);
         }
 
-        private List<Guid> GetValidationTrackingIds(int entityKey, ValidatingType validatingType)
+        private IEnumerable<Guid> GetValidationTrackingIds(int entityKey, ValidatingType validatingType)
         {
             // When asynchronous validation is disabled the immediate message emitter is used, which ignores the
             // tracking ID and never enqueues a message, so there is no validation set to look up.
