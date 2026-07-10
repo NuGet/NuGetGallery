@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -79,6 +79,30 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
 
             return RedirectToAction(nameof(Pending));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> ForceFailPackageValidation(int key, ValidatingType validatingType, string returnUrl = null)
+        {
+            var failed = await _validationAdminService.ForceFailValidationAsync(key, validatingType);
+
+            if (failed)
+            {
+                TempData["Message"] = $"The {validatingType} with key {key} was forced to the {PackageStatus.FailedValidation} state. " +
+                    "It may take some time for the new status to appear as the validation subsystem reacts to the change.";
+            }
+            else
+            {
+                TempData["Message"] = $"No {validatingType} with key {key} was found so no validation was failed.";
+            }
+
+            if (string.IsNullOrEmpty(returnUrl))
+            {
+                return RedirectToAction(nameof(Search));
+            }
+
+            return SafeRedirect(returnUrl);
         }
 
         [HttpGet]

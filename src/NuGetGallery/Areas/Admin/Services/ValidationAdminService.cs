@@ -184,6 +184,53 @@ namespace NuGetGallery.Areas.Admin.Services
             }
         }
 
+        public async Task<bool> ForceFailValidationAsync(int key, ValidatingType validatingType)
+        {
+            if (validatingType == ValidatingType.Package)
+            {
+                var package = _packages
+                    .GetAll()
+                    .Include(p => p.PackageRegistration)
+                    .FirstOrDefault(p => p.Key == key);
+
+                if (package == null)
+                {
+                    return false;
+                }
+
+                await _validationService.FailValidationAsync(package);
+                await _auditingService.SaveAuditRecordAsync(
+                    new PackageAuditRecord(package, AuditedPackageAction.FailValidation, ForceFailValidationReason));
+                await _packages.CommitChangesAsync();
+
+                return true;
+            }
+            else if (validatingType == ValidatingType.SymbolPackage)
+            {
+                var symbolPackage = _symbolPackages
+                    .GetAll()
+                    .Include(p => p.Package)
+                    .Include(p => p.Package.PackageRegistration)
+                    .FirstOrDefault(s => s.Key == key);
+
+                if (symbolPackage == null)
+                {
+                    return false;
+                }
+
+                await _validationService.FailValidationAsync(symbolPackage);
+                await _auditingService.SaveAuditRecordAsync(
+                    new PackageAuditRecord(symbolPackage.Package, AuditedPackageAction.SymbolsFailValidation, ForceFailValidationReason));
+                await _symbolPackages.CommitChangesAsync();
+
+                return true;
+            }
+            else
+            {
+                throw new NotSupportedException("The validating type " + validatingType + " is not supported.");
+            }
+        }
+
         public PackageDeletedStatus GetDeletedStatus(int key, ValidatingType validatingType)
         {
             switch (validatingType)

@@ -51,7 +51,7 @@
         @ViewHelpers.PostLink(
             this,
             formId: "force-fail-validation-package",
-            linkText: "Force Fail validation for pending packages",
+            linkText: "Cancel/Fail validation for pending packages",
             actionName: "ForceFailValidation",
             controllerName: "Validation",
             role: string.Empty,
@@ -65,7 +65,7 @@
         @ViewHelpers.PostLink(
             this,
             formId: "force-fail-validation-symbol-package",
-            linkText: "Force Fail validation for pending symbol packages",
+            linkText: "Cancel/Fail validation for pending symbol packages",
             actionName: "ForceFailValidation",
             controllerName: "Validation",
             role: string.Empty,
@@ -149,6 +149,21 @@
                                 { "returnUrl", Url.Current() },
                             })
                         <br />
+                        @ViewHelpers.PostLink(
+                            this,
+                            formId: "force-fail-package-form-" + package.PackageKey,
+                            linkText: "Cancel/Fail package validation",
+                            actionName: "ForceFailPackageValidation",
+                            controllerName: "Validation",
+                            role: string.Empty,
+                            area: "Admin",
+                            formValues: new Dictionary<string, string>
+                            {
+                                { "key", package.PackageKey.ToString() },
+                                { "validatingType", package.ValidatingType.ToString() },
+                                { "returnUrl", Url.Current() },
+                            })
+                        <br />
                     }
                     else if (package.ValidatingType == ValidatingType.SymbolPackage)
                     {
@@ -163,6 +178,21 @@
                             {
                                 { "id", package.Id },
                                 { "version", package.NormalizedVersion },
+                                { "returnUrl", Url.Current() },
+                            })
+                        <br />
+                        @ViewHelpers.PostLink(
+                            this,
+                            formId: "force-fail-symbols-form-" + package.PackageKey,
+                            linkText: "Cancel/fail symbols validation",
+                            actionName: "ForceFailPackageValidation",
+                            controllerName: "Validation",
+                            role: string.Empty,
+                            area: "Admin",
+                            formValues: new Dictionary<string, string>
+                            {
+                                { "key", package.PackageKey.ToString() },
+                                { "validatingType", package.ValidatingType.ToString() },
                                 { "returnUrl", Url.Current() },
                             })
                         <br />

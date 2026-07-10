@@ -117,16 +117,26 @@ namespace NuGetGallery
 
         public async Task FailValidationAsync(Package package)
         {
-            var validationTrackingId = GetValidationTrackingId(package.Key, ValidatingType.Package);
-            var packageStatus = await _packageValidationMessageEmitter.FailValidationAsync(package, validationTrackingId);
+            var validationTrackingIds = GetValidationTrackingIds(package.Key, ValidatingType.Package);
+
+            PackageStatus packageStatus = package.PackageStatusKey;
+            foreach (var validationTrackingId in validationTrackingIds)
+            {
+                packageStatus = await _packageValidationMessageEmitter.FailValidationAsync(package, validationTrackingId);
+            }
 
             await UpdatePackageInternalAsync(package, packageStatus);
         }
 
         public async Task FailValidationAsync(SymbolPackage symbolPackage)
         {
-            var validationTrackingId = GetValidationTrackingId(symbolPackage.Key, ValidatingType.SymbolPackage);
-            var symbolPackageStatus = await _symbolPackageValidationMessageEmitter.FailValidationAsync(symbolPackage, validationTrackingId);
+            var validationTrackingIds = GetValidationTrackingIds(symbolPackage.Key, ValidatingType.SymbolPackage);
+
+            PackageStatus symbolPackageStatus = symbolPackage.StatusKey;
+            foreach (var validationTrackingId in validationTrackingIds)
+            {
+                symbolPackageStatus = await _symbolPackageValidationMessageEmitter.FailValidationAsync(symbolPackage, validationTrackingId);
+            }
 
             await UpdateSymbolPackageInternalAsync(symbolPackage, symbolPackageStatus);
         }
@@ -146,34 +156,34 @@ namespace NuGetGallery
                 commitChanges: false);
         }
 
-        private Guid GetValidationTrackingId(int entityKey, ValidatingType validatingType)
+        private List<Guid> GetValidationTrackingIds(int entityKey, ValidatingType validatingType)
         {
             // When asynchronous validation is disabled the immediate message emitter is used, which ignores the
             // tracking ID and never enqueues a message, so there is no validation set to look up.
             if (_validationSets == null)
             {
-                return Guid.Empty;
+                return new List<Guid> { Guid.Empty };
             }
 
             // The orchestrator fails an *existing* validation set by its tracking ID. A package can have many
             // validation sets over its lifetime, but only an incomplete one keeps the package in the
-            // Validating state, so we target the most recent set that has not yet completed rather than blindly
+            // Validating state, so we target every set that has not yet completed rather than blindly
             // the latest set (which may already be in a terminal state).
-            var validationTrackingId = _validationSets
+            var validationTrackingIds = _validationSets
                 .GetAll()
                 .Where(s => s.PackageKey == entityKey && s.ValidatingType == validatingType)
                 .Where(s => s.ValidationSetStatus != ValidationSetStatus.Completed)
                 .OrderByDescending(s => s.Created)
-                .Select(s => (Guid?)s.ValidationTrackingId)
-                .FirstOrDefault();
+                .Select(s => s.ValidationTrackingId)
+                .ToList();
 
-            if (validationTrackingId == null)
+            if (validationTrackingIds.Count == 0)
             {
                 throw new InvalidOperationException(
                     $"No incomplete validation set was found for {validatingType} with key {entityKey}; unable to fail its validation.");
             }
 
-            return validationTrackingId.Value;
+            return validationTrackingIds;
         }
 
         private IReadOnlyList<ValidationIssue> GetValidationIssues(int entityKey, PackageStatus status, ValidatingType validatingType)
