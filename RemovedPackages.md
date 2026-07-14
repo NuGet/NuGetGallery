@@ -227,6 +227,17 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    DependencyInjector.Core 1.4.1             |    07/09/2026    |   Malware  |
 |    Braintree.Net                             |    07/09/2026    |   Malware  |
 |    praboraEx 2.1.0                           |    07/09/2026    |   Malware  |
+|    albion-x-x                                |    07/14/2026    |   Malware  |
+|    amazing-x-x                               |    07/14/2026    |   Malware  |
+|    l2-x-x                                    |    07/14/2026    |   Malware  |
+|    rmrp-x-x                                  |    07/14/2026    |   Malware  |
+|    gta5rp-x-x                                |    07/14/2026    |   Malware  |
+|    grandrp-x-x                               |    07/14/2026    |   Malware  |
+|    majestic-x-x                              |    07/14/2026    |   Malware  |
+|    trigger-x-x                               |    07/14/2026    |   Malware  |
+|    rusfish4-x-x                              |    07/14/2026    |   Malware  |
+|    throne-x-x                                |    07/14/2026    |   Malware  |
+|    calc-x-x                                  |    07/14/2026    |   Malware  |
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.
