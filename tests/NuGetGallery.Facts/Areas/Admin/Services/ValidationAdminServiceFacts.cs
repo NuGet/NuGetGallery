@@ -85,67 +85,6 @@ namespace NuGetGallery.Areas.Admin.Services
             }
         }
 
-        public class TheForceFailValidationPendingMethod : FactsBase
-        {
-            [Fact]
-            public async Task FailsValidatingPackagesAsync()
-            {
-                _packages
-                    .Setup(x => x.GetAll())
-                    .Returns(() => new[]
-                    {
-                        new Package { Key = 1, PackageStatusKey = PackageStatus.Available, PackageRegistration = new PackageRegistration { Id = "Package1" } },
-                        new Package { Key = 2, PackageStatusKey = PackageStatus.Validating, PackageRegistration = new PackageRegistration { Id = "Package2" } },
-                        new Package { Key = 3, PackageStatusKey = PackageStatus.Validating, PackageRegistration = new PackageRegistration { Id = "Package3" } },
-                        new Package { Key = 4, PackageStatusKey = PackageStatus.Deleted, PackageRegistration = new PackageRegistration { Id = "Package4" } },
-                        new Package { Key = 5, PackageStatusKey = PackageStatus.FailedValidation, PackageRegistration = new PackageRegistration { Id = "Package5" } },
-                    }.AsQueryable());
-
-                var failedCount = await _target.ForceFailValidationPendingAsync(ValidatingType.Package);
-
-                Assert.Equal(2, failedCount);
-                _validationService.Verify(x => x.FailValidationAsync(It.IsAny<Package>()), Times.Exactly(2));
-                _validationService.Verify(x => x.FailValidationAsync(It.Is<Package>(p => p.Key == 2)), Times.Once);
-                _validationService.Verify(x => x.FailValidationAsync(It.Is<Package>(p => p.Key == 3)), Times.Once);
-                _auditingService.Verify(
-                    x => x.SaveAuditRecordAsync(It.Is<PackageAuditRecord>(r => r.Action == AuditedPackageAction.FailValidation)),
-                    Times.Exactly(2));
-                _packages.Verify(x => x.CommitChangesAsync(), Times.Once);
-            }
-
-            [Fact]
-            public async Task FailsValidatingSymbolsPackagesAsync()
-            {
-                _symbolPackages
-                    .Setup(x => x.GetAll())
-                    .Returns(() => new[]
-                    {
-                        new SymbolPackage { Key = 1, StatusKey = PackageStatus.Available, Package = new Package { PackageRegistration = new PackageRegistration { Id = "Symbol1" } } },
-                        new SymbolPackage { Key = 2, StatusKey = PackageStatus.Validating, Package = new Package { PackageRegistration = new PackageRegistration { Id = "Symbol2" } } },
-                        new SymbolPackage { Key = 3, StatusKey = PackageStatus.Validating, Package = new Package { PackageRegistration = new PackageRegistration { Id = "Symbol3" } } },
-                        new SymbolPackage { Key = 4, StatusKey = PackageStatus.Deleted, Package = new Package { PackageRegistration = new PackageRegistration { Id = "Symbol4" } } },
-                        new SymbolPackage { Key = 5, StatusKey = PackageStatus.FailedValidation, Package = new Package { PackageRegistration = new PackageRegistration { Id = "Symbol5" } } },
-                    }.AsQueryable());
-
-                var failedCount = await _target.ForceFailValidationPendingAsync(ValidatingType.SymbolPackage);
-
-                Assert.Equal(2, failedCount);
-                _validationService.Verify(x => x.FailValidationAsync(It.IsAny<SymbolPackage>()), Times.Exactly(2));
-                _validationService.Verify(x => x.FailValidationAsync(It.Is<SymbolPackage>(p => p.Key == 2)), Times.Once);
-                _validationService.Verify(x => x.FailValidationAsync(It.Is<SymbolPackage>(p => p.Key == 3)), Times.Once);
-                _auditingService.Verify(
-                    x => x.SaveAuditRecordAsync(It.Is<PackageAuditRecord>(r => r.Action == AuditedPackageAction.SymbolsFailValidation)),
-                    Times.Exactly(2));
-                _symbolPackages.Verify(x => x.CommitChangesAsync(), Times.Once);
-            }
-
-            [Fact]
-            public async Task RejectsUnknownPackageStatusKey()
-            {
-                await Assert.ThrowsAsync<NotSupportedException>(() => _target.ForceFailValidationPendingAsync(ValidatingType.Generic));
-            }
-        }
-
         public class TheGetPackageDeletedStatusMethod : FactsBase
         {
             [Fact]

@@ -64,25 +64,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<RedirectToRouteResult> ForceFailValidation(ValidatingType validatingType)
-        {
-            var failedCount = await _validationAdminService.ForceFailValidationPendingAsync(validatingType);
-
-            if (failedCount == 0)
-            {
-                TempData["Message"] = $"There are no {validatingType} instances that are in the {PackageStatus.Validating} state so no validations were failed.";
-            }
-            else
-            {
-                TempData["Message"] = $"{failedCount} {validatingType} instances that are in the {PackageStatus.Validating} state were forced to {PackageStatus.FailedValidation}. " +
-                    "It may take some time for the new statuses to appear as the validation subsystem reacts to the enqueued messages.";
-            }
-
-            return RedirectToAction(nameof(Pending));
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> ForceFailPackageValidation(int key, ValidatingType validatingType, string returnUrl = null)
         {
             var failed = await _validationAdminService.ForceFailValidationAsync(key, validatingType);

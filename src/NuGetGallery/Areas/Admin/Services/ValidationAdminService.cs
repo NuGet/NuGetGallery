@@ -131,59 +131,6 @@ namespace NuGetGallery.Areas.Admin.Services
             }
         }
 
-        public async Task<int> ForceFailValidationPendingAsync(ValidatingType validatingType)
-        {
-            if (validatingType == ValidatingType.Package)
-            {
-                var pendingPackages = _packages
-                    .GetAll()
-                    .Include(p => p.PackageRegistration)
-                    .Where(p => p.PackageStatusKey == PackageStatus.Validating)
-                    .ToList();
-
-                foreach (var package in pendingPackages)
-                {
-                    await _validationService.FailValidationAsync(package);
-                    await _auditingService.SaveAuditRecordAsync(
-                        new PackageAuditRecord(package, AuditedPackageAction.FailValidation, ForceFailValidationReason));
-                }
-
-                if (pendingPackages.Count > 0)
-                {
-                    await _packages.CommitChangesAsync();
-                }
-
-                return pendingPackages.Count;
-            }
-            else if (validatingType == ValidatingType.SymbolPackage)
-            {
-                var pendingSymbolPackages = _symbolPackages
-                    .GetAll()
-                    .Include(p => p.Package)
-                    .Include(p => p.Package.PackageRegistration)
-                    .Where(s => s.StatusKey == PackageStatus.Validating)
-                    .ToList();
-
-                foreach (var symbolPackage in pendingSymbolPackages)
-                {
-                    await _validationService.FailValidationAsync(symbolPackage);
-                    await _auditingService.SaveAuditRecordAsync(
-                        new PackageAuditRecord(symbolPackage.Package, AuditedPackageAction.SymbolsFailValidation, ForceFailValidationReason));
-                }
-
-                if (pendingSymbolPackages.Count > 0)
-                {
-                    await _symbolPackages.CommitChangesAsync();
-                }
-
-                return pendingSymbolPackages.Count;
-            }
-            else
-            {
-                throw new NotSupportedException("The validating type " + validatingType + " is not supported.");
-            }
-        }
-
         public async Task<bool> ForceFailValidationAsync(int key, ValidatingType validatingType)
         {
             if (validatingType == ValidatingType.Package)
