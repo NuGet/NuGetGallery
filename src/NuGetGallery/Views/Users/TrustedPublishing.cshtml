@@ -36,7 +36,8 @@
             }
             else
             {
-                <div data-bind="template: 'error-container'"></div>
+                <%-- Persistent aria-live region so screen readers announce errors injected by Knockout --%>
+                <div aria-live="assertive" aria-atomic="true" data-bind="template: 'error-container'"></div>
 
                 if (Model.PackageOwners == null || Model.PackageOwners.Count == 0)
                 {
@@ -232,14 +233,18 @@
             <div class="col-sm-7 form-group">
                 <label class="control-label required" data-bind="attr: { for: PolicyNameUid,
                                           id: PolicyNameUid() + '-label' }">Policy Name</label>
-                <input type="text" class="form-control input-brand" data-bind="attr: { id: PolicyNameUid,
+                <input type="text" class="form-control input-brand" aria-required="true"
+                       data-bind="attr: { id: PolicyNameUid,
                                           name: PolicyNameUid,
-                                          'aria-labelledby': PolicyNameUid() + '-label ' + PolicyNameUid() + '-validation-message' },
+                                          'aria-labelledby': PolicyNameUid() + '-label',
+                                          'aria-describedby': PolicyNameUid() + '-validation-message' },
                                           trimmedValue: PendingPolicyName"
                        data-val-required="Name is required."
                        data-val-length-max="@FederatedCredentialPolicy.MaxPolicyNameLength"
                        data-val-length="Name must not exceed @FederatedCredentialPolicy.MaxPolicyNameLength characters." data-val="true" />
-                <span class="field-validation-valid help-block" data-valmsg-replace="true" data-bind="attr: { 'data-valmsg-for': PolicyNameUid,
+                <span class="field-validation-valid help-block" role="alert" aria-live="assertive"
+                      data-valmsg-replace="true"
+                      data-bind="attr: { 'data-valmsg-for': PolicyNameUid,
                                          id: PolicyNameUid() + '-validation-message' }"></span>
                 <span>Choose any name to help you identify this policy</span>
             </div>
@@ -251,12 +256,16 @@
             <div class="col-sm-7 form-group">
                 <label class="required" data-bind="attr: { for: PackageOwnerUid,
                                             id: PackageOwnerUid() + '-label' }">Package Owner</label>
-                <select class="form-control select-brand" aria-required="true" data-bind="attr: { id: PackageOwnerUid,
+                <select class="form-control select-brand" aria-required="true"
+                        data-bind="attr: { id: PackageOwnerUid,
                                                   name: PackageOwnerUid,
-                                                  'aria-labelledby': PackageOwnerUid() + '-label' },
+                                                  'aria-labelledby': PackageOwnerUid() + '-label',
+                                                  'aria-describedby': PackageOwnerUid() + '-validation-message' },
                                           options: PackageOwners, value: PackageOwner, optionsCaption: 'Select an owner...' "></select>
                 <div class="has-error-brand">
-                    <span class="field-validation-valid help-block" data-bind="text: PackageOwner() ?  '' : 'Package owner should be provided.'" aria-live="polite" role="alert"></span>
+                    <span class="field-validation-valid help-block" role="alert"
+                          data-bind="text: PackageOwner() ? '' : 'Package owner should be provided.',
+                                     attr: { id: PackageOwnerUid() + '-validation-message' }"></span>
                 </div>
                 <span>The owner of packages allowed for publishing or updates</span>
             </div>
@@ -279,11 +288,16 @@
                                           id: gitHub.RepositoryOwnerUid() + '-label' }">Repository Owner</label>
                 <br />
                 <span>Example: <span class="example-text">azure</span>. The GitHub organization or owner name. </span>
-                <input type="text" class="form-control input-brand" data-bind="attr: { id: gitHub.RepositoryOwnerUid(),
+                <input type="text" class="form-control input-brand" aria-required="true"
+                       data-bind="attr: { id: gitHub.RepositoryOwnerUid(),
                                           name: gitHub.RepositoryOwnerUid(),
-                                          'aria-labelledby': gitHub.RepositoryOwnerUid() + '-label ' + gitHub.RepositoryOwnerUid() + '-validation-message' },
-                                          trimmedValue: gitHub.PendingRepositoryOwner" data-val-required="Repository owner is required." data-val="true" />
-                <span class="field-validation-valid help-block" data-valmsg-replace="true" data-bind="attr: { 'data-valmsg-for': gitHub.RepositoryOwnerUid(),
+                                          'aria-labelledby': gitHub.RepositoryOwnerUid() + '-label',
+                                          'aria-describedby': gitHub.RepositoryOwnerUid() + '-validation-message' },
+                                          trimmedValue: gitHub.PendingRepositoryOwner"
+                       data-val-required="Repository owner is required." data-val="true" />
+                <span class="field-validation-valid help-block" role="alert" aria-live="assertive"
+                      data-valmsg-replace="true"
+                      data-bind="attr: { 'data-valmsg-for': gitHub.RepositoryOwnerUid(),
                                          id: gitHub.RepositoryOwnerUid() + '-validation-message' }" />
             </div>
         </div>
@@ -295,11 +309,16 @@
                                           id: gitHub.RepositoryUid() + '-label' }">Repository</label>
                 <br />
                 <span>Example: <span class="example-text">azure-sdk-tools</span>. The GitHub repository name.</span>
-                <input type="text" class="form-control input-brand" data-bind="attr: { id: gitHub.RepositoryUid(),
+                <input type="text" class="form-control input-brand" aria-required="true"
+                       data-bind="attr: { id: gitHub.RepositoryUid(),
                                           name: gitHub.RepositoryUid(),
-                                          'aria-labelledby': gitHub.RepositoryUid() + '-label ' + gitHub.RepositoryUid() + '-validation-message' },
-                                          trimmedValue: gitHub.PendingRepository" data-val-required="Repository is required." data-val="true" />
-                <span class="field-validation-valid help-block" data-valmsg-replace="true" data-bind="attr: { 'data-valmsg-for': gitHub.RepositoryUid(),
+                                          'aria-labelledby': gitHub.RepositoryUid() + '-label',
+                                          'aria-describedby': gitHub.RepositoryUid() + '-validation-message' },
+                                          trimmedValue: gitHub.PendingRepository"
+                       data-val-required="Repository is required." data-val="true" />
+                <span class="field-validation-valid help-block" role="alert" aria-live="assertive"
+                      data-valmsg-replace="true"
+                      data-bind="attr: { 'data-valmsg-for': gitHub.RepositoryUid(),
                                          id: gitHub.RepositoryUid() + '-validation-message' }" />
             </div>
         </div>
@@ -314,11 +333,16 @@
                     Example: <span class="example-text">build.yml</span>. The file name that contains publishing workflow
                     and exists in the <span class="example-text">.github/workflows/</span> directory.
                 </span>
-                <input type="text" class="form-control input-brand" data-bind="attr: { id: gitHub.WorkflowFileUid(),
+                <input type="text" class="form-control input-brand" aria-required="true"
+                       data-bind="attr: { id: gitHub.WorkflowFileUid(),
                                           name: gitHub.WorkflowFileUid(),
-                                          'aria-labelledby': gitHub.WorkflowFileUid() + '-label ' + gitHub.WorkflowFileUid() + '-validation-message' },
-                                          trimmedValue: gitHub.PendingWorkflowFile" data-val-required="Workflow file is required." data-val="true" />
-                <span class="field-validation-valid help-block" data-valmsg-replace="true" data-bind="attr: { 'data-valmsg-for': gitHub.WorkflowFileUid(),
+                                          'aria-labelledby': gitHub.WorkflowFileUid() + '-label',
+                                          'aria-describedby': gitHub.WorkflowFileUid() + '-validation-message' },
+                                          trimmedValue: gitHub.PendingWorkflowFile"
+                       data-val-required="Workflow file is required." data-val="true" />
+                <span class="field-validation-valid help-block" role="alert" aria-live="assertive"
+                      data-valmsg-replace="true"
+                      data-bind="attr: { 'data-valmsg-for': gitHub.WorkflowFileUid(),
                                          id: gitHub.WorkflowFileUid() + '-validation-message' }" />
             </div>
         </div>
