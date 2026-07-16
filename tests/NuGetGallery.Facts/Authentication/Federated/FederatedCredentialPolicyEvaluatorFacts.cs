@@ -497,7 +497,7 @@ namespace NuGetGallery.Services.Authentication
                 // Verify that policy evaluation was logged
                 Assert.Contains(Logger.Invocations, invocation =>
                     invocation.Arguments[0].Equals(LogLevel.Information) &&
-                    invocation.Arguments[2].ToString()!.StartsWith("Evaluated policy"));
+                    invocation.Arguments[2].ToString()!.StartsWith("Evaluated policy", StringComparison.Ordinal));
 
                 AssertValidCredentialAudits(matchedPolicy: true);
             }

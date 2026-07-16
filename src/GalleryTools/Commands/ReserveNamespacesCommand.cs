@@ -191,7 +191,7 @@ namespace GalleryTools.Commands
 
                     var value = line.Trim();
                     var isPrefix = false;
-                    if (line.EndsWith("*"))
+                    if (line.EndsWith("*", StringComparison.Ordinal))
                     {
                         value = value.Substring(0, value.Length - 1);
                         isPrefix = true;
@@ -202,7 +202,7 @@ namespace GalleryTools.Commands
                     if (isPrefix)
                     {
                         // Prefix reserved namespaces can end with '-' and '.'. Package IDs cannot.
-                        if (value.EndsWith("-") || value.EndsWith("."))
+                        if (value.EndsWith("-", StringComparison.Ordinal) || value.EndsWith(".", StringComparison.Ordinal))
                         {
                             validatedPrefix = validatedPrefix.Substring(0, validatedPrefix.Length - 1);
                         }

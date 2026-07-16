@@ -22,7 +22,7 @@ namespace NuGet.Services.DatabaseMigration.Facts
         [MemberData(nameof(NullMigrations))]
         public void ValidateMigrationsThrowNullExceptions(List<string> databaseMigrations, List<string> localMigrations)
         {
-            var exception = Assert.Throws<ArgumentNullException>(() => _migrationJob.CheckIsValidMigration(databaseMigrations, localMigrations));
+            Assert.Throws<ArgumentNullException>(() => _migrationJob.CheckIsValidMigration(databaseMigrations, localMigrations));
         }
 
         public static IEnumerable<object[]> NullMigrations
@@ -40,6 +40,7 @@ namespace NuGet.Services.DatabaseMigration.Facts
         public void ValidateMigrationsThrowInvalidOperationExceptions(List<string> databaseMigrations, List<string> localMigrations, string expectedExceptionMessage)
         {
             var exception = Assert.Throws<InvalidOperationException>(() => _migrationJob.CheckIsValidMigration(databaseMigrations, localMigrations));
+
             Assert.Equal(expectedExceptionMessage, exception.Message);
         }
 
@@ -47,13 +48,12 @@ namespace NuGet.Services.DatabaseMigration.Facts
         {
             get
             {
-                // Code commented out because it produces a bug, check work item: https://github.com/orgs/NuGet/projects/21/views/1?filterQuery=assignee%3A%40me+milestone%3A%22Sprint+2025-12%22&pane=issue&itemId=143291780&issue=NuGet%7CEngineering%7C6225
-                //yield return new object[] { new List<string>(),
-                //    new List<string> { "2011_Migration_1", "2012_Migration_2" },
-                //    "Migration validation failed: Unexpected empty history of database migrations."};
-                //yield return new object[] { new List<string>() { "2011_Migration_1", "2012_Migration_2"},
-                //    new List<string>(),
-                //    "Migration validation failed: Unexpected empty history of local migrations."};
+                yield return new object[] { new List<string>(),
+                    new List<string> { "2011_Migration_1", "2012_Migration_2" },
+                    "Migration validation failed: Unexpected empty history of database migrations."};
+                yield return new object[] { new List<string>() { "2011_Migration_1", "2012_Migration_2"},
+                    new List<string>(),
+                    "Migration validation failed: Unexpected empty history of local migrations."};
                 yield return new object[] { new List<string>() { "2011_Migration_1", "2012_Migration_3" },
                     new List<string>() { "2011_Migration_2", "2012_Migration_3"},
                     "Migration validation failed: Mismatch local migration file: 2011_Migration_2 and database migration file: 2011_Migration_1." };
@@ -69,20 +69,22 @@ namespace NuGet.Services.DatabaseMigration.Facts
             }
         }
 
+        [Fact]
+        public void ValidateMigrationsWhenInitializingNewDatabase()
+        {
+            _migrationJob.SetInitializeNewDatabase(initializeNewDatabase: true);
+            var exception = Record.Exception(() => _migrationJob.CheckIsValidMigration(new List<string>(), new List<string> { "2011_Migration_1", "2012_Migration_2" }));
+
+            Assert.Null(exception);
+        }
+
         [Theory]
         [MemberData(nameof(ValidMigrations))]
         public void ValidateMigrationsDoesNotThrowExceptions(List<string> databaseMigrations, List<string> localMigrations)
         {
-            try
-            {
-                _migrationJob.CheckIsValidMigration(databaseMigrations, localMigrations);
-            }
-            catch (Exception)
-            {
-                Assert.True(false);
-            }
+            var exception = Record.Exception(() => _migrationJob.CheckIsValidMigration(databaseMigrations, localMigrations));
 
-            Assert.True(true);
+            Assert.Null(exception);
         }
 
         public static IEnumerable<object[]> ValidMigrations

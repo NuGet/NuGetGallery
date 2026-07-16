@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+
 namespace Stats.AzureCdnLogs.Common.Collect
 {
     /// <summary>
@@ -89,7 +91,7 @@ namespace Stats.AzureCdnLogs.Common.Collect
 
         public static string Quote(string input)
         {
-            if (input.StartsWith("\"") && input.EndsWith("\""))
+            if (input.StartsWith("\"", StringComparison.Ordinal) && input.EndsWith("\"", StringComparison.Ordinal))
             {
                 // already quoted
                 return input;

@@ -248,7 +248,7 @@ namespace NuGetGallery.Services
                 var registrations = ReservedNamespaceServiceTestData.GetRegistrations();
                 var msPrefix = namespaces.First();
                 msPrefix.IsSharedNamespace = isSharedNamespace;
-                msPrefix.PackageRegistrations = registrations.Where(x => x.Id.StartsWith(msPrefix.Value)).ToList();
+                msPrefix.PackageRegistrations = registrations.Where(x => x.Id.StartsWith(msPrefix.Value, StringComparison.Ordinal)).ToList();
                 msPrefix.PackageRegistrations.ToList().ForEach(x => x.ReservedNamespaces.Add(msPrefix));
 
                 var service = new TestableReservedNamespaceService(reservedNamespaces: namespaces, packageRegistrations: registrations);

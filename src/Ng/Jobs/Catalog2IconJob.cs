@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -34,7 +34,7 @@ namespace Ng.Jobs
 
         protected override void Init(IDictionary<string, string> arguments, CancellationToken cancellationToken)
         {
-            ServicePointManager.DefaultConnectionLimit = DegreeOfParallelism;
+            CatalogParallelism.Degree = DegreeOfParallelism;
 
             var verbose = arguments.GetOrDefault(Arguments.Verbose, false);
             var packageStorageBase = arguments.GetOrThrow<string>(Arguments.ContentBaseAddress);

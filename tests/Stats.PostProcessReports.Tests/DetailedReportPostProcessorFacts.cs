@@ -125,7 +125,7 @@ namespace Stats.PostProcessReports.Tests
                 "file2.json",
                 "file3.txt"
             };
-            var filesToCopy = _sourceFiles.Count(f => f.EndsWith(".json"));
+            var filesToCopy = _sourceFiles.Count(f => f.EndsWith(".json", StringComparison.Ordinal));
 
             await _target.CopyReportsAsync();
 

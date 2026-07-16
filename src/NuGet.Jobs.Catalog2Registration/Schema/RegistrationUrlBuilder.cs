@@ -58,7 +58,7 @@ namespace NuGet.Jobs.Catalog2Registration
             }
 
             var baseUrl = GetBaseUrl(hive);
-            Guard.Assert(url.StartsWith(baseUrl), $"URL '{url}' does not start with expected base URL '{baseUrl}'.");
+            Guard.Assert(url.StartsWith(baseUrl, StringComparison.Ordinal), $"URL '{url}' does not start with expected base URL '{baseUrl}'.");
             return url.Substring(baseUrl.Length);
         }
 

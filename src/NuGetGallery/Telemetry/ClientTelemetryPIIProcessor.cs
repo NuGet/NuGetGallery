@@ -97,7 +97,7 @@ namespace NuGetGallery
                 return;
             }
 
-            if (!uri.Host.EndsWith("gravatar.com") || !uri.AbsolutePath.StartsWith("/avatar/"))
+            if (!uri.Host.EndsWith("gravatar.com", StringComparison.Ordinal) || !uri.AbsolutePath.StartsWith("/avatar/", StringComparison.Ordinal))
             {
                 return;
             }

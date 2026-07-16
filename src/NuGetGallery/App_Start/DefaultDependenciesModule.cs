@@ -326,9 +326,24 @@ namespace NuGetGallery
                 .As<IPackageFilter>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<LockPackageService>()
+                .As<ILockPackageService>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<LockUserService>()
+                .As<ILockUserService>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<ReflowPackageService>()
+                .As<IReflowPackageService>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<PackageDeleteService>()
-                .AsSelf()
                 .As<IPackageDeleteService>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<UpdateListedService>()
+                .As<IUpdateListedService>()
                 .InstancePerLifetimeScope();
 
             RegisterDeleteAccountService(builder, configuration);
@@ -1187,20 +1202,20 @@ namespace NuGetGallery
                 builder
                     .Register(c =>
                     {
-                        return new AsynchronousPackageValidationInitiator<Package>(
+                        return new AsynchronousValidationMessageEmitter<Package>(
                             c.ResolveKeyed<IPackageValidationEnqueuer>(BindingKeys.PackageValidationEnqueuer),
                             c.Resolve<IAppConfiguration>(),
                             c.Resolve<IDiagnosticsService>());
-                    }).As<IPackageValidationInitiator<Package>>();
+                    }).As<IValidationMessageEmitter<Package>>();
 
                 builder
                     .Register(c =>
                     {
-                        return new AsynchronousPackageValidationInitiator<SymbolPackage>(
+                        return new AsynchronousValidationMessageEmitter<SymbolPackage>(
                             c.ResolveKeyed<IPackageValidationEnqueuer>(BindingKeys.SymbolsPackageValidationEnqueuer),
                             c.Resolve<IAppConfiguration>(),
                             c.Resolve<IDiagnosticsService>());
-                    }).As<IPackageValidationInitiator<SymbolPackage>>();
+                    }).As<IValidationMessageEmitter<SymbolPackage>>();
 
                 // we retrieve the values here (on main thread) because otherwise it would run in another thread
                 // and potentially cause a deadlock on async operation.
@@ -1225,10 +1240,10 @@ namespace NuGetGallery
             }
             else
             {
-                // This will register all the instances of ImmediatePackageValidator<T> as IPackageValidationInitiator<T> where T is a typeof(IPackageEntity)
+                // This will register all the instances of ImmediateValidationMessageEmitter<T> as IValidationMessageEmitter<T> where T is a typeof(IPackageEntity)
                 builder
-                    .RegisterGeneric(typeof(ImmediatePackageValidator<>))
-                    .As(typeof(IPackageValidationInitiator<>));
+                    .RegisterGeneric(typeof(ImmediateValidationMessageEmitter<>))
+                    .As(typeof(IValidationMessageEmitter<>));
             }
 
             builder.RegisterType<ValidationAdminService>()

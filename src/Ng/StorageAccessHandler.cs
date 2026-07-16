@@ -23,7 +23,7 @@ namespace Ng
         {
             string requestUri = request.RequestUri.AbsoluteUri;
 
-            if (requestUri.StartsWith(_catalogBaseAddress))
+            if (requestUri.StartsWith(_catalogBaseAddress, StringComparison.Ordinal))
             {
                 string newRequestUri = _storageBaseAddress + requestUri.Substring(_catalogBaseAddress.Length);
                 request.RequestUri = new Uri(newRequestUri);

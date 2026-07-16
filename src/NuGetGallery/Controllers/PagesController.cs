@@ -63,6 +63,12 @@ namespace NuGetGallery
         }
 
         [HttpGet]
+        public virtual ActionResult YourPrivacyChoices()
+        {
+            return View();
+        }
+
+        [HttpGet]
         public virtual ActionResult Contact()
         {
             return View(new ContactSupportViewModel());

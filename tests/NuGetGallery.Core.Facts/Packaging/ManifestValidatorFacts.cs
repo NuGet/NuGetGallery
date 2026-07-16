@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -45,6 +45,21 @@ namespace NuGetGallery.Packaging
                     <package xmlns=""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
                       <metadata>
                         <id>not a valid id</id>
+                        <version>1.0.1-alpha</version>
+                        <title>Package A</title>
+                        <authors>ownera, ownerb</authors>
+                        <owners>ownera, ownerb</owners>
+                        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+                        <description>package A description.</description>
+                        <language>en-US</language>
+                        <dependencies />
+                      </metadata>
+                    </package>";
+
+        private const string NuSpecIdInvalidWithUnicode = @"<?xml version=""1.0""?>
+                    <package xmlns=""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
+                      <metadata>
+                        <id>páckage</id>
                         <version>1.0.1-alpha</version>
                         <title>Package A</title>
                         <authors>ownera, ownerb</authors>
@@ -380,12 +395,13 @@ namespace NuGetGallery.Packaging
             Assert.Equal(new[] { CoreStrings.Manifest_IdTooLong }, GetErrors(nuspecStream));
         }
 
-        [Fact]
-        public void ReturnsErrorIfIdInvalid()
+        [Theory]
+        [InlineData(NuSpecIdInvalid, "not a valid id")]
+        [InlineData(NuSpecIdInvalidWithUnicode, "páckage")]
+        public void ReturnsErrorIfIdInvalid(string nuspec, string packageId)
         {
-            var nuspecStream = CreateNuspecStream(NuSpecIdInvalid);
-
-            Assert.Equal(new[] { String.Format(CoreStrings.Manifest_InvalidId, "not a valid id") }, GetErrors(nuspecStream));
+            var nuspecStream = CreateNuspecStream(nuspec);
+            Assert.Equal(new[] { String.Format(CoreStrings.Manifest_InvalidId, packageId) }, GetErrors(nuspecStream));
         }
 
         [Fact]
@@ -561,7 +577,7 @@ namespace NuGetGallery.Packaging
             var nuspecStream = CreateNuspecStream(NuSpecSemVer200);
 
             // Act
-            ManifestValidator.Validate(nuspecStream, out var reader, out var packageMetadata);
+            ManifestValidator.Validate(nuspecStream, _ => false, out var reader, out var packageMetadata);
 
             // Assert
             Assert.NotNull(packageMetadata);
@@ -570,14 +586,14 @@ namespace NuGetGallery.Packaging
         private static string[] GetErrors(Stream nuspecStream)
         {
             return ManifestValidator
-                .Validate(nuspecStream, out var reader, out var metadata)
+                .Validate(nuspecStream, _ => false, out var reader, out var metadata)
                 .Select(r => r.ErrorMessage)
                 .ToArray();
         }
 
         private static Stream CreateNuspecStream(string nuspec)
         {
-            byte[] byteArray = Encoding.ASCII.GetBytes(nuspec);
+            byte[] byteArray = Encoding.UTF8.GetBytes(nuspec);
             return new MemoryStream(byteArray);
         }
     }

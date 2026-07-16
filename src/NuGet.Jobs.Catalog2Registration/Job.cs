@@ -8,7 +8,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NuGet.Jobs.Catalog2Registration;
 using NuGet.Services.Configuration;
+using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.V3;
+using Constants = NuGet.Services.Configuration.Constants;
 
 namespace NuGet.Jobs
 {
@@ -18,7 +20,7 @@ namespace NuGet.Jobs
 
         public override async Task Run()
         {
-            ServicePointManager.DefaultConnectionLimit = 64;
+            CatalogParallelism.Degree = 64;
             ServicePointManager.MaxServicePointIdleTime = 10000;
 
             await _serviceProvider.GetRequiredService<Catalog2RegistrationCommand>().ExecuteAsync();

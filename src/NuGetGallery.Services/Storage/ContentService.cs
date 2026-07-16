@@ -146,7 +146,7 @@ namespace NuGetGallery
                                     string text = await reader.ReadToEndAsync();
                                     string content;
 
-                                    if (fileName.EndsWith(".md"))
+                                    if (fileName.EndsWith(".md", StringComparison.Ordinal))
                                     {
                                         content = new Markdown().Transform(text);
                                     }

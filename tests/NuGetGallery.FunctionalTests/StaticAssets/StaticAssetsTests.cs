@@ -8,8 +8,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
-using System.Runtime.Remoting.Contexts;
-using System.Security.Policy;
 using System.ServiceModel.Syndication;
 using System.Threading.Tasks;
 using System.Xml;
@@ -190,7 +188,7 @@ namespace NuGetGallery.FunctionalTests.StaticAssets
                 while ((absolutePath = reader.ReadLine()) != null)
                 {
                     var fullPath = Path.GetFullPath(absolutePath);
-                    if (!fullPath.StartsWith(galleryDir))
+                    if (!fullPath.StartsWith(galleryDir, StringComparison.Ordinal))
                     {
                         continue;
                     }

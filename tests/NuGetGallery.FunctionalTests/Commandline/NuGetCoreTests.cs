@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.ComponentModel;
+using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -22,10 +23,10 @@ namespace NuGetGallery.FunctionalTests.Commandline
         [Description("Downloads a package from the server and validates that the file is present in the local disk")]
         [Priority(0)]
         [Category("P0Tests")]
-        public void DownloadPackageWithNuGetCoreTest()
+        public async Task DownloadPackageWithNuGetCoreTest()
         {
             //try to down load a pre-defined test package - BaseTestPackage.
-            _clientSdkHelper.DownloadPackageAndVerify(Constants.TestPackageId);
+            await _clientSdkHelper.DownloadPackageAndVerifyAsync(Constants.TestPackageId);
         }
     }
 }

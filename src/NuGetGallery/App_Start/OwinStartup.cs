@@ -14,10 +14,12 @@ using System.Web.Hosting;
 using System.Web.Http;
 using System.Web.Mvc;
 using Microsoft.Owin;
+using Microsoft.Owin.Extensions;
 using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Cookies;
 using NuGet.Services.FeatureFlags;
+using NuGetGallery.Areas.Admin.Authentication;
 using NuGetGallery.Authentication;
 using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.Cookie;
@@ -135,6 +137,18 @@ namespace NuGetGallery
                 CookieName = ".AspNet." + AuthenticationTypes.External,
                 ExpireTimeSpan = TimeSpan.FromMinutes(5)
             });
+
+            // Admin API bearer token auth. Uses app.Map to create a dedicated branch
+            // for /api/admin requests, with UseStageMarker(PipelineStage.Authenticate)
+            // to integrate with the IIS pipeline.
+            if (config.Current.AdminApiEnabled)
+            {
+                app.Map("/api/admin", adminApi =>
+                {
+                    adminApi.Use(typeof(AdminApiBearerAuthenticationMiddleware), adminApi, new AdminApiBearerAuthenticationOptions());
+                    adminApi.UseStageMarker(PipelineStage.Authenticate);
+                });
+            }
 
             // Attach non-cookie auth providers
             var nonCookieAuthers = auth

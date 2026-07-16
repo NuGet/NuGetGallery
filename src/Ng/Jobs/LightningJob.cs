@@ -595,7 +595,7 @@ namespace Ng.Jobs
             {
                 var sasToken = _arguments.GetOrThrow<string>(accountSasArgument);
                 // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
-                if (sasToken.StartsWith("?"))
+                if (sasToken.StartsWith("?", StringComparison.Ordinal))
                 {
                     sasToken = sasToken.Substring(1);
                 }

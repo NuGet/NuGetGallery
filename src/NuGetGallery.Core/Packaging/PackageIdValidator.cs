@@ -11,22 +11,44 @@ namespace NuGetGallery.Packaging
     public static class PackageIdValidator
     {
         private static readonly Regex IdRegex = RegexEx.CreateWithTimeout(
+            @"^[A-Za-z0-9_]+([.-][A-Za-z0-9_]+)*$",
+            RegexOptions.ExplicitCapture);
+
+        private static readonly Regex IdRegexForRead = RegexEx.CreateWithTimeout(
             @"^\w+([.-]\w+)*$",
             RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture);
 
+        // Block new packages with invalid characters
         public static bool IsValidPackageId(string packageId)
+        {
+            return IsValid(packageId, IdRegex);
+        }
+
+        // 1. Support downloading existing packages possibly with invalid characters that do not match IdRegex
+        // 2. Support new packages that require to depend on existing packages possibly with invalid characters that do not match IdRegex
+        public static bool IsValidPackageIdForRead(string packageId)
+        {
+            return IsValid(packageId, IdRegexForRead);
+        }
+
+        private static bool IsValid(string packageId, Regex regex)
         {
             if (packageId == null)
             {
                 throw new ArgumentNullException(nameof(packageId));
             }
 
-            if (String.Equals(packageId, "$id$", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(packageId, "$id$", StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }
 
-            return IdRegex.IsMatch(packageId);
+            if (!regex.IsMatch(packageId))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         public static void ValidatePackageId(string packageId)

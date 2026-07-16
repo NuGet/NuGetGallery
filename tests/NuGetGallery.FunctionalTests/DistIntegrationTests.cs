@@ -2,10 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
-using System.Reflection;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -26,22 +25,23 @@ namespace NuGetGallery.FunctionalTests
         [Category("P1Tests")]
         public async Task NuGetExeReturnsExpectedVersion()
         {
-            // Arrange
-            using (var client = new HttpClient())
-            using (var networkStream = await client.GetStreamAsync(UrlHelper.BaseUrl + "nuget.exe"))
-            using (var memoryStream = new MemoryStream())
+            var tempPath = Path.GetTempFileName();
+            try
             {
-                await networkStream.CopyToAsync(memoryStream);
-                var assembly = Assembly.Load(memoryStream.ToArray());
+                using (var client = new HttpClient())
+                await using (var networkStream = await client.GetStreamAsync(UrlHelper.BaseUrl + "nuget.exe"))
+                await using (var fileStream = File.Create(tempPath))
+                {
+                    await networkStream.CopyToAsync(fileStream);
+                }
 
-                // Act
-                var attributes = assembly
-                    .GetCustomAttributes<AssemblyInformationalVersionAttribute>()
-                    .ToList();
-
-                // Assert
-                Assert.Single(attributes);
-                Assert.Equal(Version, attributes[0].InformationalVersion);
+                // FileVersionInfo reads the PE version resource without loading the assembly.
+                var versionInfo = FileVersionInfo.GetVersionInfo(tempPath);
+                Assert.Equal(Version, versionInfo.ProductVersion);
+            }
+            finally
+            {
+                File.Delete(tempPath);
             }
         }
     }

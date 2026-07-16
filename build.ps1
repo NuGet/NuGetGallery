@@ -16,7 +16,10 @@ param (
     [string]$JobsPackageVersion = '5.0.0-zlocal',
     [string]$Branch,
     [string]$CommitSHA,
-    [string]$VerifyMicrosoftPackageVersion = $null
+    [string]$VerifyMicrosoftPackageVersion = $null,
+    # WARNING: This flag compiles in an auth bypass for Admin API functional testing.
+    # It must NEVER be used in release or deployment builds.
+    [switch]$UnsafeAdminApiAuthBypassForTesting
 )
 
 Set-StrictMode -Version 1.0
@@ -69,7 +72,11 @@ Invoke-BuildStep 'Building common solution' {
 
 Invoke-BuildStep 'Building gallery solution' { 
         $MvcBuildViews = $Configuration -eq "Release"
-        Build-Solution -Configuration $Configuration -BuildNumber $BuildNumber -SolutionPath $GallerySolution -SkipRestore:$SkipRestore -MSBuildProperties "/p:MvcBuildViews=$MvcBuildViews" `
+        $extraProps = "/p:MvcBuildViews=$MvcBuildViews"
+        if ($UnsafeAdminApiAuthBypassForTesting) {
+            $extraProps += " /p:UnsafeAdminApiAuthBypassForTesting=true"
+        }
+        Build-Solution -Configuration $Configuration -BuildNumber $BuildNumber -SolutionPath $GallerySolution -SkipRestore:$SkipRestore -MSBuildProperties $extraProps `
     } `
     -skip:$SkipGallery `
     -ev +BuildErrors

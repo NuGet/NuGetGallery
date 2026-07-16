@@ -27,7 +27,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                     "(e.g. https://storageaccountname.blob.core.windows.net/packages/{id-lower}.{version-lower}.nupkg)",
                     nameof(packageContentUrlFormat));
             }
-            else if (!_packageContentUrlFormat.EndsWith(NuPkgExtension))
+            else if (!_packageContentUrlFormat.EndsWith(NuPkgExtension, StringComparison.Ordinal))
             {
                 throw new ArgumentException(
                     $"The package content URL format must point to files with the {NuPkgExtension} extension.",

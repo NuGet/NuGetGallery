@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -41,6 +41,46 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
     public class DefaultMockValidationSetProcessorFacts : ValidationSetProcessorFactsBase
     {
+        [Fact]
+        public async Task ForceFailValidationSetAsyncFailsIncompleteAndNotStartedValidations()
+        {
+            var incomplete = AddValidationToSet("validation1", ValidationStatus.Incomplete);
+            var notStarted = AddValidationToSet("validation2", ValidationStatus.NotStarted);
+            var succeeded = AddValidationToSet("validation3", ValidationStatus.Succeeded);
+            var failed = AddValidationToSet("validation4", ValidationStatus.Failed);
+
+            var processor = CreateProcessor();
+            var result = await processor.ForceFailValidationSetAsync(ValidationSet);
+
+            ValidationStorageMock.Verify(
+                vs => vs.UpdateValidationStatusAsync(incomplete, It.Is<NuGetValidationResponse>(r => r.Status == ValidationStatus.Failed)), Times.Once());
+            ValidationStorageMock.Verify(
+                vs => vs.UpdateValidationStatusAsync(notStarted, It.Is<NuGetValidationResponse>(r => r.Status == ValidationStatus.Failed)), Times.Once());
+            ValidationStorageMock.Verify(
+                vs => vs.UpdateValidationStatusAsync(succeeded, It.IsAny<NuGetValidationResponse>()), Times.Never());
+            ValidationStorageMock.Verify(
+                vs => vs.UpdateValidationStatusAsync(failed, It.IsAny<NuGetValidationResponse>()), Times.Never());
+            ValidationStorageMock.Verify(
+                vs => vs.UpdateValidationStatusAsync(It.IsAny<PackageValidation>(), It.IsAny<NuGetValidationResponse>()), Times.Exactly(2));
+            Assert.False(result.AnyValidationSucceeded);
+            Assert.False(result.AnyRequiredValidationSucceeded);
+        }
+
+        [Fact]
+        public async Task ForceFailValidationSetAsyncDoesNotUpdateAlreadyCompletedValidations()
+        {
+            AddValidationToSet("validation1", ValidationStatus.Succeeded);
+            AddValidationToSet("validation2", ValidationStatus.Failed);
+
+            var processor = CreateProcessor();
+            var result = await processor.ForceFailValidationSetAsync(ValidationSet);
+
+            ValidationStorageMock.Verify(
+                vs => vs.UpdateValidationStatusAsync(It.IsAny<PackageValidation>(), It.IsAny<NuGetValidationResponse>()), Times.Never());
+            Assert.False(result.AnyValidationSucceeded);
+            Assert.False(result.AnyRequiredValidationSucceeded);
+        }
+
         [Theory]
         [InlineData(ValidationStatus.NotStarted, false, false)]
         [InlineData(ValidationStatus.Incomplete, true, false)]

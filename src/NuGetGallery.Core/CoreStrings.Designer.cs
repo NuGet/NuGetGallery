@@ -19,7 +19,7 @@ namespace NuGetGallery {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class CoreStrings {
@@ -205,7 +205,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The package manifest contains an invalid ID: &apos;{0}&apos;.
+        ///   Looks up a localized string similar to The package manifest contains an invalid ID: &apos;{0}&apos;, because it must start with a letter, number or underscore ( _ ), can only contain letters, numbers, underscores ( _ ), dots ( . ), or dashes ( - ), and cannot contain consecutive dots ( . ) or dashes ( - )..
         /// </summary>
         public static string Manifest_InvalidId {
             get {

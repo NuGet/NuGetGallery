@@ -51,6 +51,7 @@ namespace Ng
             { Arguments.StoragePath, Arguments.StoragePath },
             { Arguments.StorageSuffix, Arguments.StorageSuffix },
             { Arguments.StorageUseManagedIdentity, Arguments.StorageUseManagedIdentity },
+            { Arguments.StorageConnectionString, Arguments.StorageConnectionString },
             { Arguments.StorageUseServerSideCopy, Arguments.StorageUseServerSideCopy },
             { Arguments.StorageOperationMaxExecutionTimeInSeconds, Arguments.StorageOperationMaxExecutionTimeInSeconds },
             { Arguments.StorageServerTimeoutInSeconds, Arguments.StorageServerTimeoutInSeconds },
@@ -171,6 +172,7 @@ namespace Ng
                 { Arguments.StorageBaseAddress, Arguments.StorageBaseAddress + suffix },
                 { Arguments.StorageAccountName, Arguments.StorageAccountName + suffix },
                 { Arguments.StorageUseManagedIdentity, Arguments.StorageUseManagedIdentity + suffix },
+                { Arguments.StorageConnectionString, Arguments.StorageConnectionString + suffix },
                 { Arguments.StorageKeyValue, Arguments.StorageKeyValue + suffix },
                 { Arguments.StorageSasValue, Arguments.StorageSasValue + suffix },
                 { Arguments.StorageContainer, Arguments.StorageContainer + suffix },
@@ -311,7 +313,7 @@ namespace Ng
                 // because there may be multiple potential cursors representing the state of a search service.
                 var matchingCursors = instanceNameToSearchCursorUri
                     .Keys
-                    .Where(x => x.StartsWith(instanceName))
+                    .Where(x => x.StartsWith(instanceName, StringComparison.Ordinal))
                     .OrderBy(x => x)
                     .ToList();
 
@@ -354,7 +356,7 @@ namespace Ng
                     }
                     else if (instanceNameToSearchCursorSasValue.TryGetValue(suffix, out var sas))
                     {
-                        if (sas.StartsWith("?"))
+                        if (sas.StartsWith("?", StringComparison.Ordinal))
                         {
                             // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
                             sas = sas.Substring(1);
@@ -397,7 +399,7 @@ namespace Ng
         private static Dictionary<string, T> GetSuffixToValue<T>(IDictionary<string, string> arguments, string prefix)
         {
             var suffixToUri = new Dictionary<string, T>();
-            foreach (var key in arguments.Keys.Where(x => x.StartsWith(prefix)))
+            foreach (var key in arguments.Keys.Where(x => x.StartsWith(prefix, StringComparison.Ordinal)))
             {
                 var suffix = key.Substring(prefix.Length);
                 suffixToUri[suffix] = arguments.GetOrThrow<T>(key);
@@ -434,6 +436,17 @@ namespace Ng
             IDictionary<string, string> arguments,
             IDictionary<string, string> argumentNameMap)
         {
+            // If a full connection string is provided (e.g. UseDevelopmentStorage=true for Azurite),
+            // use it directly and bypass endpoint construction.
+            if (argumentNameMap.TryGetValue(Arguments.StorageConnectionString, out var connStrArgName))
+            {
+                var storageConnectionString = arguments.GetOrDefault<string>(connStrArgName);
+                if (!string.IsNullOrEmpty(storageConnectionString))
+                {
+                    return new BlobServiceClientFactory(storageConnectionString);
+                }
+            }
+
             bool storageUseManagedIdentity = arguments.GetOrDefault(argumentNameMap[Arguments.StorageUseManagedIdentity], defaultValue: false);
             bool useManagedIdentity = storageUseManagedIdentity || arguments.GetOrDefault(argumentNameMap[Arguments.UseManagedIdentity], defaultValue: false);
 
@@ -508,7 +521,7 @@ namespace Ng
             if (string.IsNullOrEmpty(storageKeyValue))
             {
                 var storageSasValue = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageSasValue]);
-                if (storageSasValue.StartsWith("?"))
+                if (storageSasValue.StartsWith("?", StringComparison.Ordinal))
                 {
                     // workaround for https://github.com/Azure/azure-sdk-for-net/issues/44373
                     storageSasValue = storageSasValue.Substring(1);

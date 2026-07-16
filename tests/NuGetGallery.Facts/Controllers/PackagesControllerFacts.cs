@@ -284,6 +284,8 @@ namespace NuGetGallery
 
             var diagnosticsService = new Mock<IDiagnosticsService>();
 
+            var reflowPackageService = new Mock<IReflowPackageService>();
+
             var controller = new Mock<PackagesController>(
                 packageFilter,
                 packageService.Object,
@@ -320,7 +322,8 @@ namespace NuGetGallery
                 iconUrlProvider.Object,
                 markdownService.Object,
                 compatibilityFactory.Object,
-                sponsorshipUrlService.Object);
+                sponsorshipUrlService.Object,
+                reflowPackageService.Object);
 
             controller.CallBase = true;
             controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());
@@ -354,7 +357,7 @@ namespace NuGetGallery
                 return null;
             }
 
-            if (markdown.StartsWith("#"))
+            if (markdown.StartsWith("#", StringComparison.Ordinal))
             {
                 return "<h2>" + markdown.Trim('#', ' ') + "</h2>";
             }
@@ -7293,7 +7296,9 @@ namespace NuGetGallery
                 var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
 
                 Assert.NotNull(result);
-                Assert.Equal($"The package manifest contains an invalid ID: '{packageId}'", ((JsonValidationMessage[]) result.Data)[0].PlainTextMessage);
+                Assert.Equal($"The package manifest contains an invalid ID: '{packageId}', because it must start with a letter, number or underscore ( _ ), " +
+                    $"can only contain letters, numbers, underscores ( _ ), dots ( . ), or dashes ( - ), and cannot contain consecutive dots ( . ) or dashes ( - ).",
+                    ((JsonValidationMessage[]) result.Data)[0].PlainTextMessage);
             }
 
             [Theory]

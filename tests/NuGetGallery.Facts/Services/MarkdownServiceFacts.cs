@@ -201,8 +201,8 @@ namespace NuGetGallery
 - [ ] Item3
 - Item4";
 
-                var expectedHtml = "<ul class=\"contains-task-list\">\n<li class=\"task-list-item\"><input disabled=\"disabled\" type=\"checkbox\"> Item1</li>\n<li class=\"task-list-item\">" +
-                    "<input disabled=\"disabled\" type=\"checkbox\" checked=\"checked\"> Item2</li>\n<li class=\"task-list-item\"><input disabled=\"disabled\" type=\"checkbox\"> " +
+                var expectedHtml = "<ul class=\"contains-task-list\">\n<li class=\"task-list-item\"><input aria-label=\"Not completed\" disabled=\"disabled\" type=\"checkbox\"> Item1</li>\n<li class=\"task-list-item\">" +
+                    "<input aria-label=\"Completed\" disabled=\"disabled\" type=\"checkbox\" checked=\"checked\"> Item2</li>\n<li class=\"task-list-item\"><input aria-label=\"Not completed\" disabled=\"disabled\" type=\"checkbox\"> " +
                     "Item3</li>\n<li>Item4</li>\n</ul>";
                 _featureFlagService.Setup(x => x.IsMarkdigMdRenderingEnabled()).Returns(true);
                 var readMeResult = _markdownService.GetHtmlFromMarkdown(originalMd);

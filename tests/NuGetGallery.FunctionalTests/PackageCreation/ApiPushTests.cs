@@ -8,7 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Packaging;
 using Xunit;
@@ -29,20 +28,22 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
         [Fact]
         [Description("Pushes many packages of the same ID and version. Verifies exactly one push succeeds and the rest fail with a conflict.")]
         [Priority(1)]
-        [Category("P1Tests")]
+        [Category("AppServiceTests")]
+        // This test fires 16 concurrent push requests per version (10 versions sequentially)
+        // using an async gate to maximize race conditions. Versions are pushed sequentially
+        // because .NET 10's SocketsHttpHandler allows unlimited concurrent connections per
+        // server (unlike .NET Framework's ServicePointManager.DefaultConnectionLimit of 2),
+        // and 160 simultaneous pushes can overwhelm the gallery.
         public async Task DuplicatePushesAreRejectedAndNotDeleted()
         {
             // Arrange
             var packageId = $"{nameof(DuplicatePushesAreRejectedAndNotDeleted)}.{Guid.NewGuid():N}";
 
             int pushVersionCount = 10;
-            var duplicatePushTasks = new List<Task>();
             for (var duplicateTaskIndex = 0; duplicateTaskIndex < pushVersionCount; duplicateTaskIndex++)
             {
-                duplicatePushTasks.Add(PushDuplicates(packageId, $"1.0.{duplicateTaskIndex}", duplicateTaskIndex == 0));
+                await PushDuplicates(packageId, $"1.0.{duplicateTaskIndex}", duplicateTaskIndex == 0);
             }
-
-            await Task.WhenAll(duplicatePushTasks);
         }
 
         private async Task PushDuplicates(string packageId, string packageVersion, bool isFirstTask)
@@ -60,23 +61,35 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
                 TestOutputHelper.WriteLine($"Starting package {packageId} {packageVersion}...");
 
                 var packagePath = await packageCreationHelper.CreatePackage(packageId, packageVersion);
+                var packageBytes = await File.ReadAllBytesAsync(packagePath);
 
                 var tasks = new List<Task<HttpStatusCode>>();
-                var barrier = new Barrier(TaskCount);
+                // Use an async gate so all tasks await a single signal, then fire SendAsync
+                // simultaneously. This replaces the old Barrier+BarrierStream approach which
+                // could deadlock in .NET 10 when SocketsHttpHandler aborts body uploads on
+                // early server responses (e.g. HTTP/2 RST_STREAM on 409 Conflict).
+                var gate = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
                 // Act
                 for (var taskIndex = 0; taskIndex < TaskCount; taskIndex++)
                 {
-                    tasks.Add(PushAsync(client, packagePath, barrier));
+                    tasks.Add(PushAsync(client, packageBytes, gate.Task));
                 }
+
+                // Release all tasks at once to maximize concurrency
+                gate.SetResult(true);
 
                 var statusCodes = await Task.WhenAll(tasks);
 
-                // Assert
+                // Assert push results first to fail fast with clear diagnostics instead
+                // of waiting 30 minutes for the V2 verification timeout.
                 for (var taskIndex = 1; taskIndex <= statusCodes.Length; taskIndex++)
                 {
                     TestOutputHelper.WriteLine($"{packageId}/{packageVersion} Task {taskIndex:D2} push:     HTTP {(int)statusCodes[taskIndex - 1]}");
                 }
+
+                Assert.Single(statusCodes, x => x == HttpStatusCode.Created);
+                Assert.Equal(TaskCount - 1, statusCodes.Count(x => x == HttpStatusCode.Conflict));
 
                 //Wait for the packages to be available in V2(due to async validation)
                 await _clientSdkHelper.VerifyPackageExistsInV2Async(packageId, packageVersion);
@@ -96,21 +109,20 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
                         Assert.Equal(packageVersion, packageReader.NuspecReader.GetVersion().ToNormalizedString());
                     }
                 }
-
-                Assert.Equal(1, statusCodes.Count(x => x == HttpStatusCode.Created));
-                Assert.Equal(TaskCount - 1, statusCodes.Count(x => x == HttpStatusCode.Conflict));
             }
         }
 
         private async Task<HttpStatusCode> PushAsync(
             HttpClient client,
-            string packagePath,
-            Barrier barrier)
+            byte[] packageBytes,
+            Task gate)
         {
-            using (var package = File.OpenRead(packagePath))
+            // Wait until all tasks are created, then fire simultaneously
+            await gate;
+
             using (var request = new HttpRequestMessage(HttpMethod.Put, UrlHelper.V2FeedPushSourceUrl))
             {
-                request.Content = new StreamContent(new BarrierStream(package, barrier));
+                request.Content = new ByteArrayContent(packageBytes);
                 request.Headers.Add(Constants.NuGetHeaderApiKey, GalleryConfiguration.Instance.Account.ApiKey);
                 request.Headers.Add(Constants.NuGetHeaderProtocolVersion, Constants.NuGetProtocolVersion);
 
@@ -125,81 +137,6 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
 
                     return response.StatusCode;
                 }
-            }
-        }
-
-        private class BarrierStream : Stream
-        {
-            private readonly Stream _innerStream;
-            private readonly Barrier _barrier;
-
-            public BarrierStream(Stream innerStream, Barrier barrier)
-            {
-                _innerStream = innerStream;
-                _barrier = barrier;
-            }
-
-            public override bool CanRead => true;
-
-            public override bool CanSeek => false;
-
-            public override bool CanWrite => false;
-
-            public override long Length => _innerStream.Length;
-
-            public override long Position
-            {
-                get
-                {
-                    return _innerStream.Position;
-                }
-                set
-                {
-                    _innerStream.Position = value;
-                }
-            }
-
-            public override void Flush()
-            {
-                throw new NotSupportedException();
-            }
-
-            public override int Read(byte[] buffer, int offset, int count)
-            {
-                var read = _innerStream.Read(buffer, offset, count);
-                return GetReadAndWait(read);
-            }
-
-            public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
-            {
-                var read = await _innerStream.ReadAsync(buffer, offset, count);
-                return GetReadAndWait(read);
-            }
-
-            private int GetReadAndWait(int read)
-            {
-                // Wait for the event once the entire inner stream has been consumed.
-                if (read == 0)
-                {
-                    _barrier.SignalAndWait();
-                }
-
-                return read;
-            }
-
-            public override long Seek(long offset, SeekOrigin origin)
-            {
-                throw new NotSupportedException();
-            }
-
-            public override void SetLength(long value)
-            {
-                throw new NotSupportedException();
-            }
-
-            public override void Write(byte[] buffer, int offset, int count)
-            {
-                throw new NotSupportedException();
             }
         }
     }

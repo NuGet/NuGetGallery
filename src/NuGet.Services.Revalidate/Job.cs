@@ -65,7 +65,7 @@ namespace NuGet.Services.Revalidate
                         var expandedPath = Environment.ExpandEnvironmentVariables(path);
                         var packagesInPath = Directory.GetDirectories(expandedPath)
                             .Select(d => d.Replace(expandedPath, "").Trim('\\').ToLowerInvariant())
-                            .Where(d => !d.StartsWith("."));
+                            .Where(d => !d.StartsWith(".", StringComparison.Ordinal));
 
                         preinstalledPackagesNames.UnionWith(packagesInPath);
                     }

@@ -40,10 +40,10 @@ namespace Ng.Jobs
             Logger = LoggerFactory.CreateLogger(GetType());
 
             // Enable greater HTTP parallelization.
-            ServicePointManager.DefaultConnectionLimit = 64;
+            CatalogParallelism.Degree = 64;
             ServicePointManager.MaxServicePointIdleTime = 10000;
 
-            MaxDegreeOfParallelism = ServicePointManager.DefaultConnectionLimit;
+            MaxDegreeOfParallelism = CatalogParallelism.Degree;
         }
 
         public static string GetUsageBase()

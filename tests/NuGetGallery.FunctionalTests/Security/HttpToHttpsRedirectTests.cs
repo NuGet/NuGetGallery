@@ -136,7 +136,7 @@ namespace NuGetGallery.FunctionalTests.Security
 
         private static Uri ForceHttp(string url)
         {
-            if (url.StartsWith(Uri.UriSchemeHttps))
+            if (url.StartsWith(Uri.UriSchemeHttps, StringComparison.Ordinal))
             {
                 url = Uri.UriSchemeHttp + url.Substring(Uri.UriSchemeHttps.Length);
             }

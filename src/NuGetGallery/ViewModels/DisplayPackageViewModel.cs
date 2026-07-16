@@ -164,14 +164,14 @@ namespace NuGetGallery
             }
 
             comparableUrl = comparableUrl.ToLowerInvariant();
-            comparableUrl = comparableUrl.EndsWith("/") ? comparableUrl.Substring(0, comparableUrl.Length - 1) : comparableUrl;
-            comparableUrl = comparableUrl.EndsWith(".git") ? comparableUrl.Substring(0, comparableUrl.Length - ".git".Length) : comparableUrl;
+            comparableUrl = comparableUrl.EndsWith("/", StringComparison.Ordinal) ? comparableUrl.Substring(0, comparableUrl.Length - 1) : comparableUrl;
+            comparableUrl = comparableUrl.EndsWith(".git", StringComparison.Ordinal) ? comparableUrl.Substring(0, comparableUrl.Length - ".git".Length) : comparableUrl;
 
-            if (comparableUrl.StartsWith("git://"))
+            if (comparableUrl.StartsWith("git://", StringComparison.Ordinal))
             {
                 comparableUrl = comparableUrl.Replace($"git://{githubCom}", "");
             }
-            else if (comparableUrl.StartsWith("https://"))
+            else if (comparableUrl.StartsWith("https://", StringComparison.Ordinal))
             {
                 comparableUrl = comparableUrl.Replace($"https://{githubCom}", "");
             }

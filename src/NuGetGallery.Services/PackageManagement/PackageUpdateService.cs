@@ -32,7 +32,7 @@ namespace NuGetGallery
             _indexingService = indexingService ?? throw new ArgumentNullException(nameof(indexingService));
         }
 
-        public async Task UpdateListedInBulkAsync(IReadOnlyList<Package> packages, bool listed)
+        public async Task UpdateListedInBulkAsync(IReadOnlyList<Package> packages, bool listed, string reason = null, string callerIdentity = null)
         {
             if (packages == null || !packages.Any())
             {
@@ -80,7 +80,9 @@ namespace NuGetGallery
                 {
                     await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(
                         package,
-                        listed ? AuditedPackageAction.List : AuditedPackageAction.Unlist));
+                        listed ? AuditedPackageAction.List : AuditedPackageAction.Unlist,
+                        reason,
+                        callerIdentity));
                 }
             }
         }

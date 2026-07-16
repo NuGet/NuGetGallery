@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
 using Azure.Identity;
-using Azure.Storage.Blobs;
 using GitHubVulnerabilities2v3.Configuration;
 using GitHubVulnerabilities2v3.Extensions;
 using GitHubVulnerabilities2v3.Telemetry;
@@ -17,13 +16,15 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Jobs;
-using NuGet.Services.Configuration;
 using NuGet.Services.Cursor;
+using NuGet.Services.GitHub.Authentication;
 using NuGet.Services.GitHub.Collector;
 using NuGet.Services.GitHub.Configuration;
 using NuGet.Services.GitHub.GraphQL;
 using NuGet.Services.GitHub.Ingest;
+using NuGet.Services.KeyVault;
 using NuGet.Services.Storage;
+using Constants = NuGet.Services.Configuration.Constants;
 
 namespace GitHubVulnerabilities2v3
 {
@@ -73,7 +74,7 @@ namespace GitHubVulnerabilities2v3
             containerBuilder
                 .RegisterAdapter<IOptionsSnapshot<GitHubVulnerabilities2v3Configuration>, GraphQLQueryConfiguration>(c => c.Value);
 
-            ConfigureQueryServices(containerBuilder);
+            ConfigureQueryServices(containerBuilder, configurationRoot);
             ConfigureIngestionServices(containerBuilder);
             ConfigureCollectorServices(containerBuilder, configurationRoot);
         }
@@ -97,13 +98,22 @@ namespace GitHubVulnerabilities2v3
                 .As<IAdvisoryIngestor>();
         }
 
-        protected void ConfigureQueryServices(ContainerBuilder containerBuilder)
+        protected void ConfigureQueryServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
             _client.DefaultRequestHeaders.UserAgent.Add(_userAgent);
             containerBuilder
                 .RegisterInstance(_client)
                 .As<HttpClient>()
                 .ExternallyOwned(); // We don't want autofac disposing this--see https://github.com/NuGet/NuGetGallery/issues/9194
+
+            containerBuilder
+                .RegisterKeyVaultDataSigner<GitHubVulnerabilities2v3Configuration>(configurationRoot)
+                .As<IKeyVaultDataSigner>();
+
+            containerBuilder
+                .RegisterGitHubAuthProvider<GitHubVulnerabilities2v3Configuration>()
+                .As<IGitHubAuthProvider>()
+                .SingleInstance();
 
             containerBuilder
                 .RegisterType<QueryService>()

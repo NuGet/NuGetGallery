@@ -358,5 +358,20 @@ namespace NuGetGallery.AccountDeleter
         {
             throw new NotImplementedException();
         }
+
+        public bool IsAdminApiSoftDeleteEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsInvalidPackageIdAllowedForAllPackages()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool IsInvalidPackageIdAllowedForExistingPackages()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

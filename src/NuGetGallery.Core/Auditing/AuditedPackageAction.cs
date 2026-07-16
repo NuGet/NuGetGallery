@@ -20,5 +20,8 @@ namespace NuGetGallery.Auditing
         SymbolsDelete,
         Deprecate,
         Undeprecate,
+        Reflow,
+        FailValidation,
+        SymbolsFailValidation,
     }
 }

@@ -84,7 +84,7 @@ namespace NuGetGallery.Helpers
 
                 foreach (var trimmedEntity in _trimmedHtmlEntities)
                 {
-                    if (inputText.EndsWith(trimmedEntity))
+                    if (inputText.EndsWith(trimmedEntity, StringComparison.Ordinal))
                     {
                         // Remove trailing html entity from anchor URL
                         trimmedAnchorValue = inputText.Substring(0, inputText.Length - trimmedEntity.Length);

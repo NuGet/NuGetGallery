@@ -111,7 +111,7 @@ Function Get-LatestVisualStudioRoot {
 
 Function Get-MSBuildExe {
     param(
-        [ValidateSet("15", "16", "17", $null)]
+        [ValidateSet("15", "16", "17", "18", $null)]
         [string]$MSBuildVersion
     )
 
@@ -201,9 +201,9 @@ Function Sign-Binaries {
         [string]$MSBuildVersion = $DefaultMSBuildVersion,
         [string[]]$ProjectsToSign = $null,
         [switch]$BinLog,
-        [string]$RepositoryRootDirectory = $null
+        [string]$RepositoryRootDirectory = $null,
+        [switch]$UseDotnet
     )
-
     if ($null -eq $ProjectsToSign) {
         $repositoryDir = [IO.Path]::GetDirectoryName($PSScriptRoot)
         $defaultProjectsToSign = Join-Path $repositoryDir "src\**\*.csproj"
@@ -217,7 +217,14 @@ Function Sign-Binaries {
     }
 
     $ProjectPath = Join-Path $PSScriptRoot "sign-binaries.proj"
-    Build-Solution $Configuration $BuildNumber -MSBuildVersion "$MSBuildVersion" $ProjectPath -MSBuildProperties $msbuildProperties -BinLog:$BinLog
+    if (-not $UseDotnet) {
+        Trace-Log "Running Build-Solution for $ProjectPath using msbuild"
+        Build-Solution $Configuration $BuildNumber -MSBuildVersion "$MSBuildVersion" $ProjectPath -MSBuildProperties $msbuildProperties -BinLog:$BinLog
+    } else {
+        Trace-Log "Running Build-Solution for $ProjectPath using dotnet"
+        Build-Solution -Configuration $Configuration -BuildNumber $BuildNumber -SolutionPath $ProjectPath -MSBuildProperties $msbuildProperties -BinLog:$BinLog -UseDotnet
+    }
+    Trace-Log "Sign-Binaries completed"
 }
 
 Function Sign-Packages {
@@ -244,12 +251,17 @@ Function Build-Solution {
         [string]$Target,
         [string]$MSBuildProperties,
         [switch]$SkipRestore,
-        [switch]$BinLog
+        [switch]$BinLog,
+        [switch]$UseDotnet
     )
 
     if (-not $SkipRestore) {
         # Restore packages for NuGet.Tooling solution
-        Restore-SolutionPackages -path $SolutionPath -MSBuildVersion $MSBuildVersion
+        if (-not $UseDotnet) {
+            Restore-SolutionPackages -path $SolutionPath -MSBuildVersion $MSBuildVersion
+        } else {
+            Restore-SolutionPackages -path $SolutionPath -UseDotnet
+        }
     }
 
     # Build the solution
@@ -276,10 +288,16 @@ Function Build-Solution {
         $opts += "/bl"
     }
 
-    $MSBuildExe = Get-MSBuildExe $MSBuildVersion
+    if ($UseDotnet) {
+        Trace-Log "dotnet msbuild $opts"
+        & dotnet msbuild $opts
+    }
+    else {
+        $MSBuildExe = Get-MSBuildExe $MSBuildVersion
+        Trace-Log "$MSBuildExe $opts"
+        & $MSBuildExe $opts
+    }
 
-    Trace-Log "$MSBuildExe $opts"
-    & $MSBuildExe $opts
     if (-not $?) {
         Error-Log "Build of ${SolutionPath} failed. Code: $LASTEXITCODE"
     }
@@ -580,30 +598,60 @@ Function Restore-SolutionPackages {
         [string]$SolutionPath,
         [int]$MSBuildVersion,
         [string]$BuildNumber,
-        [string]$ConfigFile
+        [string]$ConfigFile,
+        [switch]$UseDotnet
     )
-    $InstallLocation = $NuGetClientRoot
-    $opts = , 'restore'
-    if (-not $SolutionPath) {
-        $opts += "${NuGetClientRoot}\.nuget\packages.config", '-SolutionDirectory', $NuGetClientRoot
+
+    if ($UseDotnet -and $MSBuildVersion) {
+        Error-Log "-UseDotnet and -MSBuildVersion cannot be specified together. dotnet restore uses its own MSBuild."
+        return
+    }
+
+    if ($UseDotnet) {
+        if (-not $SolutionPath) {
+            Error-Log "-UseDotnet requires -SolutionPath. packages.config restore is not supported with dotnet."
+            return
+        }
+
+        $InstallLocation = Split-Path -Path $SolutionPath -Parent
+        $opts = , 'restore'
+        $opts += $SolutionPath
+
+        if ($ConfigFile) {
+            $opts += '--configfile', $ConfigFile
+        }
+
+        Trace-Log "Restoring packages @""$InstallLocation"""
+        Trace-Log "dotnet $opts"
+        & dotnet $opts
+        if (-not $?) {
+            Error-Log "Restore failed @""$InstallLocation"". Code: ${LASTEXITCODE}"
+        }
     }
     else {
-        $opts += $SolutionPath
-        $InstallLocation = Split-Path -Path $SolutionPath -Parent
-    }
-    if ($MSBuildVersion) {
-        $opts += '-MSBuildPath', (Split-Path -Path (Get-MSBuildExe $MSBuildVersion) -Parent)
-    }
+        $InstallLocation = $NuGetClientRoot
+        $opts = , 'restore'
+        if (-not $SolutionPath) {
+            $opts += "${NuGetClientRoot}\.nuget\packages.config", '-SolutionDirectory', $NuGetClientRoot
+        }
+        else {
+            $opts += $SolutionPath
+            $InstallLocation = Split-Path -Path $SolutionPath -Parent
+        }
+        if ($MSBuildVersion) {
+            $opts += '-MSBuildPath', (Split-Path -Path (Get-MSBuildExe $MSBuildVersion) -Parent)
+        }
 
-    if ($ConfigFile) {
-        $opts += '-configfile', $ConfigFile
-    }
+        if ($ConfigFile) {
+            $opts += '-configfile', $ConfigFile
+        }
 
-    Trace-Log "Restoring packages @""$InstallLocation"""
-    Trace-Log "$NuGetExe $opts"
-    & $NuGetExe $opts
-    if (-not $?) {
-        Error-Log "Restore failed @""$InstallLocation"". Code: ${LASTEXITCODE}"
+        Trace-Log "Restoring packages @""$InstallLocation"""
+        Trace-Log "$NuGetExe $opts"
+        & $NuGetExe $opts
+        if (-not $?) {
+            Error-Log "Restore failed @""$InstallLocation"". Code: ${LASTEXITCODE}"
+        }
     }
 }
 
@@ -782,7 +830,8 @@ Function New-WebAppPackage {
         [string]$MSBuildVersion = $DefaultMSBuildVersion,
         [bool]$PackageAsSingleFile=$true,
         [string]$SignType,
-        [switch]$BinLog
+        [switch]$BinLog,
+        [switch]$UseDotnet
     )
     Trace-Log "Creating web app package from @""$TargetFilePath"""
 
@@ -808,8 +857,14 @@ Function New-WebAppPackage {
         $opts += "/bl"
     }
 
-    Trace-Log "$MsBuildExe $opts"
-    & $MsBuildExe $opts
+    if ($UseDotnet){
+        Trace-Log "dotnet msbuild $opts"
+        & dotnet msbuild $opts
+    }
+    else {
+        Trace-Log "$MsBuildExe $opts"
+        & $MsBuildExe $opts
+    }
     if (-not $?) {
         Error-Log "Creating web app package failed for @""$TargetFilePath"". Code: ${LASTEXITCODE}"
     }

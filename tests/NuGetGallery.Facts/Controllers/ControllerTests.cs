@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Web.Mvc;
+using NuGetGallery.Areas.Admin.Controllers;
 using NuGetGallery.Filters;
 using Xunit;
 using Xunit.Abstractions;
@@ -76,6 +77,11 @@ namespace NuGetGallery.Controllers
                 new ControllerActionRuleException(typeof(ApiController), nameof(ApiController.DeprecatePackage)),
                 new ControllerActionRuleException(typeof(PackagesController), nameof(PackagesController.DisplayPackage)),
                 new ControllerActionRuleException(typeof(TokenApiController), nameof(TokenApiController.CreateToken)),
+                new ControllerActionRuleException(typeof(AdminApiController), nameof(AdminApiController.ReflowPackageAsync)),
+                new ControllerActionRuleException(typeof(AdminApiController), nameof(AdminApiController.LockPackageAsync)),
+                new ControllerActionRuleException(typeof(AdminApiController), nameof(AdminApiController.LockUserAsync)),
+                new ControllerActionRuleException(typeof(AdminApiController), nameof(AdminApiController.SoftDeletePackageAsync)),
+                new ControllerActionRuleException(typeof(AdminApiController), nameof(AdminApiController.UpdateListedPackageAsync)),
             };
 
             // Act
