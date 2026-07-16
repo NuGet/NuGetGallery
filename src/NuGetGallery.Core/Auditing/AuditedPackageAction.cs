@@ -21,5 +21,7 @@ namespace NuGetGallery.Auditing
         Deprecate,
         Undeprecate,
         Reflow,
+        FailValidation,
+        SymbolsFailValidation,
     }
 }

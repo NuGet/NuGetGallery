@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -10,31 +10,36 @@ using NuGet.Services.Entities;
 using NuGet.Services.Validation;
 using NuGet.Versioning;
 using NuGetGallery.Areas.Admin.Models;
+using NuGetGallery.Auditing;
 
 namespace NuGetGallery.Areas.Admin.Services
 {
     public class ValidationAdminService
     {
         private const int PendingValidationsBatchSize = 100;
+        private const string ForceFailValidationReason = "Validation was force-failed via the admin panel.";
 
         private readonly IEntityRepository<PackageValidationSet> _validationSets;
         private readonly IEntityRepository<PackageValidation> _validations;
         private readonly IEntityRepository<Package> _packages;
         private readonly IEntityRepository<SymbolPackage> _symbolPackages;
         private readonly IValidationService _validationService;
+        private readonly IAuditingService _auditingService;
 
         public ValidationAdminService(
             IEntityRepository<PackageValidationSet> validationSets,
             IEntityRepository<PackageValidation> validations,
             IEntityRepository<Package> packages,
             IEntityRepository<SymbolPackage> symbolPackages,
-            IValidationService validationService)
+            IValidationService validationService,
+            IAuditingService auditingService)
         {
             _validationSets = validationSets ?? throw new ArgumentNullException(nameof(validationSets));
             _validations = validations ?? throw new ArgumentNullException(nameof(validations));
             _packages = packages ?? throw new ArgumentNullException(nameof(packages));
             _symbolPackages = symbolPackages ?? throw new ArgumentNullException(nameof(symbolPackages));
             _validationService = validationService ?? throw new ArgumentNullException(nameof(validationService));
+            _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
         }
 
         /// <summary>
@@ -119,6 +124,53 @@ namespace NuGetGallery.Areas.Admin.Services
                 }
 
                 return pendingSymbolPackages.Count;
+            }
+            else
+            {
+                throw new NotSupportedException("The validating type " + validatingType + " is not supported.");
+            }
+        }
+
+        public async Task<bool> ForceFailValidationAsync(int key, ValidatingType validatingType)
+        {
+            if (validatingType == ValidatingType.Package)
+            {
+                var package = _packages
+                    .GetAll()
+                    .Include(p => p.PackageRegistration)
+                    .FirstOrDefault(p => p.Key == key);
+
+                if (package == null)
+                {
+                    return false;
+                }
+
+                await _validationService.FailValidationAsync(package);
+                await _auditingService.SaveAuditRecordAsync(
+                    new PackageAuditRecord(package, AuditedPackageAction.FailValidation, ForceFailValidationReason));
+                await _packages.CommitChangesAsync();
+
+                return true;
+            }
+            else if (validatingType == ValidatingType.SymbolPackage)
+            {
+                var symbolPackage = _symbolPackages
+                    .GetAll()
+                    .Include(p => p.Package)
+                    .Include(p => p.Package.PackageRegistration)
+                    .FirstOrDefault(s => s.Key == key);
+
+                if (symbolPackage == null)
+                {
+                    return false;
+                }
+
+                await _validationService.FailValidationAsync(symbolPackage);
+                await _auditingService.SaveAuditRecordAsync(
+                    new PackageAuditRecord(symbolPackage.Package, AuditedPackageAction.SymbolsFailValidation, ForceFailValidationReason));
+                await _symbolPackages.CommitChangesAsync();
+
+                return true;
             }
             else
             {
