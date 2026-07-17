@@ -12,20 +12,20 @@
 
 
     ko.bindingHandlers.trimmedValue = {
-        init: function (element, valueAccessor, allBindings, viewModel, bindingContext) { 
+        init: function(element, valueAccessor, allBindings, viewModel, bindingContext) { 
             // Handle the initial value and user input
             var observable = valueAccessor();
             var interceptor = ko.pureComputed({
                 read: observable,
-                write: function (value) {
+                write: function(value) {
                     observable(typeof value === "string" ? value.trim() : value);
                 }
             });
 
             // Use the standard value binding with our interceptor
-            ko.bindingHandlers.value.init(element, function () { return interceptor; }, allBindings, viewModel, bindingContext);
+            ko.bindingHandlers.value.init(element, function() { return interceptor; }, allBindings, viewModel, bindingContext);
         },
-        update: function (element, valueAccessor, allBindings, viewModel, bindingContext) {
+        update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
             // Use the standard value binding for updates
             ko.bindingHandlers.value.update(element, valueAccessor, allBindings, viewModel, bindingContext);
         }
@@ -194,7 +194,7 @@
                     properties.httpStatus = jqXHR.status;
                     properties.responseText = jqXHR.responseText;
                 },
-                complete: function () {
+                complete: function() {
                     window.nuget.sendMetric('GitHubRepositoryLookup', 1, properties);
                     callback();
                 }
