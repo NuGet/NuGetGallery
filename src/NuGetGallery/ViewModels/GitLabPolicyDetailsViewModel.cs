@@ -81,13 +81,7 @@ namespace NuGetGallery
 		public static GitLabPolicyDetailsViewModel FromDatabaseJson(string json)
 		{
 			var criteria = GitLabCriteria.FromDatabaseJson(json);
-			var model = new GitLabPolicyDetailsViewModel(criteria);
-			if (criteria.Validate() is string error)
-			{
-				throw new InvalidOperationException($"Invalid GitLab policy details: {error}");
-			}
-
-			return model;
+			return new GitLabPolicyDetailsViewModel(criteria);
 		}
 	}
 }
