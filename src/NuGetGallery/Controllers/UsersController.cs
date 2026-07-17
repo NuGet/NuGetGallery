@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Globalization;
 using System.Linq;
 using System.Net;
@@ -652,7 +651,7 @@ namespace NuGetGallery
         [ValidateRecaptchaResponse]
         public virtual async Task<ActionResult> ForgotPassword(ForgotPasswordViewModel model)
         {
-            if(!_featureFlagService.IsNuGetAccountPasswordLoginEnabled() && !ContentObjectService.LoginDiscontinuationConfiguration.IsEmailInExceptionsList(model.Email))
+            if (!_featureFlagService.IsNuGetAccountPasswordLoginEnabled() && !ContentObjectService.LoginDiscontinuationConfiguration.IsEmailInExceptionsList(model.Email))
             {
                 ModelState.AddModelError(string.Empty, Strings.ForgotPassword_Disabled_Error);
 

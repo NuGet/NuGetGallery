@@ -12,7 +12,7 @@
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             @ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, true, @<text>Trusted Publishing</text>)
 
-            @if (Request.QueryString["fromApiKeys"] == "true")
+            @if (Request.QueryString["fromApiKeys"] == "true") 
             {
                 @ViewHelpers.Alert(
                         @<text><b>API keys are strongly discouraged for automated publishing</b> and should be replaced with <a href="https://aka.ms/nuget/trusted-publishing" target="_blank">Trusted Publishing</a>, which is currently supported for GitHub Actions, with broader CI/CD support coming soon.
