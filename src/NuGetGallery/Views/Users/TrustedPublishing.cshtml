@@ -15,7 +15,7 @@
             @if (Request.QueryString["fromApiKeys"] == "true")
             {
                 @ViewHelpers.Alert(
-                            @<text><b>API keys are strongly discouraged for automated publishing</b> and should be replaced with <a href="https://aka.ms/nuget/trusted-publishing" target="_blank">Trusted Publishing</a>, which is currently supported for GitHub Actions, with broader CI/CD support coming soon.
+                        @<text><b>API keys are strongly discouraged for automated publishing</b> and should be replaced with <a href="https://aka.ms/nuget/trusted-publishing" target="_blank">Trusted Publishing</a>, which is currently supported for GitHub Actions, with broader CI/CD support coming soon.
                                 We strongly recommend updating now to Trusted Publishing to ensure a seamless transition.
                                 For publishing from command line or unsupported CI/CD workflows, <a href="@(Url.ManageMyApiKeys() + "?forceApiKeys=true")">API keys</a> continue to work.</text>, "info", icon: null)}
 
@@ -29,10 +29,10 @@
             @if (!CurrentUser.Confirmed)
             {
                 @ViewHelpers.AlertWarning(
-                                @<text>
-                                    To register a Trusted Publisher you will need to
-                                    <a href="@Url.ConfirmationRequired()">confirm your account</a>.
-                                </text>)
+                        @<text>
+                            To register a Trusted Publisher you will need to
+                            <a href="@Url.ConfirmationRequired()">confirm your account</a>.
+                        </text>)
             }
             else
             {
