@@ -16,8 +16,8 @@
             {
                 @ViewHelpers.Alert(
                         @<text><b>API keys are strongly discouraged for automated publishing</b> and should be replaced with <a href="https://aka.ms/nuget/trusted-publishing" target="_blank">Trusted Publishing</a>, which is currently supported for GitHub Actions, with broader CI/CD support coming soon.
-                                We strongly recommend updating now to Trusted Publishing to ensure a seamless transition.
-                                For publishing from command line or unsupported CI/CD workflows, <a href="@(Url.ManageMyApiKeys() + "?forceApiKeys=true")">API keys</a> continue to work.</text>, "info", icon: null)}
+                            We strongly recommend updating now to Trusted Publishing to ensure a seamless transition.
+                            For publishing from command line or unsupported CI/CD workflows, <a href="@(Url.ManageMyApiKeys() + "?forceApiKeys=true")">API keys</a> continue to work.</text>, "info", icon: null)}
 
             <p>
                 <strong>Trusted Publishing</strong> lets you publish NuGet packages securely without managing API keys.
@@ -41,31 +41,31 @@
                 if (Model.PackageOwners == null || Model.PackageOwners.Count == 0)
                 {
                     @ViewHelpers.AlertInfo(
-                                @<text>
-                                    You or one of the organizations you are a member of need to be an owner of at least one package to create Trusted Publishing policies.
-                                </text>)
+                        @<text>
+                            You or one of the organizations you are a member of need to be an owner of at least one package to create Trusted Publishing policies.
+                        </text>)
                 }
                 else
                 {
                     @ViewHelpers.Section(this,
-                            "create",
-                            "Create",
-                                @<text>
-                                    <div class="upsert-policy">
-                                        <div class="panel-body" data-bind="template: { name: 'upsert-policy', data: NewPolicy }"></div>
-                                    </div>
-                                </text>,
+                        "create",
+                        "Create",
+                        @<text>
+                            <div class="upsert-policy">
+                                <div class="panel-body" data-bind="template: { name: 'upsert-policy', data: NewPolicy }"></div>
+                            </div>
+                        </text>,
                      expanded: false,
                      expandedIcon: "Subtraction",
                      collapsedIcon: "Add")
                 }
 
                 @ViewHelpers.Section(this,
-                              "manage",
-                              "Manage",
-                                @<text>
-                                    <div data-bind="template: 'manage-policies'"></div>
-                                </text>)
+                         "manage",
+                         "Manage",
+                        @<text>
+                            <div data-bind="template: 'manage-policies'"></div>
+                        </text>)
             }
         </div>
     </div>
@@ -84,7 +84,7 @@
     </div>
     <!-- ko if: Policies().length === 0 -->
     @ViewHelpers.AlertInfo(
-                        @<text>You don't have any Trusted Publisher Policies.</text>)
+                @<text>You don't have any Trusted Publisher Policies.</text>)
     <!-- /ko -->
 </script>
 
@@ -157,7 +157,7 @@
                         <b>Publisher:</b> <span data-bind="text: PublisherName" />
                     </li>
 
-                    <!-- ko if: PublisherName() === 'GitHubActions' -->
+                    <!-- ko if: PublisherName() === 'GitHubActions'  -->
                     <li>
                         <b>Repository Owner:</b> <span data-bind="text: gitHub.RepositoryOwner()" />
                         <!-- ko if: gitHub.RepositoryOwnerId() -->
