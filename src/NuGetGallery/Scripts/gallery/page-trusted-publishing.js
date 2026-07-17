@@ -231,6 +231,9 @@
         var _gitLabDetails = {};
         _gitLabDetails.Initialize = function (self) {
             self.gitLab = {
+                IsPermamentlyEnabled: ko.observable(false),
+                EnabledDaysLeft: ko.observable(0),
+
                 NamespacePath: ko.observable(),
                 PendingNamespacePath: ko.observable(),
                 NamespacePathUid: computedUid(self, "gitlab-namespace-path"),
@@ -252,6 +255,15 @@
         _gitLabDetails.Update = function (self, data) {
             const details = data.PublisherName !== GitLabCIPublisherName ? {} : data.PolicyDetails || {};
             const gitLab = self.gitLab;
+
+            if (data.Key) {
+                gitLab.IsPermamentlyEnabled(details.IsPermanentlyEnabled || false);
+                gitLab.EnabledDaysLeft(details.EnabledDaysLeft || 0);
+            } else {
+                // Ignore TOFU state for new items being created
+                gitLab.IsPermamentlyEnabled(true);
+                gitLab.EnabledDaysLeft(1);
+            }
 
             gitLab.NamespacePath(details.NamespacePath || '');
             gitLab.PendingNamespacePath(details.NamespacePath || '');

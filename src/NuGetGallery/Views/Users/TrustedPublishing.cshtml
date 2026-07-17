@@ -104,10 +104,27 @@
                         You can no longer use Trusted Publishing for <b data-bind="text: Owner" />.
                         <a href="https://aka.ms/nuget/trusted-publishing-ownership-warnings" target="_blank" aria-label="Learn more about Trusted Publishing">Learn more about policies</a>
                         <!-- /ko -->
-                        <!-- GitLab policies are always active when the owner is valid -->
+                        <!-- GitLab-specific status -->
                         <!-- ko if: PublisherName() === 'GitLabCI' && IsOwnerValid() -->
+                        <!-- ko if: gitLab.IsPermamentlyEnabled() -->
                         <i class="ms-Icon ms-Icon--CheckMark" aria-hidden="true" />
                         Active
+                        <!-- /ko -->
+                        <!-- ko if: !gitLab.IsPermamentlyEnabled() -->
+                        <!-- ko if: gitLab.EnabledDaysLeft() > 0 -->
+                        <i class="ms-Icon ms-Icon--Info" aria-hidden="true" />
+                        Use within <b><span data-bind="text: gitLab.EnabledDaysLeft()" /> day(s)</b> to keep it permanently active.
+                        <a href="https://aka.ms/nuget/trusted-publishing-pending-activation" target="_blank" aria-label="Learn more about GitLab Trusted Publishing">Learn more about policies</a>
+                        <!-- /ko -->
+                        <!-- ko ifnot: gitLab.EnabledDaysLeft() > 0 -->
+                        <i class="ms-Icon ms-Icon--Warning" aria-hidden="true" />
+                        <a class="icon-link" href="#" role="button" data-bind="click: Enable">
+                            Activate
+                        </a>
+                        and use within <b>@GitLabPolicyDetailsViewModel.ValidationExpirationDays days</b> to keep it permanently active.
+                        <a href="https://aka.ms/nuget/trusted-publishing-pending-activation" target="_blank" aria-label="Learn more about GitLab Trusted Publishing">Learn more about policies</a>
+                        <!-- /ko -->
+                        <!-- /ko -->
                         <!-- /ko -->
                         <!-- GitHub-specific status -->
                         <!-- ko if: PublisherName() === 'GitHubActions' && IsOwnerValid() -->

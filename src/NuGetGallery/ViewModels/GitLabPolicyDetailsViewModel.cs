@@ -18,6 +18,8 @@ namespace NuGetGallery
 	[DebuggerDisplay("{NamespacePath,nq}/{ProjectPath,nq}")]
 	public sealed class GitLabPolicyDetailsViewModel : TrustedPublisherPolicyDetailsViewModel
 	{
+		public const int ValidationExpirationDays = GitLabCriteria.ValidationExpirationDays;
+
 		public GitLabPolicyDetailsViewModel(GitLabCriteria criteria)
 		{
 			Criteria = criteria ?? new GitLabCriteria();
@@ -52,6 +54,13 @@ namespace NuGetGallery
 			get => Criteria.Environment;
 			set => Criteria.Environment = value;
 		}
+
+		/// <summary>
+		/// GitLab policy is permanently enabled when both namespace and project IDs are set (TOFU complete).
+		/// </summary>
+		public bool IsPermanentlyEnabled => Criteria.IsPermanentlyEnabled;
+
+		public int EnabledDaysLeft => Criteria.EnabledDaysLeft;
 
 		public static GitLabPolicyDetailsViewModel FromViewJson(string json)
 		{
