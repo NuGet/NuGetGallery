@@ -76,6 +76,28 @@ namespace NuGet.Services.Validation.Orchestrator
             return processorStats;
         }
 
+        public async Task<ValidationSetProcessorResult> ForceFailValidationSetAsync(PackageValidationSet validationSet)
+        {
+            _logger.LogWarning("Forcing validation set {ValidationSetId} for {PackageId} {PackageVersion} to fail",
+                validationSet.ValidationTrackingId,
+                validationSet.PackageId,
+                validationSet.PackageNormalizedVersion);
+
+            // Mark all incomplete validations as failed to force the validation set to fail.
+            // We need to update individual validations to the Failed status so that the outcome processor
+            // will recognize this as a failed validation set.
+            foreach (var packageValidation in validationSet.PackageValidations.Where(v => v.ValidationStatus == ValidationStatus.Incomplete || v.ValidationStatus == ValidationStatus.NotStarted))
+            {
+                await _validationStorageService.UpdateValidationStatusAsync(packageValidation, NuGetValidationResponse.Failed);
+            }
+
+            return new ValidationSetProcessorResult
+            {
+                AnyValidationSucceeded = false,
+                AnyRequiredValidationSucceeded = false
+            };
+        }
+
         private async Task ProcessIncompleteValidations(PackageValidationSet validationSet, ValidationSetProcessorResult processorStats)
         {
             foreach (var packageValidation in validationSet.PackageValidations.Where(v => v.ValidationStatus == ValidationStatus.Incomplete
