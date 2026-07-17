@@ -203,6 +203,11 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
             throw new NotImplementedException();
         }
 
+        public void TrackDuplicatePackageDeprecations(string packageId, string packageVersion, int deprecationCount)
+        {
+            throw new NotImplementedException();
+        }
+
         public void TrackPackageDeprecate(IReadOnlyList<Package> packages, PackageDeprecationStatus status, PackageRegistration alternateRegistration, Package alternatePackage, bool hasCustomMessage, bool hasChanges)
         {
             throw new NotImplementedException();
