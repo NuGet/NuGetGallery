@@ -1160,21 +1160,6 @@ namespace NuGetGallery
             return FederatedCredentialType.GitHubActions;
         }
 
-        private string ViewToPolicyCriteria(string criteria, FederatedCredentialType credentialType)
-        {
-            switch (credentialType)
-            {
-                case FederatedCredentialType.GitLabCI:
-                    var gitLabDetails = GitLabPolicyDetailsViewModel.FromViewJson(criteria);
-                    return gitLabDetails.Criteria.ToDatabaseJson();
-
-                case FederatedCredentialType.GitHubActions:
-                default:
-                    var details = GitHubPolicyDetailsViewModel.FromViewJson(criteria);
-                    return details.Criteria.ToDatabaseJson();
-            }
-        }
-
         [UIAuthorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -1231,6 +1216,22 @@ namespace NuGetGallery
             return Json(model);
         }
 
+
+        private string ViewToPolicyCriteria(string criteria, FederatedCredentialType credentialType)
+        {
+            switch (credentialType)
+            {
+                case FederatedCredentialType.GitLabCI:
+                    var gitLabDetails = GitLabPolicyDetailsViewModel.FromViewJson(criteria);
+                    return gitLabDetails.Criteria.ToDatabaseJson();
+
+                case FederatedCredentialType.GitHubActions:
+                default:
+                    var details = GitHubPolicyDetailsViewModel.FromViewJson(criteria);
+                    return details.Criteria.ToDatabaseJson();
+            }
+        }
+
         [HttpPost]
         [UIAuthorize]
         [ValidateAntiForgeryToken]
@@ -1244,7 +1245,6 @@ namespace NuGetGallery
             }
 
             await _federatedCredentialService.DeletePolicyAsync(result.policy);
-
             return Json(Strings.TrustedPolicyRemoved);
         }
 
