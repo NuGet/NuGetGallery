@@ -406,10 +406,7 @@
             this.PolicyNameUid = computedUid(self, "policy-name");
             this.PackageOwnerUid = computedUid(self, "package-owner");
             this.IconUrl = ko.pureComputed(function () {
-                if (!this.IsOwnerValid()) {
-                    return initialData.ImageUrls.DisabledTrustedPolicy;
-                }
-                if (_getEnabledDaysLeft(this) <= 0) {
+                if (!this.IsOwnerValid() || _getEnabledDaysLeft(this) <= 0) {
                     return initialData.ImageUrls.DisabledTrustedPolicy;
                 }
                 if (!_getIsPermanentlyEnabled(this)) {
@@ -419,10 +416,7 @@
             }, this);
             this.IconUrlFallback = ko.pureComputed(function () {
                 var url = initialData.ImageUrls.TrustedPolicyFallback;
-                if (!this.IsOwnerValid()) {
-                    return initialData.ImageUrls.DisabledTrustedPolicyFallback;
-                }
-                if (_getEnabledDaysLeft(this) <= 0) {
+                if (!this.IsOwnerValid() || _getEnabledDaysLeft(this) <= 0) {
                     return initialData.ImageUrls.DisabledTrustedPolicyFallback;
                 }
                 if (!_getIsPermanentlyEnabled(this)) {
