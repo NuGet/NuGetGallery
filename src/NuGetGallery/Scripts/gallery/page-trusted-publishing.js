@@ -12,7 +12,7 @@
 
 
     ko.bindingHandlers.trimmedValue = {
-        init: function(element, valueAccessor, allBindings, viewModel, bindingContext) { 
+        init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
             // Handle the initial value and user input
             var observable = valueAccessor();
             var interceptor = ko.pureComputed({
