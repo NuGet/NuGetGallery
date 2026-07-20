@@ -1231,6 +1231,23 @@ namespace NuGetGallery
             return Json(model);
         }
 
+        [HttpPost]
+        [UIAuthorize]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<JsonResult> RemoveTrustedPublisherPolicy(int? federatedCredentialKey)
+        {
+            var result = GetFederatedCredentialPolicy(federatedCredentialKey);
+            if (result.policy == null)
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(result.error);
+            }
+
+            await _federatedCredentialService.DeletePolicyAsync(result.policy);
+
+            return Json(Strings.TrustedPolicyRemoved);
+        }
+
         private (FederatedCredentialPolicy policy, string error) GetFederatedCredentialPolicy(int? federatedCredentialKey)
         {
             if (federatedCredentialKey is not int key ||
@@ -1512,23 +1529,6 @@ namespace NuGetGallery
                 CanAccept = ActionsRequiringPermissions.HandlePackageOwnershipRequest.CheckPermissions(currentUser, request.NewOwner) == PermissionsCheckResult.Allowed,
                 CanCancel = packageViewModel.CanManageOwners,
             };
-        }
-
-        [HttpPost]
-        [UIAuthorize]
-        [ValidateAntiForgeryToken]
-        public virtual async Task<JsonResult> RemoveTrustedPublisherPolicy(int? federatedCredentialKey)
-        {
-            var result = GetFederatedCredentialPolicy(federatedCredentialKey);
-            if (result.policy == null)
-            {
-                Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(result.error);
-            }
-
-            await _federatedCredentialService.DeletePolicyAsync(result.policy);
-
-            return Json(Strings.TrustedPolicyRemoved);
         }
     }
 }
