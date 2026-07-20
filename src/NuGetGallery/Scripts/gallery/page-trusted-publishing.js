@@ -317,6 +317,20 @@
             return _gitHubDetails;
         }
 
+        function _getEnabledDaysLeft(self) {
+            if (self.PublisherName() === GitLabCIPublisherName) {
+                return self.gitLab.EnabledDaysLeft();
+            }
+            return self.gitHub.EnabledDaysLeft();
+        }
+
+        function _getIsPermanentlyEnabled(self) {
+            if (self.PublisherName() === GitLabCIPublisherName) {
+                return self.gitLab.IsPermamentlyEnabled();
+            }
+            return self.gitHub.IsPermamentlyEnabled();
+        }
+
         function PolicyViewModel(parent, packageOwners, data) {
             var self = this;
             data = data || {};
@@ -395,15 +409,10 @@
                 if (!this.IsOwnerValid()) {
                     return initialData.ImageUrls.DisabledTrustedPolicy;
                 }
-                // GitLab policies are always "permanently enabled"
-                if (this.PublisherName() === GitLabCIPublisherName) {
-                    return initialData.ImageUrls.TrustedPolicy;
-                }
-                // GitHub-specific icon logic
-                if (this.gitHub.EnabledDaysLeft() <= 0) {
+                if (_getEnabledDaysLeft(this) <= 0) {
                     return initialData.ImageUrls.DisabledTrustedPolicy;
                 }
-                if (!this.gitHub.IsPermamentlyEnabled()) {
+                if (!_getIsPermanentlyEnabled(this)) {
                     return initialData.ImageUrls.TemporaryTrustedPolicy;
                 }
                 return initialData.ImageUrls.TrustedPolicy;
@@ -413,13 +422,10 @@
                 if (!this.IsOwnerValid()) {
                     return initialData.ImageUrls.DisabledTrustedPolicyFallback;
                 }
-                if (this.PublisherName() === GitLabCIPublisherName) {
-                    return "this.src='" + url + "'; this.onerror = null;";
-                }
-                if (this.gitHub.EnabledDaysLeft() <= 0) {
+                if (_getEnabledDaysLeft(this) <= 0) {
                     return initialData.ImageUrls.DisabledTrustedPolicyFallback;
                 }
-                if (!this.gitHub.IsPermamentlyEnabled()) {
+                if (!_getIsPermanentlyEnabled(this)) {
                     return initialData.ImageUrls.TemporaryTrustedPolicyFallback;
                 }
                 return "this.src='" + url + "'; this.onerror = null;";
