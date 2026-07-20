@@ -238,9 +238,13 @@
                 PendingNamespacePath: ko.observable(),
                 NamespacePathUid: computedUid(self, "gitlab-namespace-path"),
 
+                NamespaceId: ko.observable(),
+
                 ProjectPath: ko.observable(),
                 PendingProjectPath: ko.observable(),
                 ProjectPathUid: computedUid(self, "gitlab-project-path"),
+
+                ProjectId: ko.observable(),
 
                 Ref: ko.observable(),
                 PendingRef: ko.observable(),
@@ -260,7 +264,6 @@
                 gitLab.IsPermamentlyEnabled(details.IsPermanentlyEnabled || false);
                 gitLab.EnabledDaysLeft(details.EnabledDaysLeft || 0);
             } else {
-                // Ignore TOFU state for new items being created
                 gitLab.IsPermamentlyEnabled(true);
                 gitLab.EnabledDaysLeft(1);
             }
@@ -268,8 +271,12 @@
             gitLab.NamespacePath(details.NamespacePath || '');
             gitLab.PendingNamespacePath(details.NamespacePath || '');
 
+            gitLab.NamespaceId(details.NamespaceId || '');
+
             gitLab.ProjectPath(details.ProjectPath || '');
             gitLab.PendingProjectPath(details.ProjectPath || '');
+
+            gitLab.ProjectId(details.ProjectId || '');
 
             gitLab.Ref(details.Ref || '');
             gitLab.PendingRef(details.Ref || '');
@@ -297,16 +304,91 @@
             return gitLab.PendingNamespacePath() && gitLab.PendingProjectPath();
         };
 
+        _gitLabDetails.LookupGitLabIdentifiers = function (self, existingPolicies, callback) {
+            const gitLab = self.gitLab;
+            const namespacePath = gitLab.PendingNamespacePath().toLowerCase();
+            const projectPath = gitLab.PendingProjectPath().toLowerCase();
+
+            if (!namespacePath || !projectPath) {
+                callback();
+                return;
+            }
+
+            // Check if we already have the IDs
+            if (gitLab.NamespaceId() && gitLab.ProjectId()) {
+                callback();
+                return;
+            }
+
+            // Check if we can find the IDs from existing policies
+            if (existingPolicies && existingPolicies.length > 0) {
+                for (var i = 0; i < existingPolicies.length; i++) {
+                    var existing = existingPolicies[i].gitLab;
+                    if (existing && existing !== gitLab &&
+                        existing.NamespacePath().toLowerCase() === namespacePath &&
+                        existing.ProjectPath().toLowerCase() === projectPath &&
+                        existing.NamespaceId() &&
+                        existing.ProjectId()) {
+
+                        gitLab.NamespaceId(existing.NamespaceId());
+                        gitLab.ProjectId(existing.ProjectId());
+                        callback();
+                        return;
+                    }
+                }
+            }
+
+            // Call GitLab API to get project info
+            var encodedPath = encodeURIComponent(namespacePath + '/' + projectPath);
+            var apiUrl = 'https://gitlab.com/api/v4/projects/' + encodedPath;
+            var properties = { apiUrl: apiUrl };
+
+            $.ajax({
+                url: apiUrl,
+                type: 'GET',
+                dataType: 'json',
+                timeout: 10000,
+                headers: {
+                    'Accept': 'application/json'
+                },
+                success: function (data) {
+                    gitLab.NamespaceId(data.namespace && data.namespace.id ? data.namespace.id.toString() : '');
+                    gitLab.ProjectId(data.id ? data.id.toString() : '');
+                    properties.httpStatus = 200;
+                },
+                error: function (jqXHR) {
+                    properties.httpStatus = jqXHR.status;
+                    properties.responseText = jqXHR.responseText;
+                },
+                complete: function () {
+                    window.nuget.sendMetric('GitLabProjectLookup', 1, properties);
+                    callback();
+                }
+            });
+        };
+
         _gitLabDetails.CreatePendingCriteria = function (self) {
             // MUST MATCH GitLab details deserialization in GitLabPolicyDetailsViewModel.cs.
             const gitLab = self.gitLab;
-            return JSON.stringify({
+            var gitLabData = {
                 Name: GitLabCIPublisherName,
                 NamespacePath: gitLab.PendingNamespacePath() || '',
                 ProjectPath: gitLab.PendingProjectPath() || '',
                 Ref: gitLab.PendingRef() || '',
                 Environment: gitLab.PendingEnvironment() || ''
-            });
+            };
+
+            var namespaceId = gitLab.NamespaceId();
+            if (namespaceId) {
+                gitLabData.NamespaceId = namespaceId;
+            }
+
+            var projectId = gitLab.ProjectId();
+            if (projectId) {
+                gitLabData.ProjectId = projectId;
+            }
+
+            return JSON.stringify(gitLabData);
         };
 
         // ===== Helper to get the current provider details handler =====
@@ -563,14 +645,18 @@
                 this.PendingCreateOrEdit(true);
 
                 if (this.SelectedProvider() === GitHubActionsPublisherName) {
-                    // GitHub needs to look up owner/repo IDs first
                     _gitHubDetails.LookupGitHubIdentifiers(self, parent.Policies(),
                         function () {
                             self.CreateAfterLookup();
                         }
                     );
+                } else if (this.SelectedProvider() === GitLabCIPublisherName) {
+                    _gitLabDetails.LookupGitLabIdentifiers(self, parent.Policies(),
+                        function () {
+                            self.CreateAfterLookup();
+                        }
+                    );
                 } else {
-                    // GitLab has no pre-create lookup
                     this.CreateAfterLookup();
                 }
             };

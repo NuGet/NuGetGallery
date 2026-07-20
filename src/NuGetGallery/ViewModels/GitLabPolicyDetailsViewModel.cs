@@ -36,11 +36,29 @@ namespace NuGetGallery
 			set => Criteria.NamespacePath = value;
 		}
 
+		/// <summary>
+		/// GitLab namespace numeric ID. Obtained from the GitLab API at policy creation time.
+		/// </summary>
+		public string? NamespaceId
+		{
+			get => Criteria.NamespaceId;
+			set => Criteria.NamespaceId = value;
+		}
+
 		[Required]
 		public string ProjectPath
 		{
 			get => Criteria.ProjectPath;
 			set => Criteria.ProjectPath = value;
+		}
+
+		/// <summary>
+		/// GitLab project numeric ID. Obtained from the GitLab API at policy creation time.
+		/// </summary>
+		public string? ProjectId
+		{
+			get => Criteria.ProjectId;
+			set => Criteria.ProjectId = value;
 		}
 
 		public string? Ref
@@ -71,9 +89,17 @@ namespace NuGetGallery
 			{
 				model.NamespacePath = namespacePath.ToString();
 			}
+			if (properties.TryGetValue(nameof(NamespaceId), out var namespaceId))
+			{
+				model.NamespaceId = namespaceId.ToString();
+			}
 			if (properties.TryGetValue(nameof(ProjectPath), out var projectPath))
 			{
 				model.ProjectPath = projectPath.ToString();
+			}
+			if (properties.TryGetValue(nameof(ProjectId), out var projectId))
+			{
+				model.ProjectId = projectId.ToString();
 			}
 			if (properties.TryGetValue(nameof(Ref), out var refValue))
 			{
