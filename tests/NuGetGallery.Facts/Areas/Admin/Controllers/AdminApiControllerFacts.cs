@@ -18,6 +18,7 @@ using NuGetGallery.Areas.Admin.Controllers;
 using NuGetGallery.Areas.Admin.Filters;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Areas.Admin.Services;
+using NuGetGallery.Auditing;
 using NuGetGallery.Framework;
 using Xunit;
 
@@ -35,8 +36,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             Mock<IFeatureFlagService> featureFlagService = null,
             Mock<IUpdateListedService> updateListedService = null,
             ValidationAdminService validationAdminService = null,
-            Mock<IValidationService> validationService = null,
-            Mock<ISymbolPackageService> symbolPackageService = null)
+            Mock<IValidationService> validationService = null)
         {
             packageService ??= new Mock<IPackageService>();
             reflowPackageService ??= new Mock<IReflowPackageService>();
@@ -47,7 +47,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
             updateListedService ??= new Mock<IUpdateListedService>();
             validationAdminService ??= CreateValidationAdminService();
             validationService ??= new Mock<IValidationService>();
-            symbolPackageService ??= new Mock<ISymbolPackageService>();
 
             var controller = new AdminApiController(
                 packageService.Object,
@@ -58,8 +57,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 featureFlagService.Object,
                 updateListedService.Object,
                 validationAdminService,
-                validationService.Object,
-                symbolPackageService.Object);
+                validationService.Object);
 
             var mockResponse = new Mock<HttpResponseBase>();
             mockResponse.SetupProperty(r => r.StatusCode);
@@ -170,7 +168,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 new Mock<IEntityRepository<PackageValidation>>().Object,
                 packages.Object,
                 symbolPackages.Object,
-                new Mock<IValidationService>().Object);
+                new Mock<IValidationService>().Object,
+                new Mock<IAuditingService>().Object);
         }
 
         public class TheReflowMethod : TestContainer

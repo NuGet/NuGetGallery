@@ -30,7 +30,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
         private readonly IUpdateListedService _updateListedService;
         private readonly ValidationAdminService _validationAdminService;
         private readonly IValidationService _validationService;
-        private readonly ISymbolPackageService _symbolPackageService;
 
         public AdminApiController(
             IPackageService packageService,
@@ -41,8 +40,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             IFeatureFlagService featureFlagService,
             IUpdateListedService updateListedService,
             ValidationAdminService validationAdminService = null,
-            IValidationService validationService = null,
-            ISymbolPackageService symbolPackageService = null)
+            IValidationService validationService = null)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _reflowPackageService = reflowPackageService ?? throw new ArgumentNullException(nameof(reflowPackageService));
@@ -53,7 +51,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
             _updateListedService = updateListedService ?? throw new ArgumentNullException(nameof(updateListedService));
             _validationAdminService = validationAdminService;
             _validationService = validationService;
-            _symbolPackageService = symbolPackageService;
         }
 
         [HttpPost]
