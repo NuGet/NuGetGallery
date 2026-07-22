@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.ComponentModel.DataAnnotations;
@@ -13,7 +13,7 @@ namespace NuGet.Services.Entities
         public int Key { get; set; }
 
         [JsonIgnore]
-        public int CredentialKey { get; set; }
+        public int? CredentialKey { get; set; }
 
         /// <summary>
         /// Package owner (user or organization) scoping.
@@ -39,6 +39,9 @@ namespace NuGet.Services.Entities
 
         [JsonIgnore]
         public virtual Credential Credential { get; set; }
+
+        [JsonIgnore]
+        public int? FederatedCredentialPolicyKey { get; set; }
 
         public Scope()
         {

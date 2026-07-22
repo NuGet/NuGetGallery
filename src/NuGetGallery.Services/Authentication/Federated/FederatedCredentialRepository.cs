@@ -74,6 +74,7 @@ namespace NuGetGallery.Services.Authentication
                 .Where(x => userKeys.Contains(x.CreatedByUserKey) || userKeys.Contains(x.PackageOwnerUserKey))
                 .Include(x => x.CreatedBy)
                 .Include(x => x.PackageOwner)
+                .Include(x => x.Scopes)
                 .ToList();
         }
 
