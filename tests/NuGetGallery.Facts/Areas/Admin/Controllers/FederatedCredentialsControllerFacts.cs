@@ -9,6 +9,8 @@ using System.Web;
 using System.Web.Mvc;
 using Moq;
 using NuGet.Services.Entities;
+using NuGetGallery.Authentication;
+using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Services.Authentication;
 using Xunit;
 
@@ -53,41 +55,16 @@ public class FederatedCredentialsControllerFacts
 
     public class TheCreatePolicyMethod : FederatedCredentialsControllerFacts
     {
-        [Fact]
-        public async Task WhenPolicyUserIsEmpty_AddsModelErrorAndReturnsView()
-        {
-            // Arrange
-            var addPolicy = new AddPolicyViewModel
-            {
-                PolicyUser = "",
-                PolicyType = FederatedCredentialType.EntraIdServicePrincipal,
-                PolicyCriteria = """{"test": "value"}"""
-            };
-
-            // Act
-            var result = await Target.CreatePolicy(addPolicy);
-
-            // Assert
-            var viewResult = Assert.IsType<ViewResult>(result);
-            Assert.Equal("Index", viewResult.ViewName);
-            var model = Assert.IsType<ViewPoliciesViewModel>(viewResult.Model);
-            Assert.Same(addPolicy, model.AddPolicy);
-            Assert.False(Target.ModelState.IsValid);
-            Assert.True(Target.ModelState.ContainsKey("AddPolicy.PolicyUser"));
-            Assert.Equal("The policy user field is required.", Target.ModelState["AddPolicy.PolicyUser"].Errors[0].ErrorMessage);
-        }
-
         [Theory]
         [InlineData(null)]
+        [InlineData("")]
         [InlineData("   ")]
-        public async Task WhenPolicyUserIsNullOrWhitespace_AddsModelErrorAndReturnsView(string policyUser)
+        public async Task WhenPolicyUserIsNullOrEmptyOrWhitespace_AddsModelErrorAndReturnsView(string policyUser)
         {
             // Arrange
             var addPolicy = new AddPolicyViewModel
             {
-                PolicyUser = policyUser,
-                PolicyType = FederatedCredentialType.EntraIdServicePrincipal,
-                PolicyCriteria = """{"test": "value"}"""
+                PolicyUser = policyUser
             };
 
             // Act
@@ -107,9 +84,7 @@ public class FederatedCredentialsControllerFacts
             // Arrange
             var addPolicy = new AddPolicyViewModel
             {
-                PolicyUser = "testuser",
-                PolicyType = null,
-                PolicyCriteria = """{"test": "value"}"""
+                PolicyType = null
             };
 
             // Act
@@ -127,13 +102,11 @@ public class FederatedCredentialsControllerFacts
         [InlineData(null)]
         [InlineData("")]
         [InlineData("   ")]
-        public async Task WhenPolicyCriteriaIsNullOrWhitespace_AddsModelErrorAndReturnsView(string policyCriteria)
+        public async Task WhenPolicyCriteriaIsNullOrEmptyOrWhitespace_AddsModelErrorAndReturnsView(string policyCriteria)
         {
             // Arrange
             var addPolicy = new AddPolicyViewModel
             {
-                PolicyUser = "testuser",
-                PolicyType = FederatedCredentialType.EntraIdServicePrincipal,
                 PolicyCriteria = policyCriteria
             };
 
@@ -148,6 +121,58 @@ public class FederatedCredentialsControllerFacts
             Assert.Equal("The policy criteria field is required.", Target.ModelState["AddPolicy.PolicyCriteria"].Errors[0].ErrorMessage);
         }
 
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("   ")]
+        [InlineData(", ")]
+        [InlineData("AnyString, ")]
+        [InlineData("AnyString1, AnyString2 ,  ")]
+        public async Task WhenPolicyScopesIsInvalid_AddsModelErrorAndReturnsView(string policyScopes)
+        {
+            // Arrange
+            var addPolicy = new AddPolicyViewModel
+            {
+                PolicyScopes = policyScopes
+            };
+
+            // Act
+            var result = await Target.CreatePolicy(addPolicy);
+
+            // Assert
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.Equal("Index", viewResult.ViewName);
+            Assert.False(Target.ModelState.IsValid);
+            Assert.True(Target.ModelState.ContainsKey("AddPolicy.PolicyScopes"));
+            Assert.Equal("The policy scopes require at least one valid allowed action.", Target.ModelState["AddPolicy.PolicyScopes"].Errors[0].ErrorMessage);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("   ")]
+        [InlineData(" \r ")]
+        [InlineData(" \n ")]
+        [InlineData(" \r \n\n ")]
+        public async Task WhenPolicyGlobPatternsAndPackagesIsInvalid_AddsModelErrorAndReturnsView(string policyGlobPatternsAndPackages)
+        {
+            // Arrange
+            var addPolicy = new AddPolicyViewModel
+            {
+                PolicyGlobPatternsAndPackages = policyGlobPatternsAndPackages
+            };
+
+            // Act
+            var result = await Target.CreatePolicy(addPolicy);
+
+            // Assert
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.Equal("Index", viewResult.ViewName);
+            Assert.False(Target.ModelState.IsValid);
+            Assert.True(Target.ModelState.ContainsKey("AddPolicy.PolicyGlobPatternsAndPackages"));
+            Assert.Equal("The policy scopes require at least one glob pattern or package.", Target.ModelState["AddPolicy.PolicyGlobPatternsAndPackages"].Errors[0].ErrorMessage);
+        }
+
         [Fact]
         public async Task WhenMultipleFieldsInvalid_AddsAllModelErrors()
         {
@@ -155,8 +180,11 @@ public class FederatedCredentialsControllerFacts
             var addPolicy = new AddPolicyViewModel
             {
                 PolicyUser = null,
+                PolicyPackageOwner = null,
                 PolicyType = null,
-                PolicyCriteria = null
+                PolicyCriteria = null,
+                PolicyScopes = null,
+                PolicyGlobPatternsAndPackages = null,
             };
 
             // Act
@@ -167,81 +195,94 @@ public class FederatedCredentialsControllerFacts
             Assert.Equal("Index", viewResult.ViewName);
             Assert.False(Target.ModelState.IsValid);
             Assert.True(Target.ModelState.ContainsKey("AddPolicy.PolicyUser"));
+            Assert.True(Target.ModelState.ContainsKey("AddPolicy.PolicyPackageOwner"));
             Assert.True(Target.ModelState.ContainsKey("AddPolicy.PolicyType"));
             Assert.True(Target.ModelState.ContainsKey("AddPolicy.PolicyCriteria"));
+            Assert.True(Target.ModelState.ContainsKey("AddPolicy.PolicyScopes"));
+            Assert.True(Target.ModelState.ContainsKey("AddPolicy.PolicyGlobPatternsAndPackages"));
         }
 
         [Fact]
         public async Task WhenValidationPasses_CallsFederatedCredentialService()
         {
             // Arrange
-            var user = new User { Key = 10, Username = "testuser" };
             var addPolicy = new AddPolicyViewModel
             {
-                PolicyUser = "testuser",
-                PolicyPackageOwner = "packageowner",
+                PolicyName = "Test Policy",
+                PolicyUser = UserA.Username,
+                PolicyPackageOwner = OrgA.Username,
                 PolicyType = FederatedCredentialType.EntraIdServicePrincipal,
                 PolicyCriteria = """{"tenant":"test","object":"123"}""",
-                PolicyName = "Test Policy"
+                PolicyScopes = $"{NuGetScopes.PackagePush}",
+                PolicyGlobPatternsAndPackages = "Package1",
             };
-
-            UserService.Setup(x => x.FindByUsername("testuser", false)).Returns(user);
 
             var successResult = FederatedCredentialPolicyValidationResult.Success(
                 new FederatedCredentialPolicy
                 {
                     Key = 42,
-                    CreatedBy = user,
+                    CreatedBy = UserA,
                     PolicyName = "Test Policy"
                 });
 
             FederatedCredentialService
                 .Setup(x => x.AddPolicyAsync(
-                    user,
-                    "packageowner",
+                    UserA,
+                    OrgA.Username,
                     """{"tenant":"test","object":"123"}""",
                     "Test Policy",
-                    FederatedCredentialType.EntraIdServicePrincipal))
+                    FederatedCredentialType.EntraIdServicePrincipal,
+                    It.IsAny<IList<Scope>>()))
                 .ReturnsAsync(successResult);
+
+            CredentialBuilder.Setup(x => x.BuildScopes(OrgA, It.IsAny<string[]>(), It.IsAny<string[]>()));
 
             // Act
             var result = await Target.CreatePolicy(addPolicy);
 
             // Assert
             var redirectResult = Assert.IsType<RedirectResult>(result);
-            Assert.Contains("testuser", redirectResult.Url);
-            Assert.Contains("Policy with key 42 added successfully", Target.TempData["MessageFortestuser"].ToString());
+            Assert.Contains(UserA.Username, redirectResult.Url);
+            Assert.Contains("Policy with key 42 added successfully", Target.TempData[$"MessageFor{UserA.Username}"].ToString());
 
             FederatedCredentialService.Verify(x => x.AddPolicyAsync(
-                user,
-                "packageowner",
+                UserA,
+                OrgA.Username,
                 """{"tenant":"test","object":"123"}""",
                 "Test Policy",
-                FederatedCredentialType.EntraIdServicePrincipal), Times.Once);
+                FederatedCredentialType.EntraIdServicePrincipal,
+                It.IsAny<IList<Scope>>()), Times.Once);
+
+            CredentialBuilder.Verify(x => x.BuildScopes(OrgA, It.IsAny<string[]>(), It.IsAny<string[]>()), Times.Once);
         }
 
         [Fact]
         public async Task WhenServiceReturnsBadRequest_AddsModelErrorAndReturnsView()
         {
             // Arrange
-            var user = new User { Key = 10, Username = "testuser" };
             var addPolicy = new AddPolicyViewModel
             {
-                PolicyUser = "testuser",
-                PolicyPackageOwner = "packageowner",
+                PolicyName = "Test Policy",
+                PolicyUser = UserA.Username,
+                PolicyPackageOwner = OrgA.Username,
                 PolicyType = FederatedCredentialType.EntraIdServicePrincipal,
                 PolicyCriteria = """{"test": "value"}""",
-                PolicyName = "Test Policy"
+                PolicyScopes = $"{NuGetScopes.PackagePush}",
+                PolicyGlobPatternsAndPackages = "Package1",
             };
-
-            UserService.Setup(x => x.FindByUsername("testuser", false)).Returns(user);
 
             var badRequestResult = FederatedCredentialPolicyValidationResult.BadRequest(
                 "Invalid criteria format",
                 nameof(FederatedCredentialPolicy.Criteria));
 
             FederatedCredentialService
-                .Setup(x => x.AddPolicyAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<FederatedCredentialType>()))
+                .Setup(x => x.AddPolicyAsync(
+                    It.IsAny<User>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<FederatedCredentialType>(),
+                    It.IsAny<IList<Scope>>()))
                 .ReturnsAsync(badRequestResult);
 
             // Act
@@ -259,24 +300,28 @@ public class FederatedCredentialsControllerFacts
         public async Task WhenServiceReturnsUnauthorized_AddsModelErrorAndReturnsView()
         {
             // Arrange
-            var user = new User { Key = 10, Username = "testuser" };
             var addPolicy = new AddPolicyViewModel
             {
-                PolicyUser = "testuser",
-                PolicyPackageOwner = "packageowner",
+                PolicyName = "Test Policy",
+                PolicyUser = UserA.Username,
+                PolicyPackageOwner = OrgA.Username,
                 PolicyType = FederatedCredentialType.EntraIdServicePrincipal,
                 PolicyCriteria = """{"test": "value"}""",
-                PolicyName = "Test Policy"
+                PolicyScopes = $"{NuGetScopes.PackagePush}",
+                PolicyGlobPatternsAndPackages = "Package1",
             };
-
-            UserService.Setup(x => x.FindByUsername("testuser", false)).Returns(user);
 
             var unauthorizedResult = FederatedCredentialPolicyValidationResult.Unauthorized(
                 "User does not have permissions",
                 nameof(FederatedCredentialPolicy.PackageOwner));
 
             FederatedCredentialService
-                .Setup(x => x.AddPolicyAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<FederatedCredentialType>()))
+                .Setup(x => x.AddPolicyAsync(
+                    It.IsAny<User>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(), It.IsAny<string>(),
+                    It.IsAny<FederatedCredentialType>(),
+                    It.IsAny<IList<Scope>>()))
                 .ReturnsAsync(unauthorizedResult);
 
             // Act
@@ -291,83 +336,39 @@ public class FederatedCredentialsControllerFacts
         }
 
         [Fact]
-        public async Task WhenValidPolicyWithNullPackageOwner_PassesNullToService()
-        {
-            // Arrange
-            var user = new User { Key = 10, Username = "testuser" };
-            var addPolicy = new AddPolicyViewModel
-            {
-                PolicyUser = "testuser",
-                PolicyPackageOwner = null, // Null package owner
-                PolicyType = FederatedCredentialType.GitHubActions,
-                PolicyCriteria = """{"owner":"test","repo":"test"}""",
-                PolicyName = "Test Policy"
-            };
-
-            UserService.Setup(x => x.FindByUsername("testuser", false)).Returns(user);
-
-            var successResult = FederatedCredentialPolicyValidationResult.Success(
-                new FederatedCredentialPolicy
-                {
-                    Key = 42,
-                    CreatedBy = user,
-                    PolicyName = "Test Policy"
-                });
-
-            FederatedCredentialService
-                .Setup(x => x.AddPolicyAsync(
-                    user,
-                    null,
-                    """{"owner":"test","repo":"test"}""",
-                    "Test Policy",
-                    FederatedCredentialType.GitHubActions))
-                .ReturnsAsync(successResult);
-
-            // Act
-            var result = await Target.CreatePolicy(addPolicy);
-
-            // Assert
-            var redirectResult = Assert.IsType<RedirectResult>(result);
-            FederatedCredentialService.Verify(x => x.AddPolicyAsync(
-                user,
-                null,
-                """{"owner":"test","repo":"test"}""",
-                "Test Policy",
-                FederatedCredentialType.GitHubActions), Times.Once);
-        }
-
-        [Fact]
         public async Task WhenValidPolicyWithNullPolicyName_PassesNullToService()
         {
             // Arrange
-            var user = new User { Key = 10, Username = "testuser" };
             var addPolicy = new AddPolicyViewModel
             {
-                PolicyUser = "testuser",
-                PolicyPackageOwner = "packageowner",
+                PolicyName = null, // Null policy name
+                PolicyUser = UserA.Username,
+                PolicyPackageOwner = OrgA.Username,
                 PolicyType = FederatedCredentialType.GitHubActions,
                 PolicyCriteria = """{"owner":"test","repo":"test"}""",
-                PolicyName = null // Null policy name
+                PolicyScopes = $"{NuGetScopes.PackagePush}",
+                PolicyGlobPatternsAndPackages = "Package1",
             };
-
-            UserService.Setup(x => x.FindByUsername("testuser", false)).Returns(user);
 
             var successResult = FederatedCredentialPolicyValidationResult.Success(
                 new FederatedCredentialPolicy
                 {
                     Key = 42,
-                    CreatedBy = user,
+                    CreatedBy = UserA,
                     PolicyName = null
                 });
 
             FederatedCredentialService
                 .Setup(x => x.AddPolicyAsync(
-                    user,
-                    "packageowner",
+                    UserA,
+                    OrgA.Username,
                     """{"owner":"test","repo":"test"}""",
                     null,
-                    FederatedCredentialType.GitHubActions))
+                    FederatedCredentialType.GitHubActions,
+                    It.IsAny<IList<Scope>>()))
                 .ReturnsAsync(successResult);
+
+            CredentialBuilder.Setup(x => x.BuildScopes(OrgA, It.IsAny<string[]>(), It.IsAny<string[]>()));
 
             // Act
             var result = await Target.CreatePolicy(addPolicy);
@@ -375,11 +376,14 @@ public class FederatedCredentialsControllerFacts
             // Assert
             var redirectResult = Assert.IsType<RedirectResult>(result);
             FederatedCredentialService.Verify(x => x.AddPolicyAsync(
-                user,
-                "packageowner",
+                UserA,
+                OrgA.Username,
                 """{"owner":"test","repo":"test"}""",
                 null,
-                FederatedCredentialType.GitHubActions), Times.Once);
+                FederatedCredentialType.GitHubActions,
+                It.IsAny<IList<Scope>>()), Times.Once);
+
+            CredentialBuilder.Verify(x => x.BuildScopes(OrgA, It.IsAny<string[]>(), It.IsAny<string[]>()), Times.Once);
         }
 
         [Theory]
@@ -388,34 +392,36 @@ public class FederatedCredentialsControllerFacts
         public async Task WhenDifferentPolicyTypes_PassesCorrectTypeToService(FederatedCredentialType policyType)
         {
             // Arrange
-            var user = new User { Key = 10, Username = "testuser" };
             var addPolicy = new AddPolicyViewModel
             {
-                PolicyUser = "testuser",
-                PolicyPackageOwner = "packageowner",
+                PolicyName = "Test Policy",
+                PolicyUser = UserA.Username,
+                PolicyPackageOwner = OrgA.Username,
                 PolicyType = policyType,
                 PolicyCriteria = """{"test": "value"}""",
-                PolicyName = "Test Policy"
+                PolicyScopes = $"{NuGetScopes.PackagePush}",
+                PolicyGlobPatternsAndPackages = "Package1",
             };
-
-            UserService.Setup(x => x.FindByUsername("testuser", false)).Returns(user);
 
             var successResult = FederatedCredentialPolicyValidationResult.Success(
                 new FederatedCredentialPolicy
                 {
                     Key = 42,
-                    CreatedBy = user,
+                    CreatedBy = UserA,
                     PolicyName = "Test Policy"
                 });
 
             FederatedCredentialService
                 .Setup(x => x.AddPolicyAsync(
-                    user,
-                    "packageowner",
+                    UserA,
+                    OrgA.Username,
                     """{"test": "value"}""",
                     "Test Policy",
-                    policyType))
+                    policyType,
+                    It.IsAny<IList<Scope>>()))
                 .ReturnsAsync(successResult);
+
+            CredentialBuilder.Setup(x => x.BuildScopes(OrgA, It.IsAny<string[]>(), It.IsAny<string[]>()));
 
             // Act
             var result = await Target.CreatePolicy(addPolicy);
@@ -423,35 +429,114 @@ public class FederatedCredentialsControllerFacts
             // Assert
             var redirectResult = Assert.IsType<RedirectResult>(result);
             FederatedCredentialService.Verify(x => x.AddPolicyAsync(
-                user,
-                "packageowner",
+                UserA,
+                OrgA.Username,
                 """{"test": "value"}""",
                 "Test Policy",
-                policyType), Times.Once);
+                policyType,
+                It.IsAny<IList<Scope>>()), Times.Once);
+
+            CredentialBuilder.Verify(x => x.BuildScopes(OrgA, It.IsAny<string[]>(), It.IsAny<string[]>()), Times.Once);
+        }
+
+        [Theory]
+        [InlineData("package:push,package:unlist", "package1\npackage2")]
+        [InlineData(" package:push , package:unlist ", " package1 \n package2 ")]
+        [InlineData(",package:push,  package:unlist  ", "\npackage1\n  package2  \r\n")]
+        [InlineData("package:push,package:push, package:unlist", "package1\npackage2\n package2")]
+        public async Task WhenDifferentPolicyScopesAndPolicyGlobPatternsAndPackages_BuildScopes(string policyScopes, string policyGlobPatternsAndPackages)
+        {
+            // Arrange
+            var addPolicy = new AddPolicyViewModel
+            {
+                PolicyName = "Test Policy",
+                PolicyUser = UserA.Username,
+                PolicyPackageOwner = OrgA.Username,
+                PolicyType = FederatedCredentialType.EntraIdServicePrincipal,
+                PolicyCriteria = """{"tenant":"test","object":"123"}""",
+                PolicyScopes = policyScopes,
+                PolicyGlobPatternsAndPackages = policyGlobPatternsAndPackages,
+            };
+
+            var successResult = FederatedCredentialPolicyValidationResult.Success(
+                new FederatedCredentialPolicy
+                {
+                    Key = 42,
+                    CreatedBy = UserA,
+                    PolicyName = "Test Policy"
+                });
+
+            FederatedCredentialService
+                .Setup(x => x.AddPolicyAsync(
+                    UserA,
+                    OrgA.Username,
+                    """{"tenant":"test","object":"123"}""",
+                    "Test Policy",
+                    FederatedCredentialType.EntraIdServicePrincipal,
+                    It.IsAny<IList<Scope>>()))
+                .ReturnsAsync(successResult);
+
+            User passedOwner = null;
+            var passedScopes = Array.Empty<string>();
+            var passedSubjects = Array.Empty<string>();
+            CredentialBuilder
+                .Setup(x => x.BuildScopes(OrgA, It.IsAny<string[]>(), It.IsAny<string[]>()))
+                .Callback((User scopeOwner, string[] scopes, string[] subjects) => { passedOwner = scopeOwner; passedScopes = scopes; passedSubjects = subjects; });
+
+            // Act
+            var result = await Target.CreatePolicy(addPolicy);
+
+            // Assert
+            var redirectResult = Assert.IsType<RedirectResult>(result);
+            Assert.Contains(UserA.Username, redirectResult.Url);
+            Assert.Contains("Policy with key 42 added successfully", Target.TempData[$"MessageFor{UserA.Username}"].ToString());
+
+            FederatedCredentialService.Verify(x => x.AddPolicyAsync(
+                UserA,
+                OrgA.Username,
+                """{"tenant":"test","object":"123"}""",
+                "Test Policy",
+                FederatedCredentialType.EntraIdServicePrincipal,
+                It.IsAny<IList<Scope>>()), Times.Once);
+
+            CredentialBuilder.Verify(x => x.BuildScopes(OrgA, It.IsAny<string[]>(), It.IsAny<string[]>()), Times.Once);
+            Assert.NotNull(passedOwner);
+            Assert.Equal(OrgA, passedOwner);
+            Assert.Equal(2, passedScopes.Length);
+            Assert.Contains("package:push", passedScopes);
+            Assert.Contains("package:unlist", passedScopes);
+            Assert.Equal(2, passedSubjects.Length);
+            Assert.Contains("package1", passedSubjects);
+            Assert.Contains("package2", passedSubjects);
         }
 
         [Fact]
         public async Task WhenModelErrorMappingForDifferentProperties_MapsCorrectly()
         {
             // Arrange
-            var user = new User { Key = 10, Username = "testuser" };
             var addPolicy = new AddPolicyViewModel
             {
-                PolicyUser = "testuser",
-                PolicyPackageOwner = "packageowner",
+                PolicyName = "Test Policy",
+                PolicyUser = UserA.Username,
+                PolicyPackageOwner = OrgA.Username,
                 PolicyType = FederatedCredentialType.EntraIdServicePrincipal,
                 PolicyCriteria = """{"test": "value"}""",
-                PolicyName = "Test Policy"
+                PolicyScopes = $"{NuGetScopes.PackagePush}",
+                PolicyGlobPatternsAndPackages = "Package1",
             };
-
-            UserService.Setup(x => x.FindByUsername("testuser", false)).Returns(user);
 
             var badRequestResult = FederatedCredentialPolicyValidationResult.BadRequest(
                 "Policy name too long",
                 nameof(FederatedCredentialPolicy.PolicyName));
 
             FederatedCredentialService
-                .Setup(x => x.AddPolicyAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<FederatedCredentialType>()))
+                .Setup(x => x.AddPolicyAsync(
+                    It.IsAny<User>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<FederatedCredentialType>(),
+                    It.IsAny<IList<Scope>>()))
                 .ReturnsAsync(badRequestResult);
 
             // Act
@@ -468,24 +553,29 @@ public class FederatedCredentialsControllerFacts
         public async Task WhenServiceErrorWithUnknownPropertyName_MapsToGeneralAddPolicyError()
         {
             // Arrange
-            var user = new User { Key = 10, Username = "testuser" };
             var addPolicy = new AddPolicyViewModel
             {
-                PolicyUser = "testuser",
-                PolicyPackageOwner = "packageowner",
+                PolicyName = "Test Policy",
+                PolicyUser = UserA.Username,
+                PolicyPackageOwner = OrgA.Username,
                 PolicyType = FederatedCredentialType.EntraIdServicePrincipal,
                 PolicyCriteria = """{"test": "value"}""",
-                PolicyName = "Test Policy"
+                PolicyScopes = $"{NuGetScopes.PackagePush}",
+                PolicyGlobPatternsAndPackages = "Package1",
             };
-
-            UserService.Setup(x => x.FindByUsername("testuser", false)).Returns(user);
 
             var badRequestResult = FederatedCredentialPolicyValidationResult.BadRequest(
                 "General error",
                 "UnknownProperty");
 
             FederatedCredentialService
-                .Setup(x => x.AddPolicyAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<FederatedCredentialType>()))
+                .Setup(x => x.AddPolicyAsync(
+                    It.IsAny<User>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<FederatedCredentialType>(),
+                    It.IsAny<IList<Scope>>()))
                 .ReturnsAsync(badRequestResult);
 
             // Act
@@ -504,6 +594,7 @@ public class FederatedCredentialsControllerFacts
         UserRepository = new Mock<IEntityRepository<User>>();
         UserService = new Mock<IUserService>();
         FederatedCredentialService = new Mock<IFederatedCredentialService>();
+        CredentialBuilder = new Mock<ICredentialBuilder>();
 
         UserA = new User { Key = 2, Username = "mac" };
         OrgA = new Organization { Key = 3, Username = "mac-farm" };
@@ -515,8 +606,10 @@ public class FederatedCredentialsControllerFacts
         };
         Policies = new List<FederatedCredentialPolicy>
         {
-            new FederatedCredentialPolicy { Key = 4, Created = baseTime.AddHours(2), CreatedByUserKey = UserA.Key, CreatedBy = UserA, PackageOwnerUserKey = UserA.Key, PackageOwner = UserA },
-            new FederatedCredentialPolicy { Key = 5, Created = baseTime.AddHours(1), CreatedByUserKey = UserA.Key, CreatedBy = UserA, PackageOwnerUserKey = OrgA.Key, PackageOwner = OrgA },
+            new FederatedCredentialPolicy { Key = 4, Created = baseTime.AddHours(2), CreatedByUserKey = UserA.Key, CreatedBy = UserA, PackageOwnerUserKey = UserA.Key, PackageOwner = UserA,
+                                            Scopes = [ new Scope(UserA, "Package1", NuGetScopes.PackagePush) ] },
+            new FederatedCredentialPolicy { Key = 5, Created = baseTime.AddHours(1), CreatedByUserKey = UserA.Key, CreatedBy = UserA, PackageOwnerUserKey = OrgA.Key, PackageOwner = OrgA,
+                                            Scopes = [ new Scope(OrgA, "Package1", NuGetScopes.PackagePush) ] },
         };
 
         FederatedCredentialService
@@ -535,7 +628,8 @@ public class FederatedCredentialsControllerFacts
         Target = new FederatedCredentialsController(
             UserRepository.Object,
             UserService.Object,
-            FederatedCredentialService.Object);
+            FederatedCredentialService.Object,
+            CredentialBuilder.Object);
 
         TestUtility.SetupHttpContextMockForUrlGeneration(new Mock<HttpContextBase>(), Target);
     }
@@ -543,6 +637,7 @@ public class FederatedCredentialsControllerFacts
     public Mock<IEntityRepository<User>> UserRepository { get; }
     public Mock<IUserService> UserService { get; }
     public Mock<IFederatedCredentialService> FederatedCredentialService { get; }
+    public Mock<ICredentialBuilder> CredentialBuilder { get; }
     public User UserA { get; }
     public Organization OrgA { get; }
     public int CreatedByUserKey { get; }

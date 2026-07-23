@@ -1,4 +1,5 @@
 ﻿@using NuGetGallery.Areas.Admin.Controllers.FederatedCredentials
+@using NuGetGallery.Authentication
 @model ViewPoliciesViewModel
 @{
     ViewBag.Title = "Federated credentials";
@@ -117,6 +118,7 @@
                             <th class="text-nowrap">Package owner</th>
                             <th class="text-nowrap">Type</th>
                             <th class="text-nowrap">Criteria</th>
+                            <th class="text-nowrap">Scopes</th>
                             <th class="text-nowrap">Created on</th>
                             <th class="text-nowrap">Last used</th>
                             <th class="text-nowrap">Delete</th>
@@ -129,8 +131,24 @@
                                 <td>@policy.Key</td>
                                 <td>@policy.PolicyName</td>
                                 <td>@RenderUsername(policy.PackageOwner)</td>
-                                <td><code>@policy.Type</code></td>
+                                <td>@{if (policy.Type == FederatedCredentialType.EntraIdServicePrincipal) { <code>EntraId</code> }
+                                      else if (policy.Type == FederatedCredentialType.GitHubActions) { <code>GitHubActions</code> }
+                                      else { <code>Unknown</code> }
+                                    }
+                                </td>
                                 <td><code>@policy.Criteria</code></td>
+                                <td>
+                                    @{ if (policy.Scopes != null && policy.Scopes.Count > 0)
+                                       {
+                                           <p>Allowed Actions:<br>
+                                           @foreach (var allowedAction in policy.Scopes.Select(s => s.AllowedAction).Distinct()) { <code>@allowedAction</code><br> }
+                                           </p>
+                                           <p>Glob Patterns and Packages:<br>
+                                           @foreach (var subject in policy.Scopes.Select(s => s.Subject).Distinct()) { <code>@subject</code><br> }
+                                           </p>
+                                       }
+                                    }
+                                </td>
                                 <td>@RenderTimestamp(policy.Created)</td>
                                 <td>@RenderTimestamp(policy.LastMatched)</td>
                                 <td>
@@ -170,7 +188,7 @@
                 </div>
             }
             <div class="form-group col-xs-4 @Html.HasErrorFor(m => m.AddPolicy.PolicyName)">
-                <label for="policyUser">Policy name</label>
+                <label for="policyName">Policy name</label>
                 <input type="text" class="form-control" id="policyName" name="policyName"
                        placeholder="Policy name (optional)" value="@Model.AddPolicy.PolicyName">
                 @Html.ShowValidationMessagesFor(m => m.AddPolicy.PolicyName)
@@ -200,9 +218,63 @@
         </div>
         <div class="form-group row @Html.HasErrorFor(m => m.AddPolicy.PolicyCriteria)">
             <div class="col-xs-12">
-                <label for="policyCriteria" class="control-label">Policy criteria (JSON)</label>
+                <label for="policyCriteria">Policy criteria (JSON)</label>
                 <textarea class="form-control textarea-brand" rows="3" id="policyCriteria" name="policyCriteria">@Model.AddPolicy.PolicyCriteria</textarea>
                 @Html.ShowValidationMessagesFor(m => m.AddPolicy.PolicyCriteria)
+            </div>
+        </div>
+        <div class="form-group row @Html.HasErrorFor(m => m.AddPolicy.PolicyScopes)">
+            <div class="col-xs-12">
+                <h4 class="ms-fontSize-xl"><b>Select Scopes</b></h4>
+                <input type="hidden" name="policyScopes" data-bind="value: PolicyScopes" />
+                <ul style="list-style-type: none; padding-left: 0;">
+                    <li>
+                        <div class="row-checkbox-label">
+                            <label class="brand-checkbox">
+                                <input type="checkbox" data-bind="checked: PushScopeChecked" />
+                                <span>Push</span>
+                            </label>
+                        </div>
+                        <ul data-bind="css: { disabled: !PushScopeChecked() }" style="list-style-type: none; padding-left: 20px;">
+                            <li>
+                                <div class="row-checkbox-label">
+                                    <div class="label-sibling">
+                                    </div>
+                                    <label class="brand-radio">
+                                        <input type="radio" value="@NuGetScopes.PackagePush" data-bind="checked: PushScope" />
+                                        <span>@NuGetScopes.Describe(NuGetScopes.PackagePush, isDeprecateApiEnabled: true)</span>
+                                    </label>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="row-checkbox-label">
+                                    <div class="label-sibling">
+                                    </div>
+                                    <label class="brand-radio">
+                                        <input type="radio" value="@NuGetScopes.PackagePushVersion" data-bind="checked: PushScope" />
+                                        <span>@NuGetScopes.Describe(NuGetScopes.PackagePushVersion, isDeprecateApiEnabled: true)</span>
+                                    </label>
+                                </div>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <div class="row-checkbox-label">
+                            <label class="brand-checkbox">
+                                <input type="checkbox" data-bind="checked: UnlistScopeChecked" />
+                                <span>@NuGetScopes.Describe(NuGetScopes.PackageUnlist, isDeprecateApiEnabled: true)</span>
+                            </label>
+                        </div>
+                    </li>
+                    @Html.ShowValidationMessagesFor(m => m.AddPolicy.PolicyScopes)
+                </ul>
+            </div>
+        </div>
+        <div class="form-group row @Html.HasErrorFor(m => m.AddPolicy.PolicyGlobPatternsAndPackages)">
+            <div class="col-xs-12">
+                <label for="policyGlobPatternsAndPackages">Glob Patterns and Packages (Separate by a new line)</label>
+                <textarea class="form-control textarea-brand" rows="3" id="policyGlobPatternsAndPackages" name="policyGlobPatternsAndPackages">@Model.AddPolicy.PolicyGlobPatternsAndPackages</textarea>
+                @Html.ShowValidationMessagesFor(m => m.AddPolicy.PolicyGlobPatternsAndPackages)
             </div>
         </div>
         <div class="form-group row">
@@ -256,6 +328,12 @@
                 An example of some policy criteria would be a tenant ID and object ID pair for an Entra ID service
                 principal.
             </dd>
+
+            <dt>Policy Scopes</dt>
+            <dd>
+                These are scopes specific to a certain policy and specified by the user.
+                The issued short-lived API keys will have the same scopes as the policy.
+            </dd>
         </dl>
     </p>
 </section>
@@ -290,5 +368,29 @@
         $('#policyType').on('change', function () {
             setPolicyCriteriaTemplate(true);
         })
+
+        $(document).ready(function () {
+            var viewModel = function () {
+                var self = this;
+
+                this.PushScopeChecked = ko.observable(false);
+                this.PushScope = ko.observable('@NuGetScopes.PackagePush');
+                this.UnlistScopeChecked = ko.observable(false);
+                this.PolicyScopes = ko.pureComputed(function () {
+                    var scopes = [];
+                    if (self.PushScopeChecked() && self.PushScope()) {
+                        scopes.push(self.PushScope());
+                    }
+
+                    if (self.UnlistScopeChecked()) {
+                        scopes.push('@NuGetScopes.PackageUnlist');
+                    }
+
+                    return scopes;
+                }, this);
+            };
+
+            ko.applyBindings(new viewModel(), $('.main-container').get(0));
+        });
     </script>
 }
