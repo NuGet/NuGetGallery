@@ -244,6 +244,7 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    Newtonsoftt.Json.Net 11.0.9               |    07/22/2026    |   Malware  |
 |    Newtonsoftt.Json.Net 11.0.10              |    07/22/2026    |   Malware  |
 |    Newtonsoftt.Json.Net 11.0.11              |    07/22/2026    |   Malware  |
+|    yuinuget                                  |    07/24/2026    |   Malware  |
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.
