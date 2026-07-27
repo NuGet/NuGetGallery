@@ -120,6 +120,7 @@ namespace NuGetGallery
             ResetPackagesAndAccountsDeletedBy(userToBeDeleted);
 
             RemovePackagePushedBy(userToBeDeleted);
+            RemovePackageApprovedBy(userToBeDeleted);
             RemovePackageDeprecatedBy(userToBeDeleted);
 
             var organizationToBeDeleted = userToBeDeleted as Organization;
@@ -232,6 +233,17 @@ namespace NuGetGallery
                 .ToList())
             {
                 package.User = null;
+            }
+        }
+
+        private void RemovePackageApprovedBy(User user)
+        {
+            foreach (var package in _entitiesContext
+                .Packages
+                .Where(p => p.ApproverUserKey == user.Key)
+                .ToList())
+            {
+                package.ApproverUser = null;
             }
         }
 

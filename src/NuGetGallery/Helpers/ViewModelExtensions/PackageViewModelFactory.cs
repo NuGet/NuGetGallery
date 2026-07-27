@@ -80,6 +80,10 @@ namespace NuGetGallery
                     {
                         return PackageStatusSummary.None;
                     }
+                case PackageStatus.Staged:
+                    {
+                        return PackageStatusSummary.Staged;
+                    }
                 default:
                     throw new ArgumentOutOfRangeException(nameof(packageStatus));
             }

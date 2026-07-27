@@ -29,5 +29,13 @@ namespace NuGet.Services.Entities
         /// state, they are not available but the package ID and version are still reserved.
         /// </summary>
         FailedValidation = 3,
+
+        /// <summary>
+        /// The package has completed validation successfully but has not yet been published. Staged packages are not
+        /// visible to consumers: they are not searchable or restorable and they do not appear in any V3 artifact. A
+        /// staged package moves to <see cref="Available"/> when it is promoted through the Gallery. When packages are
+        /// in this state, they are not available but the package ID and version are still reserved.
+        /// </summary>
+        Staged = 4,
     }
 }

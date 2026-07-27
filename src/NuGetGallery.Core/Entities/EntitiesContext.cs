@@ -360,6 +360,12 @@ namespace NuGetGallery
             modelBuilder.Entity<Package>()
                 .HasOptional(p => p.Certificate);
 
+            modelBuilder.Entity<Package>()
+                .HasOptional(p => p.ApproverUser)
+                .WithMany()
+                .HasForeignKey(p => p.ApproverUserKey)
+                .WillCascadeOnDelete(false);
+
             modelBuilder.Entity<PackageHistory>()
                 .HasKey(pm => pm.Key);
 

@@ -69,6 +69,8 @@ namespace NuGetGallery.ViewModels
         [InlineData(PackageStatus.FailedValidation, false, PackageStatusSummary.FailedValidation)]
         [InlineData(PackageStatus.Validating, true, PackageStatusSummary.Validating)]
         [InlineData(PackageStatus.Validating, false, PackageStatusSummary.Validating)]
+        [InlineData(PackageStatus.Staged, true, PackageStatusSummary.Staged)]
+        [InlineData(PackageStatus.Staged, false, PackageStatusSummary.Staged)]
         public void PackageStatusSummaryIsCorrect(PackageStatus packageStatus, bool isListed, PackageStatusSummary expected)
         {
             // Arrange
@@ -95,7 +97,9 @@ namespace NuGetGallery.ViewModels
             {
                 Version = "1.0.0",
                 PackageRegistration = new PackageRegistration { Id = "SomeId" },
-                PackageStatusKey = (PackageStatus)4,
+                // Deliberately not a defined PackageStatus. Use a value far outside the defined range so that
+                // adding a new status does not silently turn this test into a no-op.
+                PackageStatusKey = (PackageStatus)9999,
             };
 
             // Act & Assert

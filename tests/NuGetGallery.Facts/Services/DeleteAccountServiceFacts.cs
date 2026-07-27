@@ -132,6 +132,7 @@ namespace NuGetGallery.Services
                     Assert.True(registration.Packages.Single().Listed);
                     Assert.NotNull(testUser.EmailAddress);
                     Assert.NotNull(testableService.PackagePushedByUser.User);
+                    Assert.NotNull(testableService.PackageApprovedByUser.ApproverUser);
                     Assert.NotNull(testableService.DeprecationDeprecatedByUser.DeprecatedByUser);
                     Assert.Empty(testableService.DeletedAccounts);
                     Assert.NotEmpty(testableService.PackageOwnerRequests);
@@ -153,6 +154,7 @@ namespace NuGetGallery.Services
                         !registration.Packages.Single().Listed);
                     Assert.Null(testUser.EmailAddress);
                     Assert.Null(testableService.PackagePushedByUser.User);
+                    Assert.Null(testableService.PackageApprovedByUser.ApproverUser);
                     Assert.Null(testableService.DeprecationDeprecatedByUser.DeprecatedByUser);
                     Assert.Single(testableService.DeletedAccounts);
                     Assert.Empty(testableService.PackageOwnerRequests);
@@ -271,6 +273,7 @@ namespace NuGetGallery.Services
                     Assert.Contains(registration.Owners, o => o.MatchesUser(organization));
                     Assert.NotEmpty(organization.SecurityPolicies);
                     Assert.NotNull(testableService.PackagePushedByUser.User);
+                    Assert.NotNull(testableService.PackageApprovedByUser.ApproverUser);
                     Assert.NotNull(testableService.DeprecationDeprecatedByUser.DeprecatedByUser);
                     Assert.Empty(testableService.DeletedAccounts);
                     Assert.NotEmpty(testableService.PackageOwnerRequests);
@@ -290,6 +293,7 @@ namespace NuGetGallery.Services
                     Assert.DoesNotContain(registration.Owners, o => o.MatchesUser(organization));
                     Assert.Empty(organization.SecurityPolicies);
                     Assert.Null(testableService.PackagePushedByUser.User);
+                    Assert.Null(testableService.PackageApprovedByUser.ApproverUser);
                     Assert.Null(testableService.DeprecationDeprecatedByUser.DeprecatedByUser);
                     Assert.Single(testableService.DeletedAccounts);
                     Assert.Empty(testableService.PackageOwnerRequests);
@@ -357,6 +361,7 @@ namespace NuGetGallery.Services
                 Assert.Empty(organization.SecurityPolicies);
                 Assert.Empty(organization.ReservedNamespaces);
                 Assert.Null(testableService.PackagePushedByUser.User);
+                Assert.Null(testableService.PackageApprovedByUser.ApproverUser);
                 Assert.Null(testableService.DeprecationDeprecatedByUser.DeprecatedByUser);
                 Assert.Empty(testableService.DeletedAccounts);
                 Assert.Single(testableService.SupportRequests);
@@ -542,6 +547,7 @@ namespace NuGetGallery.Services
             public List<User> DeletedUsers = new List<User>();
             public List<Issue> SupportRequests = new List<Issue>();
             public Package PackagePushedByUser;
+            public Package PackageApprovedByUser;
             public PackageDeprecation DeprecationDeprecatedByUser;
             public List<PackageOwnerRequest> PackageOwnerRequests = new List<PackageOwnerRequest>();
             public FakeAuditingService AuditService = new FakeAuditingService();
@@ -614,6 +620,12 @@ namespace NuGetGallery.Services
                     UserKey = _user.Key
                 };
 
+                PackageApprovedByUser = new Package
+                {
+                    ApproverUser = _user,
+                    ApproverUserKey = _user.Key
+                };
+
                 DeprecationDeprecatedByUser = new PackageDeprecation
                 {
                     DeprecatedByUser = _user,
@@ -682,6 +694,11 @@ namespace NuGetGallery.Services
                 if (PackagePushedByUser != null)
                 {
                     packageDbSet.Add(PackagePushedByUser);
+                }
+
+                if (PackageApprovedByUser != null)
+                {
+                    packageDbSet.Add(PackageApprovedByUser);
                 }
 
                 return mockContext;
