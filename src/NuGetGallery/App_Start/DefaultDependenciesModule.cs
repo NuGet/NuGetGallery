@@ -654,7 +654,6 @@ namespace NuGetGallery
                     c.ResolveKeyed<ConfigurationManager<OpenIdConnectConfiguration>>(GitLabCIKey),
                     c.Resolve<IFederatedCredentialConfiguration>(),
                     c.Resolve<IAuditingService>(),
-                    c.Resolve<IFeatureFlagService>(),
                     c.Resolve<JsonWebTokenHandler>()))
                 .As<ITokenPolicyValidator>()
                 .InstancePerLifetimeScope();
