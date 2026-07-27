@@ -66,7 +66,7 @@ namespace NuGetGallery.Auditing
             RegistrationRecord = AuditedPackageRegistration.CreateFrom(package.PackageRegistration);
             DeprecationRecord = package.Deprecations
                 .Select(d => AuditedPackageDeprecation.CreateFrom(d))
-                .SingleOrDefault();
+                .FirstOrDefault();
         }
 
         public PackageAuditRecord(Package package, AuditedPackageAction action)
@@ -83,7 +83,7 @@ namespace NuGetGallery.Auditing
             RegistrationRecord = AuditedPackageRegistration.CreateFrom(package.PackageRegistration);
             DeprecationRecord = package.Deprecations
                 .Select(d => AuditedPackageDeprecation.CreateFrom(d))
-                .SingleOrDefault();
+                .FirstOrDefault();
         }
 
         public override string GetPath()

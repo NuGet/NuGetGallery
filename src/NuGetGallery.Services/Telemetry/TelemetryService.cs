@@ -49,6 +49,7 @@ namespace NuGetGallery
             public const string PackageListed = "PackageListed";
             public const string PackagesUpdateListed = "PackagesUpdateListed";
             public const string PackageDelete = "PackageDelete";
+            public const string DuplicatePackageDeprecations = "DuplicatePackageDeprecations";
             public const string PackageDeprecate = "PackageDeprecate";
             public const string PackageReupload = "PackageReupload";
             public const string PackageHardDeleteReflow = "PackageHardDeleteReflow";
@@ -176,6 +177,7 @@ namespace NuGetGallery
 
         // Package delete properties
         public const string IsHardDelete = "IsHardDelete";
+        public const string DeprecationCount = "DeprecationCount";
 
         // Organization properties
         public const string OrganizationAccountKey = "OrganizationAccountKey";
@@ -521,6 +523,16 @@ namespace NuGetGallery
             TrackMetricForPackage(Events.PackageDelete, package, properties =>
             {
                 properties.Add(IsHardDelete, isHardDelete.ToString());
+            });
+        }
+
+        // Temporary telemetry to detect packages that have more than one deprecation record while soft deleting.
+        // Can be removed once the unique index on PackageDeprecations is restored.
+        public void TrackDuplicatePackageDeprecations(string packageId, string packageVersion, int deprecationCount)
+        {
+            TrackMetricForPackage(Events.DuplicatePackageDeprecations, packageId, packageVersion, properties =>
+            {
+                properties.Add(DeprecationCount, deprecationCount.ToString());
             });
         }
 
