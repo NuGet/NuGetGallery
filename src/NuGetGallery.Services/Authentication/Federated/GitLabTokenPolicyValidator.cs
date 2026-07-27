@@ -38,7 +38,6 @@ namespace NuGetGallery.Services.Authentication
 
         private readonly IFederatedCredentialRepository _federatedCredentialRepository;
         private readonly IAuditingService _auditingService;
-        private readonly IFeatureFlagService _featureFlagService;
 
         public GitLabTokenPolicyValidator(
             IFederatedCredentialRepository federatedCredentialRepository,
