@@ -1151,13 +1151,22 @@ namespace NuGetGallery
 
         private FederatedCredentialType ResolveCredentialType(string publisherType)
         {
+            if (string.Equals(publisherType, nameof(FederatedCredentialType.GitHubActions), StringComparison.OrdinalIgnoreCase))
+            {
+                return FederatedCredentialType.GitHubActions;
+            }
+
             if (string.Equals(publisherType, nameof(FederatedCredentialType.GitLabCI), StringComparison.OrdinalIgnoreCase))
             {
                 return FederatedCredentialType.GitLabCI;
             }
 
-            // Default to GitHub Actions for backward compatibility
-            return FederatedCredentialType.GitHubActions;
+            if (string.Equals(publisherType, nameof(FederatedCredentialType.EntraIdServicePrincipal), StringComparison.OrdinalIgnoreCase))
+            {
+                return FederatedCredentialType.EntraIdServicePrincipal;
+            }
+
+            throw new ArgumentException($"Unknown publisher type: '{publisherType}'.", nameof(publisherType));
         }
 
         [UIAuthorize]
