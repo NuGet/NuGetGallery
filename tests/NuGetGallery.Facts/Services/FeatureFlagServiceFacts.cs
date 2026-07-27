@@ -126,5 +126,29 @@ namespace NuGetGallery
                 Assert.Equal(isManyVersionsEnabled, service.IsManageDeprecationEnabled(user, allVersions));
             }
         }
+
+        public class TheIsApiKeyReductionEnabledMethod
+        {
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void ReturnsResultFromClientUsingExpectedFlagName(bool enabled)
+            {
+                // Arrange
+                var clientMock = new Mock<IFeatureFlagClient>(MockBehavior.Strict);
+                clientMock
+                    .Setup(c => c.IsEnabled("NuGetGallery.ApiKeyReduction", false))
+                    .Returns(enabled);
+
+                var service = new FeatureFlagService(clientMock.Object);
+
+                // Act
+                var result = service.IsApiKeyReductionEnabled();
+
+                // Assert
+                Assert.Equal(enabled, result);
+                clientMock.VerifyAll();
+            }
+        }
     }
 }

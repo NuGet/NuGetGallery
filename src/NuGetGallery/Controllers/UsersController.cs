@@ -481,10 +481,6 @@ namespace NuGetGallery
                 credentials = new List<CredentialViewModel>();
             }
 
-            var apiKeys = credentials
-                .Select(c => new ApiKeyViewModel(c))
-                .ToList();
-
             // Get package owners (user's self or organizations)
             var owners = new List<ApiKeyOwnerViewModel>
             {
@@ -498,12 +494,19 @@ namespace NuGetGallery
                 _featureFlagService.IsManageDeprecationApiEnabled(currentUser)
                 || currentUser.Organizations.Any(m => _featureFlagService.IsManageDeprecationApiEnabled(m.Organization));
 
+            var isApiKeyReductionEnabled = _featureFlagService.IsApiKeyReductionEnabled();
+
+            var apiKeys = credentials
+                .Select(c => new ApiKeyViewModel(c, isApiKeyReductionEnabled))
+                .ToList();
+
             var model = new ApiKeyListViewModel
             {
                 ApiKeys = apiKeys,
                 ExpirationInDaysForApiKeyV1 = _config.ExpirationInDaysForApiKeyV1,
                 PackageOwners = owners.Where(o => o.CanPushNew || o.CanPushExisting || o.CanUnlist).ToList(),
                 IsDeprecationApiEnabled = anyWithDeprecationApi,
+                IsApiKeyReductionEnabled = isApiKeyReductionEnabled,
             };
 
             return View("ApiKeys", model);

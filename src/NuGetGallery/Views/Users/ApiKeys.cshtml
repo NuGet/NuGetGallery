@@ -307,7 +307,13 @@
                                                name: ExpiresInId(),
                                                'aria-labelledby': ExpiresInId() + '-label' },
                                        value: ExpiresIn">
-                        @if (Model.ExpirationInDaysForApiKeyV1 == 365)
+                        @if (Model.IsApiKeyReductionEnabled)
+                        {
+                            <option value="1">1 day</option>
+                            <option value="8">8 days</option>
+                            <option value="30" selected>30 days</option>
+                        }
+                        else if (Model.ExpirationInDaysForApiKeyV1 == 365)
                         {
                             <option value="1">1 day</option>
                             <option value="90">90 days</option>

@@ -475,6 +475,11 @@ namespace NuGetGallery
             return _client.IsEnabled(AdminApiSoftDeleteFeatureName, defaultValue: false);
         }
 
+        public bool IsApiKeyReductionEnabled()
+        {
+            return _client.IsEnabled(ApiKeyReductionPolicy.FeatureName, defaultValue: false);
+        }
+
         public bool IsInvalidPackageIdAllowedForAllPackages()
         {
             return _client.IsEnabled(AllowInvalidPackageIdForAllPackages, defaultValue: true);
