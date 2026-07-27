@@ -150,7 +150,7 @@ namespace NuGetGallery.Services.Authentication
             }
 
             // Validate or lock down numeric IDs (TOFU on first use, exact match thereafter).
-            var idResult = await ValidateOrLockProjectIdsAsync(policy, criteria, namespaceId, projectId);
+            var idResult = await ValidateOrLockProjectIdsAsync(policy, criteria, namespaceId, projectId, jwt);
             if (idResult != null)
             {
                 return idResult;
@@ -195,7 +195,7 @@ namespace NuGetGallery.Services.Authentication
         }
 
         private async Task<FederatedCredentialPolicyResult?> ValidateOrLockProjectIdsAsync(
-            FederatedCredentialPolicy policy, GitLabCriteria criteria, string namespaceId, string projectId)
+            FederatedCredentialPolicy policy, GitLabCriteria criteria, string namespaceId, string projectId, JsonWebToken jwt)
         {
             if (!criteria.IsPermanentlyEnabled)
             {
