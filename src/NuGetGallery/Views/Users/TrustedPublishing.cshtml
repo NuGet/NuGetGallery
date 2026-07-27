@@ -38,7 +38,7 @@
             {
                 <div data-bind="template: 'error-container'"></div>
 
-                @if (Model.PackageOwners == null || Model.PackageOwners.Count == 0)
+                if (Model.PackageOwners == null || Model.PackageOwners.Count == 0)
                 {
                     @ViewHelpers.AlertInfo(
                         @<text>
