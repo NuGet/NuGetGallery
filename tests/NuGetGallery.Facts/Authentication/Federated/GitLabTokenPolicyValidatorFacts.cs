@@ -552,7 +552,6 @@ namespace NuGetGallery.Services.Authentication
                 OidcConfigManager.Object,
                 Configuration.Object,
                 AuditingService.Object,
-                FeatureFlagService.Object,
                 JsonWebTokenHandler.Object);
         }
 
