@@ -56,7 +56,7 @@
         _gitHubDetails.Initialize = function (self) {
             // Create a gitHub object to hold all GitHub-related properties
             self.gitHub = {
-                IsPermamentlyEnabled: ko.observable(),
+                IsPermanentlyEnabled: ko.observable(),
                 EnabledDaysLeft: ko.observable(),
 
                 RepositoryOwner: ko.observable(),
@@ -85,11 +85,11 @@
             const details = data.PublisherName !== GitHubActionsPublisherName ? {} : data.PolicyDetails || {};
             const gitHub = self.gitHub;
             if (data.Key) {
-                gitHub.IsPermamentlyEnabled(details.IsPermanentlyEnabled || false);
+                gitHub.IsPermanentlyEnabled(details.IsPermanentlyEnabled || false);
                 gitHub.EnabledDaysLeft(details.EnabledDaysLeft || 0);
             } else {
                 // Ignore the IsPermanentlyEnabled and EnabledDaysLeft for new items
-                gitHub.IsPermamentlyEnabled(true);
+                gitHub.IsPermanentlyEnabled(true);
                 gitHub.EnabledDaysLeft(1); // any positive number is okay
             }
 
@@ -231,7 +231,7 @@
         var _gitLabDetails = {};
         _gitLabDetails.Initialize = function (self) {
             self.gitLab = {
-                IsPermamentlyEnabled: ko.observable(false),
+                IsPermanentlyEnabled: ko.observable(false),
                 EnabledDaysLeft: ko.observable(0),
 
                 NamespacePath: ko.observable(),
@@ -261,10 +261,10 @@
             const gitLab = self.gitLab;
 
             if (data.Key) {
-                gitLab.IsPermamentlyEnabled(details.IsPermanentlyEnabled || false);
+                gitLab.IsPermanentlyEnabled(details.IsPermanentlyEnabled || false);
                 gitLab.EnabledDaysLeft(details.EnabledDaysLeft || 0);
             } else {
-                gitLab.IsPermamentlyEnabled(true);
+                gitLab.IsPermanentlyEnabled(true);
                 gitLab.EnabledDaysLeft(1);
             }
 
@@ -408,9 +408,9 @@
 
         function _getIsPermanentlyEnabled(self) {
             if (self.PublisherName() === GitLabCIPublisherName) {
-                return self.gitLab.IsPermamentlyEnabled();
+                return self.gitLab.IsPermanentlyEnabled();
             }
-            return self.gitHub.IsPermamentlyEnabled();
+            return self.gitHub.IsPermanentlyEnabled();
         }
 
         function PolicyViewModel(parent, packageOwners, data) {
