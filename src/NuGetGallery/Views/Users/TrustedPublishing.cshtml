@@ -106,11 +106,11 @@
                         <!-- /ko -->
                         <!-- GitLab-specific status -->
                         <!-- ko if: PublisherName() === 'GitLabCI' && IsOwnerValid() -->
-                        <!-- ko if: gitLab.IsPermamentlyEnabled() -->
+                        <!-- ko if: gitLab.IsPermanentlyEnabled() -->
                         <i class="ms-Icon ms-Icon--CheckMark" aria-hidden="true" />
                         Active
                         <!-- /ko -->
-                        <!-- ko if: !gitLab.IsPermamentlyEnabled() -->
+                        <!-- ko if: !gitLab.IsPermanentlyEnabled() -->
                         <!-- ko if: gitLab.EnabledDaysLeft() > 0 -->
                         <i class="ms-Icon ms-Icon--Info" aria-hidden="true" />
                         Use within <b><span data-bind="text: gitLab.EnabledDaysLeft()" /> day(s)</b> to keep it permanently active.
@@ -128,11 +128,11 @@
                         <!-- /ko -->
                         <!-- GitHub-specific status -->
                         <!-- ko if: PublisherName() === 'GitHubActions' && IsOwnerValid() -->
-                        <!-- ko if: gitHub.IsPermamentlyEnabled() -->
+                        <!-- ko if: gitHub.IsPermanentlyEnabled() -->
                         <i class="ms-Icon ms-Icon--CheckMark" aria-hidden="true" />
                         Active
                         <!-- /ko -->
-                        <!-- ko if: !gitHub.IsPermamentlyEnabled() -->
+                        <!-- ko if: !gitHub.IsPermanentlyEnabled() -->
                         <!-- ko if: gitHub.EnabledDaysLeft() > 0 -->
                         <i class="ms-Icon ms-Icon--Info" aria-hidden="true" />
                         Use within <b><span data-bind="text: gitHub.EnabledDaysLeft()" /> day(s)</b> to keep it permanently active.
@@ -241,7 +241,7 @@
                         </a>
                     </li>
 
-                    <!-- ko if: PublisherName() === 'GitHubActions' && !gitHub.IsPermamentlyEnabled() && IsOwnerValid()-->
+                    <!-- ko if: PublisherName() === 'GitHubActions' && !gitHub.IsPermanentlyEnabled() && IsOwnerValid()-->
                     <li>
                         <a class="icon-link" href="#" role="button" data-bind="click: Enable">
                             <i class="ms-Icon ms-Icon--Play" aria-hidden="true"></i>
