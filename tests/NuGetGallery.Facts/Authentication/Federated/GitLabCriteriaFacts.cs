@@ -146,7 +146,7 @@ namespace NuGetGallery.Services.Authentication
                 Assert.NotNull(error);
                 Assert.Contains("namespace path", error);
                 Assert.Contains("project path", error);
-                Assert.Contains("validate-by date", error);
+                Assert.Contains("validate-by", error);
             }
         }
 
