@@ -8,7 +8,7 @@
     const DeleteErrorMessage = "An error occurred while deleting the Trusted Publisher Policy. Please try again.";
 
     const GitHubActionsPublisherName = "GitHubActions"; // must match the PublisherType in GitHubPolicyDetailsViewModel.cs
-    const GitLabCIPublisherName = "GitLabCI"; // must match the PublisherType in GitLabPolicyDetailsViewModel.cs
+    const GitLabPublisherName = "GitLab"; // must match the PublisherType in GitLabPolicyDetailsViewModel.cs
 
 
     ko.bindingHandlers.trimmedValue = {
@@ -257,7 +257,7 @@
         };
 
         _gitLabDetails.Update = function (self, data) {
-            const details = data.PublisherName !== GitLabCIPublisherName ? {} : data.PolicyDetails || {};
+            const details = data.PublisherName !== GitLabPublisherName ? {} : data.PolicyDetails || {};
             const gitLab = self.gitLab;
 
             if (data.Key) {
@@ -370,7 +370,7 @@
             // MUST MATCH GitLab details deserialization in GitLabPolicyDetailsViewModel.cs.
             const gitLab = self.gitLab;
             var gitLabData = {
-                Name: GitLabCIPublisherName,
+                Name: GitLabPublisherName,
                 NamespacePath: gitLab.PendingNamespacePath() || '',
                 ProjectPath: gitLab.PendingProjectPath() || '',
                 Ref: gitLab.PendingRef() || '',
@@ -392,21 +392,21 @@
 
         // ===== Helper to get the current provider details handler =====
         function _getProviderDetails(self) {
-            if (self.SelectedProvider() === GitLabCIPublisherName) {
+            if (self.SelectedProvider() === GitLabPublisherName) {
                 return _gitLabDetails;
             }
             return _gitHubDetails;
         }
 
         function _getEnabledDaysLeft(self) {
-            if (self.PublisherName() === GitLabCIPublisherName) {
+            if (self.PublisherName() === GitLabPublisherName) {
                 return self.gitLab.EnabledDaysLeft();
             }
             return self.gitHub.EnabledDaysLeft();
         }
 
         function _getIsPermanentlyEnabled(self) {
-            if (self.PublisherName() === GitLabCIPublisherName) {
+            if (self.PublisherName() === GitLabPublisherName) {
                 return self.gitLab.IsPermanentlyEnabled();
             }
             return self.gitHub.IsPermanentlyEnabled();
@@ -426,7 +426,7 @@
             // Provider selection
             this.AvailableProviders = [
                 { label: 'GitHub Actions', value: GitHubActionsPublisherName },
-                { label: 'GitLab CI/CD', value: GitLabCIPublisherName }
+                { label: 'GitLab CI/CD', value: GitLabPublisherName }
             ];
             this.SelectedProvider = ko.observable(GitHubActionsPublisherName);
             this.ProviderUid = computedUid(self, "provider");
@@ -444,8 +444,8 @@
                 this.PublisherName(data.PublisherName || null);
 
                 // Set provider from existing data
-                if (data.PublisherName === GitLabCIPublisherName) {
-                    this.SelectedProvider(GitLabCIPublisherName);
+                if (data.PublisherName === GitLabPublisherName) {
+                    this.SelectedProvider(GitLabPublisherName);
                 } else {
                     this.SelectedProvider(GitHubActionsPublisherName);
                 }
@@ -649,7 +649,7 @@
                             self.CreateAfterLookup();
                         }
                     );
-                } else if (this.SelectedProvider() === GitLabCIPublisherName) {
+                } else if (this.SelectedProvider() === GitLabPublisherName) {
                     _gitLabDetails.LookupGitLabIdentifiers(self, parent.Policies(),
                         function () {
                             self.CreateAfterLookup();

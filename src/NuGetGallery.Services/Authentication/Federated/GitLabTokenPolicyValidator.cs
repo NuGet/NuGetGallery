@@ -56,7 +56,7 @@ namespace NuGetGallery.Services.Authentication
 
         public override FederatedCredentialPolicyValidationResult ValidatePolicy(FederatedCredentialPolicy policy)
         {
-            if (policy.Type != FederatedCredentialType.GitLabCI)
+            if (policy.Type != FederatedCredentialType.GitLab)
             {
                 return FederatedCredentialPolicyValidationResult.BadRequest(
                     $"Invalid policy type '{policy.Type}' for GitLab CI/CD validation",
@@ -145,7 +145,7 @@ namespace NuGetGallery.Services.Authentication
 
         public override async Task<FederatedCredentialPolicyResult> EvaluatePolicyAsync(FederatedCredentialPolicy policy, JsonWebToken jwt)
         {
-            if (policy.Type != FederatedCredentialType.GitLabCI)
+            if (policy.Type != FederatedCredentialType.GitLab)
             {
                 return FederatedCredentialPolicyResult.NotApplicable;
             }

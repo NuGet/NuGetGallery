@@ -30,6 +30,6 @@ namespace NuGet.Services.Entities
         /// This credential type applies to GitLab CI/CD pipelines running in GitLab projects. The pipeline
         /// is identified by namespace path, project path, and optionally a ref and environment.
         /// </summary>
-        GitLabCI = 3,
+        GitLab = 3,
     }
 }

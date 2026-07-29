@@ -117,7 +117,7 @@ namespace NuGetGallery.Services.Authentication
         public class TheEvaluatePolicyMethod : GitLabTokenPolicyValidatorFacts
         {
             [Fact]
-            public async Task ReturnsNotApplicableForNonGitLabCIPolicy()
+            public async Task ReturnsNotApplicableForNonGitLabPolicy()
             {
                 // Arrange
                 var policy = new FederatedCredentialPolicy
@@ -147,7 +147,7 @@ namespace NuGetGallery.Services.Authentication
                 // Arrange
                 var policy = new FederatedCredentialPolicy
                 {
-                    Type = FederatedCredentialType.GitLabCI,
+                    Type = FederatedCredentialType.GitLab,
                     Criteria = GitLabTokenTestHelper.PermanentPolicyCriteria,
                     CreatedBy = new User("test-user")
                 };
@@ -180,7 +180,7 @@ namespace NuGetGallery.Services.Authentication
                 var policy = new FederatedCredentialPolicy
                 {
                     PolicyName = "TestPolicy",
-                    Type = FederatedCredentialType.GitLabCI,
+                    Type = FederatedCredentialType.GitLab,
                     Criteria = GitLabTokenTestHelper.PermanentPolicyCriteria,
                     CreatedBy = new User("test-user")
                 };
@@ -204,7 +204,7 @@ namespace NuGetGallery.Services.Authentication
                 var policy = new FederatedCredentialPolicy
                 {
                     PolicyName = "Temporary Policy",
-                    Type = FederatedCredentialType.GitLabCI,
+                    Type = FederatedCredentialType.GitLab,
                     Criteria = GitLabTokenTestHelper.ExpiredPolicyCriteria,
                     CreatedBy = new User("test-user")
                 };
@@ -229,7 +229,7 @@ namespace NuGetGallery.Services.Authentication
                 // Arrange
                 var policy = new FederatedCredentialPolicy
                 {
-                    Type = FederatedCredentialType.GitLabCI,
+                    Type = FederatedCredentialType.GitLab,
                     Criteria = GitLabTokenTestHelper.TemporaryPolicyCriteria,
                     CreatedBy = new User("test-user"),
                     PackageOwner = new User("test-owner")
@@ -266,7 +266,7 @@ namespace NuGetGallery.Services.Authentication
                 // Arrange
                 var policy = new FederatedCredentialPolicy
                 {
-                    Type = FederatedCredentialType.GitLabCI,
+                    Type = FederatedCredentialType.GitLab,
                     Criteria = criteria,
                     CreatedBy = new User("test-user")
                 };
@@ -290,7 +290,7 @@ namespace NuGetGallery.Services.Authentication
                 // Arrange
                 var policy = new FederatedCredentialPolicy
                 {
-                    Type = FederatedCredentialType.GitLabCI,
+                    Type = FederatedCredentialType.GitLab,
                     Criteria = GitLabTokenTestHelper.PermanentPolicyCriteria,
                     CreatedBy = new User("test-user")
                 };
@@ -316,7 +316,7 @@ namespace NuGetGallery.Services.Authentication
                 // Arrange
                 var policy = new FederatedCredentialPolicy
                 {
-                    Type = FederatedCredentialType.GitLabCI,
+                    Type = FederatedCredentialType.GitLab,
                     Criteria = GitLabTokenTestHelper.PermanentPolicyCriteria,
                     CreatedBy = new User("test-user")
                 };
@@ -349,7 +349,7 @@ namespace NuGetGallery.Services.Authentication
                 var policy = new FederatedCredentialPolicy
                 {
                     PolicyName = "TestPolicy",
-                    Type = FederatedCredentialType.GitLabCI,
+                    Type = FederatedCredentialType.GitLab,
                     Criteria = criteriaWithRef,
                     CreatedBy = new User("test-user")
                 };
@@ -373,7 +373,7 @@ namespace NuGetGallery.Services.Authentication
                 var policy = new FederatedCredentialPolicy
                 {
                     PolicyName = "TestPolicy",
-                    Type = FederatedCredentialType.GitLabCI,
+                    Type = FederatedCredentialType.GitLab,
                     Criteria = GitLabTokenTestHelper.PermanentPolicyCriteria,
                     CreatedBy = new User("test-user")
                 };
@@ -399,7 +399,7 @@ namespace NuGetGallery.Services.Authentication
                 var policy = new FederatedCredentialPolicy
                 {
                     Key = 123,
-                    Type = FederatedCredentialType.GitLabCI,
+                    Type = FederatedCredentialType.GitLab,
                     Criteria = GitLabTokenTestHelper.TemporaryPolicyCriteria,
                     CreatedBy = new User("test-user")
                 };
@@ -451,7 +451,7 @@ namespace NuGetGallery.Services.Authentication
                 var policy = new FederatedCredentialPolicy
                 {
                     Key = 123,
-                    Type = FederatedCredentialType.GitLabCI,
+                    Type = FederatedCredentialType.GitLab,
                     Criteria = GitLabTokenTestHelper.TemporaryPolicyCriteria,
                     CreatedBy = new User("test-user")
                 };
@@ -494,7 +494,7 @@ namespace NuGetGallery.Services.Authentication
                 var policy = new FederatedCredentialPolicy
                 {
                     Key = 123,
-                    Type = FederatedCredentialType.GitLabCI,
+                    Type = FederatedCredentialType.GitLab,
                     Criteria = GitLabTokenTestHelper.TemporaryPolicyCriteria,
                     CreatedBy = new User("test-user")
                 };

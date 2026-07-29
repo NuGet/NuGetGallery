@@ -1082,7 +1082,7 @@ namespace NuGetGallery
                 case FederatedCredentialType.GitHubActions:
                     policyDetails = GitHubPolicyDetailsViewModel.FromDatabaseJson(policy.Criteria);
                     break;
-                case FederatedCredentialType.GitLabCI:
+                case FederatedCredentialType.GitLab:
                     policyDetails = GitLabPolicyDetailsViewModel.FromDatabaseJson(policy.Criteria);
                     break;
                 default:
@@ -1156,9 +1156,9 @@ namespace NuGetGallery
                 return FederatedCredentialType.GitHubActions;
             }
 
-            if (string.Equals(publisherType, nameof(FederatedCredentialType.GitLabCI), StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(publisherType, nameof(FederatedCredentialType.GitLab), StringComparison.OrdinalIgnoreCase))
             {
-                return FederatedCredentialType.GitLabCI;
+                return FederatedCredentialType.GitLab;
             }
 
             if (string.Equals(publisherType, nameof(FederatedCredentialType.EntraIdServicePrincipal), StringComparison.OrdinalIgnoreCase))
@@ -1230,7 +1230,7 @@ namespace NuGetGallery
         {
             switch (credentialType)
             {
-                case FederatedCredentialType.GitLabCI:
+                case FederatedCredentialType.GitLab:
                     var gitLabDetails = GitLabPolicyDetailsViewModel.FromViewJson(criteria);
                     return gitLabDetails.Criteria.ToDatabaseJson();
                 case FederatedCredentialType.GitHubActions:

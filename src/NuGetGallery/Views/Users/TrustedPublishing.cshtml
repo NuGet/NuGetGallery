@@ -105,7 +105,7 @@
                         <a href="https://aka.ms/nuget/trusted-publishing-ownership-warnings" target="_blank" aria-label="Learn more about Trusted Publishing">Learn more about policies</a>
                         <!-- /ko -->
                         <!-- GitLab-specific status -->
-                        <!-- ko if: PublisherName() === 'GitLabCI' && IsOwnerValid() -->
+                        <!-- ko if: PublisherName() === 'GitLab' && IsOwnerValid() -->
                         <!-- ko if: gitLab.IsPermanentlyEnabled() -->
                         <i class="ms-Icon ms-Icon--CheckMark" aria-hidden="true" />
                         Active
@@ -201,7 +201,7 @@
                     </li>
                     <!-- /ko -->
                     <!-- /ko -->
-                    <!-- ko if: PublisherName() === 'GitLabCI' -->
+                    <!-- ko if: PublisherName() === 'GitLab' -->
                     <li>
                         <b>Namespace:</b> <span data-bind="text: gitLab.NamespacePath()" />
                     </li>
@@ -394,7 +394,7 @@
         </div>
         <!-- /ko -->
         <!-- ===== GitLab CI/CD fields ===== -->
-        <!-- ko if: SelectedProvider() === 'GitLabCI' -->
+        <!-- ko if: SelectedProvider() === 'GitLab' -->
         <!-- ko ifnot: Key -->
         <div style="display: flex; align-items: center; gap: 10px;">
             <h4><b>GitLab CI/CD</b></h4>

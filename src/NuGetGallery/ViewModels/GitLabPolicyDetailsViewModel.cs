@@ -24,7 +24,7 @@ namespace NuGetGallery
             Criteria = criteria ?? new GitLabCriteria();
         }
 
-        public override FederatedCredentialType PublisherType => FederatedCredentialType.GitLabCI;
+        public override FederatedCredentialType PublisherType => FederatedCredentialType.GitLab;
 
         public GitLabCriteria Criteria { get; }
 
