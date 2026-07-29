@@ -94,6 +94,23 @@ namespace NuGetGallery.Services.Authentication
         private static void NormalizeProjectPath(GitLabCriteria criteria)
         {
             string projectPath = criteria.ProjectPath.TrimEnd('/');
+
+            // Strip query string and fragment before parsing — either may contain slashes
+            // (e.g. ?path=foo/bar or #foo/bar) which would cause LastIndexOf('/') to extract
+            // from inside them rather than from the actual path, silently producing the wrong
+            // project name.
+            int queryIndex = projectPath.IndexOf('?');
+            if (queryIndex >= 0)
+            {
+                projectPath = projectPath.Substring(0, queryIndex).TrimEnd('/');
+            }
+
+            int fragmentIndex = projectPath.IndexOf('#');
+            if (fragmentIndex >= 0)
+            {
+                projectPath = projectPath.Substring(0, fragmentIndex).TrimEnd('/');
+            }
+
             int lastSlash = projectPath.LastIndexOf('/');
             if (lastSlash >= 0)
             {
@@ -241,8 +258,8 @@ namespace NuGetGallery.Services.Authentication
             }
 
             var updatedCriteria = GitLabCriteria.FromDatabaseJson(updatedPolicy.Criteria);
-            if (!string.Equals(updatedCriteria.NamespaceId, criteria.NamespaceId, StringComparison.Ordinal) ||
-                !string.Equals(updatedCriteria.ProjectId, criteria.ProjectId, StringComparison.Ordinal))
+            if (!MatchesCaseSensitive(updatedCriteria.NamespaceId, criteria.NamespaceId) ||
+                !MatchesCaseSensitive(updatedCriteria.ProjectId, criteria.ProjectId))
             {
                 return FederatedCredentialPolicyResult.Unauthorized(
                     $"The policy was updated with different namespace/project IDs during concurrent first use. " +
@@ -261,7 +278,8 @@ namespace NuGetGallery.Services.Authentication
                     refValue = string.Empty;
                 }
 
-                if (!string.Equals(refValue, criteria.Ref, StringComparison.Ordinal))
+                // GitLab runs on Linux where Git branch names are case-sensitive.
+                if (!MatchesCaseSensitive(refValue, criteria.Ref))
                 {
                     return FederatedCredentialPolicyResult.Unauthorized(
                         $"Ref mismatch for policy '{policy.PolicyName}': expected '{criteria.Ref}', actual '{refValue}'",
@@ -269,7 +287,7 @@ namespace NuGetGallery.Services.Authentication
                 }
 
                 if (TryGetRequiredClaim(jwt, RefTypeClaim, out string refType) != null ||
-                    !string.Equals(refType, "branch", StringComparison.OrdinalIgnoreCase))
+                    !MatchesCaseInsensitive(refType, "branch"))
                 {
                     return FederatedCredentialPolicyResult.Unauthorized(
                         $"Ref '{refValue}' for policy '{policy.PolicyName}' must be a branch.",
@@ -284,7 +302,7 @@ namespace NuGetGallery.Services.Authentication
                     environment = string.Empty;
                 }
 
-                if (!string.Equals(environment, criteria.Environment, StringComparison.Ordinal))
+                if (!MatchesCaseSensitive(environment, criteria.Environment))
                 {
                     return FederatedCredentialPolicyResult.Unauthorized(
                         $"Environment mismatch for policy '{policy.PolicyName}': expected '{criteria.Environment}', actual '{environment}'",
@@ -294,5 +312,11 @@ namespace NuGetGallery.Services.Authentication
 
             return FederatedCredentialPolicyResult.Success;
         }
+
+        private static bool MatchesCaseSensitive(string? actual, string? expected)
+            => string.Equals(actual, expected, StringComparison.Ordinal);
+
+        private static bool MatchesCaseInsensitive(string? actual, string? expected)
+            => string.Equals(actual, expected, StringComparison.OrdinalIgnoreCase);
     }
 }
