@@ -48,6 +48,24 @@ namespace NuGetGallery
             set => throw new NotSupportedException();
         }
 
+        public DbSet<StagingGroup> StagingGroups
+        {
+            get => Set<StagingGroup>();
+            set => throw new NotSupportedException();
+        }
+
+        public DbSet<StagedPackage> StagedPackages
+        {
+            get => Set<StagedPackage>();
+            set => throw new NotSupportedException();
+        }
+
+        public DbSet<StagingBlobCleanup> StagingBlobCleanups
+        {
+            get => Set<StagingBlobCleanup>();
+            set => throw new NotSupportedException();
+        }
+
         public DbSet<Credential> Credentials
         {
             get => Set<Credential>();

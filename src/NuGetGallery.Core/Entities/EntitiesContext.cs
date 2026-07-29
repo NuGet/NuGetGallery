@@ -84,6 +84,9 @@ namespace NuGetGallery
         public DbSet<PackageVulnerability> Vulnerabilities { get; set; }
         public DbSet<VulnerablePackageVersionRange> VulnerableRanges { get; set; }
         public DbSet<PackageRename> PackageRenames { get; set; }
+        public DbSet<StagingGroup> StagingGroups { get; set; }
+        public DbSet<StagedPackage> StagedPackages { get; set; }
+        public DbSet<StagingBlobCleanup> StagingBlobCleanups { get; set; }
         public DbSet<FederatedCredentialPolicy> FederatedCredentialPolicies { get; set; }
         public DbSet<FederatedCredential> FederatedCredentials { get; set; }
 
@@ -360,6 +363,12 @@ namespace NuGetGallery
             modelBuilder.Entity<Package>()
                 .HasOptional(p => p.Certificate);
 
+            modelBuilder.Entity<Package>()
+                .HasOptional(p => p.ApproverUser)
+                .WithMany()
+                .HasForeignKey(p => p.ApproverUserKey)
+                .WillCascadeOnDelete(false);
+
             modelBuilder.Entity<PackageHistory>()
                 .HasKey(pm => pm.Key);
 
@@ -608,6 +617,96 @@ namespace NuGetGallery
 
             modelBuilder.Entity<FederatedCredential>()
                 .HasIndex(x => x.FederatedCredentialPolicyKey);
+
+            modelBuilder.Entity<StagingGroup>()
+                .HasKey(g => g.Key);
+
+            modelBuilder.Entity<StagingGroup>()
+                .Property(g => g.CreatedDate)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<StagingGroup>()
+                .Property(g => g.ExpirationDate)
+                .HasColumnType("datetime2");
+
+            // Group slugs are unique per owner, not globally. OwnerKey leads the index so it also serves
+            // "list the groups for this owner".
+            // ExpirationDate is deliberately not indexed here, unlike on StagedPackage. It is rewritten on every push
+            // to the group, so an index would add write amplification to the hot path to speed up a sweep over a table
+            // bounded at StagingConstants.MaxGroupsPerOwner rows per owner.
+            modelBuilder.Entity<StagingGroup>()
+                .HasIndex(g => new { g.OwnerKey, g.Id })
+                .IsUnique();
+
+            modelBuilder.Entity<StagingGroup>()
+                .HasRequired(g => g.Owner)
+                .WithMany()
+                .HasForeignKey(g => g.OwnerKey)
+                .WillCascadeOnDelete(false); // users are only soft deleted today
+
+            modelBuilder.Entity<StagedPackage>()
+                .HasKey(s => s.Key);
+
+            modelBuilder.Entity<StagedPackage>()
+                .Property(s => s.CreatedDate)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<StagedPackage>()
+                .Property(s => s.ExpirationDate)
+                .HasColumnType("datetime2");
+
+            // One staging row per package. This is what enforces "a package belongs to at most one group".
+            modelBuilder.Entity<StagedPackage>()
+                .HasIndex(s => s.PackageKey)
+                .IsUnique();
+
+            // Drives the cleanup job's expiration sweep.
+            modelBuilder.Entity<StagedPackage>()
+                .HasIndex(s => s.ExpirationDate);
+
+            // The owner is stored on the staged package rather than being reached through the group, so that an
+            // ungrouped package is still attributable to an account. This is what makes "list my staged packages" and
+            // the quota count a single seek.
+            // Note this is an accounting concept, not an authorization one: the right to promote is still checked
+            // against the package registration's owners.
+            modelBuilder.Entity<StagedPackage>()
+                .HasIndex(s => s.OwnerKey);
+
+            modelBuilder.Entity<StagedPackage>()
+                .HasRequired(s => s.Owner)
+                .WithMany()
+                .HasForeignKey(s => s.OwnerKey)
+                .WillCascadeOnDelete(false); // users are only soft deleted today
+
+            // Deliberately no cascade. A cascade would let the database drop the staging row without enqueueing its
+            // blobs into StagingBlobCleanup, orphaning them in the staging container. Package deletes must instead go
+            // through the cleanup path, which is also why PackageDeleteService removes child rows explicitly rather
+            // than relying on cascades.
+            modelBuilder.Entity<StagedPackage>()
+                .HasRequired(s => s.Package)
+                .WithMany()
+                .HasForeignKey(s => s.PackageKey)
+                .WillCascadeOnDelete(false);
+
+            // Deliberately no cascade: deleting a group must go through the cleanup path so that each member's
+            // staging blobs are enqueued into StagingBlobCleanup first. A cascade would drop the rows and orphan
+            // the blobs.
+            // The invariant that a group member's OwnerKey matches its group's OwnerKey is enforced in the staging
+            // service rather than by the database. Expressing it declaratively would need a composite foreign key
+            // referencing a unique constraint on StagingGroups, which EF6 cannot map because it only supports
+            // foreign keys to primary keys.
+            modelBuilder.Entity<StagedPackage>()
+                .HasOptional(s => s.StagingGroup)
+                .WithMany(g => g.StagedPackages)
+                .HasForeignKey(s => s.StagingGroupKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StagingBlobCleanup>()
+                .HasKey(c => c.Key);
+
+            modelBuilder.Entity<StagingBlobCleanup>()
+                .Property(c => c.CreatedDate)
+                .HasColumnType("datetime2");
         }
 
 #pragma warning restore 618

@@ -1,8 +1,9 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using Moq;
@@ -132,6 +133,7 @@ namespace NuGetGallery.Services
                     Assert.True(registration.Packages.Single().Listed);
                     Assert.NotNull(testUser.EmailAddress);
                     Assert.NotNull(testableService.PackagePushedByUser.User);
+                    Assert.NotNull(testableService.PackageApprovedByUser.ApproverUser);
                     Assert.NotNull(testableService.DeprecationDeprecatedByUser.DeprecatedByUser);
                     Assert.Empty(testableService.DeletedAccounts);
                     Assert.NotEmpty(testableService.PackageOwnerRequests);
@@ -143,6 +145,7 @@ namespace NuGetGallery.Services
                     Assert.NotEmpty(testUser.Organizations);
                     Assert.NotNull(testableService.PackageDeletedByUser.DeletedBy);
                     Assert.NotNull(testableService.AccountDeletedByUser.DeletedBy);
+                    testableService.AssertStagingGroupsPreserved();
                 }
                 else
                 {
@@ -153,6 +156,7 @@ namespace NuGetGallery.Services
                         !registration.Packages.Single().Listed);
                     Assert.Null(testUser.EmailAddress);
                     Assert.Null(testableService.PackagePushedByUser.User);
+                    Assert.Null(testableService.PackageApprovedByUser.ApproverUser);
                     Assert.Null(testableService.DeprecationDeprecatedByUser.DeprecatedByUser);
                     Assert.Single(testableService.DeletedAccounts);
                     Assert.Empty(testableService.PackageOwnerRequests);
@@ -163,6 +167,7 @@ namespace NuGetGallery.Services
                     Assert.Empty(testUser.OrganizationRequests);
                     Assert.Null(testableService.PackageDeletedByUser.DeletedBy);
                     Assert.Null(testableService.AccountDeletedByUser.DeletedBy);
+                    testableService.AssertStagingGroupsRemoved();
 
                     Assert.Empty(testUser.Organizations);
                     foreach (var testUserOrganization in testUserOrganizations)
@@ -271,6 +276,7 @@ namespace NuGetGallery.Services
                     Assert.Contains(registration.Owners, o => o.MatchesUser(organization));
                     Assert.NotEmpty(organization.SecurityPolicies);
                     Assert.NotNull(testableService.PackagePushedByUser.User);
+                    Assert.NotNull(testableService.PackageApprovedByUser.ApproverUser);
                     Assert.NotNull(testableService.DeprecationDeprecatedByUser.DeprecatedByUser);
                     Assert.Empty(testableService.DeletedAccounts);
                     Assert.NotEmpty(testableService.PackageOwnerRequests);
@@ -279,6 +285,7 @@ namespace NuGetGallery.Services
                     Assert.Empty(testableService.AuditService.Records);
                     Assert.NotNull(testableService.PackageDeletedByUser.DeletedBy);
                     Assert.NotNull(testableService.AccountDeletedByUser.DeletedBy);
+                    testableService.AssertStagingGroupsPreserved();
                 }
                 else
                 {
@@ -290,6 +297,7 @@ namespace NuGetGallery.Services
                     Assert.DoesNotContain(registration.Owners, o => o.MatchesUser(organization));
                     Assert.Empty(organization.SecurityPolicies);
                     Assert.Null(testableService.PackagePushedByUser.User);
+                    Assert.Null(testableService.PackageApprovedByUser.ApproverUser);
                     Assert.Null(testableService.DeprecationDeprecatedByUser.DeprecatedByUser);
                     Assert.Single(testableService.DeletedAccounts);
                     Assert.Empty(testableService.PackageOwnerRequests);
@@ -297,6 +305,7 @@ namespace NuGetGallery.Services
                     Assert.True(testableService.HasDeletedOwnerScope);
                     Assert.Null(testableService.PackageDeletedByUser.DeletedBy);
                     Assert.Null(testableService.AccountDeletedByUser.DeletedBy);
+                    testableService.AssertStagingGroupsRemoved();
 
                     var deleteRecord = testableService.AuditService.Records[0] as DeleteAccountAuditRecord;
                     Assert.True(deleteRecord != null);
@@ -357,12 +366,14 @@ namespace NuGetGallery.Services
                 Assert.Empty(organization.SecurityPolicies);
                 Assert.Empty(organization.ReservedNamespaces);
                 Assert.Null(testableService.PackagePushedByUser.User);
+                Assert.Null(testableService.PackageApprovedByUser.ApproverUser);
                 Assert.Null(testableService.DeprecationDeprecatedByUser.DeprecatedByUser);
                 Assert.Empty(testableService.DeletedAccounts);
                 Assert.Single(testableService.SupportRequests);
                 Assert.Empty(testableService.PackageOwnerRequests);
                 Assert.True(testableService.HasDeletedOwnerScope);
                 Assert.Single(testableService.AuditService.Records);
+                testableService.AssertStagingGroupsRemoved();
                 
                 var deleteRecord = testableService.AuditService.Records[0] as DeleteAccountAuditRecord;
                 Assert.True(deleteRecord != null);
@@ -542,6 +553,17 @@ namespace NuGetGallery.Services
             public List<User> DeletedUsers = new List<User>();
             public List<Issue> SupportRequests = new List<Issue>();
             public Package PackagePushedByUser;
+            public Package PackageApprovedByUser;
+            public StagingGroup StagingGroupOwnedByUser;
+            public StagingGroup StagingGroupOwnedByDifferentUser;
+            public StagedPackage StagedPackageInUserGroup;
+            public StagedPackage UngroupedStagedPackage;
+            public StagedPackage StagedPackageOwnedByDifferentUser;
+
+            public DbSet<StagingGroup> StagingGroupDbSet;
+            public DbSet<StagedPackage> StagedPackageDbSet;
+            public DbSet<StagingBlobCleanup> StagingBlobCleanupDbSet;
+
             public PackageDeprecation DeprecationDeprecatedByUser;
             public List<PackageOwnerRequest> PackageOwnerRequests = new List<PackageOwnerRequest>();
             public FakeAuditingService AuditService = new FakeAuditingService();
@@ -614,10 +636,61 @@ namespace NuGetGallery.Services
                     UserKey = _user.Key
                 };
 
+                PackageApprovedByUser = new Package
+                {
+                    ApproverUser = _user,
+                    ApproverUserKey = _user.Key
+                };
+
                 DeprecationDeprecatedByUser = new PackageDeprecation
                 {
                     DeprecatedByUser = _user,
                     DeprecatedByUserKey = _user.Key
+                };
+
+                StagingGroupOwnedByUser = new StagingGroup
+                {
+                    Key = 3001,
+                    Id = "preview-1",
+                    Owner = _user,
+                    OwnerKey = _user.Key
+                };
+
+                StagingGroupOwnedByDifferentUser = new StagingGroup
+                {
+                    Key = 3002,
+                    Id = "someone-else",
+                    Owner = new User { Key = 1111 },
+                    OwnerKey = 1111
+                };
+
+                StagedPackageInUserGroup = new StagedPackage
+                {
+                    Key = 4001,
+                    Owner = _user,
+                    OwnerKey = _user.Key,
+                    StagingGroup = StagingGroupOwnedByUser,
+                    StagingGroupKey = StagingGroupOwnedByUser.Key,
+                    BlobPath = "staging/abc/package.nupkg",
+                    SnupkgBlobPath = "staging/abc/package.snupkg"
+                };
+
+                UngroupedStagedPackage = new StagedPackage
+                {
+                    Key = 4002,
+                    Owner = _user,
+                    OwnerKey = _user.Key,
+                    StagingGroupKey = null,
+                    BlobPath = "staging/def/ungrouped.nupkg"
+                };
+
+                StagedPackageOwnedByDifferentUser = new StagedPackage
+                {
+                    Key = 4003,
+                    Owner = new User { Key = 1111 },
+                    OwnerKey = 1111,
+                    StagingGroupKey = null,
+                    BlobPath = "staging/ghi/other.nupkg"
                 };
             }
 
@@ -662,6 +735,39 @@ namespace NuGetGallery.Services
                 get { return _user; }
             }
 
+            /// <summary>
+            /// Asserts the account's staged packages and groups were removed, that another account's staged package
+            /// and group were left alone, and that every removed package's staging blobs were enqueued for deferred
+            /// deletion. Ungrouped packages are removed too, because they carry their own owner.
+            /// </summary>
+            public void AssertStagingGroupsRemoved()
+            {
+                Assert.Equal(
+                    new[] { StagingGroupOwnedByDifferentUser },
+                    StagingGroupDbSet.ToList());
+                Assert.Equal(
+                    new[] { StagedPackageOwnedByDifferentUser },
+                    StagedPackageDbSet.ToList());
+                Assert.Equal(
+                    new[]
+                    {
+                        StagedPackageInUserGroup.BlobPath,
+                        StagedPackageInUserGroup.SnupkgBlobPath,
+                        UngroupedStagedPackage.BlobPath,
+                    },
+                    StagingBlobCleanupDbSet.Select(c => c.BlobPath).ToList());
+            }
+
+            /// <summary>
+            /// Asserts nothing about staging was touched, for the cases where the delete is expected to fail.
+            /// </summary>
+            public void AssertStagingGroupsPreserved()
+            {
+                Assert.Equal(2, StagingGroupDbSet.Count());
+                Assert.Equal(3, StagedPackageDbSet.Count());
+                Assert.Empty(StagingBlobCleanupDbSet);
+            }
+
             private Mock<IEntitiesContext> SetupEntitiesContext()
             {
                 var mockContext = new Mock<IEntitiesContext>();
@@ -682,6 +788,51 @@ namespace NuGetGallery.Services
                 if (PackagePushedByUser != null)
                 {
                     packageDbSet.Add(PackagePushedByUser);
+                }
+
+                if (PackageApprovedByUser != null)
+                {
+                    packageDbSet.Add(PackageApprovedByUser);
+                }
+
+                StagingGroupDbSet = FakeEntitiesContext.CreateDbSet<StagingGroup>();
+                mockContext
+                    .Setup(x => x.StagingGroups)
+                    .Returns(StagingGroupDbSet);
+
+                StagedPackageDbSet = FakeEntitiesContext.CreateDbSet<StagedPackage>();
+                mockContext
+                    .Setup(x => x.StagedPackages)
+                    .Returns(StagedPackageDbSet);
+
+                StagingBlobCleanupDbSet = FakeEntitiesContext.CreateDbSet<StagingBlobCleanup>();
+                mockContext
+                    .Setup(x => x.StagingBlobCleanups)
+                    .Returns(StagingBlobCleanupDbSet);
+
+                if (StagingGroupOwnedByUser != null)
+                {
+                    StagingGroupDbSet.Add(StagingGroupOwnedByUser);
+                }
+
+                if (StagingGroupOwnedByDifferentUser != null)
+                {
+                    StagingGroupDbSet.Add(StagingGroupOwnedByDifferentUser);
+                }
+
+                if (StagedPackageInUserGroup != null)
+                {
+                    StagedPackageDbSet.Add(StagedPackageInUserGroup);
+                }
+
+                if (UngroupedStagedPackage != null)
+                {
+                    StagedPackageDbSet.Add(UngroupedStagedPackage);
+                }
+
+                if (StagedPackageOwnedByDifferentUser != null)
+                {
+                    StagedPackageDbSet.Add(StagedPackageOwnedByDifferentUser);
                 }
 
                 return mockContext;

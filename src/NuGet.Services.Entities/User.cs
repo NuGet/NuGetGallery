@@ -124,6 +124,13 @@ namespace NuGet.Services.Entities
 
         public bool IsLocked => UserStatusKey == UserStatus.Locked;
 
+        /// <summary>
+        /// The maximum number of packages this account may have staged at one time, across all staging groups
+        /// and the ungrouped bucket. When null, the service-wide default applies. Set via the admin panel to
+        /// grant an elevated limit to accounts that publish in large batches.
+        /// </summary>
+        public int? StagingPackageLimit { get; set; }
+
         public string LastSavedEmailAddress
         {
             get

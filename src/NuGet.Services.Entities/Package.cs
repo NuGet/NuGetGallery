@@ -241,6 +241,18 @@ namespace NuGet.Services.Entities
         public int? UserKey { get; set; }
 
         /// <summary>
+        /// The user that promoted this package from <see cref="PackageStatus.Staged"/> to
+        /// <see cref="PackageStatus.Available"/>, or <c>null</c> if the user was deleted.
+        /// </summary>
+        /// <remarks>
+        /// Packages that were not published through the staging flow have <c>null</c>. This is distinct from
+        /// <see cref="User"/>, which records who pushed the package: for a staged package the pusher and the approver
+        /// can be different identities, and both are retained for the lifetime of the package.
+        /// </remarks>
+        public User ApproverUser { get; set; }
+        public int? ApproverUserKey { get; set; }
+
+        /// <summary>
         /// List of historical metadata info of this package (before edits were applied)
         /// </summary>
         public virtual ICollection<PackageHistory> PackageHistories { get; set; }
