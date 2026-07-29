@@ -135,20 +135,20 @@
             return owner && repository && workflowFile;
         }
 
-        _gitHubDetails.LookupGitHubIdentifiers = function (self, existingPolicies, callback) {
+        _gitHubDetails.LookupGitHubIdentifiers = function (self, existingPolicies, onLookupComplete) {
             const gitHub = self.gitHub;
             const owner = gitHub.PendingRepositoryOwner().toLowerCase();
             const repository = gitHub.PendingRepository().toLowerCase();
 
             // Validate inputs
             if (!owner || !repository) {
-                callback();
+                onLookupComplete();
                 return;
             }
 
             // Check if we already have the IDs
             if (gitHub.RepositoryOwnerId() && gitHub.RepositoryId()) {
-                callback();
+                onLookupComplete();
                 return;
             }
 
@@ -164,7 +164,7 @@
 
                         gitHub.RepositoryOwnerId(existing.RepositoryOwnerId());
                         gitHub.RepositoryId(existing.RepositoryId());
-                        callback();
+                        onLookupComplete();
                         return;
                     }
                 }
@@ -196,7 +196,7 @@
                 },
                 complete: function() {
                     window.nuget.sendMetric('GitHubRepositoryLookup', 1, properties);
-                    callback();
+                    onLookupComplete();
                 }
             });
         };
@@ -304,19 +304,18 @@
             return gitLab.PendingNamespacePath() && gitLab.PendingProjectPath();
         };
 
-        _gitLabDetails.LookupGitLabIdentifiers = function (self, existingPolicies, callback) {
+        _gitLabDetails.LookupGitLabIdentifiers = function (self, existingPolicies, onLookupComplete) {
             const gitLab = self.gitLab;
             const namespacePath = gitLab.PendingNamespacePath().toLowerCase();
             const projectPath = gitLab.PendingProjectPath().toLowerCase();
 
             if (!namespacePath || !projectPath) {
-                callback();
+                onLookupComplete();
                 return;
             }
 
-            // Check if we already have the IDs
             if (gitLab.NamespaceId() && gitLab.ProjectId()) {
-                callback();
+                onLookupComplete();
                 return;
             }
 
@@ -332,7 +331,7 @@
 
                         gitLab.NamespaceId(existing.NamespaceId());
                         gitLab.ProjectId(existing.ProjectId());
-                        callback();
+                        onLookupComplete();
                         return;
                     }
                 }
@@ -362,7 +361,7 @@
                 },
                 complete: function () {
                     window.nuget.sendMetric('GitLabProjectLookup', 1, properties);
-                    callback();
+                    onLookupComplete();
                 }
             });
         };
