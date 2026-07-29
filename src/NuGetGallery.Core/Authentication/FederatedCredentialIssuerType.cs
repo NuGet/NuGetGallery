@@ -10,6 +10,6 @@ namespace NuGetGallery.Services.Authentication
         Unsupported,
         EntraId,
         GitHubActions,
-        GitLabCI
+        GitLab
     }
 }

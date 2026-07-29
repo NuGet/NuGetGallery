@@ -52,7 +52,7 @@ namespace NuGetGallery.Services.Authentication
         }
 
         public override string IssuerAuthority => Authority;
-        public override FederatedCredentialIssuerType IssuerType => FederatedCredentialIssuerType.GitLabCI;
+        public override FederatedCredentialIssuerType IssuerType => FederatedCredentialIssuerType.GitLab;
 
         public override FederatedCredentialPolicyValidationResult ValidatePolicy(FederatedCredentialPolicy policy)
         {
