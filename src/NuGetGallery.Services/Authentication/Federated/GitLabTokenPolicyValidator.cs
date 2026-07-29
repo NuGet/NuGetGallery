@@ -65,7 +65,7 @@ namespace NuGetGallery.Services.Authentication
 
             GitLabCriteria criteria = GitLabCriteria.FromDatabaseJson(policy.Criteria);
             NormalizeProjectPath(criteria);
-            criteria.InitializeValidateByDate();
+            criteria.InitializeValidateBy();
             policy.Criteria = criteria.ToDatabaseJson();
 
             if (criteria.Validate() is string error)
@@ -199,7 +199,7 @@ namespace NuGetGallery.Services.Authentication
         {
             if (!criteria.IsPermanentlyEnabled)
             {
-                if (!criteria.ValidateByDate.HasValue || DateTimeOffset.UtcNow > criteria.ValidateByDate.Value)
+                if (!criteria.ValidateBy.HasValue || DateTimeOffset.UtcNow > criteria.ValidateBy.Value)
                 {
                     return FederatedCredentialPolicyResult.Unauthorized(
                         $"The policy '{policy.PolicyName}' has expired. Sign in and renew the trust policy on the Trusted Publishing page.",
@@ -208,7 +208,7 @@ namespace NuGetGallery.Services.Authentication
 
                 criteria.NamespaceId = namespaceId;
                 criteria.ProjectId = projectId;
-                criteria.ValidateByDate = null;
+                criteria.ValidateBy = null;
                 policy.Criteria = criteria.ToDatabaseJson();
                 try
                 {

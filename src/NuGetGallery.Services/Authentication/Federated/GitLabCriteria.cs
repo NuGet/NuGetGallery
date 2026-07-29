@@ -21,6 +21,13 @@ namespace NuGetGallery.Services.Authentication
     {
         public const int ValidationExpirationDays = 7;
 
+        private static readonly JsonSerializerOptions SerializerOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
+            IgnoreReadOnlyProperties = true,
+        };
+
         private string _namespacePath = string.Empty;
         private string? _namespaceId;
         private string _projectPath = string.Empty;
@@ -31,7 +38,6 @@ namespace NuGetGallery.Services.Authentication
         /// <summary>
         /// GitLab namespace (group or user) path, e.g. "my-group".
         /// </summary>
-        [JsonPropertyName("namespacePath")]
         public string NamespacePath
         {
             get => _namespacePath;
@@ -41,7 +47,6 @@ namespace NuGetGallery.Services.Authentication
         /// <summary>
         /// GitLab namespace numeric ID. Obtained from the token on first use (TOFU).
         /// </summary>
-        [JsonPropertyName("namespaceId")]
         public string? NamespaceId
         {
             get => _namespaceId;
@@ -51,7 +56,6 @@ namespace NuGetGallery.Services.Authentication
         /// <summary>
         /// GitLab project path (without namespace prefix), e.g. "my-project".
         /// </summary>
-        [JsonPropertyName("projectPath")]
         public string ProjectPath
         {
             get => _projectPath;
@@ -61,7 +65,6 @@ namespace NuGetGallery.Services.Authentication
         /// <summary>
         /// GitLab project numeric ID. Obtained from the token on first use (TOFU).
         /// </summary>
-        [JsonPropertyName("projectId")]
         public string? ProjectId
         {
             get => _projectId;
@@ -71,7 +74,6 @@ namespace NuGetGallery.Services.Authentication
         /// <summary>
         /// Optional GitLab ref (branch or tag), e.g. "main".
         /// </summary>
-        [JsonPropertyName("ref")]
         public string? Ref
         {
             get => _ref;
@@ -81,7 +83,6 @@ namespace NuGetGallery.Services.Authentication
         /// <summary>
         /// Optional GitLab environment name, e.g. "production".
         /// </summary>
-        [JsonPropertyName("environment")]
         public string? Environment
         {
             get => _environment;
@@ -89,15 +90,14 @@ namespace NuGetGallery.Services.Authentication
         }
 
         /// <summary>
-        /// UTC date and time when the publisher details need to be validated by.
+        /// UTC timestamp when the publisher details need to be validated by.
         /// </summary>
         /// <remarks>
         /// GitLab policy is considered validated when namespace and project IDs are set.
         /// The policy can be created without these IDs, and later validated upon first use
         /// or user manually updating the policy.
         /// </remarks>
-        [JsonPropertyName("validateBy")]
-        public DateTimeOffset? ValidateByDate { get; set; }
+        public DateTimeOffset? ValidateBy { get; set; }
 
         /// <summary>
         /// GitLab policy is permanently enabled when both namespace and project IDs are set.
@@ -113,9 +113,9 @@ namespace NuGetGallery.Services.Authentication
                     return int.MaxValue;
                 }
 
-                if (ValidateByDate.HasValue)
+                if (ValidateBy.HasValue)
                 {
-                    var daysLeft = Math.Ceiling((ValidateByDate.Value - DateTimeOffset.UtcNow).TotalDays);
+                    var daysLeft = Math.Ceiling((ValidateBy.Value - DateTimeOffset.UtcNow).TotalDays);
                     return Math.Max((int)daysLeft, 0);
                 }
 
@@ -151,28 +151,28 @@ namespace NuGetGallery.Services.Authentication
                 errors.Add("The GitLab project path is required.");
             }
 
-            if (!IsPermanentlyEnabled && !ValidateByDate.HasValue)
+            if (!IsPermanentlyEnabled && !ValidateBy.HasValue)
             {
-                errors.Add("The validate-by date is required.");
+                errors.Add("The validate-by timestamp is required.");
             }
 
             return errors.Count > 0 ? string.Join(" ", errors) : null;
         }
 
         /// <summary>
-        /// Initializes the validation date and resets IDs if not permanently enabled.
+        /// Initializes the validate-by timestamp and resets IDs if not permanently enabled.
         /// </summary>
-        internal void InitializeValidateByDate()
+        internal void InitializeValidateBy()
         {
             if (IsPermanentlyEnabled)
             {
-                ValidateByDate = null;
+                ValidateBy = null;
             }
             else
             {
                 NamespaceId = ProjectId = string.Empty;
                 DateTimeOffset date = DateTimeOffset.UtcNow + TimeSpan.FromDays(ValidationExpirationDays);
-                ValidateByDate = new DateTimeOffset(date.Year, date.Month, date.Day, date.Hour, 0, 0, TimeSpan.Zero);
+                ValidateBy = new DateTimeOffset(date.Year, date.Month, date.Day, date.Hour, 0, 0, TimeSpan.Zero);
             }
         }
 
@@ -186,20 +186,16 @@ namespace NuGetGallery.Services.Authentication
                 _projectId = _projectId,
                 _ref = _ref,
                 _environment = _environment,
-                ValidateByDate = this.ValidateByDate,
+                ValidateBy = this.ValidateBy,
             };
         }
 
         public string ToDatabaseJson()
         {
-            return JsonSerializer.Serialize(this, new JsonSerializerOptions()
-            {
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
-                IgnoreReadOnlyProperties = true
-            });
+            return JsonSerializer.Serialize(this, SerializerOptions);
         }
 
         public static GitLabCriteria FromDatabaseJson(string json)
-            => JsonSerializer.Deserialize<GitLabCriteria>(json) ?? throw new ArgumentException(nameof(json));
+            => JsonSerializer.Deserialize<GitLabCriteria>(json, SerializerOptions) ?? throw new ArgumentException(nameof(json));
     }
 }

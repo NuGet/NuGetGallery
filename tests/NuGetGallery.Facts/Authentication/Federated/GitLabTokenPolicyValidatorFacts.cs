@@ -248,7 +248,7 @@ namespace NuGetGallery.Services.Authentication
                 Assert.True(lockedCriteria.IsPermanentlyEnabled);
                 Assert.Equal("id-111", lockedCriteria.NamespaceId);
                 Assert.Equal("id-222", lockedCriteria.ProjectId);
-                Assert.Null(lockedCriteria.ValidateByDate);
+                Assert.Null(lockedCriteria.ValidateBy);
 
                 // Must persist and audit the first use
                 FederatedCredentialRepository.Verify(x => x.SavePoliciesAsync(), Times.Once);

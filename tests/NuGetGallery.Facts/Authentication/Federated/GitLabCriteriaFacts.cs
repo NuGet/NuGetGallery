@@ -25,7 +25,7 @@ namespace NuGetGallery.Services.Authentication
                     ProjectId = "456",
                     Ref = "main",
                     Environment = "production",
-                    ValidateByDate = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero),
+                    ValidateBy = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero),
                 };
 
                 // Act
@@ -56,7 +56,7 @@ namespace NuGetGallery.Services.Authentication
                 {
                     NamespacePath = "my-namespace",
                     ProjectPath = "my-project",
-                    ValidateByDate = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero),
+                    ValidateBy = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero),
                 };
 
                 var clone = original.Clone();
@@ -75,7 +75,7 @@ namespace NuGetGallery.Services.Authentication
                 {
                     NamespacePath = "my-namespace",
                     ProjectPath = "my-project",
-                    ValidateByDate = DateTimeOffset.UtcNow.AddDays(7),
+                    ValidateBy = DateTimeOffset.UtcNow.AddDays(7),
                 };
 
                 Assert.Null(criteria.Validate());
@@ -101,7 +101,7 @@ namespace NuGetGallery.Services.Authentication
                 var criteria = new GitLabCriteria
                 {
                     ProjectPath = "my-project",
-                    ValidateByDate = DateTimeOffset.UtcNow.AddDays(7),
+                    ValidateBy = DateTimeOffset.UtcNow.AddDays(7),
                 };
 
                 var error = criteria.Validate();
@@ -115,7 +115,7 @@ namespace NuGetGallery.Services.Authentication
                 var criteria = new GitLabCriteria
                 {
                     NamespacePath = "my-namespace",
-                    ValidateByDate = DateTimeOffset.UtcNow.AddDays(7),
+                    ValidateBy = DateTimeOffset.UtcNow.AddDays(7),
                 };
 
                 var error = criteria.Validate();
@@ -124,7 +124,7 @@ namespace NuGetGallery.Services.Authentication
             }
 
             [Fact]
-            public void RequiresValidateByDateWhenNotPermanentlyEnabled()
+            public void RequiresValidateByWhenNotPermanentlyEnabled()
             {
                 var criteria = new GitLabCriteria
                 {
@@ -134,7 +134,7 @@ namespace NuGetGallery.Services.Authentication
 
                 var error = criteria.Validate();
                 Assert.NotNull(error);
-                Assert.Contains("validate-by date", error);
+                Assert.Contains("validate-by", error);
             }
 
             [Fact]
@@ -170,21 +170,21 @@ namespace NuGetGallery.Services.Authentication
             }
         }
 
-        public class TheInitializeValidateByDateMethod
+        public class TheInitializeValidateByMethod
         {
             [Fact]
-            public void ClearsValidateDateWhenPermanentlyEnabled()
+            public void ClearsValidateByWhenPermanentlyEnabled()
             {
                 var criteria = new GitLabCriteria
                 {
                     NamespaceId = "123",
                     ProjectId = "456",
-                    ValidateByDate = DateTimeOffset.UtcNow.AddDays(7),
+                    ValidateBy = DateTimeOffset.UtcNow.AddDays(7),
                 };
 
-                criteria.InitializeValidateByDate();
+                criteria.InitializeValidateBy();
 
-                Assert.Null(criteria.ValidateByDate);
+                Assert.Null(criteria.ValidateBy);
             }
 
             [Fact]
@@ -201,12 +201,12 @@ namespace NuGetGallery.Services.Authentication
                 // Demote to temporary by clearing IDs before calling
                 criteria.NamespaceId = null;
                 criteria.ProjectId = null;
-                criteria.InitializeValidateByDate();
+                criteria.InitializeValidateBy();
 
                 Assert.Null(criteria.NamespaceId);
                 Assert.Null(criteria.ProjectId);
-                Assert.NotNull(criteria.ValidateByDate);
-                Assert.True(criteria.ValidateByDate > DateTimeOffset.UtcNow);
+                Assert.NotNull(criteria.ValidateBy);
+                Assert.True(criteria.ValidateBy > DateTimeOffset.UtcNow);
             }
 
             [Fact]
@@ -218,10 +218,10 @@ namespace NuGetGallery.Services.Authentication
                     ProjectPath = "my-project",
                 };
 
-                criteria.InitializeValidateByDate();
+                criteria.InitializeValidateBy();
 
-                Assert.Equal(0, criteria.ValidateByDate!.Value.Minute);
-                Assert.Equal(0, criteria.ValidateByDate!.Value.Second);
+                Assert.Equal(0, criteria.ValidateBy!.Value.Minute);
+                Assert.Equal(0, criteria.ValidateBy!.Value.Second);
             }
         }
 
@@ -272,7 +272,7 @@ namespace NuGetGallery.Services.Authentication
                     ProjectId = "456",
                     Ref = "main",
                     Environment = "production",
-                    ValidateByDate = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero),
+                    ValidateBy = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero),
                 };
 
                 var json = original.ToDatabaseJson();
@@ -284,7 +284,7 @@ namespace NuGetGallery.Services.Authentication
                 Assert.Equal(original.ProjectId, restored.ProjectId);
                 Assert.Equal(original.Ref, restored.Ref);
                 Assert.Equal(original.Environment, restored.Environment);
-                Assert.Equal(original.ValidateByDate, restored.ValidateByDate);
+                Assert.Equal(original.ValidateBy, restored.ValidateBy);
             }
 
             [Fact]
@@ -294,7 +294,7 @@ namespace NuGetGallery.Services.Authentication
                 {
                     NamespacePath = "my-namespace",
                     ProjectPath = "my-project",
-                    ValidateByDate = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero),
+                    ValidateBy = new DateTimeOffset(2025, 1, 1, 0, 0, 0, TimeSpan.Zero),
                 };
 
                 var json = criteria.ToDatabaseJson();
