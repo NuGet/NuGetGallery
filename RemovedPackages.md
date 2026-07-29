@@ -245,6 +245,13 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    Newtonsoftt.Json.Net 11.0.10              |    07/22/2026    |   Malware  |
 |    Newtonsoftt.Json.Net 11.0.11              |    07/22/2026    |   Malware  |
 |    yuinuget                                  |    07/24/2026    |   Malware  |
+|    skillmeter.win-x64 0.1.0                  |    07/29/2026    |   Malware  |
+|    skillmeter.linux-x64 0.1.0                |    07/29/2026    |   Malware  |
+|    skillmeter 0.1.0                          |    07/29/2026    |   Malware  |
+|    skillmeter.osx-x64 0.1.0                  |    07/29/2026    |   Malware  |
+|    skillmeter.linux-arm64 0.1.0              |    07/29/2026    |   Malware  |
+|    skillmeter.osx-arm64 0.1.0                |    07/29/2026    |   Malware  |
+|    skillmeter.win-arm64 0.1.0                |    07/29/2026    |   Malware  |
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.
