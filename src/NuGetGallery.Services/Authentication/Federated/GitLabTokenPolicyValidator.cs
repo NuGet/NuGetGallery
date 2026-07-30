@@ -205,11 +205,17 @@ namespace NuGetGallery.Services.Authentication
         private FederatedCredentialPolicyResult? ValidateProjectPaths(JsonWebToken jwt, GitLabCriteria criteria)
         {
             string? error = ValidateClaimExactMatch(jwt, NamespacePathClaim, criteria.NamespacePath, StringComparison.OrdinalIgnoreCase);
-            if (error != null) return FederatedCredentialPolicyResult.Unauthorized(error);
+            if (error != null)
+            {
+                return FederatedCredentialPolicyResult.Unauthorized(error);
+            }
 
             string expectedProjectPath = $"{criteria.NamespacePath}/{criteria.ProjectPath}";
             error = ValidateClaimExactMatch(jwt, ProjectPathClaim, expectedProjectPath, StringComparison.OrdinalIgnoreCase);
-            if (error != null) return FederatedCredentialPolicyResult.Unauthorized(error);
+            if (error != null)
+            {
+                return FederatedCredentialPolicyResult.Unauthorized(error);
+            }
 
             return null;
         }
