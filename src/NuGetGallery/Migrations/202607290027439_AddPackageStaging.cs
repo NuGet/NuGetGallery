@@ -16,6 +16,8 @@ namespace NuGetGallery.Migrations
                         OwnerKey = c.Int(nullable: false),
                         StagingGroupKey = c.Int(),
                         CreatedDate = c.DateTime(nullable: false, precision: 7, storeType: "datetime2"),
+                        ValidationStatus = c.Int(nullable: false),
+                        ValidationTrackingId = c.Guid(nullable: false),
                         ExpirationDate = c.DateTime(nullable: false, precision: 7, storeType: "datetime2"),
                         BlobPath = c.String(nullable: false, maxLength: 512),
                         SnupkgBlobPath = c.String(maxLength: 512),

@@ -70,6 +70,19 @@ namespace NuGet.Services.Entities
         public DateTime CreatedDate { get; set; }
 
         /// <summary>
+        /// Gets or sets how far validation has got for this package. A staged package stays in
+        /// <see cref="PackageStatus.Staged"/> throughout, so this is the only signal that it is promotable.
+        /// </summary>
+        public StagedValidationStatus ValidationStatus { get; set; }
+
+        /// <summary>
+        /// Gets or sets the tracking ID of the validation set for this row's current content, assigned at push time
+        /// and rewritten whenever the content is replaced. Validation outcomes from any other set describe content
+        /// that has since been superseded and must be ignored, since a replace reuses the same package key.
+        /// </summary>
+        public Guid ValidationTrackingId { get; set; }
+
+        /// <summary>
         /// Gets or sets the absolute deadline after which this package is eligible for cleanup. For grouped packages
         /// this mirrors the group's expiration; for ungrouped packages it is set at push time and reset on replace.
         /// The timestamp is in UTC.
