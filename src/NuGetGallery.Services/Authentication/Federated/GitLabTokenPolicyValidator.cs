@@ -145,6 +145,9 @@ namespace NuGetGallery.Services.Authentication
 
         public override async Task<FederatedCredentialPolicyResult> EvaluatePolicyAsync(FederatedCredentialPolicy policy, JsonWebToken jwt)
         {
+            if (policy == null) throw new ArgumentNullException(nameof(policy));
+            if (jwt == null) throw new ArgumentNullException(nameof(jwt));
+
             if (policy.Type != FederatedCredentialType.GitLab)
             {
                 return FederatedCredentialPolicyResult.NotApplicable;
