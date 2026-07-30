@@ -120,7 +120,9 @@ namespace NuGetGallery
             ResetPackagesAndAccountsDeletedBy(userToBeDeleted);
 
             RemovePackagePushedBy(userToBeDeleted);
+            RemovePackageApprovedBy(userToBeDeleted);
             RemovePackageDeprecatedBy(userToBeDeleted);
+            RemoveStagingGroups(userToBeDeleted);
 
             var organizationToBeDeleted = userToBeDeleted as Organization;
             if (organizationToBeDeleted != null)
@@ -235,8 +237,70 @@ namespace NuGetGallery
             }
         }
 
-        private List<PackageRegistration> GetPackageRegistrationsOwnedByUser(User user)
+        private void RemovePackageApprovedBy(User user)
         {
+            foreach (var package in _entitiesContext
+                .Packages
+                .Where(p => p.ApproverUserKey == user.Key)
+                .ToList())
+            {
+                package.ApproverUser = null;
+            }
+        }
+
+        /// <summary>
+        /// Deletes the staging data owned by the account. Both staged packages and staging groups have a required
+        /// owner, so unlike package ownership these rows cannot be orphaned and must be removed outright. Neither
+        /// relationship cascades, so the staged packages are removed here and their blobs enqueued for deferred
+        /// deletion.
+        /// </summary>
+        /// <remarks>
+        /// The underlying <see cref="Package"/> rows are left behind in <see cref="PackageStatus.Staged"/>. They are
+        /// invisible on every public surface, but they still occupy their id and version. Reclaiming them requires the
+        /// hard delete path in PackageDeleteService, which is tracked separately.
+        /// </remarks>
+        private void RemoveStagingGroups(User user)
+        {
+            var stagedPackages = _entitiesContext
+                .StagedPackages
+                .Where(s => s.OwnerKey == user.Key)
+                .ToList();
+
+            foreach (var stagedPackage in stagedPackages)
+            {
+                EnqueueStagingBlobCleanup(stagedPackage.BlobPath);
+                EnqueueStagingBlobCleanup(stagedPackage.SnupkgBlobPath);
+
+                _entitiesContext.StagedPackages.Remove(stagedPackage);
+            }
+
+            // Groups are removed after their members because the foreign key does not cascade.
+            var groups = _entitiesContext
+                .StagingGroups
+                .Where(g => g.OwnerKey == user.Key)
+                .ToList();
+
+            foreach (var group in groups)
+            {
+                _entitiesContext.StagingGroups.Remove(group);
+            }
+        }
+
+        private void EnqueueStagingBlobCleanup(string blobPath)
+        {
+            if (string.IsNullOrEmpty(blobPath))
+            {
+                return;
+            }
+
+            _entitiesContext.StagingBlobCleanups.Add(new StagingBlobCleanup
+            {
+                BlobPath = blobPath,
+                CreatedDate = DateTime.UtcNow,
+            });
+        }
+
+        private List<PackageRegistration> GetPackageRegistrationsOwnedByUser(User user)        {
             return _packageService
                 .FindPackageRegistrationsByOwner(user)
                 .ToList();
