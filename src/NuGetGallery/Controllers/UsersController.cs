@@ -1108,7 +1108,7 @@ namespace NuGetGallery
         [UIAuthorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<JsonResult> GenerateTrustedPublisherPolicy(string policyName, string owner, string criteria, string publisherType = null)
+        public virtual async Task<JsonResult> GenerateTrustedPublisherPolicy(string policyName, string owner, string criteria, string publisherType)
         {
             User currentUser = GetCurrentUser();
             if (currentUser == null)
@@ -1159,11 +1159,6 @@ namespace NuGetGallery
             if (string.Equals(publisherType, nameof(FederatedCredentialType.GitLab), StringComparison.OrdinalIgnoreCase))
             {
                 return FederatedCredentialType.GitLab;
-            }
-
-            if (string.Equals(publisherType, nameof(FederatedCredentialType.EntraIdServicePrincipal), StringComparison.OrdinalIgnoreCase))
-            {
-                return FederatedCredentialType.EntraIdServicePrincipal;
             }
 
             throw new ArgumentException($"Unknown publisher type: '{publisherType}'.", nameof(publisherType));
@@ -1234,9 +1229,10 @@ namespace NuGetGallery
                     var gitLabDetails = GitLabPolicyDetailsViewModel.FromViewJson(criteria);
                     return gitLabDetails.Criteria.ToDatabaseJson();
                 case FederatedCredentialType.GitHubActions:
-                default:
                     var details = GitHubPolicyDetailsViewModel.FromViewJson(criteria);
                     return details.Criteria.ToDatabaseJson();
+                default:
+                    throw new ArgumentException($"Unknown credential type: '{credentialType}'.", nameof(credentialType));
             }
         }
 
