@@ -127,5 +127,7 @@ namespace NuGetGallery
         public const string AdminLockUser = "AdminLockUser";
         public const string AdminSoftDeletePackage = "AdminSoftDeletePackage";
         public const string AdminListPackage = "AdminListPackage";
+        public const string AdminPendingValidations = "AdminPendingValidations";
+        public const string AdminRevalidatePackage = "AdminRevalidatePackage";
     }
 }
