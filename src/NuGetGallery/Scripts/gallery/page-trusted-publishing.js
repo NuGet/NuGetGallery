@@ -228,7 +228,9 @@
         }
 
         // ===== GitLab CI/CD provider details =====
-        var _gitLabDetails = {};
+        // Declaration
+        const _gitLabDetails = {};
+
         _gitLabDetails.Initialize = function (self) {
             self.gitLab = {
                 IsPermanentlyEnabled: ko.observable(false),
@@ -321,8 +323,8 @@
 
             // Check if we can find the IDs from existing policies
             if (existingPolicies && existingPolicies.length > 0) {
-                for (var i = 0; i < existingPolicies.length; i++) {
-                    var existing = existingPolicies[i].gitLab;
+                for (let i = 0; i < existingPolicies.length; i++) {
+                    const existing = existingPolicies[i].gitLab;
                     if (existing && existing !== gitLab &&
                         existing.NamespacePath().toLowerCase() === namespacePath &&
                         existing.ProjectPath().toLowerCase() === projectPath &&
@@ -338,9 +340,9 @@
             }
 
             // Call GitLab API to get project info
-            var encodedPath = encodeURIComponent(namespacePath + '/' + projectPath);
-            var apiUrl = 'https://gitlab.com/api/v4/projects/' + encodedPath;
-            var properties = { apiUrl: apiUrl };
+            const encodedPath = encodeURIComponent(namespacePath + '/' + projectPath);
+            const apiUrl = 'https://gitlab.com/api/v4/projects/' + encodedPath;
+            const properties = { apiUrl: apiUrl };
 
             $.ajax({
                 url: apiUrl,
@@ -369,7 +371,7 @@
         _gitLabDetails.CreatePendingCriteria = function (self) {
             // MUST MATCH GitLab details deserialization in GitLabPolicyDetailsViewModel.cs.
             const gitLab = self.gitLab;
-            var gitLabData = {
+            const gitLabData = {
                 Name: GitLabPublisherName,
                 NamespacePath: gitLab.PendingNamespacePath() || '',
                 ProjectPath: gitLab.PendingProjectPath() || '',
@@ -377,12 +379,12 @@
                 Environment: gitLab.PendingEnvironment() || ''
             };
 
-            var namespaceId = gitLab.NamespaceId();
+            const namespaceId = gitLab.NamespaceId();
             if (namespaceId) {
                 gitLabData.NamespaceId = namespaceId;
             }
 
-            var projectId = gitLab.ProjectId();
+            const projectId = gitLab.ProjectId();
             if (projectId) {
                 gitLabData.ProjectId = projectId;
             }
