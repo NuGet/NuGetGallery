@@ -208,16 +208,12 @@
                     <li>
                         <b>Project:</b> <span data-bind="text: gitLab.ProjectPath()" />
                     </li>
-                    <!-- ko if: gitLab.Ref() -->
-                    <li>
+                    <li data-bind="if: gitLab.Ref()">
                         <b>Ref:</b> <span data-bind="text: gitLab.Ref()" />
                     </li>
-                    <!-- /ko -->
-                    <!-- ko if: gitLab.Environment() -->
-                    <li>
+                    <li data-bind="if: gitLab.Environment()">
                         <b>Environment:</b> <span data-bind="text: gitLab.Environment()" />
                     </li>
-                    <!-- /ko -->
                     <!-- /ko -->
                 </ul>
 
