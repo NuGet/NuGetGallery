@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using Newtonsoft.Json.Linq;
@@ -120,7 +121,13 @@ namespace NuGetGallery
         public static GitLabPolicyDetailsViewModel FromDatabaseJson(string json)
         {
             var criteria = GitLabCriteria.FromDatabaseJson(json);
-            return new GitLabPolicyDetailsViewModel(criteria);
+            var model = new GitLabPolicyDetailsViewModel(criteria);
+            if (criteria.Validate() is string error)
+            {
+                throw new InvalidOperationException($"Invalid GitLab policy details: {error}");
+            }
+
+            return model;
         }
     }
 }
