@@ -46,6 +46,10 @@ namespace NuGetGallery
 
         void TrackPackageDelete(Package package, bool isHardDelete);
 
+        // Temporary telemetry to detect packages that have more than one deprecation record.
+        // Can be removed once the unique index on PackageDeprecations is restored.
+        void TrackDuplicatePackageDeprecations(string packageId, string packageVersion, int deprecationCount);
+
         void TrackPackageReupload(Package package);
 
         void TrackPackageReflow(Package package);

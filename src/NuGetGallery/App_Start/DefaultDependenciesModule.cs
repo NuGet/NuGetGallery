@@ -601,6 +601,15 @@ namespace NuGetGallery
                 .SingleInstance()
                 .Keyed<ConfigurationManager<OpenIdConnectConfiguration>>(GitHubActionsKey);
 
+            // Register GitLab-specific OIDC configuration manager
+            const string GitLabKey = "GitLab";
+            builder
+                .Register(p => new ConfigurationManager<OpenIdConnectConfiguration>(
+                    metadataAddress: GitLabTokenPolicyValidator.MetadataAddress,
+                    p.Resolve<IConfigurationRetriever<OpenIdConnectConfiguration>>()))
+                .SingleInstance()
+                .Keyed<ConfigurationManager<OpenIdConnectConfiguration>>(GitLabKey);
+
             builder
                 .RegisterType<JsonWebTokenHandler>()
                 .InstancePerLifetimeScope();
@@ -636,6 +645,16 @@ namespace NuGetGallery
                     c.Resolve<IFeatureFlagService>(),
                     c.Resolve<JsonWebTokenHandler>()
                     ))
+                .As<ITokenPolicyValidator>()
+                .InstancePerLifetimeScope();
+
+            builder
+                .Register(c => new GitLabTokenPolicyValidator(
+                    c.Resolve<IFederatedCredentialRepository>(),
+                    c.ResolveKeyed<ConfigurationManager<OpenIdConnectConfiguration>>(GitLabKey),
+                    c.Resolve<IFederatedCredentialConfiguration>(),
+                    c.Resolve<IAuditingService>(),
+                    c.Resolve<JsonWebTokenHandler>()))
                 .As<ITokenPolicyValidator>()
                 .InstancePerLifetimeScope();
 
@@ -1217,6 +1236,10 @@ namespace NuGetGallery
                     .SingleInstance()
                     .Keyed<ITopicClient>(BindingKeys.SymbolsPackageValidationTopic)
                     .OnRelease(x => _ = x.CloseAsync());
+
+                builder.RegisterType<ValidationAdminService>()
+                    .AsSelf()
+                    .InstancePerLifetimeScope();
             }
             else
             {
@@ -1225,10 +1248,6 @@ namespace NuGetGallery
                     .RegisterGeneric(typeof(ImmediateValidationMessageEmitter<>))
                     .As(typeof(IValidationMessageEmitter<>));
             }
-
-            builder.RegisterType<ValidationAdminService>()
-                .AsSelf()
-                .InstancePerLifetimeScope();
 
             builder.RegisterType<RevalidationAdminService>()
                 .AsSelf()

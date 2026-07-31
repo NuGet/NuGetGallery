@@ -71,7 +71,18 @@ namespace NuGetGallery
                 // the low number of properties here, we'll track the changes ourselves. To use the change tracker to
                 // check if an individual entity has changed would require non-trivial changes to our DB abstractions.
                 var changed = false;
-                var deprecation = package.Deprecations.SingleOrDefault();
+
+                // Temporary telemetry to detect packages that already have more than one deprecation record.
+                // Can be removed once the unique index on PackageDeprecations is restored.
+                if (package.Deprecations.Count > 1)
+                {
+                    _telemetryService.TrackDuplicatePackageDeprecations(
+                        package.PackageRegistration.Id,
+                        package.NormalizedVersion,
+                        package.Deprecations.Count);
+                }
+
+                var deprecation = package.Deprecations.FirstOrDefault();
                 if (shouldDelete)
                 {
                     if (deprecation != null)

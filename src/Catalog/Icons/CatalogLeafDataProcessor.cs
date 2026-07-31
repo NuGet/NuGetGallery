@@ -25,6 +25,7 @@ namespace NuGet.Services.Metadata.Catalog.Icons
         private readonly IIconProcessor _iconProcessor;
         private readonly IExternalIconContentProvider _externalIconContentProvider;
         private readonly IIconCopyResultCache _iconCopyResultCache;
+        private readonly IExternalIconUrlPolicy _externalIconUrlPolicy;
         private readonly ITelemetryService _telemetryService;
         private readonly ILogger<CatalogLeafDataProcessor> _logger;
 
@@ -33,6 +34,7 @@ namespace NuGet.Services.Metadata.Catalog.Icons
             IIconProcessor iconProcessor,
             IExternalIconContentProvider externalIconContentProvider,
             IIconCopyResultCache iconCopyResultCache,
+            IExternalIconUrlPolicy externalIconUrlPolicy,
             ITelemetryService telemetryService,
             ILogger<CatalogLeafDataProcessor> logger)
         {
@@ -40,6 +42,7 @@ namespace NuGet.Services.Metadata.Catalog.Icons
             _iconProcessor = iconProcessor ?? throw new ArgumentNullException(nameof(iconProcessor));
             _externalIconContentProvider = externalIconContentProvider ?? throw new ArgumentNullException(nameof(externalIconContentProvider));
             _iconCopyResultCache = iconCopyResultCache ?? throw new ArgumentNullException(nameof(iconCopyResultCache));
+            _externalIconUrlPolicy = externalIconUrlPolicy ?? throw new ArgumentNullException(nameof(externalIconUrlPolicy));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -78,6 +81,11 @@ namespace NuGet.Services.Metadata.Catalog.Icons
             if (!IsValidIconUrl(iconUrl))
             {
                 _logger.LogInformation("Invalid icon URL {IconUrl}", iconUrl);
+                return;
+            }
+            if (!await _externalIconUrlPolicy.IsAllowedAsync(iconUrl, cancellationToken))
+            {
+                _logger.LogInformation("Icon URL {IconUrl} rejected by external icon URL policy", iconUrl);
                 return;
             }
             var cachedResult = _iconCopyResultCache.Get(iconUrl);
@@ -273,8 +281,14 @@ namespace NuGet.Services.Metadata.Catalog.Icons
 
                         var newUrl = response.Headers.Location;
 
-                        if (iconUrl == newUrl || newUrl == null || !IsValidIconUrl(newUrl))
+                        if (iconUrl == newUrl || newUrl == null || !newUrl.IsAbsoluteUri || !IsValidIconUrl(newUrl))
                         {
+                            return TryIngestExternalIconAsyncResult.FailCannotRetry();
+                        }
+
+                        if (!await _externalIconUrlPolicy.IsAllowedAsync(newUrl, cancellationToken))
+                        {
+                            _logger.LogInformation("308 redirect target {RedirectUrl} rejected by external icon URL policy", newUrl);
                             return TryIngestExternalIconAsyncResult.FailCannotRetry();
                         }
 
