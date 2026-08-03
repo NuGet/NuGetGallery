@@ -7,13 +7,13 @@ namespace NuGetGallery.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.5.1")]
-    public sealed partial class UpdateScopeCredentialKey : IMigrationMetadata
+    public sealed partial class AddFederatedCredentialPolicyScopes : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(UpdateScopeCredentialKey));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(AddFederatedCredentialPolicyScopes));
         
         string IMigrationMetadata.Id
         {
-            get { return "202607110004126_UpdateScopeCredentialKey"; }
+            get { return "202608031928454_AddFederatedCredentialPolicyScopes"; }
         }
         
         string IMigrationMetadata.Source
