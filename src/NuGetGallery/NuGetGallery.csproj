@@ -395,6 +395,10 @@
     <Compile Include="Migrations\202606092223210_UpdatePackageKeyIndexOnPackageDeprecations.Designer.cs">
       <DependentUpon>202606092223210_UpdatePackageKeyIndexOnPackageDeprecations.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202608031928454_AddFederatedCredentialPolicyScopes.cs" />
+    <Compile Include="Migrations\202608031928454_AddFederatedCredentialPolicyScopes.Designer.cs">
+      <DependentUpon>202608031928454_AddFederatedCredentialPolicyScopes.cs</DependentUpon>
+    </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
     <Compile Include="RequestModels\UpdateListedRequest.cs" />
@@ -1783,6 +1787,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202606092223210_UpdatePackageKeyIndexOnPackageDeprecations.resx">
       <DependentUpon>202606092223210_UpdatePackageKeyIndexOnPackageDeprecations.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202608031928454_AddFederatedCredentialPolicyScopes.resx">
+      <DependentUpon>202608031928454_AddFederatedCredentialPolicyScopes.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
