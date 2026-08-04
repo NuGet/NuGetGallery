@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -27,5 +27,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
 
         public static Db2CatalogCursor ByCreated(DateTime since, int top) => new Db2CatalogCursor(Db2CatalogProjectionColumnNames.Created, since, top);
         public static Db2CatalogCursor ByLastEdited(DateTime since, int top) => new Db2CatalogCursor(Db2CatalogProjectionColumnNames.LastEdited, since, top);
+        //track registration last edited 
+        public static Db2CatalogCursor ByRegistrationLastEdited(DateTime since, int top) => new Db2CatalogCursor(Db2CatalogProjectionColumnNames.RegistrationLastEdited, since, top);
     }
 }

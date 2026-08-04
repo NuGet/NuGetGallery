@@ -27,7 +27,9 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         public const string VulnerabilityGitHubDatabaseKey = "VulnerabilityGitHubDatabaseKey";
         public const string VulnerabilityAdvisoryUrl = "VulnerabilityAdvisoryUrl";
         public const string VulnerabilitySeverity = "VulnerabilitySeverity";
-
+        //sponsorship urls column name
         public const string SponsorshipUrls = "SponsorshipUrls";
+        //registration last edited column name
+        public const string RegistrationLastEdited = "RegistrationLastEdited";
     }
 }

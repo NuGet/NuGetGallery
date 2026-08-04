@@ -85,8 +85,9 @@ namespace NuGetGallery
 		using (new SuspendDbExecutionStrategy())
 		using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
 		{
-			// Only modify the entity property inside the transaction
-			packageRegistration.SponsorshipUrls = newSponsorshipUrlsJson;
+                // Only modify the entity property inside the transaction
+                // Update the SponsorshipUrls property with the new JSON and set the RegistrationLastEdited timestamp
+                packageRegistration.SponsorshipUrls = newSponsorshipUrlsJson;
 			packageRegistration.RegistrationLastEdited = timestamp;
 
 			// Save changes to database
@@ -145,8 +146,9 @@ namespace NuGetGallery
 		using (new SuspendDbExecutionStrategy())
 		using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
 		{
-			// Only modify the entity property inside the transaction
-			packageRegistration.SponsorshipUrls = newSponsorshipUrlsJson;
+                // Only modify the entity property inside the transaction
+                // Update the SponsorshipUrls property with the new JSON and set the RegistrationLastEdited timestamp
+                packageRegistration.SponsorshipUrls = newSponsorshipUrlsJson;
 			packageRegistration.RegistrationLastEdited = removalTimestamp;
 
 			// Save changes to database

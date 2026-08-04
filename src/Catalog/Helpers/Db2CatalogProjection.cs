@@ -44,6 +44,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             var fullPackageVersion = dataReader[Db2CatalogProjectionColumnNames.FullVersion].ToString();
             var listed = dataReader.GetBoolean(dataReader.GetOrdinal(Db2CatalogProjectionColumnNames.Listed));
             var hideLicenseReport = dataReader.GetBoolean(dataReader.GetOrdinal(Db2CatalogProjectionColumnNames.HideLicenseReport));
+            // Read sponsorship urls from the data reader, if present
             var sponsorshipUrlsJson = dataReader.ReadStringOrNull(Db2CatalogProjectionColumnNames.SponsorshipUrls);
 
             var sponsorshipUrls = sponsorshipUrlsJson == null ? null : JArray.Parse(sponsorshipUrlsJson).Values<JObject>().Select(entry => (string)entry["Url"]).ToList();

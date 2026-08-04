@@ -21,6 +21,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         public bool RequiresLicenseAcceptance { get; }
         public PackageDeprecationItem DeprecationInfo { get; }
         public IList<PackageVulnerabilityItem> VulnerabilityInfo { get; private set; }
+        //get/set sponsorship urls
         public List<string> SponsorshipUrls { get; }
         public bool HasDeprecationInfo => DeprecationInfo != null;
 

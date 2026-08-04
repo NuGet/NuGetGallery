@@ -103,7 +103,7 @@ namespace NuGet.Protocol.Catalog
         [JsonProperty("vulnerabilities")]
         public List<PackageVulnerability> Vulnerabilities { get; set; }
 
-        // add sponsorships to the catalog leaf, this is a new property that is not part of the original NuGet catalog schema
+        // add sponsorships to the catalog leaf
         [JsonProperty("sponsorshipUrls")]
         public List<string> SponsorshipUrls { get; set; }
     }

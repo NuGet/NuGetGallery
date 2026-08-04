@@ -41,6 +41,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                      P.[LicenseNames],
                      P.[LicenseReportUrl],
                      P.[RequiresLicenseAcceptance],
+                    //registration last edited columns, include package-registration sponsorship metadata
                      PR.[SponsorshipUrls] AS '" + Db2CatalogProjectionColumnNames.SponsorshipUrls + @"',
                     PD.[Status] AS '" + Db2CatalogProjectionColumnNames.DeprecationStatus + @"',
                    APR.[Id] AS '" + Db2CatalogProjectionColumnNames.AlternatePackageId + @"',
