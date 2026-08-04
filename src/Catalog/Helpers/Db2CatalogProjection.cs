@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
+using Newtonsoft.Json.Linq;
 using NuGet.Services.Entities;
 
 namespace NuGet.Services.Metadata.Catalog.Helpers
@@ -43,6 +44,9 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             var fullPackageVersion = dataReader[Db2CatalogProjectionColumnNames.FullVersion].ToString();
             var listed = dataReader.GetBoolean(dataReader.GetOrdinal(Db2CatalogProjectionColumnNames.Listed));
             var hideLicenseReport = dataReader.GetBoolean(dataReader.GetOrdinal(Db2CatalogProjectionColumnNames.HideLicenseReport));
+            var sponsorshipUrlsJson = dataReader.ReadStringOrNull(Db2CatalogProjectionColumnNames.SponsorshipUrls);
+
+            var sponsorshipUrls = sponsorshipUrlsJson == null ? null : JArray.Parse(sponsorshipUrlsJson).Values<JObject>().Select(entry => (string)entry["Url"]).ToList();
 
             var packageContentUri = _packageContentUriBuilder.Build(packageId, normalizedPackageVersion);
             var deprecationInfo = ReadDeprecationInfoFromDataReader(dataReader);
@@ -58,7 +62,8 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                 hideLicenseReport ? null : dataReader[Db2CatalogProjectionColumnNames.LicenseNames]?.ToString(),
                 hideLicenseReport ? null : dataReader[Db2CatalogProjectionColumnNames.LicenseReportUrl]?.ToString(),
                 deprecationInfo,
-                dataReader.GetBoolean(dataReader.GetOrdinal(Db2CatalogProjectionColumnNames.RequiresLicenseAcceptance)));
+                dataReader.GetBoolean(dataReader.GetOrdinal(Db2CatalogProjectionColumnNames.RequiresLicenseAcceptance)),
+                sponsorshipUrls: sponsorshipUrls);
         }
 
         public PackageVulnerabilityItem ReadPackageVulnerabilityFromDataReader(DbDataReader dataReader)

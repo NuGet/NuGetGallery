@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -103,6 +103,98 @@ namespace CatalogTests.Helpers
                 Assert.Equal(expectedRequiresLicenseAcceptance, projection.RequiresLicenseAcceptance);
                 Assert.Null(projection.DeprecationInfo);
             }
+            [Fact]
+            public void ProjectsNullWhenSponsorshipUrlsColumnIsNull()
+            {
+                // Arrange
+                var dataReaderMock = MockDataReader(
+                    packageId: "Package.Id",
+                    normalizedPackageVersion: "1.0.0",
+                    fullPackageVersion: "1.0.0.0",
+                    createdDate: DateTime.UtcNow.AddDays(-1),
+                    lastEditedDate: DateTime.UtcNow.AddMinutes(-5),
+                    publishedDate: DateTime.UtcNow.AddDays(-1),
+                    listed: true,
+                    hideLicenseReport: false,
+                    licenseNames: "MIT",
+                    licenseReportUrl: "https://unittest.org/licenses/MIT",
+                    requiresLicenseAcceptance: true,
+                    sponsorshipUrlsJson: null);
+
+                // Act
+                var result =
+                    _db2catalogProjection.ReadFeedPackageDetailsFromDataReader(
+                        dataReaderMock.Object);
+
+                // Assert
+                Assert.Null(result.SponsorshipUrls);
+            }
+
+            [Fact]
+            public void ProjectsEmptyListWhenSponsorshipUrlsJsonIsEmpty()
+            {
+                // Arrange
+                var dataReaderMock = MockDataReader(
+                    "Package.Id",
+                    "1.0.0",
+                    "1.0.0.0",
+                    DateTime.UtcNow.AddDays(-1),
+                    DateTime.UtcNow.AddMinutes(-5),
+                    DateTime.UtcNow.AddDays(-1),
+                    listed: true,
+                    hideLicenseReport: false,
+                    licenseNames: "MIT",
+                    licenseReportUrl: "https://unittest.org/licenses/MIT",
+                    requiresLicenseAcceptance: true,
+                    sponsorshipUrlsJson: "[]");
+
+                // Act
+                var result = _db2catalogProjection.ReadFeedPackageDetailsFromDataReader(
+                        dataReaderMock.Object);
+
+                // Assert
+                Assert.NotNull(result.SponsorshipUrls);
+                Assert.Empty(result.SponsorshipUrls);
+            }
+
+            [Fact]
+            public void ProjectsSponsorshipUrlsFromJson()
+            {
+                const string sponsorshipUrlsJson = @"[
+                    { ""Url"": ""https://example.test/sponsor1"", ""Timestamp"": ""2026-01-01T00:00:00"" }, 
+                    { ""Url"": ""https://example.test/sponsor2"", ""Timestamp"": ""2026-01-01T00:00:00"" }
+                ]";
+
+                // Arrange
+                var dataReaderMock = MockDataReader(
+                    "Package.Id",
+                    "1.0.0",
+                    "1.0.0.0",
+                    DateTime.UtcNow.AddDays(-1),
+                    DateTime.UtcNow.AddMinutes(-5),
+                    DateTime.UtcNow.AddDays(-1),
+                    listed: true,
+                    hideLicenseReport: false,
+                    licenseNames: "MIT",
+                    licenseReportUrl: "https://unittest.org/licenses/MIT",
+                    requiresLicenseAcceptance: true,
+                    sponsorshipUrlsJson: sponsorshipUrlsJson);
+
+                // Act
+                var result = _db2catalogProjection.ReadFeedPackageDetailsFromDataReader(
+                        dataReaderMock.Object);
+
+                // Assert
+                Assert.Equal(
+                    new[]
+                    {
+                        "https://example.test/sponsor1",
+                        "https://example.test/sponsor2"
+
+                    },
+                    result.SponsorshipUrls);
+                
+            }
 
             private static Mock<DbDataReader> MockDataReader(
                 string packageId,
@@ -115,7 +207,8 @@ namespace CatalogTests.Helpers
                 bool hideLicenseReport,
                 string licenseNames,
                 string licenseReportUrl,
-                bool requiresLicenseAcceptance)
+                bool requiresLicenseAcceptance,
+                string sponsorshipUrlsJson = null)
             {
                 const int ordinalCreated = 3;
                 const int ordinalLastEdited = 4;
@@ -123,6 +216,7 @@ namespace CatalogTests.Helpers
                 const int ordinalListed = 6;
                 const int ordinalHideLicenseReport = 7;
                 const int ordinalRequiresLicenseAcceptance = 10;
+                const int ordinalSponsorshipUrls = 11;
 
                 var dataReaderMock = new Mock<DbDataReader>(MockBehavior.Strict);
 
@@ -154,6 +248,10 @@ namespace CatalogTests.Helpers
                 dataReaderMock.SetupGet(m => m[Db2CatalogProjectionColumnNames.RequiresLicenseAcceptance]).Returns(requiresLicenseAcceptance);
                 dataReaderMock.Setup(m => m.GetOrdinal(Db2CatalogProjectionColumnNames.RequiresLicenseAcceptance)).Returns(ordinalRequiresLicenseAcceptance);
                 dataReaderMock.Setup(m => m.GetBoolean(ordinalRequiresLicenseAcceptance)).Returns(requiresLicenseAcceptance);
+
+                dataReaderMock.Setup(m => m.GetOrdinal(Db2CatalogProjectionColumnNames.SponsorshipUrls)).Returns(ordinalSponsorshipUrls);
+                dataReaderMock.Setup(m => m.IsDBNull(ordinalSponsorshipUrls)).Returns(sponsorshipUrlsJson == null);
+                dataReaderMock.Setup(m => m.GetString(ordinalSponsorshipUrls)).Returns(sponsorshipUrlsJson);
 
                 // Simulate that these columns do not exist in the resultset.
                 dataReaderMock.Setup(m => m.GetOrdinal(Db2CatalogProjectionColumnNames.DeprecationStatus)).Throws<IndexOutOfRangeException>();
@@ -307,3 +405,4 @@ namespace CatalogTests.Helpers
         }
     }
 }
+

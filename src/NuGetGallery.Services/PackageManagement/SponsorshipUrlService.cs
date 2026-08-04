@@ -87,6 +87,7 @@ namespace NuGetGallery
 		{
 			// Only modify the entity property inside the transaction
 			packageRegistration.SponsorshipUrls = newSponsorshipUrlsJson;
+			packageRegistration.RegistrationLastEdited = timestamp;
 
 			// Save changes to database
 			await _entitiesContext.SaveChangesAsync();
@@ -146,6 +147,7 @@ namespace NuGetGallery
 		{
 			// Only modify the entity property inside the transaction
 			packageRegistration.SponsorshipUrls = newSponsorshipUrlsJson;
+			packageRegistration.RegistrationLastEdited = removalTimestamp;
 
 			// Save changes to database
 			await _entitiesContext.SaveChangesAsync();

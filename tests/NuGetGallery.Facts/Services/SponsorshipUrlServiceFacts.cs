@@ -331,6 +331,23 @@ namespace NuGetGallery.Services
 
 		public class TheAddSponsorshipUrlAsyncMethod
 		{
+			[Fact]
+			public async Task UpdatesSponsorshipUrlsLastEdited()
+			{
+				// Arrange
+				var service = CreateService();
+				var packageRegistration = CreatePackageRegistration();
+				var user = CreateUser();
+				var before = DateTime.UtcNow;
+
+				// Act
+				await service.AddSponsorshipUrlAsync(packageRegistration, "https://github.com/sponsors/user", user);
+
+				// Assert
+				Assert.True(packageRegistration.SponsorshipUrlsLastEdited >= before);
+				Assert.True(packageRegistration.SponsorshipUrlsLastEdited <= DateTime.UtcNow);
+			}
+
 			[Theory]
 			[InlineData(null)]
 			[InlineData("")]
@@ -370,6 +387,28 @@ namespace NuGetGallery.Services
 
 		public class TheRemoveSponsorshipUrlAsyncMethod
 		{
+			[Fact]
+			public async Task UpdatesSponsorshipUrlsLastEdited()
+			{
+				// Arrange
+				var sponsorshipData = new[]
+				{
+					new { url = "https://github.com/sponsors/user", timestamp = DateTime.UtcNow }
+				};
+				var packageRegistration = CreatePackageRegistration(
+					sponsorshipUrls: JsonConvert.SerializeObject(sponsorshipData));
+				var service = CreateService();
+				var user = CreateUser();
+				var before = DateTime.UtcNow;
+
+				// Act
+				await service.RemoveSponsorshipUrlAsync(packageRegistration, "https://github.com/sponsors/user", user);
+
+				// Assert
+				Assert.True(packageRegistration.SponsorshipUrlsLastEdited >= before);
+				Assert.True(packageRegistration.SponsorshipUrlsLastEdited <= DateTime.UtcNow);
+			}
+
 			[Fact]
 			public async Task ThrowsSponsorshipUrlValidationExceptionForNullUrl()
 			{

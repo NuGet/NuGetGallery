@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -15,12 +15,13 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         public string PackageId { get; }
         public string PackageNormalizedVersion { get; }
         public string PackageFullVersion { get; }
+        
         public string LicenseNames { get; }
         public string LicenseReportUrl { get; }
         public bool RequiresLicenseAcceptance { get; }
         public PackageDeprecationItem DeprecationInfo { get; }
         public IList<PackageVulnerabilityItem> VulnerabilityInfo { get; private set; }
-
+        public List<string> SponsorshipUrls { get; }
         public bool HasDeprecationInfo => DeprecationInfo != null;
 
         public FeedPackageDetails(
@@ -30,7 +31,8 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             DateTime publishedDate,
             string packageId,
             string packageNormalizedVersion,
-            string packageFullVersion)
+            string packageFullVersion,
+            List<string> sponsorshipUrls = null)
             : this(
                 contentUri,
                 createdDate,
@@ -42,7 +44,8 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                 licenseNames: null,
                 licenseReportUrl: null,
                 deprecationInfo: null,
-                requiresLicenseAcceptance: false)
+                requiresLicenseAcceptance: false,
+                sponsorshipUrls: sponsorshipUrls)
         {
         }
 
@@ -57,7 +60,8 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             string licenseNames,
             string licenseReportUrl,
             PackageDeprecationItem deprecationInfo,
-            bool requiresLicenseAcceptance)
+            bool requiresLicenseAcceptance,
+            List<string> sponsorshipUrls = null)
         {
             ContentUri = contentUri;
             CreatedDate = createdDate;
@@ -70,6 +74,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             LicenseReportUrl = licenseReportUrl;
             DeprecationInfo = deprecationInfo;
             RequiresLicenseAcceptance = requiresLicenseAcceptance;
+            SponsorshipUrls = sponsorshipUrls;
         }
 
         public void AddVulnerability(PackageVulnerabilityItem vulnerability)

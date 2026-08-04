@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System;
 
 namespace NuGet.Services.Entities
 {
@@ -61,5 +62,10 @@ namespace NuGet.Services.Entities
         /// </summary>
         [StringLength(4000)]
         public string SponsorshipUrls { get; set; }
+
+        /// <summary>
+        /// Gets or sets the timestamp of the most recent sponsorship metadata change.
+        /// </summary>
+        public DateTime? RegistrationLastEdited { get; set; }
     }
 }

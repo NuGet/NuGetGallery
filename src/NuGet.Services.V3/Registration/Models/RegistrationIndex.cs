@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -26,6 +26,10 @@ namespace NuGet.Protocol.Registration
 
         [JsonProperty("count")]
         public int Count { get; set; }
+
+        // sponsorship Urls in the registration index
+        [JsonProperty("sponsorshipUrls")]
+        public List<string> SponsorshipUrls { get; set; }
 
         [JsonProperty("items")]
         public List<RegistrationPage> Items { get; set; }

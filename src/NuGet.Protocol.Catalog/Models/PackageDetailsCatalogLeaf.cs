@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -102,5 +102,9 @@ namespace NuGet.Protocol.Catalog
 
         [JsonProperty("vulnerabilities")]
         public List<PackageVulnerability> Vulnerabilities { get; set; }
+
+        // add sponsorships to the catalog leaf, this is a new property that is not part of the original NuGet catalog schema
+        [JsonProperty("sponsorshipUrls")]
+        public List<string> SponsorshipUrls { get; set; }
     }
 }
