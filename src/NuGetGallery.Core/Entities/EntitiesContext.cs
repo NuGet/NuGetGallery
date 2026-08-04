@@ -86,6 +86,13 @@ namespace NuGetGallery
         public DbSet<PackageRename> PackageRenames { get; set; }
         public DbSet<FederatedCredentialPolicy> FederatedCredentialPolicies { get; set; }
         public DbSet<FederatedCredential> FederatedCredentials { get; set; }
+        public DbSet<StagingGroup> StagingGroups { get; set; }
+        public DbSet<StagingEntry> StagingEntries { get; set; }
+        public DbSet<StagedPackageArtifact> StagedPackageArtifacts { get; set; }
+        public DbSet<StagedSymbolArtifact> StagedSymbolArtifacts { get; set; }
+        public DbSet<StagingPromotionHistory> StagingPromotionHistories { get; set; }
+        public DbSet<StagingPromotionArtifactHistory> StagingPromotionArtifactHistories { get; set; }
+        public DbSet<StagingBlobCleanup> StagingBlobCleanups { get; set; }
 
         /// <summary>
         /// User or organization accounts.
@@ -478,6 +485,8 @@ namespace NuGetGallery
                 .Property(s => s.RowVersion)
                 .IsRowVersion();
 
+            ConfigureStagingEntities(modelBuilder);
+
             modelBuilder.Entity<PackageDeprecation>()
                 .HasKey(d => d.Key);
 
@@ -614,6 +623,260 @@ namespace NuGetGallery
 
             modelBuilder.Entity<FederatedCredential>()
                 .HasIndex(x => x.FederatedCredentialPolicyKey);
+        }
+
+        private static void ConfigureStagingEntities(DbModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<StagingGroup>()
+                .HasKey(x => x.Key);
+
+            modelBuilder.Entity<StagingGroup>()
+                .HasRequired(x => x.Owner)
+                .WithMany()
+                .HasForeignKey(x => x.OwnerKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StagingGroup>()
+                .HasIndex(x => new { x.OwnerKey, x.Id })
+                .IsUnique();
+
+            modelBuilder.Entity<StagingGroup>()
+                .HasIndex(x => x.ExpirationDate);
+
+            modelBuilder.Entity<StagingGroup>()
+                .Property(x => x.CreatedDate)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<StagingGroup>()
+                .Property(x => x.ExpirationDate)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<StagingGroup>()
+                .Property(x => x.RowVersion)
+                .IsRowVersion();
+
+            modelBuilder.Entity<StagingEntry>()
+                .HasKey(x => x.Key);
+
+            modelBuilder.Entity<StagingEntry>()
+                .HasRequired(x => x.Package)
+                .WithMany()
+                .HasForeignKey(x => x.PackageKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StagingEntry>()
+                .HasRequired(x => x.Owner)
+                .WithMany()
+                .HasForeignKey(x => x.OwnerKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StagingEntry>()
+                .HasOptional(x => x.StagingGroup)
+                .WithMany(x => x.Entries)
+                .HasForeignKey(x => x.StagingGroupKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StagingEntry>()
+                .HasIndex(x => x.PackageKey)
+                .IsUnique();
+
+            modelBuilder.Entity<StagingEntry>()
+                .HasIndex(x => new { x.OwnerKey, x.CreatedDate });
+
+            modelBuilder.Entity<StagingEntry>()
+                .Property(x => x.CreatedDate)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<StagingEntry>()
+                .Property(x => x.ExpirationDate)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<StagingEntry>()
+                .Property(x => x.RowVersion)
+                .IsRowVersion();
+
+            modelBuilder.Entity<StagedPackageArtifact>()
+                .HasKey(x => x.StagingEntryKey);
+
+            modelBuilder.Entity<StagedPackageArtifact>()
+                .HasRequired(x => x.StagingEntry)
+                .WithOptional(x => x.PackageArtifact)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StagedPackageArtifact>()
+                .HasOptional(x => x.PromotionArtifactHistory)
+                .WithMany()
+                .HasForeignKey(x => x.PromotionArtifactHistoryKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StagedPackageArtifact>()
+                .HasIndex(x => x.ValidationTrackingId);
+
+            modelBuilder.Entity<StagedPackageArtifact>()
+                .Property(x => x.UploadedDate)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<StagedPackageArtifact>()
+                .Property(x => x.ValidatedDate)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<StagedPackageArtifact>()
+                .Property(x => x.PromotionStartedDate)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<StagedPackageArtifact>()
+                .Property(x => x.RowVersion)
+                .IsRowVersion();
+
+            modelBuilder.Entity<StagedSymbolArtifact>()
+                .HasKey(x => x.StagingEntryKey);
+
+            modelBuilder.Entity<StagedSymbolArtifact>()
+                .HasRequired(x => x.StagingEntry)
+                .WithOptional(x => x.SymbolArtifact)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StagedSymbolArtifact>()
+                .HasRequired(x => x.SymbolPackage)
+                .WithMany()
+                .HasForeignKey(x => x.SymbolPackageKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StagedSymbolArtifact>()
+                .HasOptional(x => x.PromotionArtifactHistory)
+                .WithMany()
+                .HasForeignKey(x => x.PromotionArtifactHistoryKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StagedSymbolArtifact>()
+                .HasIndex(x => x.SymbolPackageKey)
+                .IsUnique();
+
+            modelBuilder.Entity<StagedSymbolArtifact>()
+                .HasIndex(x => x.ValidationTrackingId);
+
+            modelBuilder.Entity<StagedSymbolArtifact>()
+                .Property(x => x.UploadedDate)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<StagedSymbolArtifact>()
+                .Property(x => x.ValidatedDate)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<StagedSymbolArtifact>()
+                .Property(x => x.PromotionStartedDate)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<StagedSymbolArtifact>()
+                .Property(x => x.RowVersion)
+                .IsRowVersion();
+
+            modelBuilder.Entity<StagingPromotionHistory>()
+                .HasKey(x => x.Key);
+
+            modelBuilder.Entity<StagingPromotionHistory>()
+                .HasRequired(x => x.Owner)
+                .WithMany()
+                .HasForeignKey(x => x.OwnerKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StagingPromotionHistory>()
+                .HasOptional(x => x.ApproverUser)
+                .WithMany()
+                .HasForeignKey(x => x.ApproverUserKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StagingPromotionHistory>()
+                .HasOptional(x => x.Group)
+                .WithMany()
+                .HasForeignKey(x => x.GroupKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StagingPromotionHistory>()
+                .HasIndex(x => x.Id)
+                .IsUnique();
+
+            modelBuilder.Entity<StagingPromotionHistory>()
+                .HasIndex(x => new { x.OwnerKey, x.RequestedDate });
+
+            modelBuilder.Entity<StagingPromotionHistory>()
+                .HasIndex(x => new { x.GroupKey, x.Status });
+
+            modelBuilder.Entity<StagingPromotionHistory>()
+                .Property(x => x.RequestedDate)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<StagingPromotionHistory>()
+                .Property(x => x.CompletedDate)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<StagingPromotionHistory>()
+                .Property(x => x.FailureNotificationQueuedDate)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<StagingPromotionHistory>()
+                .Property(x => x.RowVersion)
+                .IsRowVersion();
+
+            modelBuilder.Entity<StagingPromotionArtifactHistory>()
+                .HasKey(x => x.Key);
+
+            modelBuilder.Entity<StagingPromotionArtifactHistory>()
+                .HasRequired(x => x.StagingPromotionHistory)
+                .WithMany(x => x.Artifacts)
+                .HasForeignKey(x => x.StagingPromotionHistoryKey)
+                .WillCascadeOnDelete(true);
+
+            modelBuilder.Entity<StagingPromotionArtifactHistory>()
+                .HasOptional(x => x.Package)
+                .WithMany()
+                .HasForeignKey(x => x.PackageKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StagingPromotionArtifactHistory>()
+                .HasOptional(x => x.SymbolPackage)
+                .WithMany()
+                .HasForeignKey(x => x.SymbolPackageKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StagingPromotionArtifactHistory>()
+                .HasIndex(x => new { x.StagingPromotionHistoryKey, x.PackageId, x.NormalizedVersion, x.Kind })
+                .IsUnique();
+
+            modelBuilder.Entity<StagingPromotionArtifactHistory>()
+                .Property(x => x.StartedDate)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<StagingPromotionArtifactHistory>()
+                .Property(x => x.CompletedDate)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<StagingPromotionArtifactHistory>()
+                .Property(x => x.LastRetryDate)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<StagingPromotionArtifactHistory>()
+                .Property(x => x.LastFailureDate)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<StagingPromotionArtifactHistory>()
+                .Property(x => x.ProcessingLeaseExpiresDate)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<StagingPromotionArtifactHistory>()
+                .Property(x => x.RowVersion)
+                .IsRowVersion();
+
+            modelBuilder.Entity<StagingBlobCleanup>()
+                .HasKey(x => x.Key);
+
+            modelBuilder.Entity<StagingBlobCleanup>()
+                .HasIndex(x => x.BlobPath)
+                .IsUnique();
+
+            modelBuilder.Entity<StagingBlobCleanup>()
+                .Property(x => x.CreatedDate)
+                .HasColumnType("datetime2");
         }
 
 #pragma warning restore 618

@@ -24,6 +24,13 @@ namespace NuGetGallery
         DbSet<PackageVulnerability> Vulnerabilities { get; set; }
         DbSet<VulnerablePackageVersionRange> VulnerableRanges { get; set; }
         DbSet<PackageRename> PackageRenames { get; set; }
+        DbSet<StagingGroup> StagingGroups { get; set; }
+        DbSet<StagingEntry> StagingEntries { get; set; }
+        DbSet<StagedPackageArtifact> StagedPackageArtifacts { get; set; }
+        DbSet<StagedSymbolArtifact> StagedSymbolArtifacts { get; set; }
+        DbSet<StagingPromotionHistory> StagingPromotionHistories { get; set; }
+        DbSet<StagingPromotionArtifactHistory> StagingPromotionArtifactHistories { get; set; }
+        DbSet<StagingBlobCleanup> StagingBlobCleanups { get; set; }
 
         bool HasChanges { get; }
 

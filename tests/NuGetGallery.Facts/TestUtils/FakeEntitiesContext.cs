@@ -120,6 +120,48 @@ namespace NuGetGallery
             set => throw new NotSupportedException();
         }
 
+        public DbSet<StagingGroup> StagingGroups
+        {
+            get => Set<StagingGroup>();
+            set => throw new NotSupportedException();
+        }
+
+        public DbSet<StagingEntry> StagingEntries
+        {
+            get => Set<StagingEntry>();
+            set => throw new NotSupportedException();
+        }
+
+        public DbSet<StagedPackageArtifact> StagedPackageArtifacts
+        {
+            get => Set<StagedPackageArtifact>();
+            set => throw new NotSupportedException();
+        }
+
+        public DbSet<StagedSymbolArtifact> StagedSymbolArtifacts
+        {
+            get => Set<StagedSymbolArtifact>();
+            set => throw new NotSupportedException();
+        }
+
+        public DbSet<StagingPromotionHistory> StagingPromotionHistories
+        {
+            get => Set<StagingPromotionHistory>();
+            set => throw new NotSupportedException();
+        }
+
+        public DbSet<StagingPromotionArtifactHistory> StagingPromotionArtifactHistories
+        {
+            get => Set<StagingPromotionArtifactHistory>();
+            set => throw new NotSupportedException();
+        }
+
+        public DbSet<StagingBlobCleanup> StagingBlobCleanups
+        {
+            get => Set<StagingBlobCleanup>();
+            set => throw new NotSupportedException();
+        }
+
         public virtual string QueryHint => throw new NotImplementedException();
 
         public bool HasChanges { get; set; } = true;

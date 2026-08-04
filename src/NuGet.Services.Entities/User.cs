@@ -124,6 +124,11 @@ namespace NuGet.Services.Entities
 
         public bool IsLocked => UserStatusKey == UserStatus.Locked;
 
+        /// <summary>
+        /// Gets or sets this account's staged-artifact quota override. A null value uses the service-wide default.
+        /// </summary>
+        public int? StagingArtifactLimit { get; set; }
+
         public string LastSavedEmailAddress
         {
             get

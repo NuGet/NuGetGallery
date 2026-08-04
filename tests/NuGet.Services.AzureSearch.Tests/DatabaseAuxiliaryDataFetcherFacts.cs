@@ -133,6 +133,13 @@ namespace NuGet.Services.AzureSearch
             public DbSet<PackageVulnerability> Vulnerabilities { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
             public DbSet<VulnerablePackageVersionRange> VulnerableRanges { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
             public DbSet<PackageRename> PackageRenames { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+            public DbSet<StagingGroup> StagingGroups { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+            public DbSet<StagingEntry> StagingEntries { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+            public DbSet<StagedPackageArtifact> StagedPackageArtifacts { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+            public DbSet<StagedSymbolArtifact> StagedSymbolArtifacts { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+            public DbSet<StagingPromotionHistory> StagingPromotionHistories { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+            public DbSet<StagingPromotionArtifactHistory> StagingPromotionArtifactHistories { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+            public DbSet<StagingBlobCleanup> StagingBlobCleanups { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
             public string QueryHint => throw new NotImplementedException();
 

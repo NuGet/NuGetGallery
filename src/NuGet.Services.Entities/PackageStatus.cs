@@ -29,5 +29,10 @@ namespace NuGet.Services.Entities
         /// state, they are not available but the package ID and version are still reserved.
         /// </summary>
         FailedValidation = 3,
+
+        /// <summary>
+        /// The package is privately staged and is not available through ordinary package operations.
+        /// </summary>
+        Staged = 4,
     }
 }
