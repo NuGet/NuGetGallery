@@ -179,6 +179,19 @@ namespace NuGetGallery
             
             return IsAccepted(details, UserPackageDeleteOutcome.Accepted);
         }
+
+        // TODO: Replace this blocking check with staging-aware failed-parent replacement that rebinds
+        // and revalidates staged symbols against the replacement package.
+        public bool HasLiveStagedSymbolArtifact(Package package)
+        {
+            if (package == null)
+            {
+                throw new ArgumentNullException(nameof(package));
+            }
+
+            return _entitiesContext.StagedSymbolArtifacts
+                .Any(a => a.StagingEntry.PackageKey == package.Key);
+        }
         
         private bool IsAccepted(UserPackageDeleteEvent details, UserPackageDeleteOutcome outcome)
         {
@@ -292,8 +305,14 @@ namespace NuGetGallery
                     UnlinkPackageDeprecations(package);
 
                     // Mark all associated symbol packages for deletion.
+                    // Staged symbols remain blocked until the parent is restored, explicitly deleted, or expired.
                     foreach (var symbolPackage in package.SymbolPackages)
                     {
+                        if (symbolPackage.StatusKey == PackageStatus.Staged)
+                        {
+                            continue;
+                        }
+
                         await _symbolPackageService.UpdateStatusAsync(
                             symbolPackage,
                             PackageStatus.Deleted,
@@ -322,6 +341,14 @@ namespace NuGetGallery
 
         public async Task HardDeletePackagesAsync(IEnumerable<Package> packages, User deletedBy, string reason, string signature, bool deleteEmptyPackageRegistration)
         {
+            var packagesToDelete = packages.ToList();
+            // TODO: Once the staging service owns aggregate cleanup, reconsider whether an administrative hard
+            // delete should cancel and remove live staging work instead of rejecting the operation.
+            if (packagesToDelete.Any(HasLiveStagedSymbolArtifact))
+            {
+                throw new InvalidOperationException("A package with live staged symbols cannot be hard deleted by the ordinary package flow.");
+            }
+
             using (new SuspendDbExecutionStrategy())
             using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
             {
@@ -339,6 +366,7 @@ namespace NuGetGallery
                 foreach (var package in packages)
                 {
                     UnlinkPackageDeprecations(package);
+                    UnlinkPromotionHistory(package);
 
                     await ExecuteSqlCommandAsync(_entitiesContext.GetDatabase(),
                         "DELETE pa FROM PackageAuthors pa JOIN Packages p ON p.[Key] = pa.PackageKey WHERE p.[Key] = @key",
@@ -376,6 +404,32 @@ namespace NuGetGallery
 
             // Force refresh the index
             UpdateSearchIndex();
+        }
+
+        // TODO: Move promotion-history unlinking behind the staging service when that service is introduced.
+        private void UnlinkPromotionHistory(Package package)
+        {
+            var symbolPackageKeys = package.SymbolPackages.Select(s => s.Key).ToList();
+            var historyArtifacts = _entitiesContext.StagingPromotionArtifactHistories
+                .Where(h => h.PackageKey == package.Key
+                    || (h.SymbolPackageKey.HasValue && symbolPackageKeys.Contains(h.SymbolPackageKey.Value)))
+                .ToList();
+
+            foreach (var historyArtifact in historyArtifacts)
+            {
+                if (historyArtifact.PackageKey == package.Key)
+                {
+                    historyArtifact.PackageKey = null;
+                    historyArtifact.Package = null;
+                }
+
+                if (historyArtifact.SymbolPackageKey.HasValue
+                    && symbolPackageKeys.Contains(historyArtifact.SymbolPackageKey.Value))
+                {
+                    historyArtifact.SymbolPackageKey = null;
+                    historyArtifact.SymbolPackage = null;
+                }
+            }
         }
 
         public async Task ReflowHardDeletedPackageAsync(string id, string version)

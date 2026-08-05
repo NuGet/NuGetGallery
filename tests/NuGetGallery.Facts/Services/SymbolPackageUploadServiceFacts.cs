@@ -67,6 +67,13 @@ namespace NuGetGallery
                     .CompletesWith(0);
             }
 
+            if (entitiesContext.Object.SymbolPackages == null)
+            {
+                entitiesContext
+                    .Setup(x => x.SymbolPackages)
+                    .Returns(FakeEntitiesContext.CreateDbSet<SymbolPackage>());
+            }
+
             validationService = validationService ?? new Mock<IValidationService>();
             packageService = packageService ?? new Mock<IPackageService>();
             telemetryService = telemetryService ?? new Mock<ITelemetryService>();
@@ -144,6 +151,21 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task WillReturnMissingPackageForStagedPackage()
+            {
+                var packageService = new Mock<IPackageService>();
+                packageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(new Package { PackageStatusKey = PackageStatus.Staged });
+                var service = CreateService(packageService: packageService);
+                var symbolPackage = TestPackage.CreateTestSymbolPackageStream("theId", "1.0.42");
+
+                var result = await service.ValidateUploadedSymbolsPackage(symbolPackage, new User());
+
+                Assert.Equal(SymbolPackageValidationResultType.MissingPackage, result.Type);
+            }
+
+            [Fact]
             public async Task WillReturnSymbolPackageExistsForPendingValidation()
             {
                 // Arrange 
@@ -162,6 +184,24 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.NotNull(result);
+                Assert.Equal(SymbolPackageValidationResultType.SymbolsPackagePendingValidation, result.Type);
+            }
+
+            [Fact]
+            public async Task WillReturnConflictForStagedSymbolPackage()
+            {
+                var package = new Package { Key = 42, PackageStatusKey = PackageStatus.Available };
+                var symbolPackage = new SymbolPackage { Key = 43, Package = package, PackageKey = package.Key, StatusKey = PackageStatus.Staged };
+                package.SymbolPackages.Add(symbolPackage);
+                var packageService = new Mock<IPackageService>();
+                packageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(package);
+                var service = CreateService(packageService: packageService);
+                var symbolPackageStream = TestPackage.CreateTestSymbolPackageStream("theId", "1.0.42");
+
+                var result = await service.ValidateUploadedSymbolsPackage(symbolPackageStream, new User());
+
                 Assert.Equal(SymbolPackageValidationResultType.SymbolsPackagePendingValidation, result.Type);
             }
 
@@ -295,6 +335,31 @@ namespace NuGetGallery
 
         public class TheCreateAndUploadSymbolsPackageMethod
         {
+            [Fact]
+            public async Task WillReturnConflictForStagedSymbolPackage()
+            {
+                var package = new Package { Key = 42 };
+                var symbolPackages = FakeEntitiesContext.CreateDbSet<SymbolPackage>();
+                symbolPackages.Add(new SymbolPackage
+                {
+                    Key = 43,
+                    Package = package,
+                    PackageKey = package.Key,
+                    StatusKey = PackageStatus.Staged,
+                });
+                var entitiesContext = new Mock<IEntitiesContext>();
+                entitiesContext.Setup(x => x.SymbolPackages).Returns(symbolPackages);
+                var symbolPackageService = new Mock<ISymbolPackageService>();
+                var service = CreateService(entitiesContext: entitiesContext, symbolPackageService: symbolPackageService);
+
+                var result = await service.CreateAndUploadSymbolsPackage(package, new MemoryStream());
+
+                Assert.Equal(PackageCommitResult.Conflict, result);
+                symbolPackageService.Verify(
+                    x => x.CreateSymbolPackage(It.IsAny<Package>(), It.IsAny<PackageStreamMetadata>()),
+                    Times.Never);
+            }
+
             [Theory]
             [InlineData(PackageStatus.Deleted)]
             [InlineData(PackageStatus.FailedValidation)]
@@ -478,6 +543,20 @@ namespace NuGetGallery
 
                 // Act & Assert
                 await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.DeleteSymbolsPackageAsync(null));
+            }
+
+            [Fact]
+            public async Task RejectsStagedSymbolPackage()
+            {
+                var symbolPackage = new SymbolPackage
+                {
+                    Key = 42,
+                    StatusKey = PackageStatus.Staged,
+                };
+                var service = CreateService();
+
+                await Assert.ThrowsAsync<InvalidOperationException>(
+                    () => service.DeleteSymbolsPackageAsync(symbolPackage));
             }
 
             [Fact]

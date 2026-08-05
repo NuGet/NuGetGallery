@@ -127,6 +127,16 @@ namespace NuGetGallery.Areas.Admin.Services
                 // Assert
                 Assert.Equal(PackageDeletedStatus.SoftDeleted, status);
             }
+
+            [Fact]
+            public void ReturnsNotDeletedForStagedPackage()
+            {
+                _package.PackageStatusKey = PackageStatus.Staged;
+
+                var status = _target.GetPackageDeletedStatus(_packageKey);
+
+                Assert.Equal(PackageDeletedStatus.NotDeleted, status);
+            }
         }
 
         public class TheGetSymbolsPackageDeletedStatusMethod : FactsBase
@@ -171,6 +181,17 @@ namespace NuGetGallery.Areas.Admin.Services
                 // Assert
                 Assert.Equal(PackageDeletedStatus.SoftDeleted, status);
             }
+
+            [Fact]
+            public void ReturnsNotDeletedForStagedSymbolPackage()
+            {
+                _symbolPackage.StatusKey = PackageStatus.Staged;
+
+                var status = _target.GetSymbolPackageDeletedStatus(_symbolPackageKey);
+
+                Assert.Equal(PackageDeletedStatus.NotDeleted, status);
+            }
+
         }
 
         public abstract class FactsBase

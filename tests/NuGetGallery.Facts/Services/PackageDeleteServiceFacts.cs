@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -44,6 +44,20 @@ namespace NuGetGallery
             packageDeletesRepository = packageDeletesRepository ?? new Mock<IEntityRepository<PackageDelete>>();
 
             entitiesContext = entitiesContext ?? new Mock<IEntitiesContext>();
+            if (entitiesContext.Object.StagedSymbolArtifacts == null)
+            {
+                entitiesContext
+                    .Setup(x => x.StagedSymbolArtifacts)
+                    .Returns(FakeEntitiesContext.CreateDbSet<StagedSymbolArtifact>());
+            }
+
+            if (entitiesContext.Object.StagingPromotionArtifactHistories == null)
+            {
+                entitiesContext
+                    .Setup(x => x.StagingPromotionArtifactHistories)
+                    .Returns(FakeEntitiesContext.CreateDbSet<StagingPromotionArtifactHistory>());
+            }
+
             var database = new Mock<IDatabase>();
             database.Setup(x => x.BeginTransaction()).Returns(() => new Mock<IDbContextTransaction>().Object);
             entitiesContext.Setup(m => m.GetDatabase()).Returns(database.Object);
@@ -627,6 +641,29 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task WillPreserveStagedSymbolPackage()
+            {
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { Key = 41, PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
+                var ordinarySymbolPackage = new SymbolPackage { Key = 42, Package = package, StatusKey = PackageStatus.Available };
+                var stagedSymbolPackage = new SymbolPackage { Key = 43, Package = package, StatusKey = PackageStatus.Staged };
+                package.SymbolPackages.Add(ordinarySymbolPackage);
+                package.SymbolPackages.Add(stagedSymbolPackage);
+                packageRegistration.Packages.Add(package);
+                var symbolPackageService = new Mock<ISymbolPackageService>();
+                var service = CreateService(symbolPackageService: symbolPackageService);
+
+                await service.SoftDeletePackagesAsync(new[] { package }, new User("test"), string.Empty, string.Empty);
+
+                symbolPackageService.Verify(
+                    x => x.UpdateStatusAsync(ordinarySymbolPackage, PackageStatus.Deleted, false),
+                    Times.Once);
+                symbolPackageService.Verify(
+                    x => x.UpdateStatusAsync(stagedSymbolPackage, It.IsAny<PackageStatus>(), It.IsAny<bool>()),
+                    Times.Never);
+            }
+
+            [Fact]
             public async Task WillUpdateTheIndexingService()
             {
                 var indexingService = new Mock<IIndexingService>();
@@ -893,6 +930,79 @@ namespace NuGetGallery
 
         public class TheHardDeletePackagesAsyncMethod
         {
+            [Fact]
+            public async Task RejectsPackageWithLiveStagedSymbolArtifact()
+            {
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { Key = 123, PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
+                packageRegistration.Packages.Add(package);
+                var stagingEntry = new StagingEntry { Key = 124, Package = package, PackageKey = package.Key };
+                var artifacts = FakeEntitiesContext.CreateDbSet<StagedSymbolArtifact>();
+                artifacts.Add(new StagedSymbolArtifact
+                {
+                    StagingEntry = stagingEntry,
+                    StagingEntryKey = stagingEntry.Key,
+                    SymbolPackageKey = 125,
+                });
+
+                var entitiesContext = new Mock<IEntitiesContext>();
+                entitiesContext.Setup(x => x.StagedSymbolArtifacts).Returns(artifacts);
+                var packageRepository = new Mock<IEntityRepository<Package>>();
+                var service = CreateService(
+                    packageRepository: packageRepository,
+                    entitiesContext: entitiesContext);
+
+                await Assert.ThrowsAsync<InvalidOperationException>(
+                    () => service.HardDeletePackagesAsync(
+                        new[] { package },
+                        new User("test"),
+                        string.Empty,
+                        string.Empty,
+                        deleteEmptyPackageRegistration: false));
+
+                packageRepository.Verify(x => x.DeleteOnCommit(It.IsAny<Package>()), Times.Never);
+            }
+
+            [Fact]
+            public async Task ClearsPackageAndSymbolPromotionHistoryReferences()
+            {
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { Key = 123, PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
+                var symbolPackage = new SymbolPackage { Key = 456, Package = package, PackageKey = package.Key };
+                package.SymbolPackages.Add(symbolPackage);
+                packageRegistration.Packages.Add(package);
+                var packageHistory = new StagingPromotionArtifactHistory
+                {
+                    PackageKey = package.Key,
+                    Package = package,
+                };
+
+                var symbolHistory = new StagingPromotionArtifactHistory
+                {
+                    SymbolPackageKey = symbolPackage.Key,
+                    SymbolPackage = symbolPackage,
+                };
+
+                var histories = FakeEntitiesContext.CreateDbSet<StagingPromotionArtifactHistory>();
+                histories.Add(packageHistory);
+                histories.Add(symbolHistory);
+                var entitiesContext = new Mock<IEntitiesContext>();
+                entitiesContext.Setup(x => x.StagingPromotionArtifactHistories).Returns(histories);
+                var service = CreateService(entitiesContext: entitiesContext);
+
+                await service.HardDeletePackagesAsync(
+                    new[] { package },
+                    new User("test"),
+                    string.Empty,
+                    string.Empty,
+                    deleteEmptyPackageRegistration: false);
+
+                Assert.Null(packageHistory.PackageKey);
+                Assert.Null(packageHistory.Package);
+                Assert.Null(symbolHistory.SymbolPackageKey);
+                Assert.Null(symbolHistory.SymbolPackage);
+            }
+
             [Fact]
             public async Task WillIncreaseTheDatabaseCommandTimeout()
             {

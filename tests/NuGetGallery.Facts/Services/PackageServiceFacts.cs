@@ -1287,6 +1287,15 @@ namespace NuGetGallery
                 Assert.Equal(package, InvokeMethod(packages, version));
             }
 
+            [Fact]
+            public void ReturnsNullForStagedVersion()
+            {
+                var package = CreateTestPackage("1.0.0");
+                package.PackageStatusKey = PackageStatus.Staged;
+
+                Assert.Null(InvokeMethod(new[] { package }, package.NormalizedVersion));
+            }
+
             private Package InvokeMethod(IReadOnlyCollection<Package> packages, string version)
             {
                 var service = CreateService();
@@ -1403,6 +1412,31 @@ namespace NuGetGallery
                 // Assert
                 Assert.NotNull(result);
                 Assert.Equal("1.0.11", result.Version);
+            }
+
+            [Fact]
+            public void IgnoresStagedLatestVersion()
+            {
+                var packageRegistration = new PackageRegistration { Id = Id };
+                var available = new Package
+                {
+                    Version = "1.0.0",
+                    PackageRegistration = packageRegistration,
+                    PackageStatusKey = PackageStatus.Available,
+                };
+
+                var staged = new Package
+                {
+                    Version = "2.0.0",
+                    PackageRegistration = packageRegistration,
+                    PackageStatusKey = PackageStatus.Staged,
+                    IsLatest = true,
+                    IsLatestSemVer2 = true,
+                };
+
+                var result = InvokeMethod(new[] { available, staged });
+
+                Assert.Equal(available, result);
             }
 
             [Fact]

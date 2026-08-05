@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -713,6 +713,34 @@ namespace NuGetGallery
                 var actualResult = service.FindPackageRegistrationById(packageRegistration.Id);
 
                 Assert.Same(packageRegistration, actualResult);
+            }
+        }
+
+        public class TheFindPackageByIdAndVersionStrictMethod
+        {
+            [Theory]
+            [InlineData(PackageStatus.Available, true)]
+            [InlineData(PackageStatus.Validating, true)]
+            [InlineData(PackageStatus.FailedValidation, true)]
+            [InlineData(PackageStatus.Deleted, true)]
+            [InlineData(PackageStatus.Staged, false)]
+            public void ExcludesOnlyStagedPackages(PackageStatus status, bool expected)
+            {
+                var registration = new PackageRegistration { Id = "Test.Package" };
+                var package = new Package
+                {
+                    NormalizedVersion = "1.0.0",
+                    PackageRegistration = registration,
+                    PackageStatusKey = status,
+                };
+
+                var packageRepository = new Mock<IEntityRepository<Package>>();
+                packageRepository.Setup(x => x.GetAll()).Returns(new[] { package }.AsQueryable());
+                var service = CreateService(packageRepository);
+
+                var result = service.FindPackageByIdAndVersionStrict(registration.Id, package.NormalizedVersion);
+
+                Assert.Equal(expected, result != null);
             }
         }
 

@@ -642,6 +642,46 @@ namespace NuGetGallery.ViewModels
             Assert.Equal(symbolPackageList[0], viewModel.LatestSymbolsPackage);
         }
 
+        [Theory]
+        [InlineData(PackageStatus.Staged, false)]
+        [InlineData(PackageStatus.Validating, true)]
+        [InlineData(PackageStatus.FailedValidation, true)]
+        [InlineData(PackageStatus.Deleted, true)]
+        public void TheCtorIgnoresPrivateStagedSymbolPackage(PackageStatus status, bool expectedAsLatest)
+        {
+            var package = new Package
+            {
+                Version = "1.0.0",
+                Dependencies = Enumerable.Empty<PackageDependency>().ToList(),
+                PackageRegistration = new PackageRegistration
+                {
+                    Owners = Enumerable.Empty<User>().ToList(),
+                }
+            };
+
+            var available = new SymbolPackage
+            {
+                Key = 1,
+                Package = package,
+                StatusKey = PackageStatus.Available,
+                Created = DateTime.UtcNow.AddMinutes(-1),
+            };
+
+            var newest = new SymbolPackage
+            {
+                Key = 2,
+                Package = package,
+                StatusKey = status,
+                Created = DateTime.UtcNow,
+            };
+
+            package.SymbolPackages = new[] { available, newest };
+
+            var viewModel = CreateDisplayPackageViewModel(package, currentUser: null, packageKeyToDeprecation: null, readmeHtml: null);
+
+            Assert.Equal(expectedAsLatest ? newest : available, viewModel.LatestSymbolsPackage);
+        }
+
         [Fact]
         public void AvgDownloadsPerDayConsidersOldestPackageVersionInHistory()
         {

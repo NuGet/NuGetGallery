@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -121,6 +121,7 @@ namespace NuGetGallery
 
             RemovePackagePushedBy(userToBeDeleted);
             RemovePackageDeprecatedBy(userToBeDeleted);
+            RemoveStagingData(userToBeDeleted);
 
             var organizationToBeDeleted = userToBeDeleted as Organization;
             if (organizationToBeDeleted != null)
@@ -215,6 +216,11 @@ namespace NuGetGallery
                     {
                         foreach (var package in packageRegistration.Packages)
                         {
+                            if (package.PackageStatusKey == PackageStatus.Staged)
+                            {
+                                continue;
+                            }
+
                             await _packageUpdateService.MarkPackageUnlistedAsync(package, commitChanges: false, updateIndex: false);
                         }
                     }
@@ -269,6 +275,155 @@ namespace NuGetGallery
             {
                 deprecation.DeprecatedByUser = null;
             }
+        }
+
+        // TODO: Move this aggregate cleanup behind the staging service when that service is introduced.
+        private void RemoveStagingData(User user)
+        {
+            var entries = _entitiesContext.StagingEntries
+                .Where(x => x.OwnerKey == user.Key)
+                .ToList();
+            var entryKeys = entries.Select(x => x.Key).ToList();
+
+            var packageArtifacts = _entitiesContext.StagedPackageArtifacts
+                .Where(x => entryKeys.Contains(x.StagingEntryKey))
+                .ToList();
+            var symbolArtifacts = _entitiesContext.StagedSymbolArtifacts
+                .Where(x => entryKeys.Contains(x.StagingEntryKey))
+                .ToList();
+
+            foreach (var artifact in packageArtifacts)
+            {
+                EnqueueStagingBlobCleanup(artifact.BlobPath, artifact.BlobETag);
+                _entitiesContext.StagedPackageArtifacts.Remove(artifact);
+            }
+
+            var symbolPackageKeys = symbolArtifacts
+                .Select(x => x.SymbolPackageKey)
+                .Distinct()
+                .ToList();
+
+            foreach (var artifact in symbolArtifacts)
+            {
+                EnqueueStagingBlobCleanup(artifact.BlobPath, artifact.BlobETag);
+                _entitiesContext.StagedSymbolArtifacts.Remove(artifact);
+            }
+
+            var stagedSymbolPackages = _entitiesContext.SymbolPackages
+                .Where(x => symbolPackageKeys.Contains(x.Key))
+                .ToList();
+            var stagedSymbolPackageKeys = stagedSymbolPackages.Select(x => x.Key).ToList();
+
+            foreach (var artifactHistory in _entitiesContext.StagingPromotionArtifactHistories
+                .Where(x => x.SymbolPackageKey.HasValue && stagedSymbolPackageKeys.Contains(x.SymbolPackageKey.Value))
+                .ToList())
+            {
+                artifactHistory.SymbolPackage = null;
+                artifactHistory.SymbolPackageKey = null;
+            }
+
+            foreach (var symbolPackage in stagedSymbolPackages)
+            {
+                _entitiesContext.SymbolPackages.Remove(symbolPackage);
+            }
+
+            foreach (var entry in entries)
+            {
+                if (entry.StagingGroup != null)
+                {
+                    entry.StagingGroup.Entries.Remove(entry);
+                }
+
+                entry.PackageArtifact = null;
+                entry.SymbolArtifact = null;
+                _entitiesContext.StagingEntries.Remove(entry);
+            }
+
+            RemoveStagingPromotionHistory(user);
+
+            var groups = _entitiesContext.StagingGroups
+                .Where(x => x.OwnerKey == user.Key)
+                .ToList();
+            var groupKeys = groups.Select(x => x.Key).ToList();
+
+            foreach (var history in _entitiesContext.StagingPromotionHistories
+                .Where(x => x.GroupKey.HasValue && groupKeys.Contains(x.GroupKey.Value))
+                .ToList())
+            {
+                history.Group = null;
+                history.GroupKey = null;
+            }
+
+            foreach (var group in groups)
+            {
+                _entitiesContext.StagingGroups.Remove(group);
+            }
+
+            var packageKeys = entries.Select(x => x.PackageKey).Distinct().ToList();
+            var stagedPackages = _entitiesContext.Packages
+                .Where(x => packageKeys.Contains(x.Key) && x.PackageStatusKey == PackageStatus.Staged)
+                .ToList();
+            var stagedPackageKeys = stagedPackages.Select(x => x.Key).ToList();
+
+            foreach (var artifactHistory in _entitiesContext.StagingPromotionArtifactHistories
+                .Where(x => x.PackageKey.HasValue && stagedPackageKeys.Contains(x.PackageKey.Value))
+                .ToList())
+            {
+                artifactHistory.Package = null;
+                artifactHistory.PackageKey = null;
+            }
+
+            foreach (var package in stagedPackages)
+            {
+                _entitiesContext.Packages.Remove(package);
+            }
+        }
+
+        private void RemoveStagingPromotionHistory(User user)
+        {
+            foreach (var history in _entitiesContext.StagingPromotionHistories
+                .Where(x => x.ApproverUserKey == user.Key && x.OwnerKey != user.Key)
+                .ToList())
+            {
+                history.ApproverUser = null;
+                history.ApproverUserKey = null;
+            }
+
+            var histories = _entitiesContext.StagingPromotionHistories
+                .Where(x => x.OwnerKey == user.Key)
+                .ToList();
+            var historyKeys = histories.Select(x => x.Key).ToList();
+            var artifactHistories = _entitiesContext.StagingPromotionArtifactHistories
+                .Where(x => historyKeys.Contains(x.StagingPromotionHistoryKey))
+                .ToList();
+
+            foreach (var artifactHistory in artifactHistories)
+            {
+                _entitiesContext.StagingPromotionArtifactHistories.Remove(artifactHistory);
+            }
+
+            foreach (var history in histories)
+            {
+                history.Artifacts.Clear();
+                history.Group = null;
+                history.GroupKey = null;
+                _entitiesContext.StagingPromotionHistories.Remove(history);
+            }
+        }
+
+        private void EnqueueStagingBlobCleanup(string blobPath, string expectedETag)
+        {
+            if (_entitiesContext.StagingBlobCleanups.Any(x => x.BlobPath == blobPath))
+            {
+                return;
+            }
+
+            _entitiesContext.StagingBlobCleanups.Add(new StagingBlobCleanup
+            {
+                BlobPath = blobPath,
+                ExpectedETag = expectedETag,
+                CreatedDate = DateTime.UtcNow,
+            });
         }
         
         private async Task RemoveMemberships(User user, User requestingUser, AccountDeletionOrphanPackagePolicy orphanPackagePolicy)

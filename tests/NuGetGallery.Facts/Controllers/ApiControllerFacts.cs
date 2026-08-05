@@ -917,6 +917,7 @@ namespace NuGetGallery
             [InlineData(PackageStatus.Available)]
             [InlineData(PackageStatus.Deleted)]
             [InlineData(PackageStatus.Validating)]
+            [InlineData(PackageStatus.Staged)]
             public async Task WillReturnConflictIfAPackageWithTheIdAndSameNormalizedVersionAlreadyExists(PackageStatus status)
             {
                 var id = "theId";
@@ -1023,6 +1024,54 @@ namespace NuGetGallery
                         It.IsAny<Package>(),
                         It.IsAny<Stream>()),
                     Times.Once);
+            }
+
+            [Fact]
+            public async Task WillReturnConflictWhenFailedPackageHasLiveStagedSymbols()
+            {
+                var id = "theId";
+                var version = "1.0.42";
+                var conflictingPackage = new Package
+                {
+                    Version = version,
+                    NormalizedVersion = version,
+                    PackageStatusKey = PackageStatus.FailedValidation,
+                };
+
+                var packageRegistration = new PackageRegistration
+                {
+                    Id = id,
+                    Packages = new List<Package> { conflictingPackage },
+                    Owners = new List<User> { new User { EmailAddress = "confirmed1@email.com" } },
+                };
+
+                conflictingPackage.PackageRegistration = packageRegistration;
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.SetCurrentUser(new User { EmailAddress = "confirmed2@email.com" });
+                controller.MockPackageService.Setup(x => x.FindPackageRegistrationById(id)).Returns(packageRegistration);
+                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(id, version)).Returns(conflictingPackage);
+                controller.MockPackageService
+                    .Setup(x => x.GetPackageStatus(id, It.IsAny<NuGetVersion>()))
+                    .Returns(PackageStatus.FailedValidation);
+                controller.MockPackageDeleteService
+                    .Setup(x => x.HasLiveStagedSymbolArtifact(conflictingPackage))
+                    .Returns(true);
+                controller.SetupPackageFromInputStream(TestPackage.CreateTestPackageStream(id, version));
+
+                var result = await controller.CreatePackagePut();
+
+                ResultAssert.IsStatusCode(
+                    result,
+                    HttpStatusCode.Conflict,
+                    string.Format(Strings.PackageExistsAndCannotBeModified, id, version));
+                controller.MockPackageDeleteService.Verify(
+                    x => x.HardDeletePackagesAsync(
+                        It.IsAny<IEnumerable<Package>>(),
+                        It.IsAny<User>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<bool>()),
+                    Times.Never);
             }
 
             [Fact]

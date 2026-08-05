@@ -618,6 +618,21 @@ namespace NuGetGallery
             {
                 if (existingPackage.PackageStatusKey == PackageStatus.FailedValidation)
                 {
+                    if (_packageDeleteService.HasLiveStagedSymbolArtifact(existingPackage))
+                    {
+                        return Json(
+                            HttpStatusCode.Conflict,
+                            new[]
+                            {
+                                new JsonValidationMessage(
+                                    string.Format(
+                                        CultureInfo.CurrentCulture,
+                                        Strings.PackageExistsAndCannotBeModified,
+                                        existingPackage.PackageRegistration.Id,
+                                        existingPackage.NormalizedVersion))
+                            });
+                    }
+
                     _telemetryService.TrackPackageReupload(existingPackage);
 
                     // Packages that failed validation can be reuploaded.

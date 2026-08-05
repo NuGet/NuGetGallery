@@ -186,6 +186,7 @@ namespace NuGetGallery.Services
             [Theory]
             [InlineData(PackageStatus.Deleted)]
             [InlineData(PackageStatus.FailedValidation)]
+            [InlineData(PackageStatus.Staged)]
             public async Task FiltersOutIneligiblePackageStatuses(PackageStatus status)
             {
                 // Arrange

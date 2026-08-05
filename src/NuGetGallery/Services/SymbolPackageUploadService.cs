@@ -101,7 +101,9 @@ namespace NuGetGallery
 
                     // Ensure the corresponding package exists before pushing a snupkg.
                     package = _packageService.FindPackageByIdAndVersionStrict(id, version.ToStringSafe());
-                    if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
+                    if (package == null
+                        || package.PackageStatusKey == PackageStatus.Deleted
+                        || package.PackageStatusKey == PackageStatus.Staged)
                     {
                         return SymbolPackageValidationResult.MissingPackage(string.Format(
                             CultureInfo.CurrentCulture,
@@ -117,7 +119,9 @@ namespace NuGetGallery
                     }
 
                     // Do not allow to upload a snupkg to a package which has symbols package pending validations.
-                    if (package.SymbolPackages.Any(sp => sp.StatusKey == PackageStatus.Validating))
+                    if (package.SymbolPackages.Any(sp =>
+                        sp.StatusKey == PackageStatus.Validating
+                        || sp.StatusKey == PackageStatus.Staged))
                     {
                         return SymbolPackageValidationResult.SymbolsPackageExists(Strings.SymbolsPackage_ConflictValidating);
                     }
@@ -163,6 +167,13 @@ namespace NuGetGallery
         /// <returns>The <see cref="PackageCommitResult"/> for the create and upload symbol package flow.</returns>
         public async Task<PackageCommitResult> CreateAndUploadSymbolsPackage(Package package, Stream symbolPackageStream)
         {
+            if (_entitiesContext.SymbolPackages.Any(sp =>
+                sp.PackageKey == package.Key
+                && sp.StatusKey == PackageStatus.Staged))
+            {
+                return PackageCommitResult.Conflict;
+            }
+
             var packageStreamMetadata = new PackageStreamMetadata
             {
                 HashAlgorithm = CoreConstants.Sha512HashAlgorithmId,
@@ -281,6 +292,11 @@ namespace NuGetGallery
             if (symbolPackage == null)
             {
                 throw new ArgumentNullException(nameof(symbolPackage));
+            }
+
+            if (symbolPackage.StatusKey == PackageStatus.Staged)
+            {
+                throw new InvalidOperationException("A staged symbol package cannot be deleted by the ordinary symbol flow.");
             }
 
             if (symbolPackage.StatusKey == PackageStatus.FailedValidation

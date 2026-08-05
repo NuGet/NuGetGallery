@@ -50,6 +50,11 @@ namespace NuGetGallery
                 {
                     throw new ArgumentException("A package that failed validation cannot have its listed status changed.");
                 }
+
+                if (package.PackageStatusKey == PackageStatus.Staged)
+                {
+                    throw new ArgumentException("A staged package cannot have its listed status changed by the ordinary package flow.");
+                }
             }
 
             var registration = packages.First().PackageRegistration;
@@ -109,6 +114,11 @@ namespace NuGetGallery
                 throw new InvalidOperationException("A package that failed validation should never be listed.");
             }
 
+            if (package.PackageStatusKey == PackageStatus.Staged)
+            {
+                throw new InvalidOperationException("A staged package cannot be listed by the ordinary package flow.");
+            }
+
             package.Listed = true;
             package.LastUpdated = DateTime.UtcNow;
             // NOTE: LastEdited will be overwritten by a trigger defined in the migration named "AddTriggerForPackagesLastEdited".
@@ -136,6 +146,11 @@ namespace NuGetGallery
             if (package == null)
             {
                 throw new ArgumentNullException(nameof(package));
+            }
+
+            if (package.PackageStatusKey == PackageStatus.Staged)
+            {
+                throw new InvalidOperationException("A staged package cannot be unlisted by the ordinary package flow.");
             }
 
             if (!package.Listed)

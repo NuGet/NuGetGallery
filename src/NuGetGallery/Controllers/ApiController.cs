@@ -693,6 +693,17 @@ namespace NuGetGallery
                                         // a relatively expensive operation and this path is uncommon.
                                         var existingPackage = PackageService.FindPackageByIdAndVersionStrict(id, version.ToStringSafe());
 
+                                        if (PackageDeleteService.HasLiveStagedSymbolArtifact(existingPackage))
+                                        {
+                                            return new HttpStatusCodeWithBodyResult(
+                                                HttpStatusCode.Conflict,
+                                                string.Format(
+                                                    CultureInfo.CurrentCulture,
+                                                    Strings.PackageExistsAndCannotBeModified,
+                                                    id,
+                                                    version.ToNormalizedStringSafe()));
+                                        }
+
                                         TelemetryService.TrackPackageReupload(existingPackage);
 
                                         await PackageDeleteService.HardDeletePackagesAsync(

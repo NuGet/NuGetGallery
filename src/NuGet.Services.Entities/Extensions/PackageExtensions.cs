@@ -14,7 +14,8 @@ namespace NuGet.Services.Entities
         /// <returns>The latest symbol package if present, null otherwise</returns>
         public static SymbolPackage LatestSymbolPackage(this Package package)
         {
-            return package.GetSymbolsPackagesInReverseOrder()?.FirstOrDefault();
+            return package.GetSymbolsPackagesInReverseOrder()?
+                .FirstOrDefault(sp => sp.StatusKey != PackageStatus.Staged);
         }
 
         /// <summary>

@@ -43,6 +43,7 @@ namespace NuGetGallery.Services
             [Theory]
             [InlineData(PackageStatus.Deleted, "A deleted package cannot have its listed status changed.")]
             [InlineData(PackageStatus.FailedValidation, "A package that failed validation cannot have its listed status changed.")]
+            [InlineData(PackageStatus.Staged, "A staged package cannot have its listed status changed by the ordinary package flow.")]
             public async Task ThrowsIfPackageHasInvalidStatus(PackageStatus packageStatus, string message)
             {
                 var service = Get<PackageUpdateService>();
@@ -191,6 +192,22 @@ namespace NuGetGallery.Services
             }
 
             [Fact]
+            public async Task ThrowsWhenPackageStaged()
+            {
+                var package = new Package
+                {
+                    Version = "1.0",
+                    PackageRegistration = new PackageRegistration { Id = "theId" },
+                    Listed = false,
+                    PackageStatusKey = PackageStatus.Staged,
+                };
+
+                var service = Get<PackageUpdateService>();
+
+                await Assert.ThrowsAsync<InvalidOperationException>(() => service.MarkPackageListedAsync(package));
+            }
+
+            [Fact]
             public async Task WritesAnAuditRecord()
             {
                 // Arrange
@@ -231,6 +248,20 @@ namespace NuGetGallery.Services
 
         public class TheMarkPackageUnlistedMethod : TestContainer
         {
+            [Fact]
+            public async Task ThrowsWhenPackageStaged()
+            {
+                var package = new Package
+                {
+                    Listed = true,
+                    PackageStatusKey = PackageStatus.Staged,
+                };
+
+                var service = Get<PackageUpdateService>();
+
+                await Assert.ThrowsAsync<InvalidOperationException>(() => service.MarkPackageUnlistedAsync(package));
+            }
+
             public static IEnumerable<object[]> OnLatestPackageVersionSetsPreviousToLatestVersion_Data =>
                 MemberDataHelper.EnumDataSet<PackageLatestState>();
 

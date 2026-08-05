@@ -138,6 +138,7 @@ namespace NuGetGallery.Areas.Admin.Services
                 var package = _packages
                     .GetAll()
                     .Include(p => p.PackageRegistration)
+                    .Where(p => p.PackageStatusKey != PackageStatus.Staged)
                     .FirstOrDefault(p => p.Key == key);
 
                 if (package == null)
@@ -159,6 +160,7 @@ namespace NuGetGallery.Areas.Admin.Services
                     .GetAll()
                     .Include(p => p.Package)
                     .Include(p => p.Package.PackageRegistration)
+                    .Where(s => s.StatusKey != PackageStatus.Staged)
                     .FirstOrDefault(s => s.Key == key);
 
                 if (symbolPackage == null)
@@ -182,6 +184,8 @@ namespace NuGetGallery.Areas.Admin.Services
 
         public PackageDeletedStatus GetDeletedStatus(int key, ValidatingType validatingType)
         {
+            // TODO: Track staging workflow separately so the validation admin view can hide ordinary validation
+            // actions without treating a staged entity as deleted.
             switch (validatingType)
             {
                 case ValidatingType.Package:

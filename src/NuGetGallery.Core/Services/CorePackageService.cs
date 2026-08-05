@@ -347,7 +347,8 @@ namespace NuGetGallery
         {
             var packages = _packageRepository
                 .GetAll()
-                .Where(p => p.PackageRegistration.Id == id);
+                .Where(p => p.PackageRegistration.Id == id)
+                .Where(p => p.PackageStatusKey != PackageStatus.Staged);
 
             if (includeLicenseReports)
             {

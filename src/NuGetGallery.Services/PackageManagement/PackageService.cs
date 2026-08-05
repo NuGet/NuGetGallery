@@ -418,10 +418,12 @@ namespace NuGetGallery
             string version)
         {
             var normalizedVersion = NuGetVersionFormatter.Normalize(version);
-            return packages.SingleOrDefault(p => string.Equals(
-                p.NormalizedVersion,
-                normalizedVersion,
-                StringComparison.OrdinalIgnoreCase));
+            return packages
+                .Where(p => p.PackageStatusKey != PackageStatus.Staged)
+                .SingleOrDefault(p => string.Equals(
+                    p.NormalizedVersion,
+                    normalizedVersion,
+                    StringComparison.OrdinalIgnoreCase));
         }
 
         public virtual Package FilterLatestPackage(
@@ -431,7 +433,10 @@ namespace NuGetGallery
         {
             return FilterLatestPackageHelper(
                 // Filter out prereleases in the list if prereleases are not allowed.
-                packages?.Where(p => allowPrerelease || !p.IsPrerelease).ToList(),
+                packages?
+                    .Where(p => p.PackageStatusKey != PackageStatus.Staged)
+                    .Where(p => allowPrerelease || !p.IsPrerelease)
+                    .ToList(),
                 semVerLevelKey,
                 allowPrerelease);
         }
@@ -442,6 +447,7 @@ namespace NuGetGallery
             IEnumerable<Package> GetSortedFiltered(IEnumerable<Package> localPackages, bool applyPrereleaseFilter = true)
             {
                 var semvered = localPackages
+                    .Where(package => package.PackageStatusKey != PackageStatus.Staged)
                     .Select(package => new {package, semVer= NuGetVersion.Parse(package.NormalizedVersion)})
                     .ToList();
 
@@ -567,7 +573,8 @@ namespace NuGetGallery
             }
 
             IQueryable<Package> packages = _packageRepository.GetAll()
-                .Where(p => p.PackageRegistration.Owners.Any(o => o.Key == user.Key));
+                .Where(p => p.PackageRegistration.Owners.Any(o => o.Key == user.Key))
+                .Where(p => p.PackageStatusKey != PackageStatus.Staged);
 
             var packageSummary = packages
                 .Where(p => p.IsLatestSemVer2)
@@ -615,7 +622,8 @@ namespace NuGetGallery
         private IEnumerable<Package> GetPackagesForOwners(IEnumerable<int> ownerKeys, bool includeUnlisted, bool includeVersions)
         {
             IQueryable<Package> packages = _packageRepository.GetAll()
-                .Where(p => p.PackageRegistration.Owners.Any(o => ownerKeys.Contains(o.Key)));
+                .Where(p => p.PackageRegistration.Owners.Any(o => ownerKeys.Contains(o.Key)))
+                .Where(p => p.PackageStatusKey != PackageStatus.Staged);
 
             if (!includeUnlisted)
             {
@@ -663,6 +671,7 @@ namespace NuGetGallery
             // Grab all candidates
             var candidateDependents = (from p in _packageRepository.GetAll()
                                        from d in p.Dependencies
+                                       where p.PackageStatusKey != PackageStatus.Staged
                                        where d.Id == package.PackageRegistration.Id
                                        select d).Include(pk => pk.Package.PackageRegistration).ToList();
             // Now filter by version range.

@@ -1,8 +1,9 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using Moq;
@@ -389,6 +390,114 @@ namespace NuGetGallery.Services
                 Assert.Contains("An exception was encountered while trying to delete the account 'TestsUser'", result.Description);
             }
 
+            [Fact]
+            public async Task DeletesOnlyStagingDataOwnedByUser()
+            {
+                var owner = new User("Owner") { Key = Key++, EmailAddress = "owner@example.test" };
+                var otherOwner = new User("OtherOwner") { Key = Key++, EmailAddress = "other@example.test" };
+                var service = new DeleteAccountTestService(owner);
+                var ownerGroup = new StagingGroup { Key = 1, Owner = owner, OwnerKey = owner.Key, Id = "owner", Name = "Owner" };
+                var otherGroup = new StagingGroup { Key = 2, Owner = otherOwner, OwnerKey = otherOwner.Key, Id = "other", Name = "Other" };
+                var stagedPackage = new Package { Key = 10, PackageStatusKey = PackageStatus.Staged };
+                var availablePackage = new Package { Key = 11, PackageStatusKey = PackageStatus.Available };
+                var otherPackage = new Package { Key = 12, PackageStatusKey = PackageStatus.Staged };
+                var packageEntry = new StagingEntry { Key = 20, Owner = owner, OwnerKey = owner.Key, Package = stagedPackage, PackageKey = stagedPackage.Key, StagingGroup = ownerGroup, StagingGroupKey = ownerGroup.Key };
+                var symbolEntry = new StagingEntry { Key = 21, Owner = owner, OwnerKey = owner.Key, Package = availablePackage, PackageKey = availablePackage.Key, StagingGroup = ownerGroup, StagingGroupKey = ownerGroup.Key };
+                var otherEntry = new StagingEntry { Key = 22, Owner = otherOwner, OwnerKey = otherOwner.Key, Package = otherPackage, PackageKey = otherPackage.Key, StagingGroup = otherGroup, StagingGroupKey = otherGroup.Key };
+                var stagedSymbol = new SymbolPackage { Key = 30, Package = availablePackage, PackageKey = availablePackage.Key, StatusKey = PackageStatus.Staged };
+                var packageArtifact = new StagedPackageArtifact { StagingEntry = packageEntry, StagingEntryKey = packageEntry.Key, BlobPath = "owner/package", BlobETag = "\"package-etag\"" };
+                var symbolArtifact = new StagedSymbolArtifact { StagingEntry = symbolEntry, StagingEntryKey = symbolEntry.Key, SymbolPackage = stagedSymbol, SymbolPackageKey = stagedSymbol.Key, BlobPath = "owner/symbol", BlobETag = "\"symbol-etag\"" };
+                var otherArtifact = new StagedPackageArtifact { StagingEntry = otherEntry, StagingEntryKey = otherEntry.Key, BlobPath = "other/package", BlobETag = "\"other-etag\"" };
+                var history = new StagingPromotionHistory { Key = 40, Owner = owner, OwnerKey = owner.Key };
+                var historyArtifact = new StagingPromotionArtifactHistory
+                {
+                    Key = 41,
+                    StagingPromotionHistory = history,
+                    StagingPromotionHistoryKey = history.Key,
+                    Package = stagedPackage,
+                    PackageKey = stagedPackage.Key,
+                    PackageId = "Owner.Package",
+                    NormalizedVersion = "1.0.0",
+                    Status = StagingPromotionArtifactHistoryStatus.Processing,
+                };
+
+                ownerGroup.Entries.Add(packageEntry);
+                ownerGroup.Entries.Add(symbolEntry);
+                otherGroup.Entries.Add(otherEntry);
+                packageEntry.PackageArtifact = packageArtifact;
+                symbolEntry.SymbolArtifact = symbolArtifact;
+                otherEntry.PackageArtifact = otherArtifact;
+                history.Artifacts.Add(historyArtifact);
+
+                service.Packages.Add(stagedPackage);
+                service.Packages.Add(availablePackage);
+                service.Packages.Add(otherPackage);
+                service.SymbolPackages.Add(stagedSymbol);
+                service.StagingGroups.Add(ownerGroup);
+                service.StagingGroups.Add(otherGroup);
+                service.StagingEntries.Add(packageEntry);
+                service.StagingEntries.Add(symbolEntry);
+                service.StagingEntries.Add(otherEntry);
+                service.StagedPackageArtifacts.Add(packageArtifact);
+                service.StagedPackageArtifacts.Add(otherArtifact);
+                service.StagedSymbolArtifacts.Add(symbolArtifact);
+                service.StagingPromotionHistories.Add(history);
+                service.StagingPromotionArtifactHistories.Add(historyArtifact);
+
+                var result = await service.GetDeleteAccountService(isPackageOrphaned: false)
+                    .DeleteAccountAsync(owner, owner);
+
+                Assert.True(result.Success);
+                Assert.DoesNotContain(ownerGroup, service.StagingGroups);
+                Assert.DoesNotContain(packageEntry, service.StagingEntries);
+                Assert.DoesNotContain(symbolEntry, service.StagingEntries);
+                Assert.DoesNotContain(packageArtifact, service.StagedPackageArtifacts);
+                Assert.DoesNotContain(symbolArtifact, service.StagedSymbolArtifacts);
+                Assert.DoesNotContain(stagedPackage, service.Packages);
+                Assert.DoesNotContain(stagedSymbol, service.SymbolPackages);
+                Assert.DoesNotContain(history, service.StagingPromotionHistories);
+                Assert.DoesNotContain(historyArtifact, service.StagingPromotionArtifactHistories);
+
+                Assert.Contains(availablePackage, service.Packages);
+                Assert.Contains(otherGroup, service.StagingGroups);
+                Assert.Contains(otherEntry, service.StagingEntries);
+                Assert.Contains(otherArtifact, service.StagedPackageArtifacts);
+                Assert.Contains(otherPackage, service.Packages);
+
+                var cleanups = service.StagingBlobCleanups.OrderBy(x => x.BlobPath).ToList();
+                Assert.Equal(2, cleanups.Count);
+                Assert.Equal("owner/package", cleanups[0].BlobPath);
+                Assert.Equal("\"package-etag\"", cleanups[0].ExpectedETag);
+                Assert.Equal("owner/symbol", cleanups[1].BlobPath);
+                Assert.Equal("\"symbol-etag\"", cleanups[1].ExpectedETag);
+            }
+
+            [Fact]
+            public async Task ClearsApproverWithoutDeletingAnotherOwnersHistory()
+            {
+                var approver = new User("Approver") { Key = Key++, EmailAddress = "approver@example.test" };
+                var owner = new User("Owner") { Key = Key++, EmailAddress = "owner@example.test" };
+                var history = new StagingPromotionHistory
+                {
+                    Key = 1,
+                    Owner = owner,
+                    OwnerKey = owner.Key,
+                    ApproverUser = approver,
+                    ApproverUserKey = approver.Key,
+                };
+
+                var service = new DeleteAccountTestService(approver);
+                service.StagingPromotionHistories.Add(history);
+
+                var result = await service.GetDeleteAccountService(isPackageOrphaned: false)
+                    .DeleteAccountAsync(approver, approver);
+
+                Assert.True(result.Success);
+                Assert.Contains(history, service.StagingPromotionHistories);
+                Assert.Null(history.ApproverUser);
+                Assert.Null(history.ApproverUserKey);
+            }
+
             /// <summary>
             /// An user that does not own any package but owns a registration will have the registration cleaned after deletion.
             /// </summary>
@@ -538,6 +647,16 @@ namespace NuGetGallery.Services
             private ICollection<Package> _userPackages;
             private bool _hasDeletedCredentialWithOwnerScope = false;
 
+            public DbSet<Package> Packages { get; } = FakeEntitiesContext.CreateDbSet<Package>();
+            public DbSet<SymbolPackage> SymbolPackages { get; } = FakeEntitiesContext.CreateDbSet<SymbolPackage>();
+            public DbSet<StagingGroup> StagingGroups { get; } = FakeEntitiesContext.CreateDbSet<StagingGroup>();
+            public DbSet<StagingEntry> StagingEntries { get; } = FakeEntitiesContext.CreateDbSet<StagingEntry>();
+            public DbSet<StagedPackageArtifact> StagedPackageArtifacts { get; } = FakeEntitiesContext.CreateDbSet<StagedPackageArtifact>();
+            public DbSet<StagedSymbolArtifact> StagedSymbolArtifacts { get; } = FakeEntitiesContext.CreateDbSet<StagedSymbolArtifact>();
+            public DbSet<StagingPromotionHistory> StagingPromotionHistories { get; } = FakeEntitiesContext.CreateDbSet<StagingPromotionHistory>();
+            public DbSet<StagingPromotionArtifactHistory> StagingPromotionArtifactHistories { get; } = FakeEntitiesContext.CreateDbSet<StagingPromotionArtifactHistory>();
+            public DbSet<StagingBlobCleanup> StagingBlobCleanups { get; } = FakeEntitiesContext.CreateDbSet<StagingBlobCleanup>();
+
             public List<AccountDelete> DeletedAccounts = new List<AccountDelete>();
             public List<User> DeletedUsers = new List<User>();
             public List<Issue> SupportRequests = new List<Issue>();
@@ -674,14 +793,21 @@ namespace NuGetGallery.Services
                     .Setup(m => m.GetDatabase())
                     .Returns(database.Object);
 
-                var packageDbSet = FakeEntitiesContext.CreateDbSet<Package>();
                 mockContext
                     .Setup(x => x.Packages)
-                    .Returns(packageDbSet);
+                    .Returns(Packages);
+                mockContext.Setup(x => x.SymbolPackages).Returns(SymbolPackages);
+                mockContext.Setup(x => x.StagingGroups).Returns(StagingGroups);
+                mockContext.Setup(x => x.StagingEntries).Returns(StagingEntries);
+                mockContext.Setup(x => x.StagedPackageArtifacts).Returns(StagedPackageArtifacts);
+                mockContext.Setup(x => x.StagedSymbolArtifacts).Returns(StagedSymbolArtifacts);
+                mockContext.Setup(x => x.StagingPromotionHistories).Returns(StagingPromotionHistories);
+                mockContext.Setup(x => x.StagingPromotionArtifactHistories).Returns(StagingPromotionArtifactHistories);
+                mockContext.Setup(x => x.StagingBlobCleanups).Returns(StagingBlobCleanups);
 
                 if (PackagePushedByUser != null)
                 {
-                    packageDbSet.Add(PackagePushedByUser);
+                    Packages.Add(PackagePushedByUser);
                 }
 
                 return mockContext;
