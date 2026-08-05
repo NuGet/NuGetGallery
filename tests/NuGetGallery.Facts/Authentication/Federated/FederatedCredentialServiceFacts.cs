@@ -158,13 +158,16 @@ namespace NuGetGallery.Services.Authentication
                 AssertUnauthorized(user, packageOwner, FederatedCredentialType.EntraIdServicePrincipal, """{"test": "value"}""", result.UserMessage!);
             }
 
-            [Fact]
-            public async Task WhenValidInput_CreatesAndSavesPolicyWithCreateAuditRecord()
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task WhenValidInputWithScopes_CreatesAndSavesPolicyWithCreateAuditRecord(bool isNullScopes)
             {
                 // Arrange
                 var user = new User { Key = 10, Username = "testuser" };
                 var packageOwner = new User { Key = 20, Username = "testowner" };
                 var utcNow = new DateTime(2024, 10, 12, 12, 30, 0, DateTimeKind.Utc);
+                var scopes = isNullScopes ? null : new List<Scope> { new Scope() };
 
                 UserService.Setup(x => x.FindByUsername("testowner", false)).Returns(packageOwner);
                 CredentialBuilder.Setup(x => x.VerifyScopes(user, It.IsAny<IEnumerable<Scope>>())).Returns(true);
@@ -181,7 +184,8 @@ namespace NuGetGallery.Services.Authentication
                     packageOwner: "testowner",
                     criteria: """{"tenant":"test","object":"123"}""",
                     policyName: "Test Policy",
-                    policyType: FederatedCredentialType.EntraIdServicePrincipal);
+                    policyType: FederatedCredentialType.EntraIdServicePrincipal,
+                    scopes: scopes);
 
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyValidationResultType.Success, result.Type);
@@ -195,6 +199,7 @@ namespace NuGetGallery.Services.Authentication
                 Assert.Same(packageOwner, savedPolicy.PackageOwner);
                 Assert.Equal(FederatedCredentialType.EntraIdServicePrincipal, savedPolicy.Type);
                 Assert.Equal("""{"tenant":"test","object":"123"}""", savedPolicy.Criteria);
+                Assert.Equal(scopes, savedPolicy.Scopes);
 
                 // Verify policy was saved
                 FederatedCredentialRepository.Verify(x => x.AddPolicyAsync(
@@ -203,7 +208,8 @@ namespace NuGetGallery.Services.Authentication
                         p.CreatedBy == user &&
                         p.PackageOwner == packageOwner &&
                         p.Type == FederatedCredentialType.EntraIdServicePrincipal &&
-                        p.Criteria == """{"tenant":"test","object":"123"}"""),
+                        p.Criteria == """{"tenant":"test","object":"123"}""" &&
+                        p.Scopes == scopes),
                     true),
                     Times.Once);
 
@@ -1001,6 +1007,39 @@ namespace NuGetGallery.Services.Authentication
                 var audits = AssertAuditResourceTypes(FederatedCredentialPolicyAuditRecord.ResourceType);
                 var policyAudit = Assert.IsType<FederatedCredentialPolicyAuditRecord>(audits[0]);
                 Assert.Equal(AuditedFederatedCredentialPolicyAction.ExchangeForApiKey, policyAudit.Action);
+            }
+        }
+
+        public class TheIsValidPolicyOwnerMethod : FederatedCredentialServiceFacts
+        {
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public void ReturnsIsValidPolicyOwner(bool isValidScope)
+            {
+                // Arrange
+                CredentialBuilder.Setup(x => x.VerifyScopes(CurrentUser, It.IsAny<IEnumerable<Scope>>())).Returns(isValidScope);
+
+                // Act & Assert
+                Assert.Equal(isValidScope, Target.IsValidPolicyOwner(CurrentUser, PackageOwner));
+            }
+        }
+
+        public class TheIsValidPolicyOwnerForScopesMethod : FederatedCredentialServiceFacts
+        {
+            [Theory]
+            [InlineData(true, true)]
+            [InlineData(true, false)]
+            [InlineData(false, true)]
+            [InlineData(false, false)]
+            public void ReturnsIsValidPolicyOwnerForScopes(bool isNullScopes, bool isValidScope)
+            {
+                // Arrange
+                IEnumerable<Scope>? scopes = isNullScopes ? null : [ new Scope() ];
+                CredentialBuilder.Setup(x => x.VerifyScopes(CurrentUser, It.IsAny<IEnumerable<Scope>>())).Returns(isValidScope);
+
+                // Act & Assert
+                Assert.Equal(isValidScope, Target.IsValidPolicyOwnerForScopes(CurrentUser, PackageOwner, scopes));
             }
         }
 

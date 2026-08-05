@@ -94,6 +94,7 @@ namespace NuGet.Jobs
         // Application Insights
         public const string InstrumentationKey = "InstrumentationKey";
         public const string HeartbeatIntervalSeconds = "HeartbeatIntervalSeconds";
+        public const string EnableDependencyTracking = "EnableDependencyTracking";
 
         // Arguments specific to validation tasks
         public const string RunValidationTasks = "RunValidationTasks";
