@@ -711,6 +711,110 @@ namespace NuGetGallery
                     && ar.Version == package.Version));
             }
 
+            [Fact]
+            public async Task CreatePackage_WhenApiKeyReductionEnabledAndKeyExpired_ReturnsForbidden()
+            {
+                // Arrange
+                var user = new User("test") { Key = 1, EmailAddress = "confirmed@email.com" };
+                var credential = TestCredentialHelper.CreateV4ApiKey(expiration: null, plaintextApiKey: out _);
+                credential.Created = DateTime.UtcNow.AddDays(-60);
+                credential.Expires = DateTime.UtcNow.AddDays(-1);
+                user.Credentials.Add(credential);
+
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.SetCurrentUser(user, credential);
+                controller.MockFeatureFlagService
+                    .Setup(f => f.IsApiKeyReductionEnabled())
+                    .Returns(true);
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                // Act
+                var result = await controller.CreatePackagePut();
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.Forbidden, Strings.ApiKeyExpiredUnderReductionPolicy);
+            }
+
+            [Fact]
+            public async Task CreatePackage_WhenApiKeyReductionDisabledAndKeyExpired_DoesNotReject()
+            {
+                // Arrange
+                var user = new User("test") { Key = 1, EmailAddress = "confirmed@email.com" };
+                var credential = TestCredentialHelper.CreateV4ApiKey(expiration: null, plaintextApiKey: out _);
+                credential.Created = DateTime.UtcNow.AddDays(-60);
+                credential.Expires = DateTime.UtcNow.AddDays(-1);
+                user.Credentials.Add(credential);
+
+                var packageRegistration = new PackageRegistration { Id = "theId" };
+                packageRegistration.Owners.Add(user);
+                var package = new Package { PackageRegistration = packageRegistration, Version = "1.0.42" };
+                packageRegistration.Packages.Add(package);
+
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.SetCurrentUser(user, credential);
+                controller.MockFeatureFlagService
+                    .Setup(f => f.IsApiKeyReductionEnabled())
+                    .Returns(false);
+                controller.MockPackageUploadService
+                    .Setup(p => p.GeneratePackageAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<PackageArchiveReader>(),
+                        It.IsAny<PackageStreamMetadata>(),
+                        It.IsAny<User>(),
+                        It.IsAny<User>()))
+                    .Returns(Task.FromResult(package));
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                // Act
+                var result = await controller.CreatePackagePut();
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.Created);
+            }
+
+            [Fact]
+            public async Task CreatePackage_WhenApiKeyReductionEnabledAndKeyNotExpired_DoesNotReject()
+            {
+                // Arrange - a long-duration key whose effective expiration is still in the future.
+                var user = new User("test") { Key = 1, EmailAddress = "confirmed@email.com" };
+                var credential = TestCredentialHelper.CreateV4ApiKey(expiration: null, plaintextApiKey: out _);
+                credential.Created = DateTime.UtcNow.AddDays(-1);
+                credential.Expires = DateTime.UtcNow.AddDays(60);
+                user.Credentials.Add(credential);
+
+                var packageRegistration = new PackageRegistration { Id = "theId" };
+                packageRegistration.Owners.Add(user);
+                var package = new Package { PackageRegistration = packageRegistration, Version = "1.0.42" };
+                packageRegistration.Packages.Add(package);
+
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.SetCurrentUser(user, credential);
+                controller.MockFeatureFlagService
+                    .Setup(f => f.IsApiKeyReductionEnabled())
+                    .Returns(true);
+                controller.MockPackageUploadService
+                    .Setup(p => p.GeneratePackageAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<PackageArchiveReader>(),
+                        It.IsAny<PackageStreamMetadata>(),
+                        It.IsAny<User>(),
+                        It.IsAny<User>()))
+                    .Returns(Task.FromResult(package));
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                // Act
+                var result = await controller.CreatePackagePut();
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.Created);
+            }
+
             [Theory]
             [InlineData(false, false, true)]
             [InlineData(true, false, true)]

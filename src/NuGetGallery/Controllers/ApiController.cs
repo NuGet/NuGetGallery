@@ -531,6 +531,28 @@ namespace NuGetGallery
             }
         }
 
+        private ActionResult CheckApiKeyReductionCutoff(User currentUser)
+        {
+            if (!FeatureFlagService.IsApiKeyReductionEnabled())
+            {
+                return null;
+            }
+
+            var credential = currentUser.GetCurrentApiKeyCredential(User.Identity);
+            if (credential == null || !credential.IsApiKey() || !credential.Expires.HasValue)
+            {
+                return null;
+            }
+
+            var effectiveExpiration = ApiKeyReductionPolicy.GetEffectiveExpiration(credential.Created, credential.Expires);
+            if (effectiveExpiration.HasValue && DateTime.UtcNow >= effectiveExpiration.Value)
+            {
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyExpiredUnderReductionPolicy);
+            }
+
+            return null;
+        }
+
         private async Task<ActionResult> CreatePackageInternal()
         {
             string id = null;
@@ -542,6 +564,12 @@ namespace NuGetGallery
 
                 // Get the user
                 var currentUser = GetCurrentUser();
+
+                var apiKeyReductionResult = CheckApiKeyReductionCutoff(currentUser);
+                if (apiKeyReductionResult != null)
+                {
+                    return apiKeyReductionResult;
+                }
 
                 var policyResult = await SecurityPolicyService.EvaluateUserPoliciesAsync(securityPolicyAction, currentUser, HttpContext);
                 if (!policyResult.Success)
