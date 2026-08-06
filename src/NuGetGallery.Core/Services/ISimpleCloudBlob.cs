@@ -24,6 +24,7 @@ namespace NuGetGallery
         Task<Stream> OpenWriteAsync(IAccessCondition accessCondition, string contentType = null);
 
         Task DeleteIfExistsAsync();
+        Task<bool> DeleteIfExistsAsync(IAccessCondition accessCondition);
         Task DownloadToStreamAsync(Stream target);
         Task DownloadToStreamAsync(Stream target, IAccessCondition accessCondition);
 

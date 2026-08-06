@@ -55,6 +55,7 @@ namespace NuGetGallery
             _container = container; // container can be null
 
             Properties = new CloudBlobPropertiesWrapper(this);
+            Metadata = new Dictionary<string, string>();
             CopyState = new CloudBlobCopyState(this);
         }
 
@@ -144,8 +145,17 @@ namespace NuGetGallery
 
         public async Task DeleteIfExistsAsync()
         {
-            await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
-                _blob.DeleteIfExistsAsync(DeleteSnapshotsOption.IncludeSnapshots));
+            await DeleteIfExistsAsync(accessCondition: null);
+        }
+
+        public async Task<bool> DeleteIfExistsAsync(IAccessCondition accessCondition)
+        {
+            var response = await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>
+                _blob.DeleteIfExistsAsync(
+                    DeleteSnapshotsOption.IncludeSnapshots,
+                    CloudWrapperHelpers.GetSdkAccessCondition(accessCondition)));
+
+            return response.Value;
         }
 
         public Task DownloadToStreamAsync(Stream target)
@@ -241,6 +251,7 @@ namespace NuGetGallery
                 {
                     Conditions = CloudWrapperHelpers.GetSdkAccessCondition(accessCondition),
                     HttpHeaders = BlobHeaders,
+                    Metadata = new Dictionary<string, string>(Metadata),
                 };
             }
             UpdateEtag(await CloudWrapperHelpers.WrapStorageExceptionAsync(() =>

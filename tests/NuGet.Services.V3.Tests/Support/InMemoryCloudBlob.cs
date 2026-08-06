@@ -65,12 +65,28 @@ namespace NuGet.Services
 
         public Task DeleteIfExistsAsync()
         {
+            return DeleteIfExistsAsync(accessCondition: null);
+        }
+
+        public Task<bool> DeleteIfExistsAsync(IAccessCondition accessCondition)
+        {
             lock (_lock)
             {
+                if (!Exists)
+                {
+                    return Task.FromResult(false);
+                }
+
+                if (accessCondition?.IfMatchETag != null
+                    && accessCondition.IfMatchETag != ETag)
+                {
+                    throw new CloudBlobPreconditionFailedException(null);
+                }
+
                 Exists = false;
             }
 
-            return Task.CompletedTask;
+            return Task.FromResult(true);
         }
 
         public Task<string> DownloadTextIfExistsAsync()

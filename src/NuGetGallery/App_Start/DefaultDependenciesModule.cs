@@ -1568,8 +1568,9 @@ namespace NuGetGallery
             /// <see cref="StorageDependent.GetAll(IAppConfiguration)"/> and is grouped by the respective storage
             /// connection string. Each group is given a binding key which refers to the appropriate instance of the
             /// <see cref="IFileStorageService"/>.
+            var storageDependents = StorageDependent.GetAll(configuration.Current).ToList();
             var completedBindingKeys = new HashSet<string>();
-            foreach (var dependent in StorageDependent.GetAll(configuration.Current))
+            foreach (var dependent in storageDependents)
             {
                 if (completedBindingKeys.Add(dependent.BindingKey))
                 {
@@ -1613,6 +1614,17 @@ namespace NuGetGallery
                     registration.InstancePerLifetimeScope();
                 }
             }
+
+            var packagesStorageBindingKey = storageDependents
+                .Single(x => x.ImplementationType == typeof(PackageFileService))
+                .BindingKey;
+            builder.RegisterType<StagingBlobService>()
+                .WithParameter(new ResolvedParameter(
+                    (pi, ctx) => pi.ParameterType == typeof(ICloudBlobClient),
+                    (pi, ctx) => ctx.ResolveKeyed<ICloudBlobClient>(packagesStorageBindingKey)))
+                .WithParameter("initializeContainer", true)
+                .As<IStagingBlobService>()
+                .SingleInstance();
 
             RegisterStatisticsServices(builder, configuration);
 

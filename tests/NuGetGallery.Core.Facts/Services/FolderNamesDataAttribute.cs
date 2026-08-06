@@ -36,6 +36,7 @@ namespace NuGetGallery
                     new object[] { CoreConstants.Folders.ValidationFolderName, false, CoreConstants.PackageContentType },
                     new object[] { CoreConstants.Folders.PackagesContentFolderName, false, CoreConstants.OctetStreamContentType },
                     new object[] { CoreConstants.Folders.RevalidationFolderName, false, CoreConstants.JsonContentType },
+                    new object[] { CoreConstants.Folders.StagingFolderName, false, CoreConstants.PackageContentType },
                     new object[] { CoreConstants.Folders.FlatContainerFolderName, true, CoreConstants.PackageContentType },
                 };
 
