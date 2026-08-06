@@ -270,12 +270,13 @@
                                           id: PolicyNameUid() + '-label' }">Policy Name</label>
                 <input type="text" class="form-control input-brand" data-bind="attr: { id: PolicyNameUid,
                                           name: PolicyNameUid,
-                                          'aria-labelledby': PolicyNameUid() + '-label ' + PolicyNameUid() + '-validation-message' },
+                                          'aria-labelledby': PolicyNameUid() + '-label',
+                                          'aria-describedby': PolicyNameUid() + '-validation-message' },
                                           trimmedValue: PendingPolicyName"
                        data-val-required="Name is required."
                        data-val-length-max="@FederatedCredentialPolicy.MaxPolicyNameLength"
                        data-val-length="Name must not exceed @FederatedCredentialPolicy.MaxPolicyNameLength characters." data-val="true" />
-                <span class="field-validation-valid help-block" data-valmsg-replace="true" data-bind="attr: { 'data-valmsg-for': PolicyNameUid,
+                <span class="field-validation-valid help-block" role="alert" aria-live="assertive" data-valmsg-replace="true" data-bind="attr: { 'data-valmsg-for': PolicyNameUid,
                                          id: PolicyNameUid() + '-validation-message' }"></span>
                 <span>Choose any name to help you identify this policy</span>
             </div>
@@ -289,14 +290,17 @@
                                             id: PackageOwnerUid() + '-label' }">Package Owner</label>
                 <select class="form-control select-brand" aria-required="true" data-bind="attr: { id: PackageOwnerUid,
                                                   name: PackageOwnerUid,
-                                                  'aria-labelledby': PackageOwnerUid() + '-label' },
+                                                  'aria-labelledby': PackageOwnerUid() + '-label',
+                                                  'aria-describedby': PackageOwnerUid() + '-validation-message' },
                                           options: PackageOwners, value: PackageOwner, optionsCaption: 'Select an owner...' "></select>
                 <div class="has-error-brand">
-                    <span class="field-validation-valid help-block" data-bind="text: PackageOwner() ?  '' : 'Package owner should be provided.'" aria-live="polite" role="alert"></span>
+                    <span class="field-validation-valid help-block" role="alert" aria-live="assertive" data-bind="text: PackageOwner() ?  '' : 'Package owner should be provided.',
+                                         attr: { id: PackageOwnerUid() + '-validation-message' }"></span>
                 </div>
                 <span>The owner of packages allowed for publishing or updates</span>
             </div>
         </div>
+
 
         <!-- Provider Selection -->
         <div class="row">
@@ -333,10 +337,11 @@
                 <span>Example: <span class="example-text">azure</span>. The GitHub organization or owner name. </span>
                 <input type="text" class="form-control input-brand" data-bind="attr: { id: gitHub.RepositoryOwnerUid(),
                                           name: gitHub.RepositoryOwnerUid(),
-                                          'aria-labelledby': gitHub.RepositoryOwnerUid() + '-label ' + gitHub.RepositoryOwnerUid() + '-validation-message' },
+                                          'aria-labelledby': gitHub.RepositoryOwnerUid() + '-label',
+                                          'aria-describedby': gitHub.RepositoryOwnerUid() + '-validation-message' },
                                           trimmedValue: gitHub.PendingRepositoryOwner" data-val-required="Repository owner is required." data-val="true" />
-                <span class="field-validation-valid help-block" data-valmsg-replace="true" data-bind="attr: { 'data-valmsg-for': gitHub.RepositoryOwnerUid(),
-                                         id: gitHub.RepositoryOwnerUid() + '-validation-message' }" />
+                <span class="field-validation-valid help-block" role="alert" aria-live="assertive" data-valmsg-replace="true" data-bind="attr: { 'data-valmsg-for': gitHub.RepositoryOwnerUid(),
+                                         id: gitHub.RepositoryOwnerUid() + '-validation-message' }"></span>
             </div>
         </div>
 
@@ -349,10 +354,11 @@
                 <span>Example: <span class="example-text">azure-sdk-tools</span>. The GitHub repository name.</span>
                 <input type="text" class="form-control input-brand" data-bind="attr: { id: gitHub.RepositoryUid(),
                                           name: gitHub.RepositoryUid(),
-                                          'aria-labelledby': gitHub.RepositoryUid() + '-label ' + gitHub.RepositoryUid() + '-validation-message' },
+                                          'aria-labelledby': gitHub.RepositoryUid() + '-label',
+                                          'aria-describedby': gitHub.RepositoryUid() + '-validation-message' },
                                           trimmedValue: gitHub.PendingRepository" data-val-required="Repository is required." data-val="true" />
-                <span class="field-validation-valid help-block" data-valmsg-replace="true" data-bind="attr: { 'data-valmsg-for': gitHub.RepositoryUid(),
-                                         id: gitHub.RepositoryUid() + '-validation-message' }" />
+                <span class="field-validation-valid help-block" role="alert" aria-live="assertive" data-valmsg-replace="true" data-bind="attr: { 'data-valmsg-for': gitHub.RepositoryUid(),
+                                         id: gitHub.RepositoryUid() + '-validation-message' }"></span>
             </div>
         </div>
         <!-- /ko -->
@@ -368,10 +374,11 @@
                 </span>
                 <input type="text" class="form-control input-brand" data-bind="attr: { id: gitHub.WorkflowFileUid(),
                                           name: gitHub.WorkflowFileUid(),
-                                          'aria-labelledby': gitHub.WorkflowFileUid() + '-label ' + gitHub.WorkflowFileUid() + '-validation-message' },
+                                          'aria-labelledby': gitHub.WorkflowFileUid() + '-label',
+                                          'aria-describedby': gitHub.WorkflowFileUid() + '-validation-message' },
                                           trimmedValue: gitHub.PendingWorkflowFile" data-val-required="Workflow file is required." data-val="true" />
-                <span class="field-validation-valid help-block" data-valmsg-replace="true" data-bind="attr: { 'data-valmsg-for': gitHub.WorkflowFileUid(),
-                                         id: gitHub.WorkflowFileUid() + '-validation-message' }" />
+                <span class="field-validation-valid help-block" role="alert" aria-live="assertive" data-valmsg-replace="true" data-bind="attr: { 'data-valmsg-for': gitHub.WorkflowFileUid(),
+                                         id: gitHub.WorkflowFileUid() + '-validation-message' }"></span>
             </div>
         </div>
 
@@ -409,10 +416,11 @@
                 <span>Example: <span class="example-text">my-group</span> or <span class="example-text">my-group/my-subgroup</span>. The GitLab group or namespace.</span>
                 <input type="text" class="form-control input-brand" data-bind="attr: { id: gitLab.NamespacePathUid(),
                                           name: gitLab.NamespacePathUid(),
-                                          'aria-labelledby': gitLab.NamespacePathUid() + '-label ' + gitLab.NamespacePathUid() + '-validation-message' },
+                                          'aria-labelledby': gitLab.NamespacePathUid() + '-label',
+                                          'aria-describedby': gitLab.NamespacePathUid() + '-validation-message' },
                                           trimmedValue: gitLab.PendingNamespacePath" data-val-required="Namespace path is required." data-val="true" />
-                <span class="field-validation-valid help-block" data-valmsg-replace="true" data-bind="attr: { 'data-valmsg-for': gitLab.NamespacePathUid(),
-                                         id: gitLab.NamespacePathUid() + '-validation-message' }" />
+                <span class="field-validation-valid help-block" role="alert" aria-live="assertive" data-valmsg-replace="true" data-bind="attr: { 'data-valmsg-for': gitLab.NamespacePathUid(),
+                                         id: gitLab.NamespacePathUid() + '-validation-message' }"></span>
             </div>
         </div>
 
@@ -425,10 +433,11 @@
                 <span>Example: <span class="example-text">my-project</span>. The GitLab project name (without the namespace).</span>
                 <input type="text" class="form-control input-brand" data-bind="attr: { id: gitLab.ProjectPathUid(),
                                           name: gitLab.ProjectPathUid(),
-                                          'aria-labelledby': gitLab.ProjectPathUid() + '-label ' + gitLab.ProjectPathUid() + '-validation-message' },
+                                          'aria-labelledby': gitLab.ProjectPathUid() + '-label',
+                                          'aria-describedby': gitLab.ProjectPathUid() + '-validation-message' },
                                           trimmedValue: gitLab.PendingProjectPath" data-val-required="Project path is required." data-val="true" />
-                <span class="field-validation-valid help-block" data-valmsg-replace="true" data-bind="attr: { 'data-valmsg-for': gitLab.ProjectPathUid(),
-                                         id: gitLab.ProjectPathUid() + '-validation-message' }" />
+                <span class="field-validation-valid help-block" role="alert" aria-live="assertive" data-valmsg-replace="true" data-bind="attr: { 'data-valmsg-for': gitLab.ProjectPathUid(),
+                                         id: gitLab.ProjectPathUid() + '-validation-message' }"></span>
             </div>
         </div>
         <!-- /ko -->
