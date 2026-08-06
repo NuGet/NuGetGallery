@@ -33,7 +33,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                         SasDefinitionConfigurationMock.Object,
                         LoggerMock.Object,
                         null,
-                        CoreReadmeFileServiceMock.Object));
+                        CoreReadmeFileServiceMock.Object,
+                        StagedPackageTerminalStateProcessorMock.Object));
 
                 Assert.Equal("coreLicenseFileService", ex.ParamName);
             }
@@ -49,7 +50,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     null,
                     LoggerMock.Object,
                     CoreLicenseFileServiceMock.Object,
-                    CoreReadmeFileServiceMock.Object);
+                    CoreReadmeFileServiceMock.Object,
+                    StagedPackageTerminalStateProcessorMock.Object);
             }
 
             [Fact]
@@ -66,12 +68,59 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     SasDefinitionConfigurationMock.Object,
                     LoggerMock.Object,
                     CoreLicenseFileServiceMock.Object,
-                    CoreReadmeFileServiceMock.Object);
+                    CoreReadmeFileServiceMock.Object,
+                    StagedPackageTerminalStateProcessorMock.Object);
             }
         }
 
         public class SetPackageStatusAsync : BaseFacts
         {
+            [Theory]
+            [InlineData(StagingArtifactStatus.Ready)]
+            [InlineData(StagingArtifactStatus.ValidationFailed)]
+            public async Task RoutesStagedPackageOutcomeWithoutOrdinaryPublication(
+                StagingArtifactStatus status)
+            {
+                Package.PackageStatusKey = PackageStatus.Staged;
+
+                await Target.SetStagedValidationStatusAsync(PackageValidatingEntity, ValidationSet, status);
+
+                StagedPackageTerminalStateProcessorMock.Verify(
+                    x => x.ProcessAsync(ValidationSet, Package, status),
+                    Times.Once);
+                PackageServiceMock.Verify(
+                    x => x.UpdateStatusAsync(
+                        It.IsAny<Package>(),
+                        It.IsAny<PackageStatus>(),
+                        It.IsAny<bool>()),
+                    Times.Never);
+                PackageFileServiceMock.Verify(
+                    x => x.CopyValidationSetPackageToPackageFileAsync(
+                        It.IsAny<PackageValidationSet>(),
+                        It.IsAny<IAccessCondition>()),
+                    Times.Never);
+            }
+
+            [Fact]
+            public async Task OrdinaryStatusPathRejectsStagedPackage()
+            {
+                Package.PackageStatusKey = PackageStatus.Staged;
+
+                var exception = await Assert.ThrowsAsync<ArgumentException>(
+                    () => Target.SetStatusAsync(
+                        PackageValidatingEntity,
+                        ValidationSet,
+                        PackageStatus.Available));
+
+                Assert.Equal("validatingEntity", exception.ParamName);
+                StagedPackageTerminalStateProcessorMock.Verify(
+                    x => x.ProcessAsync(
+                        It.IsAny<PackageValidationSet>(),
+                        It.IsAny<Package>(),
+                        It.IsAny<StagingArtifactStatus>()),
+                    Times.Never);
+            }
+
             [Theory]
             [InlineData(PackageStatus.Deleted)]
             [InlineData(PackageStatus.Validating)]
@@ -739,6 +788,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 LoggerMock = new Mock<ILogger<EntityStatusProcessor<Package>>>();
                 CoreLicenseFileServiceMock = new Mock<ICoreLicenseFileService>();
                 CoreReadmeFileServiceMock = new Mock<ICoreReadmeFileService>();
+                StagedPackageTerminalStateProcessorMock = new Mock<IStagedPackageTerminalStateProcessor>();
 
                 var streamMetadata = new PackageStreamMetadata()
                 {
@@ -762,7 +812,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     SasDefinitionConfigurationMock.Object,
                     LoggerMock.Object,
                     CoreLicenseFileServiceMock.Object,
-                    CoreReadmeFileServiceMock.Object);
+                    CoreReadmeFileServiceMock.Object,
+                    StagedPackageTerminalStateProcessorMock.Object);
 
                 PackageValidatingEntity = new PackageValidatingEntity(Package);
             }
@@ -778,6 +829,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             public Mock<IOptionsSnapshot<SasDefinitionConfiguration>> SasDefinitionConfigurationMock;
 
             public Mock<ICoreReadmeFileService> CoreReadmeFileServiceMock { get; }
+            public Mock<IStagedPackageTerminalStateProcessor> StagedPackageTerminalStateProcessorMock { get; }
             public EntityStatusProcessor<Package> Target { get; }
             public PackageValidatingEntity PackageValidatingEntity { get; }
             public SasDefinitionConfiguration SasDefinitionConfiguration { get; }

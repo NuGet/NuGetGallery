@@ -15,5 +15,10 @@ namespace NuGet.Services.Validation.Orchestrator
             IValidatingEntity<T> validatingEntity,
             PackageValidationSet validationSet,
             PackageStatus status);
+
+        Task SetStagedValidationStatusAsync(
+            IValidatingEntity<T> validatingEntity,
+            PackageValidationSet validationSet,
+            StagingArtifactStatus status);
     }
 }

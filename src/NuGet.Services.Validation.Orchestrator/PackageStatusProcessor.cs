@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -16,6 +16,7 @@ namespace NuGet.Services.Validation.Orchestrator
         private readonly ICoreLicenseFileService _coreLicenseFileService;
         private readonly SasDefinitionConfiguration _sasDefinitionConfiguration;
         private readonly ICoreReadmeFileService _coreReadmeFileService;
+        private readonly IStagedPackageTerminalStateProcessor _stagedPackageTerminalStateProcessor;
 
         public PackageStatusProcessor(
             IEntityService<Package> galleryPackageService,
@@ -25,12 +26,23 @@ namespace NuGet.Services.Validation.Orchestrator
             IOptionsSnapshot<SasDefinitionConfiguration> options,
             ILogger<EntityStatusProcessor<Package>> logger,
             ICoreLicenseFileService coreLicenseFileService,
-            ICoreReadmeFileService coreReadmeFileService) 
+            ICoreReadmeFileService coreReadmeFileService,
+            IStagedPackageTerminalStateProcessor stagedPackageTerminalStateProcessor)
             : base(galleryPackageService, packageFileService, validatorProvider, telemetryService, logger)
         {
             _coreLicenseFileService = coreLicenseFileService ?? throw new ArgumentNullException(nameof(coreLicenseFileService));
             _sasDefinitionConfiguration = (options == null || options.Value == null) ? new SasDefinitionConfiguration() : options.Value;
             _coreReadmeFileService = coreReadmeFileService ?? throw new ArgumentNullException(nameof(coreReadmeFileService));
+            _stagedPackageTerminalStateProcessor = stagedPackageTerminalStateProcessor
+                ?? throw new ArgumentNullException(nameof(stagedPackageTerminalStateProcessor));
+        }
+
+        protected override Task ApplyStagedValidationStatusAsync(
+            IValidatingEntity<Package> validatingEntity,
+            PackageValidationSet validationSet,
+            StagingArtifactStatus status)
+        {
+            return _stagedPackageTerminalStateProcessor.ProcessAsync(validationSet, validatingEntity.EntityRecord, status);
         }
 
         protected override async Task OnBeforeUpdateDatabaseToMakePackageAvailable(

@@ -315,6 +315,72 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             Assert.Equal(ValidationSetStatus.Completed, ValidationSet.ValidationSetStatus);
         }
+
+        [Theory]
+        [InlineData(ValidationStatus.Succeeded, PackageStatus.Available)]
+        [InlineData(ValidationStatus.Failed, PackageStatus.FailedValidation)]
+        public async Task StagedPackageOutcomeDoesNotSendOrdinaryEmail(
+            ValidationStatus validationStatus,
+            PackageStatus outcomeStatus)
+        {
+            AddValidation("validation1", validationStatus);
+            Package.PackageStatusKey = PackageStatus.Staged;
+            ValidationSet.ValidatingType = ValidatingType.Package;
+
+            var processor = CreateProcessor();
+            await processor.ProcessValidationOutcomeAsync(
+                ValidationSet,
+                PackageValidatingEntity,
+                ProcessorStats,
+                ScheduleNextCheck);
+
+            PackageStateProcessorMock.Verify(
+                x => x.SetStagedValidationStatusAsync(
+                    PackageValidatingEntity,
+                    ValidationSet,
+                    outcomeStatus == PackageStatus.Available
+                        ? StagingArtifactStatus.Ready
+                        : StagingArtifactStatus.ValidationFailed),
+                Times.Once);
+            PackageStateProcessorMock.Verify(
+                x => x.SetStatusAsync(
+                    It.IsAny<PackageValidatingEntity>(),
+                    It.IsAny<PackageValidationSet>(),
+                    It.IsAny<PackageStatus>()),
+                Times.Never);
+            MessageServiceMock.Verify(
+                x => x.SendPublishedMessageAsync(It.IsAny<Package>()),
+                Times.Never);
+            MessageServiceMock.Verify(
+                x => x.SendValidationFailedMessageAsync(
+                    It.IsAny<Package>(),
+                    It.IsAny<PackageValidationSet>()),
+                Times.Never);
+            Assert.Equal(ValidationSetStatus.Completed, ValidationSet.ValidationSetStatus);
+        }
+
+        [Fact]
+        public async Task StagedSymbolOutcomeCannotUseOrdinaryPublication()
+        {
+            AddValidation("validation1", ValidationStatus.Succeeded);
+            Package.PackageStatusKey = PackageStatus.Staged;
+            ValidationSet.ValidatingType = ValidatingType.SymbolPackage;
+
+            var processor = CreateProcessor();
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                processor.ProcessValidationOutcomeAsync(
+                    ValidationSet,
+                    PackageValidatingEntity,
+                    ProcessorStats,
+                    ScheduleNextCheck));
+
+            PackageStateProcessorMock.Verify(
+                x => x.SetStatusAsync(
+                    It.IsAny<PackageValidatingEntity>(),
+                    It.IsAny<PackageValidationSet>(),
+                    It.IsAny<PackageStatus>()),
+                Times.Never);
+        }
         
         [Theory]
         [InlineData(PackageStatus.Validating)]
