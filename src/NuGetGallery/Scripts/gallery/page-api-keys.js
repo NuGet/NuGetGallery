@@ -197,6 +197,7 @@
 
             this.ScopesError = ko.observable();
             this.SubjectsError = ko.observable();
+            this.HasAttemptedSubmit = ko.observable(false);
             this.PendingCreateOrEdit = ko.observable(false);
             this.JustCreated = ko.observable(false);
             this.JustRegenerated = ko.observable(false);
@@ -417,6 +418,7 @@
                 // Reset the custom errors.
                 self.ScopesError(null);
                 self.SubjectsError(null);
+                self.HasAttemptedSubmit(false);
 
                 // Reset the form.
                 var formElement = $("#" + self.FormId())[0];
@@ -543,6 +545,7 @@
             };
 
             this.CreateOrEdit = function () {
+                self.HasAttemptedSubmit(true);
                 if (!this.Valid()) {
                     return;
                 }
