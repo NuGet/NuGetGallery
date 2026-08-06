@@ -157,6 +157,7 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddScoped<IValidationEntitiesContext>(serviceProvider =>
                 serviceProvider.GetRequiredService<ValidationEntitiesContext>());
             services.AddScoped<IValidationStorageService, ValidationStorageService>();
+            services.AddTransient<IStagingValidationInputProvider, StagingValidationInputProvider>();
             services.Add(ServiceDescriptor.Transient(typeof(IEntityRepository<>), typeof(EntityRepository<>)));
             services.AddTransient<ICorePackageService, CorePackageService>();
             services.AddTransient<IEntityService<Package>, PackageEntityService>();

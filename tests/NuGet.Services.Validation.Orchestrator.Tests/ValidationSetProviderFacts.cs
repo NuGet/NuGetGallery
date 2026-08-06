@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
+using NuGet.Jobs.Validation;
 using NuGet.Services.Entities;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 using Xunit;
@@ -22,6 +23,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         public Mock<IOptionsSnapshot<SasDefinitionConfiguration>> SasDefinitionConfigurationAccessorMock { get; }
         public Mock<ITelemetryService> TelemetryServiceMock { get; }
         public Mock<ILogger<ValidationSetProvider<Package>>> LoggerMock { get; }
+        public Mock<IStagingValidationInputProvider> StagingInputProviderMock { get; }
         public ValidationConfiguration Configuration { get; }
         public SasDefinitionConfiguration SasDefinitionConfiguration { get; }
         public string ETag { get; }
@@ -353,7 +355,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 ConfigurationAccessorMock.Object,
                 SasDefinitionConfigurationAccessorMock.Object,
                 TelemetryServiceMock.Object,
-                LoggerMock.Object);
+                LoggerMock.Object,
+                StagingInputProviderMock.Object);
 
             var packageValidationMessageData = new ProcessValidationSetData(
                 Package.PackageRegistration.Id,
@@ -445,7 +448,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 ConfigurationAccessorMock.Object,
                 SasDefinitionConfigurationAccessorMock.Object,
                 TelemetryServiceMock.Object,
-                LoggerMock.Object);
+                LoggerMock.Object,
+                StagingInputProviderMock.Object);
 
             var packageValidationMessageData = new ProcessValidationSetData(
                 Package.PackageRegistration.Id,
@@ -523,7 +527,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 ConfigurationAccessorMock.Object,
                 SasDefinitionConfigurationAccessorMock.Object,
                 TelemetryServiceMock.Object,
-                LoggerMock.Object);
+                LoggerMock.Object,
+                StagingInputProviderMock.Object);
 
             var packageValidationMessageData = new ProcessValidationSetData(
                 Package.PackageRegistration.Id,
@@ -585,6 +590,112 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 Times.Never);
         }
 
+        [Fact]
+        public async Task StagedPackageSkipsRecentValidationDeduplicationAndCopiesStagedInput()
+        {
+            const string validation = "validation";
+            Configuration.Validations = new List<ValidationConfigurationItem>
+            {
+                new ValidationConfigurationItem
+                {
+                    Name = validation,
+                    RequiredValidations = new List<string>(),
+                    ShouldStart = true,
+                }
+            };
+            Package.PackageStatusKey = PackageStatus.Staged;
+            var trackingId = Guid.NewGuid();
+            var message = new ProcessValidationSetData(
+                Package.PackageRegistration.Id,
+                Package.NormalizedVersion,
+                trackingId,
+                ValidatingType.Package,
+                Package.Key);
+            ValidationStorageMock
+                .Setup(x => x.GetValidationSetAsync(trackingId))
+                .ReturnsAsync((PackageValidationSet)null);
+            ValidationStorageMock
+                .Setup(x => x.CreateValidationSetAsync(It.IsAny<PackageValidationSet>()))
+                .Returns<PackageValidationSet>(x => Task.FromResult(x));
+            ValidationStorageMock
+                .Setup(x => x.GetValidationSetCountAsync(PackageValidatingEntity))
+                .ReturnsAsync(1);
+
+            var result = await CreateProvider().TryGetOrCreateValidationSetAsync(message, PackageValidatingEntity);
+
+            Assert.Equal(validation, Assert.Single(result.PackageValidations).Type);
+            StagingInputProviderMock.Verify(x => x.CopyStagedPackageForValidationSetAsync(result), Times.Once);
+            ValidationStorageMock.Verify(
+                x => x.OtherRecentValidationSetForPackageExists(
+                    It.IsAny<IValidatingEntity<Package>>(),
+                    It.IsAny<TimeSpan>(),
+                    It.IsAny<Guid>()),
+                Times.Never);
+            PackageFileServiceMock.Verify(
+                x => x.CopyValidationPackageForValidationSetAsync(It.IsAny<PackageValidationSet>()),
+                Times.Never);
+        }
+
+        [Fact]
+        public async Task StagedSymbolUsesOnlyScanAndValidation()
+        {
+            var symbol = new SymbolPackage
+            {
+                Key = 43,
+                StatusKey = PackageStatus.Staged,
+                Created = DateTime.UtcNow,
+                Package = Package,
+            };
+            var entity = new SymbolPackageValidatingEntity(symbol);
+            var trackingId = Guid.NewGuid();
+            var message = new ProcessValidationSetData(
+                Package.PackageRegistration.Id,
+                Package.NormalizedVersion,
+                trackingId,
+                ValidatingType.SymbolPackage,
+                symbol.Key);
+            var configuration = new ValidationConfiguration
+            {
+                Validations = new List<ValidationConfigurationItem>
+                {
+                    new ValidationConfigurationItem { Name = "unrelated", ShouldStart = true },
+                    new ValidationConfigurationItem { Name = ValidatorName.SymbolScan, ShouldStart = true },
+                    new ValidationConfigurationItem { Name = ValidatorName.SymbolsValidator, ShouldStart = true },
+                    new ValidationConfigurationItem { Name = ValidatorName.SymbolsIngester, ShouldStart = true },
+                }
+            };
+            var configurationAccessor = new Mock<IOptionsSnapshot<ValidationConfiguration>>();
+            configurationAccessor.SetupGet(x => x.Value).Returns(configuration);
+            var storage = new Mock<IValidationStorageService>();
+            storage.Setup(x => x.GetValidationSetAsync(trackingId)).ReturnsAsync((PackageValidationSet)null);
+            storage
+                .Setup(x => x.CreateValidationSetAsync(It.IsAny<PackageValidationSet>()))
+                .Returns<PackageValidationSet>(x => Task.FromResult(x));
+            storage.Setup(x => x.GetValidationSetCountAsync(entity)).ReturnsAsync(1);
+            var validatorProvider = new Mock<IValidatorProvider>();
+            validatorProvider.Setup(x => x.IsNuGetProcessor(It.IsAny<string>())).Returns(false);
+            var stagingInputProvider = new Mock<IStagingValidationInputProvider>();
+            stagingInputProvider
+                .Setup(x => x.CopyStagedPackageForValidationSetAsync(It.IsAny<PackageValidationSet>()))
+                .Returns(Task.CompletedTask);
+            var provider = new ValidationSetProvider<SymbolPackage>(
+                storage.Object,
+                PackageFileServiceMock.Object,
+                validatorProvider.Object,
+                configurationAccessor.Object,
+                SasDefinitionConfigurationAccessorMock.Object,
+                TelemetryServiceMock.Object,
+                Mock.Of<ILogger<ValidationSetProvider<SymbolPackage>>>(),
+                stagingInputProvider.Object);
+
+            var result = await provider.TryGetOrCreateValidationSetAsync(message, entity);
+
+            Assert.Collection(
+                result.PackageValidations,
+                x => Assert.Equal(ValidatorName.SymbolScan, x.Type),
+                x => Assert.Equal(ValidatorName.SymbolsValidator, x.Type));
+        }
+
         public ValidationSetProviderFacts()
         {
             ValidationStorageMock = new Mock<IValidationStorageService>(MockBehavior.Strict);
@@ -594,6 +705,10 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             SasDefinitionConfigurationAccessorMock = new Mock<IOptionsSnapshot<SasDefinitionConfiguration>>();
             TelemetryServiceMock = new Mock<ITelemetryService>();
             LoggerMock = new Mock<ILogger<ValidationSetProvider<Package>>>();
+            StagingInputProviderMock = new Mock<IStagingValidationInputProvider>();
+            StagingInputProviderMock
+                .Setup(x => x.CopyStagedPackageForValidationSetAsync(It.IsAny<PackageValidationSet>()))
+                .Returns(Task.CompletedTask);
 
             PackageFileServiceMock
                 .Setup(x => x.CopyPackageFileForValidationSetAsync(It.IsAny<PackageValidationSet>()))
@@ -663,7 +778,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 ConfigurationAccessorMock.Object,
                 SasDefinitionConfigurationAccessorMock.Object,
                 TelemetryServiceMock.Object,
-                LoggerMock.Object);
+                LoggerMock.Object,
+                StagingInputProviderMock.Object);
         }
     }
 }

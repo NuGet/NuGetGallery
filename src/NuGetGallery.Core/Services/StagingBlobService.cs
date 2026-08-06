@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Security.Cryptography;
@@ -127,15 +128,19 @@ namespace NuGetGallery
 
         public async Task CopyAsync(
             StagingBlobReference source,
+            ICloudBlobClient destinationClient,
             string destinationFolderName,
             string destinationFileName,
             IAccessCondition destinationAccessCondition)
         {
-            // TODO: Accept an explicit destination storage client before staged validation is implemented. Staging
-            // uses package storage, while validation working files may use a separate storage account.
             if (source == null)
             {
                 throw new ArgumentNullException(nameof(source));
+            }
+
+            if (destinationClient == null)
+            {
+                throw new ArgumentNullException(nameof(destinationClient));
             }
 
             if (string.IsNullOrWhiteSpace(destinationFolderName))
@@ -149,29 +154,49 @@ namespace NuGetGallery
             }
 
             var sourceBlob = await GetValidatedBlobAsync(source);
-            var destinationContainer = _client.GetContainerReference(destinationFolderName);
+            var destinationContainer = destinationClient.GetContainerReference(destinationFolderName);
             var destinationBlob = destinationContainer.GetBlobReference(destinationFileName);
 
-            await destinationBlob.StartCopyAsync(
-                sourceBlob,
-                AccessConditionWrapper.GenerateIfMatchCondition(source.ETag),
-                destinationAccessCondition ?? AccessConditionWrapper.GenerateIfNotExistsCondition());
-
-            var started = DateTime.UtcNow;
-            while (destinationBlob.CopyState.Status == CloudBlobCopyStatus.Pending
-                && DateTime.UtcNow - started < MaxCopyDuration)
+            var condition = destinationAccessCondition ?? AccessConditionWrapper.GenerateIfNotExistsCondition();
+            try
             {
-                await Task.Delay(CopyPollFrequency);
+                await destinationBlob.StartCopyAsync(
+                    sourceBlob,
+                    AccessConditionWrapper.GenerateIfMatchCondition(source.ETag),
+                    condition);
+            }
+            catch (CloudBlobStorageException ex) when (
+                condition.IfNoneMatchETag == "*"
+                && (ex is CloudBlobConflictException || ex is CloudBlobPreconditionFailedException))
+            {
                 await destinationBlob.FetchAttributesAsync();
             }
 
-            if (destinationBlob.CopyState.Status != CloudBlobCopyStatus.Success)
+            await WaitForCopyAsync(destinationBlob);
+            ValidateContent(destinationBlob, source);
+        }
+
+        private static async Task WaitForCopyAsync(ISimpleCloudBlob destinationBlob)
+        {
+            var stopwatch = Stopwatch.StartNew();
+            while (destinationBlob.CopyState.Status == CloudBlobCopyStatus.Pending
+                && stopwatch.Elapsed < MaxCopyDuration)
             {
-                throw new CloudBlobStorageException(
-                    $"The staging blob copy did not succeed. Copy status: {destinationBlob.CopyState.Status}.");
+                await destinationBlob.FetchAttributesAsync();
+                await Task.Delay(CopyPollFrequency);
             }
 
-            ValidateContent(destinationBlob, source);
+            if (destinationBlob.CopyState.Status == CloudBlobCopyStatus.Pending)
+            {
+                throw new TimeoutException(
+                    $"Waiting for the staging blob copy operation to complete timed out after {MaxCopyDuration.TotalSeconds} seconds.");
+            }
+            else if (destinationBlob.CopyState.Status != CloudBlobCopyStatus.Success)
+            {
+                throw new CloudBlobStorageException(
+                    $"The staging blob copy operation had copy status {destinationBlob.CopyState.Status} " +
+                    $"({destinationBlob.CopyState.StatusDescription}).");
+            }
         }
 
         public async Task DeleteAsync(string blobPath, string expectedETag)

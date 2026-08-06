@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using NuGet.Jobs.Validation;
 using NuGet.Services.Entities;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 
@@ -21,6 +22,7 @@ namespace NuGet.Services.Validation.Orchestrator
         private readonly SasDefinitionConfiguration _sasDefinitionConfiguration;
         private readonly ITelemetryService _telemetryService;
         private readonly ILogger<ValidationSetProvider<T>> _logger;
+        private readonly IStagingValidationInputProvider _stagingInputProvider;
 
         public ValidationSetProvider(
             IValidationStorageService validationStorageService,
@@ -29,7 +31,8 @@ namespace NuGet.Services.Validation.Orchestrator
             IOptionsSnapshot<ValidationConfiguration> validationConfigurationAccessor,
             IOptionsSnapshot<SasDefinitionConfiguration> sasDefinitionConfigurationAccessor,
             ITelemetryService telemetryService,
-            ILogger<ValidationSetProvider<T>> logger)
+            ILogger<ValidationSetProvider<T>> logger,
+            IStagingValidationInputProvider stagingInputProvider)
         {
             _validationStorageService = validationStorageService ?? throw new ArgumentNullException(nameof(validationStorageService));
             _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
@@ -42,6 +45,7 @@ namespace NuGet.Services.Validation.Orchestrator
             _sasDefinitionConfiguration = (sasDefinitionConfigurationAccessor == null || sasDefinitionConfigurationAccessor.Value == null) ? new SasDefinitionConfiguration() : sasDefinitionConfigurationAccessor.Value;
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _stagingInputProvider = stagingInputProvider ?? throw new ArgumentNullException(nameof(stagingInputProvider));
         }
 
         public async Task<PackageValidationSet> TryGetParentValidationSetAsync(Guid validationId)
@@ -55,13 +59,16 @@ namespace NuGet.Services.Validation.Orchestrator
 
             if (validationSet == null)
             {
-                var shouldSkip = await _validationStorageService.OtherRecentValidationSetForPackageExists(
-                    validatingEntity,
-                    _validationConfiguration.NewValidationRequestDeduplicationWindow,
-                    message.ValidationTrackingId);
-                if (shouldSkip)
+                if (validatingEntity.Status != PackageStatus.Staged)
                 {
-                    return null;
+                    var recentlyValidated = await _validationStorageService.OtherRecentValidationSetForPackageExists(
+                        validatingEntity,
+                        _validationConfiguration.NewValidationRequestDeduplicationWindow,
+                        message.ValidationTrackingId);
+                    if (recentlyValidated)
+                    {
+                        return null;
+                    }
                 }
 
                 validationSet = InitializeValidationSet(message, validatingEntity);
@@ -72,6 +79,10 @@ namespace NuGet.Services.Validation.Orchestrator
 
                     // This indicates that the package in the package container is expected to not change.
                     validationSet.PackageETag = packageETag;
+                }
+                else if (validatingEntity.Status == PackageStatus.Staged)
+                {
+                    await _stagingInputProvider.CopyStagedPackageForValidationSetAsync(validationSet);
                 }
                 else
                 {
@@ -164,6 +175,14 @@ namespace NuGet.Services.Validation.Orchestrator
             var validationsToStart = _validationConfiguration
                 .Validations
                 .Where(v => v.ShouldStart);
+
+            if (validatingEntity.Status == PackageStatus.Staged
+                && validatingEntity.ValidatingType == ValidatingType.SymbolPackage)
+            {
+                validationsToStart = validationsToStart.Where(v =>
+                    v.Name == ValidatorName.SymbolScan
+                    || v.Name == ValidatorName.SymbolsValidator);
+            }
 
             foreach (var validation in validationsToStart)
             {

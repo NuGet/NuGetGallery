@@ -14,6 +14,7 @@ namespace NuGetGallery
 
         Task CopyAsync(
             StagingBlobReference source,
+            ICloudBlobClient destinationClient,
             string destinationFolderName,
             string destinationFileName,
             IAccessCondition destinationAccessCondition);

@@ -154,6 +154,7 @@ namespace NuGetGallery
 
             await context.CreateService().CopyAsync(
                 reference,
+                context.DestinationClient.Object,
                 CoreConstants.Folders.ValidationFolderName,
                 "validation-sets/package.nupkg",
                 destinationCondition);
@@ -174,9 +175,34 @@ namespace NuGetGallery
             await Assert.ThrowsAsync<CloudBlobNotFoundException>(
                 () => context.CreateService().CopyAsync(
                     reference,
+                    context.DestinationClient.Object,
                     CoreConstants.Folders.ValidationFolderName,
                     "validation-sets/package.nupkg",
                     destinationAccessCondition: null));
+        }
+
+        [Fact]
+        public async Task CopyTreatsExistingMatchingDestinationAsCompletedRetry()
+        {
+            var reference = CreateReference();
+            var context = new TestContext(reference.ContentLength, reference.ETag);
+            context.SetExpectedMetadata(reference);
+            var destination = context.CreateDestination(reference);
+            destination
+                .Setup(x => x.StartCopyAsync(
+                    It.IsAny<ISimpleCloudBlob>(),
+                    It.IsAny<IAccessCondition>(),
+                    It.IsAny<IAccessCondition>()))
+                .ThrowsAsync(new CloudBlobPreconditionFailedException(null));
+
+            await context.CreateService().CopyAsync(
+                reference,
+                context.DestinationClient.Object,
+                CoreConstants.Folders.ValidationFolderName,
+                "validation-sets/package.nupkg",
+                AccessConditionWrapper.GenerateIfNotExistsCondition());
+
+            destination.Verify(x => x.FetchAttributesAsync(), Times.Once);
         }
 
         [Fact]
@@ -261,9 +287,12 @@ namespace NuGetGallery
                 Client
                     .Setup(x => x.GetContainerReference(CoreConstants.Folders.StagingFolderName))
                     .Returns(Container.Object);
+                DestinationClient = new Mock<ICloudBlobClient>();
             }
 
             public Mock<ICloudBlobClient> Client { get; }
+
+            public Mock<ICloudBlobClient> DestinationClient { get; }
 
             public Mock<ICloudBlobContainer> Container { get; }
 
@@ -306,12 +335,13 @@ namespace NuGetGallery
                 destination.SetupGet(x => x.Properties).Returns(properties.Object);
                 destination.SetupGet(x => x.Metadata).Returns(metadata);
                 destination.SetupGet(x => x.CopyState).Returns(copyState.Object);
+                destination.Setup(x => x.FetchAttributesAsync()).Returns(Task.CompletedTask);
 
                 var destinationContainer = new Mock<ICloudBlobContainer>();
                 destinationContainer
                     .Setup(x => x.GetBlobReference(It.IsAny<string>()))
                     .Returns(destination.Object);
-                Client
+                DestinationClient
                     .Setup(x => x.GetContainerReference(CoreConstants.Folders.ValidationFolderName))
                     .Returns(destinationContainer.Object);
 

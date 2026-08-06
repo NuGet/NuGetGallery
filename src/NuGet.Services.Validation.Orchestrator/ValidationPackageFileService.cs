@@ -370,7 +370,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 destAccessCondition);
         }
 
-        protected static string BuildValidationSetPackageFileName(PackageValidationSet validationSet, string extension)
+        internal static string BuildValidationSetPackageFileName(PackageValidationSet validationSet, string extension)
         {
             return $"validation-sets/{validationSet.ValidationTrackingId}/" +
                 $"{validationSet.PackageId.ToLowerInvariant()}." +
