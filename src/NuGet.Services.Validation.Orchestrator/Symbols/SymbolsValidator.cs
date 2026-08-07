@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -84,8 +84,13 @@ namespace NuGet.Services.Validation.Symbols
 
             // Due to race conditions or failure of method TryAddValidatorStatusAsync the same message can be enqueued multiple times
             // Log this information to postmortem evaluate this behavior
+            if (request is not SymbolsValidationRequest symbolsRequest)
+            {
+                throw new InvalidOperationException($"The request type {request.GetType().FullName} is not supported for symbol validation.");
+            }
+
             _telemetryService.TrackSymbolsMessageEnqueued(request.PackageId, request.PackageVersion, ValidatorName.SymbolsValidator, request.ValidationId);
-            await _symbolMessageEnqueuer.EnqueueSymbolsValidationMessageAsync(request);
+            await _symbolMessageEnqueuer.EnqueueSymbolsValidationMessageAsync(symbolsRequest);
 
             var result = await _validatorStateService.TryAddValidatorStatusAsync(request, validatorStatus, ValidationStatus.Incomplete);
 

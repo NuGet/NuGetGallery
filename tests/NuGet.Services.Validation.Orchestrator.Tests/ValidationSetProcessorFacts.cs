@@ -152,6 +152,61 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         }
 
         [Fact]
+        public async Task StagedSymbolValidationRequestIncludesParentSnapshotUrl()
+        {
+            UseDefaultValidatorProvider();
+            var validator = AddValidation("validation1", TimeSpan.FromDays(1));
+            ValidationSet.ValidatingType = ValidatingType.SymbolPackage;
+            var parentUrl = new Uri("https://example.com/validation/parent/package.nupkg?sas");
+            PackageFileServiceMock
+                .Setup(x => x.DoesStagedSymbolParentForValidationSetExistAsync(ValidationSet))
+                .ReturnsAsync(true);
+            PackageFileServiceMock
+                .Setup(x => x.GetStagedSymbolParentForValidationSetReadUriAsync(
+                    ValidationSet,
+                    It.IsAny<string>(),
+                    It.IsAny<DateTimeOffset>()))
+                .ReturnsAsync(parentUrl);
+            validator
+                .Setup(x => x.GetResponseAsync(It.IsAny<INuGetValidationRequest>()))
+                .ReturnsAsync(NuGetValidationResponse.NotStarted);
+            INuGetValidationRequest request = null;
+            validator
+                .Setup(x => x.StartAsync(It.IsAny<INuGetValidationRequest>()))
+                .Callback<INuGetValidationRequest>(x => request = x)
+                .ReturnsAsync(NuGetValidationResponse.Incomplete);
+
+            await CreateProcessor().ProcessValidationsAsync(ValidationSet);
+
+            var symbolsRequest = Assert.IsType<SymbolsValidationRequest>(request);
+            Assert.Equal(parentUrl.AbsoluteUri, symbolsRequest.ParentNupkgSnapshotUrl);
+        }
+
+        [Fact]
+        public async Task OrdinarySymbolValidationUsesSymbolsValidationRequest()
+        {
+            UseDefaultValidatorProvider();
+            var validator = AddValidation("validation1", TimeSpan.FromDays(1));
+            ValidationSet.ValidatingType = ValidatingType.SymbolPackage;
+            PackageFileServiceMock
+                .Setup(x => x.DoesStagedSymbolParentForValidationSetExistAsync(ValidationSet))
+                .ReturnsAsync(false);
+            validator
+                .Setup(x => x.GetResponseAsync(It.IsAny<INuGetValidationRequest>()))
+                .ReturnsAsync(NuGetValidationResponse.NotStarted);
+            INuGetValidationRequest request = null;
+            validator
+                .Setup(x => x.StartAsync(It.IsAny<INuGetValidationRequest>()))
+                .Callback<INuGetValidationRequest>(x => request = x)
+                .ReturnsAsync(NuGetValidationResponse.Incomplete);
+
+            await CreateProcessor().ProcessValidationsAsync(ValidationSet);
+
+            var symbolsRequest = Assert.IsType<SymbolsValidationRequest>(request);
+            Assert.Null(symbolsRequest.ParentNupkgSnapshotUrl);
+        }
+
+        [Fact]
         public async Task DoesNotStartValidationWithUnmetPrerequisites()
         {
             UseDefaultValidatorProvider();

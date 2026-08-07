@@ -183,6 +183,104 @@ namespace Validation.Symbols.Tests
             }
 
             [Fact]
+            public async Task ValidateStagedSymbolsAsyncUsesExactParentSnapshotUrl()
+            {
+                var parentUrl = "https://dummy.parent.nupkg";
+                var message = new SymbolsValidatorMessage(
+                    Guid.NewGuid(),
+                    1,
+                    PackageId,
+                    PackageNormalizedVersion,
+                    "https://dummy.snupkg",
+                    parentUrl);
+                _symbolsFileService
+                    .Setup(sfs => sfs.DownloadNupkgFileAsync(parentUrl, It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(new MemoryStream());
+                _symbolsFileService
+                    .Setup(sfs => sfs.DownloadSnupkgFileAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(new MemoryStream());
+                _zipService
+                    .Setup(s => s.ValidateZipAsync(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(true);
+                _zipService
+                    .Setup(s => s.ReadFilesFromZipStream(It.IsAny<Stream>(), It.IsAny<string[]>()))
+                    .Returns(new List<string> { "foo.dll" });
+                _zipService
+                    .Setup(s => s.ReadFilesFromZipStream(It.IsAny<Stream>(), ".pdb"))
+                    .Returns(new List<string> { "foo.pdb" });
+                var service = new TestSymbolsValidatorService(
+                    _symbolsFileService.Object,
+                    _zipService.Object,
+                    _telemetryService.Object,
+                    _logger);
+
+                var result = await service.ValidateStagedSymbolsAsync(message, CancellationToken.None);
+
+                Assert.Equal(ValidationStatus.Succeeded, result.Status);
+                _symbolsFileService.Verify(
+                    x => x.DownloadNupkgFileAsync(parentUrl, It.IsAny<CancellationToken>()),
+                    Times.Once);
+                _symbolsFileService.Verify(
+                    x => x.DownloadNupkgFileAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<CancellationToken>()),
+                    Times.Never);
+            }
+
+            [Fact]
+            public async Task ValidateStagedSymbolsAsyncPropagatesMissingSnupkg()
+            {
+                var message = new SymbolsValidatorMessage(
+                    Guid.NewGuid(),
+                    1,
+                    PackageId,
+                    PackageNormalizedVersion,
+                    "https://dummy.snupkg",
+                    "https://dummy.parent.nupkg");
+                _symbolsFileService
+                    .Setup(x => x.DownloadSnupkgFileAsync(message.SnupkgUrl, It.IsAny<CancellationToken>()))
+                    .ThrowsAsync(new InvalidOperationException("Snupkg not found"));
+                var service = new SymbolsValidatorService(
+                    _symbolsFileService.Object,
+                    _zipService.Object,
+                    _telemetryService.Object,
+                    _logger);
+
+                await Assert.ThrowsAsync<InvalidOperationException>(
+                    () => service.ValidateStagedSymbolsAsync(message, CancellationToken.None));
+            }
+
+            [Fact]
+            public async Task ValidateStagedSymbolsAsyncPropagatesMissingParentSnapshot()
+            {
+                var message = new SymbolsValidatorMessage(
+                    Guid.NewGuid(),
+                    1,
+                    PackageId,
+                    PackageNormalizedVersion,
+                    "https://dummy.snupkg",
+                    "https://dummy.parent.nupkg");
+                _symbolsFileService
+                    .Setup(x => x.DownloadSnupkgFileAsync(message.SnupkgUrl, It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(new MemoryStream());
+                _symbolsFileService
+                    .Setup(x => x.DownloadNupkgFileAsync(message.ParentNupkgSnapshotUrl, It.IsAny<CancellationToken>()))
+                    .ThrowsAsync(new InvalidOperationException("Parent snapshot not found"));
+                _zipService
+                    .Setup(x => x.ValidateZipAsync(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(true);
+                var service = new SymbolsValidatorService(
+                    _symbolsFileService.Object,
+                    _zipService.Object,
+                    _telemetryService.Object,
+                    _logger);
+
+                await Assert.ThrowsAsync<InvalidOperationException>(
+                    () => service.ValidateStagedSymbolsAsync(message, CancellationToken.None));
+            }
+
+            [Fact]
             public async Task ValidateSymbolsAsyncWillFailIfSnupkgIsNotSafeForExtract()
             {
                 // Arrange

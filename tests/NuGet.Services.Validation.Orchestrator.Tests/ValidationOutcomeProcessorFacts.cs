@@ -360,19 +360,18 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         }
 
         [Fact]
-        public async Task StagedSymbolOutcomeCannotUseOrdinaryPublication()
+        public async Task StagedSymbolOutcomeUsesStagedStatus()
         {
             AddValidation("validation1", ValidationStatus.Succeeded);
             Package.PackageStatusKey = PackageStatus.Staged;
             ValidationSet.ValidatingType = ValidatingType.SymbolPackage;
 
             var processor = CreateProcessor();
-            await Assert.ThrowsAsync<InvalidOperationException>(() =>
-                processor.ProcessValidationOutcomeAsync(
-                    ValidationSet,
-                    PackageValidatingEntity,
-                    ProcessorStats,
-                    ScheduleNextCheck));
+            await processor.ProcessValidationOutcomeAsync(
+                ValidationSet,
+                PackageValidatingEntity,
+                ProcessorStats,
+                ScheduleNextCheck);
 
             PackageStateProcessorMock.Verify(
                 x => x.SetStatusAsync(
@@ -380,6 +379,12 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     It.IsAny<PackageValidationSet>(),
                     It.IsAny<PackageStatus>()),
                 Times.Never);
+            PackageStateProcessorMock.Verify(
+                x => x.SetStagedValidationStatusAsync(
+                    PackageValidatingEntity,
+                    ValidationSet,
+                    StagingArtifactStatus.Ready),
+                Times.Once);
         }
         
         [Theory]

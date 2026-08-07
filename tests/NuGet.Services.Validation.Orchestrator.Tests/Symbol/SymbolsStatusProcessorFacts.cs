@@ -204,7 +204,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
                     SymbolPackageFileServiceMock.Object,
                     ValidatorProviderMock.Object,
                     TelemetryServiceMock.Object,
-                    LoggerMock.Object);
+                    LoggerMock.Object,
+                    Mock.Of<IStagedSymbolTerminalStateProcessor>());
 
                 AvailableSymbolPackageValidatingEntity = new SymbolPackageValidatingEntity(AvailableSymbolPackage);
                 FailedSymbolPackageValidatingEntity = new SymbolPackageValidatingEntity(FailedSymbolPackage);

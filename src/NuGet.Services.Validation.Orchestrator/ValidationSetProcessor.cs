@@ -311,6 +311,32 @@ namespace NuGet.Services.Validation.Orchestrator
                 _sasDefinitionConfiguration.ValidationSetProcessorSasDefinition,
                 DateTimeOffset.UtcNow.Add(_validationConfiguration.TimeoutValidationSetAfter));
 
+            if (packageValidationSet.ValidatingType == ValidatingType.SymbolPackage)
+            {
+                if (await _packageFileService.DoesStagedSymbolParentForValidationSetExistAsync(packageValidationSet))
+                {
+                    var parentUri = await _packageFileService.GetStagedSymbolParentForValidationSetReadUriAsync(
+                        packageValidationSet,
+                        _sasDefinitionConfiguration.ValidationSetProcessorSasDefinition,
+                        DateTimeOffset.UtcNow.Add(_validationConfiguration.TimeoutValidationSetAfter));
+
+                    return new SymbolsValidationRequest(
+                        validationId: packageValidation.Key,
+                        packageKey: packageValidationSet.PackageKey.Value,
+                        packageId: packageValidationSet.PackageId,
+                        packageVersion: packageValidationSet.PackageNormalizedVersion,
+                        snupkgUrl: nupkgUrl.AbsoluteUri,
+                        parentNupkgSnapshotUrl: parentUri.AbsoluteUri);
+                }
+
+                return new SymbolsValidationRequest(
+                    validationId: packageValidation.Key,
+                    packageKey: packageValidationSet.PackageKey.Value,
+                    packageId: packageValidationSet.PackageId,
+                    packageVersion: packageValidationSet.PackageNormalizedVersion,
+                    snupkgUrl: nupkgUrl.AbsoluteUri);
+            }
+
             var validationRequest = new NuGetValidationRequest(
                 validationId: packageValidation.Key,
                 packageKey: packageValidationSet.PackageKey.Value,

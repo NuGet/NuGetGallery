@@ -219,7 +219,7 @@ namespace NuGet.Services.Validation.Orchestrator
             return _fileStorageService.FileExistsAsync(_fileMetadataService.ValidationFolderName, fileName);
         }
 
-        public Task DeletePackageForValidationSetAsync(PackageValidationSet validationSet)
+        public async Task DeletePackageForValidationSetAsync(PackageValidationSet validationSet)
         {
             var fileName = BuildValidationSetPackageFileName(validationSet, _fileMetadataService.FileExtension);
 
@@ -229,7 +229,21 @@ namespace NuGet.Services.Validation.Orchestrator
                 _fileMetadataService.ValidationFolderName,
                 fileName);
 
-            return _fileStorageService.DeleteFileAsync(_fileMetadataService.ValidationFolderName, fileName);
+            await _fileStorageService.DeleteFileAsync(_fileMetadataService.ValidationFolderName, fileName);
+
+            if (validationSet.ValidatingType == ValidatingType.SymbolPackage)
+            {
+                await _fileStorageService.DeleteFileAsync(
+                    _fileMetadataService.ValidationFolderName,
+                    BuildStagedSymbolParentFileName(validationSet));
+            }
+        }
+
+        public Task<bool> DoesStagedSymbolParentForValidationSetExistAsync(PackageValidationSet validationSet)
+        {
+            return _fileStorageService.FileExistsAsync(
+                _fileMetadataService.ValidationFolderName,
+                BuildStagedSymbolParentFileName(validationSet));
         }
 
         public async Task<Uri> GetPackageForValidationSetReadUriAsync(PackageValidationSet validationSet, string sasDefinition, DateTimeOffset endOfAccess)
@@ -243,6 +257,28 @@ namespace NuGet.Services.Validation.Orchestrator
 
             var sasToken = await _sharedAccessSignatureService.GetFromManagedStorageAccountAsync(sasDefinition);
             var fileUri = await _fileStorageService.GetFileUriAsync(_fileMetadataService.ValidationFolderName, fileName);
+            return new Uri(fileUri, sasToken);
+        }
+
+        public async Task<Uri> GetStagedSymbolParentForValidationSetReadUriAsync(
+            PackageValidationSet validationSet,
+            string sasDefinition,
+            DateTimeOffset endOfAccess)
+        {
+            var fileName = BuildStagedSymbolParentFileName(validationSet);
+
+            if (string.IsNullOrEmpty(sasDefinition))
+            {
+                return await _fileStorageService.GetFileReadUriAsync(
+                    _fileMetadataService.ValidationFolderName,
+                    fileName,
+                    endOfAccess);
+            }
+
+            var sasToken = await _sharedAccessSignatureService.GetFromManagedStorageAccountAsync(sasDefinition);
+            var fileUri = await _fileStorageService.GetFileUriAsync(
+                _fileMetadataService.ValidationFolderName,
+                fileName);
             return new Uri(fileUri, sasToken);
         }
 
@@ -376,6 +412,14 @@ namespace NuGet.Services.Validation.Orchestrator
                 $"{validationSet.PackageId.ToLowerInvariant()}." +
                 $"{validationSet.PackageNormalizedVersion.ToLowerInvariant()}" +
                 extension;
+        }
+
+        internal static string BuildStagedSymbolParentFileName(PackageValidationSet validationSet)
+        {
+            return $"validation-sets/{validationSet.ValidationTrackingId}/parent/" +
+                $"{validationSet.PackageId.ToLowerInvariant()}." +
+                $"{validationSet.PackageNormalizedVersion.ToLowerInvariant()}" +
+                CoreConstants.NuGetPackageFileExtension;
         }
     }
 }

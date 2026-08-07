@@ -112,6 +112,39 @@ namespace Validation.Symbols.Tests
                 // Assert
                 Assert.False(result);
                 _symbolService.Verify(ss => ss.ValidateSymbolsAsync(It.IsAny<SymbolsValidatorMessage>(), It.IsAny<CancellationToken>()), Times.Once);
+                _symbolService.Verify(ss => ss.ValidateStagedSymbolsAsync(It.IsAny<SymbolsValidatorMessage>(), It.IsAny<CancellationToken>()), Times.Never);
+            }
+
+            [Fact]
+            public async Task StagedMessageUsesStagedValidation()
+            {
+                var status = new ValidatorStatus
+                {
+                    State = ValidationStatus.Incomplete,
+                };
+                var message = new SymbolsValidatorMessage(
+                    Guid.NewGuid(),
+                    1,
+                    "PackageId",
+                    "1.0.0",
+                    "https://example.test/package.snupkg",
+                    "https://example.test/parent.nupkg");
+                _validatorStateService
+                    .Setup(s => s.GetStatusAsync(message.ValidationId))
+                    .ReturnsAsync(status);
+                _symbolService
+                    .Setup(s => s.ValidateStagedSymbolsAsync(message, It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(NuGetValidationResponse.Incomplete);
+
+                var result = await Target.HandleAsync(message);
+
+                Assert.False(result);
+                _symbolService.Verify(
+                    s => s.ValidateStagedSymbolsAsync(message, It.IsAny<CancellationToken>()),
+                    Times.Once);
+                _symbolService.Verify(
+                    s => s.ValidateSymbolsAsync(It.IsAny<SymbolsValidatorMessage>(), It.IsAny<CancellationToken>()),
+                    Times.Never);
             }
 
             [Fact]

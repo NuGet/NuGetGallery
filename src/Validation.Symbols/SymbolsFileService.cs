@@ -63,5 +63,11 @@ namespace Validation.Symbols
 
             throw new FileNotFoundException(string.Format("Package {0} {1} not found in the packages or validation container.", packageId, packageNormalizedVersion));
         }
+
+        public async Task<Stream> DownloadNupkgFileAsync(string nupkgUri, CancellationToken cancellationToken)
+        {
+            var result = await _fileDownloader.DownloadAsync(new Uri(nupkgUri), cancellationToken);
+            return result.GetStreamOrThrow();
+        }
     }
 }

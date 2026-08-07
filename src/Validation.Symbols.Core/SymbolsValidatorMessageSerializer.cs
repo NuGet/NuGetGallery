@@ -22,7 +22,8 @@ namespace NuGet.Jobs.Validation.Symbols.Core
                 deserializedMessage.SymbolsPackageKey,
                 deserializedMessage.PackageId,
                 deserializedMessage.PackageNormalizedVersion,
-                deserializedMessage.SnupkgUrl);
+                deserializedMessage.SnupkgUrl,
+                deserializedMessage.ParentNupkgSnapshotUrl);
         }
 
         public IBrokeredMessage Serialize(SymbolsValidatorMessage message)
@@ -32,7 +33,8 @@ namespace NuGet.Jobs.Validation.Symbols.Core
                 SymbolsPackageKey = message.SymbolsPackageKey,
                 PackageId = message.PackageId,
                 PackageNormalizedVersion = message.PackageNormalizedVersion,
-                SnupkgUrl = message.SnupkgUrl
+                SnupkgUrl = message.SnupkgUrl,
+                ParentNupkgSnapshotUrl = message.ParentNupkgSnapshotUrl,
             });
 
         [Schema(Name = SchemaName, Version = 1)]
@@ -47,6 +49,8 @@ namespace NuGet.Jobs.Validation.Symbols.Core
             public string PackageNormalizedVersion { get; set; }
 
             public string SnupkgUrl { get; set; }
+
+            public string ParentNupkgSnapshotUrl { get; set; }
         }
     }
 }

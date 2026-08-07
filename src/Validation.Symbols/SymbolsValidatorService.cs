@@ -62,49 +62,12 @@ namespace Validation.Symbols
 
                     try
                     {
-                        using (Stream nupkgstream = await _symbolFileService.DownloadNupkgFileAsync(message.PackageId, message.PackageNormalizedVersion, token))
+                        using (Stream nupkgstream = await _symbolFileService.DownloadNupkgFileAsync(
+                            message.PackageId,
+                            message.PackageNormalizedVersion,
+                            token))
                         {
-                            var pdbs = _zipArchiveService.ReadFilesFromZipStream(snupkgstream, SymbolExtension);
-                            var pes = _zipArchiveService.ReadFilesFromZipStream(nupkgstream, PEExtensions);
-
-                            if (pdbs.Count == 0)
-                            {
-                                return NuGetValidationResponse.FailedWithIssues(ValidationIssue.SymbolErrorCode_SnupkgDoesNotContainSymbols);
-                            }
-
-                            using (_telemetryService.TrackSymbolValidationDurationEvent(message.PackageId, message.PackageNormalizedVersion, pdbs.Count))
-                            {
-                                List<string> orphanSymbolFiles;
-                                if (!SymbolsHaveMatchingPEFiles(pdbs, pes, out orphanSymbolFiles))
-                                {
-                                    orphanSymbolFiles.ForEach((symbol) =>
-                                    {
-                                        _telemetryService.TrackSymbolsAssemblyValidationResultEvent(message.PackageId, message.PackageNormalizedVersion, ValidationStatus.Failed, nameof(ValidationIssue.SymbolErrorCode_MatchingAssemblyNotFound), assemblyName: symbol);
-                                    });
-                                    _telemetryService.TrackSymbolsValidationResultEvent(message.PackageId, message.PackageNormalizedVersion, ValidationStatus.Failed);
-                                    return NuGetValidationResponse.FailedWithIssues(ValidationIssue.SymbolErrorCode_MatchingAssemblyNotFound);
-                                }
-                                var targetDirectory = Settings.GetWorkingDirectory();
-                                try
-                                {
-                                    _logger.LogInformation("Extracting symbols to {TargetDirectory}", targetDirectory);
-                                    var symbolFiles = _zipArchiveService.ExtractFilesFromZipStream(snupkgstream, targetDirectory, SymbolExtension);
-
-                                    _logger.LogInformation("Extracting dlls to {TargetDirectory}", targetDirectory);
-                                    _zipArchiveService.ExtractFilesFromZipStream(nupkgstream, targetDirectory, PEExtensions, symbolFiles);
-
-                                    var status = ValidateSymbolMatching(targetDirectory, message.PackageId, message.PackageNormalizedVersion);
-                                    return status;
-                                }
-                                finally
-                                {
-                                    await TryDeleteWorkingDirectoryForSecondsAsync(
-                                        targetDirectory,
-                                        message.PackageId,
-                                        message.PackageNormalizedVersion,
-                                        CleanWorkingDirectoryTimeout);
-                                }
-                            }
+                            return await ValidateSymbolsCoreAsync(message, snupkgstream, nupkgstream);
                         }
                     }
                     catch (FileNotFoundException)
@@ -118,6 +81,72 @@ namespace Validation.Symbols
             {
                 _telemetryService.TrackSymbolsPackageNotFoundEvent(message.PackageId, message.PackageNormalizedVersion);
                 return NuGetValidationResponse.Failed;
+            }
+        }
+
+        public async Task<INuGetValidationResponse> ValidateStagedSymbolsAsync(SymbolsValidatorMessage message, CancellationToken token)
+        {
+            _logger.LogInformation(
+                "{ValidatorName} :Start ValidateStagedSymbolsAsync. PackageId: {packageId} PackageNormalizedVersion: {packageNormalizedVersion}",
+                ValidatorName.SymbolsValidator,
+                message.PackageId,
+                message.PackageNormalizedVersion);
+
+            using (Stream snupkgstream = await _symbolFileService.DownloadSnupkgFileAsync(message.SnupkgUrl, token))
+            {
+                if (!await _zipArchiveService.ValidateZipAsync(snupkgstream, message.SnupkgUrl, token))
+                {
+                    return NuGetValidationResponse.FailedWithIssues(ValidationIssue.SymbolErrorCode_SnupkgContainsEntriesNotSafeForExtraction);
+                }
+
+                using (Stream nupkgstream = await _symbolFileService.DownloadNupkgFileAsync(message.ParentNupkgSnapshotUrl, token))
+                {
+                    return await ValidateSymbolsCoreAsync(message, snupkgstream, nupkgstream);
+                }
+            }
+        }
+
+        private async Task<INuGetValidationResponse> ValidateSymbolsCoreAsync(SymbolsValidatorMessage message, Stream snupkgstream, Stream nupkgstream)
+        {
+            var pdbs = _zipArchiveService.ReadFilesFromZipStream(snupkgstream, SymbolExtension);
+            var pes = _zipArchiveService.ReadFilesFromZipStream(nupkgstream, PEExtensions);
+
+            if (pdbs.Count == 0)
+            {
+                return NuGetValidationResponse.FailedWithIssues(ValidationIssue.SymbolErrorCode_SnupkgDoesNotContainSymbols);
+            }
+
+            using (_telemetryService.TrackSymbolValidationDurationEvent(message.PackageId, message.PackageNormalizedVersion, pdbs.Count))
+            {
+                List<string> orphanSymbolFiles;
+                if (!SymbolsHaveMatchingPEFiles(pdbs, pes, out orphanSymbolFiles))
+                {
+                    orphanSymbolFiles.ForEach((symbol) =>
+                    {
+                        _telemetryService.TrackSymbolsAssemblyValidationResultEvent(message.PackageId, message.PackageNormalizedVersion, ValidationStatus.Failed, nameof(ValidationIssue.SymbolErrorCode_MatchingAssemblyNotFound), assemblyName: symbol);
+                    });
+                    _telemetryService.TrackSymbolsValidationResultEvent(message.PackageId, message.PackageNormalizedVersion, ValidationStatus.Failed);
+                    return NuGetValidationResponse.FailedWithIssues(ValidationIssue.SymbolErrorCode_MatchingAssemblyNotFound);
+                }
+                var targetDirectory = Settings.GetWorkingDirectory();
+                try
+                {
+                    _logger.LogInformation("Extracting symbols to {TargetDirectory}", targetDirectory);
+                    var symbolFiles = _zipArchiveService.ExtractFilesFromZipStream(snupkgstream, targetDirectory, SymbolExtension);
+
+                    _logger.LogInformation("Extracting dlls to {TargetDirectory}", targetDirectory);
+                    _zipArchiveService.ExtractFilesFromZipStream(nupkgstream, targetDirectory, PEExtensions, symbolFiles);
+
+                    return ValidateSymbolMatching(targetDirectory, message.PackageId, message.PackageNormalizedVersion);
+                }
+                finally
+                {
+                    await TryDeleteWorkingDirectoryForSecondsAsync(
+                        targetDirectory,
+                        message.PackageId,
+                        message.PackageNormalizedVersion,
+                        CleanWorkingDirectoryTimeout);
+                }
             }
         }
 

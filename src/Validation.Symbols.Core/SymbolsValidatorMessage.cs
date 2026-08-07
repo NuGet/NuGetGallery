@@ -11,13 +11,15 @@ namespace NuGet.Jobs.Validation.Symbols.Core
             int symbolPackageKey,
             string packageId,
             string packageNormalizedVersion,
-            string snupkgUrl)
+            string snupkgUrl,
+            string parentNupkgSnapshotUrl = null)
         {
             ValidationId = validationId;
             SymbolsPackageKey = symbolPackageKey;
             PackageId = packageId;
             PackageNormalizedVersion = packageNormalizedVersion;
             SnupkgUrl = snupkgUrl;
+            ParentNupkgSnapshotUrl = parentNupkgSnapshotUrl;
         }
 
         public Guid ValidationId { get; }
@@ -29,5 +31,11 @@ namespace NuGet.Jobs.Validation.Symbols.Core
         public string PackageNormalizedVersion { get; }
 
         public string SnupkgUrl { get; }
+
+        /// <summary>
+        /// The URL of the immutable copy of the exact parent nupkg bytes to which this symbol validation attempt is
+        /// bound. Null for ordinary symbol validation, which resolves the parent by package ID and version.
+        /// </summary>
+        public string ParentNupkgSnapshotUrl { get; }
     }
 }

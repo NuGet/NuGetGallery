@@ -1,10 +1,11 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Threading.Tasks;
 using NuGet.Jobs.Validation.Symbols.Core;
 using NuGet.Services.ServiceBus;
+using NuGet.Services.Validation.Orchestrator;
 
 namespace NuGet.Services.Validation.Symbols
 {
@@ -24,13 +25,15 @@ namespace NuGet.Services.Validation.Symbols
             _messageDelay = messageDelay;
         }
 
-        public async Task EnqueueSymbolsValidationMessageAsync(INuGetValidationRequest request)
+        public async Task EnqueueSymbolsValidationMessageAsync(SymbolsValidationRequest request)
         {
-            var message = new SymbolsValidatorMessage(validationId: request.ValidationId, 
+            var message = new SymbolsValidatorMessage(validationId: request.ValidationId,
                 symbolPackageKey: request.PackageKey,
                 packageId: request.PackageId,
                 packageNormalizedVersion: request.PackageVersion,
-                snupkgUrl: request.NupkgUrl);
+                snupkgUrl: request.NupkgUrl,
+                parentNupkgSnapshotUrl: request.ParentNupkgSnapshotUrl);
+
             var brokeredMessage = _serializer.Serialize(message);
 
             var visibleAt = DateTimeOffset.UtcNow + (_messageDelay ?? TimeSpan.Zero);

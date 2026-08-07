@@ -60,12 +60,6 @@ namespace NuGet.Services.Validation.Orchestrator
         {
             var failedValidations = GetFailedValidations(validationSet);
 
-            if (validatingEntity.Status == PackageStatus.Staged && validationSet.ValidatingType != ValidatingType.Package)
-            {
-                // TODO: Route staged symbol outcomes before enabling staged validation producers.
-                throw new InvalidOperationException("Staged symbol validation outcomes are not supported until staged symbol outcome routing is enabled.");
-            }
-
             if (failedValidations.Any())
             {
                 _logger.LogWarning("Some validations failed for package {PackageId} {PackageVersion}, validation set {ValidationSetId}: {FailedValidations}",

@@ -19,6 +19,11 @@ namespace Validation.Symbols
         Task<Stream> DownloadNupkgFileAsync(string packageId, string packageNormalizedVersion, CancellationToken cancellationToken);
 
         /// <summary>
+        /// Downloads an exact nupkg snapshot from the provided URI.
+        /// </summary>
+        Task<Stream> DownloadNupkgFileAsync(string nupkgUri, CancellationToken cancellationToken);
+
+        /// <summary>
         /// Downloads the snupkg file.
         /// </summary>
         /// <param name="snupkgUri">The uri of the snupkg.</param>

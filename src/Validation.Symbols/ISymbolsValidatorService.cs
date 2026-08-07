@@ -17,5 +17,13 @@ namespace Validation.Symbols
         /// <param name="token">Cancellation token.</param>
         /// <returns>The validation result.</returns>
         Task<INuGetValidationResponse> ValidateSymbolsAsync(SymbolsValidatorMessage message, CancellationToken token);
+
+        /// <summary>
+        /// Validates a staged symbol package against its exact parent nupkg snapshot.
+        /// </summary>
+        /// <param name="message">The <see cref="SymbolsValidatorMessage"/> regarding the staged symbols package to validate.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>The validation result.</returns>
+        Task<INuGetValidationResponse> ValidateStagedSymbolsAsync(SymbolsValidatorMessage message, CancellationToken token);
     }
 }

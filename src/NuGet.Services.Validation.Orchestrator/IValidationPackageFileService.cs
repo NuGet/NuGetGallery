@@ -109,6 +109,16 @@ namespace NuGet.Services.Validation.Orchestrator
         /// <returns>Time limited (if implementation supports) URI for the package.</returns>
         Task<Uri> GetPackageForValidationSetReadUriAsync(PackageValidationSet validationSet, string sasDefinition, DateTimeOffset endOfAccess);
 
+        Task<Uri> GetStagedSymbolParentForValidationSetReadUriAsync(
+            PackageValidationSet validationSet,
+            string sasDefinition,
+            DateTimeOffset endOfAccess);
+
+        /// <summary>
+        /// Checks whether the exact parent nupkg snapshot exists for a staged symbol validation set.
+        /// </summary>
+        Task<bool> DoesStagedSymbolParentForValidationSetExistAsync(PackageValidationSet validationSet);
+
         /// <summary>
         /// Checks whether the validation set's package file exists.
         /// </summary>

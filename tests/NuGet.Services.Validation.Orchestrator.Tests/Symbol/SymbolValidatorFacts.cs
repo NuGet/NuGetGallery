@@ -56,7 +56,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
                     });
 
                 // Act & Assert
-                var actual = await _target.GetResponseAsync(_validationRequest.Object);
+                var actual = await _target.GetResponseAsync(_validationRequest);
 
                 Assert.Equal(status, actual.Status);
             }
@@ -84,7 +84,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
                     });
 
                 // Act
-                var actual = await _target.GetResponseAsync(_validationRequest.Object);
+                var actual = await _target.GetResponseAsync(_validationRequest);
 
                 // Assert
                 Assert.Equal(ValidationStatus.Failed, actual.Status);
@@ -123,10 +123,10 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
                      });
 
                 // Act & Assert
-                await _target.StartAsync(_validationRequest.Object);
+                await _target.StartAsync(_validationRequest);
 
                 _symbolMessageEnqueuer
-                    .Verify(x => x.EnqueueSymbolsValidationMessageAsync(It.IsAny<INuGetValidationRequest>()), Times.Never);
+                    .Verify(x => x.EnqueueSymbolsValidationMessageAsync(It.IsAny<SymbolsValidationRequest>()), Times.Never);
 
                 _validatorStateService
                     .Verify(x => x.TryAddValidatorStatusAsync(It.IsAny<NuGetValidationRequest>(), It.IsAny<ValidatorStatus>(), It.IsAny<ValidationStatus>()), Times.Never);
@@ -156,7 +156,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
                      });
 
                 _symbolMessageEnqueuer
-                    .Setup(x => x.EnqueueSymbolsValidationMessageAsync(It.IsAny<INuGetValidationRequest>()))
+                    .Setup(x => x.EnqueueSymbolsValidationMessageAsync(It.IsAny<SymbolsValidationRequest>()))
                     .Callback(() =>
                     {
                         verificationQueuedBeforeStatePersisted = !statePersisted;
@@ -179,11 +179,11 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
                     });
 
                 // Act
-                await _target.StartAsync(_validationRequest.Object);
+                await _target.StartAsync(_validationRequest);
 
                 // Assert
                 _symbolMessageEnqueuer
-                    .Verify(x => x.EnqueueSymbolsValidationMessageAsync(It.IsAny<INuGetValidationRequest>()), Times.Once);
+                    .Verify(x => x.EnqueueSymbolsValidationMessageAsync(_validationRequest), Times.Once);
 
                 _validatorStateService
                     .Verify(
@@ -194,10 +194,81 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
                         Times.Once);
 
                 _telemetryService.Verify(
-                    x => x.TrackSymbolsMessageEnqueued(_validationRequest.Object.PackageId, _validationRequest.Object.PackageVersion, ValidatorName.SymbolsValidator, _validationRequest.Object.ValidationId),
+                    x => x.TrackSymbolsMessageEnqueued(_validationRequest.PackageId, _validationRequest.PackageVersion, ValidatorName.SymbolsValidator, _validationRequest.ValidationId),
                     Times.Once);
 
                 Assert.True(verificationQueuedBeforeStatePersisted);
+            }
+
+            [Fact]
+            public async Task StartsValidationWithParentSnapshotUrl()
+            {
+                var request = new SymbolsValidationRequest(
+                    ValidationId,
+                    PackageKey,
+                    PackageId,
+                    PackageVersion,
+                    NupkgUrl,
+                    "https://example/parent.nupkg");
+                _validatorStateService
+                    .Setup(x => x.GetStatusAsync(request))
+                    .ReturnsAsync(new ValidatorStatus
+                    {
+                        ValidationId = ValidationId,
+                        PackageKey = PackageKey,
+                        ValidatorName = ValidatorName.SymbolsValidator,
+                        State = ValidationStatus.NotStarted,
+                        ValidatorIssues = new List<ValidatorIssue>(),
+                    });
+                _validatorStateService
+                    .Setup(x => x.TryAddValidatorStatusAsync(
+                        request,
+                        It.IsAny<ValidatorStatus>(),
+                        ValidationStatus.Incomplete))
+                    .ReturnsAsync(new ValidatorStatus
+                    {
+                        State = ValidationStatus.Incomplete,
+                        ValidatorIssues = new List<ValidatorIssue>(),
+                    });
+
+                await _target.StartAsync(request);
+
+                _symbolMessageEnqueuer.Verify(
+                    x => x.EnqueueSymbolsValidationMessageAsync(request),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task RejectsUnsupportedRequestType()
+            {
+                var request = new NuGetValidationRequest(
+                    ValidationId,
+                    PackageKey,
+                    PackageId,
+                    PackageVersion,
+                    NupkgUrl);
+                _validatorStateService
+                    .Setup(x => x.GetStatusAsync(request))
+                    .ReturnsAsync(new ValidatorStatus
+                    {
+                        ValidationId = ValidationId,
+                        PackageKey = PackageKey,
+                        ValidatorName = ValidatorName.SymbolsValidator,
+                        State = ValidationStatus.NotStarted,
+                        ValidatorIssues = new List<ValidatorIssue>(),
+                    });
+
+                await Assert.ThrowsAsync<InvalidOperationException>(() => _target.StartAsync(request));
+
+                _symbolMessageEnqueuer.Verify(
+                    x => x.EnqueueSymbolsValidationMessageAsync(It.IsAny<SymbolsValidationRequest>()),
+                    Times.Never);
+                _validatorStateService.Verify(
+                    x => x.TryAddValidatorStatusAsync(
+                        It.IsAny<INuGetValidationRequest>(),
+                        It.IsAny<ValidatorStatus>(),
+                        It.IsAny<ValidationStatus>()),
+                    Times.Never);
             }
 
             [Fact]
@@ -223,7 +294,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
                     });
 
                 // Act
-                var actual = await _target.StartAsync(_validationRequest.Object);
+                var actual = await _target.StartAsync(_validationRequest);
 
                 // Assert
                 Assert.Equal(ValidationStatus.Failed, actual.Status);
@@ -240,7 +311,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
             protected readonly Mock<ISimpleCloudBlobProvider> _blobProvider;
             protected readonly Mock<ITelemetryService> _telemetryService;
             protected readonly ILogger<SymbolsValidator> _logger;
-            protected readonly Mock<INuGetValidationRequest> _validationRequest;
+            protected readonly SymbolsValidationRequest _validationRequest;
             protected readonly SymbolsValidator _target;
 
             protected readonly SymbolsValidationConfiguration _config;
@@ -256,12 +327,12 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
                 var loggerFactory = new LoggerFactory().AddXunit(output);
                 _logger = loggerFactory.CreateLogger<SymbolsValidator>();
 
-                _validationRequest = new Mock<INuGetValidationRequest>();
-                _validationRequest.Setup(x => x.NupkgUrl).Returns(NupkgUrl);
-                _validationRequest.Setup(x => x.PackageId).Returns(PackageId);
-                _validationRequest.Setup(x => x.PackageKey).Returns(PackageKey);
-                _validationRequest.Setup(x => x.PackageVersion).Returns(PackageVersion);
-                _validationRequest.Setup(x => x.ValidationId).Returns(ValidationId);
+                _validationRequest = new SymbolsValidationRequest(
+                    ValidationId,
+                    PackageKey,
+                    PackageId,
+                    PackageVersion,
+                    NupkgUrl);
 
                 _target = new SymbolsValidator(
                     _validatorStateService.Object,

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
@@ -10,14 +10,27 @@ namespace NuGet.Services.Validation.Orchestrator
 {
     public class SymbolsStatusProcessor : EntityStatusProcessor<SymbolPackage>
     {
+        private readonly IStagedSymbolTerminalStateProcessor _stagedSymbolTerminalStateProcessor;
+
         public SymbolsStatusProcessor(
             IEntityService<SymbolPackage> galleryPackageService,
             IValidationFileService packageFileService,
             IValidatorProvider validatorProvider,
             ITelemetryService telemetryService,
-            ILogger<EntityStatusProcessor<SymbolPackage>> logger) 
+            ILogger<EntityStatusProcessor<SymbolPackage>> logger,
+            IStagedSymbolTerminalStateProcessor stagedSymbolTerminalStateProcessor)
             : base(galleryPackageService, packageFileService, validatorProvider, telemetryService, logger)
         {
+            _stagedSymbolTerminalStateProcessor = stagedSymbolTerminalStateProcessor
+                ?? throw new System.ArgumentNullException(nameof(stagedSymbolTerminalStateProcessor));
+        }
+
+        protected override Task ApplyStagedValidationStatusAsync(
+            IValidatingEntity<SymbolPackage> validatingEntity,
+            PackageValidationSet validationSet,
+            StagingArtifactStatus status)
+        {
+            return _stagedSymbolTerminalStateProcessor.ProcessAsync(validationSet, validatingEntity.EntityRecord, status);
         }
 
         protected override async Task MakePackageAvailableAsync(IValidatingEntity<SymbolPackage> validatingEntity, PackageValidationSet validationSet)

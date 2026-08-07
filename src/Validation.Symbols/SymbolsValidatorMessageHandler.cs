@@ -94,7 +94,9 @@ namespace Validation.Symbols
                     return true;
                 }
 
-                var validationResult = await _symbolValidatorService.ValidateSymbolsAsync(message, CancellationToken.None);
+                var validationResult = string.IsNullOrEmpty(message.ParentNupkgSnapshotUrl)
+                    ? await _symbolValidatorService.ValidateSymbolsAsync(message, CancellationToken.None)
+                    : await _symbolValidatorService.ValidateStagedSymbolsAsync(message, CancellationToken.None);
 
                 if (validationResult.Status == ValidationStatus.Failed || validationResult.Status == ValidationStatus.Succeeded)
                 {
