@@ -8,6 +8,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGet.Services.Entities;
+using NuGetGallery.Authentication;
+using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Services.Authentication;
 
 #nullable enable
@@ -41,6 +43,8 @@ namespace NuGetGallery.Areas.Admin.Controllers.FederatedCredentials
         public string? PolicyPackageOwner { get; set; }
         public FederatedCredentialType? PolicyType { get; set; }
         public string? PolicyCriteria { get; set; }
+        public string? PolicyScopes { get; set; }
+        public string? PolicyGlobPatternsAndPackages { get; set; }
     }
 
     public class UserPoliciesViewModel
@@ -60,15 +64,18 @@ namespace NuGetGallery.Areas.Admin.Controllers.FederatedCredentials
         private readonly IEntityRepository<User> _userEntityRepository;
         private readonly IUserService _userService;
         private readonly IFederatedCredentialService _federatedCredentialService;
+        private readonly ICredentialBuilder _credentialBuilder;
 
         public FederatedCredentialsController(
             IEntityRepository<User> userEntityRepository,
             IUserService userService,
-            IFederatedCredentialService federatedCredentialService)
+            IFederatedCredentialService federatedCredentialService,
+            ICredentialBuilder credentialBuilder)
         {
             _userEntityRepository = userEntityRepository ?? throw new ArgumentNullException(nameof(userEntityRepository));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _federatedCredentialService = federatedCredentialService ?? throw new ArgumentNullException(nameof(federatedCredentialService));
+            _credentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
         }
 
         [HttpGet]
@@ -207,6 +214,37 @@ namespace NuGetGallery.Areas.Admin.Controllers.FederatedCredentials
                 isValid = false;
             }
 
+            var policyPackageOwner = _userService.FindByUsername(addPolicy.PolicyPackageOwner);
+            if (policyPackageOwner == null)
+            {
+                AddModelError(nameof(FederatedCredentialPolicy.PackageOwner), $"The policy package owner '{addPolicy.PolicyPackageOwner}' does not exist.");
+                isValid = false;
+            }
+
+            var scopes = addPolicy.PolicyScopes?.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => s.Trim())
+                .Where(s => NuGetScopes.ListOfScopes.Contains(s))
+                .Distinct(StringComparer.Ordinal)
+                .ToArray();
+
+            if (scopes == null || scopes.Length == 0)
+            {
+                AddModelError(nameof(AddPolicyViewModel.PolicyScopes), "The policy scopes require at least one valid allowed action.");
+                isValid = false;
+            }
+
+            var subjects = addPolicy.PolicyGlobPatternsAndPackages?.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => s.Trim())
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .Distinct(StringComparer.Ordinal)
+                .ToArray();
+
+            if (subjects == null || subjects.Length == 0)
+            {
+                AddModelError(nameof(AddPolicyViewModel.PolicyGlobPatternsAndPackages), "The policy scopes require at least one glob pattern or package.");
+                isValid = false;
+            }
+
             if (isValid)
             {
                 var result = await _federatedCredentialService.AddPolicyAsync(
@@ -214,7 +252,8 @@ namespace NuGetGallery.Areas.Admin.Controllers.FederatedCredentials
                             addPolicy.PolicyPackageOwner!,
                             addPolicy.PolicyCriteria!,
                             addPolicy.PolicyName,
-                            addPolicy.PolicyType!.Value);
+                            addPolicy.PolicyType!.Value,
+                            _credentialBuilder.BuildScopes(policyPackageOwner, scopes: scopes, subjects: subjects));
 
                 switch (result.Type)
                 {
@@ -247,6 +286,10 @@ namespace NuGetGallery.Areas.Admin.Controllers.FederatedCredentials
                     $"{modelPrefix}{nameof(AddPolicyViewModel.PolicyCriteria)}",
                 nameof(FederatedCredentialPolicy.PolicyName) =>
                     $"{modelPrefix}{nameof(AddPolicyViewModel.PolicyName)}",
+                nameof(AddPolicyViewModel.PolicyScopes) =>
+                    $"{modelPrefix}{nameof(AddPolicyViewModel.PolicyScopes)}",
+                nameof(AddPolicyViewModel.PolicyGlobPatternsAndPackages) =>
+                    $"{modelPrefix}{nameof(AddPolicyViewModel.PolicyGlobPatternsAndPackages)}",
                 _ => nameof(ViewPoliciesViewModel.AddPolicy)
             };
 
