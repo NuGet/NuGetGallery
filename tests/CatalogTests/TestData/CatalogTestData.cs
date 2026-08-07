@@ -33,7 +33,8 @@ namespace CatalogTests
     ""commitTimeStamp"": {{ ""@type"": ""http://www.w3.org/2001/XMLSchema#dateTime"" }},
     ""nuget:lastCreated"": {{ ""@type"": ""http://www.w3.org/2001/XMLSchema#dateTime"" }},
     ""nuget:lastEdited"": {{ ""@type"": ""http://www.w3.org/2001/XMLSchema#dateTime"" }},
-    ""nuget:lastDeleted"": {{ ""@type"": ""http://www.w3.org/2001/XMLSchema#dateTime"" }}
+    ""nuget:lastDeleted"": {{ ""@type"": ""http://www.w3.org/2001/XMLSchema#dateTime"" }},
+    ""nuget:lastRegistrationEdited"": {{ ""@type"": ""http://www.w3.org/2001/XMLSchema#dateTime"" }}
   }}
 }}";
 
@@ -80,6 +81,9 @@ namespace CatalogTests
     }},
     ""nuget:lastDeleted"": {{
       ""@type"": ""http://www.w3.org/2001/XMLSchema#dateTime""
+    }},
+    ""nuget:lastRegistrationEdited"": {{
+      ""@type"": ""http://www.w3.org/2001/XMLSchema#dateTime""
     }}
   }}
 }}";
@@ -121,6 +125,9 @@ namespace CatalogTests
       ""@type"": ""http://www.w3.org/2001/XMLSchema#dateTime""
     }},
     ""nuget:lastDeleted"": {{
+      ""@type"": ""http://www.w3.org/2001/XMLSchema#dateTime""
+    }},
+    ""nuget:lastRegistrationEdited"": {{
       ""@type"": ""http://www.w3.org/2001/XMLSchema#dateTime""
     }}
   }}

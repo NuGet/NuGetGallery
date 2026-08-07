@@ -21,8 +21,6 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         public bool RequiresLicenseAcceptance { get; }
         public PackageDeprecationItem DeprecationInfo { get; }
         public IList<PackageVulnerabilityItem> VulnerabilityInfo { get; private set; }
-        //get/set sponsorship urls
-        public List<string> SponsorshipUrls { get; }
         public bool HasDeprecationInfo => DeprecationInfo != null;
 
         public FeedPackageDetails(
@@ -32,8 +30,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             DateTime publishedDate,
             string packageId,
             string packageNormalizedVersion,
-            string packageFullVersion,
-            List<string> sponsorshipUrls = null)
+            string packageFullVersion)
             : this(
                 contentUri,
                 createdDate,
@@ -45,8 +42,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                 licenseNames: null,
                 licenseReportUrl: null,
                 deprecationInfo: null,
-                requiresLicenseAcceptance: false,
-                sponsorshipUrls: sponsorshipUrls)
+                requiresLicenseAcceptance: false)
         {
         }
 
@@ -61,8 +57,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             string licenseNames,
             string licenseReportUrl,
             PackageDeprecationItem deprecationInfo,
-            bool requiresLicenseAcceptance,
-            List<string> sponsorshipUrls = null)
+            bool requiresLicenseAcceptance)
         {
             ContentUri = contentUri;
             CreatedDate = createdDate;
@@ -75,7 +70,6 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             LicenseReportUrl = licenseReportUrl;
             DeprecationInfo = deprecationInfo;
             RequiresLicenseAcceptance = requiresLicenseAcceptance;
-            SponsorshipUrls = sponsorshipUrls;
         }
 
         public void AddVulnerability(PackageVulnerabilityItem vulnerability)

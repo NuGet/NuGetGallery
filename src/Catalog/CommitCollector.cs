@@ -42,6 +42,7 @@ namespace NuGet.Services.Metadata.Catalog
                 page.TryGetValue("@context", out context);
 
                 var batches = await CreateBatchesAsync(page["items"]
+                    .Where(item => !CatalogCommitItem.IsRegistrationLevelItem((JObject)context, (JObject)item))
                     .Select(item => CatalogCommitItem.Create((JObject)context, (JObject)item))
                     .Where(item => item.CommitTimeStamp > front.Value && item.CommitTimeStamp <= back.Value));
 

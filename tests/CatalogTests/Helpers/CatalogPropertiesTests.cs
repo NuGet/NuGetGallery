@@ -22,6 +22,7 @@ namespace CatalogTests.Helpers
             Assert.Null(properties.LastCreated);
             Assert.Null(properties.LastDeleted);
             Assert.Null(properties.LastEdited);
+            Assert.Null(properties.LastRegistrationEdited);
         }
 
         [Fact]
@@ -30,11 +31,13 @@ namespace CatalogTests.Helpers
             var lastCreated = DateTime.Now;
             var lastDeleted = lastCreated.AddMinutes(1);
             var lastEdited = lastDeleted.AddMinutes(1);
-            var properties = new CatalogProperties(lastCreated, lastDeleted, lastEdited);
+            var lastRegistrationEdited = lastEdited.AddMinutes(1);
+            var properties = new CatalogProperties(lastCreated, lastDeleted, lastEdited, lastRegistrationEdited);
 
             Assert.Equal(lastCreated, properties.LastCreated);
             Assert.Equal(lastDeleted, properties.LastDeleted);
             Assert.Equal(lastEdited, properties.LastEdited);
+            Assert.Equal(lastRegistrationEdited, properties.LastRegistrationEdited);
         }
 
         [Fact]
@@ -187,6 +190,32 @@ namespace CatalogTests.Helpers
                 Assert.NotNull(catalogProperties.LastCreated);
                 Assert.Equal(lastCreated, catalogProperties.LastCreated.Value);
                 Assert.Equal(DateTimeKind.Utc, catalogProperties.LastCreated.Value.Kind);
+            });
+        }
+
+        [Fact]
+        public async Task ReadAsync_ReturnsLastRegistrationEditedInUtc()
+        {
+            var lastRegistrationEdited = CreateDateTimeOffset(TimeSpan.FromHours(-1));
+            var json = CreateCatalogJson("nuget:lastRegistrationEdited", lastRegistrationEdited);
+
+            await VerifyPropertyAsync(json, catalogProperties =>
+            {
+                Assert.NotNull(catalogProperties.LastRegistrationEdited);
+                Assert.Equal(lastRegistrationEdited, catalogProperties.LastRegistrationEdited.Value);
+                Assert.Equal(DateTimeKind.Utc, catalogProperties.LastRegistrationEdited.Value.Kind);
+            });
+        }
+
+        [Fact]
+        public async Task ReadAsync_ReturnsNullLastRegistrationEditedWhenMissing()
+        {
+            // Existing catalogs (written before the ID-level lane) will not have this property.
+            var json = "{\"nuget:lastCreated\":\"" + DateTimeOffset.UtcNow.ToString("O") + "\"}";
+
+            await VerifyPropertyAsync(json, catalogProperties =>
+            {
+                Assert.Null(catalogProperties.LastRegistrationEdited);
             });
         }
 

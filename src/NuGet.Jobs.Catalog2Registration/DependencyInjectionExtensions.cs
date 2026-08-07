@@ -49,6 +49,7 @@ namespace NuGet.Jobs.Catalog2Registration
 
             containerBuilder.Register(c => new Catalog2RegistrationCommand(
                 c.Resolve<ICollector>(),
+                c.Resolve<IRegistrationLevelCollector>(),
                 c.Resolve<ICloudBlobClient>(),
                 c.ResolveKeyed<IStorageFactory>(CursorBindingKey),
                 c.Resolve<Func<HttpMessageHandler>>(),
@@ -114,6 +115,8 @@ namespace NuGet.Jobs.Catalog2Registration
             services.AddTransient<IHiveUpdater, HiveUpdater>();
             services.AddTransient<IEntityBuilder, EntityBuilder>();
             services.AddTransient<IRegistrationUpdater, RegistrationUpdater>();
+            services.AddTransient<IRegistrationLevelUpdater, RegistrationLevelUpdater>();
+            services.AddTransient<IRegistrationLevelCollector, RegistrationLevelCollector>();
             services.AddTransient<RegistrationUrlBuilder>();
 
             services.AddSingleton<IThrottle>(s =>

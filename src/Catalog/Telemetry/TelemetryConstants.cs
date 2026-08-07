@@ -39,6 +39,8 @@ namespace NuGet.Services.Metadata.Catalog
         public const string ProcessPackageDeleteSeconds = "ProcessPackageDeleteSeconds";
         public const string ProcessPackageDetailsSeconds = "ProcessPackageDetailsSeconds";
         public const string ProcessPackageVersionIndexSeconds = "ProcessPackageVersionIndexSeconds";
+        public const string RegistrationEditedPackagesCount = "RegistrationEditedPackagesCount";
+        public const string RegistrationEditedPackagesSeconds = "RegistrationEditedPackagesSeconds";
         public const string SizeInBytes = "SizeInBytes";
         public const string StatusCode = "StatusCode";
         public const string Success = "Success";

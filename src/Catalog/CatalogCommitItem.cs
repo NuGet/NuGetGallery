@@ -111,6 +111,39 @@ namespace NuGet.Services.Metadata.Catalog
             return new CatalogCommitItem(idUri, commitId, commitTimeStamp, types, typeUris, packageIdentity);
         }
 
+        /// <summary>
+        /// The set of catalog item <c>@type</c> URIs that represent package-ID-level (registration-scoped)
+        /// metadata rather than version-level metadata. Items of these types are version-less and therefore
+        /// cannot be represented as a <see cref="CatalogCommitItem"/> (which requires a package version). The
+        /// shared version-level readers use <see cref="IsRegistrationLevelItem"/> to skip them before
+        /// attempting to construct a <see cref="CatalogCommitItem"/>.
+        /// </summary>
+        private static readonly HashSet<string> RegistrationLevelTypeUris = new HashSet<string>(StringComparer.Ordinal)
+        {
+            Schema.DataTypes.PackageSponsorshipDetails.AbsoluteUri,
+        };
+
+        /// <summary>
+        /// Determines whether a raw catalog page item represents package-ID-level (registration-scoped)
+        /// metadata, by inspecting its <c>@type</c> without constructing a <see cref="CatalogCommitItem"/>.
+        /// </summary>
+        public static bool IsRegistrationLevelItem(JObject context, JObject commitItem)
+        {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (commitItem == null)
+            {
+                throw new ArgumentNullException(nameof(commitItem));
+            }
+
+            return GetTypes(commitItem)
+                .Select(type => Utils.Expand(context, type))
+                .Any(typeUri => typeUri.IsAbsoluteUri && RegistrationLevelTypeUris.Contains(typeUri.AbsoluteUri));
+        }
+
         private static IEnumerable<string> GetTypes(JObject commitItem)
         {
             if (commitItem.TryGetValue(_typeKeyword, out var value))

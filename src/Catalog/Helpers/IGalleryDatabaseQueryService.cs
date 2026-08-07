@@ -12,5 +12,6 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         Task<FeedPackageDetails> GetPackageOrNull(string id, string version);
         Task<SortedList<DateTime, IList<FeedPackageDetails>>> GetPackagesCreatedSince(DateTime since, int top);
         Task<SortedList<DateTime, IList<FeedPackageDetails>>> GetPackagesEditedSince(DateTime since, int top);
+        Task<SortedList<DateTime, IList<PackageRegistrationSponsorshipDetails>>> GetRegistrationsChangedSince(DateTime since, int top);
     }
 }

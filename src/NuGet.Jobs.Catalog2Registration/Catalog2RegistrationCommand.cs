@@ -21,7 +21,14 @@ namespace NuGet.Jobs.Catalog2Registration
     {
         public const string CursorRelativeUri = "cursor.json";
 
+        /// <summary>
+        /// The cursor for the ID-level (package registration scoped) attribute lane. It is independent from
+        /// <see cref="CursorRelativeUri"/> so the version-less catalog leaves can be processed on their own schedule.
+        /// </summary>
+        public const string RegistrationLevelCursorRelativeUri = "registration-level-cursor.json";
+
         private readonly ICollector _collector;
+        private readonly IRegistrationLevelCollector _registrationLevelCollector;
         private readonly ICloudBlobClient _cloudBlobClient;
         private readonly IStorageFactory _storageFactory;
         private readonly Func<HttpMessageHandler> _handlerFunc;
@@ -30,6 +37,7 @@ namespace NuGet.Jobs.Catalog2Registration
 
         public Catalog2RegistrationCommand(
             ICollector collector,
+            IRegistrationLevelCollector registrationLevelCollector,
             ICloudBlobClient cloudBlobClient,
             IStorageFactory storageFactory,
             Func<HttpMessageHandler> handlerFunc,
@@ -37,6 +45,7 @@ namespace NuGet.Jobs.Catalog2Registration
             ILogger<Catalog2RegistrationCommand> logger)
         {
             _collector = collector ?? throw new ArgumentNullException(nameof(collector));
+            _registrationLevelCollector = registrationLevelCollector ?? throw new ArgumentNullException(nameof(registrationLevelCollector));
             _cloudBlobClient = cloudBlobClient ?? throw new ArgumentNullException(nameof(cloudBlobClient));
             _storageFactory = storageFactory ?? throw new ArgumentNullException(nameof(storageFactory));
             _handlerFunc = handlerFunc ?? throw new ArgumentNullException(nameof(handlerFunc));
@@ -91,9 +100,25 @@ namespace NuGet.Jobs.Catalog2Registration
                 frontCursor.Value,
                 backCursor.Value);
 
-            // Run the collector.
+            // Run the version-level collector.
             await _collector.RunAsync(
                 frontCursor,
+                backCursor,
+                token);
+
+            // Run the ID-level (package registration scoped) collector on its own cursor. This consumes the
+            // version-less catalog leaves (e.g. sponsorship) that the version-level collector intentionally skips.
+            var registrationLevelFrontCursorUri = frontCursorStorage.ResolveUri(RegistrationLevelCursorRelativeUri);
+            var registrationLevelFrontCursor = new DurableCursor(registrationLevelFrontCursorUri, frontCursorStorage, DateTime.MinValue);
+            await registrationLevelFrontCursor.LoadAsync(token);
+            _logger.LogInformation(
+                "Running the ID-level attribute collector using cursor: {CursorUrl}. Front: {FrontCursor}. Back: {BackCursor}.",
+                registrationLevelFrontCursorUri.AbsoluteUri,
+                registrationLevelFrontCursor.Value,
+                backCursor.Value);
+
+            await _registrationLevelCollector.RunAsync(
+                registrationLevelFrontCursor,
                 backCursor,
                 token);
         }

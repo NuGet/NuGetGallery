@@ -332,7 +332,7 @@ namespace NuGetGallery.Services
 		public class TheAddSponsorshipUrlAsyncMethod
 		{
 			[Fact]
-			public async Task UpdatesSponsorshipUrlsLastEdited()
+			public async Task UpdatesRegistrationLastEdited()
 			{
 				// Arrange
 				var service = CreateService();
@@ -344,8 +344,8 @@ namespace NuGetGallery.Services
 				await service.AddSponsorshipUrlAsync(packageRegistration, "https://github.com/sponsors/user", user);
 
 				// Assert
-				Assert.True(packageRegistration.SponsorshipUrlsLastEdited >= before);
-				Assert.True(packageRegistration.SponsorshipUrlsLastEdited <= DateTime.UtcNow);
+				Assert.True(packageRegistration.RegistrationLastEdited >= before);
+				Assert.True(packageRegistration.RegistrationLastEdited <= DateTime.UtcNow);
 			}
 
 			[Theory]
@@ -388,7 +388,7 @@ namespace NuGetGallery.Services
 		public class TheRemoveSponsorshipUrlAsyncMethod
 		{
 			[Fact]
-			public async Task UpdatesSponsorshipUrlsLastEdited()
+			public async Task UpdatesRegistrationLastEdited()
 			{
 				// Arrange
 				var sponsorshipData = new[]
@@ -405,8 +405,8 @@ namespace NuGetGallery.Services
 				await service.RemoveSponsorshipUrlAsync(packageRegistration, "https://github.com/sponsors/user", user);
 
 				// Assert
-				Assert.True(packageRegistration.SponsorshipUrlsLastEdited >= before);
-				Assert.True(packageRegistration.SponsorshipUrlsLastEdited <= DateTime.UtcNow);
+				Assert.True(packageRegistration.RegistrationLastEdited >= before);
+				Assert.True(packageRegistration.RegistrationLastEdited <= DateTime.UtcNow);
 			}
 
 			[Fact]

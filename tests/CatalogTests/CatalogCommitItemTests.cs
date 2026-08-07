@@ -69,6 +69,63 @@ namespace CatalogTests
         }
 
         [Fact]
+        public void IsRegistrationLevelItem_WhenContextIsNull_Throws()
+        {
+            const JObject context = null;
+
+            var exception = Assert.Throws<ArgumentNullException>(
+                () => CatalogCommitItem.IsRegistrationLevelItem(context, _commitItem));
+
+            Assert.Equal("context", exception.ParamName);
+        }
+
+        [Fact]
+        public void IsRegistrationLevelItem_WhenCommitItemIsNull_Throws()
+        {
+            var exception = Assert.Throws<ArgumentNullException>(
+                () => CatalogCommitItem.IsRegistrationLevelItem(_context, commitItem: null));
+
+            Assert.Equal("commitItem", exception.ParamName);
+        }
+
+        [Fact]
+        public void IsRegistrationLevelItem_WhenItemIsVersionLevel_ReturnsFalse()
+        {
+            Assert.False(CatalogCommitItem.IsRegistrationLevelItem(_context, _commitItem));
+        }
+
+        [Fact]
+        public void IsRegistrationLevelItem_WhenItemIsRegistrationLevel_ReturnsTrue()
+        {
+            var commitItem = CreateRegistrationLevelCommitItemJObject();
+
+            Assert.True(CatalogCommitItem.IsRegistrationLevelItem(_context, commitItem));
+        }
+
+        [Fact]
+        public void IsRegistrationLevelItem_WhenItemIsRegistrationLevel_AvoidsCreateWhichRequiresVersion()
+        {
+            // A registration-level (ID-level) item is version-less, so CatalogCommitItem.Create cannot
+            // represent it. IsRegistrationLevelItem lets version-level readers skip it before calling Create.
+            var commitItem = CreateRegistrationLevelCommitItemJObject();
+
+            Assert.Throws<ArgumentException>(() => CatalogCommitItem.Create(_context, commitItem));
+            Assert.True(CatalogCommitItem.IsRegistrationLevelItem(_context, commitItem));
+        }
+
+        private JObject CreateRegistrationLevelCommitItemJObject()
+        {
+            // Mirrors PackageSponsorshipDetailsCatalogItem's version-less page item: it carries @type and
+            // nuget:id but intentionally no nuget:version.
+            return new JObject(
+                new JProperty(CatalogConstants.IdKeyword, $"https://nuget.test/{_packageIdentity.Id}"),
+                new JProperty(CatalogConstants.TypeKeyword, CatalogConstants.NuGetPackageSponsorshipDetails),
+                new JProperty(CatalogConstants.CommitTimeStamp, _now.ToString("O")),
+                new JProperty(CatalogConstants.CommitId, Guid.NewGuid().ToString()),
+                new JProperty(CatalogConstants.NuGetId, _packageIdentity.Id));
+        }
+
+        [Fact]
         public void CompareTo_WhenObjIsNull_Throws()
         {
             var commitItem = CatalogCommitItem.Create(_context, _commitItem);

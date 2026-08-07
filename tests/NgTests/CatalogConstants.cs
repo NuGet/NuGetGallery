@@ -60,8 +60,10 @@ namespace NgTests
         public const string NuGetLastCreated = "nuget:lastCreated";
         public const string NuGetLastDeleted = "nuget:lastDeleted";
         public const string NuGetLastEdited = "nuget:lastEdited";
+        public const string NuGetLastRegistrationEdited = "nuget:lastRegistrationEdited";
         public const string NuGetPackageDelete = "nuget:PackageDelete";
         public const string NuGetPackageDetails = "nuget:PackageDetails";
+        public const string NuGetPackageSponsorshipDetails = "nuget:PackageSponsorshipDetails";
         public const string NuGetSchemaUri = "http://schema.nuget.org/schema#";
         public const string NuGetVersion = "nuget:version";
         public const string OriginalId = "originalId";

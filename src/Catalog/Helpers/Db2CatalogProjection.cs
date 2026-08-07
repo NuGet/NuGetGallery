@@ -44,10 +44,6 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             var fullPackageVersion = dataReader[Db2CatalogProjectionColumnNames.FullVersion].ToString();
             var listed = dataReader.GetBoolean(dataReader.GetOrdinal(Db2CatalogProjectionColumnNames.Listed));
             var hideLicenseReport = dataReader.GetBoolean(dataReader.GetOrdinal(Db2CatalogProjectionColumnNames.HideLicenseReport));
-            // Read sponsorship urls from the data reader, if present
-            var sponsorshipUrlsJson = dataReader.ReadStringOrNull(Db2CatalogProjectionColumnNames.SponsorshipUrls);
-
-            var sponsorshipUrls = sponsorshipUrlsJson == null ? null : JArray.Parse(sponsorshipUrlsJson).Values<JObject>().Select(entry => (string)entry["Url"]).ToList();
 
             var packageContentUri = _packageContentUriBuilder.Build(packageId, normalizedPackageVersion);
             var deprecationInfo = ReadDeprecationInfoFromDataReader(dataReader);
@@ -63,8 +59,29 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                 hideLicenseReport ? null : dataReader[Db2CatalogProjectionColumnNames.LicenseNames]?.ToString(),
                 hideLicenseReport ? null : dataReader[Db2CatalogProjectionColumnNames.LicenseReportUrl]?.ToString(),
                 deprecationInfo,
-                dataReader.GetBoolean(dataReader.GetOrdinal(Db2CatalogProjectionColumnNames.RequiresLicenseAcceptance)),
-                sponsorshipUrls: sponsorshipUrls);
+                dataReader.GetBoolean(dataReader.GetOrdinal(Db2CatalogProjectionColumnNames.RequiresLicenseAcceptance)));
+        }
+
+        /// <summary>
+        /// Projects a single package-registration row (one row per package ID) into a
+        /// <see cref="PackageRegistrationSponsorshipDetails"/>.
+        /// </summary>
+        public PackageRegistrationSponsorshipDetails ReadPackageRegistrationSponsorshipDetailsFromDataReader(DbDataReader dataReader)
+        {
+            if (dataReader == null)
+            {
+                throw new ArgumentNullException(nameof(dataReader));
+            }
+
+            var packageId = dataReader[Db2CatalogProjectionColumnNames.PackageId].ToString();
+            var registrationLastEdited = dataReader.ReadDateTime(Db2CatalogProjectionColumnNames.RegistrationLastEdited).ForceUtc();
+
+            var sponsorshipUrlsJson = dataReader.ReadStringOrNull(Db2CatalogProjectionColumnNames.SponsorshipUrls);
+            var sponsorshipUrls = sponsorshipUrlsJson == null
+                ? null
+                : JArray.Parse(sponsorshipUrlsJson).Values<JObject>().Select(entry => (string)entry["Url"]).ToList();
+
+            return new PackageRegistrationSponsorshipDetails(packageId, registrationLastEdited, sponsorshipUrls);
         }
 
         public PackageVulnerabilityItem ReadPackageVulnerabilityFromDataReader(DbDataReader dataReader)

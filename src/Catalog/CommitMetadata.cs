@@ -12,14 +12,21 @@ namespace NuGet.Services.Metadata.Catalog
         }
 
         public CommitMetadata(DateTime? lastCreated, DateTime? lastEdited, DateTime? lastDeleted)
+            : this(lastCreated, lastEdited, lastDeleted, lastRegistrationEdited: null)
+        {
+        }
+
+        public CommitMetadata(DateTime? lastCreated, DateTime? lastEdited, DateTime? lastDeleted, DateTime? lastRegistrationEdited)
         {
             LastCreated = lastCreated;
             LastEdited = lastEdited;
             LastDeleted = lastDeleted;
+            LastRegistrationEdited = lastRegistrationEdited;
         }
 
         public DateTime? LastCreated { get; set; }
         public DateTime? LastEdited { get; set; }
         public DateTime? LastDeleted { get; set; }
+        public DateTime? LastRegistrationEdited { get; set; }
     }
 }

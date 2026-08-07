@@ -40,7 +40,7 @@ namespace NuGet.Jobs.Catalog2Registration
                 CloudBlobClient.Verify(x => x.GetContainerReference(It.IsAny<string>()), Times.Never);
                 Storage.Protected().Verify(
                     "OnLoadAsync",
-                    Times.Once(),
+                    Times.Exactly(2),
                     ItExpr.IsAny<Uri>(),
                     ItExpr.IsAny<CancellationToken>());
                 Storage.Protected().Verify(
@@ -48,7 +48,15 @@ namespace NuGet.Jobs.Catalog2Registration
                     Times.Once(),
                     new Uri("https://example/azs/cursor.json"),
                     ItExpr.IsAny<CancellationToken>());
+                Storage.Protected().Verify(
+                    "OnLoadAsync",
+                    Times.Once(),
+                    new Uri("https://example/azs/registration-level-cursor.json"),
+                    ItExpr.IsAny<CancellationToken>());
                 Collector.Verify(
+                    x => x.RunAsync(It.IsAny<DurableCursor>(), It.Is<MemoryCursor>(c => c.Value == DateTime.MaxValue.ToUniversalTime()), It.IsAny<CancellationToken>()),
+                    Times.Once);
+                RegistrationLevelCollector.Verify(
                     x => x.RunAsync(It.IsAny<DurableCursor>(), It.Is<MemoryCursor>(c => c.Value == DateTime.MaxValue.ToUniversalTime()), It.IsAny<CancellationToken>()),
                     Times.Once);
             }
@@ -116,6 +124,7 @@ namespace NuGet.Jobs.Catalog2Registration
             public Facts(ITestOutputHelper output)
             {
                 Collector = new Mock<ICollector>();
+                RegistrationLevelCollector = new Mock<IRegistrationLevelCollector>();
                 CloudBlobClient = new Mock<ICloudBlobClient>();
                 StorageFactory = new Mock<IStorageFactory>();
                 HttpMessageHandler = new Mock<TestHttpMessageHandler> { CallBase = true };
@@ -137,6 +146,7 @@ namespace NuGet.Jobs.Catalog2Registration
 
                 Target = new Catalog2RegistrationCommand(
                     Collector.Object,
+                    RegistrationLevelCollector.Object,
                     CloudBlobClient.Object,
                     StorageFactory.Object,
                     () => HttpMessageHandler.Object,
@@ -145,6 +155,7 @@ namespace NuGet.Jobs.Catalog2Registration
             }
 
             public Mock<ICollector> Collector { get; }
+            public Mock<IRegistrationLevelCollector> RegistrationLevelCollector { get; }
             public Mock<ICloudBlobClient> CloudBlobClient { get; }
             public Mock<IStorageFactory> StorageFactory { get; }
             public Mock<TestHttpMessageHandler> HttpMessageHandler { get; }

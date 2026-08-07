@@ -103,98 +103,6 @@ namespace CatalogTests.Helpers
                 Assert.Equal(expectedRequiresLicenseAcceptance, projection.RequiresLicenseAcceptance);
                 Assert.Null(projection.DeprecationInfo);
             }
-            [Fact]
-            public void ProjectsNullWhenSponsorshipUrlsColumnIsNull()
-            {
-                // Arrange
-                var dataReaderMock = MockDataReader(
-                    packageId: "Package.Id",
-                    normalizedPackageVersion: "1.0.0",
-                    fullPackageVersion: "1.0.0.0",
-                    createdDate: DateTime.UtcNow.AddDays(-1),
-                    lastEditedDate: DateTime.UtcNow.AddMinutes(-5),
-                    publishedDate: DateTime.UtcNow.AddDays(-1),
-                    listed: true,
-                    hideLicenseReport: false,
-                    licenseNames: "MIT",
-                    licenseReportUrl: "https://unittest.org/licenses/MIT",
-                    requiresLicenseAcceptance: true,
-                    sponsorshipUrlsJson: null);
-
-                // Act
-                var result =
-                    _db2catalogProjection.ReadFeedPackageDetailsFromDataReader(
-                        dataReaderMock.Object);
-
-                // Assert
-                Assert.Null(result.SponsorshipUrls);
-            }
-
-            [Fact]
-            public void ProjectsEmptyListWhenSponsorshipUrlsJsonIsEmpty()
-            {
-                // Arrange
-                var dataReaderMock = MockDataReader(
-                    "Package.Id",
-                    "1.0.0",
-                    "1.0.0.0",
-                    DateTime.UtcNow.AddDays(-1),
-                    DateTime.UtcNow.AddMinutes(-5),
-                    DateTime.UtcNow.AddDays(-1),
-                    listed: true,
-                    hideLicenseReport: false,
-                    licenseNames: "MIT",
-                    licenseReportUrl: "https://unittest.org/licenses/MIT",
-                    requiresLicenseAcceptance: true,
-                    sponsorshipUrlsJson: "[]");
-
-                // Act
-                var result = _db2catalogProjection.ReadFeedPackageDetailsFromDataReader(
-                        dataReaderMock.Object);
-
-                // Assert
-                Assert.NotNull(result.SponsorshipUrls);
-                Assert.Empty(result.SponsorshipUrls);
-            }
-
-            [Fact]
-            public void ProjectsSponsorshipUrlsFromJson()
-            {
-                const string sponsorshipUrlsJson = @"[
-                    { ""Url"": ""https://example.test/sponsor1"", ""Timestamp"": ""2026-01-01T00:00:00"" }, 
-                    { ""Url"": ""https://example.test/sponsor2"", ""Timestamp"": ""2026-01-01T00:00:00"" }
-                ]";
-
-                // Arrange
-                var dataReaderMock = MockDataReader(
-                    "Package.Id",
-                    "1.0.0",
-                    "1.0.0.0",
-                    DateTime.UtcNow.AddDays(-1),
-                    DateTime.UtcNow.AddMinutes(-5),
-                    DateTime.UtcNow.AddDays(-1),
-                    listed: true,
-                    hideLicenseReport: false,
-                    licenseNames: "MIT",
-                    licenseReportUrl: "https://unittest.org/licenses/MIT",
-                    requiresLicenseAcceptance: true,
-                    sponsorshipUrlsJson: sponsorshipUrlsJson);
-
-                // Act
-                var result = _db2catalogProjection.ReadFeedPackageDetailsFromDataReader(
-                        dataReaderMock.Object);
-
-                // Assert
-                Assert.Equal(
-                    new[]
-                    {
-                        "https://example.test/sponsor1",
-                        "https://example.test/sponsor2"
-
-                    },
-                    result.SponsorshipUrls);
-                
-            }
 
             private static Mock<DbDataReader> MockDataReader(
                 string packageId,
@@ -207,8 +115,7 @@ namespace CatalogTests.Helpers
                 bool hideLicenseReport,
                 string licenseNames,
                 string licenseReportUrl,
-                bool requiresLicenseAcceptance,
-                string sponsorshipUrlsJson = null)
+                bool requiresLicenseAcceptance)
             {
                 const int ordinalCreated = 3;
                 const int ordinalLastEdited = 4;
@@ -216,7 +123,6 @@ namespace CatalogTests.Helpers
                 const int ordinalListed = 6;
                 const int ordinalHideLicenseReport = 7;
                 const int ordinalRequiresLicenseAcceptance = 10;
-                const int ordinalSponsorshipUrls = 11;
 
                 var dataReaderMock = new Mock<DbDataReader>(MockBehavior.Strict);
 
@@ -249,12 +155,102 @@ namespace CatalogTests.Helpers
                 dataReaderMock.Setup(m => m.GetOrdinal(Db2CatalogProjectionColumnNames.RequiresLicenseAcceptance)).Returns(ordinalRequiresLicenseAcceptance);
                 dataReaderMock.Setup(m => m.GetBoolean(ordinalRequiresLicenseAcceptance)).Returns(requiresLicenseAcceptance);
 
+                // Simulate that these columns do not exist in the resultset.
+                dataReaderMock.Setup(m => m.GetOrdinal(Db2CatalogProjectionColumnNames.DeprecationStatus)).Throws<IndexOutOfRangeException>();
+
+                return dataReaderMock;
+            }
+        }
+
+        public class TheReadPackageRegistrationSponsorshipDetailsFromDataReaderMethod
+        {
+            private const string PackageContentUrlFormat = "https://unittest.org/packages/{id-lower}/{version-lower}.nupkg";
+            private readonly Db2CatalogProjection _db2catalogProjection;
+
+            public TheReadPackageRegistrationSponsorshipDetailsFromDataReaderMethod()
+            {
+                _db2catalogProjection = new Db2CatalogProjection(new PackageContentUriBuilder(PackageContentUrlFormat));
+            }
+
+            [Fact]
+            public void ThrowsForNullArgument()
+            {
+                Assert.Throws<ArgumentNullException>(() => _db2catalogProjection.ReadPackageRegistrationSponsorshipDetailsFromDataReader(null));
+            }
+
+            [Fact]
+            public void ProjectsPackageIdAndRegistrationLastEdited()
+            {
+                var registrationLastEdited = new DateTime(2026, 1, 2, 3, 4, 5, DateTimeKind.Utc);
+                var dataReaderMock = MockDataReader("Package.Id", registrationLastEdited, sponsorshipUrlsJson: null);
+
+                var result = _db2catalogProjection.ReadPackageRegistrationSponsorshipDetailsFromDataReader(dataReaderMock.Object);
+
+                Assert.Equal("Package.Id", result.PackageId);
+                Assert.Equal(registrationLastEdited, result.RegistrationLastEdited);
+            }
+
+            [Fact]
+            public void ProjectsNullWhenSponsorshipUrlsColumnIsNull()
+            {
+                var dataReaderMock = MockDataReader("Package.Id", DateTime.UtcNow, sponsorshipUrlsJson: null);
+
+                var result = _db2catalogProjection.ReadPackageRegistrationSponsorshipDetailsFromDataReader(dataReaderMock.Object);
+
+                Assert.Null(result.SponsorshipUrls);
+            }
+
+            [Fact]
+            public void ProjectsEmptyListWhenSponsorshipUrlsJsonIsEmpty()
+            {
+                var dataReaderMock = MockDataReader("Package.Id", DateTime.UtcNow, sponsorshipUrlsJson: "[]");
+
+                var result = _db2catalogProjection.ReadPackageRegistrationSponsorshipDetailsFromDataReader(dataReaderMock.Object);
+
+                Assert.NotNull(result.SponsorshipUrls);
+                Assert.Empty(result.SponsorshipUrls);
+            }
+
+            [Fact]
+            public void ProjectsSponsorshipUrlsFromJson()
+            {
+                const string sponsorshipUrlsJson = @"[
+                    { ""Url"": ""https://example.test/sponsor1"", ""Timestamp"": ""2026-01-01T00:00:00"" },
+                    { ""Url"": ""https://example.test/sponsor2"", ""Timestamp"": ""2026-01-01T00:00:00"" }
+                ]";
+
+                var dataReaderMock = MockDataReader("Package.Id", DateTime.UtcNow, sponsorshipUrlsJson);
+
+                var result = _db2catalogProjection.ReadPackageRegistrationSponsorshipDetailsFromDataReader(dataReaderMock.Object);
+
+                Assert.Equal(
+                    new[]
+                    {
+                        "https://example.test/sponsor1",
+                        "https://example.test/sponsor2"
+                    },
+                    result.SponsorshipUrls);
+            }
+
+            private static Mock<DbDataReader> MockDataReader(
+                string packageId,
+                DateTime registrationLastEdited,
+                string sponsorshipUrlsJson)
+            {
+                const int ordinalRegistrationLastEdited = 2;
+                const int ordinalSponsorshipUrls = 1;
+
+                var dataReaderMock = new Mock<DbDataReader>(MockBehavior.Strict);
+
+                dataReaderMock.SetupGet(m => m[Db2CatalogProjectionColumnNames.PackageId]).Returns(packageId);
+
+                dataReaderMock.SetupGet(m => m[Db2CatalogProjectionColumnNames.RegistrationLastEdited]).Returns(registrationLastEdited);
+                dataReaderMock.Setup(m => m.GetOrdinal(Db2CatalogProjectionColumnNames.RegistrationLastEdited)).Returns(ordinalRegistrationLastEdited);
+                dataReaderMock.Setup(m => m.GetDateTime(ordinalRegistrationLastEdited)).Returns(registrationLastEdited);
+
                 dataReaderMock.Setup(m => m.GetOrdinal(Db2CatalogProjectionColumnNames.SponsorshipUrls)).Returns(ordinalSponsorshipUrls);
                 dataReaderMock.Setup(m => m.IsDBNull(ordinalSponsorshipUrls)).Returns(sponsorshipUrlsJson == null);
                 dataReaderMock.Setup(m => m.GetString(ordinalSponsorshipUrls)).Returns(sponsorshipUrlsJson);
-
-                // Simulate that these columns do not exist in the resultset.
-                dataReaderMock.Setup(m => m.GetOrdinal(Db2CatalogProjectionColumnNames.DeprecationStatus)).Throws<IndexOutOfRangeException>();
 
                 return dataReaderMock;
             }

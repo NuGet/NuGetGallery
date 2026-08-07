@@ -18,6 +18,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         private const string CursorParameterName = "Cursor";
         private const string PackageIdParameterName = "PackageId";
         private const string PackageVersionParameterName = "PackageVersion";
+        private const string TopParameterName = "Top";
 
         // insertions are:
         // {0} - inner SELECT type
@@ -41,8 +42,6 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                      P.[LicenseNames],
                      P.[LicenseReportUrl],
                      P.[RequiresLicenseAcceptance],
-                    //registration last edited columns, include package-registration sponsorship metadata
-                     PR.[SponsorshipUrls] AS '" + Db2CatalogProjectionColumnNames.SponsorshipUrls + @"',
                     PD.[Status] AS '" + Db2CatalogProjectionColumnNames.DeprecationStatus + @"',
                    APR.[Id] AS '" + Db2CatalogProjectionColumnNames.AlternatePackageId + @"',
                     AP.[NormalizedVersion] AS '" + Db2CatalogProjectionColumnNames.AlternatePackageVersion + @"',
@@ -59,6 +58,19 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                 LEFT JOIN [dbo].[VulnerablePackageVersionRanges] AS VPVR ON VPVR.[Key] = VPVRP.[VulnerablePackageVersionRange_Key]
                 LEFT JOIN [dbo].[PackageVulnerabilities] AS PV ON PV.[Key] = VPVR.[VulnerabilityKey]
                 {2}";
+
+        // ID-level (package registration) query. Unlike the version-level subquery above, this
+        // returns a single row per package registration and carries only registration-scoped
+        // sponsorship metadata.
+        // insertions are:
+        // {0} - RegistrationLastEdited column name (cursor column)
+        private static readonly string Db2CatalogRegistrationsChangedSqlQuery = @"SELECT TOP (@" + TopParameterName + @") WITH TIES
+                PR.[Id] AS '" + Db2CatalogProjectionColumnNames.PackageId + @"',
+                PR.[SponsorshipUrls] AS '" + Db2CatalogProjectionColumnNames.SponsorshipUrls + @"',
+                PR.[{0}] AS '" + Db2CatalogProjectionColumnNames.RegistrationLastEdited + @"'
+            FROM [dbo].[PackageRegistrations] AS PR
+            WHERE PR.[{0}] > @" + CursorParameterName + @"
+            ORDER BY PR.[{0}]";
 
         private readonly ISqlConnectionFactory _connectionFactory;
         private readonly Db2CatalogProjection _db2catalogProjection;
@@ -92,6 +104,17 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             return GetPackagesInOrder(
                 package => package.LastEditedDate,
                 Db2CatalogCursor.ByLastEdited(since, top));
+        }
+
+        public async Task<SortedList<DateTime, IList<PackageRegistrationSponsorshipDetails>>> GetRegistrationsChangedSince(DateTime since, int top)
+        {
+            var cursor = Db2CatalogCursor.ByRegistrationLastEdited(since, top);
+            var allRegistrations = await GetRegistrations(cursor);
+
+            return OrderPackagesByKeyDate(
+                allRegistrations,
+                registration => registration.RegistrationLastEdited,
+                _maxPageSize);
         }
 
         public async Task<FeedPackageDetails> GetPackageOrNull(string id, string version)
@@ -143,41 +166,43 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         }
 
         /// <summary>
-        /// Returns a <see cref="SortedList{DateTime, IList{FeedPackageDetails}}"/> of packages.
+        /// Returns a <see cref="SortedList{DateTime, IList{T}}"/> grouped and paged by a key date.
         /// </summary>
-        /// <param name="keyDateFunc">The <see cref="DateTime"/> field to sort the <see cref="FeedPackageDetails"/> on.</param>
-        internal static SortedList<DateTime, IList<FeedPackageDetails>> OrderPackagesByKeyDate(
-            IReadOnlyCollection<FeedPackageDetails> packages,
-            Func<FeedPackageDetails, DateTime> keyDateFunc,
+        /// <param name="items">The items to group.</param>
+        /// <param name="keyDateFunc">The <see cref="DateTime"/> field to sort the items on.</param>
+        /// <param name="maxPageSize">The maximum number of items to include across whole key-date groups.</param>
+        internal static SortedList<DateTime, IList<T>> OrderPackagesByKeyDate<T>(
+            IReadOnlyCollection<T> items,
+            Func<T, DateTime> keyDateFunc,
             int maxPageSize)
         {
-            var result = new SortedList<DateTime, IList<FeedPackageDetails>>();
+            var result = new SortedList<DateTime, IList<T>>();
 
-            foreach (var package in packages)
+            foreach (var item in items)
             {
-                var packageKeyDate = keyDateFunc(package);
-                if (!result.TryGetValue(packageKeyDate, out IList<FeedPackageDetails> packagesWithSameKeyDate))
+                var keyDate = keyDateFunc(item);
+                if (!result.TryGetValue(keyDate, out IList<T> itemsWithSameKeyDate))
                 {
-                    packagesWithSameKeyDate = new List<FeedPackageDetails>();
-                    result.Add(packageKeyDate, packagesWithSameKeyDate);
+                    itemsWithSameKeyDate = new List<T>();
+                    result.Add(keyDate, itemsWithSameKeyDate);
                 }
 
-                packagesWithSameKeyDate.Add(package);
+                itemsWithSameKeyDate.Add(item);
             }
 
-            var packagesCount = 0;
-            var filteredResult = new SortedList<DateTime, IList<FeedPackageDetails>>();
+            var itemsCount = 0;
+            var filteredResult = new SortedList<DateTime, IList<T>>();
             foreach (var keyDate in result.Keys)
             {
-                if (result.TryGetValue(keyDate, out IList<FeedPackageDetails> packagesForKeyDate))
+                if (result.TryGetValue(keyDate, out IList<T> itemsForKeyDate))
                 {
-                    if (packagesCount > 0 && packagesCount + packagesForKeyDate.Count > maxPageSize)
+                    if (itemsCount > 0 && itemsCount + itemsForKeyDate.Count > maxPageSize)
                     {
                         break;
                     }
 
-                    packagesCount += packagesForKeyDate.Count;
-                    filteredResult.Add(keyDate, packagesForKeyDate);
+                    itemsCount += itemsForKeyDate.Count;
+                    filteredResult.Add(keyDate, itemsForKeyDate);
                 }
             }
 
@@ -208,6 +233,15 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                                    "SELECT ",
                                    "AND PR.[Id] = @PackageId AND P.[NormalizedVersion] = @PackageVersion",
                                    "");
+        }
+
+        /// <summary>
+        /// Builds the parameterized ID-level SQL query for retrieving package registrations whose
+        /// registration-scoped metadata changed after the cursor.
+        /// </summary>
+        internal static string BuildRegistrationsChangedSqlQuery(Db2CatalogCursor cursor)
+        {
+            return string.Format(Db2CatalogRegistrationsChangedSqlQuery, cursor.ColumnName);
         }
 
         /// <summary>
@@ -289,6 +323,52 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             }
 
             return packages;
+        }
+
+        private async Task<IReadOnlyCollection<PackageRegistrationSponsorshipDetails>> GetRegistrations(Db2CatalogCursor cursor)
+        {
+            using (var sqlConnection = await _connectionFactory.OpenAsync())
+            {
+                return await GetRegistrationDetailsAsync(sqlConnection, cursor);
+            }
+        }
+
+        private async Task<IReadOnlyCollection<PackageRegistrationSponsorshipDetails>> GetRegistrationDetailsAsync(
+            SqlConnection sqlConnection,
+            Db2CatalogCursor cursor)
+        {
+            var registrationsQuery = BuildRegistrationsChangedSqlQuery(cursor);
+
+#pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
+            using (var registrationsCommand = new SqlCommand(registrationsQuery, sqlConnection)
+            {
+                CommandTimeout = _commandTimeout
+            })
+#pragma warning restore CA2100 // Review SQL queries for security vulnerabilities
+            {
+                registrationsCommand.Parameters.AddWithValue(CursorParameterName, cursor.CursorValue);
+                registrationsCommand.Parameters.AddWithValue(TopParameterName, cursor.Top);
+
+                using (_telemetryService.TrackGetPackageDetailsQueryDuration(cursor))
+                {
+                    return await ReadRegistrationsAsync(registrationsCommand);
+                }
+            }
+        }
+
+        private async Task<IReadOnlyCollection<PackageRegistrationSponsorshipDetails>> ReadRegistrationsAsync(SqlCommand registrationsCommand)
+        {
+            var registrations = new List<PackageRegistrationSponsorshipDetails>();
+
+            using (var registrationsReader = await registrationsCommand.ExecuteReaderAsync())
+            {
+                while (await registrationsReader.ReadAsync())
+                {
+                    registrations.Add(_db2catalogProjection.ReadPackageRegistrationSponsorshipDetailsFromDataReader(registrationsReader));
+                }
+            }
+
+            return registrations;
         }
     }
 }

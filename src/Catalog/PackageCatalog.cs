@@ -39,6 +39,13 @@ namespace NuGet.Services.Metadata.Catalog
                     graph.CreateUriNode(Schema.Predicates.LastDeleted),
                     graph.CreateLiteralNode(commitMetadata.LastDeleted.Value.ToString("O"), Schema.DataTypes.DateTime));
             }
+            if (commitMetadata.LastRegistrationEdited != null)
+            {
+                graph.Assert(
+                    graph.CreateUriNode(indexUri),
+                    graph.CreateUriNode(Schema.Predicates.LastRegistrationEdited),
+                    graph.CreateLiteralNode(commitMetadata.LastRegistrationEdited.Value.ToString("O"), Schema.DataTypes.DateTime));
+            }
 
             return graph;
         }
@@ -62,6 +69,7 @@ namespace NuGet.Services.Metadata.Catalog
                 commitMetadata.LastCreated = TryGetDateTimeFromJObject(obj, "nuget:lastCreated");
                 commitMetadata.LastEdited = TryGetDateTimeFromJObject(obj, "nuget:lastEdited");
                 commitMetadata.LastDeleted = TryGetDateTimeFromJObject(obj, "nuget:lastDeleted");
+                commitMetadata.LastRegistrationEdited = TryGetDateTimeFromJObject(obj, "nuget:lastRegistrationEdited");
             }
 
             return commitMetadata;

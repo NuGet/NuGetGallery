@@ -280,6 +280,7 @@ namespace NuGet.Services.Metadata.Catalog
             CreateCommitItemBatchesAsync createCommitItemBatchesAsync)
         {
             IEnumerable<CatalogCommitItem> commitItems = page["items"]
+                .Where(item => !CatalogCommitItem.IsRegistrationLevelItem(context, (JObject)item))
                 .Select(item => CatalogCommitItem.Create(context, (JObject)item))
                 .Where(item => item.CommitTimeStamp > front.Value && item.CommitTimeStamp <= back.Value);
 

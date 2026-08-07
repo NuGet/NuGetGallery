@@ -93,6 +93,60 @@ namespace NgTests
         }
 
         [Fact]
+        public async Task RunInternal_WritesSponsorshipLeafAndAdvancesRegistrationCursor()
+        {
+            const int top = 20;
+
+            var galleryDatabaseMock = new Mock<IGalleryDatabaseQueryService>(MockBehavior.Strict);
+
+            InitializeTest(skipCreatedPackagesProcessing: true, top: top, galleryDatabaseMock: galleryDatabaseMock);
+
+            // No per-version edited activity in this test; only the ID-level (registration) lane changes.
+            galleryDatabaseMock
+                .Setup(m => m.GetPackagesEditedSince(It.IsAny<DateTime>(), top))
+                .ReturnsAsync(new SortedList<DateTime, IList<FeedPackageDetails>>());
+
+            var registrationEdited = new DateTime(2023, 8, 4, 12, 0, 0, DateTimeKind.Utc);
+            var changedRegistration = new PackageRegistrationSponsorshipDetails(
+                "SponsoredPackage",
+                registrationEdited,
+                new List<string> { "https://github.com/sponsors/owner" });
+            var batch = new SortedList<DateTime, IList<PackageRegistrationSponsorshipDetails>>
+            {
+                { registrationEdited, new List<PackageRegistrationSponsorshipDetails> { changedRegistration } }
+            };
+
+            // The first loop iteration reads from the baseline cursor and returns the changed
+            // registration. Once the cursor advances, there are no further changes.
+            galleryDatabaseMock
+                .Setup(m => m.GetRegistrationsChangedSince(Constants.DateTimeMinValueUtc, top))
+                .ReturnsAsync(batch);
+            galleryDatabaseMock
+                .Setup(m => m.GetRegistrationsChangedSince(registrationEdited, top))
+                .ReturnsAsync(new SortedList<DateTime, IList<PackageRegistrationSponsorshipDetails>>());
+
+            await _job.RunOnceAsync(CancellationToken.None);
+
+            // A single version-less sponsorship leaf, plus index.json and page0.json.
+            Assert.Equal(3, _catalogStorage.Content.Count);
+
+            var leaf = Assert.Single(
+                _catalogStorage.Content,
+                pair => pair.Key.AbsoluteUri.EndsWith("/sponsoredpackage.json", StringComparison.Ordinal));
+            var leafJson = JObject.Parse(leaf.Value.GetContentString());
+            Assert.Contains("PackageSponsorshipDetails", leafJson["@type"].Values<string>());
+            Assert.Equal("SponsoredPackage", leafJson.Value<string>("id"));
+            Assert.Contains("https://github.com/sponsors/owner", leafJson["sponsorshipUrls"].Values<string>());
+
+            var index = Assert.Single(
+                _catalogStorage.Content,
+                pair => pair.Key.AbsoluteUri.EndsWith("index.json", StringComparison.Ordinal));
+            Assert.Contains(
+                "\"nuget:lastRegistrationEdited\":\"2023-08-04T12:00:00Z\"",
+                index.Value.GetContentString());
+        }
+
+        [Fact]
         public async Task RunInternal_CanSetLeaveNoStoreOnAllBlobs()
         {
             const int top = 1;
@@ -862,6 +916,10 @@ namespace NgTests
             var galleryDatabaseMock = new Mock<IGalleryDatabaseQueryService>();
 
             galleryDatabaseMock
+                .Setup(m => m.GetRegistrationsChangedSince(It.IsAny<DateTime>(), top))
+                .ReturnsAsync(GetEmptyRegistrations);
+
+            galleryDatabaseMock
                 .Setup(m => m.GetPackagesCreatedSince(cursor1, top))
                 .ReturnsAsync(GetCreatedPackages);
 
@@ -985,6 +1043,10 @@ namespace NgTests
             var galleryDatabaseMock = new Mock<IGalleryDatabaseQueryService>();
 
             galleryDatabaseMock
+                .Setup(m => m.GetRegistrationsChangedSince(It.IsAny<DateTime>(), top))
+                .ReturnsAsync(GetEmptyRegistrations);
+
+            galleryDatabaseMock
                 .Setup(m => m.GetPackagesCreatedSince(cursor1, top))
                 .ReturnsAsync(GetCreatedPackages);
 
@@ -1099,6 +1161,10 @@ namespace NgTests
             var cursor3 = new DateTime(2015, 1, 1, 1, 1, 3).ForceUtc();
 
             var galleryDatabaseMock = new Mock<IGalleryDatabaseQueryService>();
+
+            galleryDatabaseMock
+                .Setup(m => m.GetRegistrationsChangedSince(It.IsAny<DateTime>(), top))
+                .ReturnsAsync(GetEmptyRegistrations);
 
             galleryDatabaseMock
                 .Setup(m => m.GetPackagesCreatedSince(cursor1, top))
@@ -1230,6 +1296,10 @@ namespace NgTests
             var galleryDatabaseMock = new Mock<IGalleryDatabaseQueryService>();
 
             galleryDatabaseMock
+                .Setup(m => m.GetRegistrationsChangedSince(It.IsAny<DateTime>(), top))
+                .ReturnsAsync(GetEmptyRegistrations);
+
+            galleryDatabaseMock
                 .Setup(m => m.GetPackagesCreatedSince(cursor1, top))
                 .ReturnsAsync(GetEmptyPackages);
 
@@ -1317,6 +1387,11 @@ namespace NgTests
             return GalleryDatabaseQueryService.OrderPackagesByKeyDate(new List<FeedPackageDetails>(), p => p.CreatedDate, Constants.MaxPageSize);
         }
 
+        private SortedList<DateTime, IList<PackageRegistrationSponsorshipDetails>> GetEmptyRegistrations()
+        {
+            return new SortedList<DateTime, IList<PackageRegistrationSponsorshipDetails>>();
+        }
+
         private SortedList<DateTime, IList<FeedPackageDetails>> GetCreatedPackagesSecondRequest()
         {
             var packages = new List<FeedPackageDetails>
@@ -1359,6 +1434,12 @@ namespace NgTests
                 galleryDatabaseMock: galleryDatabaseMock,
                 packageContentUriBuilder: _packageContentUriBuilder,
                 testOutputHelper: _testOutputHelper);
+
+            // By default the ID-level (registration) lane has no changes. Individual tests that
+            // exercise the sponsorship lane override this with a more specific setup.
+            galleryDatabaseMock
+                .Setup(m => m.GetRegistrationsChangedSince(It.IsAny<DateTime>(), It.IsAny<int>()))
+                .ReturnsAsync(new SortedList<DateTime, IList<PackageRegistrationSponsorshipDetails>>());
         }
 
         private PackageCreationOrEdit CreatePackageCreationOrEdit(DateTime? createdDate = null)
@@ -2072,6 +2153,8 @@ namespace NgTests
                 new JProperty(CatalogConstants.NuGetLastEdited,
                     new JObject(new JProperty(CatalogConstants.TypeKeyword, CatalogConstants.XmlDateTimeSchemaUri))),
                 new JProperty(CatalogConstants.NuGetLastDeleted,
+                    new JObject(new JProperty(CatalogConstants.TypeKeyword, CatalogConstants.XmlDateTimeSchemaUri))),
+                new JProperty(CatalogConstants.NuGetLastRegistrationEdited,
                     new JObject(new JProperty(CatalogConstants.TypeKeyword, CatalogConstants.XmlDateTimeSchemaUri))));
 
             Assert.Equal(expectedContext.ToString(), indexOrPage[CatalogConstants.ContextKeyword].ToString());

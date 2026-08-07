@@ -15,12 +15,14 @@
     <Compile Remove="CatalogWriterBase.cs" />
     <Compile Remove="DeleteCatalogItem.cs" />
     <Compile Remove="Helpers\CatalogWriterHelper.cs" />
+    <Compile Remove="Helpers\RegistrationCatalogWriterHelper.cs" />
     <Compile Remove="IPackageCatalogItemCreator.cs" />
     <Compile Remove="JsonLdIntegration\JsonLdReader.cs" />
     <Compile Remove="JsonLdIntegration\JsonLdWriter.cs" />
     <Compile Remove="PackageCatalog.cs" />
     <Compile Remove="PackageCatalogItem.cs" />
     <Compile Remove="PackageCatalogItemCreator.cs" />
+    <Compile Remove="PackageSponsorshipDetailsCatalogItem.cs" />
     <Compile Remove="Persistence\AzureStorage.cs" />
     <Compile Remove="Persistence\AzureStorageFactory.cs" />
     <Compile Remove="ReadOnlyGraph.cs" />
@@ -58,6 +60,7 @@
     <EmbeddedResource Include="context\Catalog.json" />
     <EmbeddedResource Include="context\Container.json" />
     <EmbeddedResource Include="context\PackageDetails.json" />
+    <EmbeddedResource Include="context\PackageSponsorshipDetails.json" />
     <EmbeddedResource Include="xslt\normalizeNuspecNamespace.xslt" />
     <EmbeddedResource Include="xslt\nuspec.xslt" />
   </ItemGroup>

@@ -168,6 +168,7 @@ namespace Ng.Jobs
                 uint packagesDeleted;
                 uint packagesCreated;
                 uint packagesEdited;
+                uint packagesRegistrationEdited;
 
                 client.Timeout = Timeout;
 
@@ -182,12 +183,14 @@ namespace Ng.Jobs
                     packagesDeleted = 0;
                     packagesCreated = 0;
                     packagesEdited = 0;
+                    packagesRegistrationEdited = 0;
 
                     // baseline timestamps
                     var catalogProperties = await CatalogProperties.ReadAsync(CatalogStorage, TelemetryService, cancellationToken);
                     var lastCreated = catalogProperties.LastCreated ?? (StartDate ?? Constants.DateTimeMinValueUtc);
                     var lastEdited = catalogProperties.LastEdited ?? lastCreated;
                     var lastDeleted = catalogProperties.LastDeleted ?? lastCreated;
+                    var lastRegistrationEdited = catalogProperties.LastRegistrationEdited ?? lastCreated;
 
                     if (lastDeleted == Constants.DateTimeMinValueUtc)
                     {
@@ -273,6 +276,28 @@ namespace Ng.Jobs
                                 telemetryService: TelemetryService,
                                 logger: Logger);
                         }
+
+                        using (TelemetryService.TrackDuration(TelemetryConstants.RegistrationEditedPackagesSeconds))
+                        {
+                            Logger.LogInformation("CATALOG LastRegistrationEdited: {CatalogLastRegistrationEditedTime}", lastRegistrationEdited.ToString("O"));
+
+                            var registrationsEdited = await GalleryDatabaseQueryService.GetRegistrationsChangedSince(lastRegistrationEdited, Top);
+
+                            packagesRegistrationEdited = (uint)registrationsEdited.SelectMany(x => x.Value).Count();
+                            Logger.LogInformation("DATABASE RegistrationEditedPackages: {RegistrationEditedPackagesCount}", packagesRegistrationEdited);
+
+                            lastRegistrationEdited = await RegistrationCatalogWriterHelper.WritePackageSponsorshipDetailsToCatalogAsync(
+                                registrationsEdited,
+                                CatalogStorage,
+                                lastCreated,
+                                lastEdited,
+                                lastDeleted,
+                                lastRegistrationEdited,
+                                GetCatalogContext(),
+                                cancellationToken: cancellationToken,
+                                telemetryService: TelemetryService,
+                                logger: Logger);
+                        }
                     }
                     finally
                     {
@@ -284,8 +309,9 @@ namespace Ng.Jobs
                         }
 
                         TelemetryService.TrackMetric(TelemetryConstants.EditedPackagesCount, packagesEdited);
+                        TelemetryService.TrackMetric(TelemetryConstants.RegistrationEditedPackagesCount, packagesRegistrationEdited);
                     }
-                } while (packagesDeleted > 0 || packagesCreated > 0 || packagesEdited > 0);
+                } while (packagesDeleted > 0 || packagesCreated > 0 || packagesEdited > 0 || packagesRegistrationEdited > 0);
             }
         }
 

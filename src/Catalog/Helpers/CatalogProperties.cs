@@ -15,19 +15,26 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         public DateTime? LastCreated { get; }
         public DateTime? LastDeleted { get; }
         public DateTime? LastEdited { get; }
+        public DateTime? LastRegistrationEdited { get; }
 
         public CatalogProperties(DateTime? lastCreated, DateTime? lastDeleted, DateTime? lastEdited)
+            : this(lastCreated, lastDeleted, lastEdited, lastRegistrationEdited: null)
+        {
+        }
+
+        public CatalogProperties(DateTime? lastCreated, DateTime? lastDeleted, DateTime? lastEdited, DateTime? lastRegistrationEdited)
         {
             LastCreated = lastCreated;
             LastDeleted = lastDeleted;
             LastEdited = lastEdited;
+            LastRegistrationEdited = lastRegistrationEdited;
         }
 
         /// <summary>
         /// Asynchronously reads and returns top-level <see cref="DateTime" /> metadata from the catalog's index.json.
         /// </summary>
-        /// <remarks>The metadata values include "nuget:lastCreated", "nuget:lastDeleted", and "nuget:lastEdited",
-        /// which are the timestamps of the catalog cursor.</remarks>
+        /// <remarks>The metadata values include "nuget:lastCreated", "nuget:lastDeleted", "nuget:lastEdited",
+        /// and "nuget:lastRegistrationEdited", which are the timestamps of the catalog cursor.</remarks>
         /// <param name="storage"></param>
         /// <param name="cancellationToken"></param>
         /// <param name="telemetryService"></param>
@@ -56,6 +63,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             DateTime? lastCreated = null;
             DateTime? lastDeleted = null;
             DateTime? lastEdited = null;
+            DateTime? lastRegistrationEdited = null;
 
             var stopwatch = Stopwatch.StartNew();
             var indexUri = storage.ResolveUri("index.json");
@@ -81,9 +89,14 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                 {
                     lastEdited = token.ToObject<DateTime>().ToUniversalTime();
                 }
+
+                if (obj.TryGetValue("nuget:lastRegistrationEdited", out token))
+                {
+                    lastRegistrationEdited = token.ToObject<DateTime>().ToUniversalTime();
+                }
             }
 
-            return new CatalogProperties(lastCreated, lastDeleted, lastEdited);
+            return new CatalogProperties(lastCreated, lastDeleted, lastEdited, lastRegistrationEdited);
         }
     }
 }

@@ -109,6 +109,56 @@ namespace CatalogTests.Helpers
             }
         }
 
+        public class TheBuildRegistrationsChangedSqlQueryMethod
+        {
+            [Fact]
+            public void SelectsTopWithTies()
+            {
+                var cursor = Db2CatalogCursor.ByRegistrationLastEdited(DateTime.UtcNow, 10);
+
+                var queryString = GalleryDatabaseQueryService.BuildRegistrationsChangedSqlQuery(cursor);
+
+                Assert.Contains("SELECT TOP (@Top) WITH TIES", queryString);
+            }
+
+            [Fact]
+            public void SelectsIdSponsorshipUrlsAndRegistrationLastEdited()
+            {
+                var cursor = Db2CatalogCursor.ByRegistrationLastEdited(DateTime.UtcNow, 10);
+
+                var queryString = GalleryDatabaseQueryService.BuildRegistrationsChangedSqlQuery(cursor);
+
+                Assert.Contains($"PR.[Id] AS '{Db2CatalogProjectionColumnNames.PackageId}'", queryString);
+                Assert.Contains($"PR.[SponsorshipUrls] AS '{Db2CatalogProjectionColumnNames.SponsorshipUrls}'", queryString);
+                Assert.Contains($"PR.[{Db2CatalogProjectionColumnNames.RegistrationLastEdited}] AS '{Db2CatalogProjectionColumnNames.RegistrationLastEdited}'", queryString);
+            }
+
+            [Fact]
+            public void SelectsFromPackageRegistrationsTableOnly()
+            {
+                var cursor = Db2CatalogCursor.ByRegistrationLastEdited(DateTime.UtcNow, 10);
+
+                var queryString = GalleryDatabaseQueryService.BuildRegistrationsChangedSqlQuery(cursor);
+
+                Assert.Contains("FROM [dbo].[PackageRegistrations] AS PR", queryString);
+                // ID-level query returns one row per registration: it must not join the version-level
+                // Packages table or the vulnerability tables (which would amplify to one row per version).
+                Assert.DoesNotContain("[dbo].[Packages]", queryString);
+                Assert.DoesNotContain("VulnerablePackage", queryString);
+            }
+
+            [Fact]
+            public void FiltersAndOrdersByRegistrationLastEdited()
+            {
+                var cursor = Db2CatalogCursor.ByRegistrationLastEdited(DateTime.UtcNow, 10);
+
+                var queryString = GalleryDatabaseQueryService.BuildRegistrationsChangedSqlQuery(cursor);
+
+                Assert.Contains($"WHERE PR.[{cursor.ColumnName}] > @Cursor", queryString);
+                Assert.EndsWith($"ORDER BY PR.[{cursor.ColumnName}]", queryString);
+            }
+        }
+
         public class TheOrderPackagesByKeyDateMethod
         {
             [Fact]

@@ -20,6 +20,9 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri PackageDetails = new Uri(Prefixes.NuGet + "PackageDetails");
             public static readonly Uri PackageDelete = new Uri(Prefixes.NuGet + "PackageDelete");
 
+            // ID-level (package registration) metadata leaf. Version-less; the first attribute it carries is sponsorship.
+            public static readonly Uri PackageSponsorshipDetails = new Uri(Prefixes.NuGet + "PackageSponsorshipDetails");
+
             public static readonly Uri PackageEntry = new Uri(Prefixes.NuGet + "PackageEntry");
 
             public static readonly Uri CatalogRoot = new Uri(Prefixes.Catalog + "CatalogRoot");
@@ -60,6 +63,7 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri LastCreated = new Uri(Prefixes.NuGet + "lastCreated");
             public static readonly Uri LastEdited = new Uri(Prefixes.NuGet + "lastEdited");
             public static readonly Uri LastDeleted = new Uri(Prefixes.NuGet + "lastDeleted");
+            public static readonly Uri LastRegistrationEdited = new Uri(Prefixes.NuGet + "lastRegistrationEdited");
             public static readonly Uri Listed = new Uri(Prefixes.NuGet + "listed");
 
             public static readonly Uri Published = new Uri(Prefixes.NuGet + "published");
@@ -78,6 +82,9 @@ namespace NuGet.Services.Metadata.Catalog
             public static readonly Uri Vulnerability = new Uri(Prefixes.NuGet + "vulnerability");
             public static readonly Uri AdvisoryUrl = new Uri(Prefixes.NuGet + "advisoryUrl");
             public static readonly Uri Severity = new Uri(Prefixes.NuGet + "severity");
+
+            // ID-level (package registration) attributes. Singular predicate.
+            public static readonly Uri SponsorshipUrl = new Uri(Prefixes.NuGet + "sponsorshipUrl");
         }
     }
 }
