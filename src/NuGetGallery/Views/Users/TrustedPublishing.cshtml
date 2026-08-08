@@ -4,7 +4,7 @@
 @using NuGetGallery.Services.Authentication
 @{
     ViewBag.Title = "Trusted Publishing";
-ViewBag.MdPageColumns = GalleryConstants.ColumnsFormMd;
+    ViewBag.MdPageColumns = GalleryConstants.ColumnsFormMd;
 }
 
 <section role="main" class="container main-container page-trusted-publishing">
@@ -56,9 +56,9 @@ ViewBag.MdPageColumns = GalleryConstants.ColumnsFormMd;
                                 <div class="panel-body" data-bind="template: { name: 'upsert-policy', data: NewPolicy }"></div>
                             </div>
                         </text>,
-                     expanded: false,
-                     expandedIcon: "Subtraction",
-                     collapsedIcon: "Add")
+                        expanded: false,
+                        expandedIcon: "Subtraction",
+                        collapsedIcon: "Add")
                 }
 
                 @ViewHelpers.Section(this,
