@@ -201,7 +201,9 @@ public class FederatedCredentialsControllerFacts
                     "packageowner",
                     """{"tenant":"test","object":"123"}""",
                     "Test Policy",
-                    FederatedCredentialType.EntraIdServicePrincipal))
+                    FederatedCredentialType.EntraIdServicePrincipal,
+                    It.IsAny<string[]>(),
+                    It.IsAny<string[]>()))
                 .ReturnsAsync(successResult);
 
             // Act
@@ -217,7 +219,9 @@ public class FederatedCredentialsControllerFacts
                 "packageowner",
                 """{"tenant":"test","object":"123"}""",
                 "Test Policy",
-                FederatedCredentialType.EntraIdServicePrincipal), Times.Once);
+                FederatedCredentialType.EntraIdServicePrincipal,
+                It.IsAny<string[]>(),
+                It.IsAny<string[]>()), Times.Once);
         }
 
         [Fact]
@@ -241,7 +245,7 @@ public class FederatedCredentialsControllerFacts
                 nameof(FederatedCredentialPolicy.Criteria));
 
             FederatedCredentialService
-                .Setup(x => x.AddPolicyAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<FederatedCredentialType>()))
+                .Setup(x => x.AddPolicyAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<FederatedCredentialType>(), It.IsAny<string[]>(), It.IsAny<string[]>()))
                 .ReturnsAsync(badRequestResult);
 
             // Act
@@ -276,7 +280,7 @@ public class FederatedCredentialsControllerFacts
                 nameof(FederatedCredentialPolicy.PackageOwner));
 
             FederatedCredentialService
-                .Setup(x => x.AddPolicyAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<FederatedCredentialType>()))
+                .Setup(x => x.AddPolicyAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<FederatedCredentialType>(), It.IsAny<string[]>(), It.IsAny<string[]>()))
                 .ReturnsAsync(unauthorizedResult);
 
             // Act
@@ -320,7 +324,9 @@ public class FederatedCredentialsControllerFacts
                     null,
                     """{"owner":"test","repo":"test"}""",
                     "Test Policy",
-                    FederatedCredentialType.GitHubActions))
+                    FederatedCredentialType.GitHubActions,
+                    It.IsAny<string[]>(),
+                    It.IsAny<string[]>()))
                 .ReturnsAsync(successResult);
 
             // Act
@@ -333,7 +339,9 @@ public class FederatedCredentialsControllerFacts
                 null,
                 """{"owner":"test","repo":"test"}""",
                 "Test Policy",
-                FederatedCredentialType.GitHubActions), Times.Once);
+                FederatedCredentialType.GitHubActions,
+                It.IsAny<string[]>(),
+                It.IsAny<string[]>()), Times.Once);
         }
 
         [Fact]
@@ -366,7 +374,9 @@ public class FederatedCredentialsControllerFacts
                     "packageowner",
                     """{"owner":"test","repo":"test"}""",
                     null,
-                    FederatedCredentialType.GitHubActions))
+                    FederatedCredentialType.GitHubActions,
+                    It.IsAny<string[]>(),
+                    It.IsAny<string[]>()))
                 .ReturnsAsync(successResult);
 
             // Act
@@ -379,7 +389,9 @@ public class FederatedCredentialsControllerFacts
                 "packageowner",
                 """{"owner":"test","repo":"test"}""",
                 null,
-                FederatedCredentialType.GitHubActions), Times.Once);
+                FederatedCredentialType.GitHubActions,
+                It.IsAny<string[]>(),
+                It.IsAny<string[]>()), Times.Once);
         }
 
         [Theory]
@@ -414,7 +426,9 @@ public class FederatedCredentialsControllerFacts
                     "packageowner",
                     """{"test": "value"}""",
                     "Test Policy",
-                    policyType))
+                    policyType,
+                    It.IsAny<string[]>(),
+                    It.IsAny<string[]>()))
                 .ReturnsAsync(successResult);
 
             // Act
@@ -427,7 +441,9 @@ public class FederatedCredentialsControllerFacts
                 "packageowner",
                 """{"test": "value"}""",
                 "Test Policy",
-                policyType), Times.Once);
+                policyType,
+                It.IsAny<string[]>(),
+                It.IsAny<string[]>()), Times.Once);
         }
 
         [Fact]
@@ -451,7 +467,7 @@ public class FederatedCredentialsControllerFacts
                 nameof(FederatedCredentialPolicy.PolicyName));
 
             FederatedCredentialService
-                .Setup(x => x.AddPolicyAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<FederatedCredentialType>()))
+                .Setup(x => x.AddPolicyAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<FederatedCredentialType>(), It.IsAny<string[]>(), It.IsAny<string[]>()))
                 .ReturnsAsync(badRequestResult);
 
             // Act
@@ -485,7 +501,7 @@ public class FederatedCredentialsControllerFacts
                 "UnknownProperty");
 
             FederatedCredentialService
-                .Setup(x => x.AddPolicyAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<FederatedCredentialType>()))
+                .Setup(x => x.AddPolicyAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<FederatedCredentialType>(), It.IsAny<string[]>(), It.IsAny<string[]>()))
                 .ReturnsAsync(badRequestResult);
 
             // Act

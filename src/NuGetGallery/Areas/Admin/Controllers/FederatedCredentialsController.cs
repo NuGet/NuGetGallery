@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGet.Services.Entities;
+using NuGetGallery.Authentication;
 using NuGetGallery.Services.Authentication;
 
 #nullable enable
@@ -214,7 +215,9 @@ namespace NuGetGallery.Areas.Admin.Controllers.FederatedCredentials
                             addPolicy.PolicyPackageOwner!,
                             addPolicy.PolicyCriteria!,
                             addPolicy.PolicyName,
-                            addPolicy.PolicyType!.Value);
+                            addPolicy.PolicyType!.Value,
+                            policyScopes: [ NuGetScopes.All ],
+                            policySubjects: [ NuGetPackagePattern.AllInclusivePattern ]);
 
                 switch (result.Type)
                 {
