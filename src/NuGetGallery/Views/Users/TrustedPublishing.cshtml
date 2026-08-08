@@ -1,6 +1,7 @@
 ﻿@using Newtonsoft.Json
 @model TrustedPublisherPolicyListViewModel
 @using NuGetGallery.Authentication
+@using NuGetGallery.Services.Authentication
 @{
     ViewBag.Title = "Trusted Publishing";
     ViewBag.MdPageColumns = GalleryConstants.ColumnsFormMd;
@@ -152,6 +153,27 @@
                 </ul>
 
                 <b>Package owner:</b> <span data-bind="text: Owner" />
+                <br />
+                <!-- ko if: PolicyScopes() && PolicyScopes().length > 0 -->
+                <b>Scopes:</b> <span data-bind="text: PolicyScopes().join(', ')"></span>
+                <!-- /ko -->
+                <!-- ko ifnot: PolicyScopes() && PolicyScopes().length > 0 -->
+                <b>Scopes:</b> <span>All</span>
+                <!-- /ko -->
+                <br />
+                <!-- ko if: PolicySubjects() && PolicySubjects().length > 0 -->
+                <b>Glob Patterns and Packages:</b>
+                <span data-bind="foreach: PolicySubjects">
+                    <code data-bind="text: $data"></code>
+                    <!-- ko if: ($index() < ($parent.PolicySubjects().length - 1)) -->
+                    ,
+                    <!-- /ko -->
+                </span>
+                <!-- /ko -->
+                <!-- ko ifnot: PolicySubjects() && PolicySubjects().length > 0 -->
+                <b>Glob Patterns and Packages:</b> <code>*</code>
+                <!-- /ko -->
+
                 <ul class="package-list">
                     <li>
                         <b>Publisher:</b> <span data-bind="text: PublisherName" />
@@ -290,7 +312,7 @@
                 <select class="form-control select-brand" aria-required="true" data-bind="attr: { id: PackageOwnerUid,
                                                   name: PackageOwnerUid,
                                                   'aria-labelledby': PackageOwnerUid() + '-label' },
-                                          options: PackageOwners, value: PackageOwner, optionsCaption: 'Select an owner...' "></select>
+                                          options: PackageOwners, value: PackageOwner, optionsText: 'Owner', optionsCaption: 'Select an owner...' "></select>
                 <div class="has-error-brand">
                     <span class="field-validation-valid help-block" data-bind="text: PackageOwner() ?  '' : 'Package owner should be provided.'" aria-live="polite" role="alert"></span>
                 </div>
@@ -461,6 +483,103 @@
         </div>
         <!-- /ko -->
 
+        <!-- Policy Scopes -->
+        <div class="row">
+            <div class="col-sm-7 form-group">
+                <h4 id="select-scopes"><b>Select Scopes</b></h4>
+                <span class="has-error-brand">
+                    <span class="help-block" data-bind="text: PendingPolicyScopesError" aria-live="polite" role="alert"></span>
+                </span>
+                <ul role="presentation">
+                    <li>
+                        <div class="row-checkbox-label">
+                            <label class="brand-checkbox" data-bind="attr: { for: PushScopeCheckedUid, id: PushScopeCheckedUid() + '-label' }">
+                                <input type="checkbox" data-bind="checked: PushScopeChecked, enable: PushAnyEnabled, attr: { id: PushScopeCheckedUid, 'aria-labelledby': PushScopeCheckedUid() + '-label' }" />
+                                <span>Push</span>
+                            </label>
+                        </div>
+                        <ul role="presentation" data-bind="css: { disabled: !PushScopeChecked() }">
+                            <li>
+                                <div class="row-checkbox-label">
+                                    <div class="label-sibling">
+                                    </div>
+                                    <label class="brand-radio" data-bind="attr: { for: PackagePushScopeUid, id: PackagePushScopeUid() + '-label' }">
+                                        <input type="radio" value="@NuGetScopes.PackagePush" data-bind="checked: PushScope, enable: PushNewEnabled, attr: { id: PackagePushScopeUid, 'aria-labelledby': PackagePushScopeUid() + '-label' }" />
+                                        <span>@NuGetScopes.Describe(NuGetScopes.PackagePush, isDeprecateApiEnabled: Model.IsDeprecateApiEnabled)</span>
+                                    </label>
+                                </div>
+                            </li>
+                            <li>
+                                <div class="row-checkbox-label">
+                                    <div class="label-sibling">
+                                    </div>
+                                    <label class="brand-radio" data-bind="attr: { for: PackagePushVersionScopeUid, id: PackagePushVersionScopeUid() + '-label' }">
+                                        <input type="radio" value="@NuGetScopes.PackagePushVersion" data-bind="checked: PushScope, enable: PushExistingEnabled, attr: { id: PackagePushVersionScopeUid, 'aria-labelledby': PackagePushVersionScopeUid() + '-label' }" />
+                                        <span>@NuGetScopes.Describe(NuGetScopes.PackagePushVersion, isDeprecateApiEnabled: Model.IsDeprecateApiEnabled)</span>
+                                    </label>
+                                </div>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <div class="row-checkbox-label">
+                            <label class="brand-checkbox" data-bind="attr: { for: UnlistScopeCheckedUid, id: UnlistScopeCheckedUid() + '-label' }">
+                                <input type="checkbox" data-bind="checked: UnlistScopeChecked, enable: UnlistEnabled, attr: { id: UnlistScopeCheckedUid, 'aria-labelledby': UnlistScopeCheckedUid() + '-label' }" />
+                                <span>@NuGetScopes.Describe(NuGetScopes.PackageUnlist, isDeprecateApiEnabled: Model.IsDeprecateApiEnabled)</span>
+                            </label>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-7 form-group">
+                <div class="panel panel-default glob-pattern-hint">
+                    <div class="panel-body">
+                        <p><b>Add glob patterns and packages associated with the policy.</b> A glob pattern allows you to replace any sequence of characters with '*'.</p>
+                        <table class="table-responsive table-condensed borderless" aria-label="Example glob patterns">
+                            <thead>
+                                <tr>
+                                    <th>Pattern</th>
+                                    <th>Result</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>*</td>
+                                    <td>Allow all packages</td>
+                                </tr>
+                                <tr>
+                                    <td>Alpha*</td>
+                                    <td>Allow any package that has an ID beginning with <i>Alpha</i></td>
+                                </tr>
+                                <tr>
+                                    <td>Alpha</td>
+                                    <td>Allow the package that has an ID matching <i>Alpha</i></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-7 form-group">
+                <div class="has-error-brand">
+                    <span class="help-block" aria-live="polite" role="alert"
+                          data-bind="text: PendingPolicySubjectsError"></span>
+                </div>
+                <div class="has-error-brand">
+                    <span class="field-validation-valid help-block" aria-live="polite" role="alert"
+                          data-bind="attr: { 'data-valmsg-for': ScopeSubjectsInputUid, id: ScopeSubjectsInputUid() + '-validation-message' }"
+                          data-valmsg-replace="true"></span>
+                </div>
+                <label class="control-label" data-bind="attr: { for: ScopeSubjectsInputUid, id: ScopeSubjectsInputUid() + '-label' }">Glob Patterns and Packages (Separate by a new line)</label>
+                <textarea class="form-control textarea-brand" rows="3"
+                          data-bind="value: ScopeSubjectsInput, attr: { id: ScopeSubjectsInputUid, name: ScopeSubjectsInputUid, 'aria-labelledby': ScopeSubjectsInputUid() + '-label' + ScopeSubjectsInputUid() + '-validation-message' }"
+                          data-val-length-max="@TrustedPublisherPolicyListViewModel.MaxScopeSubjectsInputLength"
+                          data-val-length="Glob Patterns and Packages must not exceed @TrustedPublisherPolicyListViewModel.MaxScopeSubjectsInputLength characters." data-val="true"></textarea>
+            </div>
+        </div>
+
         <div class="row">
             <div class="col-sm-6 form-group">
                 <input type="submit" class="btn btn-brand btn-block" data-bind="enable: !PendingCreateOrEdit(),
@@ -483,10 +602,14 @@
 
 @section bottomScripts {
     <script type="text/javascript" nonce="@Html.GetCSPNonce()">
-        var initialData = @Html.ToJson(new
+        var policySubjectRegex = new RegExp("@Html.Raw(@FederatedCredentialService.PolicySubjectRegexForRazorPattern)");
+        var initialData =@Html.ToJson(new
                      {
                          Policies = Model.Policies,
                          PackageOwners = Model.PackageOwners,
+                         PackagePushScope = NuGetScopes.PackagePush,
+                         PackagePushVersionScope = NuGetScopes.PackagePushVersion,
+                         PackageUnlistScope = NuGetScopes.PackageUnlist,
                          GenerateUrl = Url.GenerateTrustedPublisherPolicy(),
                          EditUrl = Url.EditTrustedPublisherPolicy(),
                          EnableUrl = Url.EnableTrustedPublisherPolicy(),
@@ -501,5 +624,5 @@
                          }
                      });
     </script>
-    @Scripts.RenderFormat("<script src=\"{0}\" nonce='" + @Html.GetCSPNonce().ToString() + "'></script>", "~/Scripts/gallery/page-trusted-publishing.min.js")
+    @Scripts.RenderFormat("<script src=\"{0}\" nonce='" + @Html.GetCSPNonce().ToString() + "'></script>", "~/Scripts/gallery/page-trusted-publishing.js")
 }
