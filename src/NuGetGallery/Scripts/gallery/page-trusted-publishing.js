@@ -683,8 +683,6 @@
 
                 // Reset the field values.
                 self.PendingPolicyName(self.PolicyName());
-                self.ScopeSubjectsInput(null);
-                self.PendingPolicySubjectsError(null);
 
                 _gitHubDetails.CancelEdit(self);
                 _gitLabDetails.CancelEdit(self);
@@ -818,7 +816,7 @@
                         parent.Error(null);
                         self._UpdateData(data);
                         self.JustCreated(true);
-                        parent.Policies.unshift(self);
+                        parent.Policies.Push(self);
 
                         var newPolicy = new PolicyViewModel(parent, packageOwners);
                         parent.NewPolicy(newPolicy);
