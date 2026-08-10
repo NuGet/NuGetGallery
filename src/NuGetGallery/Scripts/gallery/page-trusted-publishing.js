@@ -816,7 +816,7 @@
                         parent.Error(null);
                         self._UpdateData(data);
                         self.JustCreated(true);
-                        parent.Policies.Push(self);
+                        parent.Policies.push(self);
 
                         var newPolicy = new PolicyViewModel(parent, packageOwners);
                         parent.NewPolicy(newPolicy);
