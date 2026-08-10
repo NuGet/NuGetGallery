@@ -306,9 +306,11 @@ namespace NuGetGallery
                 .Take(maxCount + 1)
                 .ToList();
 
+            var moreAvailable = packages.Count > maxCount;
+
             var hasLatestSemVer2 = packages.Any(p => p.IsLatestSemVer2);
             var hasLatestStableSemVer2 = packages.Any(p => p.IsLatestStableSemVer2);
-            if (!hasLatestSemVer2 || !hasLatestStableSemVer2)
+            if (moreAvailable && (!hasLatestSemVer2 || !hasLatestStableSemVer2))
             {
                 var latestSemVer2Packages = GetPackagesByIdQueryable(
                     id,
@@ -331,20 +333,19 @@ namespace NuGetGallery
                 _telemetryService.TrackGetLatestSemVer2PackageVersions(id, latestSemVer2Packages);
             }
 
-            bool moreAvailable = packages.Count > maxCount;
-
+            moreAvailable = packages.Count > maxCount;
             if (moreAvailable)
             {
                 // if we have list longer than requested, trim it, making sure we don't trim includeVersion if it happens to be last
                 var removeAt = packages.Count - 1;
-                if (!string.IsNullOrWhiteSpace(includeVersion) && packages[removeAt].NormalizedVersion == includeVersion)
+                if (!string.IsNullOrWhiteSpace(includeVersion) && string.Equals(packages[removeAt].NormalizedVersion, includeVersion, StringComparison.OrdinalIgnoreCase))
                 {
                     --removeAt;
                 }
                 packages.RemoveAt(removeAt);
             }
 
-            if (!string.IsNullOrWhiteSpace(includeVersion) && !packages.Any(p => p.NormalizedVersion == includeVersion))
+            if (!string.IsNullOrWhiteSpace(includeVersion) && !packages.Any(p => string.Equals(p.NormalizedVersion, includeVersion, StringComparison.OrdinalIgnoreCase)))
             {
                 var requiredPackage = GetPackagesByIdQueryable(
                     id,
@@ -355,7 +356,7 @@ namespace NuGetGallery
                     includeDeprecations: includeDeprecations,
                     includeDeprecationRelationships: false,
                     includeSupportedFrameworks: includeSupportedFrameworks)
-                    .Where(p => p.NormalizedVersion == includeVersion)
+                    .Where(p => p.NormalizedVersion == includeVersion) // string comparisons on DB side are case-insensitive due to collation used
                     .SingleOrDefault();
 
                 if (requiredPackage is not null)
@@ -521,9 +522,16 @@ namespace NuGetGallery
 
             // If we couldn't find a package marked as latest, then return the most recent one.
             // Prereleases were already filtered out if appropriate.
+            // Uses normalized package version for semantic ordering.
             if (package == null)
             {
-                package = packages.OrderByDescending(p => p.Version).FirstOrDefault();
+                package = packages
+                    .OrderByDescending(p => {
+                        _ = NuGetVersion.TryParse(NuGetVersionFormatter.GetNormalizedPackageVersion(p), out var v);
+                        return v;
+                    })
+                        .ThenByDescending(p => p.Key)
+                    .FirstOrDefault();
             }
 
             return package;

@@ -57,6 +57,7 @@ namespace Ng.Jobs
             var catalogClient = new CatalogClient(simpleHttpClient, LoggerFactory.CreateLogger<CatalogClient>());
             var httpResponseProvider = new HttpClientWrapper(httpClient);
             var externalIconProvider = new ExternalIconContentProvider(httpResponseProvider, LoggerFactory.CreateLogger<ExternalIconContentProvider>());
+            var externalIconUrlPolicy = new PublicExternalIconUrlPolicy(LoggerFactory.CreateLogger<PublicExternalIconUrlPolicy>());
             var iconCopyResultCache = new IconCopyResultCache(auxStorageFactory.Create(), failCacheTime, LoggerFactory.CreateLogger<IconCopyResultCache>());
 
             var leafProcessor = new CatalogLeafDataProcessor(
@@ -64,6 +65,7 @@ namespace Ng.Jobs
                 iconProcessor,
                 externalIconProvider,
                 iconCopyResultCache,
+                externalIconUrlPolicy,
                 TelemetryService,
                 LoggerFactory.CreateLogger<CatalogLeafDataProcessor>());
 

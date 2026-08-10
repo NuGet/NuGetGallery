@@ -194,8 +194,13 @@ namespace VerifyGitHubVulnerabilities.Verify
                 return Task.CompletedTask;
             }
 
-            // Group ranges by id -- this makes testing metadata collections cleaner
-            var rangesById = new Dictionary<string, IList<string>>();
+            // Group ranges by id -- this makes testing metadata collections cleaner.
+            // Use a case-insensitive comparer because NuGet package IDs are case-insensitive and a single advisory can
+            // list the same package under different casings for different version ranges (e.g. "Microsoft.OpenApi" for
+            // the 2.x range and "Microsoft.OpenAPI" for the 3.x range). Registration metadata is served case-insensitively,
+            // so splitting these into separate groups causes each group to check every version against only its own subset
+            // of ranges, producing false "marked vulnerable and is not in a vulnerable range" mismatches.
+            var rangesById = new Dictionary<string, IList<string>>(StringComparer.OrdinalIgnoreCase);
             foreach (var range in gitHubAdvisory.AffectedRanges)
             {
                 var id = range.PackageId.Trim(' '); // some incoming data needs cleaning

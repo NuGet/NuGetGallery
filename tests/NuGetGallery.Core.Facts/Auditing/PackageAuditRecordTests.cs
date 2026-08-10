@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using NuGet.Services.Entities;
 using Xunit;
 
@@ -49,6 +50,26 @@ namespace NuGetGallery.Auditing
             var actualResult = record.GetPath();
 
             Assert.Equal("b/1.0.0", actualResult);
+        }
+
+        [Fact]
+        public void Constructor_WithMultipleDeprecations_DoesNotThrow()
+        {
+            var package = new Package()
+            {
+                Hash = "a",
+                PackageRegistration = new PackageRegistration() { Id = "b" },
+                Version = "1.0.0",
+                Deprecations = new List<PackageDeprecation>
+                {
+                    new PackageDeprecation(),
+                    new PackageDeprecation(),
+                },
+            };
+
+            var record = new PackageAuditRecord(package, AuditedPackageAction.Delete, reason: "c");
+
+            Assert.NotNull(record.DeprecationRecord);
         }
     }
 }

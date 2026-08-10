@@ -8,6 +8,7 @@ using Moq;
 using NuGet.Services.Entities;
 using NuGet.Services.Validation;
 using NuGetGallery.Areas.Admin.Models;
+using NuGetGallery.Auditing;
 using Xunit;
 
 namespace NuGetGallery.Areas.Admin.Services
@@ -188,6 +189,7 @@ namespace NuGetGallery.Areas.Admin.Services
             protected readonly Mock<IEntityRepository<Package>> _packages;
             protected readonly Mock<IEntityRepository<SymbolPackage>> _symbolPackages;
             protected readonly Mock<IValidationService> _validationService;
+            protected readonly Mock<IAuditingService> _auditingService;
             protected readonly ValidationAdminService _target;
 
             public FactsBase()
@@ -216,6 +218,7 @@ namespace NuGetGallery.Areas.Admin.Services
                 _packages = new Mock<IEntityRepository<Package>>();
                 _symbolPackages = new Mock<IEntityRepository<SymbolPackage>>();
                 _validationService = new Mock<IValidationService>();
+                _auditingService = new Mock<IAuditingService>();
 
                 _packages
                     .Setup(x => x.GetAll())
@@ -235,7 +238,8 @@ namespace NuGetGallery.Areas.Admin.Services
                     _validations.Object,
                     _packages.Object,
                     _symbolPackages.Object,
-                    _validationService.Object);
+                    _validationService.Object,
+                    _auditingService.Object);
             }
         }
     }

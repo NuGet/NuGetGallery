@@ -7,25 +7,24 @@ using System.Net;
 
 namespace NuGet.Services.Metadata.Catalog
 {
-	/// <summary>
-	/// Provides a cross-platform parallelism degree setting.
-	/// On .NET Framework, delegates to <see cref="System.Net.ServicePointManager.DefaultConnectionLimit"/>.
-	/// On modern .NET, uses a standalone static property.
-    /// TODO: remove this class and propagate parallelism settings across the codebase instead.
-	/// </summary>
-	public static class CatalogParallelism
-	{
-		private const int DefaultDegree = 10;
+    /// <summary>
+    /// Provides a cross-platform parallelism degree setting.
+    /// On .NET Framework, delegates to <see cref="System.Net.ServicePointManager.DefaultConnectionLimit"/>.
+    /// On modern .NET, uses a standalone static property as it is used to limit number of concurrent operations here and there.
+    /// There is no global connection limit, so nothing to increase.
+    /// </summary>
+    public static class CatalogParallelism
+    {
+        private const int DefaultDegree = 2;
 
 #if NETFRAMEWORK
-		public static int Degree
-		{
-			get => ServicePointManager.DefaultConnectionLimit;
-			set => ServicePointManager.DefaultConnectionLimit = value;
-		}
+        public static int Degree
+        {
+            get => ServicePointManager.DefaultConnectionLimit;
+            set => ServicePointManager.DefaultConnectionLimit = value;
+        }
 #else
 		public static int Degree { get; set; } = DefaultDegree;
 #endif
-	}
+    }
 }
-

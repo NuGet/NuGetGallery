@@ -452,6 +452,70 @@ namespace CatalogTests.Icons
                         Times.Once);
             }
 
+            [Fact]
+            public async Task SkipsExternalIconUrlRejectedByPolicy()
+            {
+                var leaf = CreateCatalogLeaf();
+
+                ExternalIconUrlPolicyMock
+                    .Setup(p => p.IsAllowedAsync(It.Is<Uri>(u => u.AbsoluteUri == IconUrlString), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(false);
+
+                await Target.ProcessPackageDetailsLeafAsync(
+                    DestinationStorageMock.Object,
+                    IconCacheStorageMock.Object,
+                    leaf,
+                    IconUrlString,
+                    null,
+                    CancellationToken.None);
+
+                ExternalIconContentProviderMock
+                    .Verify(
+                        cp => cp.TryGetResponseAsync(It.IsAny<Uri>(), It.IsAny<CancellationToken>()),
+                        Times.Never);
+
+                VerifyNoCopyFromExternalSource();
+            }
+
+            [Fact]
+            public async Task DoesNotFollow308RedirectRejectedByPolicy()
+            {
+                var leaf = CreateCatalogLeaf();
+                var redirectTarget = new Uri("https://internal.invalid/icon.png");
+
+                ExternalIconUrlPolicyMock
+                    .Setup(p => p.IsAllowedAsync(It.Is<Uri>(u => u.AbsoluteUri == IconUrlString), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(true);
+                ExternalIconUrlPolicyMock
+                    .Setup(p => p.IsAllowedAsync(It.Is<Uri>(u => u == redirectTarget), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(false);
+
+                var redirectResponse = new HttpResponseMessage((HttpStatusCode)308);
+                redirectResponse.Headers.Location = redirectTarget;
+
+                ExternalIconContentProviderMock
+                    .Setup(cp => cp.TryGetResponseAsync(
+                        It.Is<Uri>(u => u.AbsoluteUri == IconUrlString),
+                        It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(TryGetResponseResult.Success(redirectResponse));
+
+                await Target.ProcessPackageDetailsLeafAsync(
+                    DestinationStorageMock.Object,
+                    IconCacheStorageMock.Object,
+                    leaf,
+                    IconUrlString,
+                    null,
+                    CancellationToken.None);
+
+                // The redirect target must never be fetched.
+                ExternalIconContentProviderMock
+                    .Verify(
+                        cp => cp.TryGetResponseAsync(redirectTarget, It.IsAny<CancellationToken>()),
+                        Times.Never);
+
+                VerifyNoCopyFromExternalSource();
+            }
+
             private Mock<ICloudBlockBlob> PackageBlobRerenceMock { get; set; }
             private Stream ExternalIconStream { get; set; }
             private Mock<HttpContent> ExternalIconContentMock { get; set; }
@@ -504,6 +568,7 @@ namespace CatalogTests.Icons
             protected Mock<IIconProcessor> IconProcessorMock { get; set; }
             protected Mock<IExternalIconContentProvider> ExternalIconContentProviderMock { get; set; }
             protected Mock<IIconCopyResultCache> IconCopyResultCacheMock { get; set; }
+            protected Mock<IExternalIconUrlPolicy> ExternalIconUrlPolicyMock { get; set; }
             protected Mock<ITelemetryService> TelemetryServiceMock { get; set; }
             protected Mock<ILogger<CatalogLeafDataProcessor>> LoggerMock { get; set; }
             protected Mock<IStorage> DestinationStorageMock { get; set; }
@@ -516,10 +581,15 @@ namespace CatalogTests.Icons
                 IconProcessorMock = new Mock<IIconProcessor>();
                 ExternalIconContentProviderMock = new Mock<IExternalIconContentProvider>();
                 IconCopyResultCacheMock = new Mock<IIconCopyResultCache>();
+                ExternalIconUrlPolicyMock = new Mock<IExternalIconUrlPolicy>();
                 TelemetryServiceMock = new Mock<ITelemetryService>();
                 LoggerMock = new Mock<ILogger<CatalogLeafDataProcessor>>();
                 DestinationStorageMock = new Mock<IStorage>();
                 IconCacheStorageMock = new Mock<IStorage>();
+
+                ExternalIconUrlPolicyMock
+                    .Setup(p => p.IsAllowedAsync(It.IsAny<Uri>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(true);
 
                 TelemetryServiceMock
                     .Setup(ts => ts.TrackEmbeddedIconProcessingDuration(It.IsAny<string>(), It.IsAny<string>()))
@@ -537,6 +607,7 @@ namespace CatalogTests.Icons
                     IconProcessorMock.Object,
                     ExternalIconContentProviderMock.Object,
                     IconCopyResultCacheMock.Object,
+                    ExternalIconUrlPolicyMock.Object,
                     TelemetryServiceMock.Object,
                     LoggerMock.Object);
             }

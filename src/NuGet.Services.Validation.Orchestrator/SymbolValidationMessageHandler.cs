@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Microsoft.Extensions.Logging;
@@ -21,6 +21,7 @@ namespace NuGet.Services.Validation.Orchestrator
             IValidationSetProvider<SymbolPackage> validationSetProvider,
             IValidationSetProcessor validationSetProcessor,
             IValidationOutcomeProcessor<SymbolPackage> validationOutcomeProcessor,
+            IValidationStorageService validationStorageService,
             ILeaseService leaseService,
             IPackageValidationEnqueuer validationEnqueuer,
             IFeatureFlagService featureFlagService,
@@ -31,6 +32,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 validationSetProvider,
                 validationSetProcessor,
                 validationOutcomeProcessor,
+                validationStorageService,
                 leaseService,
                 validationEnqueuer,
                 featureFlagService,

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -70,12 +70,14 @@ namespace Ng
                 var instanceName = arguments.GetOrDefault(Arguments.InstanceName, jobName);
                 var instrumentationKey = arguments.GetOrDefault<string>(Arguments.InstrumentationKey);
                 var heartbeatIntervalSeconds = arguments.GetOrDefault<int>(Arguments.HeartbeatIntervalSeconds);
+                var enableDependencyTracking = arguments.GetOrDefault<bool>(Arguments.EnableDependencyTracking);
 
                 applicationInsightsConfiguration = ConfigureApplicationInsights(
                     instrumentationKey,
                     heartbeatIntervalSeconds,
                     jobName,
                     instanceName,
+                    enableDependencyTracking,
                     out var telemetryClient,
                     out var telemetryGlobalDimensions);
 
@@ -186,19 +188,21 @@ namespace Ng
             int heartbeatIntervalSeconds,
             string jobName,
             string instanceName,
+            bool enableDependencyTracking,
             out ITelemetryClient telemetryClient,
             out IDictionary<string, string> telemetryGlobalDimensions)
         {
             ApplicationInsightsConfiguration applicationInsightsConfiguration;
             if (heartbeatIntervalSeconds == 0)
             {
-                applicationInsightsConfiguration = ApplicationInsights.Initialize(instrumentationKey);
+                applicationInsightsConfiguration = ApplicationInsights.Initialize(instrumentationKey, enableDependencyTracking);
             }
             else
             {
                 applicationInsightsConfiguration = ApplicationInsights.Initialize(
                     instrumentationKey,
-                    TimeSpan.FromSeconds(heartbeatIntervalSeconds));
+                    TimeSpan.FromSeconds(heartbeatIntervalSeconds),
+                    enableDependencyTracking);
             }
 
             telemetryClient = new TelemetryClientWrapper(
