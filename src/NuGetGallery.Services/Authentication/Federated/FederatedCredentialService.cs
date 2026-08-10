@@ -121,7 +121,7 @@ namespace NuGetGallery.Services.Authentication
         public static readonly string PolicySubjectRegexPattern = "^[\\*\\w_.-]*$";
         public static readonly string PolicySubjectRegexForRazorPattern = PolicySubjectRegexPattern.Replace("\\", "\\\\");
 
-        private static readonly Regex PolicySubjectRegex = RegexEx.CreateWithTimeout(PolicySubjectRegexPattern, RegexOptions.None);
+        public static readonly Regex PolicySubjectRegex = RegexEx.CreateWithTimeout(PolicySubjectRegexPattern, RegexOptions.None);
 
         private readonly IUserService _userService;
         private readonly IFederatedCredentialRepository _repository;

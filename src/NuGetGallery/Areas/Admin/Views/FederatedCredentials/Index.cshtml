@@ -143,7 +143,7 @@
                                            <p>Allowed Actions:<br>
                                            @foreach (var allowedAction in policy.Scopes.Select(s => s.AllowedAction).Distinct()) { <code>@allowedAction</code><br> }
                                            </p>
-                                           <p>Glob Patterns and Packages:<br>
+                                           <p>Subjects:<br>
                                            @foreach (var subject in policy.Scopes.Select(s => s.Subject).Distinct()) { <code>@subject</code><br> }
                                            </p>
                                        }
@@ -218,7 +218,7 @@
         </div>
         <div class="form-group row @Html.HasErrorFor(m => m.AddPolicy.PolicyCriteria)">
             <div class="col-xs-12">
-                <label for="policyCriteria">Policy criteria (JSON)</label>
+                <label for="policyCriteria" class="control-label">Policy criteria (JSON)</label>
                 <textarea class="form-control textarea-brand" rows="3" id="policyCriteria" name="policyCriteria">@Model.AddPolicy.PolicyCriteria</textarea>
                 @Html.ShowValidationMessagesFor(m => m.AddPolicy.PolicyCriteria)
             </div>
@@ -270,11 +270,11 @@
                 </ul>
             </div>
         </div>
-        <div class="form-group row @Html.HasErrorFor(m => m.AddPolicy.PolicyGlobPatternsAndPackages)">
+        <div class="form-group row @Html.HasErrorFor(m => m.AddPolicy.PolicySubjects)">
             <div class="col-xs-12">
-                <label for="policyGlobPatternsAndPackages">Glob Patterns and Packages (Separate by a new line)</label>
-                <textarea class="form-control textarea-brand" rows="3" id="policyGlobPatternsAndPackages" name="policyGlobPatternsAndPackages">@Model.AddPolicy.PolicyGlobPatternsAndPackages</textarea>
-                @Html.ShowValidationMessagesFor(m => m.AddPolicy.PolicyGlobPatternsAndPackages)
+                <label for="policySubjects">Glob Patterns and Packages (Separate by a new line)</label>
+                <textarea class="form-control textarea-brand" rows="3" id="policySubjects" name="policySubjects">@Model.AddPolicy.PolicySubjects</textarea>
+                @Html.ShowValidationMessagesFor(m => m.AddPolicy.PolicySubjects)
             </div>
         </div>
         <div class="form-group row">
@@ -386,7 +386,7 @@
                         scopes.push('@NuGetScopes.PackageUnlist');
                     }
 
-                    return scopes;
+                    return scopes.join();
                 }, this);
             };
 

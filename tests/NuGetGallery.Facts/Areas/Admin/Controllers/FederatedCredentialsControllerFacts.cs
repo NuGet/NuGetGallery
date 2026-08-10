@@ -79,6 +79,26 @@ public class FederatedCredentialsControllerFacts
         }
 
         [Fact]
+        public async Task WhenPolicyUserDoesNotExist_AddsModelErrorAndReturnsView()
+        {
+            // Arrange
+            var addPolicy = new AddPolicyViewModel
+            {
+                PolicyUser = "anyuser"
+            };
+
+            // Act
+            var result = await Target.CreatePolicy(addPolicy);
+
+            // Assert
+            var viewResult = Assert.IsType<ViewResult>(result);
+            Assert.Equal("Index", viewResult.ViewName);
+            Assert.False(Target.ModelState.IsValid);
+            Assert.True(Target.ModelState.ContainsKey("AddPolicy.PolicyUser"));
+            Assert.Equal("The policy user 'anyuser' does not exist.", Target.ModelState["AddPolicy.PolicyUser"].Errors[0].ErrorMessage);
+        }
+
+        [Fact]
         public async Task WhenPolicyTypeIsNull_AddsModelErrorAndReturnsView()
         {
             // Arrange
@@ -126,8 +146,8 @@ public class FederatedCredentialsControllerFacts
         [InlineData("")]
         [InlineData("   ")]
         [InlineData(", ")]
-        [InlineData("AnyString, ")]
-        [InlineData("AnyString1, AnyString2 ,  ")]
+        [InlineData("AnyScope1, ")]
+        [InlineData("AnyScope1, AnyScope2 ,  ")]
         public async Task WhenPolicyScopesIsInvalid_AddsModelErrorAndReturnsView(string policyScopes)
         {
             // Arrange
@@ -151,15 +171,15 @@ public class FederatedCredentialsControllerFacts
         [InlineData(null)]
         [InlineData("")]
         [InlineData("   ")]
-        [InlineData(" \r ")]
         [InlineData(" \n ")]
-        [InlineData(" \r \n\n ")]
-        public async Task WhenPolicyGlobPatternsAndPackagesIsInvalid_AddsModelErrorAndReturnsView(string policyGlobPatternsAndPackages)
+        [InlineData(" \r\n ")]
+        [InlineData(" \r\n <policySubject1> ")]
+        public async Task WhenPolicySubjectsIsInvalid_AddsModelErrorAndReturnsView(string policySubjects)
         {
             // Arrange
             var addPolicy = new AddPolicyViewModel
             {
-                PolicyGlobPatternsAndPackages = policyGlobPatternsAndPackages
+                PolicySubjects = policySubjects
             };
 
             // Act
@@ -169,8 +189,8 @@ public class FederatedCredentialsControllerFacts
             var viewResult = Assert.IsType<ViewResult>(result);
             Assert.Equal("Index", viewResult.ViewName);
             Assert.False(Target.ModelState.IsValid);
-            Assert.True(Target.ModelState.ContainsKey("AddPolicy.PolicyGlobPatternsAndPackages"));
-            Assert.Equal("The policy scopes require at least one glob pattern or package.", Target.ModelState["AddPolicy.PolicyGlobPatternsAndPackages"].Errors[0].ErrorMessage);
+            Assert.True(Target.ModelState.ContainsKey("AddPolicy.PolicySubjects"));
+            Assert.Equal("The policy scopes require at least one valid glob pattern or package.", Target.ModelState["AddPolicy.PolicySubjects"].Errors[0].ErrorMessage);
         }
 
         [Fact]
@@ -180,11 +200,10 @@ public class FederatedCredentialsControllerFacts
             var addPolicy = new AddPolicyViewModel
             {
                 PolicyUser = null,
-                PolicyPackageOwner = null,
                 PolicyType = null,
                 PolicyCriteria = null,
                 PolicyScopes = null,
-                PolicyGlobPatternsAndPackages = null,
+                PolicySubjects = null,
             };
 
             // Act
@@ -195,11 +214,10 @@ public class FederatedCredentialsControllerFacts
             Assert.Equal("Index", viewResult.ViewName);
             Assert.False(Target.ModelState.IsValid);
             Assert.True(Target.ModelState.ContainsKey("AddPolicy.PolicyUser"));
-            Assert.True(Target.ModelState.ContainsKey("AddPolicy.PolicyPackageOwner"));
             Assert.True(Target.ModelState.ContainsKey("AddPolicy.PolicyType"));
             Assert.True(Target.ModelState.ContainsKey("AddPolicy.PolicyCriteria"));
             Assert.True(Target.ModelState.ContainsKey("AddPolicy.PolicyScopes"));
-            Assert.True(Target.ModelState.ContainsKey("AddPolicy.PolicyGlobPatternsAndPackages"));
+            Assert.True(Target.ModelState.ContainsKey("AddPolicy.PolicySubjects"));
         }
 
         [Fact]
@@ -214,7 +232,7 @@ public class FederatedCredentialsControllerFacts
                 PolicyType = FederatedCredentialType.EntraIdServicePrincipal,
                 PolicyCriteria = """{"tenant":"test","object":"123"}""",
                 PolicyScopes = $"{NuGetScopes.PackagePush}",
-                PolicyGlobPatternsAndPackages = "Package1",
+                PolicySubjects = "policySubject1",
             };
 
             var successResult = FederatedCredentialPolicyValidationResult.Success(
@@ -232,10 +250,9 @@ public class FederatedCredentialsControllerFacts
                     """{"tenant":"test","object":"123"}""",
                     "Test Policy",
                     FederatedCredentialType.EntraIdServicePrincipal,
-                    It.IsAny<IList<Scope>>()))
+                    It.IsAny<string[]>(),
+                    It.IsAny<string[]>()))
                 .ReturnsAsync(successResult);
-
-            CredentialBuilder.Setup(x => x.BuildScopes(OrgA, It.IsAny<string[]>(), It.IsAny<string[]>()));
 
             // Act
             var result = await Target.CreatePolicy(addPolicy);
@@ -251,9 +268,8 @@ public class FederatedCredentialsControllerFacts
                 """{"tenant":"test","object":"123"}""",
                 "Test Policy",
                 FederatedCredentialType.EntraIdServicePrincipal,
-                It.IsAny<IList<Scope>>()), Times.Once);
-
-            CredentialBuilder.Verify(x => x.BuildScopes(OrgA, It.IsAny<string[]>(), It.IsAny<string[]>()), Times.Once);
+                It.IsAny<string[]>(),
+                It.IsAny<string[]>()), Times.Once);
         }
 
         [Fact]
@@ -268,7 +284,7 @@ public class FederatedCredentialsControllerFacts
                 PolicyType = FederatedCredentialType.EntraIdServicePrincipal,
                 PolicyCriteria = """{"test": "value"}""",
                 PolicyScopes = $"{NuGetScopes.PackagePush}",
-                PolicyGlobPatternsAndPackages = "Package1",
+                PolicySubjects = "policySubject1",
             };
 
             var badRequestResult = FederatedCredentialPolicyValidationResult.BadRequest(
@@ -282,7 +298,8 @@ public class FederatedCredentialsControllerFacts
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<FederatedCredentialType>(),
-                    It.IsAny<IList<Scope>>()))
+                    It.IsAny<string[]>(),
+                    It.IsAny<string[]>()))
                 .ReturnsAsync(badRequestResult);
 
             // Act
@@ -308,7 +325,7 @@ public class FederatedCredentialsControllerFacts
                 PolicyType = FederatedCredentialType.EntraIdServicePrincipal,
                 PolicyCriteria = """{"test": "value"}""",
                 PolicyScopes = $"{NuGetScopes.PackagePush}",
-                PolicyGlobPatternsAndPackages = "Package1",
+                PolicySubjects = "policySubject1",
             };
 
             var unauthorizedResult = FederatedCredentialPolicyValidationResult.Unauthorized(
@@ -321,7 +338,8 @@ public class FederatedCredentialsControllerFacts
                     It.IsAny<string>(),
                     It.IsAny<string>(), It.IsAny<string>(),
                     It.IsAny<FederatedCredentialType>(),
-                    It.IsAny<IList<Scope>>()))
+                    It.IsAny<string[]>(),
+                    It.IsAny<string[]>()))
                 .ReturnsAsync(unauthorizedResult);
 
             // Act
@@ -336,6 +354,55 @@ public class FederatedCredentialsControllerFacts
         }
 
         [Fact]
+        public async Task WhenValidPolicyWithNullPackageOwner_PassesNullToService()
+        {
+            // Arrange
+            var addPolicy = new AddPolicyViewModel
+            {
+                PolicyName = "Test Policy",
+                PolicyUser = UserA.Username,
+                PolicyPackageOwner = null, // Null package owner
+                PolicyType = FederatedCredentialType.EntraIdServicePrincipal,
+                PolicyCriteria = """{"owner":"test","repo":"test"}""",
+                PolicyScopes = $"{NuGetScopes.PackagePush}",
+                PolicySubjects = "policySubject1",
+            };
+
+            var successResult = FederatedCredentialPolicyValidationResult.Success(
+                new FederatedCredentialPolicy
+                {
+                    Key = 42,
+                    CreatedBy = UserA,
+                    PolicyName = "Test Policy"
+                });
+
+            FederatedCredentialService
+                .Setup(x => x.AddPolicyAsync(
+                    UserA,
+                    null,
+                    """{"owner":"test","repo":"test"}""",
+                    "Test Policy",
+                    FederatedCredentialType.EntraIdServicePrincipal,
+                    It.IsAny<string[]>(),
+                    It.IsAny<string[]>()))
+                .ReturnsAsync(successResult);
+
+            // Act
+            var result = await Target.CreatePolicy(addPolicy);
+
+            // Assert
+            var redirectResult = Assert.IsType<RedirectResult>(result);
+            FederatedCredentialService.Verify(x => x.AddPolicyAsync(
+                UserA,
+                null,
+                """{"owner":"test","repo":"test"}""",
+                "Test Policy",
+                FederatedCredentialType.EntraIdServicePrincipal,
+                It.IsAny<string[]>(),
+                It.IsAny<string[]>()), Times.Once);
+        }
+
+        [Fact]
         public async Task WhenValidPolicyWithNullPolicyName_PassesNullToService()
         {
             // Arrange
@@ -344,10 +411,10 @@ public class FederatedCredentialsControllerFacts
                 PolicyName = null, // Null policy name
                 PolicyUser = UserA.Username,
                 PolicyPackageOwner = OrgA.Username,
-                PolicyType = FederatedCredentialType.GitHubActions,
+                PolicyType = FederatedCredentialType.EntraIdServicePrincipal,
                 PolicyCriteria = """{"owner":"test","repo":"test"}""",
                 PolicyScopes = $"{NuGetScopes.PackagePush}",
-                PolicyGlobPatternsAndPackages = "Package1",
+                PolicySubjects = "policySubject1",
             };
 
             var successResult = FederatedCredentialPolicyValidationResult.Success(
@@ -364,11 +431,10 @@ public class FederatedCredentialsControllerFacts
                     OrgA.Username,
                     """{"owner":"test","repo":"test"}""",
                     null,
-                    FederatedCredentialType.GitHubActions,
-                    It.IsAny<IList<Scope>>()))
+                    FederatedCredentialType.EntraIdServicePrincipal,
+                    It.IsAny<string[]>(),
+                    It.IsAny<string[]>()))
                 .ReturnsAsync(successResult);
-
-            CredentialBuilder.Setup(x => x.BuildScopes(OrgA, It.IsAny<string[]>(), It.IsAny<string[]>()));
 
             // Act
             var result = await Target.CreatePolicy(addPolicy);
@@ -380,10 +446,9 @@ public class FederatedCredentialsControllerFacts
                 OrgA.Username,
                 """{"owner":"test","repo":"test"}""",
                 null,
-                FederatedCredentialType.GitHubActions,
-                It.IsAny<IList<Scope>>()), Times.Once);
-
-            CredentialBuilder.Verify(x => x.BuildScopes(OrgA, It.IsAny<string[]>(), It.IsAny<string[]>()), Times.Once);
+                FederatedCredentialType.EntraIdServicePrincipal,
+                It.IsAny<string[]>(),
+                It.IsAny<string[]>()), Times.Once);
         }
 
         [Theory]
@@ -400,7 +465,7 @@ public class FederatedCredentialsControllerFacts
                 PolicyType = policyType,
                 PolicyCriteria = """{"test": "value"}""",
                 PolicyScopes = $"{NuGetScopes.PackagePush}",
-                PolicyGlobPatternsAndPackages = "Package1",
+                PolicySubjects = "policySubject1",
             };
 
             var successResult = FederatedCredentialPolicyValidationResult.Success(
@@ -418,10 +483,9 @@ public class FederatedCredentialsControllerFacts
                     """{"test": "value"}""",
                     "Test Policy",
                     policyType,
-                    It.IsAny<IList<Scope>>()))
+                    It.IsAny<string[]>(),
+                    It.IsAny<string[]>()))
                 .ReturnsAsync(successResult);
-
-            CredentialBuilder.Setup(x => x.BuildScopes(OrgA, It.IsAny<string[]>(), It.IsAny<string[]>()));
 
             // Act
             var result = await Target.CreatePolicy(addPolicy);
@@ -434,17 +498,16 @@ public class FederatedCredentialsControllerFacts
                 """{"test": "value"}""",
                 "Test Policy",
                 policyType,
-                It.IsAny<IList<Scope>>()), Times.Once);
-
-            CredentialBuilder.Verify(x => x.BuildScopes(OrgA, It.IsAny<string[]>(), It.IsAny<string[]>()), Times.Once);
+                It.IsAny<string[]>(),
+                It.IsAny<string[]>()), Times.Once);
         }
 
         [Theory]
-        [InlineData("package:push,package:unlist", "package1\npackage2")]
-        [InlineData(" package:push , package:unlist ", " package1 \n package2 ")]
-        [InlineData(",package:push,  package:unlist  ", "\npackage1\n  package2  \r\n")]
-        [InlineData("package:push,package:push, package:unlist", "package1\npackage2\n package2")]
-        public async Task WhenDifferentPolicyScopesAndPolicyGlobPatternsAndPackages_BuildScopes(string policyScopes, string policyGlobPatternsAndPackages)
+        [InlineData("package:push,package:unlist", "policySubject1\r\npolicySubject2")]
+        [InlineData(" package:push , package:unlist ", " policySubject1 \r\n policySubject2 ")]
+        [InlineData(",package:push,  package:unlist  ", "\r\npolicySubject1\r\n  policySubject2  \r\n")]
+        [InlineData("package:push,package:push, package:unlist", "policySubject1\r\npolicySubject2\r\n policySubject2")]
+        public async Task WhenDifferentPolicyScopesAndSubjects_BuildScopes(string policyScopes, string policySubjects)
         {
             // Arrange
             var addPolicy = new AddPolicyViewModel
@@ -455,7 +518,7 @@ public class FederatedCredentialsControllerFacts
                 PolicyType = FederatedCredentialType.EntraIdServicePrincipal,
                 PolicyCriteria = """{"tenant":"test","object":"123"}""",
                 PolicyScopes = policyScopes,
-                PolicyGlobPatternsAndPackages = policyGlobPatternsAndPackages,
+                PolicySubjects = policySubjects,
             };
 
             var successResult = FederatedCredentialPolicyValidationResult.Success(
@@ -466,6 +529,8 @@ public class FederatedCredentialsControllerFacts
                     PolicyName = "Test Policy"
                 });
 
+            var passedScopes = Array.Empty<string>();
+            var passedSubjects = Array.Empty<string>();
             FederatedCredentialService
                 .Setup(x => x.AddPolicyAsync(
                     UserA,
@@ -473,15 +538,11 @@ public class FederatedCredentialsControllerFacts
                     """{"tenant":"test","object":"123"}""",
                     "Test Policy",
                     FederatedCredentialType.EntraIdServicePrincipal,
-                    It.IsAny<IList<Scope>>()))
-                .ReturnsAsync(successResult);
-
-            User passedOwner = null;
-            var passedScopes = Array.Empty<string>();
-            var passedSubjects = Array.Empty<string>();
-            CredentialBuilder
-                .Setup(x => x.BuildScopes(OrgA, It.IsAny<string[]>(), It.IsAny<string[]>()))
-                .Callback((User scopeOwner, string[] scopes, string[] subjects) => { passedOwner = scopeOwner; passedScopes = scopes; passedSubjects = subjects; });
+                    It.IsAny<string[]>(),
+                    It.IsAny<string[]>()))
+                .ReturnsAsync(successResult)
+                .Callback((User createdBy, string policyPackageOwner, string policyCriteria, string policyName, FederatedCredentialType policyType, string[] scopes, string[] subjects) =>
+                          { passedScopes = scopes; passedSubjects = subjects; });
 
             // Act
             var result = await Target.CreatePolicy(addPolicy);
@@ -497,17 +558,15 @@ public class FederatedCredentialsControllerFacts
                 """{"tenant":"test","object":"123"}""",
                 "Test Policy",
                 FederatedCredentialType.EntraIdServicePrincipal,
-                It.IsAny<IList<Scope>>()), Times.Once);
+                It.IsAny<string[]>(),
+                It.IsAny<string[]>()), Times.Once);
 
-            CredentialBuilder.Verify(x => x.BuildScopes(OrgA, It.IsAny<string[]>(), It.IsAny<string[]>()), Times.Once);
-            Assert.NotNull(passedOwner);
-            Assert.Equal(OrgA, passedOwner);
             Assert.Equal(2, passedScopes.Length);
             Assert.Contains("package:push", passedScopes);
             Assert.Contains("package:unlist", passedScopes);
             Assert.Equal(2, passedSubjects.Length);
-            Assert.Contains("package1", passedSubjects);
-            Assert.Contains("package2", passedSubjects);
+            Assert.Contains("policySubject1", passedSubjects);
+            Assert.Contains("policySubject2", passedSubjects);
         }
 
         [Fact]
@@ -522,7 +581,7 @@ public class FederatedCredentialsControllerFacts
                 PolicyType = FederatedCredentialType.EntraIdServicePrincipal,
                 PolicyCriteria = """{"test": "value"}""",
                 PolicyScopes = $"{NuGetScopes.PackagePush}",
-                PolicyGlobPatternsAndPackages = "Package1",
+                PolicySubjects = "policySubject1",
             };
 
             var badRequestResult = FederatedCredentialPolicyValidationResult.BadRequest(
@@ -536,7 +595,8 @@ public class FederatedCredentialsControllerFacts
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<FederatedCredentialType>(),
-                    It.IsAny<IList<Scope>>()))
+                    It.IsAny<string[]>(),
+                    It.IsAny<string[]>()))
                 .ReturnsAsync(badRequestResult);
 
             // Act
@@ -561,7 +621,7 @@ public class FederatedCredentialsControllerFacts
                 PolicyType = FederatedCredentialType.EntraIdServicePrincipal,
                 PolicyCriteria = """{"test": "value"}""",
                 PolicyScopes = $"{NuGetScopes.PackagePush}",
-                PolicyGlobPatternsAndPackages = "Package1",
+                PolicySubjects = "policySubject1",
             };
 
             var badRequestResult = FederatedCredentialPolicyValidationResult.BadRequest(
@@ -575,7 +635,8 @@ public class FederatedCredentialsControllerFacts
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<FederatedCredentialType>(),
-                    It.IsAny<IList<Scope>>()))
+                    It.IsAny<string[]>(),
+                    It.IsAny<string[]>()))
                 .ReturnsAsync(badRequestResult);
 
             // Act
@@ -594,7 +655,6 @@ public class FederatedCredentialsControllerFacts
         UserRepository = new Mock<IEntityRepository<User>>();
         UserService = new Mock<IUserService>();
         FederatedCredentialService = new Mock<IFederatedCredentialService>();
-        CredentialBuilder = new Mock<ICredentialBuilder>();
 
         UserA = new User { Key = 2, Username = "mac" };
         OrgA = new Organization { Key = 3, Username = "mac-farm" };
@@ -607,9 +667,9 @@ public class FederatedCredentialsControllerFacts
         Policies = new List<FederatedCredentialPolicy>
         {
             new FederatedCredentialPolicy { Key = 4, Created = baseTime.AddHours(2), CreatedByUserKey = UserA.Key, CreatedBy = UserA, PackageOwnerUserKey = UserA.Key, PackageOwner = UserA,
-                                            Scopes = [ new Scope(UserA, "Package1", NuGetScopes.PackagePush) ] },
+                                            Scopes = [ new Scope(UserA, "policySubject1", NuGetScopes.PackagePush) ] },
             new FederatedCredentialPolicy { Key = 5, Created = baseTime.AddHours(1), CreatedByUserKey = UserA.Key, CreatedBy = UserA, PackageOwnerUserKey = OrgA.Key, PackageOwner = OrgA,
-                                            Scopes = [ new Scope(OrgA, "Package1", NuGetScopes.PackagePush) ] },
+                                            Scopes = [ new Scope(OrgA, "policySubject1", NuGetScopes.PackagePush) ] },
         };
 
         FederatedCredentialService
@@ -628,8 +688,7 @@ public class FederatedCredentialsControllerFacts
         Target = new FederatedCredentialsController(
             UserRepository.Object,
             UserService.Object,
-            FederatedCredentialService.Object,
-            CredentialBuilder.Object);
+            FederatedCredentialService.Object);
 
         TestUtility.SetupHttpContextMockForUrlGeneration(new Mock<HttpContextBase>(), Target);
     }
@@ -637,7 +696,6 @@ public class FederatedCredentialsControllerFacts
     public Mock<IEntityRepository<User>> UserRepository { get; }
     public Mock<IUserService> UserService { get; }
     public Mock<IFederatedCredentialService> FederatedCredentialService { get; }
-    public Mock<ICredentialBuilder> CredentialBuilder { get; }
     public User UserA { get; }
     public Organization OrgA { get; }
     public int CreatedByUserKey { get; }
