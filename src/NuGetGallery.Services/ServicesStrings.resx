@@ -358,6 +358,9 @@
   <data name="ScopeDescription_PushPackageVersion" xml:space="preserve">
     <value>Push only new package versions</value>
   </data>
+  <data name="ScopeDescription_StagePackage" xml:space="preserve">
+    <value>Manage staged packages and package versions</value>
+  </data>
   <data name="ScopeDescription_UnlistPackage" xml:space="preserve">
     <value>Unlist or relist package versions</value>
   </data>

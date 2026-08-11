@@ -18,6 +18,7 @@ namespace NuGetGallery.Infrastructure.Authentication
         {
             { NuGetScopes.PackagePush, new IActionRequiringEntityPermissions[] { ActionsRequiringPermissions.UploadNewPackageId, ActionsRequiringPermissions.UploadNewPackageVersion } },
             { NuGetScopes.PackagePushVersion, new [] { ActionsRequiringPermissions.UploadNewPackageVersion } },
+            { NuGetScopes.PackageStage, new IActionRequiringEntityPermissions[] { ActionsRequiringPermissions.UploadNewPackageId, ActionsRequiringPermissions.UploadNewPackageVersion } },
             { NuGetScopes.PackageUnlist, new [] { ActionsRequiringPermissions.UnlistOrRelistPackage } },
             { NuGetScopes.PackageVerify, new [] { ActionsRequiringPermissions.VerifyPackage } },
         };

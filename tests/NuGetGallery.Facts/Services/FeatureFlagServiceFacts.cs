@@ -12,6 +12,25 @@ namespace NuGetGallery
 {
     public class FeatureFlagServiceFacts
     {
+        public class TheIsStagingEnabledMethod
+        {
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void UsesTheUserFlight(bool expected)
+            {
+                var user = new User();
+                var client = new Mock<IFeatureFlagClient>();
+                client
+                    .Setup(x => x.IsEnabled("NuGetGallery.Staging", It.IsAny<IFlightUser>(), false))
+                    .Returns(expected);
+
+                var actual = new FeatureFlagService(client.Object).IsStagingEnabled(user);
+
+                Assert.Equal(expected, actual);
+            }
+        }
+
         public class TheIsManageDeprecationEnabledMethod
         {
             [Theory]

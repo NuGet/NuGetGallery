@@ -1848,6 +1848,15 @@ namespace NuGetGallery {
                 return ResourceManager.GetString("ScopeDescription_PushPackageVersion", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Manage staged packages and package versions.
+        /// </summary>
+        public static string ScopeDescription_StagePackage {
+            get {
+                return ResourceManager.GetString("ScopeDescription_StagePackage", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to Unknown.

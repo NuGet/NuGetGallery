@@ -380,6 +380,11 @@ namespace NuGetGallery
         /// </summary>
         bool IsAdminApiSoftDeleteEnabled();
 
+        /// <summary>
+        /// Whether the user can access staging API and Gallery mutations.
+        /// </summary>
+        bool IsStagingEnabled(User user);
+
         // TODO: https://github.com/NuGet/Engineering/issues/6446
         bool IsInvalidPackageIdAllowedForAllPackages();
         bool IsInvalidPackageIdAllowedForExistingPackages();

@@ -73,6 +73,7 @@ namespace NuGetGallery
         private const string EnableApiKeyV5ForOIDCFeatureName = GalleryPrefix + "EnableApiKeyV5ForOIDC";
         private const string ReducedVersionLists = GalleryPrefix + "ReducedVersionLists";
         private const string AdminApiSoftDeleteFeatureName = GalleryPrefix + "AdminApiSoftDelete";
+        private const string StagingFlightName = GalleryPrefix + "Staging";
         private const string AllowInvalidPackageIdForAllPackages = GalleryPrefix + "AllowInvalidPackageIdForAllPackages";
         private const string AllowInvalidPackageIdForExistingPackages = GalleryPrefix + "AllowInvalidPackageIdForExistingPackages";
 
@@ -438,6 +439,11 @@ namespace NuGetGallery
         public bool IsAdvancedFrameworkFilteringEnabled(User user)
         {
             return _client.IsEnabled(AdvancedFrameworkFilteringFeatureName, user, defaultValue: false);
+        }
+
+        public bool IsStagingEnabled(User user)
+        {
+            return _client.IsEnabled(StagingFlightName, user, defaultValue: false);
         }
 
         public bool CanUseFederatedCredentials(User user)

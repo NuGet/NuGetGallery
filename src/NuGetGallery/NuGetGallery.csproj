@@ -642,6 +642,16 @@
     <Compile Include="Services\ISymbolPackageService.cs" />
     <Compile Include="Services\PackageCommitResult.cs" />
     <Compile Include="Services\IValidationMessageEmitter.cs" />
+    <Compile Include="Staging\StagingApiError.cs" />
+    <Compile Include="Staging\StagingCreateGroupRequest.cs" />
+    <Compile Include="Staging\StagedPackageListResource.cs" />
+    <Compile Include="Staging\StagedPackageResource.cs" />
+    <Compile Include="Staging\StagingGroupResource.cs" />
+    <Compile Include="Staging\StagingJsonResult.cs" />
+    <Compile Include="Staging\StagingListedRequest.cs" />
+    <Compile Include="Staging\StagingRenameGroupRequest.cs" />
+    <Compile Include="Staging\StagingResourceValues.cs" />
+    <Compile Include="Controllers\StagingController.cs" />
     <Compile Include="Infrastructure\HttpStatusCodeWithServerWarningResult.cs" />
     <Compile Include="Migrations\201704191802404_AddIndexPackageRegistrationKeySemVer.cs" />
     <Compile Include="Migrations\201704191802404_AddIndexPackageRegistrationKeySemVer.Designer.cs">

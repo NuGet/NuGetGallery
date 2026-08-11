@@ -32,6 +32,7 @@ namespace NuGetGallery
                 RegisterAdminApiRoutes(routes);
             }
 
+            RegisterStagingApiRoutes(routes);
             RegisterApiV2Routes(routes);
         }
 
@@ -937,6 +938,99 @@ namespace NuGetGallery
                 "api/admin/revalidate-package",
                 new { controller = "AdminApi", action = "RevalidatePackage" },
                 new { httpMethod = new HttpMethodConstraint("POST") });
+        }
+
+        public static void RegisterStagingApiRoutes(RouteCollection routes)
+        {
+            routes.MapRoute(
+                RouteName.DownloadStagedSymbolsPackage,
+                "v3/staging/package/{id}/{version}/symbols/content",
+                new { controller = "Staging", action = "DownloadStagedSymbolsPackage" },
+                new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
+                RouteName.DeleteStagedSymbolsPackage,
+                "v3/staging/package/{id}/{version}/symbols",
+                new { controller = "Staging", action = "DeleteStagedSymbolsPackage" },
+                new { httpMethod = new HttpMethodConstraint("DELETE") });
+
+            routes.MapRoute(
+                RouteName.DownloadStagedPackage,
+                "v3/staging/package/{id}/{version}/content",
+                new { controller = "Staging", action = "DownloadStagedPackage" },
+                new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
+                RouteName.SetStagedPackageListed,
+                "v3/staging/package/{id}/{version}",
+                new { controller = "Staging", action = "SetStagedPackageListed" },
+                new { httpMethod = new HttpMethodConstraint("PATCH") });
+
+            routes.MapRoute(
+                RouteName.DeleteStagedPackage,
+                "v3/staging/package/{id}/{version}",
+                new { controller = "Staging", action = "DeleteStagedPackage" },
+                new { httpMethod = new HttpMethodConstraint("DELETE") });
+
+            routes.MapRoute(
+                RouteName.GetStagedPackage,
+                "v3/staging/package/{id}/{version}",
+                new { controller = "Staging", action = "GetStagedPackage" },
+                new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
+                RouteName.PushStagingPackage,
+                "v3/staging/package",
+                new { controller = "Staging", action = "PushStagingPackage" },
+                new { httpMethod = new HttpMethodConstraint("PUT") });
+
+            routes.MapRoute(
+                RouteName.ListStagedPackages,
+                "v3/staging/package",
+                new { controller = "Staging", action = "ListStagedPackages" },
+                new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
+                RouteName.AddPackageToStagingGroup,
+                "v3/staging/group/{groupId}/packages/{id}/{version}",
+                new { controller = "Staging", action = "AddPackageToStagingGroup" },
+                new { httpMethod = new HttpMethodConstraint("PUT") });
+
+            routes.MapRoute(
+                RouteName.RemovePackageFromStagingGroup,
+                "v3/staging/group/{groupId}/packages/{id}/{version}",
+                new { controller = "Staging", action = "RemovePackageFromStagingGroup" },
+                new { httpMethod = new HttpMethodConstraint("DELETE") });
+
+            routes.MapRoute(
+                RouteName.RenameStagingGroup,
+                "v3/staging/group/{groupId}",
+                new { controller = "Staging", action = "RenameStagingGroup" },
+                new { httpMethod = new HttpMethodConstraint("PATCH") });
+
+            routes.MapRoute(
+                RouteName.DeleteStagingGroup,
+                "v3/staging/group/{groupId}",
+                new { controller = "Staging", action = "DeleteStagingGroup" },
+                new { httpMethod = new HttpMethodConstraint("DELETE") });
+
+            routes.MapRoute(
+                RouteName.GetStagingGroup,
+                "v3/staging/group/{groupId}",
+                new { controller = "Staging", action = "GetStagingGroup" },
+                new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
+                RouteName.CreateStagingGroup,
+                "v3/staging/group",
+                new { controller = "Staging", action = "CreateStagingGroup" },
+                new { httpMethod = new HttpMethodConstraint("POST") });
+
+            routes.MapRoute(
+                RouteName.ListStagingGroups,
+                "v3/staging/group",
+                new { controller = "Staging", action = "ListStagingGroups" },
+                new { httpMethod = new HttpMethodConstraint("GET") });
         }
     }
 }
