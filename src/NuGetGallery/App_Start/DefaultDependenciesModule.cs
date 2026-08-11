@@ -395,6 +395,10 @@ namespace NuGetGallery
                 .As<ISymbolPackageUploadService>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<StagingService>()
+                .As<IStagingService>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<PackageOwnershipManagementService>()
                 .AsSelf()
                 .As<IPackageOwnershipManagementService>()
@@ -1215,6 +1219,18 @@ namespace NuGetGallery
                             c.Resolve<IAppConfiguration>(),
                             c.Resolve<IDiagnosticsService>());
                     }).As<IValidationMessageEmitter<SymbolPackage>>();
+
+                builder
+                    .Register(c =>
+                    {
+                        return new StagingValidationMessageEmitter(
+                            c.ResolveKeyed<IPackageValidationEnqueuer>(BindingKeys.PackageValidationEnqueuer),
+                            c.ResolveKeyed<IPackageValidationEnqueuer>(BindingKeys.SymbolsPackageValidationEnqueuer),
+                            c.Resolve<IAppConfiguration>(),
+                            c.Resolve<IDiagnosticsService>());
+                    })
+                    .As<IStagingValidationMessageEmitter>()
+                    .InstancePerLifetimeScope();
 
                 // we retrieve the values here (on main thread) because otherwise it would run in another thread
                 // and potentially cause a deadlock on async operation.

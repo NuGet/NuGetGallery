@@ -242,6 +242,10 @@ namespace NuGetGallery
                 .Returns(mockSet.Object);
 
             mockSet
+                .Setup(x => x.AsNoTracking())
+                .Returns(mockSet.Object);
+
+            mockSet
                 .Setup(x => x.Add(It.IsAny<T>()))
                 .Callback<T>(x => data.Add(x));
 

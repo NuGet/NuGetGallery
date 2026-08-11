@@ -300,6 +300,7 @@
     <Compile Include="Infrastructure\Lucene\ServiceResponse.cs" />
     <Compile Include="Infrastructure\Mail\Messages\TwoFactorFeedbackMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\SearchSideBySideMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\StagingUploadMessage.cs" />
     <Compile Include="Infrastructure\HijackSearchServiceFactory.cs" />
     <Compile Include="Infrastructure\UserDeletedErrorFilter.cs" />
     <Compile Include="Infrastructure\SearchServiceFactory.cs" />
@@ -606,6 +607,7 @@
     </Compile>
     <Compile Include="RequestModels\SimulatedErrorType.cs" />
     <Compile Include="Services\AsynchronousValidationMessageEmitter.cs" />
+    <Compile Include="Services\IStagingValidationMessageEmitter.cs" />
     <Compile Include="Infrastructure\Mail\BackgroundMarkdownMessageService.cs" />
     <Compile Include="Services\GalleryContentFileMetadataService.cs" />
     <Compile Include="Services\InvalidLicenseUrlValidationMessage.cs" />
@@ -642,7 +644,11 @@
     <Compile Include="Services\ISymbolPackageService.cs" />
     <Compile Include="Services\PackageCommitResult.cs" />
     <Compile Include="Services\IValidationMessageEmitter.cs" />
+    <Compile Include="Services\StagingValidationMessageEmitter.cs" />
+    <Compile Include="Staging\IStagingService.cs" />
+    <Compile Include="Staging\StagingApiException.cs" />
     <Compile Include="Staging\StagingApiError.cs" />
+    <Compile Include="Staging\StagingArtifactOperation.cs" />
     <Compile Include="Staging\StagingCreateGroupRequest.cs" />
     <Compile Include="Staging\StagedPackageListResource.cs" />
     <Compile Include="Staging\StagedPackageResource.cs" />
@@ -650,7 +656,11 @@
     <Compile Include="Staging\StagingJsonResult.cs" />
     <Compile Include="Staging\StagingListedRequest.cs" />
     <Compile Include="Staging\StagingRenameGroupRequest.cs" />
+    <Compile Include="Staging\StagingResourceBuilder.cs" />
     <Compile Include="Staging\StagingResourceValues.cs" />
+    <Compile Include="Staging\StagingService.cs" />
+    <Compile Include="Staging\StagingUploadRequest.cs" />
+    <Compile Include="Staging\StagingUploadResult.cs" />
     <Compile Include="Controllers\StagingController.cs" />
     <Compile Include="Infrastructure\HttpStatusCodeWithServerWarningResult.cs" />
     <Compile Include="Migrations\201704191802404_AddIndexPackageRegistrationKeySemVer.cs" />
