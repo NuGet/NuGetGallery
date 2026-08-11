@@ -144,16 +144,22 @@ Best regards,
 {1}</value>
   </data>
   <data name="GetExpiredCredentialsQuery" xml:space="preserve">
-    <value>SELECT cr.[Type], cr.[Created], cr.[Expires], cr.[Description], u.[EmailAddress], u.[Username]
+    <value>SELECT cr.[Type], cr.[Created], eff.[EffectiveExpires] AS [Expires], cr.[Description], u.[EmailAddress], u.[Username]
 FROM [Credentials] AS cr
 INNER JOIN Users AS u ON u.[Key] = cr.[UserKey]
+CROSS APPLY (SELECT CASE
+    WHEN @CutoffDate IS NOT NULL
+      AND cr.[Expires] &gt; DATEADD(day, 30, cr.[Created])
+      AND cr.[Expires] &gt; CONVERT(datetime, @CutoffDate)
+    THEN CONVERT(datetime, @CutoffDate)
+    ELSE cr.[Expires] END AS [EffectiveExpires]) AS eff
 WHERE u.[EmailAllowed] = 1
   AND u.[EmailAddress] &lt;&gt; ''
-  AND Expires IS NOT NULL
-  AND cr.[Expires] &lt;= CONVERT(datetime, @MaxNotificationDate)
-  AND cr.[Expires] &gt;= CONVERT(datetime, @MinNotificationDate)
+  AND cr.[Expires] IS NOT NULL
   AND (cr.[Type] = 'apikey.v3' or cr.[Type] = 'apikey.v4')
   AND cr.[RevocationSourceKey] IS NULL
+  AND eff.[EffectiveExpires] &lt;= CONVERT(datetime, @MaxNotificationDate)
+  AND eff.[EffectiveExpires] &gt;= CONVERT(datetime, @MinNotificationDate)
 ORDER BY u.[Username]</value>
   </data>
   <data name="ExpiredEmailSubject" xml:space="preserve">

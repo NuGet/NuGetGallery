@@ -15,11 +15,13 @@ namespace Gallery.CredentialExpiration
     {
         private readonly Job _job;
         private readonly CredentialExpirationJobMetadata _jobMetadata;
+        private readonly DateTime? _cutoffDate;
 
-        public GalleryCredentialExpiration(Job job, CredentialExpirationJobMetadata jobMetadata)
+        public GalleryCredentialExpiration(Job job, CredentialExpirationJobMetadata jobMetadata, DateTime? cutoffDate = null)
         {
             _job = job;
             _jobMetadata = jobMetadata;
+            _cutoffDate = cutoffDate;
         }
 
         /// <summary>
@@ -50,6 +52,11 @@ namespace Gallery.CredentialExpiration
             var maxNotificationDate = ConvertToString(GetMaxNotificationDate());
             var minNotificationDate = ConvertToString(GetMinNotificationDate());
 
+            // When the ApiKeyReduction feature flag is enabled, long-duration keys (> 30 days) are treated as
+            // expiring on the earlier of their own expiration or the cutoff date, so warning emails go out as the
+            // cutoff approaches. A null cutoff leaves the query behavior unchanged.
+            var cutoffDate = _cutoffDate.HasValue ? ConvertToString(_cutoffDate.Value) : null;
+
             // Connect to database
             using (var galleryConnection = await _job.OpenSqlConnectionAsync<GalleryDbConfiguration>())
             {
@@ -57,7 +64,7 @@ namespace Gallery.CredentialExpiration
                 // + the user's e-mail address
                 return  (await galleryConnection.QueryWithRetryAsync<ExpiredCredentialData>(
                     Strings.GetExpiredCredentialsQuery,
-                    param: new { MaxNotificationDate = maxNotificationDate, MinNotificationDate = minNotificationDate },
+                    param: new { MaxNotificationDate = maxNotificationDate, MinNotificationDate = minNotificationDate, CutoffDate = cutoffDate },
                     maxRetries: 3,
                     commandTimeout: timeout)).ToList();
             }

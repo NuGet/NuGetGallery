@@ -14,6 +14,11 @@ namespace NuGetGallery
         }
 
         public ApiKeyViewModel(CredentialViewModel cred)
+            : this(cred, applyApiKeyReductionCutoff: false)
+        {
+        }
+
+        public ApiKeyViewModel(CredentialViewModel cred, bool applyApiKeyReductionCutoff)
         {
             if (cred == null)
             {
@@ -53,12 +58,18 @@ namespace NuGetGallery
                 .Except(new[] { globPattern })
                 .ToList();
 
+            var effectiveExpires = applyApiKeyReductionCutoff
+                ? ApiKeyReductionPolicy.GetEffectiveExpiration(cred.Created, cred.Expires)
+                : cred.Expires;
+
             Key = cred.Key;
             Type = cred.Type;
             Value = cred.Value;
             Description = cred.Description;
-            Expires = cred.Expires?.ToString("O");
-            HasExpired = cred.HasExpired;
+            Expires = effectiveExpires?.ToString("O");
+            HasExpired = effectiveExpires.HasValue
+                ? DateTime.UtcNow >= effectiveExpires.Value
+                : cred.HasExpired;
             IsNonScopedApiKey = cred.IsNonScopedApiKey;
             RevocationSource = cred.RevocationSource;
             Owner = owner;

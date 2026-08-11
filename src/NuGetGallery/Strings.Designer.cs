@@ -451,6 +451,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The specified API key has expired. Please create a new API key at https://www.nuget.org/account/apikeys..
+        /// </summary>
+        public static string ApiKeyExpiredUnderReductionPolicy {
+            get {
+                return ResourceManager.GetString("ApiKeyExpiredUnderReductionPolicy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to You must specify a package owner to generate an API key..
         /// </summary>
         public static string ApiKeyOwnerRequired {
