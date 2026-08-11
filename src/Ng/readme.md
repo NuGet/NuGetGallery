@@ -39,7 +39,7 @@ m2m[Monitoring2monitoring] --> Queue
 
 Queue --> mp[MonitoringProcessor]
 
-subgraph ValSt[Validation storage]
+subgraph MonSt[Monitoring storage]
     direction TB;
     Valid;
     Unknown;
