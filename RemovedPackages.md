@@ -253,6 +253,7 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    skillmeter.osx-arm64 0.1.0                |    07/29/2026    |   Malware  |
 |    skillmeter.win-arm64 0.1.0                |    07/29/2026    |   Malware  |
 |    DIP.Infrastructure.Context 99.0.0         |    08/11/2026    |   Malware  |
+|    DIP.IoC.Extensions 99.0.0                 |    08/11/2026    |   Malware  |
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.
