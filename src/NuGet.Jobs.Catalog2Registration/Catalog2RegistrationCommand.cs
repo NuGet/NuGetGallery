@@ -27,6 +27,14 @@ namespace NuGet.Jobs.Catalog2Registration
         /// </summary>
         public const string RegistrationLevelCursorRelativeUri = "registration-level-cursor.json";
 
+        /// <summary>
+        /// The default value for the ID-level attribute lane's front cursor when its cursor blob does not yet exist
+        /// (i.e. the very first run). Seeding the cursor to a recent, fixed date
+        /// avoids an expensive first-run rescan of the entire catalog history.
+        /// TODO: This is a temporary mock seed date. Replace with a configurable value before production rollout.
+        /// </summary>
+        public static readonly DateTime RegistrationLevelCursorDefaultValue = new DateTime(2026, 8, 1, 0, 0, 0, DateTimeKind.Utc);
+
         private readonly ICollector _collector;
         private readonly IRegistrationLevelCollector _registrationLevelCollector;
         private readonly ICloudBlobClient _cloudBlobClient;
@@ -108,18 +116,28 @@ namespace NuGet.Jobs.Catalog2Registration
 
             // Run the ID-level (package registration scoped) collector on its own cursor. This consumes the
             // version-less catalog leaves (e.g. sponsorship) that the version-level collector intentionally skips.
+            //
+            // Unlike the version-level collector, this lane uses its own back cursor that always points at the latest
+            // catalog information (MemoryCursor.CreateMax) rather than the flat container dependency cursor. ID-level
+            // attributes such as sponsorship URLs do not reference flat container package content, so this lane has no
+            // dependency on the flat container cursor. Sharing the version-level back cursor would incorrectly gate
+            // ID-level attribute updates behind unrelated version-level package activity, which can stall these updates
+            // indefinitely on a quiet feed.
+            var registrationLevelBackCursor = MemoryCursor.CreateMax();
+            await registrationLevelBackCursor.LoadAsync(token);
+
             var registrationLevelFrontCursorUri = frontCursorStorage.ResolveUri(RegistrationLevelCursorRelativeUri);
-            var registrationLevelFrontCursor = new DurableCursor(registrationLevelFrontCursorUri, frontCursorStorage, DateTime.MinValue);
+            var registrationLevelFrontCursor = new DurableCursor(registrationLevelFrontCursorUri, frontCursorStorage, RegistrationLevelCursorDefaultValue);
             await registrationLevelFrontCursor.LoadAsync(token);
             _logger.LogInformation(
                 "Running the ID-level attribute collector using cursor: {CursorUrl}. Front: {FrontCursor}. Back: {BackCursor}.",
                 registrationLevelFrontCursorUri.AbsoluteUri,
                 registrationLevelFrontCursor.Value,
-                backCursor.Value);
+                registrationLevelBackCursor.Value);
 
             await _registrationLevelCollector.RunAsync(
                 registrationLevelFrontCursor,
-                backCursor,
+                registrationLevelBackCursor,
                 token);
         }
 
