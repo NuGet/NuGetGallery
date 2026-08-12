@@ -141,10 +141,10 @@
                                     @{ if (policy.Scopes != null && policy.Scopes.Count > 0)
                                        {
                                            <p>Allowed Actions:<br>
-                                           @foreach (var allowedAction in policy.Scopes.Select(s => s.AllowedAction).Distinct()) { <code>@allowedAction</code><br> }
+                                           @foreach (var allowedAction in policy.Scopes.Select(s => s.AllowedAction).Distinct(StringComparer.Ordinal)) { <code>@allowedAction</code><br> }
                                            </p>
                                            <p>Subjects:<br>
-                                           @foreach (var subject in policy.Scopes.Select(s => s.Subject).Distinct()) { <code>@subject</code><br> }
+                                           @foreach (var subject in policy.Scopes.Select(s => s.Subject).Distinct(StringComparer.Ordinal)) { <code>@subject</code><br> }
                                            </p>
                                        }
                                     }
