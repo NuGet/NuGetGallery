@@ -29,23 +29,16 @@ namespace NuGetGallery
         [HttpPut]
         public async Task<ActionResult> PushStagingPackage()
         {
-            var currentUser = GetCurrentUser();
-            var credential = currentUser.GetCurrentApiKeyCredential(User.Identity);
-            var owner = credential?.Scopes.GetOwnerScope();
-            if (owner == null)
+            var context = ResolveContext(out var guard);
+            if (guard != null)
             {
-                return Error(HttpStatusCode.Forbidden, StagingApiErrorCodes.StagingScopeRequired, "An owner-scoped package:stage credential is required.");
-            }
-
-            if (!_featureFlagService.IsStagingEnabled(owner))
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+                return guard;
             }
 
             try
             {
                 var request = ReadUploadRequest();
-                var result = await _stagingService.UploadAsync(currentUser, owner, credential, request);
+                var result = await _stagingService.UploadAsync(context.CurrentUser, context.Owner, context.Credential, request);
                 var location = Url?.RouteUrl(RouteName.GetStagedPackage, new { id = result.Package.Id, version = result.Package.Version });
                 if (location != null)
                 {
@@ -65,63 +58,307 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        public ActionResult ListStagedPackages(string groupId, bool ungrouped = false, int take = 100, string continuationToken = null) => Unavailable();
+        public ActionResult ListStagedPackages(string groupId, bool ungrouped = false, int take = 100, string continuationToken = null)
+        {
+            var context = ResolveContext(out var guard);
+            if (guard != null)
+            {
+                return guard;
+            }
+
+            try
+            {
+                return new StagingJsonResult(HttpStatusCode.OK, _stagingService.ListPackages(context, groupId, ungrouped, take, continuationToken));
+            }
+            catch (StagingApiException ex)
+            {
+                return Error(ex.StatusCode, ex.Code, ex.Message, ex.Target);
+            }
+        }
 
         [HttpGet]
-        public ActionResult GetStagedPackage(string id, string version) => Unavailable();
+        public ActionResult GetStagedPackage(string id, string version)
+        {
+            var context = ResolveContext(out var guard);
+            if (guard != null)
+            {
+                return guard;
+            }
+
+            try
+            {
+                return new StagingJsonResult(HttpStatusCode.OK, _stagingService.GetPackage(context, id, version));
+            }
+            catch (StagingApiException ex)
+            {
+                return Error(ex.StatusCode, ex.Code, ex.Message, ex.Target);
+            }
+        }
 
         [HttpPatch]
-        public ActionResult SetStagedPackageListed(string id, string version, StagingListedRequest request) => Unavailable();
+        public async Task<ActionResult> SetStagedPackageListed(string id, string version, StagingListedRequest request)
+        {
+            var context = ResolveContext(out var guard);
+            if (guard != null)
+            {
+                return guard;
+            }
+
+            try
+            {
+                if (request?.Listed == null)
+                {
+                    throw new StagingApiException(HttpStatusCode.BadRequest, StagingApiErrorCodes.InvalidRequestBody, "A JSON body with an explicit listed value is required.", "listed");
+                }
+
+                var stagedPackage = await _stagingService.SetListedAsync(context, id, version, request.Listed.Value);
+                return new StagingJsonResult(HttpStatusCode.OK, stagedPackage);
+            }
+            catch (StagingApiException ex)
+            {
+                return Error(ex.StatusCode, ex.Code, ex.Message, ex.Target);
+            }
+        }
 
         [HttpGet]
-        public ActionResult DownloadStagedPackage(string id, string version) => Unavailable();
+        public async Task<ActionResult> DownloadStagedPackage(string id, string version)
+        {
+            var context = ResolveContext(out var guard);
+            if (guard != null)
+            {
+                return guard;
+            }
+
+            try
+            {
+                var download = await _stagingService.DownloadPackageAsync(context, id, version);
+                return File(download.Content, download.ContentType, download.FileName);
+            }
+            catch (StagingApiException ex)
+            {
+                return Error(ex.StatusCode, ex.Code, ex.Message, ex.Target);
+            }
+        }
 
         [HttpGet]
-        public ActionResult DownloadStagedSymbolsPackage(string id, string version) => Unavailable();
+        public async Task<ActionResult> DownloadStagedSymbolsPackage(string id, string version)
+        {
+            var context = ResolveContext(out var guard);
+            if (guard != null)
+            {
+                return guard;
+            }
+
+            try
+            {
+                var download = await _stagingService.DownloadSymbolsAsync(context, id, version);
+                return File(download.Content, download.ContentType, download.FileName);
+            }
+            catch (StagingApiException ex)
+            {
+                return Error(ex.StatusCode, ex.Code, ex.Message, ex.Target);
+            }
+        }
 
         [HttpDelete]
-        public ActionResult DeleteStagedPackage(string id, string version) => Unavailable();
+        public async Task<ActionResult> DeleteStagedPackage(string id, string version)
+        {
+            var context = ResolveContext(out var guard);
+            if (guard != null)
+            {
+                return guard;
+            }
+
+            try
+            {
+                await _stagingService.DeletePackageAsync(context, id, version);
+                return new HttpStatusCodeResult(HttpStatusCode.NoContent);
+            }
+            catch (StagingApiException ex)
+            {
+                return Error(ex.StatusCode, ex.Code, ex.Message, ex.Target);
+            }
+        }
 
         [HttpDelete]
-        public ActionResult DeleteStagedSymbolsPackage(string id, string version) => Unavailable();
+        public async Task<ActionResult> DeleteStagedSymbolsPackage(string id, string version)
+        {
+            var context = ResolveContext(out var guard);
+            if (guard != null)
+            {
+                return guard;
+            }
+
+            try
+            {
+                await _stagingService.DeleteSymbolsAsync(context, id, version);
+                return new HttpStatusCodeResult(HttpStatusCode.NoContent);
+            }
+            catch (StagingApiException ex)
+            {
+                return Error(ex.StatusCode, ex.Code, ex.Message, ex.Target);
+            }
+        }
 
         [HttpPost]
-        public ActionResult CreateStagingGroup(StagingCreateGroupRequest request) => Unavailable();
+        public async Task<ActionResult> CreateStagingGroup(StagingCreateGroupRequest request)
+        {
+            var context = ResolveContext(out var guard);
+            if (guard != null)
+            {
+                return guard;
+            }
+
+            try
+            {
+                request = request ?? new StagingCreateGroupRequest();
+                var result = await _stagingService.CreateGroupAsync(context, request);
+                return new StagingJsonResult(result.Created ? HttpStatusCode.Created : HttpStatusCode.OK, result.Group);
+            }
+            catch (StagingApiException ex)
+            {
+                return Error(ex.StatusCode, ex.Code, ex.Message, ex.Target);
+            }
+        }
 
         [HttpGet]
-        public ActionResult ListStagingGroups() => Unavailable();
+        public ActionResult ListStagingGroups()
+        {
+            var context = ResolveContext(out var guard);
+            if (guard != null)
+            {
+                return guard;
+            }
+
+            try
+            {
+                return new StagingJsonResult(HttpStatusCode.OK, _stagingService.ListGroups(context));
+            }
+            catch (StagingApiException ex)
+            {
+                return Error(ex.StatusCode, ex.Code, ex.Message, ex.Target);
+            }
+        }
 
         [HttpGet]
-        public ActionResult GetStagingGroup(string groupId, int take = 100, string continuationToken = null) => Unavailable();
+        public ActionResult GetStagingGroup(string groupId, int take = 100, string continuationToken = null)
+        {
+            var context = ResolveContext(out var guard);
+            if (guard != null)
+            {
+                return guard;
+            }
+
+            try
+            {
+                return new StagingJsonResult(HttpStatusCode.OK, _stagingService.GetGroup(context, groupId, take, continuationToken));
+            }
+            catch (StagingApiException ex)
+            {
+                return Error(ex.StatusCode, ex.Code, ex.Message, ex.Target);
+            }
+        }
 
         [HttpPatch]
-        public ActionResult RenameStagingGroup(string groupId, StagingRenameGroupRequest request) => Unavailable();
+        public async Task<ActionResult> RenameStagingGroup(string groupId, StagingRenameGroupRequest request)
+        {
+            var context = ResolveContext(out var guard);
+            if (guard != null)
+            {
+                return guard;
+            }
+
+            try
+            {
+                request = request ?? new StagingRenameGroupRequest();
+                var group = await _stagingService.RenameGroupAsync(context, groupId, request);
+                return new StagingJsonResult(HttpStatusCode.OK, group);
+            }
+            catch (StagingApiException ex)
+            {
+                return Error(ex.StatusCode, ex.Code, ex.Message, ex.Target);
+            }
+        }
 
         [HttpDelete]
-        public ActionResult DeleteStagingGroup(string groupId) => Unavailable();
+        public async Task<ActionResult> DeleteStagingGroup(string groupId)
+        {
+            var context = ResolveContext(out var guard);
+            if (guard != null)
+            {
+                return guard;
+            }
+
+            try
+            {
+                await _stagingService.DeleteGroupAsync(context, groupId);
+                return new HttpStatusCodeResult(HttpStatusCode.NoContent);
+            }
+            catch (StagingApiException ex)
+            {
+                return Error(ex.StatusCode, ex.Code, ex.Message, ex.Target);
+            }
+        }
 
         [HttpPut]
-        public ActionResult AddPackageToStagingGroup(string groupId, string id, string version) => Unavailable();
+        public async Task<ActionResult> AddPackageToStagingGroup(string groupId, string id, string version)
+        {
+            var context = ResolveContext(out var guard);
+            if (guard != null)
+            {
+                return guard;
+            }
+
+            try
+            {
+                var stagedPackage = await _stagingService.AddPackageToGroupAsync(context, groupId, id, version);
+                return new StagingJsonResult(HttpStatusCode.OK, stagedPackage);
+            }
+            catch (StagingApiException ex)
+            {
+                return Error(ex.StatusCode, ex.Code, ex.Message, ex.Target);
+            }
+        }
 
         [HttpDelete]
-        public ActionResult RemovePackageFromStagingGroup(string groupId, string id, string version) => Unavailable();
+        public async Task<ActionResult> RemovePackageFromStagingGroup(string groupId, string id, string version)
+        {
+            var context = ResolveContext(out var guard);
+            if (guard != null)
+            {
+                return guard;
+            }
 
-        private ActionResult Unavailable()
+            try
+            {
+                var stagedPackage = await _stagingService.RemovePackageFromGroupAsync(context, groupId, id, version);
+                return new StagingJsonResult(HttpStatusCode.OK, stagedPackage);
+            }
+            catch (StagingApiException ex)
+            {
+                return Error(ex.StatusCode, ex.Code, ex.Message, ex.Target);
+            }
+        }
+
+        private StagingAuthorizationContext ResolveContext(out ActionResult guard)
         {
             var currentUser = GetCurrentUser();
             var credential = currentUser.GetCurrentApiKeyCredential(User.Identity);
             var owner = credential?.Scopes.GetOwnerScope();
             if (owner == null)
             {
-                return Error(HttpStatusCode.Forbidden, StagingApiErrorCodes.StagingScopeRequired, "An owner-scoped package:stage credential is required.");
+                guard = Error(HttpStatusCode.Forbidden, StagingApiErrorCodes.StagingScopeRequired, "An owner-scoped package:stage credential is required.");
+                return null;
             }
 
             if (!_featureFlagService.IsStagingEnabled(owner))
             {
-                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+                guard = new HttpStatusCodeResult(HttpStatusCode.NotFound);
+                return null;
             }
 
-            return Error(HttpStatusCode.ServiceUnavailable, StagingApiErrorCodes.StagingUnavailable, "Package staging is temporarily unavailable.");
+            guard = null;
+            return new StagingAuthorizationContext(currentUser, owner, credential);
         }
 
         private StagingUploadRequest ReadUploadRequest()

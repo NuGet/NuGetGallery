@@ -14,6 +14,7 @@ using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
 using NuGet.Versioning;
 using NuGetGallery.Authentication;
+using NuGetGallery.Configuration;
 using NuGetGallery.Packaging;
 using Xunit;
 
@@ -731,6 +732,8 @@ namespace NuGetGallery
                 ValidationEmitter = new Mock<IStagingValidationMessageEmitter>();
                 MessageService = new Mock<IMessageService>();
                 MessageServiceConfiguration = new Mock<IMessageServiceConfiguration>();
+                AppConfiguration = new Mock<IAppConfiguration>();
+                AppConfiguration.SetupGet(x => x.SiteRoot).Returns("https://nuget.test/");
                 var dateTimeProvider = new Mock<IDateTimeProvider>();
                 dateTimeProvider.SetupGet(x => x.UtcNow).Returns(_now);
 
@@ -745,7 +748,9 @@ namespace NuGetGallery
                     ValidationEmitter.Object,
                     dateTimeProvider.Object,
                     MessageService.Object,
-                    MessageServiceConfiguration.Object);
+                    MessageServiceConfiguration.Object,
+                    AppConfiguration.Object,
+                    new TestStagingTokenProtector());
             }
 
             public User CurrentUser { get; }
@@ -763,6 +768,7 @@ namespace NuGetGallery
             public Mock<IStagingValidationMessageEmitter> ValidationEmitter { get; }
             public Mock<IMessageService> MessageService { get; }
             public Mock<IMessageServiceConfiguration> MessageServiceConfiguration { get; }
+            public Mock<IAppConfiguration> AppConfiguration { get; }
             public StagingService Target { get; }
 
             public Task<StagingUploadResult> UploadAsync(StagingUploadRequest request)

@@ -15,6 +15,8 @@ namespace NuGetGallery
         {
             ContractResolver = new CamelCasePropertyNamesContractResolver(),
             NullValueHandling = NullValueHandling.Ignore,
+            DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+            DateFormatString = "O",
         };
 
         public StagingJsonResult(HttpStatusCode statusCode, object value)

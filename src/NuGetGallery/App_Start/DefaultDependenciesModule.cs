@@ -395,6 +395,10 @@ namespace NuGetGallery
                 .As<ISymbolPackageUploadService>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<MachineKeyStagingTokenProtector>()
+                .As<IStagingTokenProtector>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<StagingService>()
                 .As<IStagingService>()
                 .InstancePerLifetimeScope();
