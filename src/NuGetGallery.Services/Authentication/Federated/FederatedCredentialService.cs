@@ -117,6 +117,7 @@ namespace NuGetGallery.Services.Authentication
 
     public class FederatedCredentialService : IFederatedCredentialService
     {
+        // The same regex is used by src\NuGetGallery\Views\Users\ApiKeys.cshtml
         public static readonly string PolicySubjectRegexPattern = "^[\\*\\w_.-]*$";
         public static readonly string PolicySubjectRegexForRazorPattern = PolicySubjectRegexPattern.Replace("\\", "\\\\");
 

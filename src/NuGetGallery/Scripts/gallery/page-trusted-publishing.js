@@ -433,7 +433,7 @@
             this.PushScope = ko.observable(initialData.PackagePushScope);
             this.UnlistScopeChecked = ko.observable(false);
             this.PendingPolicyScopes = ko.pureComputed(function () {
-                var scopes = [];
+                let scopes = [];
                 if (self.PushScopeChecked() && self.PushScope()) {
                     scopes.push(self.PushScope());
                 }
@@ -448,7 +448,7 @@
             this.PolicySubjects = ko.observableArray();
             this.ScopeSubjectsInput = ko.observable();
             this.PendingPolicySubjects = ko.pureComputed(function () {
-                var subjects = [];
+                let subjects = [];
                 if (self.ScopeSubjectsInput()) {
                     subjects = self.ScopeSubjectsInput()
                         .split(/\r?\n/)
@@ -524,13 +524,13 @@
                 }
 
                 // When the package owner scope is changed, update the selected action scopes to those that are allowed on behalf of the new package owner.
-                var isPushNewSelected = function () {
+                function isPushNewSelected() {
                     return self.PushScope() === initialData.PackagePushScope;
                 };
-                var isPushExistingSelected = function () {
+                function isPushExistingSelected() {
                     return self.PushScope() === initialData.PackagePushVersionScope;
                 };
-                var isUnlistSelected = function () {
+                function isUnlistSelected() {
                     return self.UnlistScopeChecked();
                 };
 
