@@ -223,11 +223,11 @@
                 @Html.ShowValidationMessagesFor(m => m.AddPolicy.PolicyCriteria)
             </div>
         </div>
-        <div class="form-group row @Html.HasErrorFor(m => m.AddPolicy.PolicyScopes)">
-            <div class="col-xs-12">
+        <div class="form-group row page-trusted-publishing @Html.HasErrorFor(m => m.AddPolicy.PolicyScopes)">
+            <div class="col-xs-12 upsert-policy">
                 <h4 class="ms-fontSize-xl"><b>Select Scopes</b></h4>
                 <input type="hidden" name="policyScopes" data-bind="value: PolicyScopes" />
-                <ul style="list-style-type: none; padding-left: 0;">
+                <ul>
                     <li>
                         <div class="row-checkbox-label">
                             <label class="brand-checkbox">
@@ -235,7 +235,7 @@
                                 <span>Push</span>
                             </label>
                         </div>
-                        <ul data-bind="css: { disabled: !PushScopeChecked() }" style="list-style-type: none; padding-left: 20px;">
+                        <ul data-bind="css: { disabled: !PushScopeChecked() }">
                             <li>
                                 <div class="row-checkbox-label">
                                     <div class="label-sibling">
