@@ -377,7 +377,7 @@
                 this.PushScope = ko.observable('@NuGetScopes.PackagePush');
                 this.UnlistScopeChecked = ko.observable(false);
                 this.PolicyScopes = ko.pureComputed(function () {
-                    var scopes = [];
+                    let scopes = [];
                     if (self.PushScopeChecked() && self.PushScope()) {
                         scopes.push(self.PushScope());
                     }
