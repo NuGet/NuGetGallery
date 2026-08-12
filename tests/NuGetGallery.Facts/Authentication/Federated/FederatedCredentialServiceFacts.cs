@@ -34,7 +34,9 @@ namespace NuGetGallery.Services.Authentication
                     packageOwner: "testowner",
                     criteria: """{"test": "value"}""",
                     policyName: "Test Policy",
-                    policyType: FederatedCredentialType.EntraIdServicePrincipal);
+                    policyType: FederatedCredentialType.EntraIdServicePrincipal,
+                    policyScopes: It.IsAny<string[]>(),
+                    policySubjects: It.IsAny<string[]>());
 
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyValidationResultType.BadRequest, result.Type);
@@ -59,7 +61,9 @@ namespace NuGetGallery.Services.Authentication
                     packageOwner: "nonexistent",
                     criteria: """{"test": "value"}""",
                     policyName: "Test Policy",
-                    policyType: FederatedCredentialType.EntraIdServicePrincipal);
+                    policyType: FederatedCredentialType.EntraIdServicePrincipal,
+                    policyScopes: It.IsAny<string[]>(),
+                    policySubjects: It.IsAny<string[]>());
 
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyValidationResultType.BadRequest, result.Type);
@@ -87,7 +91,9 @@ namespace NuGetGallery.Services.Authentication
                     packageOwner: packageOwner!,
                     criteria: """{"test": "value"}""",
                     policyName: "Test Policy",
-                    policyType: FederatedCredentialType.EntraIdServicePrincipal);
+                    policyType: FederatedCredentialType.EntraIdServicePrincipal,
+                    policyScopes: It.IsAny<string[]>(),
+                    policySubjects: It.IsAny<string[]>());
 
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyValidationResultType.BadRequest, result.Type);
@@ -95,6 +101,37 @@ namespace NuGetGallery.Services.Authentication
                 Assert.Equal(nameof(FederatedCredentialPolicy.PackageOwner), result.PolicyPropertyName);
 
                 // Missing policy owner should not create an audit record as it is part of basic user input validation.
+                AssertNoAudits();
+            }
+
+            [Fact]
+            public async Task WhenInvalidPolicyScopesAndSubjects_ReturnsBadRequest()
+            {
+                // Arrange
+                var user = new User { Key = 10, Username = "testuser" };
+                var packageOwner = new User { Key = 20, Username = "testowner" };
+
+                UserService.Setup(x => x.FindByUsername("testowner", false)).Returns(packageOwner);
+                CredentialBuilder.Setup(x => x.BuildScopes(It.IsAny<User>(), It.IsAny<string[]>(), It.IsAny<string[]>()));
+
+                // Act
+                var result = await Target.AddPolicyAsync(
+                    createdBy: user,
+                    packageOwner: "testowner",
+                    criteria: """{"test": "value"}""",
+                    policyName: "Test Policy",
+                    policyType: FederatedCredentialType.EntraIdServicePrincipal,
+                    policyScopes: [ "" ],
+                    policySubjects: [ "" ]);
+
+                // Assert
+                Assert.Equal(FederatedCredentialPolicyValidationResultType.BadRequest, result.Type);
+                Assert.Equal("The policy scopes are invalid.", result.UserMessage);
+                Assert.Equal(nameof(FederatedCredentialPolicy.Scopes), result.PolicyPropertyName);
+                FederatedCredentialRepository.Verify(x => x.AddPolicyAsync(It.IsAny<FederatedCredentialPolicy>(), It.IsAny<bool>()), Times.Never);
+                CredentialBuilder.Verify(x => x.BuildScopes(It.IsAny<User>(), It.IsAny<string[]>(), It.IsAny<string[]>()), Times.Never);
+
+                // Invalid scopes should not create an audit record as it is part of basic user input validation.
                 AssertNoAudits();
             }
 
@@ -107,6 +144,8 @@ namespace NuGetGallery.Services.Authentication
 
                 UserService.Setup(x => x.FindByUsername("testowner", false)).Returns(packageOwner);
                 CredentialBuilder.Setup(x => x.VerifyScopes(user, It.IsAny<IEnumerable<Scope>>())).Returns(true);
+                CredentialBuilder.Setup(x => x.BuildScopes(packageOwner, It.IsAny<string[]>(), It.IsAny<string[]>()))
+                    .Returns(new List<Scope> { new Scope(packageOwner, subject: "policySubject1", allowedAction: NuGetScopes.PackagePush) });
 
                 var validationResult = FederatedCredentialPolicyValidationResult.BadRequest(
                     "Invalid criteria format",
@@ -121,7 +160,9 @@ namespace NuGetGallery.Services.Authentication
                     packageOwner: "testowner",
                     criteria: """{"invalid": "json"}""",
                     policyName: "Test Policy",
-                    policyType: FederatedCredentialType.EntraIdServicePrincipal);
+                    policyType: FederatedCredentialType.EntraIdServicePrincipal,
+                    policyScopes: [ NuGetScopes.PackagePush ],
+                    policySubjects: [ "policySubject1" ]);
 
                 // Assert
                 Assert.Same(validationResult, result);
@@ -129,6 +170,7 @@ namespace NuGetGallery.Services.Authentication
                 Assert.Equal("Invalid criteria format", result.UserMessage);
                 Assert.Equal(nameof(FederatedCredentialPolicy.Criteria), result.PolicyPropertyName);
                 FederatedCredentialRepository.Verify(x => x.AddPolicyAsync(It.IsAny<FederatedCredentialPolicy>(), It.IsAny<bool>()), Times.Never);
+                CredentialBuilder.Verify(x => x.BuildScopes(packageOwner, It.IsAny<string[]>(), It.IsAny<string[]>()), Times.Once);
                 AssertBadRequest(user, packageOwner, FederatedCredentialType.EntraIdServicePrincipal, """{"invalid": "json"}""", "Invalid criteria format");
             }
 
@@ -141,6 +183,8 @@ namespace NuGetGallery.Services.Authentication
 
                 UserService.Setup(x => x.FindByUsername("testowner", false)).Returns(packageOwner);
                 CredentialBuilder.Setup(x => x.VerifyScopes(user, It.IsAny<IEnumerable<Scope>>())).Returns(false);
+                CredentialBuilder.Setup(x => x.BuildScopes(packageOwner, It.IsAny<string[]>(), It.IsAny<string[]>()))
+                    .Returns(new List<Scope> { new Scope(packageOwner, subject: "policySubject1", allowedAction: NuGetScopes.PackagePush) });
 
                 // Act
                 var result = await Target.AddPolicyAsync(
@@ -148,29 +192,32 @@ namespace NuGetGallery.Services.Authentication
                     packageOwner: "testowner",
                     criteria: """{"test": "value"}""",
                     policyName: "Test Policy",
-                    policyType: FederatedCredentialType.EntraIdServicePrincipal);
+                    policyType: FederatedCredentialType.EntraIdServicePrincipal,
+                    policyScopes: [ NuGetScopes.PackagePush ],
+                    policySubjects: [ "policySubject1" ]);
 
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyValidationResultType.Unauthorized, result.Type);
                 Assert.Contains("does not have the required permissions", result.UserMessage);
                 Assert.Equal(nameof(FederatedCredentialPolicy.PackageOwner), result.PolicyPropertyName);
                 FederatedCredentialRepository.Verify(x => x.AddPolicyAsync(It.IsAny<FederatedCredentialPolicy>(), It.IsAny<bool>()), Times.Never);
+                CredentialBuilder.Verify(x => x.BuildScopes(packageOwner, It.IsAny<string[]>(), It.IsAny<string[]>()), Times.Once);
                 AssertUnauthorized(user, packageOwner, FederatedCredentialType.EntraIdServicePrincipal, """{"test": "value"}""", result.UserMessage!);
             }
 
-            [Theory]
-            [InlineData(true)]
-            [InlineData(false)]
-            public async Task WhenValidInputWithScopes_CreatesAndSavesPolicyWithCreateAuditRecord(bool isNullScopes)
+            [Fact]
+            public async Task WhenValidInputWithScopes_CreatesAndSavesPolicyWithCreateAuditRecord()
             {
                 // Arrange
                 var user = new User { Key = 10, Username = "testuser" };
                 var packageOwner = new User { Key = 20, Username = "testowner" };
                 var utcNow = new DateTime(2024, 10, 12, 12, 30, 0, DateTimeKind.Utc);
-                var scopes = isNullScopes ? null : new List<Scope> { new Scope() };
+                var scopes = new List<Scope> { new Scope(packageOwner, subject: "policySubject1", allowedAction: NuGetScopes.PackagePush) };
 
                 UserService.Setup(x => x.FindByUsername("testowner", false)).Returns(packageOwner);
                 CredentialBuilder.Setup(x => x.VerifyScopes(user, It.IsAny<IEnumerable<Scope>>())).Returns(true);
+                CredentialBuilder.Setup(x => x.BuildScopes(packageOwner, It.IsAny<string[]>(), It.IsAny<string[]>()))
+                    .Returns(scopes);
                 DateTimeProvider.Setup(x => x.UtcNow).Returns(utcNow);
 
                 var successResult = FederatedCredentialPolicyValidationResult.Success(
@@ -185,7 +232,8 @@ namespace NuGetGallery.Services.Authentication
                     criteria: """{"tenant":"test","object":"123"}""",
                     policyName: "Test Policy",
                     policyType: FederatedCredentialType.EntraIdServicePrincipal,
-                    scopes: scopes);
+                    policyScopes: [ NuGetScopes.PackagePush ],
+                    policySubjects: [ "policySubject1" ]);
 
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyValidationResultType.Success, result.Type);
@@ -213,6 +261,8 @@ namespace NuGetGallery.Services.Authentication
                     true),
                     Times.Once);
 
+                CredentialBuilder.Verify(x => x.BuildScopes(packageOwner, It.IsAny<string[]>(), It.IsAny<string[]>()), Times.Once);
+
                 // Verify CREATE audit record was created
                 var audits = AssertAuditResourceTypes(FederatedCredentialPolicyAuditRecord.ResourceType);
                 var policyAudit = Assert.IsType<FederatedCredentialPolicyAuditRecord>(audits[0]);
@@ -228,6 +278,8 @@ namespace NuGetGallery.Services.Authentication
 
                 UserService.Setup(x => x.FindByUsername("testowner", false)).Returns(packageOwner);
                 CredentialBuilder.Setup(x => x.VerifyScopes(user, It.IsAny<IEnumerable<Scope>>())).Returns(true);
+                CredentialBuilder.Setup(x => x.BuildScopes(packageOwner, It.IsAny<string[]>(), It.IsAny<string[]>()))
+                    .Returns(new List<Scope> { new Scope(packageOwner, subject: "policySubject1", allowedAction: NuGetScopes.PackagePush) });
 
                 var successResult = FederatedCredentialPolicyValidationResult.Success(
                     new FederatedCredentialPolicy { Key = 42 });
@@ -240,7 +292,9 @@ namespace NuGetGallery.Services.Authentication
                     packageOwner: "testowner",
                     criteria: """{"test": "value"}""",
                     policyName: null,
-                    policyType: FederatedCredentialType.GitHubActions);
+                    policyType: FederatedCredentialType.GitHubActions,
+                    policyScopes: [ NuGetScopes.PackagePush ],
+                    policySubjects: [ "policySubject1" ]);
 
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyValidationResultType.Success, result.Type);
@@ -250,6 +304,8 @@ namespace NuGetGallery.Services.Authentication
                     It.Is<FederatedCredentialPolicy>(p => p.PolicyName == null),
                     true),
                     Times.Once);
+
+                CredentialBuilder.Verify(x => x.BuildScopes(packageOwner, It.IsAny<string[]>(), It.IsAny<string[]>()), Times.Once);
 
                 // Verify CREATE audit record was created
                 var audits = AssertAuditResourceTypes(FederatedCredentialPolicyAuditRecord.ResourceType);
@@ -268,6 +324,8 @@ namespace NuGetGallery.Services.Authentication
 
                 UserService.Setup(x => x.FindByUsername("testowner", false)).Returns(packageOwner);
                 CredentialBuilder.Setup(x => x.VerifyScopes(user, It.IsAny<IEnumerable<Scope>>())).Returns(true);
+                CredentialBuilder.Setup(x => x.BuildScopes(packageOwner, It.IsAny<string[]>(), It.IsAny<string[]>()))
+                    .Returns(new List<Scope> { new Scope(packageOwner, subject: "policySubject1", allowedAction: NuGetScopes.PackagePush) });
 
                 var successResult = FederatedCredentialPolicyValidationResult.Success(
                     new FederatedCredentialPolicy { Key = 42 });
@@ -280,7 +338,9 @@ namespace NuGetGallery.Services.Authentication
                     packageOwner: "testowner",
                     criteria: """{"test": "value"}""",
                     policyName: "Test Policy",
-                    policyType: policyType);
+                    policyType: policyType,
+                    policyScopes: [ NuGetScopes.PackagePush ],
+                    policySubjects: [ "policySubject1" ]);
 
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyValidationResultType.Success, result.Type);
@@ -290,6 +350,8 @@ namespace NuGetGallery.Services.Authentication
                     It.Is<FederatedCredentialPolicy>(p => p.Type == policyType),
                     true),
                     Times.Once);
+
+                CredentialBuilder.Verify(x => x.BuildScopes(packageOwner, It.IsAny<string[]>(), It.IsAny<string[]>()), Times.Once);
 
                 // Verify CREATE audit record was created
                 var audits = AssertAuditResourceTypes(FederatedCredentialPolicyAuditRecord.ResourceType);
@@ -306,6 +368,8 @@ namespace NuGetGallery.Services.Authentication
 
                 UserService.Setup(x => x.FindByUsername("testowner", false)).Returns(packageOwner);
                 CredentialBuilder.Setup(x => x.VerifyScopes(organization, It.IsAny<IEnumerable<Scope>>())).Returns(true);
+                CredentialBuilder.Setup(x => x.BuildScopes(packageOwner, It.IsAny<string[]>(), It.IsAny<string[]>()))
+                    .Returns(new List<Scope> { new Scope(packageOwner, subject: "policySubject1", allowedAction: NuGetScopes.PackagePush) });
 
                 var successResult = FederatedCredentialPolicyValidationResult.Success(
                     new FederatedCredentialPolicy { Key = 42 });
@@ -318,11 +382,15 @@ namespace NuGetGallery.Services.Authentication
                     packageOwner: "testowner",
                     criteria: """{"test": "value"}""",
                     policyName: "Test Policy",
-                    policyType: FederatedCredentialType.EntraIdServicePrincipal);
+                    policyType: FederatedCredentialType.EntraIdServicePrincipal,
+                    policyScopes: [ NuGetScopes.PackagePush ],
+                    policySubjects: [ "policySubject1" ]);
 
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyValidationResultType.Success, result.Type);
                 Assert.Same(organization, result.Policy.CreatedBy);
+
+                CredentialBuilder.Verify(x => x.BuildScopes(packageOwner, It.IsAny<string[]>(), It.IsAny<string[]>()), Times.Once);
 
                 // Verify CREATE audit record was created
                 var audits = AssertAuditResourceTypes(FederatedCredentialPolicyAuditRecord.ResourceType);
@@ -339,6 +407,8 @@ namespace NuGetGallery.Services.Authentication
 
                 UserService.Setup(x => x.FindByUsername("testorg", false)).Returns(organization);
                 CredentialBuilder.Setup(x => x.VerifyScopes(user, It.IsAny<IEnumerable<Scope>>())).Returns(true);
+                CredentialBuilder.Setup(x => x.BuildScopes(organization, It.IsAny<string[]>(), It.IsAny<string[]>()))
+                    .Returns(new List<Scope> { new Scope(organization, subject: "policySubject1", allowedAction: NuGetScopes.PackagePush) });
 
                 var successResult = FederatedCredentialPolicyValidationResult.Success(
                     new FederatedCredentialPolicy { Key = 42 });
@@ -351,11 +421,15 @@ namespace NuGetGallery.Services.Authentication
                     packageOwner: "testorg",
                     criteria: """{"test": "value"}""",
                     policyName: "Test Policy",
-                    policyType: FederatedCredentialType.EntraIdServicePrincipal);
+                    policyType: FederatedCredentialType.EntraIdServicePrincipal,
+                    policyScopes: [ NuGetScopes.PackagePush ],
+                    policySubjects: [ "policySubject1" ]);
 
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyValidationResultType.Success, result.Type);
                 Assert.Same(organization, result.Policy.PackageOwner);
+
+                CredentialBuilder.Verify(x => x.BuildScopes(organization, It.IsAny<string[]>(), It.IsAny<string[]>()), Times.Once);
 
                 // Verify CREATE audit record was created
                 var audits = AssertAuditResourceTypes(FederatedCredentialPolicyAuditRecord.ResourceType);
@@ -373,6 +447,8 @@ namespace NuGetGallery.Services.Authentication
 
                 UserService.Setup(x => x.FindByUsername("testowner", false)).Returns(packageOwner);
                 CredentialBuilder.Setup(x => x.VerifyScopes(user, It.IsAny<IEnumerable<Scope>>())).Returns(true);
+                CredentialBuilder.Setup(x => x.BuildScopes(packageOwner, It.IsAny<string[]>(), It.IsAny<string[]>()))
+                    .Returns(new List<Scope> { new Scope(packageOwner, subject: "policySubject1", allowedAction: NuGetScopes.PackagePush) });
 
                 var successResult = FederatedCredentialPolicyValidationResult.Success(
                     new FederatedCredentialPolicy { Key = 42 });
@@ -385,7 +461,9 @@ namespace NuGetGallery.Services.Authentication
                     packageOwner: "testowner",
                     criteria: complexCriteria,
                     policyName: "Complex Policy",
-                    policyType: FederatedCredentialType.EntraIdServicePrincipal);
+                    policyType: FederatedCredentialType.EntraIdServicePrincipal,
+                    policyScopes: [ NuGetScopes.PackagePush ],
+                    policySubjects: [ "policySubject1" ]);
 
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyValidationResultType.Success, result.Type);
@@ -395,6 +473,8 @@ namespace NuGetGallery.Services.Authentication
                     It.Is<FederatedCredentialPolicy>(p => p.Criteria == complexCriteria),
                     true),
                     Times.Once);
+
+                CredentialBuilder.Verify(x => x.BuildScopes(packageOwner, It.IsAny<string[]>(), It.IsAny<string[]>()), Times.Once);
 
                 // Verify CREATE audit record was created
                 var audits = AssertAuditResourceTypes(FederatedCredentialPolicyAuditRecord.ResourceType);
@@ -411,6 +491,8 @@ namespace NuGetGallery.Services.Authentication
 
                 UserService.Setup(x => x.FindByUsername("testowner", false)).Returns(packageOwner);
                 CredentialBuilder.Setup(x => x.VerifyScopes(user, It.IsAny<IEnumerable<Scope>>())).Returns(true);
+                CredentialBuilder.Setup(x => x.BuildScopes(packageOwner, It.IsAny<string[]>(), It.IsAny<string[]>()))
+                    .Returns(new List<Scope> { new Scope(packageOwner, subject: "policySubject1", allowedAction: NuGetScopes.PackagePush) });
 
                 var exception = new InvalidOperationException("Validation error");
                 Evaluator.Setup(x => x.ValidatePolicy(It.IsAny<FederatedCredentialPolicy>()))
@@ -423,12 +505,16 @@ namespace NuGetGallery.Services.Authentication
                         packageOwner: "testowner",
                         criteria: """{"test": "value"}""",
                         policyName: "Test Policy",
-                        policyType: FederatedCredentialType.EntraIdServicePrincipal));
+                        policyType: FederatedCredentialType.EntraIdServicePrincipal,
+                        policyScopes: [ NuGetScopes.PackagePush ],
+                        policySubjects: [ "policySubject1" ]));
 
                 Assert.Same(exception, actualException);
 
                 // Verify policy was not saved
                 FederatedCredentialRepository.Verify(x => x.AddPolicyAsync(It.IsAny<FederatedCredentialPolicy>(), It.IsAny<bool>()), Times.Never);
+
+                CredentialBuilder.Verify(x => x.BuildScopes(packageOwner, It.IsAny<string[]>(), It.IsAny<string[]>()), Times.Once);
 
                 // Verify NO audit record was created (exception bubbled up before audit logging)
                 AssertNoAudits();
@@ -439,12 +525,15 @@ namespace NuGetGallery.Services.Authentication
         {
             private const string NewPolicyName = "Updated Policy";
             private const string NewPolicyCriteria = "{\"repository\":\"owner/updated-repo\"}";
+
             public FederatedCredentialPolicy PolicyToUpdate;
+            public IList<Scope> NewScopes;
 
             public TheUpdatePolicyAsyncMethod()
             {
                 PolicyToUpdate = Policies[0];
-                
+                NewScopes = new List<Scope> { new Scope(PolicyToUpdate.PackageOwner, subject: "policySubject2", allowedAction: NuGetScopes.PackagePush) };
+
                 // Set up default mock behavior for Evaluator.ValidatePolicy to return Success
                 // This is needed for UpdatePolicyAsync tests since they call ValidatePolicyAsync
                 Evaluator.Setup(x => x.ValidatePolicy(It.IsAny<FederatedCredentialPolicy>()))
@@ -452,14 +541,15 @@ namespace NuGetGallery.Services.Authentication
             }
 
             [Fact]
-            public async Task UpdatesPolicyNameAndCriteria()
+            public async Task UpdatesPolicyNameAndCriteriaAndScopes()
             {
                 // Act
-                await Target.UpdatePolicyAsync(PolicyToUpdate, NewPolicyCriteria, NewPolicyName);
+                await Target.UpdatePolicyAsync(PolicyToUpdate, NewPolicyCriteria, NewPolicyName, NewScopes);
 
                 // Assert
                 Assert.Equal(NewPolicyName, PolicyToUpdate.PolicyName);
                 Assert.Equal(NewPolicyCriteria, PolicyToUpdate.Criteria);
+                Assert.Equal(NewScopes, PolicyToUpdate.Scopes);
 
                 FederatedCredentialRepository.Verify(x => x.SavePoliciesAsync(), Times.Once);
                 AssertUpdateAudit();
@@ -472,11 +562,12 @@ namespace NuGetGallery.Services.Authentication
                 var policyCriteria = PolicyToUpdate.Criteria;
 
                 // Act
-                await Target.UpdatePolicyAsync(PolicyToUpdate, PolicyToUpdate.Criteria, NewPolicyName);
+                await Target.UpdatePolicyAsync(PolicyToUpdate, PolicyToUpdate.Criteria, NewPolicyName, PolicyToUpdate.Scopes);
 
                 // Assert
                 Assert.Equal(NewPolicyName, PolicyToUpdate.PolicyName);
                 Assert.Equal(policyCriteria, PolicyToUpdate.Criteria);
+                Assert.Equal(Scopes, PolicyToUpdate.Scopes);
 
                 FederatedCredentialRepository.Verify(x => x.SavePoliciesAsync(), Times.Once);
                 AssertUpdateAudit();
@@ -489,11 +580,31 @@ namespace NuGetGallery.Services.Authentication
                 var policyName = PolicyToUpdate.PolicyName;
 
                 // Act
-                await Target.UpdatePolicyAsync(PolicyToUpdate, NewPolicyCriteria, PolicyToUpdate.PolicyName);
+                await Target.UpdatePolicyAsync(PolicyToUpdate, NewPolicyCriteria, PolicyToUpdate.PolicyName, PolicyToUpdate.Scopes);
 
                 // Assert
                 Assert.Equal(policyName, PolicyToUpdate.PolicyName);
                 Assert.Equal(NewPolicyCriteria, PolicyToUpdate.Criteria);
+                Assert.Equal(Scopes, PolicyToUpdate.Scopes);
+
+                FederatedCredentialRepository.Verify(x => x.SavePoliciesAsync(), Times.Once);
+                AssertUpdateAudit();
+            }
+
+            [Fact]
+            public async Task UpdatesOnlyScopes()
+            {
+                // Arrange
+                var policyName = PolicyToUpdate.PolicyName;
+                var policyCriteria = PolicyToUpdate.Criteria;
+
+                // Act
+                await Target.UpdatePolicyAsync(PolicyToUpdate, PolicyToUpdate.Criteria, PolicyToUpdate.PolicyName, NewScopes);
+
+                // Assert
+                Assert.Equal(policyName, PolicyToUpdate.PolicyName);
+                Assert.Equal(policyCriteria, PolicyToUpdate.Criteria);
+                Assert.Equal(NewScopes, PolicyToUpdate.Scopes);
 
                 FederatedCredentialRepository.Verify(x => x.SavePoliciesAsync(), Times.Once);
                 AssertUpdateAudit();
@@ -507,11 +618,12 @@ namespace NuGetGallery.Services.Authentication
                 var policyCriteria = PolicyToUpdate.Criteria;
 
                 // Act
-                var result = await Target.UpdatePolicyAsync(PolicyToUpdate, PolicyToUpdate.Criteria, PolicyToUpdate.PolicyName);
+                var result = await Target.UpdatePolicyAsync(PolicyToUpdate, PolicyToUpdate.Criteria, PolicyToUpdate.PolicyName, PolicyToUpdate.Scopes);
 
                 // Assert
                 Assert.Equal(policyName, PolicyToUpdate.PolicyName);
                 Assert.Equal(policyCriteria, PolicyToUpdate.Criteria);
+                Assert.Equal(Scopes, PolicyToUpdate.Scopes);
                 Assert.Equal(FederatedCredentialPolicyValidationResultType.Success, result.Type);
 
                 FederatedCredentialRepository.Verify(x => x.SavePoliciesAsync(), Times.Never);
@@ -519,13 +631,56 @@ namespace NuGetGallery.Services.Authentication
             }
 
             [Fact]
+            public async Task UpdatesPolicyScopesAndSubjects()
+            {
+                // Arrange
+                var policyName = PolicyToUpdate.PolicyName;
+                var policyCriteria = PolicyToUpdate.Criteria;
+                string[] newPolicyScopes = [ NuGetScopes.PackagePush ];
+                string[] newPolicySubjects = [ "policySubject2" ];
+
+                CredentialBuilder.Setup(x => x.BuildScopes(PolicyToUpdate.PackageOwner, It.IsAny<string[]>(), It.IsAny<string[]>()))
+                    .Returns(new List<Scope> { new Scope(PolicyToUpdate.PackageOwner, subject: newPolicySubjects[0], allowedAction: newPolicyScopes[0]) });
+
+                // Act
+                await Target.UpdatePolicyAsync(PolicyToUpdate, PolicyToUpdate.Criteria, PolicyToUpdate.PolicyName, newPolicyScopes, newPolicySubjects);
+
+                // Assert
+                Assert.Equal(policyName, PolicyToUpdate.PolicyName);
+                Assert.Equal(policyCriteria, PolicyToUpdate.Criteria);
+                Assert.Single(PolicyToUpdate.Scopes);
+                Assert.Equal(newPolicyScopes[0], PolicyToUpdate.Scopes.ToArray()[0].AllowedAction);
+                Assert.Equal(newPolicySubjects[0], PolicyToUpdate.Scopes.ToArray()[0].Subject);
+
+                FederatedCredentialRepository.Verify(x => x.SavePoliciesAsync(), Times.Once);
+                CredentialBuilder.Verify(x => x.BuildScopes(PolicyToUpdate.PackageOwner, It.IsAny<string[]>(), It.IsAny<string[]>()), Times.Once);
+                AssertUpdateAudit();
+            }
+
+            [Fact]
+            public async Task WhenInvalidPolicyScopesAndSubjects_ReturnsBadRequest()
+            {
+                // Act
+                var result = await Target.UpdatePolicyAsync(PolicyToUpdate, PolicyToUpdate.Criteria, PolicyToUpdate.PolicyName, [ "" ], [ "" ]);
+
+                // Assert
+                Assert.Equal(FederatedCredentialPolicyValidationResultType.BadRequest, result.Type);
+                Assert.Equal("The policy scopes are invalid.", result.UserMessage);
+                Assert.Equal(nameof(FederatedCredentialPolicy.Scopes), result.PolicyPropertyName);
+
+                FederatedCredentialRepository.Verify(x => x.SavePoliciesAsync(), Times.Never);
+                CredentialBuilder.Verify(x => x.BuildScopes(It.IsAny<User>(), It.IsAny<string[]>(), It.IsAny<string[]>()), Times.Never);
+                AssertNoAudits();
+            }
+
+            [Fact]
             public async Task WhenPermissionValidationFails_ReturnsUnauthorizedAndCreatesAuditRecord()
             {
                 // Arrange
-                CredentialBuilder.Setup(x => x.VerifyScopes(PolicyToUpdate.CreatedBy, It.IsAny<IEnumerable<Scope>>())).Returns(false);
+                CredentialBuilder.Setup(x => x.VerifyScopes(PolicyToUpdate.CreatedBy, NewScopes)).Returns(false);
 
                 // Act
-                var result = await Target.UpdatePolicyAsync(PolicyToUpdate, NewPolicyCriteria, NewPolicyName);
+                var result = await Target.UpdatePolicyAsync(PolicyToUpdate, NewPolicyCriteria, NewPolicyName, NewScopes);
 
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyValidationResultType.Unauthorized, result.Type);
@@ -551,7 +706,7 @@ namespace NuGetGallery.Services.Authentication
                     .Returns(validationResult);
 
                 // Act
-                var result = await Target.UpdatePolicyAsync(PolicyToUpdate, NewPolicyCriteria, NewPolicyName);
+                var result = await Target.UpdatePolicyAsync(PolicyToUpdate, NewPolicyCriteria, NewPolicyName, NewScopes);
 
                 // Assert
                 Assert.Same(validationResult, result);
@@ -576,7 +731,7 @@ namespace NuGetGallery.Services.Authentication
 
                 // Act & Assert
                 var actualException = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-                    Target.UpdatePolicyAsync(PolicyToUpdate, NewPolicyCriteria, NewPolicyName));
+                    Target.UpdatePolicyAsync(PolicyToUpdate, NewPolicyCriteria, NewPolicyName, NewScopes));
 
                 Assert.Same(exception, actualException);
 
@@ -588,23 +743,27 @@ namespace NuGetGallery.Services.Authentication
             }
 
             [Fact]
-            public async Task WhenPolicyHasMultipleCredentials_RemovesAllCredentials()
+            public async Task WhenPolicyHasCredentialsAndScopes_RemovesAllCredentialsAndScopes()
             {
                 // Arrange
-                var credential1 = new Credential { Key = 1, Type = CredentialTypes.ApiKey.V4 };
-                var credential2 = new Credential { Key = 2, Type = CredentialTypes.ApiKey.V4 };
-                var credential3 = new Credential { Key = 3, Type = CredentialTypes.ApiKey.V4 };
+                var credential1 = new Credential { Key = 1, Type = CredentialTypes.ApiKey.V5 };
+                var credential2 = new Credential { Key = 2, Type = CredentialTypes.ApiKey.V5 };
+                var credential3 = new Credential { Key = 3, Type = CredentialTypes.ApiKey.V5 };
 
                 FederatedCredentialRepository.Setup(x => x.GetShortLivedApiKeysForPolicy(PolicyToUpdate.Key))
                     .Returns(new List<Credential> { credential1, credential2, credential3 });
+                FederatedCredentialRepository.Setup(x => x.DeleteScopesAsync(It.IsAny<FederatedCredentialPolicy>(), It.IsAny<bool>()));
 
                 // Act
-                await Target.UpdatePolicyAsync(PolicyToUpdate, NewPolicyCriteria, NewPolicyName);
+                await Target.UpdatePolicyAsync(PolicyToUpdate, NewPolicyCriteria, NewPolicyName, NewScopes);
 
                 // Assert
                 AuthenticationService.Verify(x => x.RemoveCredential(PolicyToUpdate.CreatedBy, credential1, false), Times.Once);
                 AuthenticationService.Verify(x => x.RemoveCredential(PolicyToUpdate.CreatedBy, credential2, false), Times.Once);
                 AuthenticationService.Verify(x => x.RemoveCredential(PolicyToUpdate.CreatedBy, credential3, false), Times.Once);
+
+                FederatedCredentialRepository.Verify(x => x.SavePoliciesAsync(), Times.Once);
+                FederatedCredentialRepository.Verify(x => x.DeleteScopesAsync(It.IsAny<FederatedCredentialPolicy>(), It.IsAny<bool>()), Times.Once);
 
                 AssertUpdateAudit();
             }
@@ -615,17 +774,21 @@ namespace NuGetGallery.Services.Authentication
                 // Arrange
                 FederatedCredentialRepository.Setup(x => x.GetShortLivedApiKeysForPolicy(PolicyToUpdate.Key))
                     .Returns(new List<Credential>());
+                FederatedCredentialRepository.Setup(x => x.DeleteScopesAsync(It.IsAny<FederatedCredentialPolicy>(), It.IsAny<bool>()));
 
                 // Act
-                var result = await Target.UpdatePolicyAsync(PolicyToUpdate, NewPolicyCriteria, NewPolicyName);
+                var result = await Target.UpdatePolicyAsync(PolicyToUpdate, NewPolicyCriteria, NewPolicyName, NewScopes);
 
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyValidationResultType.Success, result.Type);
                 Assert.Equal(NewPolicyName, PolicyToUpdate.PolicyName);
                 Assert.Equal(NewPolicyCriteria, PolicyToUpdate.Criteria);
+                Assert.Equal(NewScopes, PolicyToUpdate.Scopes);
 
                 AuthenticationService.Verify(x => x.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>(), It.IsAny<bool>()), Times.Never);
+
                 FederatedCredentialRepository.Verify(x => x.SavePoliciesAsync(), Times.Once);
+                FederatedCredentialRepository.Verify(x => x.DeleteScopesAsync(It.IsAny<FederatedCredentialPolicy>(), It.IsAny<bool>()), Times.Once);
 
                 AssertUpdateAudit();
             }
@@ -643,6 +806,7 @@ namespace NuGetGallery.Services.Authentication
                     PolicyName = NewPolicyName,
                     Criteria = modifiedCriteria, // Validator modified the criteria
                     Type = PolicyToUpdate.Type,
+                    Scopes = NewScopes,
                 };
 
                 Evaluator.Setup(x => x.ValidatePolicy(It.IsAny<FederatedCredentialPolicy>()))
@@ -650,12 +814,13 @@ namespace NuGetGallery.Services.Authentication
                     .Returns(FederatedCredentialPolicyValidationResult.Success(modifiedPolicy));
 
                 // Act
-                var result = await Target.UpdatePolicyAsync(PolicyToUpdate, NewPolicyCriteria, NewPolicyName);
+                var result = await Target.UpdatePolicyAsync(PolicyToUpdate, NewPolicyCriteria, NewPolicyName, NewScopes);
 
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyValidationResultType.Success, result.Type);
                 Assert.Equal(NewPolicyName, PolicyToUpdate.PolicyName);
                 Assert.Equal(modifiedCriteria, PolicyToUpdate.Criteria); // Should use validator-modified criteria
+                Assert.Equal(NewScopes, PolicyToUpdate.Scopes);
 
                 FederatedCredentialRepository.Verify(x => x.SavePoliciesAsync(), Times.Once);
                 AssertUpdateAudit();
@@ -665,7 +830,7 @@ namespace NuGetGallery.Services.Authentication
             public async Task WhenCredentialRemovalFails_ExceptionBubblesUp()
             {
                 // Arrange
-                var credential = new Credential { Key = 1, Type = CredentialTypes.ApiKey.V4 };
+                var credential = new Credential { Key = 1, Type = CredentialTypes.ApiKey.V5 };
                 FederatedCredentialRepository.Setup(x => x.GetShortLivedApiKeysForPolicy(PolicyToUpdate.Key))
                     .Returns(new List<Credential> { credential });
 
@@ -675,7 +840,26 @@ namespace NuGetGallery.Services.Authentication
 
                 // Act & Assert
                 var actualException = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-                    Target.UpdatePolicyAsync(PolicyToUpdate, NewPolicyCriteria, NewPolicyName));
+                    Target.UpdatePolicyAsync(PolicyToUpdate, NewPolicyCriteria, NewPolicyName, NewScopes));
+
+                Assert.Same(exception, actualException);
+
+                // Verify policy was not saved
+                FederatedCredentialRepository.Verify(x => x.SavePoliciesAsync(), Times.Never);
+                AssertNoAudits();
+            }
+
+            [Fact]
+            public async Task WhenScopesDeletionFails_ExceptionBubblesUp()
+            {
+                // Arrange
+                var exception = new InvalidOperationException("Failed to remove scopes");
+                FederatedCredentialRepository.Setup(x => x.DeleteScopesAsync(It.IsAny<FederatedCredentialPolicy>(), It.IsAny<bool>()))
+                    .ThrowsAsync(exception);
+
+                // Act & Assert
+                var actualException = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                    Target.UpdatePolicyAsync(PolicyToUpdate, NewPolicyCriteria, NewPolicyName, NewScopes));
 
                 Assert.Same(exception, actualException);
 
@@ -694,7 +878,7 @@ namespace NuGetGallery.Services.Authentication
 
                 // Act & Assert
                 var actualException = await Assert.ThrowsAsync<InvalidOperationException>(() =>
-                    Target.UpdatePolicyAsync(PolicyToUpdate, NewPolicyCriteria, NewPolicyName));
+                    Target.UpdatePolicyAsync(PolicyToUpdate, NewPolicyCriteria, NewPolicyName, NewScopes));
 
                 Assert.Same(exception, actualException);
 
@@ -707,6 +891,68 @@ namespace NuGetGallery.Services.Authentication
                 var audits = AssertAuditResourceTypes(FederatedCredentialPolicyAuditRecord.ResourceType);
                 var policyAudit = Assert.IsType<FederatedCredentialPolicyAuditRecord>(audits[0]);
                 Assert.Equal(AuditedFederatedCredentialPolicyAction.Update, policyAudit.Action);
+            }
+        }
+
+        public class TheTryGetScopesMethod : FederatedCredentialServiceFacts
+        {
+            public static IEnumerable<object[]> PolicyScopesAndSubjects_ReturnsFalse_Data
+            {
+                get
+                {
+                    yield return new object[] { null, null };
+                    yield return new object[] { new string[] { "policyScope1" }, null };
+                    yield return new object[] { null, new string[] { "policySubject1" } };
+                    yield return new object[] { new string[] { "   " }, new string[] { "policySubject1" } };
+                    yield return new object[] { new string[] { "policyScope1" }, new string[] { "policySubject1" } };
+                    yield return new object[] { new string[] { NuGetScopes.PackagePush.ToUpper() }, new string[] { "policySubject1" } };
+                    yield return new object[] { new string[] { NuGetScopes.PackagePush }, new string[] { "   " } };
+                    yield return new object[] { new string[] { NuGetScopes.PackagePush }, new string[] { "<policySubject1>" } };
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(PolicyScopesAndSubjects_ReturnsFalse_Data))]
+            public void TryGetScopes_ReturnsFalse(string[] policyScopes, string[] policySubjects)
+            {
+                Assert.False(Target.TryGetScopes(It.IsAny<User>(), policyScopes, policySubjects, out var scopes));
+                Assert.Null(scopes);
+                CredentialBuilder.Verify(x => x.BuildScopes(It.IsAny<User>(), It.IsAny<string[]>(), It.IsAny<string[]>()), Times.Never);
+            }
+
+            public static IEnumerable<object[]> PolicyScopesAndSubjects_ReturnsTrue_Data
+            {
+                get
+                {
+                    yield return new object[] { new string[] { "package:push", "package:unlist" },
+                                                new string[] { "policySubject1", "policySubject2" } };
+                    yield return new object[] { new string[] { "package:push", "package:unlist", "   ", "policyScope1" },
+                                                new string[] { "policySubject1", "policySubject2", "   ", "<policySubject1>" } };
+                    yield return new object[] { new string[] { "package:push", "package:push", "package:unlist", "   ", "policyScope1" },
+                                                new string[] { "policySubject1", "policySubject2", "policySubject2", "   ", "<policySubject1>" } };
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(PolicyScopesAndSubjects_ReturnsTrue_Data))]
+            public void TryGetScopes_ReturnsTrue(string[] policyScopes, string[] policySubjects)
+            {
+                // Arrange
+                User? passedScopeOwner = null;
+                var passedScopes = Array.Empty<string>();
+                var passedSubjects = Array.Empty<string>();
+                CredentialBuilder.Setup(x => x.BuildScopes(It.IsAny<User>(), It.IsAny<string[]>(), It.IsAny<string[]>()))
+                    .Callback((User scopeOwner, string[] scopes, string[] subjects) => { passedScopeOwner = scopeOwner; passedScopes = scopes; passedSubjects = subjects; });
+
+                // Act & Assert
+                Assert.True(Target.TryGetScopes(PackageOwner, policyScopes, policySubjects, out var scopes));
+                Assert.Equal(PackageOwner, passedScopeOwner);
+                Assert.Equal(2, passedScopes.Length);
+                Assert.Equal("package:push", passedScopes[0]);
+                Assert.Equal("package:unlist", passedScopes[1]);
+                Assert.Equal(2, passedSubjects.Length);
+                Assert.Equal("policySubject1", passedSubjects[0]);
+                Assert.Equal("policySubject2", passedSubjects[1]);
             }
         }
 
@@ -1058,9 +1304,10 @@ namespace NuGetGallery.Services.Authentication
             BearerToken = "my-token";
             CurrentUser = new User { Key = 1, Username = "jim", EmailAddress = "jim@localhost" };
             PackageOwner = new Organization { Key = 2, Username = "jim-org", EmailAddress = "jim-org@localhost" };
+            Scopes = new List<Scope> { new Scope(PackageOwner, subject: "policySubject1", allowedAction: NuGetScopes.PackagePush) };
             Policies = new List<FederatedCredentialPolicy>
             {
-                new() { Key = 3, CreatedBy = CurrentUser, CreatedByUserKey = CurrentUser.Key, PackageOwner = PackageOwner, PackageOwnerUserKey = PackageOwner.Key, Criteria = "{}" }
+                new() { Key = 3, CreatedBy = CurrentUser, CreatedByUserKey = CurrentUser.Key, PackageOwner = PackageOwner, PackageOwnerUserKey = PackageOwner.Key, Criteria = "{}", Scopes = Scopes }
             };
             Evaluation = OidcTokenEvaluationResult.NewMatchedPolicy(
                 matchedPolicy: Policies[0],
@@ -1115,6 +1362,7 @@ namespace NuGetGallery.Services.Authentication
         public string BearerToken { get; }
         public User CurrentUser { get; set; }
         public User PackageOwner { get; }
+        public IList<Scope> Scopes { get; }
         public List<FederatedCredentialPolicy> Policies { get; }
         public OidcTokenEvaluationResult Evaluation { get; }
         public string? PlaintextApiKey;

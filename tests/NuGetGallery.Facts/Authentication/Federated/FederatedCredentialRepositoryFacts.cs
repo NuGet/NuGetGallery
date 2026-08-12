@@ -186,11 +186,62 @@ namespace NuGetGallery.Services.Authentication
             }
         }
 
+        public class TheDeleteScopesAsyncMethod : FederatedCredentialRepositoryFacts
+        {
+            [Fact]
+            public async Task DeletesNullScopes()
+            {
+                // Act
+                await Target.DeleteScopesAsync(Policies[0], saveChanges: It.IsAny<bool>());
+
+                // Assert
+                ScopeRepository.Verify(x => x.DeleteOnCommit(It.IsAny<Scope>()), Times.Never);
+                ScopeRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
+            }
+
+            [Fact]
+            public async Task DeletesScopes()
+            {
+                // Arrange
+                var scope1 = new Scope(subject: "subject1", allowedAction: "allowedAction1");
+                var scope2 = new Scope(subject: "subject2", allowedAction: "allowedAction2");
+                Policies[0].Scopes = new List<Scope> { scope1, scope2 };
+
+                // Act
+                await Target.DeleteScopesAsync(Policies[0], saveChanges: false);
+
+                // Assert
+                ScopeRepository.Verify(x => x.DeleteOnCommit(It.IsAny<Scope>()), Times.Exactly(2));
+                ScopeRepository.Verify(x => x.DeleteOnCommit(scope1), Times.Once);
+                ScopeRepository.Verify(x => x.DeleteOnCommit(scope2), Times.Once);
+                ScopeRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
+            }
+
+            [Fact]
+            public async Task CommitsChangesIfRequested()
+            {
+                // Arrange
+                var scope1 = new Scope(subject: "subject1", allowedAction: "allowedAction1");
+                var scope2 = new Scope(subject: "subject2", allowedAction: "allowedAction2");
+                Policies[0].Scopes = new List<Scope> { scope1, scope2 };
+
+                // Act
+                await Target.DeleteScopesAsync(Policies[0], saveChanges: true);
+
+                // Assert
+                ScopeRepository.Verify(x => x.DeleteOnCommit(It.IsAny<Scope>()), Times.Exactly(2));
+                ScopeRepository.Verify(x => x.DeleteOnCommit(scope1), Times.Once);
+                ScopeRepository.Verify(x => x.DeleteOnCommit(scope2), Times.Once);
+                ScopeRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
+            }
+        }
+
         public FederatedCredentialRepositoryFacts()
         {
             FederatedCredentialRepository = new Mock<IEntityRepository<FederatedCredential>>();
             PolicyRepository = new Mock<IEntityRepository<FederatedCredentialPolicy>>();
             CredentialRepository = new Mock<IEntityRepository<Credential>>();
+            ScopeRepository = new Mock<IEntityRepository<Scope>>();
 
             Policies = new List<FederatedCredentialPolicy>
             {
@@ -210,12 +261,14 @@ namespace NuGetGallery.Services.Authentication
             Target = new FederatedCredentialRepository(
                 PolicyRepository.Object,
                 FederatedCredentialRepository.Object,
-                CredentialRepository.Object);
+                CredentialRepository.Object,
+                ScopeRepository.Object);
         }
 
         public Mock<IEntityRepository<FederatedCredential>> FederatedCredentialRepository { get; }
         public Mock<IEntityRepository<FederatedCredentialPolicy>> PolicyRepository { get; }
         public Mock<IEntityRepository<Credential>> CredentialRepository { get; }
+        public Mock<IEntityRepository<Scope>> ScopeRepository { get; }
         public List<FederatedCredentialPolicy> Policies { get; }
         public List<Credential> Credentials { get; }
         public FederatedCredentialRepository Target { get; }
