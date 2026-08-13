@@ -21,7 +21,7 @@
 
             <p>
                 <strong>Trusted Publishing</strong> lets you publish NuGet packages securely without managing API keys.
-                It currently supports publishing from <strong>GitHub Actions</strong> and <strong>GitLab CI/CD</strong>.
+                It currently supports publishing from <strong>GitHub Actions</strong>.
                 <a href="https://aka.ms/nuget/trusted-publishing"
                    target="_blank" aria-label="Learn more about Trusted Publishing">Learn more</a>
             </p>
@@ -99,40 +99,19 @@
 
                 <ul class="list-inline icon-details" role="presentation">
                     <li>
+                        <!-- ko if: gitHub.IsPermamentlyEnabled() && IsOwnerValid() -->
+                        <i class="ms-Icon ms-Icon--CheckMark" aria-hidden="true" />
+                        Active
+                        <!-- /ko -->
+
                         <!-- ko if: !IsOwnerValid() -->
                         <i class="ms-Icon ms-Icon--Warning" aria-hidden="true" />
                         You can no longer use Trusted Publishing for <b data-bind="text: Owner" />.
-                        <a href="https://aka.ms/nuget/trusted-publishing-ownership-warnings" target="_blank" aria-label="Learn more about Trusted Publishing">Learn more about policies</a>
+                        <a href="https://aka.ms/nuget/trusted-publishing-ownership-warnings" target="_blank" aria-label="Learn more about GitHub Trusted Publishing">Learn more about policies</a>
                         <!-- /ko -->
-                        <!-- GitLab-specific status -->
-                        <!-- ko if: PublisherName() === 'GitLab' && IsOwnerValid() -->
-                        <!-- ko if: gitLab.IsPermanentlyEnabled() -->
-                        <i class="ms-Icon ms-Icon--CheckMark" aria-hidden="true" />
-                        Active
-                        <!-- /ko -->
-                        <!-- ko if: !gitLab.IsPermanentlyEnabled() -->
-                        <!-- ko if: gitLab.EnabledDaysLeft() > 0 -->
-                        <i class="ms-Icon ms-Icon--Info" aria-hidden="true" />
-                        Use within <b><span data-bind="text: gitLab.EnabledDaysLeft()" /> day(s)</b> to keep it permanently active.
-                        <a href="https://aka.ms/nuget/trusted-publishing-pending-activation" target="_blank" aria-label="Learn more about GitLab Trusted Publishing">Learn more about policies</a>
-                        <!-- /ko -->
-                        <!-- ko ifnot: gitLab.EnabledDaysLeft() > 0 -->
-                        <i class="ms-Icon ms-Icon--Warning" aria-hidden="true" />
-                        <a class="icon-link" href="#" role="button" data-bind="click: Enable">
-                            Activate
-                        </a>
-                        and use within <b>@GitLabPolicyDetailsViewModel.ValidationExpirationDays days</b> to keep it permanently active.
-                        <a href="https://aka.ms/nuget/trusted-publishing-pending-activation" target="_blank" aria-label="Learn more about GitLab Trusted Publishing">Learn more about policies</a>
-                        <!-- /ko -->
-                        <!-- /ko -->
-                        <!-- /ko -->
-                        <!-- GitHub-specific status -->
-                        <!-- ko if: PublisherName() === 'GitHubActions' && IsOwnerValid() -->
-                        <!-- ko if: gitHub.IsPermanentlyEnabled() -->
-                        <i class="ms-Icon ms-Icon--CheckMark" aria-hidden="true" />
-                        Active
-                        <!-- /ko -->
-                        <!-- ko if: !gitHub.IsPermanentlyEnabled() -->
+
+                        <!-- GitHub specific warnings and info -->
+                        <!-- ko if: !gitHub.IsPermamentlyEnabled() && IsOwnerValid() -->
                         <!-- ko if: gitHub.EnabledDaysLeft() > 0 -->
                         <i class="ms-Icon ms-Icon--Info" aria-hidden="true" />
                         Use within <b><span data-bind="text: gitHub.EnabledDaysLeft()" /> day(s)</b> to keep it permanently active.
@@ -145,7 +124,6 @@
                         </a>
                         and use within <b>@GitHubPolicyDetailsViewModel.ValidationExpirationDays days</b> to keep it permanently active.
                         <a href="https://aka.ms/nuget/trusted-publishing-pending-activation" target="_blank" aria-label="Learn more about GitHub Trusted Publishing">Learn more about policies</a>
-                        <!-- /ko -->
                         <!-- /ko -->
                         <!-- /ko -->
                     </li>
@@ -201,20 +179,6 @@
                     </li>
                     <!-- /ko -->
                     <!-- /ko -->
-                    <!-- ko if: PublisherName() === 'GitLab' -->
-                    <li>
-                        <b>Namespace:</b> <span data-bind="text: gitLab.NamespacePath()" />
-                    </li>
-                    <li>
-                        <b>Project:</b> <span data-bind="text: gitLab.ProjectPath()" />
-                    </li>
-                    <li data-bind="if: gitLab.Ref()">
-                        <b>Ref:</b> <span data-bind="text: gitLab.Ref()" />
-                    </li>
-                    <li data-bind="if: gitLab.Environment()">
-                        <b>Environment:</b> <span data-bind="text: gitLab.Environment()" />
-                    </li>
-                    <!-- /ko -->
                 </ul>
 
                 <ul class="package-list" role="presentation">
@@ -237,7 +201,7 @@
                         </a>
                     </li>
 
-                    <!-- ko if: PublisherName() === 'GitHubActions' && !gitHub.IsPermanentlyEnabled() && IsOwnerValid()-->
+                    <!-- ko if: !gitHub.IsPermamentlyEnabled() && IsOwnerValid()-->
                     <li>
                         <a class="icon-link" href="#" role="button" data-bind="click: Enable">
                             <i class="ms-Icon ms-Icon--Play" aria-hidden="true"></i>
@@ -297,25 +261,9 @@
                 <span>The owner of packages allowed for publishing or updates</span>
             </div>
         </div>
-
-        <!-- Provider Selection -->
-        <div class="row">
-            <div class="col-sm-7 form-group">
-                <label class="required" data-bind="attr: { for: ProviderUid,
-                                            id: ProviderUid() + '-label' }">CI/CD Provider</label>
-                <select class="form-control select-brand" aria-required="true" data-bind="attr: { id: ProviderUid,
-                                                  name: ProviderUid,
-                                                  'aria-labelledby': ProviderUid() + '-label' },
-                                          value: SelectedProvider,
-                                          options: AvailableProviders,
-                                          optionsText: 'label',
-                                          optionsValue: 'value'"></select>
-            </div>
-        </div>
         <!-- /ko -->
-        <!-- ===== GitHub Actions fields ===== -->
-        <!-- ko if: SelectedProvider() === 'GitHubActions' -->
         <!-- ko ifnot: Key -->
+        <!-- GitHub specific content -->
         <div style="display: flex; align-items: center; gap: 10px;">
             <h4><b>GitHub</b></h4>
             <a href="https://aka.ms/nuget/trusted-publishing-github-actions" target="_blank" aria-label="Learn more GitHubActions and Trusted Publishing">
@@ -375,7 +323,7 @@
             </div>
         </div>
 
-        <!-- GitHub Environment -->
+        <!-- Environment -->
         <div class="row">
             <div class="col-sm-7 form-group">
                 <label class="control-label" data-bind="attr: { for: gitHub.EnvironmentUid(),
@@ -388,78 +336,6 @@
                   trimmedValue: gitHub.PendingEnvironment" />
             </div>
         </div>
-        <!-- /ko -->
-        <!-- ===== GitLab CI/CD fields ===== -->
-        <!-- ko if: SelectedProvider() === 'GitLab' -->
-        <!-- ko ifnot: Key -->
-        <div style="display: flex; align-items: center; gap: 10px;">
-            <h4><b>GitLab CI/CD</b></h4>
-            <a href="https://docs.gitlab.com/ee/ci/secrets/id_token_authentication.html" target="_blank" aria-label="Learn more about GitLab CI/CD OIDC">
-                Learn more
-            </a>
-        </div>
-        <br />
-
-        <!-- Namespace Path -->
-        <div class="row">
-            <div class="col-sm-7 form-group">
-                <label class="control-label required" data-bind="attr: { for: gitLab.NamespacePathUid(),
-                                          id: gitLab.NamespacePathUid() + '-label' }">Namespace Path</label>
-                <br />
-                <span>Example: <span class="example-text">my-group</span> or <span class="example-text">my-group/my-subgroup</span>. The GitLab group or namespace.</span>
-                <input type="text" class="form-control input-brand" data-bind="attr: { id: gitLab.NamespacePathUid(),
-                                          name: gitLab.NamespacePathUid(),
-                                          'aria-labelledby': gitLab.NamespacePathUid() + '-label ' + gitLab.NamespacePathUid() + '-validation-message' },
-                                          trimmedValue: gitLab.PendingNamespacePath" data-val-required="Namespace path is required." data-val="true" />
-                <span class="field-validation-valid help-block" data-valmsg-replace="true" data-bind="attr: { 'data-valmsg-for': gitLab.NamespacePathUid(),
-                                         id: gitLab.NamespacePathUid() + '-validation-message' }" />
-            </div>
-        </div>
-
-        <!-- Project Path -->
-        <div class="row">
-            <div class="col-sm-7 form-group">
-                <label class="control-label required" data-bind="attr: { for: gitLab.ProjectPathUid(),
-                                          id: gitLab.ProjectPathUid() + '-label' }">Project Path</label>
-                <br />
-                <span>Example: <span class="example-text">my-project</span>. The GitLab project name (without the namespace).</span>
-                <input type="text" class="form-control input-brand" data-bind="attr: { id: gitLab.ProjectPathUid(),
-                                          name: gitLab.ProjectPathUid(),
-                                          'aria-labelledby': gitLab.ProjectPathUid() + '-label ' + gitLab.ProjectPathUid() + '-validation-message' },
-                                          trimmedValue: gitLab.PendingProjectPath" data-val-required="Project path is required." data-val="true" />
-                <span class="field-validation-valid help-block" data-valmsg-replace="true" data-bind="attr: { 'data-valmsg-for': gitLab.ProjectPathUid(),
-                                         id: gitLab.ProjectPathUid() + '-validation-message' }" />
-            </div>
-        </div>
-        <!-- /ko -->
-        <!-- GitLab Ref -->
-        <div class="row">
-            <div class="col-sm-7 form-group">
-                <label class="control-label" data-bind="attr: { for: gitLab.RefUid(),
-                                          id: gitLab.RefUid() + '-label' }">Ref</label>
-                <br />
-                <span>Optional. The Git ref to match, e.g. <span class="example-text">main</span> or <span class="example-text">refs/heads/main</span></span>
-                <input type="text" class="form-control input-brand" data-bind="attr: { id: gitLab.RefUid(),
-                          name: gitLab.RefUid(),
-                          'aria-labelledby': gitLab.RefUid() + '-label' },
-                  trimmedValue: gitLab.PendingRef" />
-            </div>
-        </div>
-
-        <!-- GitLab Environment -->
-        <div class="row">
-            <div class="col-sm-7 form-group">
-                <label class="control-label" data-bind="attr: { for: gitLab.EnvironmentUid(),
-                                          id: gitLab.EnvironmentUid() + '-label' }">Environment</label>
-                <br />
-                <span>Optional. The GitLab environment name, e.g. <span class="example-text">production</span></span>
-                <input type="text" class="form-control input-brand" data-bind="attr: { id: gitLab.EnvironmentUid(),
-                          name: gitLab.EnvironmentUid(),
-                          'aria-labelledby': gitLab.EnvironmentUid() + '-label' },
-                  trimmedValue: gitLab.PendingEnvironment" />
-            </div>
-        </div>
-        <!-- /ko -->
 
         <div class="row">
             <div class="col-sm-6 form-group">

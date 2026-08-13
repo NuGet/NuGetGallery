@@ -36,8 +36,7 @@
     "NuGetGallery.ComputeTargetFramework": "Enabled",
     "NuGetGallery.NewAccount2FAEnforcement": "Disabled",
     "NuGetGallery.NuGetAccountPasswordLogin": "Enabled",
-    "NuGetGallery.ProfileLoadOptimization": "Enabled",
-    "NuGetGallery.RestrictApiKeyExpiration": "Disabled"
+    "NuGetGallery.ProfileLoadOptimization": "Enabled"
   },
   "Flights": {
     "NuGetGallery.TyposquattingFlight": {

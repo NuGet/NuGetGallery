@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -22,7 +22,6 @@ namespace NuGet.Services.Validation
                     contentUrl,
                     properties),
                 processValidationSet: null,
-                failValidationSet: null,
                 checkValidationSet: null,
                 checkValidator: null,
                 deliveryCount: 0);
@@ -44,19 +43,6 @@ namespace NuGet.Services.Validation
                     validationTrackingId,
                     validatingType,
                     entityKey),
-                failValidationSet: null,
-                checkValidationSet: null,
-                checkValidator: null,
-                deliveryCount: 0);
-        }
-
-        public static PackageValidationMessageData NewFailValidationSet(Guid validationTrackingId)
-        {
-            return new PackageValidationMessageData(
-                PackageValidationMessageType.FailValidationSet,
-                startValidation: null,
-                processValidationSet: null,
-                failValidationSet: new FailValidationSetData(validationTrackingId),
                 checkValidationSet: null,
                 checkValidator: null,
                 deliveryCount: 0);
@@ -68,7 +54,6 @@ namespace NuGet.Services.Validation
                 PackageValidationMessageType.CheckValidationSet,
                 startValidation: null,
                 processValidationSet: null,
-                failValidationSet: null,
                 checkValidationSet: new CheckValidationSetData(validationTrackingId, extendExpiration),
                 checkValidator: null,
                 deliveryCount: 0);
@@ -80,7 +65,6 @@ namespace NuGet.Services.Validation
                 PackageValidationMessageType.CheckValidator,
                 startValidation: null,
                 processValidationSet: null,
-                failValidationSet: null,
                 checkValidationSet: null,
                 checkValidator: new CheckValidatorData(validationId),
                 deliveryCount: 0);
@@ -90,7 +74,6 @@ namespace NuGet.Services.Validation
             PackageValidationMessageType type,
             StartValidationData startValidation,
             ProcessValidationSetData processValidationSet,
-            FailValidationSetData failValidationSet,
             CheckValidationSetData checkValidationSet,
             CheckValidatorData checkValidator,
             int deliveryCount)
@@ -107,12 +90,6 @@ namespace NuGet.Services.Validation
                     if (processValidationSet == null)
                     {
                         throw new ArgumentNullException(nameof(processValidationSet));
-                    }
-                    break;
-                case PackageValidationMessageType.FailValidationSet:
-                    if (failValidationSet == null)
-                    {
-                        throw new ArgumentNullException(nameof(failValidationSet));
                     }
                     break;
                 case PackageValidationMessageType.CheckValidationSet:
@@ -134,7 +111,6 @@ namespace NuGet.Services.Validation
             var notNullCount = 0;
             notNullCount += startValidation != null ? 1 : 0;
             notNullCount += processValidationSet != null ? 1 : 0;
-            notNullCount += failValidationSet != null ? 1 : 0;
             notNullCount += checkValidationSet != null ? 1 : 0;
             notNullCount += checkValidator != null ? 1 : 0;
             if (notNullCount > 1)
@@ -145,7 +121,6 @@ namespace NuGet.Services.Validation
             Type = type;
             StartValidation = startValidation;
             ProcessValidationSet = processValidationSet;
-            FailValidationSet = failValidationSet;
             CheckValidationSet = checkValidationSet;
             CheckValidator = checkValidator;
             DeliveryCount = deliveryCount;
@@ -154,7 +129,6 @@ namespace NuGet.Services.Validation
         public PackageValidationMessageType Type { get; }
         public StartValidationData StartValidation { get; }
         public ProcessValidationSetData ProcessValidationSet { get; }
-        public FailValidationSetData FailValidationSet { get; }
         public CheckValidationSetData CheckValidationSet { get; }
         public CheckValidatorData CheckValidator { get; }
         public int DeliveryCount { get; }

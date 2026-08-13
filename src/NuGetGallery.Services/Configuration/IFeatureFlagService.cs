@@ -383,10 +383,5 @@ namespace NuGetGallery
         // TODO: https://github.com/NuGet/Engineering/issues/6446
         bool IsInvalidPackageIdAllowedForAllPackages();
         bool IsInvalidPackageIdAllowedForExistingPackages();
-
-        /// <summary>
-        /// When enabled, users can only create API keys with an expiration of 1, 8, or 30 days.
-        /// </summary>
-        bool IsApiKeyExpirationRestricted();
     }
 }

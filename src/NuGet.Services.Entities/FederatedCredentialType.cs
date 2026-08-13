@@ -25,11 +25,5 @@ namespace NuGet.Services.Entities
         /// is identified by repository owner, repository name, workflow file, etc.
         /// </summary>
         GitHubActions = 2,
-
-        /// <summary>
-        /// This credential type applies to GitLab CI/CD pipelines running in GitLab projects. The pipeline
-        /// is identified by namespace path, project path, and optionally a ref and environment.
-        /// </summary>
-        GitLab = 3,
     }
 }
