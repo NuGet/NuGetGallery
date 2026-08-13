@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
@@ -17,5 +17,13 @@ namespace NuGet.Services.Validation.Orchestrator
         /// <param name="validationSet">Validation set to work with. Any validation updates would be reflected in that object upon return.</param>
         /// <returns>Information about what happened during processing of the message.</returns>
         Task<ValidationSetProcessorResult> ProcessValidationsAsync(PackageValidationSet validationSet);
+
+        /// <summary>
+        /// Forces the validation set to fail by marking all of its incomplete or not started validations as failed.
+        /// Persists all validation status changes.
+        /// </summary>
+        /// <param name="validationSet">Validation set to fail. Any validation updates would be reflected in that object upon return.</param>
+        /// <returns>Information about what happened during processing of the message.</returns>
+        Task<ValidationSetProcessorResult> ForceFailValidationSetAsync(PackageValidationSet validationSet);
     }
 }

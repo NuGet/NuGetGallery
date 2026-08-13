@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Data;
+using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
 using NuGetGallery.Auditing;
@@ -26,7 +28,10 @@ namespace NuGetGallery.Services.Authentication
         /// <param name="policyName">The name of the policy to be added. Must be a non-empty string.</param>
         /// <param name="policyType">The type of federated credential policy to be added.</param>
         /// <param name="criteria">The criteria that define the conditions under which the policy is applied. Must be a valid string.</param>
-        Task<FederatedCredentialPolicyValidationResult> AddPolicyAsync(User createdBy, string packageOwner, string criteria, string? policyName, FederatedCredentialType policyType);
+        /// <param name="policyScopes">The policy scopes.</param>
+        /// <param name="policySubjects">The policy subjects.</param>
+        Task<FederatedCredentialPolicyValidationResult> AddPolicyAsync(User createdBy, string packageOwner, string criteria, string? policyName, FederatedCredentialType policyType,
+            string[] policyScopes, string[] policySubjects);
 
         /// <summary>
         /// Updates <see cref="FederatedCredentialPolicy">. Logs an audit record for the policy update.
@@ -34,8 +39,22 @@ namespace NuGetGallery.Services.Authentication
         /// <param name="policy">The federated credential policy to be updated. Cannot be null.</param>
         /// <param name="criteria">The criteria used to determine how the policy should be updated. Cannot be null or empty.</param>
         /// <param name="policyName">The optional name of the policy. If provided, it will be used to identify the policy during the update
+        /// <param name="policyScopes">The policy scopes.</param>
+        /// <param name="policySubjects">The policy subjects.</param>
         /// process.</param>
-        Task<FederatedCredentialPolicyValidationResult> UpdatePolicyAsync(FederatedCredentialPolicy policy, string criteria, string? policyName);
+        Task<FederatedCredentialPolicyValidationResult> UpdatePolicyAsync(FederatedCredentialPolicy policy, string criteria, string? policyName,
+            string[] policyScopes, string[] policySubjects);
+
+        /// <summary>
+        /// Updates <see cref="FederatedCredentialPolicy">. Logs an audit record for the policy update.
+        /// </summary>
+        /// <param name="policy">The federated credential policy to be updated. Cannot be null.</param>
+        /// <param name="criteria">The criteria used to determine how the policy should be updated. Cannot be null or empty.</param>
+        /// <param name="policyName">The optional name of the policy. If provided, it will be used to identify the policy during the update
+        /// <param name="scopes">The scopes of the policy.</param>
+        /// process.</param>
+        Task<FederatedCredentialPolicyValidationResult> UpdatePolicyAsync(FederatedCredentialPolicy policy, string criteria, string? policyName,
+            ICollection<Scope>? scopes);
 
         /// <summary>
         /// Generates a short-lived API key for the user based on the provided bearer token. The user's federated
@@ -56,6 +75,17 @@ namespace NuGetGallery.Services.Authentication
         /// <returns><see langword="true"/> if the specified user is a valid trusted publishing policy owner for the package
         /// owner; otherwise, <see langword="false"/>.</returns>
         bool IsValidPolicyOwner(User user, User packageOwner);
+
+        /// <summary>
+        /// Determines whether the specified user is a valid trusted publishing policy owner for the given package
+        /// owner and scopes.
+        /// </summary>
+        /// <param name="user">The user to validate as a trusted publishing policy owner.</param>
+        /// <param name="packageOwner">The owner of the package for which the policy is being validated.</param>
+        /// <param name="scopes">The scopes for which the policy is being validated. Can be null.</param>
+        /// <returns><see langword="true"/> if the specified user is a valid trusted publishing policy owner for the package
+        /// owner and scopes; otherwise, <see langword="false"/>.</returns>
+        bool IsValidPolicyOwnerForScopes(User user, User packageOwner, IEnumerable<Scope>? scopes);
 
         /// <summary>
         /// Deletes a given federated credential policy and all associated API keys.
@@ -87,6 +117,12 @@ namespace NuGetGallery.Services.Authentication
 
     public class FederatedCredentialService : IFederatedCredentialService
     {
+        // The same regex is used by src\NuGetGallery\Views\Users\ApiKeys.cshtml
+        public static readonly string PolicySubjectRegexPattern = "^[\\*\\w_.-]*$";
+        public static readonly string PolicySubjectRegexForRazorPattern = PolicySubjectRegexPattern.Replace("\\", "\\\\");
+
+        public static readonly Regex PolicySubjectRegex = RegexEx.CreateWithTimeout(PolicySubjectRegexPattern, RegexOptions.None);
+
         private readonly IUserService _userService;
         private readonly IFederatedCredentialRepository _repository;
         private readonly IFederatedCredentialPolicyEvaluator _evaluator;
@@ -119,7 +155,8 @@ namespace NuGetGallery.Services.Authentication
             _galleryConfigurationService = galleryConfigurationService ?? throw new ArgumentNullException(nameof(configuration));
         }
 
-        public async Task<FederatedCredentialPolicyValidationResult> AddPolicyAsync(User createdBy, string packageOwner, string criteria, string? policyName, FederatedCredentialType policyType)
+        public async Task<FederatedCredentialPolicyValidationResult> AddPolicyAsync(User createdBy, string packageOwner, string criteria, string? policyName, FederatedCredentialType policyType,
+            string[] policyScopes, string[] policySubjects)
         {
             // Currently we do not audit missing user or package owner. This falls into category of
             // basic user input validation. Such validation moslty lives in the Controllers. With
@@ -139,6 +176,13 @@ namespace NuGetGallery.Services.Authentication
                     nameof(FederatedCredentialPolicy.PackageOwner));
             }
 
+            if (!TryGetScopes(policyPackageOwner, policyScopes, policySubjects, out var scopes))
+            {
+                return FederatedCredentialPolicyValidationResult.BadRequest(
+                    "The policy scopes are invalid.",
+                    nameof(FederatedCredentialPolicy.Scopes));
+            }
+
             // From this point on we should audit all activities related to the policy.
             var policy = new FederatedCredentialPolicy
             {
@@ -148,6 +192,7 @@ namespace NuGetGallery.Services.Authentication
                 PackageOwner = policyPackageOwner,
                 Type = policyType,
                 Criteria = criteria,
+                Scopes = scopes,
             };
 
             var result = await ValidatePolicyAsync(policy);
@@ -161,7 +206,21 @@ namespace NuGetGallery.Services.Authentication
             return FederatedCredentialPolicyValidationResult.Success(policy);
         }
 
-        public async Task<FederatedCredentialPolicyValidationResult> UpdatePolicyAsync(FederatedCredentialPolicy policy, string criteria, string? policyName)
+        public async Task<FederatedCredentialPolicyValidationResult> UpdatePolicyAsync(FederatedCredentialPolicy policy, string criteria, string? policyName,
+            string[] policyScopes, string[] policySubjects)
+        {
+            if (!TryGetScopes(policy.PackageOwner, policyScopes, policySubjects, out var scopes))
+            {
+                return FederatedCredentialPolicyValidationResult.BadRequest(
+                    $"The policy scopes are invalid.",
+                    nameof(FederatedCredentialPolicy.Scopes));
+            }
+
+            return await UpdatePolicyAsync(policy, criteria: criteria, policyName: policyName, scopes);
+        }
+
+        public async Task<FederatedCredentialPolicyValidationResult> UpdatePolicyAsync(FederatedCredentialPolicy policy, string criteria, string? policyName,
+            ICollection<Scope>? scopes)
         {
             // Create temp policy to validate the update.
             FederatedCredentialPolicy tempPolicy = new FederatedCredentialPolicy
@@ -177,6 +236,7 @@ namespace NuGetGallery.Services.Authentication
                 // New values for the update.
                 PolicyName = policyName,
                 Criteria = criteria,
+                Scopes = scopes,
             };
 
             // From this point on we should audit all activities related to the policy.
@@ -188,7 +248,8 @@ namespace NuGetGallery.Services.Authentication
 
             // Skip update if nothing has changed. It is IMPORTANT to do the check after the validation.
             // It can update the criteria, e.g. ensure ValidateBy date for temporary GitHub Actions policies.
-            if (string.Equals(policy.PolicyName, tempPolicy.PolicyName) && string.Equals(policy.Criteria, tempPolicy.Criteria))
+            if (string.Equals(policy.PolicyName, tempPolicy.PolicyName) && string.Equals(policy.Criteria, tempPolicy.Criteria) &&
+                scopes.HaveEqualScopesWithSameAllowedActionAndSubject(policy.Scopes))
             {
                 return FederatedCredentialPolicyValidationResult.Success(policy);
             }
@@ -200,9 +261,14 @@ namespace NuGetGallery.Services.Authentication
                 await _authenticationService.RemoveCredential(policy.CreatedBy, credential, commitChanges: false);
             }
 
+            // Delete all existing scopes associated with the policy
+            await _repository.DeleteScopesAsync(policy, saveChanges: false);
+
             // Update policy
             policy.PolicyName = tempPolicy.PolicyName;
             policy.Criteria = tempPolicy.Criteria;
+            policy.Scopes = tempPolicy.Scopes;
+
             await _repository.SavePoliciesAsync();
 
             // Create audit record for the update.
@@ -212,13 +278,46 @@ namespace NuGetGallery.Services.Authentication
             return FederatedCredentialPolicyValidationResult.Success(policy);
         }
 
+        internal bool TryGetScopes(User policyPackageOwner, string[] policyScopes, string[] policySubjects, out ICollection<Scope>? scopes)
+        {
+            scopes = null;
+            if (policyScopes == null || policySubjects == null)
+            {
+                return false;
+            }
+
+            policyScopes = policyScopes.Select(s => s.Trim())
+                .Where(s => !string.IsNullOrWhiteSpace(s) && NuGetScopes.ListOfScopes.Contains(s, StringComparer.Ordinal))
+                .Distinct(StringComparer.Ordinal)
+                .ToArray();
+
+            if (policyScopes.Length == 0)
+            {
+                return false;
+            }
+
+            policySubjects = policySubjects.Select(s => s.Trim())
+                .Where(s => !string.IsNullOrWhiteSpace(s) && PolicySubjectRegex.IsMatch(s))
+                .Distinct(StringComparer.Ordinal)
+                .ToArray();
+
+            if (policySubjects.Length == 0)
+            {
+                return false;
+            }
+
+            scopes = _credentialBuilder.BuildScopes(policyPackageOwner, scopes: policyScopes, subjects: policySubjects);
+
+            return true;
+        }
+
         /// <summary>
         /// Validates <see cref="FederatedCredentialPolicy"/>. Logs an audit record in case of an unsuccessfull validation.
         /// </summary>
         private async Task<FederatedCredentialPolicyValidationResult> ValidatePolicyAsync(FederatedCredentialPolicy policy)
         {
             FederatedCredentialPolicyValidationResult result;
-            if (!IsValidPolicyOwner(policy.CreatedBy, policy.PackageOwner))
+            if (!IsValidPolicyOwnerForScopes(policy.CreatedBy, policy.PackageOwner, policy.Scopes))
             {
                 result = FederatedCredentialPolicyValidationResult.Unauthorized(
                     $"The user '{policy.CreatedBy.Username}' does not have the required permissions to add a federated credential policy for package owner '{policy.PackageOwner.Username}'.",
@@ -254,8 +353,17 @@ namespace NuGetGallery.Services.Authentication
 
         public bool IsValidPolicyOwner(User user, User packageOwner)
         {
-            var testScope = new Scope(packageOwner, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.All);
-            return _credentialBuilder.VerifyScopes(user, [testScope]);
+            return IsValidPolicyOwnerForScopes(user, packageOwner, scopes: null);
+        }
+
+        public bool IsValidPolicyOwnerForScopes(User user, User packageOwner, IEnumerable<Scope>? scopes)
+        {
+            if (scopes == null)
+            {
+                scopes = [ new Scope(packageOwner, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.All) ];
+            }
+
+            return _credentialBuilder.VerifyScopes(user, scopes);
         }
 
         public async Task DeletePolicyAsync(FederatedCredentialPolicy policy)

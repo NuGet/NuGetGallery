@@ -7,7 +7,7 @@ using Xunit;
 
 namespace NuGetGallery
 {
-    public class ImmediatePackageValidatorFacts
+    public class ImmediateValidationMessageEmitterFacts
     {
         public class TheStartValidationAsyncMethod
         {
@@ -16,7 +16,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var package = new Package();
-                var target = new ImmediatePackageValidator<IPackageEntity>();
+                var target = new ImmediateValidationMessageEmitter<IPackageEntity>();
 
                 // Act
                 var actual = await target.StartValidationAsync(package);
