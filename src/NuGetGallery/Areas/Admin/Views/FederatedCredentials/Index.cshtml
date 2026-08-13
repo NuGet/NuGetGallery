@@ -140,12 +140,14 @@
                                 <td>
                                     @{ if (policy.Scopes != null && policy.Scopes.Count > 0)
                                        {
-                                           <p>Allowed Actions:<br>
-                                           @foreach (var allowedAction in policy.Scopes.Select(s => s.AllowedAction).Distinct(StringComparer.Ordinal)) { <code>@allowedAction</code><br> }
-                                           </p>
-                                           <p>Subjects:<br>
-                                           @foreach (var subject in policy.Scopes.Select(s => s.Subject).Distinct(StringComparer.Ordinal)) { <code>@subject</code><br> }
-                                           </p>
+                                           <i>Allowed Actions:</i>
+                                           <ul>
+                                           @foreach (var allowedAction in policy.Scopes.Select(s => s.AllowedAction).Distinct(StringComparer.Ordinal)) { <li><code>@allowedAction</code></li> }
+                                           </ul>
+                                           <i>Subjects:</i>
+                                           <ul>
+                                           @foreach (var subject in policy.Scopes.Select(s => s.Subject).Distinct(StringComparer.Ordinal)) { <li><code>@subject</code></li> }
+                                           </ul>
                                        }
                                     }
                                 </td>
@@ -370,14 +372,14 @@
         })
 
         $(document).ready(function () {
-            var viewModel = function () {
-                var self = this;
+            function viewModel() {
+                const self = this;
 
                 this.PushScopeChecked = ko.observable(false);
                 this.PushScope = ko.observable('@NuGetScopes.PackagePush');
                 this.UnlistScopeChecked = ko.observable(false);
                 this.PolicyScopes = ko.pureComputed(function () {
-                    let scopes = [];
+                    const scopes = [];
                     if (self.PushScopeChecked() && self.PushScope()) {
                         scopes.push(self.PushScope());
                     }
