@@ -1314,7 +1314,4 @@ The {1} Team</value>
   <data name="UploadPackage_TooManyNuspecs" xml:space="preserve">
     <value>The package contains multiple nuspec files. Please make sure only one nuspec file is present in the package.</value>
   </data>
-  <data name="ApiKeyExpirationNotAllowed" xml:space="preserve">
-    <value>API key expiration must be 1, 8, or 30 days.</value>
-  </data>
 </root>

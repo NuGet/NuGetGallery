@@ -35,11 +35,6 @@ namespace GitHubVulnerabilities2Db.Fakes
             throw new NotImplementedException();
         }
 
-        public bool IsApiKeyExpirationRestricted()
-        {
-            throw new NotImplementedException();
-        }
-
         public bool IsAdvancedSearchEnabled(User user)
         {
             throw new NotImplementedException();
