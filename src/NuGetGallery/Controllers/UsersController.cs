@@ -499,6 +499,7 @@ namespace NuGetGallery
                 ExpirationInDaysForApiKeyV1 = _config.ExpirationInDaysForApiKeyV1,
                 PackageOwners = owners.Where(o => o.CanPushNew || o.CanPushExisting || o.CanUnlist).ToList(),
                 IsDeprecationApiEnabled = IsDeprecateApiEnabled(currentUser),
+                IsApiKeyExpirationRestricted = _featureFlagService.IsApiKeyExpirationRestricted(),
             };
 
             return View("ApiKeys", model);
@@ -1349,6 +1350,16 @@ namespace NuGetGallery
                 if (expirationInDays.HasValue && expirationInDays.Value > 0)
                 {
                     expiration = TimeSpan.FromDays(Math.Min(expirationInDays.Value, _config.ExpirationInDaysForApiKeyV1));
+                }
+            }
+
+            if (_featureFlagService.IsApiKeyExpirationRestricted())
+            {
+                var allowedExpirationDays = new[] { 1, 8, 30 };
+                if (!allowedExpirationDays.Contains((int)expiration.TotalDays))
+                {
+                    Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                    return Json(Strings.ApiKeyExpirationNotAllowed);
                 }
             }
 
