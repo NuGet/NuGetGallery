@@ -68,7 +68,6 @@ namespace NuGetGallery.Services.Authentication
             {
                 FederatedCredentialType.EntraIdServicePrincipal => FederatedCredentialIssuerType.EntraId,
                 FederatedCredentialType.GitHubActions => FederatedCredentialIssuerType.GitHubActions,
-                FederatedCredentialType.GitLab => FederatedCredentialIssuerType.GitLab,
                 _ => throw new ArgumentException($"Unsupported {policy.Type}"),
             };
 

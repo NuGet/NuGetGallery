@@ -186,9 +186,6 @@
     <Compile Include="Areas\Admin\Models\AdminLockPackageRequest.cs" />
     <Compile Include="Areas\Admin\Models\AdminLockUserResponse.cs" />
     <Compile Include="Areas\Admin\Models\AdminLockPackageResponse.cs" />
-    <Compile Include="Areas\Admin\Models\AdminPendingValidationsResponse.cs" />
-    <Compile Include="Areas\Admin\Models\AdminRevalidatePackageRequest.cs" />
-    <Compile Include="Areas\Admin\Models\AdminRevalidatePackageResponse.cs" />
     <Compile Include="Areas\Admin\Models\AdminUserIdentity.cs" />
     <Compile Include="Areas\Admin\Models\DeletedStatus.cs" />
     <Compile Include="Areas\Admin\Migrations\SupportRequestMigrationsConfiguration.cs" />
@@ -597,7 +594,7 @@
       <DependentUpon>201711021733062_ApiKeyOwnerScope.cs</DependentUpon>
     </Compile>
     <Compile Include="RequestModels\SimulatedErrorType.cs" />
-    <Compile Include="Services\AsynchronousValidationMessageEmitter.cs" />
+    <Compile Include="Services\AsynchronousPackageValidationInitiator.cs" />
     <Compile Include="Infrastructure\Mail\BackgroundMarkdownMessageService.cs" />
     <Compile Include="Services\GalleryContentFileMetadataService.cs" />
     <Compile Include="Services\InvalidLicenseUrlValidationMessage.cs" />
@@ -630,10 +627,10 @@
     <Compile Include="Services\CertificateValidator.cs" />
     <Compile Include="Services\ICertificateService.cs" />
     <Compile Include="Services\ICertificateValidator.cs" />
-    <Compile Include="Services\ImmediateValidationMessageEmitter.cs" />
+    <Compile Include="Services\ImmediatePackageValidator.cs" />
     <Compile Include="Services\ISymbolPackageService.cs" />
     <Compile Include="Services\PackageCommitResult.cs" />
-    <Compile Include="Services\IValidationMessageEmitter.cs" />
+    <Compile Include="Services\IPackageValidationInitiator.cs" />
     <Compile Include="Infrastructure\HttpStatusCodeWithServerWarningResult.cs" />
     <Compile Include="Migrations\201704191802404_AddIndexPackageRegistrationKeySemVer.cs" />
     <Compile Include="Migrations\201704191802404_AddIndexPackageRegistrationKeySemVer.Designer.cs">
@@ -828,7 +825,6 @@
     <Compile Include="ViewModels\DisplayLicenseViewModel.cs" />
     <Compile Include="ViewModels\GitHubPolicyDetailsViewModel.cs" />
     <Compile Include="ViewModels\GitHubUsageViewModel.cs" />
-    <Compile Include="ViewModels\GitLabPolicyDetailsViewModel.cs" />
     <Compile Include="ViewModels\ListCertificateItemViewModel.cs" />
     <Compile Include="ViewModels\GalleryHomeViewModel.cs" />
     <Compile Include="ViewModels\HandleOrganizationMembershipRequestModel.cs" />

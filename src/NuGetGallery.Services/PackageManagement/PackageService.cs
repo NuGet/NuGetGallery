@@ -338,14 +338,14 @@ namespace NuGetGallery
             {
                 // if we have list longer than requested, trim it, making sure we don't trim includeVersion if it happens to be last
                 var removeAt = packages.Count - 1;
-                if (!string.IsNullOrWhiteSpace(includeVersion) && string.Equals(packages[removeAt].NormalizedVersion, includeVersion, StringComparison.OrdinalIgnoreCase))
+                if (!string.IsNullOrWhiteSpace(includeVersion) && packages[removeAt].NormalizedVersion == includeVersion)
                 {
                     --removeAt;
                 }
                 packages.RemoveAt(removeAt);
             }
 
-            if (!string.IsNullOrWhiteSpace(includeVersion) && !packages.Any(p => string.Equals(p.NormalizedVersion, includeVersion, StringComparison.OrdinalIgnoreCase)))
+            if (!string.IsNullOrWhiteSpace(includeVersion) && !packages.Any(p => p.NormalizedVersion == includeVersion))
             {
                 var requiredPackage = GetPackagesByIdQueryable(
                     id,
@@ -356,7 +356,7 @@ namespace NuGetGallery
                     includeDeprecations: includeDeprecations,
                     includeDeprecationRelationships: false,
                     includeSupportedFrameworks: includeSupportedFrameworks)
-                    .Where(p => p.NormalizedVersion == includeVersion) // string comparisons on DB side are case-insensitive due to collation used
+                    .Where(p => p.NormalizedVersion == includeVersion)
                     .SingleOrDefault();
 
                 if (requiredPackage is not null)

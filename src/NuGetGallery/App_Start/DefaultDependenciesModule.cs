@@ -601,15 +601,6 @@ namespace NuGetGallery
                 .SingleInstance()
                 .Keyed<ConfigurationManager<OpenIdConnectConfiguration>>(GitHubActionsKey);
 
-            // Register GitLab-specific OIDC configuration manager
-            const string GitLabKey = "GitLab";
-            builder
-                .Register(p => new ConfigurationManager<OpenIdConnectConfiguration>(
-                    metadataAddress: GitLabTokenPolicyValidator.MetadataAddress,
-                    p.Resolve<IConfigurationRetriever<OpenIdConnectConfiguration>>()))
-                .SingleInstance()
-                .Keyed<ConfigurationManager<OpenIdConnectConfiguration>>(GitLabKey);
-
             builder
                 .RegisterType<JsonWebTokenHandler>()
                 .InstancePerLifetimeScope();
@@ -645,16 +636,6 @@ namespace NuGetGallery
                     c.Resolve<IFeatureFlagService>(),
                     c.Resolve<JsonWebTokenHandler>()
                     ))
-                .As<ITokenPolicyValidator>()
-                .InstancePerLifetimeScope();
-
-            builder
-                .Register(c => new GitLabTokenPolicyValidator(
-                    c.Resolve<IFederatedCredentialRepository>(),
-                    c.ResolveKeyed<ConfigurationManager<OpenIdConnectConfiguration>>(GitLabKey),
-                    c.Resolve<IFederatedCredentialConfiguration>(),
-                    c.Resolve<IAuditingService>(),
-                    c.Resolve<JsonWebTokenHandler>()))
                 .As<ITokenPolicyValidator>()
                 .InstancePerLifetimeScope();
 
@@ -1201,20 +1182,20 @@ namespace NuGetGallery
                 builder
                     .Register(c =>
                     {
-                        return new AsynchronousValidationMessageEmitter<Package>(
+                        return new AsynchronousPackageValidationInitiator<Package>(
                             c.ResolveKeyed<IPackageValidationEnqueuer>(BindingKeys.PackageValidationEnqueuer),
                             c.Resolve<IAppConfiguration>(),
                             c.Resolve<IDiagnosticsService>());
-                    }).As<IValidationMessageEmitter<Package>>();
+                    }).As<IPackageValidationInitiator<Package>>();
 
                 builder
                     .Register(c =>
                     {
-                        return new AsynchronousValidationMessageEmitter<SymbolPackage>(
+                        return new AsynchronousPackageValidationInitiator<SymbolPackage>(
                             c.ResolveKeyed<IPackageValidationEnqueuer>(BindingKeys.SymbolsPackageValidationEnqueuer),
                             c.Resolve<IAppConfiguration>(),
                             c.Resolve<IDiagnosticsService>());
-                    }).As<IValidationMessageEmitter<SymbolPackage>>();
+                    }).As<IPackageValidationInitiator<SymbolPackage>>();
 
                 // we retrieve the values here (on main thread) because otherwise it would run in another thread
                 // and potentially cause a deadlock on async operation.
@@ -1236,18 +1217,18 @@ namespace NuGetGallery
                     .SingleInstance()
                     .Keyed<ITopicClient>(BindingKeys.SymbolsPackageValidationTopic)
                     .OnRelease(x => _ = x.CloseAsync());
-
-                builder.RegisterType<ValidationAdminService>()
-                    .AsSelf()
-                    .InstancePerLifetimeScope();
             }
             else
             {
-                // This will register all the instances of ImmediateValidationMessageEmitter<T> as IValidationMessageEmitter<T> where T is a typeof(IPackageEntity)
+                // This will register all the instances of ImmediatePackageValidator<T> as IPackageValidationInitiator<T> where T is a typeof(IPackageEntity)
                 builder
-                    .RegisterGeneric(typeof(ImmediateValidationMessageEmitter<>))
-                    .As(typeof(IValidationMessageEmitter<>));
+                    .RegisterGeneric(typeof(ImmediatePackageValidator<>))
+                    .As(typeof(IPackageValidationInitiator<>));
             }
+
+            builder.RegisterType<ValidationAdminService>()
+                .AsSelf()
+                .InstancePerLifetimeScope();
 
             builder.RegisterType<RevalidationAdminService>()
                 .AsSelf()
