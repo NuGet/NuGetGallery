@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -14,14 +14,14 @@ namespace NuGetGallery
     /// Initiates asynchronous validation on a package by enqueuing a message containing the package identity and a new
     /// <see cref="Guid"/>. The <see cref="Guid"/> represents a unique validation request.
     /// </summary>
-    public class AsynchronousValidationMessageEmitter<TPackageEntity> : IValidationMessageEmitter<TPackageEntity> 
+    public class AsynchronousPackageValidationInitiator<TPackageEntity> : IPackageValidationInitiator<TPackageEntity> 
         where TPackageEntity: IPackageEntity
     {
         private readonly IPackageValidationEnqueuer _validationEnqueuer;
         private readonly IAppConfiguration _appConfiguration;
         private readonly IDiagnosticsSource _diagnosticsSource;
 
-        public AsynchronousValidationMessageEmitter(
+        public AsynchronousPackageValidationInitiator(
             IPackageValidationEnqueuer enqueuer,
             IAppConfiguration appConfiguration,
             IDiagnosticsService diagnosticsService)
@@ -34,7 +34,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(IDiagnosticsService));
             }
 
-            _diagnosticsSource = diagnosticsService.SafeGetSource(nameof(AsynchronousValidationMessageEmitter<TPackageEntity>));
+            _diagnosticsSource = diagnosticsService.SafeGetSource(nameof(AsynchronousPackageValidationInitiator<TPackageEntity>));
         }
 
         public PackageStatus GetPackageStatus(TPackageEntity package)
@@ -68,24 +68,6 @@ namespace NuGetGallery
             }
 
             return TargetPackageStatus;
-        }
-
-        public async Task<PackageStatus> FailValidationAsync(TPackageEntity package, Guid validationTrackingId)
-        {
-            // Validate the entity type is supported even though only the tracking ID is sent; this fails fast on
-            // an unexpected entity type the same way StartValidationAsync does.
-            ValidateAndGetType(package);
-
-            var data = PackageValidationMessageData.NewFailValidationSet(validationTrackingId);
-
-            var activityName = "Enqueuing asynchronous package validation failure: " +
-                $"{package.Id} {package.Version} ({data.FailValidationSet.ValidationTrackingId})";
-            using (_diagnosticsSource.Activity(activityName))
-            {
-                await _validationEnqueuer.SendMessageAsync(data);
-            }
-
-            return PackageStatus.FailedValidation;
         }
 
         private PackageStatus TargetPackageStatus => _appConfiguration.BlockingAsynchronousPackageValidationEnabled

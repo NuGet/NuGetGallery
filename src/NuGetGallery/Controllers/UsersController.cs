@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Globalization;
 using System.Linq;
 using System.Net;
@@ -652,7 +653,7 @@ namespace NuGetGallery
         [ValidateRecaptchaResponse]
         public virtual async Task<ActionResult> ForgotPassword(ForgotPasswordViewModel model)
         {
-            if (!_featureFlagService.IsNuGetAccountPasswordLoginEnabled() && !ContentObjectService.LoginDiscontinuationConfiguration.IsEmailInExceptionsList(model.Email))
+            if(!_featureFlagService.IsNuGetAccountPasswordLoginEnabled() && !ContentObjectService.LoginDiscontinuationConfiguration.IsEmailInExceptionsList(model.Email))
             {
                 ModelState.AddModelError(string.Empty, Strings.ForgotPassword_Disabled_Error);
 
@@ -1077,20 +1078,14 @@ namespace NuGetGallery
 
         private TrustedPublisherPolicyViewModel CreatePublisherViewModel(FederatedCredentialPolicy policy)
         {
-            TrustedPublisherPolicyDetailsViewModel policyDetails;
-            switch (policy.Type)
+            // Currently only GitHub Actions policies are supported by our Trusted Publishing UX.
+            if (policy.Type != FederatedCredentialType.GitHubActions)
             {
-                case FederatedCredentialType.GitHubActions:
-                    policyDetails = GitHubPolicyDetailsViewModel.FromDatabaseJson(policy.Criteria);
-                    break;
-                case FederatedCredentialType.GitLab:
-                    policyDetails = GitLabPolicyDetailsViewModel.FromDatabaseJson(policy.Criteria);
-                    break;
-                default:
-                    return null;
+                return null;
             }
 
-            if (policyDetails == null)
+            if (GitHubPolicyDetailsViewModel.FromDatabaseJson(policy.Criteria)
+                is not GitHubPolicyDetailsViewModel policyDetails)
             {
                 return null;
             }
@@ -1109,7 +1104,7 @@ namespace NuGetGallery
         [UIAuthorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<JsonResult> GenerateTrustedPublisherPolicy(string policyName, string owner, string criteria, string publisherType)
+        public virtual async Task<JsonResult> GenerateTrustedPublisherPolicy(string policyName, string owner, string criteria)
         {
             User currentUser = GetCurrentUser();
             if (currentUser == null)
@@ -1124,12 +1119,11 @@ namespace NuGetGallery
                 return Json(Strings.TrustedPublisher_PolicyOwnerRequired);
             }
 
-            FederatedCredentialType credentialType = ResolveCredentialType(publisherType);
-            var policyCriteria = ViewToPolicyCriteria(criteria, credentialType);
+            var policyCriteria = ViewToPolicyCriteria(criteria);
 
             // Try adding policy
             FederatedCredentialPolicyValidationResult result = await _federatedCredentialService.AddPolicyAsync(
-                currentUser, owner, policyCriteria, policyName, credentialType);
+                currentUser, owner, policyCriteria, policyName, FederatedCredentialType.GitHubActions);
 
             switch (result.Type)
             {
@@ -1150,21 +1144,6 @@ namespace NuGetGallery
             }
         }
 
-        private FederatedCredentialType ResolveCredentialType(string publisherType)
-        {
-            if (string.Equals(publisherType, nameof(FederatedCredentialType.GitHubActions), StringComparison.OrdinalIgnoreCase))
-            {
-                return FederatedCredentialType.GitHubActions;
-            }
-
-            if (string.Equals(publisherType, nameof(FederatedCredentialType.GitLab), StringComparison.OrdinalIgnoreCase))
-            {
-                return FederatedCredentialType.GitLab;
-            }
-
-            throw new ArgumentException($"Unknown publisher type: '{publisherType}'.", nameof(publisherType));
-        }
-
         [UIAuthorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -1177,7 +1156,7 @@ namespace NuGetGallery
                 return Json(result.error);
             }
 
-            var policyCriteria = ViewToPolicyCriteria(criteria, result.policy.Type);
+            var policyCriteria = ViewToPolicyCriteria(criteria);
             return await UpdatePolicyAsync(result.policy, policyCriteria, policyName);
         }
 
@@ -1221,26 +1200,17 @@ namespace NuGetGallery
             return Json(model);
         }
 
-
-        private string ViewToPolicyCriteria(string criteria, FederatedCredentialType credentialType)
+        private string ViewToPolicyCriteria(string criteria)
         {
-            switch (credentialType)
-            {
-                case FederatedCredentialType.GitLab:
-                    var gitLabDetails = GitLabPolicyDetailsViewModel.FromViewJson(criteria);
-                    return gitLabDetails.Criteria.ToDatabaseJson();
-                case FederatedCredentialType.GitHubActions:
-                    var details = GitHubPolicyDetailsViewModel.FromViewJson(criteria);
-                    return details.Criteria.ToDatabaseJson();
-                default:
-                    throw new ArgumentException($"Unknown credential type: '{credentialType}'.", nameof(credentialType));
-            }
+            // Currently only GitHub Actions policies are expected
+            var details = GitHubPolicyDetailsViewModel.FromViewJson(criteria);
+            return details.Criteria.ToDatabaseJson();
         }
 
         [HttpPost]
         [UIAuthorize]
         [ValidateAntiForgeryToken]
-        public virtual async Task<JsonResult> RemoveTrustedPublisherPolicy(int? federatedCredentialKey)
+        public virtual async Task<ActionResult> RemoveTrustedPublisherPolicy(int? federatedCredentialKey)
         {
             var result = GetFederatedCredentialPolicy(federatedCredentialKey);
             if (result.policy == null)

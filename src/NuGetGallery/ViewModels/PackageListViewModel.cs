@@ -59,7 +59,6 @@ namespace NuGetGallery
                 { "dependency", "Dependency" },
                 { "dotnettool", ".NET tool" },
                 { "template" , "Template" },
-                { "msbuildsdk", "MSBuild SDK" },
             };
 
             if (mcpFilteringEnabled)

@@ -409,8 +409,7 @@ public class TheGenerateTrustedPublisherPolicyAction : TestContainer
         var result = await controller.GenerateTrustedPublisherPolicy(
             policyName: "Test Policy",
             owner: user.Username,
-            criteria: criteria,
-            publisherType: "GitHubActions");
+            criteria: criteria);
 
         // Assert
         var model = (TrustedPublisherPolicyViewModel)result.Data;
@@ -442,8 +441,7 @@ public class TheGenerateTrustedPublisherPolicyAction : TestContainer
         var result = await controller.GenerateTrustedPublisherPolicy(
             policyName: "Test Policy",
             owner: user.Username,
-            criteria: """{"RepositoryOwner":"repoOwner","Repository":"repo","WorkflowFile":"a.yml"}""",
-            publisherType: "GitHubActions");
+            criteria: """{"RepositoryOwner":"repoOwner","Repository":"repo","WorkflowFile":"a.yml"}""");
 
         // Assert
         Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
@@ -472,8 +470,7 @@ public class TheGenerateTrustedPublisherPolicyAction : TestContainer
         var result = await controller.GenerateTrustedPublisherPolicy(
             policyName: "Test Policy",
             owner: user.Username,
-            criteria: """{"RepositoryOwner":"repoOwner","Repository":"repo","WorkflowFile":"a.yml"}""",
-            publisherType: "GitHubActions");
+            criteria: """{"RepositoryOwner":"repoOwner","Repository":"repo","WorkflowFile":"a.yml"}""");
 
         // Assert
         Assert.Equal((int)HttpStatusCode.Unauthorized, controller.Response.StatusCode);

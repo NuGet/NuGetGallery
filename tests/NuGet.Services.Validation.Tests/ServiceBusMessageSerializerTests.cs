@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -17,7 +17,6 @@ namespace NuGet.Services.Validation.Tests
 
         private const string StartValidationType = "StartValidation";
         private const string ProcessValidationSetType = "PackageValidationMessageData";
-        private const string FailValidationSetType = "FailValidationSet";
         private const string CheckValidationSetType = "CheckValidationSet";
         private const string CheckValidatorType = "PackageValidationCheckValidatorMessageData";
 
@@ -291,21 +290,6 @@ namespace NuGet.Services.Validation.Tests
             }
 
             [Fact]
-            public void ProducesExpectedMessageForFailValidationSet()
-            {
-                // Arrange
-                var brokeredMessage = GetBrokeredMessageForFailValidationSet();
-
-                // Act
-                var output = _target.DeserializePackageValidationMessageData(brokeredMessage.Object);
-
-                // Assert
-                Assert.Equal(DeliveryCount, output.DeliveryCount);
-                Assert.Equal(PackageValidationMessageType.FailValidationSet, output.Type);
-                Assert.Equal(ValidationTrackingId, output.FailValidationSet.ValidationTrackingId);
-            }
-
-            [Fact]
             public void RejectsInvalidSchemaName()
             {
                 // Arrange
@@ -515,26 +499,6 @@ namespace NuGet.Services.Validation.Tests
                     .Returns(new Dictionary<string, object>
                     {
                         { SchemaName, CheckValidationSetType },
-                        { SchemaVersionKey, SchemaVersion1 }
-                    });
-                return brokeredMessage;
-            }
-
-            private static Mock<IReceivedBrokeredMessage> GetBrokeredMessageForFailValidationSet()
-            {
-                var serializedData = $@"{{""ValidationTrackingId"":""{ValidationTrackingId}""}}";
-                var brokeredMessage = new Mock<IReceivedBrokeredMessage>();
-                brokeredMessage
-                    .Setup(x => x.GetBody())
-                    .Returns(serializedData);
-                brokeredMessage
-                    .Setup(x => x.DeliveryCount)
-                    .Returns(DeliveryCount);
-                brokeredMessage
-                    .Setup(x => x.Properties)
-                    .Returns(new Dictionary<string, object>
-                    {
-                        { SchemaName, FailValidationSetType },
                         { SchemaVersionKey, SchemaVersion1 }
                     });
                 return brokeredMessage;

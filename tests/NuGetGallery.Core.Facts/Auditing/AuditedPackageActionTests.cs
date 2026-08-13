@@ -24,9 +24,7 @@ namespace NuGetGallery.Auditing
                 "SymbolsDelete",
                 "Deprecate",
                 "Undeprecate",
-                "Reflow",
-                "FailValidation",
-                "SymbolsFailValidation"
+                "Reflow"
             };
 
             Verify(typeof(AuditedPackageAction), expectedNames);
