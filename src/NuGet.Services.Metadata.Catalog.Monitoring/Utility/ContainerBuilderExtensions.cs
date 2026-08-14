@@ -119,6 +119,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             builder.RegisterValidator<RegistrationEndpoint, RegistrationRequireLicenseAcceptanceValidator>();
             builder.RegisterValidator<RegistrationEndpoint, RegistrationVersionValidator>();
             builder.RegisterValidator<RegistrationEndpoint, RegistrationDeprecationValidator>();
+            builder.RegisterValidator<RegistrationEndpoint, RegistrationSponsorshipValidator>();
 
             // Flat-container validators
             builder.RegisterValidator<FlatContainerEndpoint, PackageIsRepositorySignedValidator>();

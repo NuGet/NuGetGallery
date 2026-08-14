@@ -48,6 +48,11 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             var packageContentUri = _packageContentUriBuilder.Build(packageId, normalizedPackageVersion);
             var deprecationInfo = ReadDeprecationInfoFromDataReader(dataReader);
 
+            var sponsorshipUrlsJson = dataReader.ReadStringOrNull(Db2CatalogProjectionColumnNames.SponsorshipUrls);
+            var sponsorshipUrls = sponsorshipUrlsJson == null
+                ? null
+                : JArray.Parse(sponsorshipUrlsJson).Values<JObject>().Select(entry => (string)entry["Url"]).ToList();
+
             return new FeedPackageDetails(
                 packageContentUri,
                 dataReader.ReadDateTime(Db2CatalogProjectionColumnNames.Created).ForceUtc(),
@@ -59,7 +64,8 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                 hideLicenseReport ? null : dataReader[Db2CatalogProjectionColumnNames.LicenseNames]?.ToString(),
                 hideLicenseReport ? null : dataReader[Db2CatalogProjectionColumnNames.LicenseReportUrl]?.ToString(),
                 deprecationInfo,
-                dataReader.GetBoolean(dataReader.GetOrdinal(Db2CatalogProjectionColumnNames.RequiresLicenseAcceptance)));
+                dataReader.GetBoolean(dataReader.GetOrdinal(Db2CatalogProjectionColumnNames.RequiresLicenseAcceptance)),
+                sponsorshipUrls);
         }
 
         /// <summary>

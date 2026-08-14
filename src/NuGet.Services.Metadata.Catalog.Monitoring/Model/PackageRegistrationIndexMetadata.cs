@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 using NuGet.Protocol;
 using NuGet.Services.Metadata.Catalog.Helpers;
@@ -27,6 +29,15 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         public PackageRegistrationDeprecationMetadata Deprecation { get; set; }
 
         /// <summary>
+        /// The registration-scoped (ID-level) sponsorship URLs. This is a property of the registration index root,
+        /// not of an individual package version, so it is the same for every version of the same package ID.
+        /// On the V3 side it is read from the registration index root; on the database side it comes from
+        /// <see cref="FeedPackageDetails.SponsorshipUrls"/>.
+        /// </summary>
+        [JsonProperty("sponsorshipUrls")]
+        public List<string> SponsorshipUrls { get; set; }
+
+        /// <summary>
         /// Default constructor for JSON serialization purposes.
         /// </summary>
         public PackageRegistrationIndexMetadata()
@@ -45,6 +56,11 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             if (package.HasDeprecationInfo)
             {
                 Deprecation = new PackageRegistrationDeprecationMetadata(package.DeprecationInfo);
+            }
+
+            if (package.SponsorshipUrls != null)
+            {
+                SponsorshipUrls = package.SponsorshipUrls.ToList();
             }
         }
     }

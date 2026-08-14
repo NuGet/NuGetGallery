@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -31,9 +33,19 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             try
             {
                 var feedPackage = await GetPackageFromIndexAsync(package, log, token);
-                return feedPackage != null ?
-                    JsonConvert.DeserializeObject<PackageRegistrationIndexMetadata>(feedPackage.ToString()) :
-                    null;
+                if (feedPackage == null)
+                {
+                    return null;
+                }
+
+                var metadata = JsonConvert.DeserializeObject<PackageRegistrationIndexMetadata>(feedPackage.ToString());
+
+                // Sponsorship URLs are a registration-scoped (ID-level) attribute stored on the registration index
+                // root, not on an individual version's catalog entry. They must be read from the index root
+                // separately because <see cref="GetPackageFromIndexAsync"/> returns only the per-version metadata.
+                metadata.SponsorshipUrls = await GetSponsorshipUrlsFromIndexRootAsync(package, log, token);
+
+                return metadata;
             }
             catch (Exception e)
             {
@@ -60,6 +72,24 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         {
             // If the registration index is missing, this will return null.
             return _registration.GetPackageMetadata(package, NullSourceCacheContext.Instance, log, token);
+        }
+
+        private async Task<List<string>> GetSponsorshipUrlsFromIndexRootAsync(PackageIdentity package, ILogger log, CancellationToken token)
+        {
+            // If the registration index is missing, IgnoreNotFounds will cause this to return null.
+            var indexRoot = await _client.GetJObjectAsync(
+                new HttpSourceRequest(
+                    _registration.GetUri(package.Id), log)
+                { IgnoreNotFounds = true },
+                log, token);
+
+            var sponsorshipUrls = indexRoot?["sponsorshipUrls"] as JArray;
+            if (sponsorshipUrls == null)
+            {
+                return null;
+            }
+
+            return sponsorshipUrls.Values<string>().ToList();
         }
 
         private async Task<JObject> GetPackageFromLeafAsync(PackageIdentity package, ILogger log, CancellationToken token)

@@ -102,6 +102,7 @@ namespace CatalogTests.Helpers
                 Assert.Equal(expectedLicenseReportUrl, projection.LicenseReportUrl);
                 Assert.Equal(expectedRequiresLicenseAcceptance, projection.RequiresLicenseAcceptance);
                 Assert.Null(projection.DeprecationInfo);
+                Assert.Null(projection.SponsorshipUrls);
             }
 
             private static Mock<DbDataReader> MockDataReader(
@@ -157,6 +158,7 @@ namespace CatalogTests.Helpers
 
                 // Simulate that these columns do not exist in the resultset.
                 dataReaderMock.Setup(m => m.GetOrdinal(Db2CatalogProjectionColumnNames.DeprecationStatus)).Throws<IndexOutOfRangeException>();
+                dataReaderMock.Setup(m => m.GetOrdinal(Db2CatalogProjectionColumnNames.SponsorshipUrls)).Throws<IndexOutOfRangeException>();
 
                 return dataReaderMock;
             }

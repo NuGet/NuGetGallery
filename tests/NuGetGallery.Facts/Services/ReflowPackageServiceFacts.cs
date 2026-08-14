@@ -221,6 +221,30 @@ namespace NuGetGallery
                 Assert.NotEqual(lastEdited, result.LastEdited);
             }
 
+            [Fact]
+            public async Task UpdatesRegistrationLastEdited()
+            {
+                // Arrange
+                var package = PackageServiceUtility.CreateTestPackage();
+                var registrationLastEdited = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                package.PackageRegistration.RegistrationLastEdited = registrationLastEdited;
+
+                var packageService = ReflowServiceSetupHelper.SetupPackageService(package);
+                var entitiesContext = ReflowServiceSetupHelper.SetupEntitiesContext();
+                var packageFileService = ReflowServiceSetupHelper.SetupPackageFileService(package);
+
+                var service = CreateService(
+                    packageService: packageService,
+                    entitiesContext: entitiesContext,
+                    packageFileService: packageFileService);
+
+                // Act
+                var result = await service.ReflowAsync("test", "1.0.0");
+
+                // Assert
+                Assert.NotEqual(registrationLastEdited, result.PackageRegistration.RegistrationLastEdited);
+            }
+
             [Theory]
             [InlineData(true)]
             [InlineData(false)]

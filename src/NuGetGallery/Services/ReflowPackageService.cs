@@ -83,6 +83,12 @@ namespace NuGetGallery
                         package.LastEdited = DateTime.UtcNow;
                         package.Listed = listed;
 
+                        // Also re-drive the ID-level (registration) lane so registration-scoped metadata (e.g.
+                        // sponsorship URLs) is re-emitted to V3. This bumps RegistrationLastEdited, which db2catalog
+                        // uses as the cursor for the registration-level lane. Done unconditionally so reflow refreshes
+                        // all ID-level attributes, not just sponsorship URLs.
+                        package.PackageRegistration.RegistrationLastEdited = DateTime.UtcNow;
+
                         // 5) Update IsLatest so that reflow can correct concurrent updates (see Gallery #2514)
                         await _packageService.UpdateIsLatestAsync(package.PackageRegistration, commitChanges: false);
 
