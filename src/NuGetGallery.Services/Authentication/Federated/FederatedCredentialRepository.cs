@@ -116,7 +116,7 @@ namespace NuGetGallery.Services.Authentication
 
         public async Task DeleteScopesAsync(FederatedCredentialPolicy policy, bool saveChanges)
         {
-            if (policy.Scopes == null)
+            if (policy.Scopes == null || policy.Scopes.Count == 0)
             {
                 return;
             }

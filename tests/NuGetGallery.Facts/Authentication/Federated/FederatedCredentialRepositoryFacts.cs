@@ -200,6 +200,20 @@ namespace NuGetGallery.Services.Authentication
             }
 
             [Fact]
+            public async Task DeletesEmptyScopes()
+            {
+                // Arrange
+                Policies[0].Scopes = new List<Scope>();
+
+                // Act
+                await Target.DeleteScopesAsync(Policies[0], saveChanges: It.IsAny<bool>());
+
+                // Assert
+                ScopeRepository.Verify(x => x.DeleteOnCommit(It.IsAny<Scope>()), Times.Never);
+                ScopeRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
+            }
+
+            [Fact]
             public async Task DeletesScopes()
             {
                 // Arrange
