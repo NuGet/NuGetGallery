@@ -2,6 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <OutputType>Exe</OutputType>
+    <PackageVersion Condition="'$(PackageVersion)' == ''">$(GalleryPackageVersion)</PackageVersion>
   </PropertyGroup>
   <PropertyGroup>
     <Description>Database migration tools for NuGet Gallery/Support Requests/Validation databases</Description>
