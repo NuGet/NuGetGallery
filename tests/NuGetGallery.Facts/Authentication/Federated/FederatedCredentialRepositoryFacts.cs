@@ -188,22 +188,13 @@ namespace NuGetGallery.Services.Authentication
 
         public class TheDeleteScopesAsyncMethod : FederatedCredentialRepositoryFacts
         {
-            [Fact]
-            public async Task DeletesNullScopes()
-            {
-                // Act
-                await Target.DeleteScopesAsync(Policies[0], saveChanges: It.IsAny<bool>());
-
-                // Assert
-                ScopeRepository.Verify(x => x.DeleteOnCommit(It.IsAny<Scope>()), Times.Never);
-                ScopeRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
-            }
-
-            [Fact]
-            public async Task DeletesEmptyScopes()
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task DeletesNullOrEmptyScopes(bool isNull)
             {
                 // Arrange
-                Policies[0].Scopes = new List<Scope>();
+                Policies[0].Scopes = isNull ? null : new List<Scope>();
 
                 // Act
                 await Target.DeleteScopesAsync(Policies[0], saveChanges: It.IsAny<bool>());
