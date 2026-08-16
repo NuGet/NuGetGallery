@@ -63,6 +63,13 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         // ID-level (package registration) query. Unlike the version-level subquery above, this
         // returns a single row per package registration and carries only registration-scoped
         // sponsorship metadata.
+        //
+        // The EXISTS filter restricts results to registrations that have at least one available
+        // (validated) version. A registration index only exists in V3 once a version is available,
+        // so emitting an ID-level catalog leaf before then would be dropped by the consumer. When a
+        // package becomes available its RegistrationLastEdited is re-stamped (see
+        // CorePackageService.UpdatePackageStatusAsync), so the ID-level leaf is re-emitted at a point
+        // when the registration index exists and the attribute can be applied.
         // insertions are:
         // {0} - RegistrationLastEdited column name (cursor column)
         private static readonly string Db2CatalogRegistrationsChangedSqlQuery = @"SELECT TOP (@" + TopParameterName + @") WITH TIES
@@ -71,6 +78,11 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                 PR.[{0}] AS '" + Db2CatalogProjectionColumnNames.RegistrationLastEdited + @"'
             FROM [dbo].[PackageRegistrations] AS PR
             WHERE PR.[{0}] > @" + CursorParameterName + @"
+                AND EXISTS (
+                    SELECT 1
+                    FROM [dbo].[Packages] AS P
+                    WHERE P.[PackageRegistrationKey] = PR.[Key]
+                        AND P.[PackageStatusKey] = 0)
             ORDER BY PR.[{0}]";
 
         private readonly ISqlConnectionFactory _connectionFactory;

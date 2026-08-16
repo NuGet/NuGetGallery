@@ -91,6 +91,16 @@ namespace NuGetGallery
                 if (newPackageStatus == PackageStatus.Available)
                 {
                     package.LastEdited = DateTime.UtcNow;
+
+                    // If the registration has ID-level metadata (indicated by a non-null RegistrationLastEdited),
+                    // re-stamp it now that a version is available. ID-level catalog leaves (e.g. sponsorship) are
+                    // dropped by the consumer if the registration index does not yet exist. An edit made while the
+                    // package was still validating emitted a leaf that was dropped; re-stamping on availability
+                    // re-emits the leaf at a point when the registration index exists so the attribute is applied.
+                    if (package.PackageRegistration.RegistrationLastEdited != null)
+                    {
+                        package.PackageRegistration.RegistrationLastEdited = DateTime.UtcNow;
+                    }
                 }
 
                 // If the package is just now becoming available or if it was previously a latest package, then

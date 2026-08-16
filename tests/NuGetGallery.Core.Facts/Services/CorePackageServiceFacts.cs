@@ -281,6 +281,84 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task ReStampsRegistrationLastEditedWhenBecomingAvailableAndRegistrationHasIdLevelMetadata()
+            {
+                // Arrange
+                var originalRegistrationLastEdited = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                var service = CreateService();
+                var package = new Package
+                {
+                    Version = "1.0.0",
+                    PackageStatusKey = PackageStatus.Validating,
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Packages = new List<Package>(),
+                        RegistrationLastEdited = originalRegistrationLastEdited,
+                    },
+                    SemVerLevelKey = SemVerLevelKey.Unknown,
+                };
+                package.PackageRegistration.Packages.Add(package);
+
+                // Act
+                var before = DateTime.UtcNow;
+                await service.UpdatePackageStatusAsync(package, PackageStatus.Available);
+                var after = DateTime.UtcNow;
+
+                // Assert
+                Assert.NotNull(package.PackageRegistration.RegistrationLastEdited);
+                Assert.InRange(package.PackageRegistration.RegistrationLastEdited.Value, before, after);
+            }
+
+            [Fact]
+            public async Task DoesNotStampRegistrationLastEditedWhenBecomingAvailableAndRegistrationHasNoIdLevelMetadata()
+            {
+                // Arrange
+                var service = CreateService();
+                var package = new Package
+                {
+                    Version = "1.0.0",
+                    PackageStatusKey = PackageStatus.Validating,
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Packages = new List<Package>(),
+                        RegistrationLastEdited = null,
+                    },
+                    SemVerLevelKey = SemVerLevelKey.Unknown,
+                };
+                package.PackageRegistration.Packages.Add(package);
+
+                // Act
+                await service.UpdatePackageStatusAsync(package, PackageStatus.Available);
+
+                // Assert
+                Assert.Null(package.PackageRegistration.RegistrationLastEdited);
+            }
+
+            [Fact]
+            public async Task DoesNotStampRegistrationLastEditedWhenBecomingUnavailable()
+            {
+                // Arrange
+                var originalRegistrationLastEdited = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                var service = CreateService();
+                var package = new Package
+                {
+                    PackageStatusKey = PackageStatus.Available,
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Packages = new List<Package>(),
+                        RegistrationLastEdited = originalRegistrationLastEdited,
+                    },
+                };
+                package.PackageRegistration.Packages.Add(package);
+
+                // Act
+                await service.UpdatePackageStatusAsync(package, PackageStatus.Deleted);
+
+                // Assert
+                Assert.Equal(originalRegistrationLastEdited, package.PackageRegistration.RegistrationLastEdited);
+            }
+
+            [Fact]
             public async Task DoesNotUpdateLatestPropertiesWhenNoLatestAndNotBecomingAvailable()
             {
                 // Arrange

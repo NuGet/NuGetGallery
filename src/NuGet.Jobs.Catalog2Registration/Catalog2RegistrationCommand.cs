@@ -117,12 +117,10 @@ namespace NuGet.Jobs.Catalog2Registration
             // Run the ID-level (package registration scoped) collector on its own cursor. This consumes the
             // version-less catalog leaves (e.g. sponsorship) that the version-level collector intentionally skips.
             //
-            // Unlike the version-level collector, this lane uses its own back cursor that always points at the latest
-            // catalog information (MemoryCursor.CreateMax) rather than the flat container dependency cursor. ID-level
-            // attributes such as sponsorship URLs do not reference flat container package content, so this lane has no
-            // dependency on the flat container cursor. Sharing the version-level back cursor would incorrectly gate
-            // ID-level attribute updates behind unrelated version-level package activity, which can stall these updates
-            // indefinitely on a quiet feed.
+            // The registration index is guaranteed to already exist by the time this lane
+            // sees an ID-level leaf: db2catalog only emits the leaf once the registration has an available version, and
+            // re-emits it when a package becomes available, so in catalog time the version-level leaf always precedes
+            // the ID-level leaf.
             var registrationLevelBackCursor = MemoryCursor.CreateMax();
             await registrationLevelBackCursor.LoadAsync(token);
 

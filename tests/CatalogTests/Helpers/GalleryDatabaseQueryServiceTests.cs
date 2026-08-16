@@ -141,10 +141,26 @@ namespace CatalogTests.Helpers
                 var queryString = GalleryDatabaseQueryService.BuildRegistrationsChangedSqlQuery(cursor);
 
                 Assert.Contains("FROM [dbo].[PackageRegistrations] AS PR", queryString);
-                // ID-level query returns one row per registration: it must not join the version-level
+                // ID-level query returns one row per registration: it must not JOIN the version-level
                 // Packages table or the vulnerability tables (which would amplify to one row per version).
-                Assert.DoesNotContain("[dbo].[Packages]", queryString);
+                // The Packages table may only be referenced in a non-amplifying EXISTS subquery.
+                Assert.DoesNotContain("JOIN [dbo].[Packages]", queryString);
                 Assert.DoesNotContain("VulnerablePackage", queryString);
+            }
+
+            [Fact]
+            public void OnlyConsidersRegistrationsWithAnAvailableVersion()
+            {
+                var cursor = Db2CatalogCursor.ByRegistrationLastEdited(DateTime.UtcNow, 10);
+
+                var queryString = GalleryDatabaseQueryService.BuildRegistrationsChangedSqlQuery(cursor);
+
+                // Only emit ID-level leaves for registrations that have at least one available version, so the
+                // registration index exists in V3 by the time the ID-level attribute is applied.
+                Assert.Contains("EXISTS (", queryString);
+                Assert.Contains("FROM [dbo].[Packages] AS P", queryString);
+                Assert.Contains("WHERE P.[PackageRegistrationKey] = PR.[Key]", queryString);
+                Assert.Contains($"AND P.[PackageStatusKey] = {(int)PackageStatus.Available}", queryString);
             }
 
             [Fact]
