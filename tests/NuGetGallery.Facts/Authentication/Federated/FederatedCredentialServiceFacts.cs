@@ -1273,19 +1273,61 @@ namespace NuGetGallery.Services.Authentication
 
         public class TheIsValidPolicyOwnerForScopesMethod : FederatedCredentialServiceFacts
         {
+            public static IEnumerable<object[]> Scopes_Data
+            {
+                get
+                {
+                    yield return new object[] { null, true };
+                    yield return new object[] { null, false };
+                    yield return new object[] { new List<Scope>(), true };
+                    yield return new object[] { new List<Scope>(), false };
+                }
+            }
+
             [Theory]
-            [InlineData(true, true)]
-            [InlineData(true, false)]
-            [InlineData(false, true)]
-            [InlineData(false, false)]
-            public void ReturnsIsValidPolicyOwnerForScopes(bool isNullScopes, bool isValidScope)
+            [MemberData(nameof(Scopes_Data))]
+            public void ReturnsIsValidPolicyOwnerForNullOrEmptyScopes(IEnumerable<Scope>? scopes, bool isValidScope)
             {
                 // Arrange
-                IEnumerable<Scope>? scopes = isNullScopes ? null : [ new Scope() ];
-                CredentialBuilder.Setup(x => x.VerifyScopes(CurrentUser, It.IsAny<IEnumerable<Scope>>())).Returns(isValidScope);
+                IEnumerable<Scope>? passedScopes = null;
+                CredentialBuilder.Setup(x => x.VerifyScopes(CurrentUser, It.IsAny<IEnumerable<Scope>>()))
+                    .Callback((User currentUser, IEnumerable<Scope> scopes) => { passedScopes = scopes; })
+                    .Returns(isValidScope);
 
                 // Act & Assert
                 Assert.Equal(isValidScope, Target.IsValidPolicyOwnerForScopes(CurrentUser, PackageOwner, scopes));
+                Assert.NotNull(passedScopes);
+                IList<Scope> passedScopesList = passedScopes.ToList();
+                Assert.Single(passedScopesList);
+                Assert.Equal(PackageOwner, passedScopesList[0].Owner);
+                Assert.Equal(NuGetPackagePattern.AllInclusivePattern, passedScopesList[0].Subject);
+                Assert.Equal(NuGetScopes.All, passedScopesList[0].AllowedAction);
+
+                CredentialBuilder.Verify(x => x.VerifyScopes(CurrentUser, It.IsAny<IEnumerable<Scope>>()), Times.Once);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public void ReturnsIsValidPolicyOwnerForScopes(bool isValidScope)
+            {
+                // Arrange
+                IEnumerable<Scope>? passedScopes = null;
+                CredentialBuilder.Setup(x => x.VerifyScopes(CurrentUser, It.IsAny<IEnumerable<Scope>>()))
+                    .Callback((User currentUser, IEnumerable<Scope> scopes) => { passedScopes = scopes; })
+                    .Returns(isValidScope);
+
+                // Act & Assert
+                Assert.Equal(isValidScope, Target.IsValidPolicyOwnerForScopes(CurrentUser, PackageOwner,
+                    new List<Scope> { new Scope(PackageOwner, subject: "policySubject1", allowedAction: NuGetScopes.PackagePush) }));
+                Assert.NotNull(passedScopes);
+                IList<Scope> passedScopesList = passedScopes.ToList();
+                Assert.Single(passedScopesList);
+                Assert.Equal(PackageOwner, passedScopesList[0].Owner);
+                Assert.Equal("policySubject1", passedScopesList[0].Subject);
+                Assert.Equal(NuGetScopes.PackagePush, passedScopesList[0].AllowedAction);
+
+                CredentialBuilder.Verify(x => x.VerifyScopes(CurrentUser, It.IsAny<IEnumerable<Scope>>()), Times.Once);
             }
         }
 
