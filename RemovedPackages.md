@@ -257,6 +257,7 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    DIP.Api 99.0.0                            |    08/11/2026    |   Malware  |
 |    DIP.IoC 99.0.0                            |    08/11/2026    |   Malware  |
 |    DIP.Infrastructure 99.0.0                 |    08/11/2026    |   Malware  |
+|    GLV.Shared.Server.Data 1.3.2607.2322      |    08/17/2026    |   Malware  |
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.
