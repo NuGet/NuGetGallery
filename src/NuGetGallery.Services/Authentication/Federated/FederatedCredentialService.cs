@@ -358,7 +358,7 @@ namespace NuGetGallery.Services.Authentication
 
         public bool IsValidPolicyOwnerForScopes(User user, User packageOwner, IEnumerable<Scope>? scopes)
         {
-            if (scopes == null || scopes.Count() == 0)
+            if (scopes == null || !scopes.Any())
             {
                 scopes = [ new Scope(packageOwner, subject: NuGetPackagePattern.AllInclusivePattern, allowedAction: NuGetScopes.All) ];
             }
