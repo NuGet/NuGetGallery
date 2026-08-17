@@ -1292,7 +1292,7 @@ namespace NuGetGallery.Services.Authentication
                 IEnumerable<Scope>? passedScopes = null;
                 CredentialBuilder.Setup(x => x.VerifyScopes(CurrentUser, It.IsAny<IEnumerable<Scope>>()))
                     .Callback((User currentUser, IEnumerable<Scope> scopes) => { passedScopes = scopes; })
-                    .Returns(isValidScope); 
+                    .Returns(isValidScope);
 
                 // Act & Assert
                 Assert.Equal(isValidScope, Target.IsValidPolicyOwnerForScopes(CurrentUser, PackageOwner, scopes));
