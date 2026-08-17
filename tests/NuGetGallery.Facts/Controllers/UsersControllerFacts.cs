@@ -857,6 +857,89 @@ namespace NuGetGallery
                 Assert.Equal(expectedExpirationInDays, TimeSpan.FromTicks(apiKey.ExpirationTicks.Value).Days);
             }
 
+            [InlineData(1)]
+            [InlineData(8)]
+            [InlineData(30)]
+            [Theory]
+            public async Task WhenExpirationRestrictionFlagIsEnabled_AllowedExpirations_ReturnsSuccess(int expirationInDays)
+            {
+                // Arrange
+                var user = new User("the-username");
+
+                var configurationService = GetConfigurationService();
+                configurationService.Current.ExpirationInDaysForApiKeyV1 = 365;
+
+                GetMock<IFeatureFlagService>()
+                    .Setup(f => f.IsApiKeyExpirationRestricted())
+                    .Returns(true);
+
+                GetMock<AuthenticationService>()
+                    .Setup(u => u.AddCredential(It.IsAny<User>(), It.IsAny<Credential>()))
+                    .Callback<User, Credential>((u, c) =>
+                    {
+                        u.Credentials.Add(c);
+                        c.User = u;
+                    })
+                    .Completes()
+                    .Verifiable();
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername(user.Username, false))
+                    .Returns(user);
+
+                // Act
+                var result = await controller.GenerateApiKey(
+                    description: "my new api key",
+                    owner: user.Username,
+                    scopes: new[] { NuGetScopes.PackageUnlist },
+                    subjects: null,
+                    expirationInDays: expirationInDays);
+
+                // Assert
+                var apiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKey.V4);
+                Assert.NotNull(apiKey);
+                Assert.Equal(expirationInDays, TimeSpan.FromTicks(apiKey.ExpirationTicks.Value).Days);
+            }
+
+            [InlineData(7)]
+            [InlineData(15)]
+            [InlineData(90)]
+            [InlineData(365)]
+            [Theory]
+            public async Task WhenExpirationRestrictionFlagIsEnabled_DisallowedExpirations_ReturnsBadRequest(int expirationInDays)
+            {
+                // Arrange
+                var user = new User("the-username");
+
+                var configurationService = GetConfigurationService();
+                configurationService.Current.ExpirationInDaysForApiKeyV1 = 365;
+
+                GetMock<IFeatureFlagService>()
+                    .Setup(f => f.IsApiKeyExpirationRestricted())
+                    .Returns(true);
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername(user.Username, false))
+                    .Returns(user);
+
+                // Act
+                var result = await controller.GenerateApiKey(
+                    description: "my new api key",
+                    owner: user.Username,
+                    scopes: new[] { NuGetScopes.PackageUnlist },
+                    subjects: null,
+                    expirationInDays: expirationInDays);
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+                var jsonResult = Assert.IsType<JsonResult>(result);
+                Assert.Equal(Strings.ApiKeyExpirationNotAllowed, jsonResult.Data);
+            }
+
             public static IEnumerable<object[]> CreatesNewApiKeyCredential_Input
             {
                 get

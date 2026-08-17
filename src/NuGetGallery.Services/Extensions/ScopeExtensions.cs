@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -85,7 +85,39 @@ namespace NuGetGallery
                 .Distinct()
                 .SingleOrDefault();
         }
-        
+
+        public static bool HaveEqualScopesWithSameAllowedActionAndSubject(this IEnumerable<Scope> scopes1, IEnumerable<Scope> scopes2)
+        {
+            if (scopes1 == null && scopes2 == null)
+            {
+                return true;
+            }
+
+            if (scopes1 == null || scopes2 == null)
+            {
+                return false;
+            }
+
+            var s1 = scopes1.OrderBy(s => s.AllowedAction).ThenBy(s => s.Subject).ToList();
+            var s2 = scopes2.OrderBy(s => s.AllowedAction).ThenBy(s => s.Subject).ToList();
+
+            if (s1.Count != s2.Count)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < s1.Count; i++)
+            {
+                if (!string.Equals(s1[i].AllowedAction, s2[i].AllowedAction, StringComparison.Ordinal) ||
+                    !string.Equals(s1[i].Subject, s2[i].Subject, StringComparison.Ordinal))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         private static bool AllowsAction(this Scope scope, string requestedAction)
         {
             if (scope == null)

@@ -23,6 +23,7 @@ namespace NuGetGallery.Services.Authentication
         IReadOnlyList<Credential> GetShortLivedApiKeysForPolicy(int policyKey);
         IReadOnlyList<FederatedCredentialPolicy> GetPoliciesRelatedToUserKeys(IReadOnlyList<int> userKeys);
         Task DeletePolicyAsync(FederatedCredentialPolicy policy, bool saveChanges);
+        Task DeleteScopesAsync(FederatedCredentialPolicy policy, bool saveChanges);
     }
 
     public class FederatedCredentialRepository : IFederatedCredentialRepository
@@ -30,15 +31,18 @@ namespace NuGetGallery.Services.Authentication
         private readonly IEntityRepository<FederatedCredentialPolicy> _policyRepository;
         private readonly IEntityRepository<FederatedCredential> _federatedCredentialRepository;
         private readonly IEntityRepository<Credential> _credentialRepository;
+        private readonly IEntityRepository<Scope> _scopeRepository;
 
         public FederatedCredentialRepository(
             IEntityRepository<FederatedCredentialPolicy> policyRepository,
             IEntityRepository<FederatedCredential> federatedCredentialRepository,
-            IEntityRepository<Credential> credentialRepository)
+            IEntityRepository<Credential> credentialRepository,
+            IEntityRepository<Scope> scopeRepository)
         {
             _policyRepository = policyRepository;
             _federatedCredentialRepository = federatedCredentialRepository;
             _credentialRepository = credentialRepository;
+            _scopeRepository = scopeRepository;
         }
 
         public IReadOnlyList<FederatedCredentialPolicy> GetPoliciesCreatedByUser(int userKey)
@@ -107,6 +111,24 @@ namespace NuGetGallery.Services.Authentication
             if (saveChanges)
             {
                 await _policyRepository.CommitChangesAsync();
+            }
+        }
+
+        public async Task DeleteScopesAsync(FederatedCredentialPolicy policy, bool saveChanges)
+        {
+            if (policy.Scopes == null)
+            {
+                return;
+            }
+
+            foreach (var scope in policy.Scopes.ToList())
+            {
+                _scopeRepository.DeleteOnCommit(scope);
+            }
+
+            if (saveChanges)
+            {
+                await _scopeRepository.CommitChangesAsync();
             }
         }
     }
