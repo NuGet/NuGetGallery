@@ -116,6 +116,11 @@ namespace NuGet.Jobs.Catalog2Registration
                 Collector.Verify(
                     x => x.RunAsync(It.IsAny<DurableCursor>(), It.IsAny<AggregateCursor>(), It.IsAny<CancellationToken>()),
                     Times.Once);
+                // The ID-level lane must be bounded by the SAME back (dependency) cursor as the version-level lane so
+                // it never runs ahead of the version index it depends on.
+                RegistrationLevelCollector.Verify(
+                    x => x.RunAsync(It.IsAny<DurableCursor>(), It.IsAny<AggregateCursor>(), It.IsAny<CancellationToken>()),
+                    Times.Once);
             }
         }
 

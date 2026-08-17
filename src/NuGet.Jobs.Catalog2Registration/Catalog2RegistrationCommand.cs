@@ -117,13 +117,14 @@ namespace NuGet.Jobs.Catalog2Registration
             // Run the ID-level (package registration scoped) collector on its own cursor. This consumes the
             // version-less catalog leaves (e.g. sponsorship) that the version-level collector intentionally skips.
             //
-            // The registration index is guaranteed to already exist by the time this lane
-            // sees an ID-level leaf: db2catalog only emits the leaf once the registration has an available version, and
-            // re-emits it when a package becomes available, so in catalog time the version-level leaf always precedes
-            // the ID-level leaf.
-            var registrationLevelBackCursor = MemoryCursor.CreateMax();
-            await registrationLevelBackCursor.LoadAsync(token);
-
+            // The ID-level lane reuses the SAME back cursor the version-level lane just ran against. Because
+            // the version-level lane above was fully awaited up to backCursor.Value before this line, every version
+            // index for commits <= backCursor.Value has already been built. db2catalog only emits the ID-level leaf
+            // once the registration has an available version (and re-emits it when a package becomes available), so in
+            // catalog time the version-level leaf always precedes the ID-level leaf. Bounding the ID-level lane by the
+            // same back cursor therefore guarantees the registration index exists before an ID-level leaf is stamped,
+            // avoiding the race where RegistrationLevelUpdater skips (and permanently drops) a leaf whose index has not
+            // been built yet.
             var registrationLevelFrontCursorUri = frontCursorStorage.ResolveUri(RegistrationLevelCursorRelativeUri);
             var registrationLevelFrontCursor = new DurableCursor(registrationLevelFrontCursorUri, frontCursorStorage, RegistrationLevelCursorDefaultValue);
             await registrationLevelFrontCursor.LoadAsync(token);
@@ -131,11 +132,11 @@ namespace NuGet.Jobs.Catalog2Registration
                 "Running the ID-level attribute collector using cursor: {CursorUrl}. Front: {FrontCursor}. Back: {BackCursor}.",
                 registrationLevelFrontCursorUri.AbsoluteUri,
                 registrationLevelFrontCursor.Value,
-                registrationLevelBackCursor.Value);
+                backCursor.Value);
 
             await _registrationLevelCollector.RunAsync(
                 registrationLevelFrontCursor,
-                registrationLevelBackCursor,
+                backCursor,
                 token);
         }
 
