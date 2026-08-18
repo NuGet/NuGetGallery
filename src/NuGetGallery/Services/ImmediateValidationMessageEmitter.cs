@@ -22,6 +22,11 @@ namespace NuGetGallery
             return Task.FromResult(PackageStatus.Available);
         }
 
+        public Task<bool> StartValidationAsync(TPackageEntity package, Guid validationTrackingId)
+        {
+            return Task.FromResult(false);
+        }
+
         public Task<PackageStatus> FailValidationAsync(TPackageEntity package, Guid validationTrackingId)
         {
             return Task.FromResult(PackageStatus.FailedValidation);

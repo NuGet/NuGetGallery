@@ -8,6 +8,12 @@ namespace NuGetGallery
 {
     public interface IStagingBlobService
     {
-        Task<string> SavePackageFileAsync(string packageId, string normalizedVersion, Stream packageFile);
+        Task<StagingFileReference> SavePackageFileAsync(string packageId, string normalizedVersion, Stream packageFile);
+
+        Task CopyStagedPackageToValidationSetAsync(
+            string packagePath,
+            string packageETag,
+            ICloudBlobClient validationStorageClient,
+            string validationSetPackageFileName);
     }
 }

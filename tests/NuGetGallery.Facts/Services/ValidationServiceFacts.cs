@@ -310,6 +310,39 @@ namespace NuGetGallery
 
         public class TheGetLatestValidationIssuesMethod : FactsBase
         {
+            [Fact]
+            public void GetsIssuesForExactValidationTrackingId()
+            {
+                var validationTrackingId = Guid.NewGuid();
+                var validationSet = new PackageValidationSet
+                {
+                    ValidationTrackingId = validationTrackingId,
+                    PackageValidations = new[]
+                    {
+                        new PackageValidation
+                        {
+                            ValidationStatus = ValidationStatus.Failed,
+                            PackageValidationIssues = new[]
+                            {
+                                new PackageValidationIssue
+                                {
+                                    IssueCode = ValidationIssueCode.PackageIsZip64,
+                                    Data = ValidationIssue.PackageIsZip64.Serialize(),
+                                },
+                            },
+                        },
+                    },
+                };
+                _validationSets
+                    .Setup(x => x.GetAll())
+                    .Returns(new[] { validationSet }.AsQueryable());
+
+                var issues = _target.GetPackageValidationIssues(validationTrackingId);
+
+                var issue = Assert.Single(issues);
+                Assert.Equal(ValidationIssueCode.PackageIsZip64, issue.IssueCode);
+            }
+
             [Theory]
             [InlineData(PackageStatus.Available)]
             [InlineData(PackageStatus.Deleted)]

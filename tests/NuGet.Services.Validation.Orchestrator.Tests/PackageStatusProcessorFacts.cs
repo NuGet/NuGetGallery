@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -33,7 +35,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                         SasDefinitionConfigurationMock.Object,
                         LoggerMock.Object,
                         null,
-                        CoreReadmeFileServiceMock.Object));
+                        CoreReadmeFileServiceMock.Object,
+                        EntitiesContextMock.Object,
+                        StagingBlobServiceMock.Object));
 
                 Assert.Equal("coreLicenseFileService", ex.ParamName);
             }
@@ -49,7 +53,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     null,
                     LoggerMock.Object,
                     CoreLicenseFileServiceMock.Object,
-                    CoreReadmeFileServiceMock.Object);
+                    CoreReadmeFileServiceMock.Object,
+                    EntitiesContextMock.Object,
+                    StagingBlobServiceMock.Object);
             }
 
             [Fact]
@@ -66,7 +72,149 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     SasDefinitionConfigurationMock.Object,
                     LoggerMock.Object,
                     CoreLicenseFileServiceMock.Object,
-                    CoreReadmeFileServiceMock.Object);
+                    CoreReadmeFileServiceMock.Object,
+                    EntitiesContextMock.Object,
+                    StagingBlobServiceMock.Object);
+            }
+        }
+
+        public class SetStagedValidationStatusAsync : BaseFacts
+        {
+            [Fact]
+            public async Task MarksCurrentStagedPackageReadyWithoutPublishing()
+            {
+                Package.Key = 42;
+                Package.PackageRegistration.Id = "PackageA";
+                Package.NormalizedVersion = "1.0.0";
+                Package.PackageStatusKey = PackageStatus.Staged;
+                ValidationSet.PackageId = Package.PackageRegistration.Id;
+                ValidationSet.PackageNormalizedVersion = Package.NormalizedVersion;
+                ValidationSet.ValidationTrackingId = Guid.NewGuid();
+                ValidationSet.PackageETag = "\"original-etag\"";
+                var stagedPackage = new StagedPackage
+                {
+                    PackageKey = Package.Key,
+                    BlobETag = ValidationSet.PackageETag,
+                    ValidationTrackingId = ValidationSet.ValidationTrackingId,
+                    Status = StagedPackageStatus.Validating,
+                };
+                EntitiesContextMock
+                    .SetupGet(x => x.StagedPackages)
+                    .Returns(CreateStagedPackageSet(stagedPackage));
+                EntitiesContextMock.Setup(x => x.SaveChangesAsync()).ReturnsAsync(1);
+                PackageFileServiceMock
+                    .Setup(x => x.DownloadValidationSetPackageFileAsync(ValidationSet, null))
+                    .ReturnsAsync(new MemoryStream(new byte[] { 1, 2, 3 }));
+                var processedFile = new StagingFileReference(
+                    "packagea/1.0.0/processed.nupkg",
+                    "\"processed-etag\"",
+                    3,
+                    "processed-hash");
+                StagingBlobServiceMock
+                    .Setup(x => x.SavePackageFileAsync(
+                        Package.PackageRegistration.Id,
+                        Package.NormalizedVersion,
+                        It.IsAny<Stream>()))
+                    .ReturnsAsync(processedFile);
+
+                await Target.SetStagedValidationStatusAsync(
+                    new PackageValidatingEntity(Package),
+                    ValidationSet,
+                    StagingArtifactStatus.Ready);
+
+                Assert.Equal(StagedPackageStatus.Ready, stagedPackage.Status);
+                Assert.Equal(processedFile.Path, stagedPackage.BlobPath);
+                PackageServiceMock.Verify(x => x.UpdateMetadataAsync(
+                    Package,
+                    It.Is<PackageStreamMetadata>(metadata =>
+                        metadata.Hash == processedFile.ContentHash &&
+                        metadata.Size == processedFile.Length),
+                    false));
+                PackageServiceMock.Verify(
+                    x => x.UpdateStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), It.IsAny<bool>()),
+                    Times.Never);
+            }
+
+            [Fact]
+            public async Task MarksCurrentStagedPackageValidationFailedWithoutChangingPackageStatus()
+            {
+                Package.Key = 42;
+                Package.PackageStatusKey = PackageStatus.Staged;
+                ValidationSet.ValidationTrackingId = Guid.NewGuid();
+                ValidationSet.PackageETag = "\"etag\"";
+                var stagedPackage = new StagedPackage
+                {
+                    PackageKey = Package.Key,
+                    BlobETag = ValidationSet.PackageETag,
+                    ValidationTrackingId = ValidationSet.ValidationTrackingId,
+                    Status = StagedPackageStatus.Validating,
+                };
+                EntitiesContextMock
+                    .SetupGet(x => x.StagedPackages)
+                    .Returns(CreateStagedPackageSet(stagedPackage));
+                EntitiesContextMock.Setup(x => x.SaveChangesAsync()).ReturnsAsync(1);
+
+                await Target.SetStagedValidationStatusAsync(
+                    new PackageValidatingEntity(Package),
+                    ValidationSet,
+                    StagingArtifactStatus.ValidationFailed);
+
+                Assert.Equal(StagedPackageStatus.ValidationFailed, stagedPackage.Status);
+                PackageServiceMock.Verify(
+                    x => x.UpdateStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), It.IsAny<bool>()),
+                    Times.Never);
+            }
+
+            [Theory]
+            [InlineData(true, false, false)]
+            [InlineData(false, true, false)]
+            [InlineData(false, false, true)]
+            public async Task IgnoresStagedValidationOutcomeWhenSourceDoesNotMatch(
+                bool packageKeyDoesNotMatch,
+                bool validationTrackingIdDoesNotMatch,
+                bool blobETagDoesNotMatch)
+            {
+                Package.Key = 42;
+                Package.PackageStatusKey = PackageStatus.Staged;
+                ValidationSet.ValidationTrackingId = Guid.NewGuid();
+                ValidationSet.PackageETag = "\"old-etag\"";
+                EntitiesContextMock
+                    .SetupGet(x => x.StagedPackages)
+                    .Returns(CreateStagedPackageSet(new StagedPackage
+                    {
+                        PackageKey = packageKeyDoesNotMatch ? Package.Key + 1 : Package.Key,
+                        BlobETag = blobETagDoesNotMatch ? "\"current-etag\"" : ValidationSet.PackageETag,
+                        ValidationTrackingId = validationTrackingIdDoesNotMatch ? Guid.NewGuid() : ValidationSet.ValidationTrackingId,
+                    }));
+
+                await Target.SetStagedValidationStatusAsync(
+                    new PackageValidatingEntity(Package),
+                    ValidationSet,
+                    StagingArtifactStatus.Ready);
+
+                PackageFileServiceMock.Verify(
+                    x => x.DownloadValidationSetPackageFileAsync(
+                        It.IsAny<PackageValidationSet>(),
+                        It.IsAny<string>()),
+                    Times.Never);
+                StagingBlobServiceMock.Verify(
+                    x => x.SavePackageFileAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<Stream>()),
+                    Times.Never);
+                EntitiesContextMock.Verify(x => x.SaveChangesAsync(), Times.Never);
+            }
+
+            private static DbSet<StagedPackage> CreateStagedPackageSet(params StagedPackage[] stagedPackages)
+            {
+                var query = stagedPackages.AsQueryable();
+                var set = new Mock<DbSet<StagedPackage>>();
+                set.As<IQueryable<StagedPackage>>().Setup(x => x.Provider).Returns(query.Provider);
+                set.As<IQueryable<StagedPackage>>().Setup(x => x.Expression).Returns(query.Expression);
+                set.As<IQueryable<StagedPackage>>().Setup(x => x.ElementType).Returns(query.ElementType);
+                set.As<IQueryable<StagedPackage>>().Setup(x => x.GetEnumerator()).Returns(() => query.GetEnumerator());
+                return set.Object;
             }
         }
 
@@ -96,6 +244,20 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
                 Assert.Equal("validatingEntity", ex.ParamName);
                 Assert.Contains("A package in the Deleted state cannot be processed.", ex.Message);
+            }
+
+            [Theory]
+            [InlineData(PackageStatus.Available)]
+            [InlineData(PackageStatus.FailedValidation)]
+            public async Task RejectsOrdinaryStatusChangeForStagedPackage(PackageStatus packageStatus)
+            {
+                Package.PackageStatusKey = PackageStatus.Staged;
+
+                var ex = await Assert.ThrowsAsync<ArgumentException>(
+                    () => Target.SetStatusAsync(PackageValidatingEntity, ValidationSet, packageStatus));
+
+                Assert.Equal("validatingEntity", ex.ParamName);
+                Assert.Contains("must be handled by SetStagedValidationStatusAsync", ex.Message);
             }
 
             [Fact]
@@ -739,6 +901,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 LoggerMock = new Mock<ILogger<EntityStatusProcessor<Package>>>();
                 CoreLicenseFileServiceMock = new Mock<ICoreLicenseFileService>();
                 CoreReadmeFileServiceMock = new Mock<ICoreReadmeFileService>();
+                EntitiesContextMock = new Mock<IEntitiesContext>();
+                StagingBlobServiceMock = new Mock<IStagingBlobService>();
 
                 var streamMetadata = new PackageStreamMetadata()
                 {
@@ -762,7 +926,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     SasDefinitionConfigurationMock.Object,
                     LoggerMock.Object,
                     CoreLicenseFileServiceMock.Object,
-                    CoreReadmeFileServiceMock.Object);
+                    CoreReadmeFileServiceMock.Object,
+                    EntitiesContextMock.Object,
+                    StagingBlobServiceMock.Object);
 
                 PackageValidatingEntity = new PackageValidatingEntity(Package);
             }
@@ -778,6 +944,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             public Mock<IOptionsSnapshot<SasDefinitionConfiguration>> SasDefinitionConfigurationMock;
 
             public Mock<ICoreReadmeFileService> CoreReadmeFileServiceMock { get; }
+            public Mock<IEntitiesContext> EntitiesContextMock { get; }
+            public Mock<IStagingBlobService> StagingBlobServiceMock { get; }
             public EntityStatusProcessor<Package> Target { get; }
             public PackageValidatingEntity PackageValidatingEntity { get; }
             public SasDefinitionConfiguration SasDefinitionConfiguration { get; }

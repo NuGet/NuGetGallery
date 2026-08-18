@@ -38,6 +38,8 @@ namespace NuGetGallery
         /// is the <see cref="PackageStatus"/> that should be applied to the package.</returns>
         Task<PackageStatus> StartValidationAsync(TPackageEntity package);
 
+        Task<bool> StartValidationAsync(TPackageEntity package, Guid validationTrackingId);
+
         /// <summary>
         /// Forces the validation for the specified IPackageEntity to fail. This is typically used to move a package
         /// that is stuck in the <see cref="PackageStatus.Validating"/> state into the

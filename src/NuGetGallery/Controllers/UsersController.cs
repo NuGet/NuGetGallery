@@ -12,6 +12,7 @@ using System.Web;
 using System.Web.Mvc;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
+using NuGet.Services.Validation.Issues;
 using NuGet.Versioning;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.ViewModels;
@@ -40,6 +41,7 @@ namespace NuGetGallery
         private readonly IPackageVulnerabilitiesService _packageVulnerabilitiesService;
         private readonly IFederatedCredentialService _federatedCredentialService;
         private readonly IPackageStagingService _packageStagingService;
+        private readonly IValidationService _validationService;
 
         public UsersController(
             IUserService userService,
@@ -63,7 +65,8 @@ namespace NuGetGallery
             IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory,
             IFederatedCredentialService federatedCredentialService,
             IFederatedCredentialRepository federatedCredentialRepository,
-            IPackageStagingService packageStagingService)
+            IPackageStagingService packageStagingService,
+            IValidationService validationService)
             : base(
                   authService,
                   packageService,
@@ -88,6 +91,7 @@ namespace NuGetGallery
             _packageVulnerabilitiesService = packageVulnerabilitiesService ?? throw new ArgumentNullException(nameof(packageVulnerabilitiesService));
             _federatedCredentialService = federatedCredentialService ?? throw new ArgumentNullException(nameof(federatedCredentialService));
             _packageStagingService = packageStagingService ?? throw new ArgumentNullException(nameof(packageStagingService));
+            _validationService = validationService ?? throw new ArgumentNullException(nameof(validationService));
 
             _listPackageItemRequiredSignerViewModelFactory = new ListPackageItemRequiredSignerViewModelFactory(
                 securityPolicyService, iconUrlProvider, packageVulnerabilitiesService, frameworkCompatibilityFactory, featureFlagService);
@@ -585,11 +589,80 @@ namespace NuGetGallery
                     {
                         Id = stagedPackage.Package.PackageRegistration.Id,
                         Version = stagedPackage.Package.NormalizedVersion,
-                        Status = PackageStatus.Staged.ToString(),
+                        Status = stagedPackage.Status.ToString(),
                         Owner = stagedPackage.Owner.Username,
                         UploadedDate = stagedPackage.UploadedDate,
+                        ValidationIssues = stagedPackage.Status == StagedPackageStatus.ValidationFailed ? _validationService.GetPackageValidationIssues(stagedPackage.ValidationTrackingId) : [],
                     })
                     .ToList();
+
+                if (HttpContext.IsDebuggingEnabled)
+                {
+                    stagedPackages.AddRange(
+                    [
+                        new PackageStagingViewModel
+                        {
+                            Id = "Staging.Ui.Validating",
+                            Version = "1.0.0",
+                            Status = StagedPackageStatus.Validating.ToString(),
+                            Owner = currentUser.Username,
+                            UploadedDate = DateTime.UtcNow.AddMinutes(-15),
+                            ValidationIssues = [],
+                        },
+                        new PackageStagingViewModel
+                        {
+                            Id = "Staging.Ui.Ready",
+                            Version = "2.0.0",
+                            Status = StagedPackageStatus.Ready.ToString(),
+                            Owner = currentUser.Username,
+                            UploadedDate = DateTime.UtcNow.AddMinutes(-30),
+                            ValidationIssues = [],
+                        },
+                        new PackageStagingViewModel
+                        {
+                            Id = "Staging.Ui.ValidationFailed",
+                            Version = "3.0.0",
+                            Status = StagedPackageStatus.ValidationFailed.ToString(),
+                            Owner = currentUser.Username,
+                            UploadedDate = DateTime.UtcNow.AddMinutes(-45),
+                            ValidationIssues =
+                            [
+                                ValidationIssue.PackageIsSigned,
+                                ValidationIssue.Unknown,
+                            ],
+                        },
+                        new PackageStagingViewModel
+                        {
+                            Id = "Staging.Ui.AnotherFailure",
+                            Version = "4.0.0",
+                            Status = StagedPackageStatus.ValidationFailed.ToString(),
+                            Owner = currentUser.Username,
+                            UploadedDate = DateTime.UtcNow.AddHours(-2),
+                            ValidationIssues =
+                            [
+                                ValidationIssue.PackageIsSigned,
+                            ],
+                        },
+                        new PackageStagingViewModel
+                        {
+                            Id = "Staging.Ui." + new string('L', NuGet.Services.Entities.Constants.MaxPackageIdLength - "Staging.Ui.".Length),
+                            Version = "5.0.0",
+                            Status = StagedPackageStatus.Ready.ToString(),
+                            Owner = currentUser.Username,
+                            UploadedDate = DateTime.UtcNow.AddHours(-3),
+                            ValidationIssues = [],
+                        },
+                        new PackageStagingViewModel
+                        {
+                            Id = "Staging.Ui.LongOwnerAndVersion",
+                            Version = "1.0.0-" + new string('v', NuGet.Services.Entities.Constants.MaxPackageVersionLength - "1.0.0-".Length),
+                            Status = StagedPackageStatus.Ready.ToString(),
+                            Owner = new string('O', 64),
+                            UploadedDate = DateTime.UtcNow.AddHours(-4),
+                            ValidationIssues = [],
+                        },
+                    ]);
+                }
             }
 
             var model = new ManagePackagesViewModel

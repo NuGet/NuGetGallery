@@ -49,9 +49,153 @@
     margin-top: 5px;
   }
 
-  .staging-status {
+  .staging-status-staged {
     background-color: var(--statusGenericLavenderBackground2Rest);
     color: var(--statusGenericLavenderForeground2Rest);
+  }
+
+  .staging-status-validating {
+    background-color: var(--statusGenericBlueBackground2Rest);
+    color: var(--statusGenericBlueForeground2Rest);
+  }
+
+  .staging-status-ready {
+    background-color: var(--statusSuccessBackground1Rest);
+    color: var(--statusSuccessForeground1Rest);
+  }
+
+  .staging-status-validationfailed {
+    background-color: var(--statusDangerBackground1Rest);
+    color: var(--statusDangerForeground1Rest);
+  }
+
+  .staging-packages-table {
+    table-layout: fixed;
+
+    .staging-package-id-column {
+      width: 30%;
+    }
+
+    .staging-package-owner-column {
+      width: 20%;
+    }
+
+    .staging-package-version-column {
+      width: 18%;
+    }
+
+    .staging-package-status-column {
+      width: 17%;
+    }
+
+    .staging-package-uploaded-column {
+      width: 15%;
+    }
+
+    .staging-package-owner,
+    .staging-package-version {
+      .break-word;
+    }
+  }
+
+  .staging-status-content {
+    display: flex;
+    align-items: center;
+  }
+
+  .staging-validation-issues-toggle {
+    color: var(--neutralForeground1Rest);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    margin-left: 4px;
+    padding: 0 4px;
+
+    &:hover,
+    &:focus,
+    &:active {
+      color: var(--neutralForeground1Rest);
+    }
+
+    .ms-Icon {
+      font-size: 16px;
+    }
+  }
+
+  .staging-validation-modal {
+    align-items: center;
+
+    &.fade .modal-dialog,
+    &.fade.in .modal-dialog {
+      -webkit-transform: none;
+      -ms-transform: none;
+      -o-transform: none;
+      transform: none;
+      -webkit-transition: none;
+      -o-transition: none;
+      transition: none;
+    }
+
+    &.in,
+    &.staging-validation-modal-closing {
+      display: flex !important;
+    }
+
+    .modal-dialog {
+      margin: 10px auto;
+      width: calc(100% - 20px);
+
+      @media (min-width: @screen-sm-min) {
+        width: 600px;
+      }
+    }
+
+    .modal-content,
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+      background-color: var(--neutralBackground1Rest);
+      color: var(--neutralForeground1Rest);
+    }
+
+    .modal-content {
+      border: 1px solid var(--neutralStroke2Rest);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .modal-header {
+      border-bottom: 1px solid var(--neutralStroke2Rest);
+    }
+
+    .modal-footer {
+      border-top: 1px solid var(--neutralStroke2Rest);
+    }
+
+    .modal-title {
+      color: var(--neutralForeground1Rest);
+    }
+
+    .close {
+      color: var(--neutralForeground2Rest);
+      opacity: 0.8;
+
+      &:hover,
+      &:focus {
+        color: var(--neutralForeground2Hover);
+        opacity: 1;
+      }
+    }
+
+    .validation-issues {
+      margin-bottom: 0;
+      padding-left: 20px;
+
+      li + li {
+        margin-top: 12px;
+      }
+    }
   }
 
   .manage-package-listing {
@@ -88,4 +232,18 @@
     width: 100%;
     max-width: 90%;
   }
+}
+
+html.staging-validation-modal-open {
+  overflow-y: scroll !important;
+}
+
+html.staging-validation-modal-open body.modal-open {
+  overflow: visible;
+  padding-right: 0 !important;
+}
+
+html.staging-validation-modal-open .staging-validation-modal {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
 }

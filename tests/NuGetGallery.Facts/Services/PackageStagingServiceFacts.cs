@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -23,8 +24,10 @@ namespace NuGetGallery
     {
         public class TheStagePackageAsyncMethod
         {
-            [Fact]
-            public async Task StagesPackage()
+            [Theory]
+            [InlineData(true, StagedPackageStatus.Validating, 1)]
+            [InlineData(false, StagedPackageStatus.Ready, 2)]
+            public async Task StagesPackage(bool validationStarted, StagedPackageStatus expectedStatus, int expectedSaveCount)
             {
                 var currentUser = new User { Key = 17 };
                 var owner = new User { Key = 23, EmailAddress = "owner@example.com" };
@@ -35,6 +38,11 @@ namespace NuGetGallery
                     NormalizedVersion = "1.0.0",
                 };
                 var blobPath = "packagea/1.0.0/file.nupkg";
+                var stagingFile = new StagingFileReference(
+                    blobPath,
+                    "\"etag\"",
+                    3,
+                    "hash");
 
                 var apiScopeEvaluator = new Mock<IApiScopeEvaluator>(MockBehavior.Strict);
                 apiScopeEvaluator
@@ -98,7 +106,7 @@ namespace NuGetGallery
                 var stagingFiles = new Mock<IStagingBlobService>();
                 stagingFiles
                     .Setup(x => x.SavePackageFileAsync("PackageA", "1.0.0", It.IsAny<Stream>()))
-                    .ReturnsAsync(blobPath);
+                    .ReturnsAsync(stagingFile);
 
                 StagedPackage stagedPackage = null;
                 var stagedPackages = new Mock<DbSet<StagedPackage>>();
@@ -109,11 +117,20 @@ namespace NuGetGallery
                 var entitiesContext = new Mock<IEntitiesContext>();
                 entitiesContext.SetupGet(x => x.StagedPackages).Returns(stagedPackages.Object);
                 entitiesContext.Setup(x => x.SaveChangesAsync()).ReturnsAsync(1);
+                var transaction = new Mock<IDbContextTransaction>();
+                var database = new Mock<IDatabase>();
+                database.Setup(x => x.BeginTransaction()).Returns(transaction.Object);
+                entitiesContext.Setup(x => x.GetDatabase()).Returns(database.Object);
 
                 var featureFlagService = new Mock<IFeatureFlagService>();
                 featureFlagService
                     .Setup(x => x.IsPackageStagingEnabled(owner))
                     .Returns(true);
+
+                var validationMessageEmitter = new Mock<IValidationMessageEmitter<Package>>();
+                validationMessageEmitter
+                    .Setup(x => x.StartValidationAsync(package, It.IsAny<Guid>()))
+                    .ReturnsAsync(validationStarted);
 
                 var target = new PackageStagingService(
                     entitiesContext.Object,
@@ -123,7 +140,8 @@ namespace NuGetGallery
                     packageUploadService.Object,
                     Mock.Of<IReservedNamespaceService>(),
                     securityPolicyService.Object,
-                    stagingFiles.Object);
+                    stagingFiles.Object,
+                    validationMessageEmitter.Object);
 
                 using (var packageFile = TestPackage.CreateTestPackageStream("PackageA", "1.0.0"))
                 {
@@ -140,7 +158,13 @@ namespace NuGetGallery
                 Assert.Equal(PackageStatus.Staged, package.PackageStatusKey);
                 Assert.Equal(owner.Key, stagedPackage.OwnerKey);
                 Assert.Equal(blobPath, stagedPackage.BlobPath);
-                entitiesContext.Verify(x => x.SaveChangesAsync(), Times.Once);
+                Assert.Equal(stagingFile.ETag, stagedPackage.BlobETag);
+                Assert.Equal(expectedStatus, stagedPackage.Status);
+                validationMessageEmitter.Verify(x => x.StartValidationAsync(
+                    package,
+                    stagedPackage.ValidationTrackingId));
+                transaction.Verify(x => x.Commit());
+                entitiesContext.Verify(x => x.SaveChangesAsync(), Times.Exactly(expectedSaveCount));
             }
         }
 
@@ -204,7 +228,8 @@ namespace NuGetGallery
                     Mock.Of<IPackageUploadService>(),
                     Mock.Of<IReservedNamespaceService>(),
                     Mock.Of<ISecurityPolicyService>(),
-                    Mock.Of<IStagingFileService>());
+                    Mock.Of<IStagingBlobService>(),
+                    Mock.Of<IValidationMessageEmitter<Package>>());
             }
 
             private static StagedPackage CreateStagedPackage(int packageKey, string id, string version, User owner)

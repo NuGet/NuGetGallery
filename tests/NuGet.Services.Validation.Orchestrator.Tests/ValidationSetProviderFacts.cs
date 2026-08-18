@@ -3,12 +3,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Services.Entities;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
+using NuGetGallery;
 using Xunit;
 
 namespace NuGet.Services.Validation.Orchestrator.Tests
@@ -17,6 +20,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
     {
         public Mock<IValidationStorageService> ValidationStorageMock { get; }
         public Mock<IValidationFileService> PackageFileServiceMock { get; }
+        public Mock<IStagingBlobService> StagingBlobServiceMock { get; }
+        public Mock<ICloudBlobClient> ValidationStorageClientMock { get; }
+        public Mock<IEntitiesContext> EntitiesContextMock { get; }
         public Mock<IValidatorProvider> ValidatorProvider { get; }
         public Mock<IOptionsSnapshot<ValidationConfiguration>> ConfigurationAccessorMock { get; }
         public Mock<IOptionsSnapshot<SasDefinitionConfiguration>> SasDefinitionConfigurationAccessorMock { get; }
@@ -122,6 +128,52 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 nameof(IValidationFileService.BackupPackageFileFromValidationSetPackageAsync),
                 nameof(IValidationStorageService.CreateValidationSetAsync),
             }, operations);
+        }
+
+        [Fact]
+        public async Task CopiesCurrentStagedPackageToValidationSet()
+        {
+            Configuration.Validations = new List<ValidationConfigurationItem>();
+            Package.PackageStatusKey = PackageStatus.Staged;
+            var stagedPackage = new StagedPackage
+            {
+                PackageKey = Package.Key,
+                BlobPath = "package1/1.2.3/file.nupkg",
+                BlobETag = ETag,
+                ValidationTrackingId = ValidationSet.ValidationTrackingId,
+            };
+            EntitiesContextMock
+                .SetupGet(x => x.StagedPackages)
+                .Returns(CreateStagedPackageSet(stagedPackage));
+            ValidationStorageMock
+                .Setup(x => x.GetValidationSetAsync(ValidationSet.ValidationTrackingId))
+                .ReturnsAsync((PackageValidationSet)null);
+            ValidationStorageMock
+                .Setup(x => x.OtherRecentValidationSetForPackageExists(
+                    It.IsAny<IValidatingEntity<Package>>(),
+                    It.IsAny<TimeSpan>(),
+                    ValidationSet.ValidationTrackingId))
+                .ReturnsAsync(false);
+            ValidationStorageMock
+                .Setup(x => x.CreateValidationSetAsync(It.IsAny<PackageValidationSet>()))
+                .ReturnsAsync((PackageValidationSet value) => value);
+            ValidationStorageMock
+                .Setup(x => x.GetValidationSetCountAsync(It.IsAny<IValidatingEntity<Package>>()))
+                .ReturnsAsync(2);
+            StagingBlobServiceMock
+                .Setup(x => x.CopyStagedPackageToValidationSetAsync(
+                    stagedPackage.BlobPath,
+                    ETag,
+                    ValidationStorageClientMock.Object,
+                    $"validation-sets/{ValidationSet.ValidationTrackingId}/package1.1.2.3.nupkg"))
+                .Returns(Task.CompletedTask);
+
+            var result = await CreateProvider().TryGetOrCreateValidationSetAsync(
+                PackageValidationMessageData,
+                new PackageValidatingEntity(Package));
+
+            Assert.Equal(ETag, result.PackageETag);
+            StagingBlobServiceMock.VerifyAll();
         }
 
         [Fact]
@@ -349,6 +401,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             var provider = new ValidationSetProvider<Package>(
                 ValidationStorageMock.Object,
                 PackageFileServiceMock.Object,
+                StagingBlobServiceMock.Object,
+                ValidationStorageClientMock.Object,
+                EntitiesContextMock.Object,
                 ValidatorProvider.Object,
                 ConfigurationAccessorMock.Object,
                 SasDefinitionConfigurationAccessorMock.Object,
@@ -441,6 +496,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             var provider = new ValidationSetProvider<Package>(
                 ValidationStorageMock.Object,
                 PackageFileServiceMock.Object,
+                StagingBlobServiceMock.Object,
+                ValidationStorageClientMock.Object,
+                EntitiesContextMock.Object,
                 ValidatorProvider.Object,
                 ConfigurationAccessorMock.Object,
                 SasDefinitionConfigurationAccessorMock.Object,
@@ -519,6 +577,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             var provider = new ValidationSetProvider<Package>(
                 ValidationStorageMock.Object,
                 PackageFileServiceMock.Object,
+                StagingBlobServiceMock.Object,
+                ValidationStorageClientMock.Object,
+                EntitiesContextMock.Object,
                 ValidatorProvider.Object,
                 ConfigurationAccessorMock.Object,
                 SasDefinitionConfigurationAccessorMock.Object,
@@ -589,6 +650,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         {
             ValidationStorageMock = new Mock<IValidationStorageService>(MockBehavior.Strict);
             PackageFileServiceMock = new Mock<IValidationFileService>(MockBehavior.Strict);
+            StagingBlobServiceMock = new Mock<IStagingBlobService>(MockBehavior.Strict);
+            ValidationStorageClientMock = new Mock<ICloudBlobClient>(MockBehavior.Strict);
+            EntitiesContextMock = new Mock<IEntitiesContext>(MockBehavior.Strict);
             ValidatorProvider = new Mock<IValidatorProvider>(MockBehavior.Strict);
             ConfigurationAccessorMock = new Mock<IOptionsSnapshot<ValidationConfiguration>>();
             SasDefinitionConfigurationAccessorMock = new Mock<IOptionsSnapshot<SasDefinitionConfiguration>>();
@@ -659,11 +723,25 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             return new ValidationSetProvider<Package>(
                 ValidationStorageMock.Object,
                 PackageFileServiceMock.Object,
+                StagingBlobServiceMock.Object,
+                ValidationStorageClientMock.Object,
+                EntitiesContextMock.Object,
                 ValidatorProvider.Object,
                 ConfigurationAccessorMock.Object,
                 SasDefinitionConfigurationAccessorMock.Object,
                 TelemetryServiceMock.Object,
                 LoggerMock.Object);
+        }
+
+        private static DbSet<StagedPackage> CreateStagedPackageSet(params StagedPackage[] stagedPackages)
+        {
+            var query = stagedPackages.AsQueryable();
+            var set = new Mock<DbSet<StagedPackage>>();
+            set.As<IQueryable<StagedPackage>>().Setup(x => x.Provider).Returns(query.Provider);
+            set.As<IQueryable<StagedPackage>>().Setup(x => x.Expression).Returns(query.Expression);
+            set.As<IQueryable<StagedPackage>>().Setup(x => x.ElementType).Returns(query.ElementType);
+            set.As<IQueryable<StagedPackage>>().Setup(x => x.GetEnumerator()).Returns(() => query.GetEnumerator());
+            return set.Object;
         }
     }
 }

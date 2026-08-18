@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -69,10 +69,10 @@ namespace NuGet.Services.Validation.Orchestrator
                     failedValidations.Select(x => x.Type).ToList());
 
                 // The only way we can move to the failed validation state is if the package is currently in the
-                // validating state. This has a beneficial side effect of only sending a failed validation email to the
-                // customer when the package first moves to the failed validation state. If an admin comes along and
-                // revalidates the package and the package fails validation again, we don't want another email going
-                // out since that would be noisy for the customer.                
+                // validating or staged state. This has a beneficial side effect of only sending a failed validation
+                // email to the customer when the package first moves to the failed validation state. If an admin
+                // comes along and revalidates the package and the package fails validation again, we don't want
+                // another email going out since that would be noisy for the customer.
                 if (validatingEntity.Status == PackageStatus.Validating)
                 {
                     await _packageStateProcessor.SetStatusAsync(validatingEntity, validationSet, PackageStatus.FailedValidation);
@@ -80,6 +80,12 @@ namespace NuGet.Services.Validation.Orchestrator
                     await MarkValidationSetAsCompletedAsync(validationSet);
 
                     await _messageService.SendValidationFailedMessageAsync(validatingEntity.EntityRecord, validationSet);
+                }
+                else if (validatingEntity.Status == PackageStatus.Staged)
+                {
+                    await _packageStateProcessor.SetStagedValidationStatusAsync(validatingEntity, validationSet, StagingArtifactStatus.ValidationFailed);
+
+                    await MarkValidationSetAsCompletedAsync(validationSet);
                 }
                 else
                 {
@@ -109,12 +115,19 @@ namespace NuGet.Services.Validation.Orchestrator
 
                 var fromStatus = validatingEntity.Status;
 
-                // Always set the package status to available so that processors can have a chance to fix packages
-                // that are already available. Processors should no-op when their work is already done, so the
-                // modification of an already available package should be rare. The most common case for this is if
-                // the processor has never been run on a package that was published before the processor was
-                // implemented. In this case, the processor has to play catch-up.
-                await _packageStateProcessor.SetStatusAsync(validatingEntity, validationSet, PackageStatus.Available);
+                if (fromStatus == PackageStatus.Staged)
+                {
+                    await _packageStateProcessor.SetStagedValidationStatusAsync(validatingEntity, validationSet, StagingArtifactStatus.Ready);
+                }
+                else
+                {
+                    // Always set the package status to available so that processors can have a chance to fix packages
+                    // that are already available. Processors should no-op when their work is already done, so the
+                    // modification of an already available package should be rare. The most common case for this is if
+                    // the processor has never been run on a package that was published before the processor was
+                    // implemented. In this case, the processor has to play catch-up.
+                    await _packageStateProcessor.SetStatusAsync(validatingEntity, validationSet, PackageStatus.Available);
+                }
 
                 var areOptionalValidationsRunning = AreOptionalValidationsRunning(validationSet);
                 if (!areOptionalValidationsRunning)
@@ -123,7 +136,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 }
 
                 // Only send the email when first transitioning into the Available state.
-                if (fromStatus != PackageStatus.Available)
+                if (fromStatus != PackageStatus.Available && fromStatus != PackageStatus.Staged)
                 {
                     await _messageService.SendPublishedMessageAsync(validatingEntity.EntityRecord);
                 }

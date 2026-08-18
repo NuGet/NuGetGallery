@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -58,6 +58,26 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .Verify(ms => ms.SendValidationFailedMessageAsync(Package, ValidationSet), Times.Once());
             MessageServiceMock
                 .Verify(ms => ms.SendValidationFailedMessageAsync(It.IsAny<Package>(), It.IsAny<PackageValidationSet>()), Times.Once());
+        }
+
+        [Fact]
+        public async Task MarksSuccessfulStagedValidationReadyWithoutPublishing()
+        {
+            AddValidation("validation1", ValidationStatus.Succeeded);
+            Package.PackageStatusKey = PackageStatus.Staged;
+
+            var processor = CreateProcessor();
+            await processor.ProcessValidationOutcomeAsync(ValidationSet, PackageValidatingEntity, ProcessorStats, ScheduleNextCheck);
+
+            PackageStateProcessorMock.Verify(
+                x => x.SetStagedValidationStatusAsync(PackageValidatingEntity, ValidationSet, StagingArtifactStatus.Ready),
+                Times.Once);
+            PackageStateProcessorMock.Verify(
+                x => x.SetStatusAsync(It.IsAny<PackageValidatingEntity>(), It.IsAny<PackageValidationSet>(), It.IsAny<PackageStatus>()),
+                Times.Never);
+            MessageServiceMock.Verify(
+                x => x.SendPublishedMessageAsync(It.IsAny<Package>()),
+                Times.Never);
         }
 
         [Fact]

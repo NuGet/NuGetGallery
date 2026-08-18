@@ -1,5 +1,6 @@
 ﻿@model ManagePackagesViewModel
 @using Newtonsoft.Json;
+@using NuGet.Services.Entities;
 @{
     ViewBag.Title = "Manage My Package";
     ViewBag.Tab = "Packages";
@@ -53,7 +54,14 @@
                                 }
                                 else
                                 {
-                                    <table class="table inner-table">
+                                    <table class="table inner-table staging-packages-table">
+                                        <colgroup>
+                                            <col class="staging-package-id-column" />
+                                            <col class="staging-package-owner-column" />
+                                            <col class="staging-package-version-column" />
+                                            <col class="staging-package-status-column" />
+                                            <col class="staging-package-uploaded-column" />
+                                        </colgroup>
                                         <thead>
                                             <tr class="manage-package-headings">
                                                 <th>Package ID</th>
@@ -64,22 +72,78 @@
                                             </tr>
                                         </thead>
                                         <tbody>
+                                            @{
+                                                var stagedPackageIndex = 0;
+                                            }
                                             @foreach (var package in Model.StagedPackages)
                                             {
+                                                var statusClass = "staging-status-" + package.Status.ToLowerInvariant();
+                                                var statusText = package.Status == StagedPackageStatus.ValidationFailed.ToString() ? "Validation failed" : package.Status;
+                                                var validationIssuesId = "staged-validation-issues-" + stagedPackageIndex++;
                                                 <tr class="manage-package-listing">
                                                     <td class="align-middle package-id">
                                                         @package.Id
                                                     </td>
-                                                    <td class="align-middle">
+                                                    <td class="align-middle staging-package-owner">
                                                         <a href="@Url.User(package.Owner)">@package.Owner</a>
                                                     </td>
-                                                    <td class="align-middle">@package.Version</td>
-                                                    <td class="align-middle"><span class="label staging-status">@package.Status</span></td>
+                                                    <td class="align-middle staging-package-version">@package.Version</td>
+                                                    <td class="align-middle">
+                                                        <div class="staging-status-content">
+                                                            <span class="label staging-status @statusClass">@statusText</span>
+                                                            @if (package.ValidationIssues.Count > 0)
+                                                            {
+                                                                <button type="button"
+                                                                        class="btn btn-brand-transparent staging-validation-issues-toggle"
+                                                                        data-toggle="modal"
+                                                                        data-target="#staging-validation-modal"
+                                                                        data-issues-id="@validationIssuesId"
+                                                                        data-package-id="@package.Id"
+                                                                        aria-label="View validation errors for @package.Id @package.Version"
+                                                                        title="View validation errors">
+                                                                    <i class="ms-Icon ms-Icon--View" aria-hidden="true"></i>
+                                                                </button>
+                                                            }
+                                                        </div>
+                                                        @if (package.ValidationIssues.Count > 0)
+                                                        {
+                                                            <div id="@validationIssuesId" class="staging-validation-issues-source hidden">
+                                                                <ul class="validation-issues">
+                                                                    @foreach (var issue in package.ValidationIssues)
+                                                                    {
+                                                                        <li>@Html.Partial("~/Views/Packages/_ValidationIssue.cshtml", issue)</li>
+                                                                    }
+                                                                </ul>
+                                                            </div>
+                                                        }
+                                                    </td>
                                                     <td class="align-middle"><span data-datetime="@package.UploadedDate.ToString("O")">@package.UploadedDate.ToNuGetShortDateString()</span></td>
                                                 </tr>
                                             }
                                         </tbody>
                                     </table>
+                                    <div class="modal fade staging-validation-modal"
+                                         id="staging-validation-modal"
+                                         tabindex="-1"
+                                         role="dialog"
+                                         aria-labelledby="staging-validation-modal-title">
+                                        <div class="modal-dialog" role="document">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close validation errors">
+                                                        <span aria-hidden="true">&times;</span>
+                                                    </button>
+                                                    <h4 class="modal-title" id="staging-validation-modal-title" tabindex="-1">Validation errors</h4>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="staging-validation-modal-content"></div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-brand-secondary" data-dismiss="modal">Close</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 }
                             </div>
                         </div>

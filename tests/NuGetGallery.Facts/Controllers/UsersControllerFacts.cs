@@ -4167,9 +4167,10 @@ namespace NuGetGallery
                 var result = Assert.Single(model.StagedPackages);
                 Assert.Equal("Staged.Package", result.Id);
                 Assert.Equal("1.0.0", result.Version);
-                Assert.Equal(PackageStatus.Staged.ToString(), result.Status);
+                Assert.Equal(StagedPackageStatus.Validating.ToString(), result.Status);
                 Assert.Equal(_testUser.Username, result.Owner);
                 Assert.Equal(uploadedDate, result.UploadedDate);
+                Assert.Empty(result.ValidationIssues);
             }
 
             [Fact]
