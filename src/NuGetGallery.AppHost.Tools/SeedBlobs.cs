@@ -23,6 +23,11 @@ static class SeedBlobsTool
 		var blobService = new BlobServiceClient(cfg.StorageConnectionString);
 		var searchBase = cfg.SearchServiceBaseAddress.TrimEnd('/');
 
+		// The validation orchestrator expects these infrastructure containers to
+		// exist before it handles its first message.
+		await blobService.GetBlobContainerClient("validation").CreateIfNotExistsAsync();
+		await blobService.GetBlobContainerClient("validation-leases").CreateIfNotExistsAsync();
+
 		// ── Auxiliary blobs for pipeline jobs ────────────────────────────────
 		await SeedAsync(blobService, cfg.Containers.CdnStats, cfg.AuxiliaryBlobs.DownloadsV1Json,
 			"""[["_placeholder",["0.0.0",1]]]""");

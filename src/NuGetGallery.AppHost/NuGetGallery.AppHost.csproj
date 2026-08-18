@@ -21,6 +21,7 @@
     <ProjectReference Include="..\NuGet.Jobs.Catalog2AzureSearch\NuGet.Jobs.Catalog2AzureSearch.csproj" />
     <ProjectReference Include="..\NuGet.Jobs.Db2AzureSearch\NuGet.Jobs.Db2AzureSearch.csproj" />
     <ProjectReference Include="..\NuGet.Jobs.Auxiliary2AzureSearch\NuGet.Jobs.Auxiliary2AzureSearch.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Validation.Orchestrator\NuGet.Services.Validation.Orchestrator.csproj" />
     <ProjectReference Include="..\NuGet.Services.SearchService.Core\NuGet.Services.SearchService.Core.csproj" />
     <ProjectReference Include="..\NuGetGallery.AppHost.Config\NuGetGallery.AppHost.Config.csproj" IsAspireProjectResource="false" />
     <ProjectReference Include="..\NuGetGallery.AppHost.Tools\NuGetGallery.AppHost.Tools.csproj" />
@@ -30,6 +31,7 @@
     <!-- Aspire Azure integrations -->
     <PackageReference Include="Aspire.Hosting.Azure.Storage" />
     <PackageReference Include="Aspire.Hosting.Azure.Search" />
+    <PackageReference Include="Aspire.Hosting.Azure.ServiceBus" />
 
     <!-- Used by reset commands to clear search indexes and blob containers -->
     <PackageReference Include="Azure.Search.Documents" />

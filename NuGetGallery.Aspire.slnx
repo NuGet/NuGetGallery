@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="src/NuGet.Services.Validation.Orchestrator/NuGet.Services.Validation.Orchestrator.csproj" />
   <Project Path="src/Catalog/NuGet.Services.Metadata.Catalog.csproj" />
   <Project Path="src/Ng/Ng.csproj" />
   <Project Path="src/NuGet.Jobs.Catalog2AzureSearch/NuGet.Jobs.Catalog2AzureSearch.csproj" />
