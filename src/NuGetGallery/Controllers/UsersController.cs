@@ -39,6 +39,7 @@ namespace NuGetGallery
         private readonly IFeatureFlagService _featureFlagService;
         private readonly IPackageVulnerabilitiesService _packageVulnerabilitiesService;
         private readonly IFederatedCredentialService _federatedCredentialService;
+        private readonly IPackageStagingService _packageStagingService;
 
         public UsersController(
             IUserService userService,
@@ -61,7 +62,8 @@ namespace NuGetGallery
             IGravatarProxyService gravatarProxy,
             IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory,
             IFederatedCredentialService federatedCredentialService,
-            IFederatedCredentialRepository federatedCredentialRepository)
+            IFederatedCredentialRepository federatedCredentialRepository,
+            IPackageStagingService packageStagingService)
             : base(
                   authService,
                   packageService,
@@ -85,6 +87,7 @@ namespace NuGetGallery
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _packageVulnerabilitiesService = packageVulnerabilitiesService ?? throw new ArgumentNullException(nameof(packageVulnerabilitiesService));
             _federatedCredentialService = federatedCredentialService ?? throw new ArgumentNullException(nameof(federatedCredentialService));
+            _packageStagingService = packageStagingService ?? throw new ArgumentNullException(nameof(packageStagingService));
 
             _listPackageItemRequiredSignerViewModelFactory = new ListPackageItemRequiredSignerViewModelFactory(
                 securityPolicyService, iconUrlProvider, packageVulnerabilitiesService, frameworkCompatibilityFactory, featureFlagService);
@@ -573,6 +576,22 @@ namespace NuGetGallery
 
             var reservedPrefixes = new ReservedNamespaceListViewModel(userReservedNamespaces.Union(organizationsReservedNamespaces).ToArray());
 
+            var isPackageStagingEnabled = _packageStagingService.IsEnabledForUser(currentUser);
+            var stagedPackages = new List<PackageStagingViewModel>();
+            if (isPackageStagingEnabled)
+            {
+                stagedPackages = _packageStagingService.GetStagedPackagesForUser(currentUser)
+                    .Select(stagedPackage => new PackageStagingViewModel
+                    {
+                        Id = stagedPackage.Package.PackageRegistration.Id,
+                        Version = stagedPackage.Package.NormalizedVersion,
+                        Status = PackageStatus.Staged.ToString(),
+                        Owner = stagedPackage.Owner.Username,
+                        UploadedDate = stagedPackage.UploadedDate,
+                    })
+                    .ToList();
+            }
+
             var model = new ManagePackagesViewModel
             {
                 User = currentUser,
@@ -583,7 +602,9 @@ namespace NuGetGallery
                 ReservedNamespaces = reservedPrefixes,
                 WasMultiFactorAuthenticated = User.WasMultiFactorAuthenticated(),
                 IsCertificatesUIEnabled = ContentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false,
-                IsManagePackagesVulnerabilitiesEnabled = _featureFlagService.IsManagePackagesVulnerabilitiesEnabled()
+                IsManagePackagesVulnerabilitiesEnabled = _featureFlagService.IsManagePackagesVulnerabilitiesEnabled(),
+                IsPackageStagingEnabled = isPackageStagingEnabled,
+                StagedPackages = stagedPackages
             };
 
             return View(model);

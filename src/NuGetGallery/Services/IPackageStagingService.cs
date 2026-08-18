@@ -14,5 +14,9 @@ namespace NuGetGallery
         Task<PackageStagingResult> StagePackageAsync(User currentUser, IEnumerable<Scope> scopes, HttpContextBase httpContext, Stream packageFile);
 
         PackageStagingStatus GetPackage(User currentUser, IEnumerable<Scope> scopes, string id, string version);
+
+        bool IsEnabledForUser(User currentUser);
+
+        IReadOnlyList<StagedPackage> GetStagedPackagesForUser(User currentUser);
     }
 }

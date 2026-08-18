@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Globalization;
 using System.IO;
@@ -180,6 +181,38 @@ namespace NuGetGallery
             };
         }
 
+        public bool IsEnabledForUser(User currentUser)
+        {
+            if (currentUser == null)
+            {
+                throw new ArgumentNullException(nameof(currentUser));
+            }
+
+            return GetEnabledOwners(currentUser).Any();
+        }
+
+        public IReadOnlyList<StagedPackage> GetStagedPackagesForUser(User currentUser)
+        {
+            if (currentUser == null)
+            {
+                throw new ArgumentNullException(nameof(currentUser));
+            }
+
+            var ownerKeys = GetEnabledOwners(currentUser)
+                .Select(owner => owner.Key)
+                .ToArray();
+
+            IQueryable<StagedPackage> stagedPackages = _entitiesContext.StagedPackages;
+
+            return stagedPackages
+                .Include(stagedPackage => stagedPackage.Package.PackageRegistration)
+                .Include(stagedPackage => stagedPackage.Owner)
+                .Where(stagedPackage => ownerKeys.Contains(stagedPackage.OwnerKey))
+                .OrderBy(stagedPackage => stagedPackage.Package.PackageRegistration.Id)
+                .ThenByDescending(stagedPackage => stagedPackage.UploadedDate)
+                .ToList();
+        }
+
         private async Task<PackageArchiveReader> ValidatePackageAsync(Stream packageFile)
         {
             PackageArchiveReader packageReader = null;
@@ -277,6 +310,13 @@ namespace NuGetGallery
                 packageRegistration,
                 NuGetScopes.PackagePushVersion,
                 NuGetScopes.PackagePush);
+        }
+
+        private IEnumerable<User> GetEnabledOwners(User currentUser)
+        {
+            return new[] { currentUser }
+                .Concat(currentUser.Organizations.Select(membership => membership.Organization))
+                .Where(owner => _featureFlagService.IsPackageStagingEnabled(owner));
         }
 
         private static PackageStagingResult GetAuthorizationFailure(ApiScopeEvaluationResult result)

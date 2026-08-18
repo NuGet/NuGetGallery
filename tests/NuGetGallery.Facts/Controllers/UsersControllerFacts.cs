@@ -4137,6 +4137,42 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public void IncludesStagedPackagesWhenStagingIsEnabled()
+            {
+                var uploadedDate = DateTime.UtcNow;
+                var stagedPackage = new StagedPackage
+                {
+                    Package = new Package
+                    {
+                        NormalizedVersion = "1.0.0",
+                        PackageRegistration = new PackageRegistration { Id = "Staged.Package" },
+                    },
+                    Owner = _testUser,
+                    UploadedDate = uploadedDate,
+                };
+
+                GetMock<IPackageService>()
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(_testUser, It.IsAny<bool>(), false))
+                    .Returns(Array.Empty<Package>());
+                GetMock<IPackageStagingService>()
+                    .Setup(service => service.IsEnabledForUser(_testUser))
+                    .Returns(true);
+                GetMock<IPackageStagingService>()
+                    .Setup(service => service.GetStagedPackagesForUser(_testUser))
+                    .Returns(new[] { stagedPackage });
+
+                var model = ResultAssert.IsView<ManagePackagesViewModel>(_testController.Packages());
+
+                Assert.True(model.IsPackageStagingEnabled);
+                var result = Assert.Single(model.StagedPackages);
+                Assert.Equal("Staged.Package", result.Id);
+                Assert.Equal("1.0.0", result.Version);
+                Assert.Equal(PackageStatus.Staged.ToString(), result.Status);
+                Assert.Equal(_testUser.Username, result.Owner);
+                Assert.Equal(uploadedDate, result.UploadedDate);
+            }
+
+            [Fact]
             public void PackagesAreSortedById()
             {
                 PackageRegistration packageRegistration1 = CreatePackageRegistration("Company.ZebraPackage", 1, "1.0.0", "last");
