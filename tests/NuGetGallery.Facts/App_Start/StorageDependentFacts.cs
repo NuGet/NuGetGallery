@@ -72,6 +72,7 @@ namespace NuGetGallery
             Assert.Contains(typeof(CertificateService), implementationToInterface.Keys);
             Assert.Contains(typeof(ContentService), implementationToInterface.Keys);
             Assert.Contains(typeof(PackageFileService), implementationToInterface.Keys);
+            Assert.Contains(typeof(StagingBlobService), implementationToInterface.Keys);
             Assert.Contains(typeof(SymbolPackageFileService), implementationToInterface.Keys);
             Assert.Contains(typeof(UploadFileService), implementationToInterface.Keys);
             Assert.Contains(typeof(CoreLicenseFileService), implementationToInterface.Keys);
@@ -79,10 +80,11 @@ namespace NuGetGallery
             Assert.Contains(typeof(RevalidationStateService), implementationToInterface.Keys);
             Assert.Contains(typeof(EditableFeatureFlagFileStorageService), implementationToInterface.Keys);
             Assert.Contains(typeof(EditableLoginConfigurationFileStorageService), implementationToInterface.Keys);
-            Assert.Equal(10, implementationToInterface.Count);
+            Assert.Equal(11, implementationToInterface.Count);
             Assert.Equal(typeof(ICertificateService), implementationToInterface[typeof(CertificateService)]);
             Assert.Equal(typeof(IContentService), implementationToInterface[typeof(ContentService)]);
             Assert.Equal(typeof(IPackageFileService), implementationToInterface[typeof(PackageFileService)]);
+            Assert.Equal(typeof(IStagingBlobService), implementationToInterface[typeof(StagingBlobService)]);
             Assert.Equal(typeof(ISymbolPackageFileService), implementationToInterface[typeof(SymbolPackageFileService)]);
             Assert.Equal(typeof(IUploadFileService), implementationToInterface[typeof(UploadFileService)]);
             Assert.Equal(typeof(ICoreLicenseFileService), implementationToInterface[typeof(CoreLicenseFileService)]);

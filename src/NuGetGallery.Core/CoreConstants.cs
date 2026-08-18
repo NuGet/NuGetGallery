@@ -42,6 +42,7 @@ namespace NuGetGallery
             public const string RevalidationFolderName = "revalidation";
             public const string SymbolPackagesFolderName = "symbol-packages";
             public const string SymbolPackageBackupsFolderName = "symbol-package-backups";
+            public const string StagingFolderName = "staging";
             public const string FlatContainerFolderName = "v3-flatcontainer";
         }
 

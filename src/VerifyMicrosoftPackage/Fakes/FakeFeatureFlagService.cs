@@ -152,6 +152,8 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
 
         public bool IsAdminApiSoftDeleteEnabled() => throw new NotImplementedException();
 
+        public bool IsPackageStagingEnabled(User user) => throw new NotImplementedException();
+
         public bool IsInvalidPackageIdAllowedForAllPackages() => throw new NotImplementedException();
 
         public bool IsInvalidPackageIdAllowedForExistingPackages() => throw new NotImplementedException();

@@ -965,6 +965,7 @@ namespace NuGetGallery
             // Validating packages should be hidden to everyone but the owners and admins.
             var currentUser = GetCurrentUser();
             if (package == null
+                || package.PackageStatusKey == PackageStatus.Staged
                 || ((package.PackageStatusKey == PackageStatus.Validating
                      || package.PackageStatusKey == PackageStatus.FailedValidation)
                     && ActionsRequiringPermissions.DisplayPrivatePackageMetadata.CheckPermissionsOnBehalfOfAnyAccount(currentUser, package) != PermissionsCheckResult.Allowed))
@@ -1996,6 +1997,7 @@ namespace NuGetGallery
             // Fetch all versions of the package with symbols.
             var versionsWithSymbols = packages
                 .Where(p => p.PackageStatusKey != PackageStatus.Deleted)
+                .Where(p => p.PackageStatusKey != PackageStatus.Staged)
                 .Where(p => (p.LatestSymbolPackage()?.StatusKey ?? PackageStatus.Deleted) == PackageStatus.Available)
                 .OrderByDescending(p => new NuGetVersion(p.Version));
 
@@ -2467,6 +2469,7 @@ namespace NuGetGallery
             // Validating packages should be hidden to everyone but the owners and admins.
             var currentUser = GetCurrentUser();
             if (package == null
+                || package.PackageStatusKey == PackageStatus.Staged
                 || ((package.PackageStatusKey == PackageStatus.Validating
                      || package.PackageStatusKey == PackageStatus.FailedValidation)
                     && ActionsRequiringPermissions.DisplayPrivatePackageMetadata.CheckPermissionsOnBehalfOfAnyAccount(currentUser, package) != PermissionsCheckResult.Allowed))

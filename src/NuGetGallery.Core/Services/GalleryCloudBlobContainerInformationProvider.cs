@@ -25,6 +25,7 @@ namespace NuGetGallery
             CoreConstants.Folders.PackagesContentFolderName,
             CoreConstants.Folders.PackageBackupsFolderName,
             CoreConstants.Folders.SymbolPackageBackupsFolderName,
+            CoreConstants.Folders.StagingFolderName,
         };
 
         public string GetCacheControl(string folderName)
@@ -44,6 +45,7 @@ namespace NuGetGallery
                 case CoreConstants.Folders.RevalidationFolderName:
                 case CoreConstants.Folders.UserCertificatesFolderName:
                 case CoreConstants.Folders.PackagesContentFolderName:
+                case CoreConstants.Folders.StagingFolderName:
                 case CoreConstants.Folders.FlatContainerFolderName:
                     return null;
 
@@ -63,6 +65,7 @@ namespace NuGetGallery
                 case CoreConstants.Folders.ValidationFolderName:
                 case CoreConstants.Folders.SymbolPackagesFolderName:
                 case CoreConstants.Folders.SymbolPackageBackupsFolderName:
+                case CoreConstants.Folders.StagingFolderName:
                 case CoreConstants.Folders.FlatContainerFolderName:
                     return CoreConstants.PackageContentType;
 

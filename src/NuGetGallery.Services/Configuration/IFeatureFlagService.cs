@@ -380,6 +380,8 @@ namespace NuGetGallery
         /// </summary>
         bool IsAdminApiSoftDeleteEnabled();
 
+        bool IsPackageStagingEnabled(User user);
+
         // TODO: https://github.com/NuGet/Engineering/issues/6446
         bool IsInvalidPackageIdAllowedForAllPackages();
         bool IsInvalidPackageIdAllowedForExistingPackages();
