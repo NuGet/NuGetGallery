@@ -64,6 +64,11 @@ namespace NuGetGallery
             return InvalidZipEntry.None;
         }
 
+        /// <summary>
+        /// Validates the entries in a package archive and returns a user-facing error message.
+        /// </summary>
+        /// <param name="stream">The stream containing the package archive.</param>
+        /// <returns>An error message when validation fails; otherwise, <see langword="null"/>.</returns>
         public static string GetArchiveValidationError(Stream stream)
         {
             try
