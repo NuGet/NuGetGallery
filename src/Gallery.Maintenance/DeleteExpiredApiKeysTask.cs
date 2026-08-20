@@ -39,27 +39,33 @@ DELETE FROM [dbo].[Credentials] WHERE [Key] IN ({0})";
 
         public override async Task RunAsync(Job job)
         {
-            IEnumerable<ApiKey> expiredApiKeys;
+            IEnumerable<ApiKey> expiredApiKeyScopeRows;
 
             using (var connection = await job.OpenSqlConnectionAsync<GalleryDbConfiguration>())
             {
-                expiredApiKeys = await connection.QueryWithRetryAsync<ApiKey>(
+                expiredApiKeyScopeRows = await connection.QueryWithRetryAsync<ApiKey>(
                     SelectQuery,
                     commandTimeout: _commandTimeout,
                     maxRetries: 3);
             }
 
-            var credentialKeys = expiredApiKeys.Select(expiredApiKey =>
+            var credentialKeys = expiredApiKeyScopeRows.Select(expiredApiKeyScopeRow =>
             {
                 _logger.LogInformation(
                     "Found expired ApiKey: CredentialKey='{credentialKey}' CredentialType='{credentialType}' UserKey='{userKey}', User='{userName}', Subject='{scopeSubject}', Expires={expires}",
-                    expiredApiKey.CredentialKey, expiredApiKey.CredentialType, expiredApiKey.UserKey, expiredApiKey.Username, expiredApiKey.ScopeSubject, expiredApiKey.Expires);
+                    expiredApiKeyScopeRow.CredentialKey,
+                    expiredApiKeyScopeRow.CredentialType,
+                    expiredApiKeyScopeRow.UserKey,
+                    expiredApiKeyScopeRow.Username,
+                    expiredApiKeyScopeRow.ScopeSubject,
+                    expiredApiKeyScopeRow.Expires);
 
-                return expiredApiKey.CredentialKey;
-            });
+                return expiredApiKeyScopeRow.CredentialKey;
+            }).Distinct().ToList();
 
             var rowCount = 0;
-            var expectedRowCount = expiredApiKeys.Count() * 2; // credential and scope.
+            var scopeRowCount = expiredApiKeyScopeRows.Count();
+            var expectedRowCount = credentialKeys.Count + scopeRowCount;
 
             if (expectedRowCount > 0)
             {
