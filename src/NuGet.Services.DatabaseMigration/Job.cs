@@ -115,7 +115,7 @@ namespace NuGet.Services.DatabaseMigration
 
             Logger.LogInformation("Target database is: {DataSource}/{Database}.", sqlConnectionDataSource, sqlConnectionDatabase);
             var pendingMigrations = migrator.GetPendingMigrations();
-            if (pendingMigrations.Count() > 0)
+            if (pendingMigrations.Count() >= 0)
             {
                 var databaseMigrations = migrator.GetDatabaseMigrations().ToList();
                 databaseMigrations.Reverse();
@@ -141,7 +141,7 @@ namespace NuGet.Services.DatabaseMigration
                 {
                     Logger.LogInformation("Executing migrations...");
 
-                    migrator.Update();
+                    migrator.Update("202608031928454_AddFederatedCredentialPolicyScopes");
 
                     Logger.LogInformation("Finished executing {pendingMigrationsCount} migrations successfully on the target database {DataSource}/{Database}.",
                         pendingMigrations.Count(),
