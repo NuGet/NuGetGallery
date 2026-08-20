@@ -81,6 +81,7 @@ namespace NuGetGallery
         public DbSet<Certificate> Certificates { get; set; }
         public DbSet<UserCertificate> UserCertificates { get; set; }
         public DbSet<SymbolPackage> SymbolPackages { get; set; }
+        public DbSet<StagedPackage> StagedPackages { get; set; }
         public DbSet<PackageVulnerability> Vulnerabilities { get; set; }
         public DbSet<VulnerablePackageVersionRange> VulnerableRanges { get; set; }
         public DbSet<PackageRename> PackageRenames { get; set; }
@@ -473,6 +474,20 @@ namespace NuGetGallery
                 .HasMany(p => p.SymbolPackages)
                 .WithRequired(s => s.Package)
                 .HasForeignKey(p => p.PackageKey);
+
+            modelBuilder.Entity<StagedPackage>()
+                .HasKey(s => s.PackageKey);
+
+            modelBuilder.Entity<StagedPackage>()
+                .HasRequired(s => s.Package)
+                .WithOptional()
+                .WillCascadeOnDelete(true);
+
+            modelBuilder.Entity<StagedPackage>()
+                .HasRequired(s => s.Owner)
+                .WithMany()
+                .HasForeignKey(s => s.OwnerKey)
+                .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<SymbolPackage>()
                 .Property(s => s.RowVersion)

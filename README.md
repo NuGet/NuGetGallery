@@ -1,4 +1,4 @@
-﻿[NuGet Gallery](https://www.nuget.org/) — Where packages are found 
+﻿[NuGet Gallery](https://www.nuget.org/) — Where packages are found
 =======================================================================
 
 This project powers [nuget.org](https://www.nuget.org), the home for .NET's open-source ecosystem. For information about NuGet, visit the [Home repository](https://github.com/nuget/home).
@@ -30,6 +30,12 @@ Let's focus on running the gallery web app locally, first.
 4. Create the database and enable HTTPS with `.\tools\Setup-DevEnvironment.ps1`
 5. Open `.\NuGetGallery.sln` using Visual Studio
 6. Ensure the `NuGetGallery` project is the StartUp Project and [press `F5` to run the site](https://docs.microsoft.com/visualstudio/get-started/csharp/run-program)
+
+To run the Gallery and its supporting services and jobs together, install the [Aspire CLI](https://aspire.dev/get-started/install-cli/), then run the following from the repository root:
+
+```powershell
+aspire start
+```
 
 Refer to [our documentation](./docs/) for information on how to develop the frontend, use AAD, and more.
 
@@ -66,7 +72,7 @@ as well as many other back-end jobs for the operation of nuget.org.
     var job = new Job();
     JobRunner.Run(job, args).Wait();
     ```
-    
+
 4. Job class must inherit `JsonConfigurationJob`. This job based provides some dependency injection setup and has you set configuration in a JSON file.
 
 Most jobs can be run locally with a `-Configuration {path_to_json}` command line argument. Not all follow this pattern.
@@ -78,10 +84,10 @@ Check the implementation in `Program.cs` or the `README.md` next to the `.csproj
 You will find instructions on how to deploy the Gallery to Azure [here](docs/Deploying/README.md).
 
 ### Deploy locally
-After you succeed in running the NuGet Gallery, you can create a publish profile to deploy locally (such as your local Windows computer). 
+After you succeed in running the NuGet Gallery, you can create a publish profile to deploy locally (such as your local Windows computer).
 
 The steps are:
-1. Select the `NuGetGallery` project in Solution Explore of Visual Studio. 
+1. Select the `NuGetGallery` project in Solution Explore of Visual Studio.
 2. Right click the project, and then click `Publish` in the pop-up menu. Create a publish profile and make sure the Target is set to `Folder`.
 3. Copy the contents of the `Target Location` to any folder you want. For the following example, assume the folder is `C:\ContosoSoftware\NuGetGallery`.
 4. Execute the command below to start the web app (note that the parameter `/path` of iisexpress.exe only supports absolute paths on Windows).
@@ -95,8 +101,8 @@ After you deploy it, you don't need using Visual Studio to run it anymore.
 
 ## Contribute
 
-If you find a bug with the gallery, please visit the [Issue tracker](https://github.com/NuGet/NuGetGallery/issues) and 
-create an issue. If you're feeling generous, please search to see if the issue is already logged before creating a 
+If you find a bug with the gallery, please visit the [Issue tracker](https://github.com/NuGet/NuGetGallery/issues) and
+create an issue. If you're feeling generous, please search to see if the issue is already logged before creating a
 new one.
 
 When creating an issue, clearly explain
@@ -105,26 +111,26 @@ When creating an issue, clearly explain
 * What actually happened.
 * Steps to reproduce the problem.
 
-Also include any information you think is relevant to reproducing the problem such as the browser version you used. 
+Also include any information you think is relevant to reproducing the problem such as the browser version you used.
 Does it happen when you switch browsers. And so on.
 
 ## Submit a patch
-Before starting work on an issue, either create an issue or comment on an existing issue to ensure that we're all 
+Before starting work on an issue, either create an issue or comment on an existing issue to ensure that we're all
 communicating. We have a list of items that are [good first issue](https://github.com/NuGet/NuGetGallery/labels/good%20first%20issue) and you can start working on (but always ping us beforehand).
 
-To contribute to the gallery, make sure to create a fork first. Make your changes in the fork following 
+To contribute to the gallery, make sure to create a fork first. Make your changes in the fork following
 the Git Workflow. When you are done with your changes, send us a pull request.
 
 ## Copyright and License
 Copyright .NET Foundation
 
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use this work except in compliance with 
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this work except in compliance with
 the License. You may obtain a copy of the License in the LICENSE file, or at:
 
 http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on 
-an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the 
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 
 ## Trademarks
@@ -151,37 +157,37 @@ You can undo this with this command:
 This should help prevent unwanted file commits.
 
 ### When starting a new feature/unit of work.
-    
+
 1.  __Pull the latest.__
-    Begin by pulling to make sure you are up-to-date before creating a branch to do your work 
-    This assumes you have no local commits that haven't yet been pushed (i.e., that you were 
+    Begin by pulling to make sure you are up-to-date before creating a branch to do your work
+    This assumes you have no local commits that haven't yet been pushed (i.e., that you were
     previously up-to-date with origin).
-    
+
         git checkout dev
         git pull dev
-    
+
 2.  __Create a topic branch to do your work.__
     You must work in topic branches to help us keep our features isolated and easily moved between branches.
-    Our policy is to start all topic branches off of the 'dev' branch. 
+    Our policy is to start all topic branches off of the 'dev' branch.
     Branch names should use the following format '[user]-[bugnumber]'. If there is no bug yet,
     create one and assign it to yourself!
 
         git checkout dev
         git checkout -b billg-123
-    
+
 3.  __Do your work.__
     Now, do your work using the following highly accurate and efficient algorithm :)
 
     1. Make changes.
     2. Test your changes (you're practicing TDD, right?)
     3. Add your changes to git's index.
-        
+
             git add -A
 
     4. Commit your changes.
-        
+
             git commit -m "<description of work>"
-        
+
     5. if (moreWorkToDo) go to #3.1 else go to #4.
 
 4.  __Start a code review.__
@@ -198,6 +204,6 @@ This should help prevent unwanted file commits.
         git merge billg-123
         ... resolve conflicts ...
         git push origin dev
-    
+
 6.  __Be ready to guide your change through our deployed environments.__
     Your change will make its way through the DEV (dev.nugettest.org), INT (int.nugettest.org) and finally PROD (www.nuget.org). Be prepared to fix additional bugs!

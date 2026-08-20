@@ -32,6 +32,7 @@ namespace NuGetGallery
                 RegisterAdminApiRoutes(routes);
             }
 
+            RegisterStagingApiRoutes(routes);
             RegisterApiV2Routes(routes);
         }
 
@@ -892,6 +893,21 @@ namespace NuGetGallery
                 "api/v2/token",
                 defaults: new { controller = TokenApiController.ControllerName, action = nameof(TokenApiController.CreateToken) },
                 constraints: new { httpMethod = new HttpMethodConstraint("POST") });
+        }
+
+        public static void RegisterStagingApiRoutes(RouteCollection routes)
+        {
+            routes.MapRoute(
+                RouteName.GetStagedPackage,
+                "api/v3/staging/package/{id}/{version}",
+                new { controller = "StagingApi", action = "GetStagedPackage" },
+                new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
+                RouteName.StagePackage,
+                "api/v3/staging/package",
+                new { controller = "StagingApi", action = "StagePackage" },
+                new { httpMethod = new HttpMethodConstraint("PUT") });
         }
 
         public static void RegisterAdminApiRoutes(RouteCollection routes)

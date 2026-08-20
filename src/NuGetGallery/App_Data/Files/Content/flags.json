@@ -94,6 +94,12 @@
       "Accounts": [],
       "Domains": []
     },
+    "NuGetGallery.PackageStaging": {
+      "All": false,
+      "SiteAdmins": true,
+      "Accounts": [],
+      "Domains": []
+    },
     "NuGetGallery.EmbeddedIcons": {
       "All": true,
       "SiteAdmins": false,

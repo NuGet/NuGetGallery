@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
@@ -519,33 +518,13 @@ namespace NuGetGallery
             // If the current user doesn't have the rights to upload the package, the package upload will be rejected by submitting the form.
             // Related: https://github.com/NuGet/NuGetGallery/issues/5043
             IEnumerable<User> accountsAllowedOnBehalfOf = new[] { currentUser };
-            InvalidZipEntry anyInvalidZipEntry = ZipArchiveHelpers.ValidateArchiveEntries(uploadStream, out ZipArchiveEntry invalidZipEntry);
-
-            switch (anyInvalidZipEntry)
+            var archiveValidationError = ZipArchiveHelpers.GetArchiveValidationError(uploadStream);
+            if (archiveValidationError != null)
             {
-                case InvalidZipEntry.None:
-                    break;
-                case InvalidZipEntry.InFuture:
-                    return Json(HttpStatusCode.BadRequest, new[]
-                    {
-                        new JsonValidationMessage(string.Format(CultureInfo.CurrentCulture, Strings.PackageEntryFromTheFuture, invalidZipEntry.Name))
-                    });
-                case InvalidZipEntry.DoubleForwardSlashesInPath:
-                    return Json(HttpStatusCode.BadRequest, new[]
-                    {
-                        new JsonValidationMessage(string.Format(CultureInfo.CurrentCulture, Strings.PackageEntryWithDoubleForwardSlash, invalidZipEntry.Name))
-                    });
-                case InvalidZipEntry.DoubleBackwardSlashesInPath:
-                    return Json(HttpStatusCode.BadRequest, new[]
-                    {
-                        new JsonValidationMessage(string.Format(CultureInfo.CurrentCulture, Strings.PackageEntryWithDoubleBackSlash, invalidZipEntry.Name))
-                    });
-                default:
-                    return Json(HttpStatusCode.BadRequest, new[]
-                    {
-                        // Generic error message for unknown invalid zip entry
-                        new JsonValidationMessage(string.Format(CultureInfo.CurrentCulture, Strings.InvalidPackageEntry, invalidZipEntry.Name))
-                    });
+                return Json(HttpStatusCode.BadRequest, new[]
+                {
+                    new JsonValidationMessage(archiveValidationError)
+                });
             }
 
             try
@@ -965,6 +944,7 @@ namespace NuGetGallery
             // Validating packages should be hidden to everyone but the owners and admins.
             var currentUser = GetCurrentUser();
             if (package == null
+                || package.PackageStatusKey == PackageStatus.Staged
                 || ((package.PackageStatusKey == PackageStatus.Validating
                      || package.PackageStatusKey == PackageStatus.FailedValidation)
                     && ActionsRequiringPermissions.DisplayPrivatePackageMetadata.CheckPermissionsOnBehalfOfAnyAccount(currentUser, package) != PermissionsCheckResult.Allowed))
@@ -1996,6 +1976,7 @@ namespace NuGetGallery
             // Fetch all versions of the package with symbols.
             var versionsWithSymbols = packages
                 .Where(p => p.PackageStatusKey != PackageStatus.Deleted)
+                .Where(p => p.PackageStatusKey != PackageStatus.Staged)
                 .Where(p => (p.LatestSymbolPackage()?.StatusKey ?? PackageStatus.Deleted) == PackageStatus.Available)
                 .OrderByDescending(p => new NuGetVersion(p.Version));
 
@@ -2467,6 +2448,7 @@ namespace NuGetGallery
             // Validating packages should be hidden to everyone but the owners and admins.
             var currentUser = GetCurrentUser();
             if (package == null
+                || package.PackageStatusKey == PackageStatus.Staged
                 || ((package.PackageStatusKey == PackageStatus.Validating
                      || package.PackageStatusKey == PackageStatus.FailedValidation)
                     && ActionsRequiringPermissions.DisplayPrivatePackageMetadata.CheckPermissionsOnBehalfOfAnyAccount(currentUser, package) != PermissionsCheckResult.Allowed))

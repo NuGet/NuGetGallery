@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -61,6 +62,37 @@ namespace NuGetGallery
             }
 
             return InvalidZipEntry.None;
+        }
+
+        /// <summary>
+        /// Validates the entries in a package archive and returns a user-facing error message.
+        /// </summary>
+        /// <param name="stream">The stream containing the package archive.</param>
+        /// <returns>An error message when validation fails; otherwise, <see langword="null"/>.</returns>
+        public static string GetArchiveValidationError(Stream stream)
+        {
+            try
+            {
+                var invalidEntry = ValidateArchiveEntries(stream, out var entry);
+                switch (invalidEntry)
+                {
+                    case InvalidZipEntry.None:
+                        return null;
+                    case InvalidZipEntry.InFuture:
+                        return string.Format(CultureInfo.CurrentCulture, Strings.PackageEntryFromTheFuture, entry.Name);
+                    case InvalidZipEntry.DoubleForwardSlashesInPath:
+                        return string.Format(CultureInfo.CurrentCulture, Strings.PackageEntryWithDoubleForwardSlash, entry.Name);
+                    case InvalidZipEntry.DoubleBackwardSlashesInPath:
+                        return string.Format(CultureInfo.CurrentCulture, Strings.PackageEntryWithDoubleBackSlash, entry.Name);
+                    default:
+                        return string.Format(CultureInfo.CurrentCulture, Strings.InvalidPackageEntry, entry.Name);
+                }
+            }
+            catch (Exception exception)
+            {
+                exception.Log();
+                return Strings.FailedToReadUploadFile;
+            }
         }
 
         internal static string NormalizeForwardSlashesInPath(string path)

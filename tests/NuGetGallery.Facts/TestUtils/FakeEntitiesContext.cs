@@ -42,6 +42,12 @@ namespace NuGetGallery
             set => throw new NotSupportedException();
         }
 
+        public DbSet<StagedPackage> StagedPackages
+        {
+            get => Set<StagedPackage>();
+            set => throw new NotSupportedException();
+        }
+
         public DbSet<PackageDeprecation> Deprecations
         {
             get => Set<PackageDeprecation>();

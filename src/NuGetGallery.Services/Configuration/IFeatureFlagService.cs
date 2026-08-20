@@ -380,6 +380,13 @@ namespace NuGetGallery
         /// </summary>
         bool IsAdminApiSoftDeleteEnabled();
 
+        /// <summary>
+        /// Whether package staging is enabled for the specified user or organization.
+        /// </summary>
+        /// <param name="user">The user or organization to check.</param>
+        /// <returns>Whether package staging is enabled.</returns>
+        bool IsPackageStagingEnabled(User user);
+
         // TODO: https://github.com/NuGet/Engineering/issues/6446
         bool IsInvalidPackageIdAllowedForAllPackages();
         bool IsInvalidPackageIdAllowedForExistingPackages();

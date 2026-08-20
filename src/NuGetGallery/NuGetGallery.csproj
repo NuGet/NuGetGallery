@@ -399,6 +399,10 @@
     <Compile Include="Migrations\202608031928454_AddFederatedCredentialPolicyScopes.Designer.cs">
       <DependentUpon>202608031928454_AddFederatedCredentialPolicyScopes.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202608141813294_AddStagedPackages.cs" />
+    <Compile Include="Migrations\202608141813294_AddStagedPackages.Designer.cs">
+      <DependentUpon>202608141813294_AddStagedPackages.cs</DependentUpon>
+    </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
     <Compile Include="RequestModels\UpdateListedRequest.cs" />
@@ -602,6 +606,10 @@
     </Compile>
     <Compile Include="RequestModels\SimulatedErrorType.cs" />
     <Compile Include="Services\AsynchronousValidationMessageEmitter.cs" />
+    <Compile Include="Services\IPackageStagingService.cs" />
+    <Compile Include="Services\PackageStagingResult.cs" />
+    <Compile Include="Services\PackageStagingService.cs" />
+    <Compile Include="Services\PackageStagingStatus.cs" />
     <Compile Include="Infrastructure\Mail\BackgroundMarkdownMessageService.cs" />
     <Compile Include="Services\GalleryContentFileMetadataService.cs" />
     <Compile Include="Services\InvalidLicenseUrlValidationMessage.cs" />
@@ -1563,6 +1571,7 @@
     <Compile Include="ViewModels\StatisticsPackagesViewModel.cs" />
     <Compile Include="App_Start\AppActivator.cs" />
     <Compile Include="Controllers\ApiController.cs" />
+    <Compile Include="Controllers\StagingApiController.cs" />
     <Compile Include="Controllers\JsonApiController.cs" />
     <Compile Include="Controllers\PackagesController.cs" />
     <Compile Include="Controllers\AuthenticationController.cs" />
@@ -1791,6 +1800,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202608031928454_AddFederatedCredentialPolicyScopes.resx">
       <DependentUpon>202608031928454_AddFederatedCredentialPolicyScopes.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202608141813294_AddStagedPackages.resx">
+      <DependentUpon>202608141813294_AddStagedPackages.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

@@ -550,7 +550,7 @@ namespace NuGetGallery
                 p => p.Listed && p.PackageStatusKey == PackageStatus.Available);
 
             var unlistedPackages = GetPackages(packages, currentUser, wasAADLoginOrMultiFactorAuthenticated,
-                p => !p.Listed || p.PackageStatusKey != PackageStatus.Available);
+                p => !p.Listed || (p.PackageStatusKey != PackageStatus.Available && p.PackageStatusKey != PackageStatus.Staged));
 
             // find all received ownership requests
             var userReceived = _packageOwnerRequestService.GetPackageOwnershipRequests(newOwner: currentUser);
