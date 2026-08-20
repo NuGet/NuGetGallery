@@ -51,9 +51,9 @@ namespace NuGetGallery.Infrastructure.Authentication
             credential.FederatedCredentialPolicy = policy;
             credential.Description = "Short-lived API key generated via a federated credential";
 
-            if (policy.Scopes == null)
+            if (policy.Scopes == null || policy.Scopes.Count == 0)
             {
-                credential.Scopes = [ new Scope(policy.PackageOwner, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.All) ];
+                credential.Scopes = [ new Scope(policy.PackageOwner, subject: NuGetPackagePattern.AllInclusivePattern, allowedAction: NuGetScopes.All) ];
             }
             else
             {
