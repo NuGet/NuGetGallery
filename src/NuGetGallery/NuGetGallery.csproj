@@ -606,10 +606,13 @@
     </Compile>
     <Compile Include="RequestModels\SimulatedErrorType.cs" />
     <Compile Include="Services\AsynchronousValidationMessageEmitter.cs" />
-    <Compile Include="Services\IPackageStagingService.cs" />
+    <Compile Include="Services\IPackageStagingManagementService.cs" />
+    <Compile Include="Services\IPackageStagingUploadService.cs" />
     <Compile Include="Services\PackageStagingResult.cs" />
-    <Compile Include="Services\PackageStagingService.cs" />
+    <Compile Include="Services\PackageStagingManagementService.cs" />
     <Compile Include="Services\PackageStagingStatus.cs" />
+    <Compile Include="Services\PackageStagingUploadService.cs" />
+    <Compile Include="ViewModels\PackageStagingViewModel.cs" />
     <Compile Include="Infrastructure\Mail\BackgroundMarkdownMessageService.cs" />
     <Compile Include="Services\GalleryContentFileMetadataService.cs" />
     <Compile Include="Services\InvalidLicenseUrlValidationMessage.cs" />

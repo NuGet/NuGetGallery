@@ -20,7 +20,7 @@ using NuGetGallery.Security;
 
 namespace NuGetGallery
 {
-    public class PackageStagingService : IPackageStagingService
+    public class PackageStagingUploadService : IPackageStagingUploadService
     {
         private readonly IEntitiesContext _entitiesContext;
 
@@ -38,7 +38,7 @@ namespace NuGetGallery
 
         private readonly IStagingBlobService _stagingBlobService;
 
-        public PackageStagingService(
+        public PackageStagingUploadService(
             IEntitiesContext entitiesContext,
             IApiScopeEvaluator apiScopeEvaluator,
             IFeatureFlagService featureFlagService,
@@ -149,35 +149,6 @@ namespace NuGetGallery
             {
                 return PackageStagingResult.Error(HttpStatusCode.BadRequest, ex.Message);
             }
-        }
-
-        public PackageStagingStatus GetPackage(User currentUser, IEnumerable<Scope> scopes, string id, string version)
-        {
-            if (currentUser == null)
-            {
-                throw new ArgumentNullException(nameof(currentUser));
-            }
-
-            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
-            if (package == null)
-            {
-                return null;
-            }
-
-            var stagedPackage = _entitiesContext.StagedPackages.Find(package.Key);
-            var authorizationResult = EvaluateAuthorization(currentUser, scopes, package.PackageRegistration, package.PackageRegistration.Id);
-            var owner = authorizationResult.Owner;
-            if (!authorizationResult.IsSuccessful() || stagedPackage?.OwnerKey != owner.Key || !_featureFlagService.IsPackageStagingEnabled(owner))
-            {
-                return null;
-            }
-
-            return new PackageStagingStatus
-            {
-                Id = package.PackageRegistration.Id,
-                Version = package.NormalizedVersion,
-                Status = PackageStatus.Staged.ToString(),
-            };
         }
 
         private async Task<PackageArchiveReader> ValidatePackageAsync(Stream packageFile)

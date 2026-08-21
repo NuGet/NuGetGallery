@@ -17,7 +17,7 @@ using Xunit;
 
 namespace NuGetGallery
 {
-    public class PackageStagingServiceFacts
+    public class PackageStagingUploadServiceFacts
     {
         public class TheStagePackageAsyncMethod
         {
@@ -113,7 +113,7 @@ namespace NuGetGallery
                     .Setup(x => x.IsPackageStagingEnabled(owner))
                     .Returns(true);
 
-                var target = new PackageStagingService(
+                var target = new PackageStagingUploadService(
                     entitiesContext.Object,
                     apiScopeEvaluator.Object,
                     featureFlagService.Object,
@@ -141,5 +141,6 @@ namespace NuGetGallery
                 entitiesContext.Verify(x => x.SaveChangesAsync(), Times.Once);
             }
         }
+
     }
 }

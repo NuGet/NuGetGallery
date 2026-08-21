@@ -2,28 +2,15 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
-using System.Web;
 using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
     /// <summary>
-    /// Provides operations for staging and retrieving private packages.
+    /// Retrieves private staged packages for authorized owners.
     /// </summary>
-    public interface IPackageStagingService
+    public interface IPackageStagingManagementService
     {
-        /// <summary>
-        /// Validates and stages a package on behalf of an authorized owner.
-        /// </summary>
-        /// <param name="currentUser">The user associated with the staging credential.</param>
-        /// <param name="scopes">The scopes granted to the staging credential.</param>
-        /// <param name="httpContext">The current HTTP context.</param>
-        /// <param name="packageFile">The stream containing the package file.</param>
-        /// <returns>The result of the staging operation.</returns>
-        Task<PackageStagingResult> StagePackageAsync(User currentUser, IEnumerable<Scope> scopes, HttpContextBase httpContext, Stream packageFile);
-
         /// <summary>
         /// Gets an owner-visible staged package.
         /// </summary>
@@ -33,5 +20,19 @@ namespace NuGetGallery
         /// <param name="version">The package version.</param>
         /// <returns>The staged package status, or <see langword="null"/> when the package is not visible to the caller.</returns>
         PackageStagingStatus GetPackage(User currentUser, IEnumerable<Scope> scopes, string id, string version);
+
+        /// <summary>
+        /// Determines whether package staging is enabled for the user or an organization the user belongs to.
+        /// </summary>
+        /// <param name="currentUser">The user whose staging access should be checked.</param>
+        /// <returns><see langword="true"/> when at least one eligible staging owner is enabled.</returns>
+        bool IsEnabled(User currentUser);
+
+        /// <summary>
+        /// Gets staged packages owned by the user or an enabled organization the user belongs to.
+        /// </summary>
+        /// <param name="currentUser">The user requesting the staged packages.</param>
+        /// <returns>The owner-visible staged packages.</returns>
+        IReadOnlyList<StagedPackage> GetStagedPackages(User currentUser);
     }
 }

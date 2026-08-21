@@ -25,5 +25,9 @@ namespace NuGetGallery
         public bool IsCertificatesUIEnabled { get; set; }
 
         public bool IsManagePackagesVulnerabilitiesEnabled { get; set; }
+
+        public bool IsPackageStagingEnabled { get; set; }
+
+        public IReadOnlyList<PackageStagingViewModel> StagedPackages { get; set; }
     }
 }
