@@ -228,6 +228,11 @@ namespace NuGetGallery
                 .As<IEntityRepository<Package>>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<EntityRepository<StagedPackage>>()
+                .AsSelf()
+                .As<IEntityRepository<StagedPackage>>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<EntityRepository<PackageDependency>>()
                 .AsSelf()
                 .As<IEntityRepository<PackageDependency>>()

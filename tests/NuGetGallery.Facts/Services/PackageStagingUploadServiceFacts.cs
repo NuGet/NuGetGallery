@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
@@ -99,14 +98,13 @@ namespace NuGetGallery
                     .ReturnsAsync(blobPath);
 
                 StagedPackage stagedPackage = null;
-                var stagedPackages = new Mock<DbSet<StagedPackage>>();
-                stagedPackages
-                    .Setup(x => x.Add(It.IsAny<StagedPackage>()))
+                var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
+                stagedPackageRepository
+                    .Setup(x => x.InsertOnCommit(It.IsAny<StagedPackage>()))
                     .Callback<StagedPackage>(value => stagedPackage = value);
-
-                var entitiesContext = new Mock<IEntitiesContext>();
-                entitiesContext.SetupGet(x => x.StagedPackages).Returns(stagedPackages.Object);
-                entitiesContext.Setup(x => x.SaveChangesAsync()).ReturnsAsync(1);
+                stagedPackageRepository
+                    .Setup(x => x.CommitChangesAsync())
+                    .Returns(Task.CompletedTask);
 
                 var featureFlagService = new Mock<IFeatureFlagService>();
                 featureFlagService
@@ -114,14 +112,14 @@ namespace NuGetGallery
                     .Returns(true);
 
                 var target = new PackageStagingUploadService(
-                    entitiesContext.Object,
                     apiScopeEvaluator.Object,
                     featureFlagService.Object,
                     packageService.Object,
                     packageUploadService.Object,
                     Mock.Of<IReservedNamespaceService>(),
                     securityPolicyService.Object,
-                    stagingFiles.Object);
+                    stagingFiles.Object,
+                    stagedPackageRepository.Object);
 
                 using (var packageFile = TestPackage.CreateTestPackageStream("PackageA", "1.0.0"))
                 {
@@ -138,7 +136,8 @@ namespace NuGetGallery
                 Assert.Equal(PackageStatus.Staged, package.PackageStatusKey);
                 Assert.Equal(owner.Key, stagedPackage.OwnerKey);
                 Assert.Equal(blobPath, stagedPackage.BlobPath);
-                entitiesContext.Verify(x => x.SaveChangesAsync(), Times.Once);
+                stagedPackageRepository.Verify(x => x.InsertOnCommit(stagedPackage), Times.Once);
+                stagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
             }
         }
 

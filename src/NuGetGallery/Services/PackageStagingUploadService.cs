@@ -22,8 +22,6 @@ namespace NuGetGallery
 {
     public class PackageStagingUploadService : IPackageStagingUploadService
     {
-        private readonly IEntitiesContext _entitiesContext;
-
         private readonly IApiScopeEvaluator _apiScopeEvaluator;
 
         private readonly IFeatureFlagService _featureFlagService;
@@ -38,17 +36,18 @@ namespace NuGetGallery
 
         private readonly IStagingBlobService _stagingBlobService;
 
+        private readonly IEntityRepository<StagedPackage> _stagedPackageRepository;
+
         public PackageStagingUploadService(
-            IEntitiesContext entitiesContext,
             IApiScopeEvaluator apiScopeEvaluator,
             IFeatureFlagService featureFlagService,
             IPackageService packageService,
             IPackageUploadService packageUploadService,
             IReservedNamespaceService reservedNamespaceService,
             ISecurityPolicyService securityPolicyService,
-            IStagingBlobService stagingBlobService)
+            IStagingBlobService stagingBlobService,
+            IEntityRepository<StagedPackage> stagedPackageRepository)
         {
-            _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _apiScopeEvaluator = apiScopeEvaluator ?? throw new ArgumentNullException(nameof(apiScopeEvaluator));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
@@ -56,6 +55,7 @@ namespace NuGetGallery
             _reservedNamespaceService = reservedNamespaceService ?? throw new ArgumentNullException(nameof(reservedNamespaceService));
             _securityPolicyService = securityPolicyService ?? throw new ArgumentNullException(nameof(securityPolicyService));
             _stagingBlobService = stagingBlobService ?? throw new ArgumentNullException(nameof(stagingBlobService));
+            _stagedPackageRepository = stagedPackageRepository ?? throw new ArgumentNullException(nameof(stagedPackageRepository));
         }
 
         public async Task<PackageStagingResult> StagePackageAsync(User currentUser, IEnumerable<Scope> scopes, HttpContextBase httpContext, Stream packageFile)
@@ -294,7 +294,7 @@ namespace NuGetGallery
             var blobPath = await _stagingBlobService.SavePackageFileAsync(package.PackageRegistration.Id, package.NormalizedVersion, packageFile);
 
             await _packageService.UpdatePackageStatusAsync(package, PackageStatus.Staged, commitChanges: false);
-            _entitiesContext.StagedPackages.Add(new StagedPackage
+            _stagedPackageRepository.InsertOnCommit(new StagedPackage
             {
                 Package = package,
                 OwnerKey = owner.Key,
@@ -304,7 +304,7 @@ namespace NuGetGallery
 
             try
             {
-                await _entitiesContext.SaveChangesAsync();
+                await _stagedPackageRepository.CommitChangesAsync();
             }
             catch (Exception exception) when (IsConflict(exception))
             {

@@ -12,21 +12,21 @@ namespace NuGetGallery
 {
     public class PackageStagingManagementService : IPackageStagingManagementService
     {
-        private readonly IEntitiesContext _entitiesContext;
         private readonly IApiScopeEvaluator _apiScopeEvaluator;
         private readonly IFeatureFlagService _featureFlagService;
         private readonly IPackageService _packageService;
+        private readonly IEntityRepository<StagedPackage> _stagedPackageRepository;
 
         public PackageStagingManagementService(
-            IEntitiesContext entitiesContext,
             IApiScopeEvaluator apiScopeEvaluator,
             IFeatureFlagService featureFlagService,
-            IPackageService packageService)
+            IPackageService packageService,
+            IEntityRepository<StagedPackage> stagedPackageRepository)
         {
-            _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _apiScopeEvaluator = apiScopeEvaluator ?? throw new ArgumentNullException(nameof(apiScopeEvaluator));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
+            _stagedPackageRepository = stagedPackageRepository ?? throw new ArgumentNullException(nameof(stagedPackageRepository));
         }
 
         public PackageStagingStatus GetPackage(User currentUser, IEnumerable<Scope> scopes, string id, string version)
@@ -57,7 +57,9 @@ namespace NuGetGallery
                 return null;
             }
 
-            var stagedPackage = _entitiesContext.StagedPackages.Find(package.Key);
+            var stagedPackage = _stagedPackageRepository
+                .GetAll()
+                .SingleOrDefault(candidate => candidate.PackageKey == package.Key);
             if (stagedPackage == null)
             {
                 return null;
@@ -105,7 +107,7 @@ namespace NuGetGallery
                 .Select(owner => owner.Key)
                 .ToArray();
 
-            var stagedPackages = _entitiesContext.StagedPackages;
+            var stagedPackages = _stagedPackageRepository.GetAll();
 
             return stagedPackages
                 .Include(stagedPackage => stagedPackage.Package.PackageRegistration)
