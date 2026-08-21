@@ -4,7 +4,6 @@
 using System;
 using System.Globalization;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Frameworks;
@@ -63,33 +62,10 @@ namespace NuGetGallery
 
             try
             {
-                InvalidZipEntry anyInvalidZipEntry = ZipArchiveHelpers.ValidateArchiveEntries(symbolPackageStream, out ZipArchiveEntry invalidZipEntry);
-
-                switch (anyInvalidZipEntry)
+                var archiveValidationError = ZipArchiveHelpers.GetArchiveValidationError(symbolPackageStream);
+                if (archiveValidationError != null)
                 {
-                    case InvalidZipEntry.None:
-                        break;
-                    case InvalidZipEntry.InFuture:
-                        return SymbolPackageValidationResult.Invalid(string.Format(
-                            CultureInfo.CurrentCulture,
-                            Strings.PackageEntryFromTheFuture,
-                            invalidZipEntry.Name));
-                    case InvalidZipEntry.DoubleForwardSlashesInPath:
-                        return SymbolPackageValidationResult.Invalid(string.Format(
-                            CultureInfo.CurrentCulture,
-                            Strings.PackageEntryWithDoubleForwardSlash,
-                            invalidZipEntry.Name));
-                    case InvalidZipEntry.DoubleBackwardSlashesInPath:
-                        return SymbolPackageValidationResult.Invalid(string.Format(
-                            CultureInfo.CurrentCulture,
-                            Strings.PackageEntryWithDoubleBackSlash,
-                            invalidZipEntry.Name));
-                    default:
-                        // Generic error message for unknown invalid zip entry
-                        return SymbolPackageValidationResult.Invalid(string.Format(
-                            CultureInfo.CurrentCulture,
-                            Strings.InvalidPackageEntry,
-                            invalidZipEntry.Name));
+                    return SymbolPackageValidationResult.Invalid(archiveValidationError);
                 }
 
                 using (var packageToPush = new PackageArchiveReader(symbolPackageStream, leaveStreamOpen: true))
