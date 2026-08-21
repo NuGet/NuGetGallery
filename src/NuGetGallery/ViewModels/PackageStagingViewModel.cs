@@ -9,9 +9,9 @@ namespace NuGetGallery
     {
         public string Id { get; set; }
 
-        public string Owner { get; set; }
-
         public string Version { get; set; }
+
+        public string Owner { get; set; }
 
         public string Status { get; set; }
 
