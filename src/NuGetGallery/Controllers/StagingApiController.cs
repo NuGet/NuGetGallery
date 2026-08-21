@@ -17,11 +17,15 @@ namespace NuGetGallery
     [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
     public class StagingApiController : AppController
     {
-        private readonly IPackageStagingService _packageStagingService;
+        private readonly IPackageStagingManagementService _packageStagingManagementService;
+        private readonly IPackageStagingUploadService _packageStagingUploadService;
 
-        public StagingApiController(IPackageStagingService packageStagingService)
+        public StagingApiController(
+            IPackageStagingManagementService packageStagingManagementService,
+            IPackageStagingUploadService packageStagingUploadService)
         {
-            _packageStagingService = packageStagingService ?? throw new ArgumentNullException(nameof(packageStagingService));
+            _packageStagingManagementService = packageStagingManagementService ?? throw new ArgumentNullException(nameof(packageStagingManagementService));
+            _packageStagingUploadService = packageStagingUploadService ?? throw new ArgumentNullException(nameof(packageStagingUploadService));
         }
 
         [HttpPut]
@@ -32,7 +36,7 @@ namespace NuGetGallery
 
             try
             {
-                var result = await _packageStagingService.StagePackageAsync(currentUser, scopes, HttpContext, Request.InputStream);
+                var result = await _packageStagingUploadService.StagePackageAsync(currentUser, scopes, HttpContext, Request.InputStream);
                 if (!result.Success)
                 {
                     return new HttpStatusCodeWithBodyResult(result.StatusCode, result.ErrorMessage);
@@ -57,7 +61,7 @@ namespace NuGetGallery
             var currentUser = GetCurrentUser();
             var scopes = User.Identity.GetScopesFromClaim();
 
-            var package = _packageStagingService.GetPackage(currentUser, scopes, id, version);
+            var package = _packageStagingManagementService.GetPackage(currentUser, scopes, id, version);
             if (package == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);

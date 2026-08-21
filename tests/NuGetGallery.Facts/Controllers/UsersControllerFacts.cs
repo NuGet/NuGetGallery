@@ -4137,6 +4137,46 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public void IncludesStagedPackagesWhenStagingIsEnabled()
+            {
+                var uploadedDate = DateTime.UtcNow;
+                var stagedPackage = new StagedPackage
+                {
+                    Package = new Package
+                    {
+                        NormalizedVersion = "1.0.0",
+                        PackageRegistration = new PackageRegistration { Id = "Staged.Package" },
+                        PackageStatusKey = PackageStatus.Staged,
+                        Listed = false,
+                    },
+                    Owner = _testUser,
+                    UploadedDate = uploadedDate,
+                };
+
+                GetMock<IPackageService>()
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(_testUser, It.IsAny<bool>(), false))
+                    .Returns(new[] { stagedPackage.Package });
+                GetMock<IPackageStagingManagementService>()
+                    .Setup(service => service.IsEnabledForUser(_testUser))
+                    .Returns(true);
+                GetMock<IPackageStagingManagementService>()
+                    .Setup(service => service.GetStagedPackagesForUser(_testUser))
+                    .Returns(new[] { stagedPackage });
+
+                var model = ResultAssert.IsView<ManagePackagesViewModel>(_testController.Packages());
+
+                Assert.True(model.IsPackageStagingEnabled);
+                Assert.Empty(model.ListedPackages);
+                Assert.Empty(model.UnlistedPackages);
+                var result = Assert.Single(model.StagedPackages);
+                Assert.Equal("Staged.Package", result.Id);
+                Assert.Equal("1.0.0", result.Version);
+                Assert.Equal(PackageStatus.Staged.ToString(), result.Status);
+                Assert.Equal(_testUser.Username, result.Owner);
+                Assert.Equal(uploadedDate, result.UploadedDate);
+            }
+
+            [Fact]
             public void PackagesAreSortedById()
             {
                 PackageRegistration packageRegistration1 = CreatePackageRegistration("Company.ZebraPackage", 1, "1.0.0", "last");
