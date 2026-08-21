@@ -105,7 +105,7 @@ namespace NuGetGallery
                 .Select(owner => owner.Key)
                 .ToArray();
 
-            IQueryable<StagedPackage> stagedPackages = _entitiesContext.StagedPackages;
+            var stagedPackages = _entitiesContext.StagedPackages;
 
             return stagedPackages
                 .Include(stagedPackage => stagedPackage.Package.PackageRegistration)
