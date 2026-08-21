@@ -56,9 +56,9 @@ namespace NuGetGallery
                 stagedPackagesSet.As<IQueryable<StagedPackage>>().Setup(x => x.GetEnumerator()).Returns(() => stagedPackagesQuery.GetEnumerator());
                 stagedPackagesSet.Setup(x => x.Include("Package.PackageRegistration")).Returns(stagedPackagesSet.Object);
                 stagedPackagesSet.Setup(x => x.Include("Owner")).Returns(stagedPackagesSet.Object);
-                var entitiesContext = new Mock<IEntitiesContext>();
-                entitiesContext
-                    .SetupGet(x => x.StagedPackages)
+                var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
+                stagedPackageRepository
+                    .Setup(x => x.GetAll())
                     .Returns(stagedPackagesSet.Object);
 
                 var featureFlagService = new Mock<IFeatureFlagService>();
@@ -67,10 +67,10 @@ namespace NuGetGallery
                     .Returns((User owner) => isEnabled(owner));
 
                 return new PackageStagingManagementService(
-                    entitiesContext.Object,
                     Mock.Of<IApiScopeEvaluator>(),
                     featureFlagService.Object,
-                    Mock.Of<IPackageService>());
+                    Mock.Of<IPackageService>(),
+                    stagedPackageRepository.Object);
             }
 
             private static StagedPackage CreateStagedPackage(int packageKey, string id, string version, User owner)
