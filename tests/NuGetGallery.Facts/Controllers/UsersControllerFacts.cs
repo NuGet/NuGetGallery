@@ -4174,6 +4174,30 @@ namespace NuGetGallery
                 Assert.Equal(PackageStatus.Staged.ToString(), result.Status);
                 Assert.Equal(_testUser.Username, result.Owner);
                 Assert.Equal(uploadedDate, result.UploadedDate);
+                GetMock<IPackageStagingManagementService>()
+                    .Verify(service => service.IsEnabled(_testUser), Times.Once);
+                GetMock<IPackageStagingManagementService>()
+                    .Verify(service => service.GetStagedPackages(_testUser), Times.Once);
+            }
+
+            [Fact]
+            public void ExcludesStagedPackagesWhenStagingIsDisabled()
+            {
+                GetMock<IPackageService>()
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(_testUser, It.IsAny<bool>(), false))
+                    .Returns(Array.Empty<Package>());
+                GetMock<IPackageStagingManagementService>()
+                    .Setup(service => service.IsEnabled(_testUser))
+                    .Returns(false);
+
+                var model = ResultAssert.IsView<ManagePackagesViewModel>(_testController.Packages());
+
+                Assert.False(model.IsPackageStagingEnabled);
+                Assert.Empty(model.StagedPackages);
+                GetMock<IPackageStagingManagementService>()
+                    .Verify(service => service.IsEnabled(_testUser), Times.Once);
+                GetMock<IPackageStagingManagementService>()
+                    .Verify(service => service.GetStagedPackages(It.IsAny<User>()), Times.Never);
             }
 
             [Fact]
