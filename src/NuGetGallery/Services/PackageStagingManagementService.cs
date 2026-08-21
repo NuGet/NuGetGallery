@@ -58,6 +58,11 @@ namespace NuGetGallery
             }
 
             var stagedPackage = _entitiesContext.StagedPackages.Find(package.Key);
+            if (stagedPackage == null)
+            {
+                return null;
+            }
+
             var authorizationResult = _apiScopeEvaluator.Evaluate(
                 currentUser,
                 scopes,
@@ -66,7 +71,7 @@ namespace NuGetGallery
                 NuGetScopes.PackagePushVersion,
                 NuGetScopes.PackagePush);
             var owner = authorizationResult.Owner;
-            if (!authorizationResult.IsSuccessful() || stagedPackage?.OwnerKey != owner.Key || !_featureFlagService.IsPackageStagingEnabled(owner))
+            if (!authorizationResult.IsSuccessful() || stagedPackage.OwnerKey != owner.Key || !_featureFlagService.IsPackageStagingEnabled(owner))
             {
                 return null;
             }
