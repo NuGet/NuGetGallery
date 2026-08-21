@@ -39,33 +39,32 @@ DELETE FROM [dbo].[Credentials] WHERE [Key] IN ({0})";
 
         public override async Task RunAsync(Job job)
         {
-            IEnumerable<ApiKey> expiredApiKeyScopeRows;
+            IEnumerable<ApiKey> expiredApiKeyScopes;
 
             using (var connection = await job.OpenSqlConnectionAsync<GalleryDbConfiguration>())
             {
-                expiredApiKeyScopeRows = await connection.QueryWithRetryAsync<ApiKey>(
+                expiredApiKeyScopes = await connection.QueryWithRetryAsync<ApiKey>(
                     SelectQuery,
                     commandTimeout: _commandTimeout,
                     maxRetries: 3);
             }
 
-            var credentialKeys = expiredApiKeyScopeRows.Select(expiredApiKeyScopeRow =>
+            var expiredCredentialKeys = expiredApiKeyScopes.Select(expiredApiKeyScope =>
             {
                 _logger.LogInformation(
                     "Found expired ApiKey: CredentialKey='{credentialKey}' CredentialType='{credentialType}' UserKey='{userKey}', User='{userName}', Subject='{scopeSubject}', Expires={expires}",
-                    expiredApiKeyScopeRow.CredentialKey,
-                    expiredApiKeyScopeRow.CredentialType,
-                    expiredApiKeyScopeRow.UserKey,
-                    expiredApiKeyScopeRow.Username,
-                    expiredApiKeyScopeRow.ScopeSubject,
-                    expiredApiKeyScopeRow.Expires);
+                    expiredApiKeyScope.CredentialKey,
+                    expiredApiKeyScope.CredentialType,
+                    expiredApiKeyScope.UserKey,
+                    expiredApiKeyScope.Username,
+                    expiredApiKeyScope.ScopeSubject,
+                    expiredApiKeyScope.Expires);
 
-                return expiredApiKeyScopeRow.CredentialKey;
+                return expiredApiKeyScope.CredentialKey;
             }).Distinct().ToList();
 
             var rowCount = 0;
-            var scopeRowCount = expiredApiKeyScopeRows.Count();
-            var expectedRowCount = credentialKeys.Count + scopeRowCount;
+            var expectedRowCount = expiredCredentialKeys.Count + expiredApiKeyScopes.Count();
 
             if (expectedRowCount > 0)
             {
@@ -74,7 +73,7 @@ DELETE FROM [dbo].[Credentials] WHERE [Key] IN ({0})";
                 using (var command = connection.CreateCommand())
                 {
                     var numKeys = 0;
-                    var parameters = credentialKeys.Select(c => new SqlParameter("@Key" + numKeys++, SqlDbType.Int) { Value = c }).ToArray();
+                    var parameters = expiredCredentialKeys.Select(c => new SqlParameter("@Key" + numKeys++, SqlDbType.Int) { Value = c }).ToArray();
                     command.Parameters.AddRange(parameters);
 
 #pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
