@@ -26,13 +26,13 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="currentUser">The user whose staging access should be checked.</param>
         /// <returns><see langword="true"/> when at least one eligible staging owner is enabled.</returns>
-        bool IsEnabledForUser(User currentUser);
+        bool IsEnabled(User currentUser);
 
         /// <summary>
         /// Gets staged packages owned by the user or an enabled organization the user belongs to.
         /// </summary>
         /// <param name="currentUser">The user requesting the staged packages.</param>
         /// <returns>The owner-visible staged packages.</returns>
-        IReadOnlyList<StagedPackage> GetStagedPackagesForUser(User currentUser);
+        IReadOnlyList<StagedPackage> GetStagedPackages(User currentUser);
     }
 }

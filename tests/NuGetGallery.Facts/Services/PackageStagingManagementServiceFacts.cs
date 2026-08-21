@@ -33,7 +33,7 @@ namespace NuGetGallery
                     new[] { personalPackage, organizationPackage, disabledPackage },
                     owner => owner != disabledOrganization);
 
-                var result = target.GetStagedPackagesForUser(currentUser);
+                var result = target.GetStagedPackages(currentUser);
 
                 Assert.Equal(
                     new[] { "Organization.Package", "Personal.Package" },

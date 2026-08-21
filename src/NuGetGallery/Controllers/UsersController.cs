@@ -576,11 +576,11 @@ namespace NuGetGallery
 
             var reservedPrefixes = new ReservedNamespaceListViewModel(userReservedNamespaces.Union(organizationsReservedNamespaces).ToArray());
 
-            var isPackageStagingEnabled = _packageStagingManagementService.IsEnabledForUser(currentUser);
+            var isPackageStagingEnabled = _packageStagingManagementService.IsEnabled(currentUser);
             var stagedPackages = new List<PackageStagingViewModel>();
             if (isPackageStagingEnabled)
             {
-                stagedPackages = _packageStagingManagementService.GetStagedPackagesForUser(currentUser)
+                stagedPackages = _packageStagingManagementService.GetStagedPackages(currentUser)
                     .Select(stagedPackage => new PackageStagingViewModel
                     {
                         Id = stagedPackage.Package.PackageRegistration.Id,

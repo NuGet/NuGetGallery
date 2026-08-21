@@ -4157,10 +4157,10 @@ namespace NuGetGallery
                     .Setup(stub => stub.FindPackagesByAnyMatchingOwner(_testUser, It.IsAny<bool>(), false))
                     .Returns(new[] { stagedPackage.Package });
                 GetMock<IPackageStagingManagementService>()
-                    .Setup(service => service.IsEnabledForUser(_testUser))
+                    .Setup(service => service.IsEnabled(_testUser))
                     .Returns(true);
                 GetMock<IPackageStagingManagementService>()
-                    .Setup(service => service.GetStagedPackagesForUser(_testUser))
+                    .Setup(service => service.GetStagedPackages(_testUser))
                     .Returns(new[] { stagedPackage });
 
                 var model = ResultAssert.IsView<ManagePackagesViewModel>(_testController.Packages());

@@ -64,7 +64,7 @@ namespace NuGetGallery
             };
         }
 
-        public bool IsEnabledForUser(User currentUser)
+        public bool IsEnabled(User currentUser)
         {
             if (currentUser == null)
             {
@@ -74,7 +74,7 @@ namespace NuGetGallery
             return GetEnabledOwners(currentUser).Any();
         }
 
-        public IReadOnlyList<StagedPackage> GetStagedPackagesForUser(User currentUser)
+        public IReadOnlyList<StagedPackage> GetStagedPackages(User currentUser)
         {
             if (currentUser == null)
             {
