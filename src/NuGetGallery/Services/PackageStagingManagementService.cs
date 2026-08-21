@@ -36,6 +36,21 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(currentUser));
             }
 
+            if (scopes == null)
+            {
+                throw new ArgumentNullException(nameof(scopes));
+            }
+
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(id));
+            }
+
+            if (string.IsNullOrWhiteSpace(version))
+            {
+                throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(version));
+            }
+
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
             if (package == null)
             {
