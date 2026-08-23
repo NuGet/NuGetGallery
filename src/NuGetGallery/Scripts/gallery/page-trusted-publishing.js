@@ -579,6 +579,7 @@
             }, this);
 
             this.IsOwnerValid = ko.observable(null);
+            this.HasAttemptedSubmit = ko.observable(false);
             this.PendingCreateOrEdit = ko.observable(false);
             this.JustCreated = ko.observable(false);
             this.JustRegenerated = ko.observable(false);
@@ -690,6 +691,7 @@
                 // Reset PackageOwner to null for new items, or to the current Owner for existing items
                 if (!self.Key()) {
                     self.PackageOwner(null);
+                    self.HasAttemptedSubmit(false);
                 }
 
                 // Reset the form.
@@ -761,6 +763,7 @@
             };
 
             this.CreateOrEdit = function () {
+                self.HasAttemptedSubmit(true);
                 if (!this.Valid()) {
                     return;
                 }
