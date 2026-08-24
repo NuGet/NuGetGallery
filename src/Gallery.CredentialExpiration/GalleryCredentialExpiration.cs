@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Gallery.CredentialExpiration.Models;
 using NuGet.Jobs.Configuration;
+using NuGetGallery;
 
 namespace Gallery.CredentialExpiration
 {
@@ -64,7 +65,13 @@ namespace Gallery.CredentialExpiration
                 // + the user's e-mail address
                 return  (await galleryConnection.QueryWithRetryAsync<ExpiredCredentialData>(
                     Strings.GetExpiredCredentialsQuery,
-                    param: new { MaxNotificationDate = maxNotificationDate, MinNotificationDate = minNotificationDate, CutoffDate = cutoffDate },
+                    param: new
+                    {
+                        MaxNotificationDate = maxNotificationDate,
+                        MinNotificationDate = minNotificationDate,
+                        CutoffDate = cutoffDate,
+                        DurationThresholdDays = ApiKeyReductionPolicy.DurationThresholdDays,
+                    },
                     maxRetries: 3,
                     commandTimeout: timeout)).ToList();
             }

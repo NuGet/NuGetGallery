@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -149,7 +149,7 @@ FROM [Credentials] AS cr
 INNER JOIN Users AS u ON u.[Key] = cr.[UserKey]
 CROSS APPLY (SELECT CASE
     WHEN @CutoffDate IS NOT NULL
-      AND cr.[Expires] &gt; DATEADD(day, 30, cr.[Created])
+      AND cr.[Expires] &gt; DATEADD(day, @DurationThresholdDays, cr.[Created])
       AND cr.[Expires] &gt; CONVERT(datetime, @CutoffDate)
     THEN CONVERT(datetime, @CutoffDate)
     ELSE cr.[Expires] END AS [EffectiveExpires]) AS eff

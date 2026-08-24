@@ -23,10 +23,13 @@ namespace NuGetGallery
         /// The hardcoded cutoff date. API keys with a duration longer than <see cref="DurationThresholdDays"/>
         /// days may not effectively expire later than this date.
         /// </summary>
-        public static readonly DateTime CutoffUtc = new DateTime(2026, 11, 1, 0, 0, 0, DateTimeKind.Utc);
+        public static readonly DateTime CutoffUtc = new DateTime(2026, 8, 23, 0, 0, 0, DateTimeKind.Utc);
 
         /// <summary>
         /// The duration threshold, in days, above which the cutoff applies.
+        /// This is the single source of truth: it is consumed by the gallery's
+        /// <see cref="GetEffectiveExpiration"/> and flows to the Gallery.CredentialExpiration job's
+        /// GetExpiredCredentialsQuery as the @DurationThresholdDays parameter.
         /// </summary>
         public const int DurationThresholdDays = 30;
 
