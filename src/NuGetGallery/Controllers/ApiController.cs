@@ -157,30 +157,30 @@ namespace NuGetGallery
             IAutocompletePackageVersionsQuery autocompletePackageVersionsQuery,
             IFeatureFlagService featureFlagService)
             : this(
-                  apiScopeEvaluator, 
-                  entitiesContext, 
-                  packageService, 
-                  packageDeprecationManagementService, 
-                  packageUpdateService, 
-                  packageFileService, 
-                  userService, 
-                  contentService, 
-                  indexingService, 
-                  searchService, 
-                  statusService, 
-                  messageService, 
+                  apiScopeEvaluator,
+                  entitiesContext,
+                  packageService,
+                  packageDeprecationManagementService,
+                  packageUpdateService,
+                  packageFileService,
+                  userService,
+                  contentService,
+                  indexingService,
+                  searchService,
+                  statusService,
+                  messageService,
                   auditingService,
-                  configurationService, 
-                  telemetryService, 
-                  authenticationService, 
-                  credentialBuilder, 
+                  configurationService,
+                  telemetryService,
+                  authenticationService,
+                  credentialBuilder,
                   securityPolicies,
-                  reservedNamespaceService, 
-                  packageUploadService, 
-                  packageDeleteService, 
+                  reservedNamespaceService,
+                  packageUploadService,
+                  packageDeleteService,
                   symbolPackageFileService,
-                  symbolPackageUploadServivce, 
-                  autocompletePackageIdsQuery, 
+                  symbolPackageUploadServivce,
+                  autocompletePackageIdsQuery,
                   autocompletePackageVersionsQuery,
                   featureFlagService)
         {
@@ -531,28 +531,6 @@ namespace NuGetGallery
             }
         }
 
-        private ActionResult CheckApiKeyReductionCutoff(User currentUser)
-        {
-            if (!FeatureFlagService.IsApiKeyReductionDateEnabled())
-            {
-                return null;
-            }
-
-            var credential = currentUser.GetCurrentApiKeyCredential(User.Identity);
-            if (credential == null || !credential.IsApiKey() || !credential.Expires.HasValue)
-            {
-                return null;
-            }
-
-            var effectiveExpiration = ApiKeyReductionPolicy.GetEffectiveExpiration(credential.Created, credential.Expires);
-            if (effectiveExpiration.HasValue && DateTime.UtcNow >= effectiveExpiration.Value)
-            {
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Forbidden, Strings.ApiKeyExpiredUnderReductionPolicy);
-            }
-
-            return null;
-        }
-
         private async Task<ActionResult> CreatePackageInternal()
         {
             string id = null;
@@ -564,12 +542,6 @@ namespace NuGetGallery
 
                 // Get the user
                 var currentUser = GetCurrentUser();
-
-                var apiKeyReductionResult = CheckApiKeyReductionCutoff(currentUser);
-                if (apiKeyReductionResult != null)
-                {
-                    return apiKeyReductionResult;
-                }
 
                 var policyResult = await SecurityPolicyService.EvaluateUserPoliciesAsync(securityPolicyAction, currentUser, HttpContext);
                 if (!policyResult.Success)
@@ -646,7 +618,8 @@ namespace NuGetGallery
                             NuspecReader nuspec;
                             PackageMetadata packageMetadata;
                             var errors = ManifestValidator.Validate(packageToPush.GetNuspec(),
-                                (string id) => {
+                                (string id) =>
+                                {
                                     return FeatureFlagService.IsInvalidPackageIdAllowedForAllPackages() ||
                                            (FeatureFlagService.IsInvalidPackageIdAllowedForExistingPackages() && PackageService.FindPackageRegistrationById(id) != null);
                                 },
@@ -994,7 +967,7 @@ namespace NuGetGallery
                 default:
                     throw new NotSupportedException($"The delete package action '{action}' is not supported.");
             }
-            
+
             return new EmptyResult();
         }
 
@@ -1036,13 +1009,13 @@ namespace NuGetGallery
         [ApiScopeRequired(NuGetScopes.PackageUnlist)]
         [ActionName(RouteName.DeprecatePackageApi)]
         public virtual async Task<ActionResult> DeprecatePackage(
-            string id, 
-            [ModelBinder(typeof(ArrayModelBinder<string>))] IEnumerable<string> versions, 
-            bool isLegacy = false, 
-            bool hasCriticalBugs = false, 
-            bool isOther = false, 
-            string alternatePackageId = null, 
-            string alternatePackageVersion = null, 
+            string id,
+            [ModelBinder(typeof(ArrayModelBinder<string>))] IEnumerable<string> versions,
+            bool isLegacy = false,
+            bool hasCriticalBugs = false,
+            bool isOther = false,
+            string alternatePackageId = null,
+            string alternatePackageVersion = null,
             string message = null,
             ListedVerb listedVerb = ListedVerb.Unchanged)
         {

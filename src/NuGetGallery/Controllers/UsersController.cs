@@ -1032,7 +1032,7 @@ namespace NuGetGallery
 
             await AuthenticationService.RemoveCredential(user, cred);
 
-            return Json(new ApiKeyViewModel(newCredentialViewModel));
+            return Json(new ApiKeyViewModel(newCredentialViewModel, _featureFlagService.IsApiKeyReductionDateEnabled()));
         }
 
         private static bool CredentialKeyMatches(int? credentialKey, Credential c)
@@ -1378,7 +1378,7 @@ namespace NuGetGallery
                     newCredentialViewModel.GetCredentialTypeInfo());
             await MessageService.SendMessageAsync(emailMessage);
 
-            return Json(new ApiKeyViewModel(newCredentialViewModel));
+            return Json(new ApiKeyViewModel(newCredentialViewModel, _featureFlagService.IsApiKeyReductionDateEnabled()));
         }
 
         [UIAuthorize]
@@ -1411,7 +1411,7 @@ namespace NuGetGallery
 
             var credentialViewModel = AuthenticationService.DescribeCredential(cred);
 
-            return Json(new ApiKeyViewModel(credentialViewModel));
+            return Json(new ApiKeyViewModel(credentialViewModel, _featureFlagService.IsApiKeyReductionDateEnabled()));
         }
 
         protected override RouteUrlTemplate<string> GetDeleteCertificateForAccountTemplate(string accountName)
