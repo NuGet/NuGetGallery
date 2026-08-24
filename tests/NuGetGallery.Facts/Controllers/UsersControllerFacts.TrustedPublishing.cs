@@ -11,6 +11,7 @@ using System.Web.Mvc;
 using Moq;
 
 using NuGet.Services.Entities;
+using NuGetGallery.Authentication;
 using NuGetGallery.Framework;
 using NuGetGallery.Services.Authentication;
 using Xunit;
@@ -49,7 +50,7 @@ public class TheTrustedPublishingAction : TestContainer
         Assert.NotNull(model.Policies);
 
         var firstPackageOwner = model.PackageOwners.FirstOrDefault();
-        Assert.Equal(currentUser.Username, firstPackageOwner);
+        Assert.Equal(currentUser.Username, firstPackageOwner.Owner);
     }
 
     [Fact]
@@ -163,22 +164,28 @@ public class TheTrustedPublishingAction : TestContainer
         Assert.Equal(organization.Username, policyViewModel.Owner);
     }
 
-    [Fact]
-    public void WhenUserOwnsPolicy_OwnerIsValid()
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(false, false)]
+    public void WhenUserOwnsPolicy_OwnerIsValid(bool isValidPolicyOwner, bool isDeprecateApiEnabled)
     {
         // Arrange
         var currentUser = TestUtility.FakeOrganizationAdmin;
+        var scopes = new List<Scope> { new Scope(currentUser, subject: "policySubject1", allowedAction: NuGetScopes.PackagePush) };
 
         var policy = new FederatedCredentialPolicy
         {
             Key = 3,
-            PolicyName = "Valid Policy",
+            PolicyName = "User Policy",
             CreatedByUserKey = currentUser.Key,
             CreatedBy = currentUser,
             PackageOwnerUserKey = currentUser.Key,
             PackageOwner = currentUser, // User owns their own policy
             Type = FederatedCredentialType.GitHubActions,
-            Criteria = """{"owner":"someOwner","repository":"repo","workflow":"test.yml","validateBy":"2025-01-01T00:00:00Z"}"""
+            Criteria = """{"owner":"someOwner","repository":"repo","workflow":"test.yml","validateBy":"2025-01-01T00:00:00Z"}""",
+            Scopes = scopes,
         };
 
         var policies = new List<FederatedCredentialPolicy> { policy };
@@ -189,24 +196,37 @@ public class TheTrustedPublishingAction : TestContainer
 
         GetMock<IFederatedCredentialService>()
             .Setup(x => x.IsValidPolicyOwner(currentUser, currentUser))
-            .Returns(true);
+            .Returns(isValidPolicyOwner);
+
+        GetMock<IFeatureFlagService>()
+            .Setup(x => x.IsManageDeprecationApiEnabled(currentUser))
+            .Returns(isDeprecateApiEnabled);
 
         var model = GetModelForTrustedPublishing(currentUser);
 
         // Assert
         Assert.Single(model.Policies);
         var policyViewModel = model.Policies.First();
-        Assert.True(policyViewModel.IsOwnerValid);
-        Assert.Equal("Valid Policy", policyViewModel.PolicyName);
+        Assert.Equal(isValidPolicyOwner, policyViewModel.IsOwnerValid);
+        Assert.Equal("User Policy", policyViewModel.PolicyName);
         Assert.Equal(currentUser.Username, policyViewModel.Owner);
+        Assert.Single(policyViewModel.PolicyScopes);
+        Assert.Equal(NuGetScopes.Describe(NuGetScopes.PackagePush, isDeprecateApiEnabled: isDeprecateApiEnabled), policyViewModel.PolicyScopes[0]);
+        Assert.Single(policyViewModel.PolicySubjects);
+        Assert.Equal("policySubject1", policyViewModel.PolicySubjects[0]);
     }
 
-    [Fact]
-    public void WhenOrganizationMemberOwnsPolicy_OwnerIsValid()
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(false, false)]
+    public void WhenOrganizationMemberOwnsPolicy_OwnerIsValid(bool isValidPolicyOwner, bool isDeprecateApiEnabled)
     {
         // Arrange
         var currentUser = TestUtility.FakeOrganizationAdmin;
         var organization = TestUtility.FakeOrganization;
+        var scopes = new List<Scope> { new Scope(organization, subject: "policySubject1", allowedAction: NuGetScopes.PackagePush) };
 
         var policy = new FederatedCredentialPolicy
         {
@@ -217,7 +237,8 @@ public class TheTrustedPublishingAction : TestContainer
             PackageOwnerUserKey = organization.Key,
             PackageOwner = organization,
             Type = FederatedCredentialType.GitHubActions,
-            Criteria = """{"owner":"someOwner","repository":"repo","workflow":"test.yml","validateBy":"2025-01-01T00:00:00Z"}"""
+            Criteria = """{"owner":"someOwner","repository":"repo","workflow":"test.yml","validateBy":"2025-01-01T00:00:00Z"}""",
+            Scopes = scopes,
         };
 
         var policies = new List<FederatedCredentialPolicy> { policy };
@@ -232,16 +253,24 @@ public class TheTrustedPublishingAction : TestContainer
 
         GetMock<IFederatedCredentialService>()
             .Setup(x => x.IsValidPolicyOwner(currentUser, organization))
-            .Returns(true);
+            .Returns(isValidPolicyOwner);
+
+        GetMock<IFeatureFlagService>()
+            .Setup(x => x.IsManageDeprecationApiEnabled(currentUser))
+            .Returns(isDeprecateApiEnabled);
 
         var model = GetModelForTrustedPublishing(currentUser);
 
         // Assert
         Assert.Single(model.Policies);
         var policyViewModel = model.Policies.First();
-        Assert.True(policyViewModel.IsOwnerValid);
+        Assert.Equal(isValidPolicyOwner, policyViewModel.IsOwnerValid);
         Assert.Equal("Org Member Policy", policyViewModel.PolicyName);
         Assert.Equal(organization.Username, policyViewModel.Owner);
+        Assert.Single(policyViewModel.PolicyScopes);
+        Assert.Equal(NuGetScopes.Describe(NuGetScopes.PackagePush, isDeprecateApiEnabled: isDeprecateApiEnabled), policyViewModel.PolicyScopes[0]);
+        Assert.Single(policyViewModel.PolicySubjects);
+        Assert.Equal("policySubject1", policyViewModel.PolicySubjects[0]);
     }
 
     [Fact]
@@ -402,21 +431,22 @@ public class TheGenerateTrustedPublisherPolicyAction : TestContainer
         );
 
         GetMock<IFederatedCredentialService>()
-            .Setup(s => s.AddPolicyAsync(user, user.Username, It.IsAny<string>(), "Test Policy", FederatedCredentialType.GitHubActions))
+            .Setup(s => s.AddPolicyAsync(user, user.Username, It.IsAny<string>(), "Test Policy", FederatedCredentialType.GitHubActions, It.IsAny<string[]>(), It.IsAny<string[]>()))
             .ReturnsAsync(policyResult);
 
         // Act
         var result = await controller.GenerateTrustedPublisherPolicy(
             policyName: "Test Policy",
             owner: user.Username,
-            criteria: criteria);
+            criteria: criteria,
+            publisherType: "GitHubActions", It.IsAny<string[]>(), It.IsAny<string[]>());
 
         // Assert
         var model = (TrustedPublisherPolicyViewModel)result.Data;
         var details = (GitHubPolicyDetailsViewModel)model.PolicyDetails;
         Assert.True(details.IsPermanentlyEnabled);
         GetMock<IFederatedCredentialService>()
-            .Verify(s => s.AddPolicyAsync(user, user.Username, It.IsAny<string>(), "Test Policy", FederatedCredentialType.GitHubActions), Times.Once);
+            .Verify(s => s.AddPolicyAsync(user, user.Username, It.IsAny<string>(), "Test Policy", FederatedCredentialType.GitHubActions, It.IsAny<string[]>(), It.IsAny<string[]>()), Times.Once);
     }
 
     [Fact]
@@ -434,14 +464,15 @@ public class TheGenerateTrustedPublisherPolicyAction : TestContainer
         var policyResult = FederatedCredentialPolicyValidationResult.BadRequest("Something went wrong", null);
 
         GetMock<IFederatedCredentialService>()
-            .Setup(s => s.AddPolicyAsync(user, user.Username, It.IsAny<string>(), "Test Policy", FederatedCredentialType.GitHubActions))
+            .Setup(s => s.AddPolicyAsync(user, user.Username, It.IsAny<string>(), "Test Policy", FederatedCredentialType.GitHubActions, It.IsAny<string[]>(), It.IsAny<string[]>()))
             .ReturnsAsync(policyResult);
 
         // Act
         var result = await controller.GenerateTrustedPublisherPolicy(
             policyName: "Test Policy",
             owner: user.Username,
-            criteria: """{"RepositoryOwner":"repoOwner","Repository":"repo","WorkflowFile":"a.yml"}""");
+            criteria: """{"RepositoryOwner":"repoOwner","Repository":"repo","WorkflowFile":"a.yml"}""",
+            publisherType: "GitHubActions", It.IsAny<string[]>(), It.IsAny<string[]>());
 
         // Assert
         Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
@@ -463,14 +494,15 @@ public class TheGenerateTrustedPublisherPolicyAction : TestContainer
         var policyResult = FederatedCredentialPolicyValidationResult.Unauthorized("Something went wrong", null);
 
         GetMock<IFederatedCredentialService>()
-            .Setup(s => s.AddPolicyAsync(user, user.Username, It.IsAny<string>(), "Test Policy", FederatedCredentialType.GitHubActions))
+            .Setup(s => s.AddPolicyAsync(user, user.Username, It.IsAny<string>(), "Test Policy", FederatedCredentialType.GitHubActions, It.IsAny<string[]>(), It.IsAny<string[]>()))
             .ReturnsAsync(policyResult);
 
         // Act
         var result = await controller.GenerateTrustedPublisherPolicy(
             policyName: "Test Policy",
             owner: user.Username,
-            criteria: """{"RepositoryOwner":"repoOwner","Repository":"repo","WorkflowFile":"a.yml"}""");
+            criteria: """{"RepositoryOwner":"repoOwner","Repository":"repo","WorkflowFile":"a.yml"}""",
+            publisherType: "GitHubActions", It.IsAny<string[]>(), It.IsAny<string[]>());
 
         // Assert
         Assert.Equal((int)HttpStatusCode.Unauthorized, controller.Response.StatusCode);
@@ -509,19 +541,19 @@ public class TheEditTrustedPublisherPolicyAction : TestContainer
         // Mock the service to return a successful result
         var updateResult = FederatedCredentialPolicyValidationResult.Success(policy);
         GetMock<IFederatedCredentialService>()
-            .Setup(s => s.UpdatePolicyAsync(policy, It.IsAny<string>(), "Test Policy"))
+            .Setup(s => s.UpdatePolicyAsync(policy, It.IsAny<string>(), "Test Policy", It.IsAny<string[]>(), It.IsAny<string[]>()))
             .ReturnsAsync(updateResult);
 
         var controller = GetController<UsersController>();
         controller.SetCurrentUser(user);
 
         // Act
-        var result = await controller.EditTrustedPublisherPolicy(123, newJSCriteria, "Test Policy");
+        var result = await controller.EditTrustedPublisherPolicy(123, newJSCriteria, "Test Policy", It.IsAny<string[]>(), It.IsAny<string[]>());
 
         // Assert - Focus on controller concerns only
         Assert.IsType<JsonResult>(result);
         GetMock<IFederatedCredentialService>()
-            .Verify(s => s.UpdatePolicyAsync(policy, It.IsAny<string>(), "Test Policy"), Times.Once);
+            .Verify(s => s.UpdatePolicyAsync(policy, It.IsAny<string>(), "Test Policy", It.IsAny<string[]>(), It.IsAny<string[]>()), Times.Once);
     }
 
     [Fact]
@@ -552,19 +584,19 @@ public class TheEditTrustedPublisherPolicyAction : TestContainer
 
         var updateResult = FederatedCredentialPolicyValidationResult.Success(policy);
         GetMock<IFederatedCredentialService>()
-            .Setup(s => s.UpdatePolicyAsync(policy, It.IsAny<string>(), "Test Policy"))
+            .Setup(s => s.UpdatePolicyAsync(policy, It.IsAny<string>(), "Test Policy", It.IsAny<string[]>(), It.IsAny<string[]>()))
             .ReturnsAsync(updateResult);
 
         var controller = GetController<UsersController>();
         controller.SetCurrentUser(user);
 
         // Act
-        var result = await controller.EditTrustedPublisherPolicy(123, newJSCriteria, "Test Policy");
+        var result = await controller.EditTrustedPublisherPolicy(123, newJSCriteria, "Test Policy", It.IsAny<string[]>(), It.IsAny<string[]>());
 
         // Assert - Focus only on controller behavior
         Assert.IsType<JsonResult>(result);
         GetMock<IFederatedCredentialService>()
-            .Verify(s => s.UpdatePolicyAsync(policy, It.IsAny<string>(), "Test Policy"), Times.Once);
+            .Verify(s => s.UpdatePolicyAsync(policy, It.IsAny<string>(), "Test Policy", It.IsAny<string[]>(), It.IsAny<string[]>()), Times.Once);
     }
 
     [Fact]
@@ -592,14 +624,14 @@ public class TheEditTrustedPublisherPolicyAction : TestContainer
 
         var badRequestResult = FederatedCredentialPolicyValidationResult.BadRequest("Validation failed", null);
         GetMock<IFederatedCredentialService>()
-            .Setup(s => s.UpdatePolicyAsync(policy, It.IsAny<string>(), "Test Policy"))
+            .Setup(s => s.UpdatePolicyAsync(policy, It.IsAny<string>(), "Test Policy", It.IsAny<string[]>(), It.IsAny<string[]>()))
             .ReturnsAsync(badRequestResult);
 
         var controller = GetController<UsersController>();
         controller.SetCurrentUser(user);
 
         // Act
-        var result = await controller.EditTrustedPublisherPolicy(123, """{"test": "value"}""", "Test Policy");
+        var result = await controller.EditTrustedPublisherPolicy(123, """{"test": "value"}""", "Test Policy", It.IsAny<string[]>(), It.IsAny<string[]>());
 
         // Assert
         Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
@@ -619,7 +651,7 @@ public class TheEditTrustedPublisherPolicyAction : TestContainer
         controller.SetCurrentUser(user);
 
         // Act
-        var result = await controller.EditTrustedPublisherPolicy(1, """{"test": "value"}""", "Test Policy");
+        var result = await controller.EditTrustedPublisherPolicy(1, """{"test": "value"}""", "Test Policy", It.IsAny<string[]>(), It.IsAny<string[]>());
 
         // Assert
         Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
@@ -651,7 +683,7 @@ public class TheEditTrustedPublisherPolicyAction : TestContainer
         controller.SetCurrentUser(user);
 
         // Act
-        var result = await controller.EditTrustedPublisherPolicy(123, """{"test": "value"}""", "Test Policy");
+        var result = await controller.EditTrustedPublisherPolicy(123, """{"test": "value"}""", "Test Policy", It.IsAny<string[]>(), It.IsAny<string[]>());
 
         // Assert
         Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
@@ -716,7 +748,8 @@ public class TheEnableTrustedPublisherPolicyAction : TestContainer
             PackageOwnerUserKey = user.Key,
             PackageOwner = user,
             Type = FederatedCredentialType.GitHubActions,
-            Criteria = """{"owner":"someOwner","repository":"repo","workflow":"test.yml","validateBy":"2025-01-01T00:00:00Z"}"""
+            Criteria = """{"owner":"someOwner","repository":"repo","workflow":"test.yml","validateBy":"2025-01-01T00:00:00Z"}""",
+            Scopes = new List<Scope> { new Scope(user, subject: "policySubject1", allowedAction: NuGetScopes.PackagePush) },
         };
 
         GetMock<IFederatedCredentialService>()
@@ -729,7 +762,7 @@ public class TheEnableTrustedPublisherPolicyAction : TestContainer
 
         var updateResult = FederatedCredentialPolicyValidationResult.Success(policy);
         GetMock<IFederatedCredentialService>()
-            .Setup(s => s.UpdatePolicyAsync(policy, It.IsAny<string>(), policy.PolicyName))
+            .Setup(s => s.UpdatePolicyAsync(policy, It.IsAny<string>(), policy.PolicyName, policy.Scopes))
             .ReturnsAsync(updateResult);
 
         var controller = GetController<UsersController>();
@@ -741,7 +774,7 @@ public class TheEnableTrustedPublisherPolicyAction : TestContainer
         // Assert - Focus on controller behavior only
         Assert.IsType<JsonResult>(result);
         GetMock<IFederatedCredentialService>()
-            .Verify(s => s.UpdatePolicyAsync(policy, It.IsAny<string>(), policy.PolicyName), Times.Once);
+            .Verify(s => s.UpdatePolicyAsync(policy, It.IsAny<string>(), policy.PolicyName, policy.Scopes), Times.Once);
     }
 }
 

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -100,11 +100,15 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                     "The timestamp in the catalog is newer than the timestamp in the database! This should never happen because all data flows from the feed into the catalog!");
             }
 
-            return timestampCatalog.Last == timestampDatabase.Last
-                // If the timestamp metadata in the catalog is EQUAL to that of the database, we are looking at the latest catalog entry that corresponds with this package, so run the test.
-                ? ShouldRunTestResult.Yes
+            if (timestampCatalog.Last < timestampDatabase.Last)
+            {
                 // If the timestamp metadata in the catalog is LESS than that of the database, we must not be looking at the latest entry that corresponds with this package, so we must attempt this test again later with more information.
-                : ShouldRunTestResult.RetryLater;
+                Logger.LogInformation("Catalog timestamp is behind DB timestamp, waiting until it catches up");
+                return ShouldRunTestResult.RetryLater;
+            }
+
+            // If the timestamp metadata in the catalog is EQUAL to that of the database, we are looking at the latest catalog entry that corresponds with this package, so run the test.
+            return ShouldRunTestResult.Yes;
         }
 
         protected abstract Task RunInternalAsync(ValidationContext context);

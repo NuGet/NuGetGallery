@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGet.Services.Entities;
+using NuGetGallery.Authentication;
 using NuGetGallery.Services.Authentication;
 
 #nullable enable
@@ -41,6 +42,8 @@ namespace NuGetGallery.Areas.Admin.Controllers.FederatedCredentials
         public string? PolicyPackageOwner { get; set; }
         public FederatedCredentialType? PolicyType { get; set; }
         public string? PolicyCriteria { get; set; }
+        public string? PolicyScopes { get; set; }
+        public string? PolicySubjects { get; set; }
     }
 
     public class UserPoliciesViewModel
@@ -207,6 +210,30 @@ namespace NuGetGallery.Areas.Admin.Controllers.FederatedCredentials
                 isValid = false;
             }
 
+            var policyScopes = addPolicy.PolicyScopes?.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => s.Trim())
+                .Where(s => !string.IsNullOrWhiteSpace(s) && NuGetScopes.ListOfScopes.Contains(s, StringComparer.Ordinal))
+                .Distinct(StringComparer.Ordinal)
+                .ToArray();
+
+            if (policyScopes == null || policyScopes.Length == 0)
+            {
+                AddModelError(nameof(AddPolicyViewModel.PolicyScopes), "The policy scopes require at least one valid allowed action.");
+                isValid = false;
+            }
+
+            var policySubjects = addPolicy.PolicySubjects?.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => s.Trim())
+                .Where(s => !string.IsNullOrWhiteSpace(s) && FederatedCredentialService.PolicySubjectRegex.IsMatch(s))
+                .Distinct(StringComparer.Ordinal)
+                .ToArray();
+
+            if (policySubjects == null || policySubjects.Length == 0)
+            {
+                AddModelError(nameof(AddPolicyViewModel.PolicySubjects), "The policy scopes require at least one valid glob pattern or package.");
+                isValid = false;
+            }
+
             if (isValid)
             {
                 var result = await _federatedCredentialService.AddPolicyAsync(
@@ -214,7 +241,9 @@ namespace NuGetGallery.Areas.Admin.Controllers.FederatedCredentials
                             addPolicy.PolicyPackageOwner!,
                             addPolicy.PolicyCriteria!,
                             addPolicy.PolicyName,
-                            addPolicy.PolicyType!.Value);
+                            addPolicy.PolicyType!.Value,
+                            policyScopes: policyScopes!,
+                            policySubjects: policySubjects!);
 
                 switch (result.Type)
                 {
@@ -247,6 +276,10 @@ namespace NuGetGallery.Areas.Admin.Controllers.FederatedCredentials
                     $"{modelPrefix}{nameof(AddPolicyViewModel.PolicyCriteria)}",
                 nameof(FederatedCredentialPolicy.PolicyName) =>
                     $"{modelPrefix}{nameof(AddPolicyViewModel.PolicyName)}",
+                nameof(AddPolicyViewModel.PolicyScopes) =>
+                    $"{modelPrefix}{nameof(AddPolicyViewModel.PolicyScopes)}",
+                nameof(AddPolicyViewModel.PolicySubjects) =>
+                    $"{modelPrefix}{nameof(AddPolicyViewModel.PolicySubjects)}",
                 _ => nameof(ViewPoliciesViewModel.AddPolicy)
             };
 

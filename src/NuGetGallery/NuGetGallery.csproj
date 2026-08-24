@@ -395,6 +395,10 @@
     <Compile Include="Migrations\202606092223210_UpdatePackageKeyIndexOnPackageDeprecations.Designer.cs">
       <DependentUpon>202606092223210_UpdatePackageKeyIndexOnPackageDeprecations.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202608031928454_AddFederatedCredentialPolicyScopes.cs" />
+    <Compile Include="Migrations\202608031928454_AddFederatedCredentialPolicyScopes.Designer.cs">
+      <DependentUpon>202608031928454_AddFederatedCredentialPolicyScopes.cs</DependentUpon>
+    </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
     <Compile Include="RequestModels\UpdateListedRequest.cs" />
@@ -828,6 +832,7 @@
     <Compile Include="ViewModels\DisplayLicenseViewModel.cs" />
     <Compile Include="ViewModels\GitHubPolicyDetailsViewModel.cs" />
     <Compile Include="ViewModels\GitHubUsageViewModel.cs" />
+    <Compile Include="ViewModels\GitLabPolicyDetailsViewModel.cs" />
     <Compile Include="ViewModels\ListCertificateItemViewModel.cs" />
     <Compile Include="ViewModels\GalleryHomeViewModel.cs" />
     <Compile Include="ViewModels\HandleOrganizationMembershipRequestModel.cs" />
@@ -835,6 +840,7 @@
     <Compile Include="ViewModels\ManagePackageViewModel.cs" />
     <Compile Include="ViewModels\BasicUserViewModel.cs" />
     <Compile Include="ViewModels\PendingOrganizationMigrationRequestViewModel.cs" />
+    <Compile Include="ViewModels\TrustedPublisherPolicyOwnerViewModel.cs" />
     <Compile Include="ViewModels\TrustedPublisherPolicyDetailsViewModel.cs" />
     <Compile Include="ViewModels\SearchSideBySideViewModel.cs" />
     <Compile Include="ViewModels\SignerViewModel.cs" />
@@ -1782,6 +1788,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202606092223210_UpdatePackageKeyIndexOnPackageDeprecations.resx">
       <DependentUpon>202606092223210_UpdatePackageKeyIndexOnPackageDeprecations.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202608031928454_AddFederatedCredentialPolicyScopes.resx">
+      <DependentUpon>202608031928454_AddFederatedCredentialPolicyScopes.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

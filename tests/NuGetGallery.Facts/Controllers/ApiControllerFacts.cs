@@ -724,7 +724,7 @@ namespace NuGetGallery
                 var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(user, credential);
                 controller.MockFeatureFlagService
-                    .Setup(f => f.IsApiKeyReductionEnabled())
+                    .Setup(f => f.IsApiKeyReductionDateEnabled())
                     .Returns(true);
 
                 var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
@@ -755,7 +755,7 @@ namespace NuGetGallery
                 var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(user, credential);
                 controller.MockFeatureFlagService
-                    .Setup(f => f.IsApiKeyReductionEnabled())
+                    .Setup(f => f.IsApiKeyReductionDateEnabled())
                     .Returns(false);
                 controller.MockPackageUploadService
                     .Setup(p => p.GeneratePackageAsync(
@@ -794,7 +794,7 @@ namespace NuGetGallery
                 var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(user, credential);
                 controller.MockFeatureFlagService
-                    .Setup(f => f.IsApiKeyReductionEnabled())
+                    .Setup(f => f.IsApiKeyReductionDateEnabled())
                     .Returns(true);
                 controller.MockPackageUploadService
                     .Setup(p => p.GeneratePackageAsync(

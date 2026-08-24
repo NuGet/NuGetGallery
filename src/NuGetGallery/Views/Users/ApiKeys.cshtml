@@ -307,7 +307,7 @@
                                                name: ExpiresInId(),
                                                'aria-labelledby': ExpiresInId() + '-label' },
                                        value: ExpiresIn">
-                        @if (Model.IsApiKeyReductionEnabled)
+                        @if (Model.IsApiKeyExpirationRestricted)
                         {
                             <option value="1">1 day</option>
                             <option value="8">8 days</option>
@@ -437,6 +437,7 @@
         <div class="row select-packages-form" data-bind="css: { disabled: !SelectPackagesEnabled() }">
             <div class="col-sm-7 select-packages-inputs">
                 <div>
+                    @* The same regex is used by src\NuGetGallery.Services\Authentication\Federated\FederatedCredentialService.cs *@
                     <div class="form-group">
                         <input type="text" class="form-control input-brand" data-val="true"
                                data-val-regex="Invalid glob pattern. See the example glob patterns below for further details."

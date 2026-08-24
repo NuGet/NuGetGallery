@@ -533,7 +533,7 @@ namespace NuGetGallery
 
         private ActionResult CheckApiKeyReductionCutoff(User currentUser)
         {
-            if (!FeatureFlagService.IsApiKeyReductionEnabled())
+            if (!FeatureFlagService.IsApiKeyReductionDateEnabled())
             {
                 return null;
             }

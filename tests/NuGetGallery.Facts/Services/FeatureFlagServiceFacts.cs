@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -127,7 +127,7 @@ namespace NuGetGallery
             }
         }
 
-        public class TheIsApiKeyReductionEnabledMethod
+        public class TheIsApiKeyReductionDateEnabledMethod
         {
             [Theory]
             [InlineData(false)]
@@ -143,7 +143,7 @@ namespace NuGetGallery
                 var service = new FeatureFlagService(clientMock.Object);
 
                 // Act
-                var result = service.IsApiKeyReductionEnabled();
+                var result = service.IsApiKeyReductionDateEnabled();
 
                 // Assert
                 Assert.Equal(enabled, result);
