@@ -146,11 +146,8 @@ namespace NuGetGallery.Areas.Admin.Services
                 }
 
                 await _validationService.FailValidationAsync(package);
-                // TODO #6488: Need to update the shim before adding validatei
-                // await _auditingService.SaveAuditRecordAsync(
-                // new PackageAuditRecord(package, AuditedPackageAction.FailValidation, ForceFailValidationReason));
-                await _packages.CommitChangesAsync();
-
+                await _auditingService.SaveAuditRecordAsync(
+                new PackageAuditRecord(package, AuditedPackageAction.FailValidation, ForceFailValidationReason));
                 return true;
             }
             else if (validatingType == ValidatingType.SymbolPackage)
@@ -167,11 +164,8 @@ namespace NuGetGallery.Areas.Admin.Services
                 }
 
                 await _validationService.FailValidationAsync(symbolPackage);
-                // TODO #6488: Need to update the shim before adding validatei
-                // await _auditingService.SaveAuditRecordAsync(
-                // new PackageAuditRecord(symbolPackage.Package, AuditedPackageAction.SymbolsFailValidation, ForceFailValidationReason));
-                await _symbolPackages.CommitChangesAsync();
-
+                await _auditingService.SaveAuditRecordAsync(
+                new PackageAuditRecord(symbolPackage.Package, AuditedPackageAction.SymbolsFailValidation, ForceFailValidationReason));
                 return true;
             }
             else
