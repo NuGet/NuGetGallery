@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Services.Entities;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
+using NuGetGallery;
 
 namespace NuGet.Services.Validation.Orchestrator
 {
@@ -16,6 +17,9 @@ namespace NuGet.Services.Validation.Orchestrator
     {
         private readonly IValidationStorageService _validationStorageService;
         private readonly IValidationFileService _packageFileService;
+        private readonly IStagingBlobService _stagingBlobService;
+        private readonly ICloudBlobClient _validationStorageClient;
+        private readonly IEntitiesContext _entitiesContext;
         private readonly IValidatorProvider _validatorProvider;
         private readonly ValidationConfiguration _validationConfiguration;
         private readonly SasDefinitionConfiguration _sasDefinitionConfiguration;
@@ -25,6 +29,9 @@ namespace NuGet.Services.Validation.Orchestrator
         public ValidationSetProvider(
             IValidationStorageService validationStorageService,
             IValidationFileService packageFileService,
+            IStagingBlobService stagingBlobService,
+            ICloudBlobClient validationStorageClient,
+            IEntitiesContext entitiesContext,
             IValidatorProvider validatorProvider,
             IOptionsSnapshot<ValidationConfiguration> validationConfigurationAccessor,
             IOptionsSnapshot<SasDefinitionConfiguration> sasDefinitionConfigurationAccessor,
@@ -33,6 +40,9 @@ namespace NuGet.Services.Validation.Orchestrator
         {
             _validationStorageService = validationStorageService ?? throw new ArgumentNullException(nameof(validationStorageService));
             _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
+            _stagingBlobService = stagingBlobService ?? throw new ArgumentNullException(nameof(stagingBlobService));
+            _validationStorageClient = validationStorageClient ?? throw new ArgumentNullException(nameof(validationStorageClient));
+            _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _validatorProvider = validatorProvider ?? throw new ArgumentNullException(nameof(validatorProvider));
             if (validationConfigurationAccessor == null)
             {
@@ -72,6 +82,25 @@ namespace NuGet.Services.Validation.Orchestrator
 
                     // This indicates that the package in the package container is expected to not change.
                     validationSet.PackageETag = packageETag;
+                }
+                else if (validatingEntity.Status == PackageStatus.Staged)
+                {
+                    var package = validatingEntity.EntityRecord as Package;
+                    if (package == null)
+                    {
+                        return null;
+                    }
+
+                    var stagedPackage = _entitiesContext.StagedPackages.SingleOrDefault(candidate =>candidate.PackageKey == package.Key && candidate.ValidationTrackingId == message.ValidationTrackingId);
+                    if (stagedPackage == null)
+                    {
+                        return null;
+                    }
+
+                    var validationSetPackageFileName = ValidationFileService.BuildValidationSetPackageFileName(validationSet, CoreConstants.NuGetPackageFileExtension);
+                    await _stagingBlobService.CopyStagedPackageToValidationSetAsync(stagedPackage.BlobPath, stagedPackage.BlobETag, _validationStorageClient, validationSetPackageFileName);
+
+                    validationSet.PackageETag = stagedPackage.BlobETag;
                 }
                 else
                 {

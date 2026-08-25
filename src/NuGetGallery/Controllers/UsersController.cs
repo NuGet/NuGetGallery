@@ -40,6 +40,7 @@ namespace NuGetGallery
         private readonly IPackageVulnerabilitiesService _packageVulnerabilitiesService;
         private readonly IFederatedCredentialService _federatedCredentialService;
         private readonly IPackageStagingManagementService _packageStagingManagementService;
+        private readonly IValidationService _validationService;
 
         public UsersController(
             IUserService userService,
@@ -63,7 +64,8 @@ namespace NuGetGallery
             IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory,
             IFederatedCredentialService federatedCredentialService,
             IFederatedCredentialRepository federatedCredentialRepository,
-            IPackageStagingManagementService packageStagingManagementService)
+            IPackageStagingManagementService packageStagingManagementService,
+            IValidationService validationService)
             : base(
                   authService,
                   packageService,
@@ -88,6 +90,7 @@ namespace NuGetGallery
             _packageVulnerabilitiesService = packageVulnerabilitiesService ?? throw new ArgumentNullException(nameof(packageVulnerabilitiesService));
             _federatedCredentialService = federatedCredentialService ?? throw new ArgumentNullException(nameof(federatedCredentialService));
             _packageStagingManagementService = packageStagingManagementService ?? throw new ArgumentNullException(nameof(packageStagingManagementService));
+            _validationService = validationService ?? throw new ArgumentNullException(nameof(validationService));
 
             _listPackageItemRequiredSignerViewModelFactory = new ListPackageItemRequiredSignerViewModelFactory(
                 securityPolicyService, iconUrlProvider, packageVulnerabilitiesService, frameworkCompatibilityFactory, featureFlagService);
@@ -585,11 +588,13 @@ namespace NuGetGallery
                     {
                         Id = stagedPackage.Package.PackageRegistration.Id,
                         Version = stagedPackage.Package.NormalizedVersion,
-                        Status = PackageStatus.Staged.ToString(),
+                        Status = stagedPackage.Status.ToString(),
                         Owner = stagedPackage.Owner.Username,
                         UploadedDate = stagedPackage.UploadedDate,
+                        ValidationIssues = stagedPackage.Status == StagedPackageStatus.ValidationFailed ? _validationService.GetPackageValidationIssues(stagedPackage.ValidationTrackingId) : [],
                     })
                     .ToList();
+
             }
 
             var model = new ManagePackagesViewModel

@@ -22,6 +22,11 @@ namespace NuGet.Services.Validation.Orchestrator
         public string ValidationStorageConnectionString { get; set; }
 
         /// <summary>
+        /// Connection string to storage account with staged packages
+        /// </summary>
+        public string StagingStorageConnectionString { get; set; }
+
+        /// <summary>
         /// How many times the Orchestrator should retry to validate a package
         /// that is missing from the Gallery database.
         /// </summary>

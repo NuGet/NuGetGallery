@@ -47,13 +47,19 @@ namespace NuGetGallery
 
         public async Task<PackageStatus> StartValidationAsync(TPackageEntity package)
         {
+            await StartValidationAsync(package, Guid.NewGuid());
+            return TargetPackageStatus;
+        }
+
+        public async Task<bool> StartValidationAsync(TPackageEntity package, Guid validationTrackingId)
+        {
             var validatingType = ValidateAndGetType(package);
 
             var entityKey = package.Key == default(int) ? (int?)null : package.Key;
             var data = PackageValidationMessageData.NewProcessValidationSet(
                 package.Id,
                 package.Version,
-                Guid.NewGuid(),
+                validationTrackingId,
                 validatingType,
                 entityKey: entityKey);
 
@@ -67,7 +73,7 @@ namespace NuGetGallery
                 await _validationEnqueuer.SendMessageAsync(data, postponeProcessingTill);
             }
 
-            return TargetPackageStatus;
+            return true;
         }
 
         public async Task<PackageStatus> FailValidationAsync(TPackageEntity package, Guid validationTrackingId)

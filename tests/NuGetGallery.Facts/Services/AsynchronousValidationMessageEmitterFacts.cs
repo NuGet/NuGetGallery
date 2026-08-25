@@ -51,6 +51,18 @@ namespace NuGetGallery
                 Assert.Equal(package.Version, _data[0].ProcessValidationSet.PackageVersion);
             }
 
+            [Fact]
+            public async Task UsesProvidedValidationTrackingId()
+            {
+                var package = GetPackage();
+                var validationTrackingId = Guid.NewGuid();
+
+                await _target.StartValidationAsync(package, validationTrackingId);
+
+                Assert.Single(_data);
+                Assert.Equal(validationTrackingId, _data[0].ProcessValidationSet.ValidationTrackingId);
+            }
+
             [Theory]
             [InlineData(default(int), null)]
             [InlineData(123, 123)]

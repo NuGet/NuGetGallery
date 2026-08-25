@@ -1,4 +1,4 @@
-﻿(function () {
+(function () {
     'use strict';
 
     function showInitialPackagesData(dataSelector, packagesList) {
@@ -16,6 +16,34 @@
     }
 
     $(function () {
+        var stagingValidationModal = $('#staging-validation-modal');
+        var stagingValidationModalTitle = $('#staging-validation-modal-title');
+        var stagingValidationModalContent = $('.staging-validation-modal-content');
+
+        $('.staging-validation-issues-toggle').on('click', function () {
+            $('html').addClass('staging-validation-modal-open');
+
+            var trigger = $(this);
+            var packageId = trigger.data('package-id');
+            var validationIssues = $('#' + trigger.data('issues-id')).html();
+
+            stagingValidationModalTitle.text('Validation errors for ' + packageId);
+            stagingValidationModalContent.html(validationIssues);
+        });
+
+        stagingValidationModal.on('shown.bs.modal', function () {
+            stagingValidationModalTitle.focus();
+        });
+
+        stagingValidationModal.on('hide.bs.modal', function () {
+            stagingValidationModal.addClass('staging-validation-modal-closing');
+        });
+
+        stagingValidationModal.on('hidden.bs.modal', function () {
+            stagingValidationModal.removeClass('staging-validation-modal-closing');
+            $('html').removeClass('staging-validation-modal-open');
+        });
+
         function PackageListItemViewModel(packagesListViewModel, packageItem) {
             var self = this;
 

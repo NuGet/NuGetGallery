@@ -56,6 +56,14 @@ namespace NuGet.Services.Validation.Orchestrator
                     nameof(validatingEntity));
             }
 
+            if (validatingEntity.Status == PackageStatus.Staged)
+            {
+                throw new ArgumentException(
+                    $"A package in the {nameof(PackageStatus.Staged)} state must be handled by " +
+                    $"{nameof(SetStagedValidationStatusAsync)}.",
+                    nameof(validatingEntity));
+            }
+
             if (validatingEntity.Status == PackageStatus.Available &&
                 status == PackageStatus.FailedValidation)
             {
@@ -75,6 +83,49 @@ namespace NuGet.Services.Validation.Orchestrator
                         $"A package can only transition to the {nameof(PackageStatus.Available)} or " +
                         $"{nameof(PackageStatus.FailedValidation)} states.", nameof(status));
             }
+        }
+
+        public Task SetStagedValidationStatusAsync(
+            IValidatingEntity<T> validatingEntity,
+            PackageValidationSet validationSet,
+            StagedPackageStatus status)
+        {
+            if (validatingEntity == null)
+            {
+                throw new ArgumentNullException(nameof(validatingEntity));
+            }
+
+            if (validationSet == null)
+            {
+                throw new ArgumentNullException(nameof(validationSet));
+            }
+
+            if (validatingEntity.Status != PackageStatus.Staged)
+            {
+                throw new ArgumentException(
+                    $"Only a package in the {nameof(PackageStatus.Staged)} state can have a staged validation outcome.",
+                    nameof(validatingEntity));
+            }
+
+            switch (status)
+            {
+                case StagedPackageStatus.Ready:
+                case StagedPackageStatus.ValidationFailed:
+                    return ApplyStagedValidationStatusAsync(validatingEntity, validationSet, status);
+                default:
+                    throw new ArgumentException(
+                        $"A staged package validation can only transition to {nameof(StagedPackageStatus.Ready)} or " +
+                        $"{nameof(StagedPackageStatus.ValidationFailed)}.",
+                        nameof(status));
+            }
+        }
+
+        protected virtual Task ApplyStagedValidationStatusAsync(
+            IValidatingEntity<T> validatingEntity,
+            PackageValidationSet validationSet,
+            StagedPackageStatus status)
+        {
+            throw new NotSupportedException($"Staging is not supported for {typeof(T).Name}.");
         }
 
         protected virtual async Task MakePackageFailedValidationAsync(IValidatingEntity<T> validatingEntity, PackageValidationSet validationSet)

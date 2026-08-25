@@ -1,21 +1,30 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Data.Entity.Infrastructure;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Services.Entities;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 using NuGetGallery;
+using NuGetGallery.Packaging;
 
 namespace NuGet.Services.Validation.Orchestrator
 {
     public class PackageStatusProcessor : EntityStatusProcessor<Package>
     {
         private readonly ICoreLicenseFileService _coreLicenseFileService;
+
         private readonly SasDefinitionConfiguration _sasDefinitionConfiguration;
+
         private readonly ICoreReadmeFileService _coreReadmeFileService;
+
+        private readonly IEntitiesContext _entitiesContext;
+
+        private readonly IStagingBlobService _stagingBlobService;
 
         public PackageStatusProcessor(
             IEntityService<Package> galleryPackageService,
@@ -25,12 +34,104 @@ namespace NuGet.Services.Validation.Orchestrator
             IOptionsSnapshot<SasDefinitionConfiguration> options,
             ILogger<EntityStatusProcessor<Package>> logger,
             ICoreLicenseFileService coreLicenseFileService,
-            ICoreReadmeFileService coreReadmeFileService) 
+            ICoreReadmeFileService coreReadmeFileService,
+            IEntitiesContext entitiesContext,
+            IStagingBlobService stagingBlobService)
             : base(galleryPackageService, packageFileService, validatorProvider, telemetryService, logger)
         {
             _coreLicenseFileService = coreLicenseFileService ?? throw new ArgumentNullException(nameof(coreLicenseFileService));
             _sasDefinitionConfiguration = (options == null || options.Value == null) ? new SasDefinitionConfiguration() : options.Value;
             _coreReadmeFileService = coreReadmeFileService ?? throw new ArgumentNullException(nameof(coreReadmeFileService));
+            _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
+            _stagingBlobService = stagingBlobService ?? throw new ArgumentNullException(nameof(stagingBlobService));
+        }
+
+        protected override Task ApplyStagedValidationStatusAsync(
+            IValidatingEntity<Package> validatingEntity,
+            PackageValidationSet validationSet,
+            StagedPackageStatus status)
+        {
+            switch (status)
+            {
+                case StagedPackageStatus.Ready:
+                    return MarkStagedPackageReadyAsync(validatingEntity, validationSet);
+                case StagedPackageStatus.ValidationFailed:
+                    return MarkStagedPackageFailedAsync(validatingEntity, validationSet);
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(status));
+            }
+        }
+
+        private async Task MarkStagedPackageReadyAsync(IValidatingEntity<Package> validatingEntity, PackageValidationSet validationSet)
+        {
+            var stagedPackage = GetCurrentStagedPackage(validatingEntity.Key, validationSet.ValidationTrackingId, validationSet.PackageETag);
+            if (stagedPackage == null)
+            {
+                return;
+            }
+
+            StagingFileReference file;
+            using (var packageFile = await _packageFileService.DownloadValidationSetPackageFileAsync(validationSet))
+            {
+                file = await _stagingBlobService.SavePackageFileAsync(validationSet.PackageId, validationSet.PackageNormalizedVersion, packageFile);
+            }
+
+            stagedPackage = GetCurrentStagedPackage(validatingEntity.Key, validationSet.ValidationTrackingId, validationSet.PackageETag);
+            if (stagedPackage == null)
+            {
+                return;
+            }
+
+            await _galleryPackageService.UpdateMetadataAsync(
+                validatingEntity.EntityRecord,
+                new PackageStreamMetadata
+                {
+                    HashAlgorithm = CoreConstants.Sha512HashAlgorithmId,
+                    Hash = file.ContentHash,
+                    Size = file.Length,
+                },
+                commitChanges: false);
+
+            stagedPackage.BlobPath = file.Path;
+            stagedPackage.BlobETag = file.ETag;
+            stagedPackage.Status = StagedPackageStatus.Ready;
+            await TrySaveStagedPackageAsync(validationSet);
+        }
+
+        private async Task MarkStagedPackageFailedAsync(IValidatingEntity<Package> validatingEntity, PackageValidationSet validationSet)
+        {
+            var stagedPackage = GetCurrentStagedPackage(validatingEntity.Key, validationSet.ValidationTrackingId, validationSet.PackageETag);
+            if (stagedPackage == null)
+            {
+                return;
+            }
+
+            stagedPackage.Status = StagedPackageStatus.ValidationFailed;
+            await TrySaveStagedPackageAsync(validationSet);
+        }
+
+        private StagedPackage GetCurrentStagedPackage(int packageKey, Guid validationTrackingId, string blobETag)
+        {
+            return _entitiesContext.StagedPackages.SingleOrDefault(stagedPackage =>
+                stagedPackage.PackageKey == packageKey &&
+                stagedPackage.ValidationTrackingId == validationTrackingId &&
+                stagedPackage.BlobETag == blobETag &&
+                stagedPackage.Status == StagedPackageStatus.Validating);
+        }
+
+        private async Task TrySaveStagedPackageAsync(PackageValidationSet validationSet)
+        {
+            try
+            {
+                await _entitiesContext.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                _logger.LogInformation(
+                    "Ignoring stale staged package outcome for package key {PackageKey}, validation set {ValidationTrackingId}.",
+                    validationSet.PackageKey,
+                    validationSet.ValidationTrackingId);
+            }
         }
 
         protected override async Task OnBeforeUpdateDatabaseToMakePackageAvailable(

@@ -39,6 +39,14 @@ namespace NuGetGallery
         Task<PackageStatus> StartValidationAsync(TPackageEntity package);
 
         /// <summary>
+        /// Starts validation using a caller-provided tracking ID.
+        /// </summary>
+        /// <param name="package">The <see cref="TPackageEntity"/> to initiate validation for.</param>
+        /// <param name="validationTrackingId">The tracking ID to use for the validation set.</param>
+        /// <returns>Whether asynchronous validation was started.</returns>
+        Task<bool> StartValidationAsync(TPackageEntity package, Guid validationTrackingId);
+
+        /// <summary>
         /// Forces the validation for the specified IPackageEntity to fail. This is typically used to move a package
         /// that is stuck in the <see cref="PackageStatus.Validating"/> state into the
         /// <see cref="PackageStatus.FailedValidation"/> state.

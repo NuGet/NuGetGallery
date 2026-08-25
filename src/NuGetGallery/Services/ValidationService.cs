@@ -92,6 +92,17 @@ namespace NuGetGallery
             return GetValidationIssues(package.Key, package.PackageStatusKey, ValidatingType.Package);
         }
 
+        public IReadOnlyList<ValidationIssue> GetPackageValidationIssues(Guid validationTrackingId)
+        {
+            var validationSet = _validationSets?
+                .GetAll()
+                .Where(set => set.ValidationTrackingId == validationTrackingId)
+                .Include(set => set.PackageValidations.Select(validation => validation.PackageValidationIssues))
+                .SingleOrDefault();
+
+            return validationSet?.GetValidationIssues() ?? Array.Empty<ValidationIssue>();
+        }
+
         public IReadOnlyList<ValidationIssue> GetLatestPackageValidationIssues(SymbolPackage symbolPackage)
         {
             if (symbolPackage == null)

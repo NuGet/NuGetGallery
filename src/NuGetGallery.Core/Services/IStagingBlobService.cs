@@ -17,7 +17,21 @@ namespace NuGetGallery
         /// <param name="packageId">The package ID.</param>
         /// <param name="normalizedVersion">The normalized package version.</param>
         /// <param name="packageFile">The stream containing the package file.</param>
-        /// <returns>The path of the saved package file.</returns>
-        Task<string> SavePackageFileAsync(string packageId, string normalizedVersion, Stream packageFile);
+        /// <returns>A reference describing the saved package file.</returns>
+        Task<StagingFileReference> SavePackageFileAsync(string packageId, string normalizedVersion, Stream packageFile);
+
+        /// <summary>
+        /// Copies a staged package to a validation-set location.
+        /// </summary>
+        /// <param name="packagePath">The package path in private staging storage.</param>
+        /// <param name="packageETag">The expected source ETag.</param>
+        /// <param name="validationStorageClient">The validation storage client.</param>
+        /// <param name="validationSetPackageFileName">The validation-set destination path.</param>
+        /// <returns>A task that completes when the copy has finished.</returns>
+        Task CopyStagedPackageToValidationSetAsync(
+            string packagePath,
+            string packageETag,
+            ICloudBlobClient validationStorageClient,
+            string validationSetPackageFileName);
     }
 }

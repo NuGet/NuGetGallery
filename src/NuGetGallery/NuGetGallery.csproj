@@ -403,6 +403,10 @@
     <Compile Include="Migrations\202608141813294_AddStagedPackages.Designer.cs">
       <DependentUpon>202608141813294_AddStagedPackages.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202608170549452_AddStagedPackageValidation.cs" />
+    <Compile Include="Migrations\202608170549452_AddStagedPackageValidation.Designer.cs">
+      <DependentUpon>202608170549452_AddStagedPackageValidation.cs</DependentUpon>
+    </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
     <Compile Include="RequestModels\UpdateListedRequest.cs" />
@@ -1806,6 +1810,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202608141813294_AddStagedPackages.resx">
       <DependentUpon>202608141813294_AddStagedPackages.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202608170549452_AddStagedPackageValidation.resx">
+      <DependentUpon>202608170549452_AddStagedPackageValidation.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

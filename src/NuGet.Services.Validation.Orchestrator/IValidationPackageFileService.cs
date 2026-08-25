@@ -48,6 +48,14 @@ namespace NuGet.Services.Validation.Orchestrator
         Task<Stream> DownloadPackageFileToDiskAsync(PackageValidationSet package, string sasDefinition = null);
 
         /// <summary>
+        /// Download the package content specific to the validation set to a temporary location on disk.
+        /// </summary>
+        /// <param name="validationSet">The validation set, containing validation set and package identifiers.</param>
+        /// <param name="sasDefinition">The sas definition stored on key vault.</param>
+        /// <returns>The package stream.</returns>
+        Task<Stream> DownloadValidationSetPackageFileAsync(PackageValidationSet validationSet, string sasDefinition = null);
+
+        /// <summary>
         /// Backs up the package file from the location specific for the validation set.
         /// </summary>
         /// <param name="validationSet">The validation set, containing validation set and package identifiers.</param>

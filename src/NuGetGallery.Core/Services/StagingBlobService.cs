@@ -2,14 +2,20 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
     public class StagingBlobService : IStagingBlobService
     {
+        private static readonly TimeSpan MaxCopyDuration = TimeSpan.FromMinutes(10);
+
+        private static readonly TimeSpan CopyPollFrequency = TimeSpan.FromMilliseconds(500);
+
         private readonly ICoreFileStorageService _fileStorageService;
 
         public StagingBlobService(ICoreFileStorageService fileStorageService)
@@ -17,7 +23,7 @@ namespace NuGetGallery
             _fileStorageService = fileStorageService ?? throw new ArgumentNullException(nameof(fileStorageService));
         }
 
-        public async Task<string> SavePackageFileAsync(string packageId, string normalizedVersion, Stream packageFile)
+        public async Task<StagingFileReference> SavePackageFileAsync(string packageId, string normalizedVersion, Stream packageFile)
         {
             if (string.IsNullOrWhiteSpace(packageId))
             {
@@ -39,7 +45,16 @@ namespace NuGetGallery
                 throw new ArgumentException("The package stream must be readable, seekable, and positioned at the beginning.", nameof(packageFile));
             }
 
+            string contentHash;
+            using (var hashAlgorithm = SHA512.Create())
+            {
+                contentHash = Convert.ToBase64String(hashAlgorithm.ComputeHash(packageFile));
+            }
+
+            var length = packageFile.Length;
             var path = GeneratePackagePath(packageId, normalizedVersion, Guid.NewGuid());
+            packageFile.Position = 0;
+
             await _fileStorageService.SaveFileAsync(
                 CoreConstants.Folders.StagingFolderName,
                 path,
@@ -47,7 +62,66 @@ namespace NuGetGallery
                 packageFile,
                 overwrite: false);
 
-            return path;
+            var fileReference = await _fileStorageService.GetFileReferenceAsync(CoreConstants.Folders.StagingFolderName, path);
+            return new StagingFileReference(path, fileReference.ContentId, length, contentHash);
+        }
+
+        public async Task CopyStagedPackageToValidationSetAsync(
+            string packagePath,
+            string packageETag,
+            ICloudBlobClient validationStorageClient,
+            string validationSetPackageFileName)
+        {
+            if (string.IsNullOrWhiteSpace(packagePath))
+            {
+                throw new ArgumentNullException(nameof(packagePath));
+            }
+
+            if (string.IsNullOrWhiteSpace(packageETag))
+            {
+                throw new ArgumentNullException(nameof(packageETag));
+            }
+
+            if (validationStorageClient == null)
+            {
+                throw new ArgumentNullException(nameof(validationStorageClient));
+            }
+
+            if (string.IsNullOrWhiteSpace(validationSetPackageFileName))
+            {
+                throw new ArgumentNullException(nameof(validationSetPackageFileName));
+            }
+
+            var destinationContainer = validationStorageClient.GetContainerReference(CoreConstants.Folders.ValidationFolderName);
+            var destinationBlob = destinationContainer.GetBlobReference(validationSetPackageFileName);
+
+            if (await destinationBlob.ExistsAsync())
+            {
+                await destinationBlob.FetchAttributesAsync();
+            }
+            else
+            {
+                var sourceUri = await _fileStorageService.GetFileReadUriAsync(CoreConstants.Folders.StagingFolderName, packagePath, DateTimeOffset.UtcNow.Add(MaxCopyDuration));
+                var sourceBlob = validationStorageClient.GetBlobFromUri(sourceUri);
+                await destinationBlob.StartCopyAsync(sourceBlob, AccessConditionWrapper.GenerateIfMatchCondition(packageETag), AccessConditionWrapper.GenerateIfNotExistsCondition());
+            }
+
+            var stopwatch = Stopwatch.StartNew();
+            while (destinationBlob.CopyState.Status == CloudBlobCopyStatus.Pending && stopwatch.Elapsed < MaxCopyDuration)
+            {
+                await destinationBlob.FetchAttributesAsync();
+                await Task.Delay(CopyPollFrequency);
+            }
+
+            if (destinationBlob.CopyState.Status == CloudBlobCopyStatus.Pending)
+            {
+                throw new TimeoutException($"Waiting for staged package copy to complete timed out after {MaxCopyDuration.TotalSeconds} seconds.");
+            }
+
+            if (destinationBlob.CopyState.Status != CloudBlobCopyStatus.Success)
+            {
+                throw new InvalidOperationException($"The staged package copy failed with status {destinationBlob.CopyState.Status} ({destinationBlob.CopyState.StatusDescription}).");
+            }
         }
 
         internal static string GeneratePackagePath(string packageId, string normalizedVersion, Guid fileId)

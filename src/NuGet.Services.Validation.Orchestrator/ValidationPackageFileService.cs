@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -121,6 +121,13 @@ namespace NuGet.Services.Validation.Orchestrator
             }
 
             var result = await _fileDownloader.DownloadAsync(fileUri, CancellationToken.None);
+            return result.GetStreamOrThrow();
+        }
+
+        public async Task<Stream> DownloadValidationSetPackageFileAsync(PackageValidationSet validationSet, string sasDefinition = null)
+        {
+            var packageUri = await GetPackageForValidationSetReadUriAsync(validationSet, sasDefinition, DateTimeOffset.UtcNow.Add(AccessDuration));
+            var result = await _fileDownloader.DownloadAsync(packageUri, CancellationToken.None);
             return result.GetStreamOrThrow();
         }
 
@@ -370,7 +377,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 destAccessCondition);
         }
 
-        protected static string BuildValidationSetPackageFileName(PackageValidationSet validationSet, string extension)
+        internal static string BuildValidationSetPackageFileName(PackageValidationSet validationSet, string extension)
         {
             return $"validation-sets/{validationSet.ValidationTrackingId}/" +
                 $"{validationSet.PackageId.ToLowerInvariant()}." +
