@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using NuGet.Protocol.Registration;
 
 namespace NuGet.Jobs.Catalog2Registration
 {
@@ -67,8 +68,22 @@ namespace NuGet.Jobs.Catalog2Registration
                 }
 
                 // Read-modify-write only the ID-level field. The version-level lane preserves this field because it
-                // reads the existing index object and never touches SponsorshipUrls.
-                index.SponsorshipUrls = hasSponsorshipUrls ? new List<string>(sponsorshipUrls) : null;
+                // reads the existing index object and never touches the metadata container.
+                if (hasSponsorshipUrls)
+                {
+                    index.Metadata ??= new Dictionary<string, object>();
+                    index.Metadata[RegistrationIndex.SponsorshipUrlsMetadataKey] = new List<string>(sponsorshipUrls);
+                }
+                else
+                {
+                    index.Metadata?.Remove(RegistrationIndex.SponsorshipUrlsMetadataKey);
+                    if (index.Metadata != null && index.Metadata.Count == 0)
+                    {
+                        // Omit the metadata container entirely once it no longer holds any candidates.
+                        index.Metadata = null;
+                    }
+                }
+
                 _entityBuilder.UpdateCommit(index, new CatalogCommit(Guid.NewGuid().ToString(), commitTimestamp));
 
                 await _hiveStorage.WriteIndexAsync(hive, replicaHives, id, index);

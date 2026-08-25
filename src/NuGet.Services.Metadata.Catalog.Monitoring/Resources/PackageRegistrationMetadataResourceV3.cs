@@ -83,7 +83,9 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                 { IgnoreNotFounds = true },
                 log, token);
 
-            var sponsorshipUrls = indexRoot?["sponsorshipUrls"] as JArray;
+            // Sponsorship URLs are stored as a candidate within the registration index's root-level "metadata"
+            // container (rather than as a root-level property).
+            var sponsorshipUrls = indexRoot?["metadata"]?["sponsorshipUrls"] as JArray;
             if (sponsorshipUrls == null)
             {
                 return null;

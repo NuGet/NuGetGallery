@@ -105,6 +105,11 @@ static class SeedBlobsTool
     },
     {
       "@id": "{{cfg.AzuriteBase}}/{{cfg.Containers.RegistrationGzSemVer2}}/",
+      "@type": "RegistrationsBaseUrl/7.12.0",
+      "comment": "Base URL of NuGet package registration info in GZIP format (SemVer 2.0), includes ID-level sponsorship metadata."
+    },
+    {
+      "@id": "{{cfg.AzuriteBase}}/{{cfg.Containers.RegistrationGzSemVer2}}/",
       "@type": "RegistrationsBaseUrl/Versioned",
       "comment": "Base URL of NuGet package registration info in GZIP format (SemVer 2.0)."
     },

@@ -12,6 +12,16 @@ namespace NuGet.Protocol.Registration
     /// </summary>
     public class RegistrationIndex : ICommitted
     {
+        /// <summary>
+        /// The name of the root-level property that contains registration-scoped (ID-level) metadata.
+        /// </summary>
+        public const string MetadataPropertyName = "metadata";
+
+        /// <summary>
+        /// The key within <see cref="Metadata"/> under which sponsorship URLs are stored.
+        /// </summary>
+        public const string SponsorshipUrlsMetadataKey = "sponsorshipUrls";
+
         [JsonProperty("@id")]
         public string Url { get; set; }
 
@@ -27,9 +37,11 @@ namespace NuGet.Protocol.Registration
         [JsonProperty("count")]
         public int Count { get; set; }
 
-        // sponsorship Urls in the registration index
-        [JsonProperty("sponsorshipUrls")]
-        public List<string> SponsorshipUrls { get; set; }
+        /// <summary>
+        /// A container for registration-scoped (ID-level) metadata.
+        /// </summary>
+        [JsonProperty("metadata")]
+        public Dictionary<string, object> Metadata { get; set; }
 
         [JsonProperty("items")]
         public List<RegistrationPage> Items { get; set; }

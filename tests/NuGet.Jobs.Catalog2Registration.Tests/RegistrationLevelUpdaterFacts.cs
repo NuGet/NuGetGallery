@@ -46,7 +46,9 @@ namespace NuGet.Jobs.Catalog2Registration
                     Times.Exactly(2));
 
                 Assert.Equal(2, WrittenIndexes.Count);
-                Assert.All(WrittenIndexes, index => Assert.Equal(urls, index.SponsorshipUrls));
+                Assert.All(WrittenIndexes, index => Assert.Equal(
+                    urls,
+                    Assert.IsType<List<string>>(index.Metadata[RegistrationIndex.SponsorshipUrlsMetadataKey])));
             }
 
             [Fact]
@@ -62,19 +64,23 @@ namespace NuGet.Jobs.Catalog2Registration
             [Fact]
             public async Task RemovesSponsorshipUrlsWhenNull()
             {
+                SetupExistingSponsorshipMetadata();
+
                 await Target.UpdateAsync(Id, sponsorshipUrls: null, CommitTimestamp);
 
                 Assert.Equal(2, WrittenIndexes.Count);
-                Assert.All(WrittenIndexes, index => Assert.Null(index.SponsorshipUrls));
+                Assert.All(WrittenIndexes, index => Assert.Null(index.Metadata));
             }
 
             [Fact]
             public async Task RemovesSponsorshipUrlsWhenEmpty()
             {
+                SetupExistingSponsorshipMetadata();
+
                 await Target.UpdateAsync(Id, new List<string>(), CommitTimestamp);
 
                 Assert.Equal(2, WrittenIndexes.Count);
-                Assert.All(WrittenIndexes, index => Assert.Null(index.SponsorshipUrls));
+                Assert.All(WrittenIndexes, index => Assert.Null(index.Metadata));
             }
 
             [Fact]
@@ -131,6 +137,19 @@ namespace NuGet.Jobs.Catalog2Registration
             public string Id { get; } = "NuGet.Versioning";
             public DateTimeOffset CommitTimestamp { get; } = new DateTimeOffset(2026, 8, 1, 0, 0, 0, TimeSpan.Zero);
             public RegistrationLevelUpdater Target { get; }
+
+            protected void SetupExistingSponsorshipMetadata()
+            {
+                HiveStorage
+                    .Setup(x => x.ReadIndexOrNullAsync(It.IsAny<HiveType>(), It.IsAny<string>()))
+                    .ReturnsAsync(() => new RegistrationIndex
+                    {
+                        Metadata = new Dictionary<string, object>
+                        {
+                            { RegistrationIndex.SponsorshipUrlsMetadataKey, new List<string> { "https://example/sponsor" } },
+                        },
+                    });
+            }
         }
     }
 }
