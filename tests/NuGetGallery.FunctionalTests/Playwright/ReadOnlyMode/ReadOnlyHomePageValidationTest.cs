@@ -5,23 +5,19 @@ using System.Net;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace NuGetGallery.FunctionalTests.Playwright.BasicPages
+namespace NuGetGallery.FunctionalTests.Playwright.ReadOnlyMode
 {
-	[Collection(AspirePlaywrightCollection.Definition)]
-	[Trait("Category", "PlaywrightTests")]
-	public class HomePageValidationTest : NuGetPageTest
+    public class ReadOnlyHomePageValidationTest : NuGetPageTest
     {
         [Fact]
         [Priority(0)]
-        [Category("P0Tests")]
+        [Category("ReadOnlyModeTests")]
         public async Task HomePageLoads_ContainsExpectedText()
-		{
-            // Act
+        {
             var response = await Page.GotoAsync(UrlHelper.BaseUrl);
 
-            // Assert
             Assert.Equal(HttpStatusCode.OK, (HttpStatusCode)response.Status);
             await Expect(Page.Locator(".what-is-nuget")).ToContainTextAsync(Constants.HomePageText);
-		}
-	}
+        }
+    }
 }

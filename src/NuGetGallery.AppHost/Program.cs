@@ -137,6 +137,7 @@ public class Program
             "/userhome:" + iisUserHome)
             .WithHttpEndpoint(port: 80, name: "gallery-http", isProxied: false)
             .WithHttpsEndpoint(port: 443, name: "gallery-https", isProxied: false)
+            .WithHttpHealthCheck("/api/health-probe", endpointName: "gallery-http")
             .WaitForCompletion(dbMigrateGallery)
             .WaitForCompletion(dbMigrateSupport)
             .WaitFor(storage)
@@ -831,4 +832,3 @@ public class Program
 
 /// <summary>Lightweight resource used purely for visual grouping in the Aspire dashboard.</summary>
 sealed class GroupResource(string name) : Resource(name);
-

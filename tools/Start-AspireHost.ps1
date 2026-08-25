@@ -69,23 +69,32 @@ Write-Host "##[endgroup]"
 if ($TrustDevCert)
 {
 	Write-Host "##[group]Trusting dev certificate"
-	$crt = Join-Path $env:TEMP "aspire-dev-cert.crt"
-	dotnet dev-certs https -ep $crt --format Pem --no-password | Out-Host
-	if ($LASTEXITCODE -ne 0)
+	dotnet dev-certs https --check --trust | Out-Host
+	if ($LASTEXITCODE -eq 0)
 	{
-		Write-Error "Failed to export dev cert."
-		exit 1
+		Write-Host "A trusted dev certificate is already available."
 	}
-
-	Import-Certificate -FilePath $crt -CertStoreLocation Cert:\LocalMachine\Root | Out-Host
-	if (-not $?)
+	else
 	{
-		Write-Error "Failed to import dev cert."
-		exit 1
-	}
+		$certificateBaseName = "aspire-dev-cert-$([Guid]::NewGuid().ToString('N'))"
+		$crt = Join-Path $env:TEMP "$certificateBaseName.crt"
+		$key = Join-Path $env:TEMP "$certificateBaseName.key"
+		try
+		{
+			dotnet dev-certs https -ep $crt --format Pem --no-password | Out-Host
+			if ($LASTEXITCODE -ne 0)
+			{
+				throw "Failed to export dev cert."
+			}
 
-	Write-Host "Dev certificate trusted successfully."
-	Remove-Item $crt, ($crt -replace '\.crt$', '.key') -ErrorAction SilentlyContinue
+			Import-Certificate -FilePath $crt -CertStoreLocation Cert:\LocalMachine\Root | Out-Host
+			Write-Host "Dev certificate trusted successfully."
+		}
+		finally
+		{
+			Remove-Item $crt, $key -Force -ErrorAction SilentlyContinue
+		}
+	}
 	Write-Host "##[endgroup]"
 }
 
