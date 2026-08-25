@@ -254,12 +254,12 @@ namespace NuGetGallery.Frameworks
         }
 
         [Theory]
-        [InlineData(FrameworkProductNames.Net, "net5", "net6")]
-        [InlineData(FrameworkProductNames.Net, "net6", "net6-windows")]
-        [InlineData(FrameworkProductNames.NetCore, "netcoreapp10", "netcoreapp21", "netcoreapp31")]
-        [InlineData(FrameworkProductNames.NetStandard, "netstandard10", "netstandard10", "netstandard21")]
-        [InlineData(FrameworkProductNames.NetFramework, "net11", "net45", "net472")]
-        public void BadgeShouldBeTheLowestNonComputedFrameworkByDefault(string productFramework, string lowestFramework, params string[] frameworks)
+        [InlineData(FrameworkProductNames.Net, "net6", "net5")]
+        [InlineData(FrameworkProductNames.Net, "net6-windows", "net6")]
+        [InlineData(FrameworkProductNames.NetCore, "netcoreapp31", "netcoreapp10", "netcoreapp21")]
+        [InlineData(FrameworkProductNames.NetStandard, "netstandard21", "netstandard10", "netstandard10")]
+        [InlineData(FrameworkProductNames.NetFramework, "net472", "net11", "net45")]
+        public void BadgeShouldBeTheLatestNonComputedFrameworkByDefault(string productFramework, string latestFramework, params string[] frameworks)
         {
             var packageFrameworks = new HashSet<PackageFramework>();
             foreach (var framework in frameworks)
@@ -270,8 +270,8 @@ namespace NuGetGallery.Frameworks
                 };
                 packageFrameworks.Add(packageFramework);
             }
-            var lowestPackageFramework = new PackageFramework() { TargetFramework = lowestFramework };
-            packageFrameworks.Add(lowestPackageFramework);
+            var latestPackageFramework = new PackageFramework() { TargetFramework = latestFramework };
+            packageFrameworks.Add(latestPackageFramework);
 
             var result = _factory.Create(packageFrameworks.ToList(), packageId: string.Empty, packageVersion: string.Empty);
 
@@ -285,15 +285,16 @@ namespace NuGetGallery.Frameworks
             }
 
             Assert.NotNull(badgeFramework);
-            Assert.Equal(lowestPackageFramework.FrameworkName, badgeFramework);
+            Assert.Equal(latestPackageFramework.FrameworkName, badgeFramework);
         }
 
         [Theory]
         [InlineData(FrameworkProductNames.Net, false, "net6.0", "netstandard1.0", "net6.0")]
-        [InlineData(FrameworkProductNames.Net, true, "net5.0", "netstandard1.0", "net6.0")]
-        [InlineData(FrameworkProductNames.NetCore, false, "netcoreapp3.1", "netstandard1.0", "netcoreapp3.1")]
-        [InlineData(FrameworkProductNames.NetCore, true, "netcoreapp1.0", "netstandard1.0", "netcoreapp3.1")]
-        public void BadgeShouldBeTheLowestFramework(string productFramework, bool includeComputed, string expectedFramework, params string[] frameworks)
+        [InlineData(FrameworkProductNames.NetFramework, false, "net45", "net11", "net45")]
+        [InlineData(FrameworkProductNames.NetFramework, true, "net481", "net11", "net45")]
+        [InlineData(FrameworkProductNames.NetCore, false, "netcoreapp2.1", "netstandard1.0", "netcoreapp2.1")]
+        [InlineData(FrameworkProductNames.NetCore, true, "netcoreapp3.1", "netstandard1.0", "netcoreapp2.1")]
+        public void BadgeShouldBeTheLatestFramework(string productFramework, bool includeComputed, string expectedFramework, params string[] frameworks)
         {
             var packageFrameworks = new HashSet<PackageFramework>();
             foreach (var framework in frameworks)
@@ -304,7 +305,7 @@ namespace NuGetGallery.Frameworks
                 };
                 packageFrameworks.Add(packageFramework);
             }
-            var lowestPackageFramework = new PackageFramework() { TargetFramework = expectedFramework };
+            var latestPackageFramework = new PackageFramework() { TargetFramework = expectedFramework };
 
             var result = _factory.Create(packageFrameworks.ToList(), packageId: string.Empty, packageVersion: string.Empty, includeComputed);
 
@@ -318,7 +319,7 @@ namespace NuGetGallery.Frameworks
             }
 
             Assert.NotNull(badgeFramework);
-            Assert.Equal(lowestPackageFramework.FrameworkName, badgeFramework);
+            Assert.Equal(latestPackageFramework.FrameworkName, badgeFramework);
         }
 
         [Theory]
