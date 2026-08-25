@@ -5,7 +5,7 @@ using System;
 
 namespace NuGet.Services.Validation.Orchestrator
 {
-    public class LocalValidationConfiguration
+    public class AlwaysSucceedingValidatorConfiguration
     {
         public bool Enabled { get; set; }
 

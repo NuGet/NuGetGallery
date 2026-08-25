@@ -8,14 +8,17 @@ using NuGet.Jobs.Validation;
 
 namespace NuGet.Services.Validation.Orchestrator
 {
+    /// <summary>
+    /// Simulates validation for local development and always completes successfully after the configured delay.
+    /// </summary>
     [ValidatorName(Name)]
-    public class LocalValidator : BaseNuGetValidator, INuGetValidator
+    public class AlwaysSucceedingValidator : BaseNuGetValidator, INuGetValidator
     {
-        public const string Name = "LocalValidator";
+        public const string Name = "AlwaysSucceedingValidator";
 
-        private readonly LocalValidationConfiguration _configuration;
+        private readonly AlwaysSucceedingValidatorConfiguration _configuration;
 
-        public LocalValidator(IOptionsSnapshot<LocalValidationConfiguration> configurationAccessor)
+        public AlwaysSucceedingValidator(IOptionsSnapshot<AlwaysSucceedingValidatorConfiguration> configurationAccessor)
         {
             if (configurationAccessor == null)
             {

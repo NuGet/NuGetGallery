@@ -219,7 +219,7 @@ public class Program
                         {
                             new
                             {
-                                Name = "LocalValidator",
+                                Name = "AlwaysSucceedingValidator",
                                 TrackAfter = "00:00:10",
                                 RequiredValidations = Array.Empty<string>(),
                                 ShouldStart = true,
@@ -241,7 +241,7 @@ public class Program
                         ValidatingType = "Package",
                         MaxConcurrentCalls = 1,
                     },
-                    LocalValidation = new
+                    AlwaysSucceedingValidator = new
                     {
                         Enabled = true,
                         Delay = TimeSpan.FromMinutes(1),

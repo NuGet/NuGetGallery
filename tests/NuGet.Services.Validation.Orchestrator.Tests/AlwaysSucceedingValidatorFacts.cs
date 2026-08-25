@@ -11,7 +11,7 @@ using Xunit;
 
 namespace NuGet.Services.Validation.Orchestrator.Tests
 {
-    public class LocalValidatorFacts
+    public class AlwaysSucceedingValidatorFacts
     {
         public class TheStartAsyncMethod
         {
@@ -61,18 +61,18 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             }
         }
 
-        private static LocalValidator CreateTarget(bool enabled, TimeSpan? delay = null)
+        private static AlwaysSucceedingValidator CreateTarget(bool enabled, TimeSpan? delay = null)
         {
-            var configurationAccessor = new Mock<IOptionsSnapshot<LocalValidationConfiguration>>();
+            var configurationAccessor = new Mock<IOptionsSnapshot<AlwaysSucceedingValidatorConfiguration>>();
             configurationAccessor
                 .SetupGet(x => x.Value)
-                .Returns(new LocalValidationConfiguration
+                .Returns(new AlwaysSucceedingValidatorConfiguration
                 {
                     Enabled = enabled,
                     Delay = delay ?? TimeSpan.Zero,
                 });
 
-            return new LocalValidator(configurationAccessor.Object);
+            return new AlwaysSucceedingValidator(configurationAccessor.Object);
         }
     }
 }
