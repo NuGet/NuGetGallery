@@ -197,7 +197,7 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddTransient<ISimpleCloudBlobProvider, SimpleCloudBlobProvider>();
             services.AddTransient<PackageSignatureProcessor>();
             services.AddTransient<PackageSignatureValidator>();
-            services.AddTransient<AlwaysSucceedingValidator>();
+            services.AddSingleton<AlwaysSucceedingValidator>();
             services.AddTransient<Messaging.IServiceBusMessageSerializer, Messaging.ServiceBusMessageSerializer>();
             services.AddTransient<IMessageServiceConfiguration, CoreMessageServiceConfiguration>();
             services.AddTransient<IMessageService, AsynchronousEmailMessageService>();

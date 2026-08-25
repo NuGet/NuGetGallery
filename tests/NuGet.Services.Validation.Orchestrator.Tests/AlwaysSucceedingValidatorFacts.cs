@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -32,26 +31,13 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         public class TheStartAsyncMethod
         {
             [Fact]
-            public async Task ReturnsSucceededWhenEnabled()
+            public async Task ReturnsIncomplete()
             {
                 var target = CreateTarget(enabled: true);
 
-                var response = await target.StartAsync(Mock.Of<INuGetValidationRequest>());
+                var response = await target.StartAsync(CreateRequest());
 
-                Assert.Equal(ValidationStatus.Succeeded, response.Status);
-            }
-
-            [Fact]
-            public async Task WaitsForConfiguredDelay()
-            {
-                var delay = TimeSpan.FromMilliseconds(100);
-                var target = CreateTarget(enabled: true, delay);
-                var stopwatch = Stopwatch.StartNew();
-
-                var response = await target.StartAsync(Mock.Of<INuGetValidationRequest>());
-
-                Assert.Equal(ValidationStatus.Succeeded, response.Status);
-                Assert.True(stopwatch.Elapsed >= delay);
+                Assert.Equal(ValidationStatus.Incomplete, response.Status);
             }
 
             [Fact]
@@ -66,13 +52,52 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         public class TheGetResponseAsyncMethod
         {
             [Fact]
-            public async Task ReturnsNotStartedWhenEnabled()
+            public async Task ReturnsNotStartedForUnknownValidation()
             {
                 var target = CreateTarget(enabled: true);
 
-                var response = await target.GetResponseAsync(Mock.Of<INuGetValidationRequest>());
+                var response = await target.GetResponseAsync(CreateRequest());
 
                 Assert.Equal(ValidationStatus.NotStarted, response.Status);
+            }
+
+            [Fact]
+            public async Task ReturnsIncompleteBeforeDelayHasElapsed()
+            {
+                var request = CreateRequest();
+                var target = CreateTarget(enabled: true, TimeSpan.FromMinutes(1));
+                await target.StartAsync(request);
+
+                var response = await target.GetResponseAsync(request);
+
+                Assert.Equal(ValidationStatus.Incomplete, response.Status);
+            }
+
+            [Fact]
+            public async Task ReturnsSucceededAfterDelayHasElapsed()
+            {
+                var request = CreateRequest();
+                var target = CreateTarget(enabled: true);
+                await target.StartAsync(request);
+
+                var response = await target.GetResponseAsync(request);
+
+                Assert.Equal(ValidationStatus.Succeeded, response.Status);
+            }
+
+            [Fact]
+            public async Task TracksValidationsIndependently()
+            {
+                var startedRequest = CreateRequest();
+                var unknownRequest = CreateRequest();
+                var target = CreateTarget(enabled: true, TimeSpan.FromMinutes(1));
+                await target.StartAsync(startedRequest);
+
+                var startedResponse = await target.GetResponseAsync(startedRequest);
+                var unknownResponse = await target.GetResponseAsync(unknownRequest);
+
+                Assert.Equal(ValidationStatus.Incomplete, startedResponse.Status);
+                Assert.Equal(ValidationStatus.NotStarted, unknownResponse.Status);
             }
 
             [Fact]
@@ -87,9 +112,16 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             }
         }
 
+        private static INuGetValidationRequest CreateRequest()
+        {
+            var request = new Mock<INuGetValidationRequest>();
+            request.SetupGet(x => x.ValidationId).Returns(Guid.NewGuid());
+            return request.Object;
+        }
+
         private static AlwaysSucceedingValidator CreateTarget(bool enabled, TimeSpan? delay = null)
         {
-            var configurationAccessor = new Mock<IOptionsSnapshot<AlwaysSucceedingValidatorConfiguration>>();
+            var configurationAccessor = new Mock<IOptions<AlwaysSucceedingValidatorConfiguration>>();
             configurationAccessor
                 .SetupGet(x => x.Value)
                 .Returns(new AlwaysSucceedingValidatorConfiguration

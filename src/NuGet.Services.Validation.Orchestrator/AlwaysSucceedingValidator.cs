@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using NuGet.Jobs.Validation;
@@ -17,8 +18,9 @@ namespace NuGet.Services.Validation.Orchestrator
         public const string Name = "AlwaysSucceedingValidator";
 
         private readonly AlwaysSucceedingValidatorConfiguration _configuration;
+        private readonly ConcurrentDictionary<Guid, DateTimeOffset> _startedValidations = new ConcurrentDictionary<Guid, DateTimeOffset>();
 
-        public AlwaysSucceedingValidator(IOptionsSnapshot<AlwaysSucceedingValidatorConfiguration> configurationAccessor)
+        public AlwaysSucceedingValidator(IOptions<AlwaysSucceedingValidatorConfiguration> configurationAccessor)
         {
             if (configurationAccessor == null)
             {
@@ -39,15 +41,15 @@ namespace NuGet.Services.Validation.Orchestrator
             }
         }
 
-        public async Task<INuGetValidationResponse> StartAsync(INuGetValidationRequest request)
+        public Task<INuGetValidationResponse> StartAsync(INuGetValidationRequest request)
         {
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            await Task.Delay(_configuration.Delay);
-            return NuGetValidationResponse.Succeeded;
+            _startedValidations.TryAdd(request.ValidationId, DateTimeOffset.UtcNow);
+            return Task.FromResult(NuGetValidationResponse.Incomplete);
         }
 
         public Task<INuGetValidationResponse> GetResponseAsync(INuGetValidationRequest request)
@@ -57,7 +59,16 @@ namespace NuGet.Services.Validation.Orchestrator
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return Task.FromResult(NuGetValidationResponse.NotStarted);
+            if (!_startedValidations.TryGetValue(request.ValidationId, out var started))
+            {
+                return Task.FromResult(NuGetValidationResponse.NotStarted);
+            }
+
+            var response = DateTimeOffset.UtcNow - started < _configuration.Delay
+                ? NuGetValidationResponse.Incomplete
+                : NuGetValidationResponse.Succeeded;
+
+            return Task.FromResult(response);
         }
     }
 }
