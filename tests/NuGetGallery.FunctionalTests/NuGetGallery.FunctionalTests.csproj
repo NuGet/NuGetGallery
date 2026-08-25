@@ -3,7 +3,9 @@
     <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.Testing" />
     <ProjectReference Include="..\NuGetGallery.FunctionalTests.Core\NuGetGallery.FunctionalTests.Core.csproj" />
+    <ProjectReference Include="..\..\src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FluentLinkChecker" />

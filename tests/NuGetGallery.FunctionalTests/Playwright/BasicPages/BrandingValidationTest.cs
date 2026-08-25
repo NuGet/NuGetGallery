@@ -8,6 +8,8 @@ using Xunit;
 
 namespace NuGetGallery.FunctionalTests.Playwright.BasicPages
 {
+    [Collection(AspirePlaywrightCollection.Definition)]
+    [Trait("Category", "PlaywrightTests")]
     public class BrandingValidationTest : NuGetPageTest
     {
         [Fact]

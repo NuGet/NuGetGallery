@@ -244,14 +244,14 @@ stages:
                   if ($LASTEXITCODE -ne 0) { throw "Build functional tests failed with exit code $LASTEXITCODE" }
 
                   # 4. Run functional tests
-                  Write-Host "=== Running P0, P1, and P2 functional tests ==="
+                  Write-Host "=== Running non-Playwright P0, P1, and P2 functional tests ==="
                   $testDll = "$repoRoot\tests\NuGetGallery.FunctionalTests\bin\$config\net10.0\NuGetGallery.FunctionalTests.dll"
                   $resultsDir = "$repoRoot\tests\TestResults"
                   New-Item -ItemType Directory -Path $resultsDir -Force | Out-Null
 
                   dotnet test $testDll `
                     --blame-hang-timeout 600s `
-                    --filter "Category=P0Tests|Category=P1Tests|Category=P2Tests" `
+                    --filter "(Category=P0Tests|Category=P1Tests|Category=P2Tests)&Category!=PlaywrightTests" `
                     --logger "trx;LogFileName=FunctionalTests.trx" `
                     --results-directory $resultsDir
 
@@ -280,6 +280,46 @@ stages:
               searchFolder: $(NuGetGalleryPath)
               mergeTestResults: true
               testRunTitle: 'Functional Tests (P0, P1, P2)'
+
+      - job: aspire_playwright
+        displayName: Aspire Playwright Tests
+        cancelTimeoutInMinutes: 1
+        steps:
+          - checkout: self
+            fetchDepth: 1
+            clean: true
+            fetchTags: false
+            path: $(NuGetGalleryDirectory)
+          - task: PowerShell@2
+            name: build_apphost
+            displayName: Build AppHost
+            inputs:
+              targetType: inline
+              script: dotnet build src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj -c $(BuildConfiguration)
+              workingDirectory: $(NuGetGalleryPath)
+          - task: PowerShell@1
+            name: setup_dev
+            displayName: Setup Dev Environment
+            inputs:
+              scriptName: $(NuGetGalleryPath)\tools\Setup-DevEnvironment.ps1
+              workingFolder: $(NuGetGalleryPath)
+          - task: PowerShell@2
+            name: playwright_tests
+            displayName: Run Aspire Playwright Tests
+            timeoutInMinutes: 30
+            inputs:
+              filePath: $(NuGetGalleryPath)\tests\Scripts\RunGalleryPlaywrightTests.ps1
+              arguments: -Configuration $(BuildConfiguration)
+              workingDirectory: $(NuGetGalleryPath)
+          - task: PublishTestResults@2
+            name: publish_playwright_results
+            displayName: Publish Playwright Test Results
+            condition: always()
+            inputs:
+              testResultsFormat: VSTest
+              testResultsFiles: 'tests/TestResults/PlaywrightTests.trx'
+              searchFolder: $(NuGetGalleryPath)
+              testRunTitle: 'Aspire Playwright Tests'
 
   - stage: artifacts
     displayName: Artifacts

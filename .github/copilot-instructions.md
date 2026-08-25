@@ -1,213 +1,179 @@
 # Copilot Instructions for NuGetGallery
 
-This repository powers [nuget.org](https://www.nuget.org). It contains the gallery web application, background jobs, shared libraries, and validation services.
+This repository powers nuget.org. It combines the ASP.NET Gallery, shared server libraries, background jobs and V3 services, functional-test infrastructure, and a small Python log parser. Work from the repository root unless a command says otherwise.
 
-## Target Frameworks
+## Build and validation
 
-This repository targets multiple C# frameworks: .NET Framework 4.7.2, .NET Standard 2.1, and .NET Standard 2.0.
+### Prerequisites
 
-The repo uses `<LangVersion>latest</LangVersion>`. Use the latest C# syntax for newly generated code.
+- Use Windows with Visual Studio 2022 and the **ASP.NET and web development** and **Azure development** workloads. The build locates Visual Studio MSBuild and several projects target .NET Framework 4.7.2.
+- Gallery browser functional tests also require Visual Studio's **Web performance and load testing tools** component.
+- `global.json` starts SDK selection at 8.0.318 with `rollForward: latestMajor`. Install a .NET 10-capable SDK for the Aspire host and functional tests, which target .NET 10.
+- Run `.\tools\Setup-DevEnvironment.ps1` as administrator for first-time Gallery setup. It configures IIS Express/HTTPS and applies the EF6 database migrations.
 
-## Build
+### C# build
 
-The repo uses MSBuild via Visual Studio (not `dotnet build`). Build with PowerShell:
+Use the repository PowerShell build, not `dotnet build`, for the main solutions:
 
 ```powershell
-# Full build (restore + common + gallery + jobs + artifacts)
+# Restore and build Common, Gallery, Jobs, Jobs functional tests, and artifacts
 .\build.ps1
 
-# Gallery-only build (most common during development)
+# Build one subsystem without packaging/signing
 .\build.ps1 -SkipCommon -SkipJobs -SkipArtifacts
+.\build.ps1 -SkipGallery -SkipJobs -SkipArtifacts
+.\build.ps1 -SkipCommon -SkipGallery -SkipArtifacts
 
-# Incremental (skip restore after first build)
+# Repeat a Gallery build after a successful restore
 .\build.ps1 -SkipCommon -SkipJobs -SkipArtifacts -SkipRestore
 ```
 
-## Test
+The build also validates project/solution membership, generates assembly version files, and runs the configured Roslyn/NuGet analyzers. There is no separate repository-wide C# lint command. Gallery builds treat warnings as errors, and Release builds compile Razor views.
 
-Tests use **xUnit** and **Moq**. Run all tests:
+### C# tests
+
+Build before testing because the test commands use `--no-build --no-restore`.
 
 ```powershell
+# All Common, Gallery, and Jobs unit tests
 .\test.ps1
-```
 
-Run a single test project:
+# One subsystem
+.\test.ps1 -SkipCommon -SkipJobs
 
-```powershell
+# One project
 dotnet test tests\NuGetGallery.Facts\NuGetGallery.Facts.csproj --no-restore --no-build --configuration debug
-```
 
-Run a single test by name:
-
-```powershell
+# One test or test class
 dotnet test tests\NuGetGallery.Facts\NuGetGallery.Facts.csproj --no-restore --no-build --configuration debug --filter "FullyQualifiedName~TheMethodName"
 ```
 
-## Architecture
+Tests use xUnit and Moq. Most unit-test projects target .NET Framework 4.7.2 even though `dotnet test` is the runner.
 
-### Solutions
+### Aspire and functional tests
 
-- **NuGetGallery.sln** — Main gallery web app and its tests
-- **NuGet.Server.Common.sln** — Shared libraries (configuration, logging, storage, etc.)
-- **NuGet.Jobs.sln** — Background jobs (catalog indexing, stats, validation, Azure Search)
-- **NuGetGallery.Aspire.slnx** — Aspire orchestrator for local development
+`src\NuGetGallery.AppHost` orchestrates the Gallery and local V3 pipeline. For the CI-style minimal profile:
 
-### Key projects
-
-- `src/NuGetGallery` — ASP.NET MVC web app (.NET Framework 4.7.2). Uses OWIN, Web API, and Razor views.
-- `src/NuGetGallery.Core` — Shared core library (multi-targets net472 and netstandard2.1). Contains EF entities and core services.
-- `src/NuGetGallery.Services` — Business logic layer: authentication, package management, permissions, telemetry.
-- `src/NuGet.Services.Entities` — Entity models shared across gallery and jobs.
-- `src/NuGetGallery.AppHost` — Aspire AppHost for local orchestration (Azurite, IIS Express, DB migrations, seeding).
-
-### Dependency injection
-
-Autofac is the DI container. Registration is module-based:
-
-- `src/NuGetGallery/App_Start/AutofacConfig.cs` — Container setup
-- `src/NuGetGallery/App_Start/DefaultDependenciesModule.cs` — Main service registrations
-- `src/NuGetGallery/Authentication/AuthDependenciesModule.cs` — Auth registrations
-
-### Database
-
-Entity Framework 6 with code-first migrations. Key files:
-
-- `src/NuGetGallery.Core/Entities/EntitiesContext.cs` — Main DbContext
-- `src/NuGetGallery/Migrations/` — Gallery database migrations
-
-Additional contexts exist for validation (`ValidationEntitiesContext`) and support requests (`SupportRequestDbContext`).
-
-Run `.\tools\Setup-DevEnvironment.ps1` to create the local database (SQL Server LocalDB) and enable HTTPS for first-time setup.
-
-### Search
-
-The search pipeline flows: `ExternalSearchService` → `GallerySearchClient` → `ResilientSearchHttpClient` → `HttpClientWrapper` (with Polly retry policies). Configured conditionally based on `SearchServiceUriPrimary`/`SearchServiceUriSecondary` settings.
-
-## Conventions
-
-### File header
-
-Source files should include this copyright header:
-
-```
-// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-```
-
-### Nullable reference types
-
-Only opt code into nullable reference types when explicitly asked. When doing so:
-
-- Add `#nullable enable` at the top of the file.
-- Never use `!` to suppress null warnings.
-- Declare variables non-nullable and check for `null` at entry points.
-- Use `throw new ArgumentNullException(nameof(parameter))` in .NET Framework and .NET Standard projects.
-
-### C# style
-
-- Allman-style braces
-- Always specify visibility (`private string _foo`, not `string _foo`)
-- Private fields: `_camelCase` with `readonly` where possible
-- Avoid `this.` unless necessary
-- Avoid abbreviations: `Service` not `Svc`
-- Namespaces match folder structure
-- 4 spaces indentation
-- System usings first, then alphabetical
-
-### Asynchronous programming
-
-- Use async/await consistently. Name async methods with an `Async` suffix.
-- Never use `.Result` or `.Wait()` on Tasks.
-- Pass `CancellationToken` parameters when appropriate.
-
-### Telemetry
-
-Use `ITelemetryService` for application telemetry, not raw `ILogger`.
-
-### Database migrations
-
-- Use Entity Framework 6 migration patterns with proper `Up()` and `Down()` implementations.
-- Never modify existing migrations after they've been deployed. Create new migrations for schema changes.
-
-### URL handling
-
-- Convert HTTP URLs to HTTPS where appropriate.
-- Use `PackageHelper.TryPrepareUrlForRendering()` for sanitizing URLs for display.
-
-### Anti-forgery tokens
-
-All POST controller actions must have `[ValidateAntiForgeryToken]`. API-style POST actions that intentionally skip it must be added as exceptions in `tests/NuGetGallery.Facts/Controllers/ControllerTests.cs` (`AllActionsHaveAntiForgeryTokenIfNotGet`).
-
-### Test organization
-
-Test projects are named with `.Facts` suffix (e.g., `NuGetGallery.Facts`, `NuGetGallery.Core.Facts`).
-
-Tests use nested classes to group by member under test:
-
-```csharp
-public class PackageServiceFacts
-{
-    public class TheCreatePackageMethod : TestContainer
-    {
-        [Fact]
-        public void ReturnsCreatedPackage()
-        {
-            // Arrange
-            // ...
-
-            // Act
-            // ...
-
-            // Assert
-            // ...
-        }
-    }
+```powershell
+.\tools\Setup-DevEnvironment.ps1
+$hostPid = .\tools\Start-AspireHost.ps1 -Configuration Release -UnsafeAdminApiAuthBypassForTesting
+try {
+    .\tools\Seed-FunctionalTestData.ps1 -Configuration Release
+    .\tests\Scripts\BuildGalleryFunctionalTests.ps1 -Configuration Release
+    $env:ConfigurationFilePath = "$PWD\tests\NuGetGallery.FunctionalTests\settings.CI.json"
+    dotnet test tests\NuGetGallery.FunctionalTests\bin\Release\net10.0\NuGetGallery.FunctionalTests.dll --filter "Category=P0Tests|Category=P1Tests|Category=P2Tests|Category=AdminApiTests"
+}
+finally {
+    .\tools\Stop-AspireHost.ps1 -HostPid $hostPid
 }
 ```
 
-`TestContainer` (in `tests/NuGetGallery.Facts/Framework/TestContainer.cs`) is the base class for tests that need DI. It provides `GetController<T>()`, `GetMock<T>()`, `GetService<T>()`, and `GetFakeContext()`.
+Always stop the host in a `finally` block when scripting this flow. `Start-AspireHost.ps1` defaults `APPHOST_PROFILE` to `ci-gallery`; the AppHost itself defaults to `full`. The full profile adds the Azure Search-backed resources.
 
-### csproj compile patterns
+`BuildGalleryFunctionalTests.ps1` restores/builds the functional-test solution and installs its Playwright browsers. `-UnsafeAdminApiAuthBypassForTesting` compiles an authentication bypass; use it only in the AppHost build for Admin API functional tests, never in artifact, signing, or deployment builds.
 
-`NuGetGallery.Core.csproj` excludes certain files from `netstandard2.1` that depend on `System.Web`. If porting code that uses `System.Web.HttpServerUtility`, check the compile exclusions.
+For agent-owned browser validation, use the in-test Aspire harness:
 
-### Branch workflow
+```powershell
+.\tests\Scripts\RunGalleryPlaywrightTests.ps1 -Configuration Release
+```
 
-All feature branches should be created from and merged back to `dev`. Branch names follow the format `users/[username]/[feature-name]` for new features and `users/[username]/[issue-number]` for bug fixes.
+This starts the `ci-gallery` AppHost, seeds test data, runs the supported Playwright tests, and tears down once per suite. It is Windows-only and uses fixed Gallery ports 80/443, so do not run it concurrently with `Start-AspireHost.ps1`. Pass `-AppHostProfile full` only when local Azure Search prerequisites are available. Statistics-service and read-only-mode browser tests remain on their separately configured paths.
 
-### JavaScript and frontend
+### Frontend assets
 
-- JavaScript uses ES5 syntax for compatibility.
-- Use `'use strict'` directive.
-- Follow accessibility best practices (WCAG) in UI components.
-- The gallery uses a customized Bootstrap 3.4.1 fork. LESS sources are in `src/Bootstrap/less/`. After modifying them, rebuild with `.\tools\Build-Bootstrap.ps1` and commit both the LESS changes and the updated output files.
-- Several pages use **Knockout.js** for client-side data binding.
+Change Gallery styles in `src\Bootstrap\less`, not generated CSS. Then run:
 
-### Views and layout
+```powershell
+.\tools\Build-Bootstrap.ps1
+```
 
-The master layout is `Views/Shared/Gallery/Layout.cshtml` (not the standard `_Layout.cshtml` location). It's selected via `_ViewStart.cshtml` with a branding override fallback. The layout defines optional Razor sections that pages can render into: `TopStyles`, `TopScripts`, `BottomScripts`, `Meta`, and `SocialMeta`.
+Commit the LESS source and copied/minified outputs under `src\NuGetGallery`. CI rebuilds Bootstrap and fails if the generated output differs. The script installs `src\Bootstrap` npm dependencies when needed and invokes Grunt.
 
-Views use strongly-typed ViewModels (e.g., `DisplayPackageViewModel`). ViewModels live in `src/NuGetGallery/ViewModels/`.
+### StatsLogParser
 
-Icons use the **Microsoft Fabric** icon set: `<i class="ms-Icon ms-Icon--{Name}" aria-hidden="true"></i>`.
+The independent Python package under `python\StatsLogParser` requires Python 3.10+, pipx, and Poetry:
 
-### CSS and JS bundles
+```powershell
+Set-Location python\StatsLogParser
+poetry install
+poetry run pytest tests\
+poetry run pytest tests\test_file.py -k test_name
+poetry build
+```
 
-Page styles are written in **LESS** in `src/Bootstrap/less/theme/`. Each page has a corresponding file (e.g., `page-display-package.less`, `page-home.less`). These are imported via `all.less`, compiled by Grunt, and output as `bootstrap.min.css`. This is the primary stylesheet loaded by the layout.
+When dependencies change, update both `poetry.lock` and the exported `requirements.txt` used by Spark.
 
-When adding styles for a new page:
-1. Create `src/Bootstrap/less/theme/page-{name}.less`
-2. Add `@import "page-{name}.less";` to `src/Bootstrap/less/theme/all.less`
-3. Run `.\tools\Build-Bootstrap.ps1` to compile
-4. Commit both the LESS source and the compiled output in `Content/gallery/css/bootstrap.min.css`
+## Architecture
 
-For shared/reusable component styles, use the `common-*.less` naming pattern.
+### Solutions and ownership
 
-CSS variables (e.g., `var(--neutralForeground1Rest)`) are used for dark/light theme support. Use them instead of hardcoded colors where available.
+- `NuGetGallery.sln` contains the classic ASP.NET Gallery and its unit tests.
+- `NuGet.Server.Common.sln` contains reusable configuration, logging, storage, messaging, and other server libraries used across NuGet services.
+- `NuGet.Jobs.sln` contains background jobs and V3 pipeline components.
+- `NuGetGallery.FunctionalTests.sln` and `NuGet.Jobs.FunctionalTests.sln` isolate functional-test projects.
+- `NuGetGallery.Aspire.slnx` contains the local distributed application and its dependencies.
 
-JS bundles are registered in code in `App_Start/AppActivator.cs` (not a separate `BundleConfig.cs`). Each page has its own JS file following the naming convention `Scripts/gallery/page-{name}.js`, with a corresponding `ScriptBundle` registered in `AppActivator.cs`.
+Source projects intentionally overlap between solutions; test projects must not. `build.shared.ps1` requires every `.csproj` to belong to a solution and uses `CommonPackageVersion`, `GalleryPackageVersion`, or `JobsPackageVersion` to classify shared source projects. When adding or moving a project, update the appropriate solution(s) and package-version property.
 
-When adding a new page with JavaScript:
-1. Create `Scripts/gallery/page-{name}.js`
-2. Register a new `ScriptBundle` in `AppActivator.cs`
-3. Reference the bundle in the view's `BottomScripts` section
+### Gallery request and service layers
+
+`src\NuGetGallery` is a .NET Framework 4.7.2 ASP.NET MVC application with Web API, OWIN, Razor, and IIS Express. Controllers and views depend on:
+
+- `src\NuGetGallery.Services` for Gallery business logic such as authentication, package management, permissions, storage, and telemetry.
+- `src\NuGetGallery.Core` for EF entities, repositories, auditing, and core services.
+- `src\NuGet.Services.Entities` for models shared with jobs and services.
+
+Autofac is the composition root. `App_Start\AutofacConfig.cs` discovers MVC/Web API controllers and assembly modules; `App_Start\DefaultDependenciesModule.cs` contains most runtime registrations; authentication has its own module. Follow the existing lifetime and keyed-registration patterns rather than constructing services in controllers.
+
+The main Gallery database uses EF6 `EntitiesContext`. Gallery migrations are in `src\NuGetGallery\Migrations`; support-request migrations are under `Areas\Admin\Migrations`; validation and catalog-validation use separate contexts. Create a new migration for schema changes and implement both `Up()` and `Down()`; never edit a migration that may already be deployed.
+
+### Search and V3 pipeline
+
+Gallery search is selected in `DefaultDependenciesModule` based on search endpoint configuration. The external path is:
+
+`ExternalSearchService` -> `GallerySearchClient` -> `ResilientSearchHttpClient` -> one or more `HttpClientWrapper` instances.
+
+The Jobs solution contains the V3 production pipeline. `Ng` subcommands and standalone `JsonConfigurationJob` executables move Gallery DB/package data through catalog, flat-container, registration, search, and auxiliary-storage outputs. Standalone jobs generally accept `-Configuration <json>`; check the job's `Program.cs` and adjacent README before changing invocation or configuration.
+
+### Local distributed application
+
+`src\NuGetGallery.AppHost\Program.cs` models local infrastructure and ordering: Azurite, EF6 migrations, IIS Express Gallery, seed tools, catalog/V3 jobs, and optional Azure Search. Resources use `WaitFor`/`WaitForCompletion`; preserve these dependencies when changing the graph. The AppHost generates local configuration files for Gallery and tools, so do not hard-code those generated values in checked-in application configuration.
+
+### Frontend composition
+
+- The default layout is `src\NuGetGallery\Views\Shared\Gallery\Layout.cshtml`, selected by `_ViewStart.cshtml` with a branding override. It exposes optional `TopStyles`, `TopScripts`, `BottomScripts`, `Meta`, and `SocialMeta` sections.
+- Strongly typed view models live under `ViewModels`.
+- Page styles use `src\Bootstrap\less\theme\page-*.less` and must be imported by `src\Bootstrap\less\theme\all.less`; reusable styles use `common-*.less`.
+- Page scripts use `Scripts\gallery\page-*.js`. Register their `ScriptBundle` in `App_Start\AppActivator.cs` and render the bundle from the view's `BottomScripts` section.
+- The frontend uses the customized Bootstrap 3.4.1 fork, jQuery, and Knockout. Existing Gallery JavaScript is ES5 and begins with `'use strict'`.
+- Prefer existing CSS custom properties for light/dark theme colors and Microsoft Fabric icons (`ms-Icon--*`). Preserve WCAG behavior and accessible labels.
+
+## Repository-specific conventions
+
+### C# and project files
+
+- Use the two-line .NET Foundation/Apache 2.0 header from `.editorconfig`.
+- Use Allman braces, four spaces, explicit visibility, `_camelCase` private fields, `readonly` where possible, and no unnecessary `this.`.
+- Keep `using` directives outside the namespace, with `System` directives first and all groups alphabetized without blank separators.
+- Use block-scoped namespaces. Async methods end in `Async`; do not block with `.Result` or `.Wait()`.
+- The repository multi-targets .NET Framework 4.7.2, .NET Standard 2.0/2.1, and newer .NET for selected services/tools. Several multi-target projects conditionally remove files that depend on `System.Web` or other framework-only APIs. Check conditional `Compile Remove`, references, and project references before moving code across target frameworks.
+- SDK-style `<PackageReference>` versions are centrally managed in `Directory.Packages.props`; omit versions from ordinary `<PackageReference>` items. The main build also restores legacy `packages.config` dependencies, so follow the dependency style of the project being changed rather than converting it incidentally.
+
+### Gallery behavior
+
+- Use `ITelemetryService` for Gallery application telemetry and follow nearby event/metric patterns. The shared service libraries also expose `Microsoft.Extensions.Logging`; do not replace Gallery telemetry with ad hoc logging.
+- Sanitize user-controlled URLs for display with `PackageHelper.TryPrepareUrlForRendering()` and prefer HTTPS where the existing flow supports it.
+- MVC POST actions require `[ValidateAntiForgeryToken]`. Intentional API exceptions must be added to `ControllerTests.AllActionsHaveAntiForgeryTokenIfNotGet` so the architectural test remains explicit.
+- Register new services through the appropriate Autofac module and add configuration through the established configuration models/sections.
+
+### Tests
+
+- Unit-test projects use `.Facts` or `.Tests` according to their subsystem's existing convention.
+- Gallery facts commonly group tests in nested classes named for the member under test and use Arrange/Act/Assert.
+- Tests requiring the Gallery dependency graph derive from `tests\NuGetGallery.Facts\Framework\TestContainer.cs`; use `GetController<T>()`, `GetMock<T>()`, `GetService<T>()`, and `GetFakeContext()` rather than rebuilding the container.
+- Keep test projects in only one main solution; `build.shared.ps1` rejects shared non-source projects.
+
+### Contributions
+
+Changes target the `dev` branch and should be linked to an issue. Repository documentation contains multiple historical branch-name examples, so follow the current maintainer/issue convention rather than assuming one global branch-name template.

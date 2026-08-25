@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.Playwright;
 using Microsoft.Playwright.Xunit;
@@ -11,6 +12,23 @@ namespace NuGetGallery.FunctionalTests.Playwright
 {
     public class NuGetPageTest : PageTest
     {
+        protected static bool IsAspireHarness =>
+            bool.TryParse(
+                Environment.GetEnvironmentVariable("NUGET_PLAYWRIGHT_ASPIRE_HARNESS"),
+                out var isAspireHarness)
+            && isAspireHarness;
+
+        public override BrowserNewContextOptions ContextOptions()
+        {
+            var options = base.ContextOptions();
+            if (IsAspireHarness)
+            {
+                options.IgnoreHTTPSErrors = true;
+            }
+
+            return options;
+        }
+
         override public async Task InitializeAsync()
         {
             // Uncomment this to make Playwright run in headed mode (visible browser) for debugging.

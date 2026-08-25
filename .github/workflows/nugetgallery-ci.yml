@@ -237,14 +237,14 @@ jobs:
             if ($LASTEXITCODE -ne 0) { throw "Build functional tests failed with exit code $LASTEXITCODE" }
 
             # 4. Run functional tests
-            Write-Host "=== Running P0, P1, P2 and Admin API functional tests ==="
+            Write-Host "=== Running non-Playwright P0, P1, P2 and Admin API functional tests ==="
             $testDll = "$repoRoot\tests\NuGetGallery.FunctionalTests\bin\$config\net10.0\NuGetGallery.FunctionalTests.dll"
             $resultsDir = "$repoRoot\tests\TestResults"
             New-Item -ItemType Directory -Path $resultsDir -Force | Out-Null
 
             dotnet test $testDll `
               --blame-hang-timeout 600s `
-              --filter "Category=P0Tests|Category=P1Tests|Category=P2Tests|Category=AdminApiTests" `
+              --filter "(Category=P0Tests|Category=P1Tests|Category=P2Tests|Category=AdminApiTests)&Category!=PlaywrightTests" `
               --logger "trx;LogFileName=FunctionalTests.trx" `
               --results-directory $resultsDir
 
@@ -269,6 +269,35 @@ jobs:
         with:
           name: test-results-aspire
           path: tests/TestResults/*.trx
+
+
+  playwright:
+    name: Aspire Playwright Tests
+    runs-on: windows-2025-vs2026
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Build AppHost
+        shell: pwsh
+        run: dotnet build src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj -c $env:BuildConfiguration
+
+      - name: Setup Dev Environment
+        shell: pwsh
+        run: .\tools\Setup-DevEnvironment.ps1
+
+      - name: Run Aspire Playwright Tests
+        shell: pwsh
+        run: .\tests\Scripts\RunGalleryPlaywrightTests.ps1 -Configuration $env:BuildConfiguration
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-playwright
+          path: tests/TestResults/PlaywrightTests.trx
 
 
   artifacts:
