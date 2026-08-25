@@ -244,7 +244,7 @@ public class Program
                     AlwaysSucceedingValidator = new
                     {
                         Enabled = true,
-                        Delay = TimeSpan.FromMinutes(1),
+                        DelaySeconds = 60,
                     },
                     Email = new
                     {

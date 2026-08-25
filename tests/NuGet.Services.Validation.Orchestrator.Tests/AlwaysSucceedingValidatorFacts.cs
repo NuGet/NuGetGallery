@@ -24,7 +24,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             public void ThrowsWhenDelayIsNegative()
             {
                 Assert.Throws<InvalidOperationException>(
-                    () => CreateTarget(enabled: true, TimeSpan.FromSeconds(-1)));
+                    () => CreateTarget(enabled: true, delaySeconds: -1));
             }
         }
 
@@ -65,7 +65,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             public async Task ReturnsIncompleteBeforeDelayHasElapsed()
             {
                 var request = CreateRequest();
-                var target = CreateTarget(enabled: true, TimeSpan.FromMinutes(1));
+                var target = CreateTarget(enabled: true, delaySeconds: 60);
                 await target.StartAsync(request);
 
                 var response = await target.GetResponseAsync(request);
@@ -90,7 +90,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             {
                 var startedRequest = CreateRequest();
                 var unknownRequest = CreateRequest();
-                var target = CreateTarget(enabled: true, TimeSpan.FromMinutes(1));
+                var target = CreateTarget(enabled: true, delaySeconds: 60);
                 await target.StartAsync(startedRequest);
 
                 var startedResponse = await target.GetResponseAsync(startedRequest);
@@ -119,7 +119,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             return request.Object;
         }
 
-        private static AlwaysSucceedingValidator CreateTarget(bool enabled, TimeSpan? delay = null)
+        private static AlwaysSucceedingValidator CreateTarget(bool enabled, int delaySeconds = 0)
         {
             var configurationAccessor = new Mock<IOptions<AlwaysSucceedingValidatorConfiguration>>();
             configurationAccessor
@@ -127,7 +127,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .Returns(new AlwaysSucceedingValidatorConfiguration
                 {
                     Enabled = enabled,
-                    Delay = delay ?? TimeSpan.Zero,
+                    DelaySeconds = delaySeconds,
                 });
 
             return new AlwaysSucceedingValidator(configurationAccessor.Object);

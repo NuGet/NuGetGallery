@@ -35,7 +35,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 throw new InvalidOperationException("The always succeeding validator is not enabled.");
             }
 
-            if (_configuration.Delay < TimeSpan.Zero)
+            if (_configuration.DelaySeconds < 0)
             {
                 throw new InvalidOperationException("The always succeeding validator delay cannot be negative.");
             }
@@ -64,7 +64,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 return Task.FromResult(NuGetValidationResponse.NotStarted);
             }
 
-            var response = DateTimeOffset.UtcNow - started < _configuration.Delay
+            var response = DateTimeOffset.UtcNow - started < TimeSpan.FromSeconds(_configuration.DelaySeconds)
                 ? NuGetValidationResponse.Incomplete
                 : NuGetValidationResponse.Succeeded;
 
