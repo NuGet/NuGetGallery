@@ -27,37 +27,37 @@ namespace NuGet.Services.Validation.Orchestrator
 
             _configuration = configurationAccessor.Value
                 ?? throw new ArgumentException("Value property cannot be null", nameof(configurationAccessor));
+
+            if (!_configuration.Enabled)
+            {
+                throw new InvalidOperationException("The always succeeding validator is not enabled.");
+            }
+
+            if (_configuration.Delay < TimeSpan.Zero)
+            {
+                throw new InvalidOperationException("The always succeeding validator delay cannot be negative.");
+            }
         }
 
         public async Task<INuGetValidationResponse> StartAsync(INuGetValidationRequest request)
-        {
-            ValidateRequest(request);
-            await Task.Delay(_configuration.Delay);
-            return NuGetValidationResponse.Succeeded;
-        }
-
-        public Task<INuGetValidationResponse> GetResponseAsync(INuGetValidationRequest request)
-        {
-            ValidateRequest(request);
-            return Task.FromResult(NuGetValidationResponse.NotStarted);
-        }
-
-        private void ValidateRequest(INuGetValidationRequest request)
         {
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            if (!_configuration.Enabled)
+            await Task.Delay(_configuration.Delay);
+            return NuGetValidationResponse.Succeeded;
+        }
+
+        public Task<INuGetValidationResponse> GetResponseAsync(INuGetValidationRequest request)
+        {
+            if (request == null)
             {
-                throw new InvalidOperationException("The local validator is not enabled.");
+                throw new ArgumentNullException(nameof(request));
             }
 
-            if (_configuration.Delay < TimeSpan.Zero)
-            {
-                throw new InvalidOperationException("The local validator delay cannot be negative.");
-            }
+            return Task.FromResult(NuGetValidationResponse.NotStarted);
         }
     }
 }

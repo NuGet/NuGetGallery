@@ -13,6 +13,22 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 {
     public class AlwaysSucceedingValidatorFacts
     {
+        public class TheConstructor
+        {
+            [Fact]
+            public void ThrowsWhenDisabled()
+            {
+                Assert.Throws<InvalidOperationException>(() => CreateTarget(enabled: false));
+            }
+
+            [Fact]
+            public void ThrowsWhenDelayIsNegative()
+            {
+                Assert.Throws<InvalidOperationException>(
+                    () => CreateTarget(enabled: true, TimeSpan.FromSeconds(-1)));
+            }
+        }
+
         public class TheStartAsyncMethod
         {
             [Fact]
@@ -39,12 +55,11 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             }
 
             [Fact]
-            public async Task ThrowsWhenDisabled()
+            public async Task ThrowsForNullRequest()
             {
-                var target = CreateTarget(enabled: false);
+                var target = CreateTarget(enabled: true);
 
-                await Assert.ThrowsAsync<InvalidOperationException>(
-                    () => target.StartAsync(Mock.Of<INuGetValidationRequest>()));
+                await Assert.ThrowsAsync<ArgumentNullException>(() => target.StartAsync(null));
             }
         }
 
@@ -58,6 +73,17 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 var response = await target.GetResponseAsync(Mock.Of<INuGetValidationRequest>());
 
                 Assert.Equal(ValidationStatus.NotStarted, response.Status);
+            }
+
+            [Fact]
+            public void ThrowsForNullRequest()
+            {
+                var target = CreateTarget(enabled: true);
+
+                Assert.Throws<ArgumentNullException>(() =>
+                {
+                    _ = target.GetResponseAsync(null);
+                });
             }
         }
 
