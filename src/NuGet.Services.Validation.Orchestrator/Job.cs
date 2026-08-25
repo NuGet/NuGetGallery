@@ -59,6 +59,7 @@ namespace NuGet.Services.Validation.Orchestrator
         private const string FlatContainerConfigurationSectionName = "FlatContainer";
         private const string LeaseConfigurationSectionName = "Leases";
         private const string SasDefinitionConfigurationSectionName = "SasDefinitions";
+        private const string AlwaysSucceedingValidatorConfigurationSectionName = "AlwaysSucceedingValidator";
 
         private const string EmailBindingKey = EmailConfigurationSectionName;
         private const string PackageVerificationTopicClientBindingKey = "PackageVerificationTopicClient";
@@ -130,6 +131,7 @@ namespace NuGet.Services.Validation.Orchestrator
             services.Configure<FlatContainerConfiguration>(configurationRoot.GetSection(FlatContainerConfigurationSectionName));
             services.Configure<LeaseConfiguration>(configurationRoot.GetSection(LeaseConfigurationSectionName));
             services.Configure<SasDefinitionConfiguration>(configurationRoot.GetSection(SasDefinitionConfigurationSectionName));
+            services.Configure<AlwaysSucceedingValidatorConfiguration>(configurationRoot.GetSection(AlwaysSucceedingValidatorConfigurationSectionName));
 
             services.Configure<SymbolsValidationConfiguration>(configurationRoot.GetSection(SymbolsValidatorSectionName));
             services.Configure<SymbolsIngesterConfiguration>(configurationRoot.GetSection(SymbolsIngesterSectionName));
@@ -195,6 +197,7 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddTransient<ISimpleCloudBlobProvider, SimpleCloudBlobProvider>();
             services.AddTransient<PackageSignatureProcessor>();
             services.AddTransient<PackageSignatureValidator>();
+            services.AddSingleton<AlwaysSucceedingValidator>();
             services.AddTransient<Messaging.IServiceBusMessageSerializer, Messaging.ServiceBusMessageSerializer>();
             services.AddTransient<IMessageServiceConfiguration, CoreMessageServiceConfiguration>();
             services.AddTransient<IMessageService, AsynchronousEmailMessageService>();
