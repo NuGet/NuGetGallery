@@ -30,18 +30,6 @@ public class Program
             searchServiceName = searchOutputs.RootElement.GetProperty("name").GetProperty("value").GetString() ?? "";
         }
 
-        var serviceBusOutputsJson = builder.Configuration["Azure:Deployments:service-bus:Outputs"];
-        var serviceBusEndpoint = "";
-        if (!string.IsNullOrEmpty(serviceBusOutputsJson))
-        {
-            var serviceBusOutputs = JsonDocument.Parse(serviceBusOutputsJson);
-            var serviceBusHostName = serviceBusOutputs.RootElement
-                .GetProperty("serviceBusHostName")
-                .GetProperty("value")
-                .GetString() ?? "";
-            serviceBusEndpoint = string.IsNullOrEmpty(serviceBusHostName) ? "" : $"sb://{serviceBusHostName}/";
-        }
-
         // Locate the repository root by walking up from the AppHost directory
         // until we find NuGetGallery.sln.
         var repoRoot = builder.AppHostDirectory;
@@ -175,7 +163,7 @@ public class Program
         EnsureIISExpressUserHome(iisUserHome);
 
         // Generate appsettings.Aspire.config to switch Gallery to Azurite blob storage
-        GenerateGalleryAspireConfig(galleryPath, azuriteConnStr, serviceBusEndpoint, validationTopicName,
+        var galleryAspireConfigPath = GenerateGalleryAspireConfig(galleryPath, azuriteConnStr, validationTopicName,
             packages: config.Containers.Packages, auditing: config.Containers.Auditing,
             content: config.Containers.Content, uploads: config.Containers.Uploads);
 
@@ -199,7 +187,7 @@ public class Program
             gallery.WaitFor(serviceBus);
         }
 
-        if (serviceBus != null && !string.IsNullOrEmpty(serviceBusEndpoint))
+        if (serviceBus != null)
         {
             var orchestratorConfigPath = GenerateJsonConfig(
                 builder.AppHostDirectory, "validation-orchestrator-dev.json", new
@@ -208,7 +196,7 @@ public class Program
                     ValidationDb = new { ConnectionString = validationConnectionString },
                     ServiceBus = new
                     {
-                        ConnectionString = serviceBusEndpoint,
+                        ConnectionString = "",
                         TopicPath = validationTopicName,
                         SubscriptionName = validationSubscriptionName,
                     },
@@ -250,7 +238,7 @@ public class Program
                     {
                         ServiceBus = new
                         {
-                            ConnectionString = serviceBusEndpoint,
+                            ConnectionString = "",
                             TopicPath = emailTopicName,
                         },
                         GalleryOwner = "NuGet Gallery <support@localhost>",
@@ -277,8 +265,20 @@ public class Program
                     },
                 });
 
+            var configureValidation = builder
+                .AddProject<Projects.NuGetGallery_AppHost_Tools>("configure-validation")
+                .WithArgs("configure-validation", galleryAspireConfigPath, orchestratorConfigPath)
+                .WithEnvironment(
+                    "SERVICE_BUS_HOST_NAME",
+                    new BicepOutputReference("serviceBusHostName", serviceBus.Resource))
+                .WaitFor(serviceBus)
+                .WithParentRelationship(infraGroup);
+
+            gallery.WaitForCompletion(configureValidation);
+
             builder.AddProject<Projects.NuGet_Services_Validation_Orchestrator>("validation-orchestrator")
                 .WithArgs("-Configuration", orchestratorConfigPath)
+                .WaitForCompletion(configureValidation)
                 .WaitForCompletion(dbMigrateGallery)
                 .WaitForCompletion(dbMigrateValidation)
                 .WaitFor(storage)
@@ -863,8 +863,8 @@ public class Program
     /// This file is loaded by Web.config's &lt;appSettings file="..."&gt; attribute
     /// and switches Gallery from FileSystem storage to Azurite blob storage.
     /// </summary>
-    static void GenerateGalleryAspireConfig(
-        string galleryDir, string connectionString, string serviceBusEndpoint, string validationTopicName,
+    static string GenerateGalleryAspireConfig(
+        string galleryDir, string connectionString, string validationTopicName,
         string packages, string auditing, string content, string uploads)
     {
         var doc = new XDocument(
@@ -884,11 +884,11 @@ public class Program
                 Setting("Gallery.AzureStorage.Uploads.ConnectionString", connectionString),
                 Setting("Gallery.AzureStorage.Uploads.ContainerName", uploads),
                 Setting("Gallery.AzureStorage.Revalidation.ConnectionString", connectionString),
-                Setting("Gallery.AsynchronousPackageValidationEnabled", (!string.IsNullOrEmpty(serviceBusEndpoint)).ToString()),
-                Setting("Gallery.BlockingAsynchronousPackageValidationEnabled", (!string.IsNullOrEmpty(serviceBusEndpoint)).ToString()),
-                Setting("AzureServiceBus.Validation.ConnectionString", serviceBusEndpoint),
+                Setting("Gallery.AsynchronousPackageValidationEnabled", bool.FalseString),
+                Setting("Gallery.BlockingAsynchronousPackageValidationEnabled", bool.FalseString),
+                Setting("AzureServiceBus.Validation.ConnectionString", ""),
                 Setting("AzureServiceBus.Validation.TopicName", validationTopicName),
-                Setting("AzureServiceBus.SymbolsValidation.ConnectionString", serviceBusEndpoint),
+                Setting("AzureServiceBus.SymbolsValidation.ConnectionString", ""),
                 Setting("AzureServiceBus.SymbolsValidation.TopicName", validationTopicName),
                 Setting("Gallery.SiteRoot", "https://localhost"),
                 Setting("Gallery.SupportEmailSiteRoot", "https://localhost"),
@@ -898,7 +898,9 @@ public class Program
                 Setting("Gallery.AdminApiAllowedCallers", "your-tid:your-azp"),
                 Setting("Gallery.AdminApiTestModeEnabled", "true")));
 
-        doc.Save(Path.Combine(galleryDir, "appsettings.Aspire.config"));
+        var path = Path.Combine(galleryDir, "appsettings.Aspire.config");
+        doc.Save(path);
+        return path;
 
         static XElement Setting(string key, string value) =>
             new("add", new XAttribute("key", key), new XAttribute("value", value));
