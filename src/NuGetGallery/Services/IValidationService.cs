@@ -95,11 +95,11 @@ namespace NuGetGallery
         IReadOnlyList<ValidationIssue> GetLatestPackageValidationIssues(Package package);
 
         /// <summary>
-        /// Gets the package validation issues for a specific validation set.
+        /// Gets the package validation issues for specific validation sets.
         /// </summary>
-        /// <param name="validationTrackingId">The validation set tracking ID.</param>
-        /// <returns>The validation issues encountered by the validation set.</returns>
-        IReadOnlyList<ValidationIssue> GetPackageValidationIssues(Guid validationTrackingId);
+        /// <param name="validationTrackingIds">The validation set tracking IDs.</param>
+        /// <returns>The validation issues keyed by validation tracking ID.</returns>
+        IReadOnlyDictionary<Guid, IReadOnlyList<ValidationIssue>> GetPackageValidationIssues(IReadOnlyCollection<Guid> validationTrackingIds);
 
         /// <summary>
         /// Get the symbol package's validation issues from the latest validation.

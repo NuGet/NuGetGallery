@@ -12,6 +12,7 @@ using System.Web;
 using System.Web.Mvc;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
+using NuGet.Services.Validation.Issues;
 using NuGet.Versioning;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.ViewModels;
@@ -583,18 +584,32 @@ namespace NuGetGallery
             var stagedPackages = new List<PackageStagingViewModel>();
             if (isPackageStagingEnabled)
             {
-                stagedPackages = _packageStagingManagementService.GetStagedPackages(currentUser)
-                    .Select(stagedPackage => new PackageStagingViewModel
+                var stagedPackageEntities = _packageStagingManagementService.GetStagedPackages(currentUser).ToList();
+                var failedValidationTrackingIds = stagedPackageEntities
+                    .Where(package => package.Status == StagedPackageStatus.ValidationFailed)
+                    .Select(package => package.ValidationTrackingId)
+                    .Distinct()
+                    .ToList();
+                var validationIssuesByTrackingId = failedValidationTrackingIds.Count == 0
+                    ? new Dictionary<Guid, IReadOnlyList<ValidationIssue>>()
+                    : _validationService.GetPackageValidationIssues(failedValidationTrackingIds);
+
+                stagedPackages = stagedPackageEntities
+                    .Select(stagedPackage =>
                     {
-                        Id = stagedPackage.Package.PackageRegistration.Id,
-                        Version = stagedPackage.Package.NormalizedVersion,
-                        Status = stagedPackage.Status.ToString(),
-                        Owner = stagedPackage.Owner.Username,
-                        UploadedDate = stagedPackage.UploadedDate,
-                        ValidationIssues = stagedPackage.Status == StagedPackageStatus.ValidationFailed ? _validationService.GetPackageValidationIssues(stagedPackage.ValidationTrackingId) : [],
+                        validationIssuesByTrackingId.TryGetValue(stagedPackage.ValidationTrackingId, out var validationIssues);
+
+                        return new PackageStagingViewModel
+                        {
+                            Id = stagedPackage.Package.PackageRegistration.Id,
+                            Version = stagedPackage.Package.NormalizedVersion,
+                            Status = stagedPackage.Status.ToString(),
+                            Owner = stagedPackage.Owner.Username,
+                            UploadedDate = stagedPackage.UploadedDate,
+                            ValidationIssues = validationIssues ?? [],
+                        };
                     })
                     .ToList();
-
             }
 
             var model = new ManagePackagesViewModel

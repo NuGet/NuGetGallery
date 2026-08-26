@@ -311,9 +311,11 @@ namespace NuGetGallery
         public class TheGetLatestValidationIssuesMethod : FactsBase
         {
             [Fact]
-            public void GetsIssuesForExactValidationTrackingId()
+            public void GetsIssuesForRequestedValidationTrackingIds()
             {
                 var validationTrackingId = Guid.NewGuid();
+                var otherValidationTrackingId = Guid.NewGuid();
+                var nonMatchingValidationTrackingId = Guid.NewGuid();
                 var validationSet = new PackageValidationSet
                 {
                     ValidationTrackingId = validationTrackingId,
@@ -333,14 +335,26 @@ namespace NuGetGallery
                         },
                     },
                 };
+                var otherValidationSet = new PackageValidationSet
+                {
+                    ValidationTrackingId = otherValidationTrackingId,
+                    PackageValidations = Array.Empty<PackageValidation>(),
+                };
+                var nonMatchingValidationSet = new PackageValidationSet
+                {
+                    ValidationTrackingId = nonMatchingValidationTrackingId,
+                    PackageValidations = Array.Empty<PackageValidation>(),
+                };
                 _validationSets
                     .Setup(x => x.GetAll())
-                    .Returns(new[] { validationSet }.AsQueryable());
+                    .Returns(new[] { validationSet, otherValidationSet, nonMatchingValidationSet }.AsQueryable());
 
-                var issues = _target.GetPackageValidationIssues(validationTrackingId);
+                var issues = _target.GetPackageValidationIssues(new[] { validationTrackingId, otherValidationTrackingId });
 
-                var issue = Assert.Single(issues);
+                var issue = Assert.Single(issues[validationTrackingId]);
                 Assert.Equal(ValidationIssueCode.PackageIsZip64, issue.IssueCode);
+                Assert.Equal(ValidationIssueCode.Unknown, Assert.Single(issues[otherValidationTrackingId]).IssueCode);
+                Assert.DoesNotContain(nonMatchingValidationTrackingId, issues.Keys);
             }
 
             [Theory]
