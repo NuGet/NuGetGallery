@@ -747,5 +747,43 @@ namespace NuGetGallery
                 await service.SetPropertiesAsync(folderName: null, fileName: null, updatePropertiesAsync: null);
             }
         }
+
+        public class TheGetETagOrNullAsyncMethod
+        {
+            [Fact]
+            public async Task ReturnsFileContentIdWithoutOpeningFile()
+            {
+                using (var testDirectory = TestDirectory.Create())
+                {
+                    var folderName = CoreConstants.Folders.StagingFolderName;
+                    var fileName = "package/1.0.0/package.nupkg";
+                    var path = Path.Combine(testDirectory, folderName, fileName);
+                    Directory.CreateDirectory(Path.GetDirectoryName(path));
+                    File.WriteAllText(path, "content");
+                    var configuration = new Mock<IAppConfiguration>();
+                    configuration.Setup(x => x.FileStorageDirectory).Returns(testDirectory);
+                    var service = CreateService(configuration, new Mock<IFileSystemService>());
+
+                    var etag = await service.GetETagOrNullAsync(folderName, fileName);
+
+                    Assert.Equal(new LocalFileReference(new FileInfo(path)).ContentId, etag);
+                }
+            }
+
+            [Fact]
+            public async Task ReturnsNullWhenFileDoesNotExist()
+            {
+                using (var testDirectory = TestDirectory.Create())
+                {
+                    var configuration = new Mock<IAppConfiguration>();
+                    configuration.Setup(x => x.FileStorageDirectory).Returns(testDirectory);
+                    var service = CreateService(configuration, new Mock<IFileSystemService>());
+
+                    var etag = await service.GetETagOrNullAsync(CoreConstants.Folders.StagingFolderName, "missing.nupkg");
+
+                    Assert.Null(etag);
+                }
+            }
+        }
     }
 }

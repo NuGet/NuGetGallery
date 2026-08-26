@@ -62,8 +62,13 @@ namespace NuGetGallery
                 packageFile,
                 overwrite: false);
 
-            var fileReference = await _fileStorageService.GetFileReferenceAsync(CoreConstants.Folders.StagingFolderName, path);
-            return new StagingFileReference(path, fileReference.ContentId, length, contentHash);
+            var etag = await _fileStorageService.GetETagOrNullAsync(CoreConstants.Folders.StagingFolderName, path);
+            if (etag == null)
+            {
+                throw new InvalidOperationException($"The staged package blob '{path}' was not found after it was saved.");
+            }
+
+            return new StagingFileReference(path, etag, length, contentHash);
         }
 
         public async Task CopyStagedPackageToValidationSetAsync(

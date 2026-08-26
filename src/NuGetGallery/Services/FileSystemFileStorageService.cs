@@ -303,7 +303,12 @@ namespace NuGetGallery
            string folderName,
            string fileName)
         {
-            throw new NotImplementedException(nameof(GetETagOrNullAsync));
+            folderName = folderName ?? throw new ArgumentNullException(nameof(folderName));
+            fileName = fileName ?? throw new ArgumentNullException(nameof(fileName));
+
+            var path = BuildPath(_configuration.FileStorageDirectory, folderName, fileName);
+            var file = new FileInfo(path);
+            return Task.FromResult(file.Exists ? new LocalFileReference(file).ContentId : null);
         }
 
         private static string GetContentType(string folderName)

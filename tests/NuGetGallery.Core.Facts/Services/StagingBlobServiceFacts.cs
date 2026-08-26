@@ -18,11 +18,10 @@ namespace NuGetGallery
             var content = new byte[] { 1, 2, 3 };
             var storage = new Mock<ICoreFileStorageService>();
             storage
-                .Setup(x => x.GetFileReferenceAsync(
+                .Setup(x => x.GetETagOrNullAsync(
                     CoreConstants.Folders.StagingFolderName,
-                    It.IsAny<string>(),
-                    null))
-                .ReturnsAsync(Mock.Of<IFileReference>(reference => reference.ContentId == "\"etag\""));
+                    It.IsAny<string>()))
+                .ReturnsAsync("\"etag\"");
 
             var result = await new StagingBlobService(storage.Object).SavePackageFileAsync(
                 "NuGet.Versioning",
