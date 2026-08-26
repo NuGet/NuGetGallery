@@ -1260,6 +1260,12 @@ The {1} Team</value>
   <data name="SupportedFrameworks_Computed_Tooltip" xml:space="preserve">
     <value>This package is compatible with up to {0}.</value>
   </data>
+  <data name="SupportedFrameworks_Asset_Range_Tooltip" xml:space="preserve">
+    <value>This package supports up to {0} and remains backwards compatible down to {1}.</value>
+  </data>
+  <data name="SupportedFrameworks_Computed_Range_Tooltip" xml:space="preserve">
+    <value>This package is compatible with up to {0} and remains backwards compatible down to {1}.</value>
+  </data>
   <data name="SupportedFrameworks_EmptyVersion_Template_Tooltip" xml:space="preserve">
     <value>This package is compatible with all versions of {0}.</value>
   </data>

@@ -363,5 +363,51 @@ namespace NuGetGallery.Frameworks
             // Assert
             Assert.Equal(packageId, result.Badges.PackageId);
         }
+
+        [Fact]
+        public void BadgeHasNullEarliestFrameworkWhenOnlyOneFrameworkIsSupported()
+        {
+            var packageFrameworks = new List<PackageFramework>
+            {
+                new PackageFramework() { TargetFramework = "net45" }
+            };
+
+            var result = _factory.Create(packageFrameworks, packageId: string.Empty, packageVersion: string.Empty);
+
+            Assert.NotNull(result.Badges.NetFramework);
+            Assert.Null(result.Badges.NetFramework.EarliestFramework);
+        }
+
+        [Fact]
+        public void BadgeHasEarliestFrameworkWhenMultipleFrameworksAreSupported()
+        {
+            var packageFrameworks = new List<PackageFramework>
+            {
+                new PackageFramework() { TargetFramework = "net11" },
+                new PackageFramework() { TargetFramework = "net45" },
+                new PackageFramework() { TargetFramework = "net472" }
+            };
+
+            var result = _factory.Create(packageFrameworks, packageId: string.Empty, packageVersion: string.Empty);
+
+            Assert.NotNull(result.Badges.NetFramework);
+            Assert.Equal(NuGetFramework.Parse("net472"), result.Badges.NetFramework.Framework);
+            Assert.Equal(NuGetFramework.Parse("net11"), result.Badges.NetFramework.EarliestFramework);
+        }
+
+        [Fact]
+        public void BadgeEarliestFrameworkRespectsIncludeComputedFlag()
+        {
+            var packageFrameworks = new List<PackageFramework>
+            {
+                new PackageFramework() { TargetFramework = "netcoreapp2.1" }
+            };
+
+            var resultWithoutComputed = _factory.Create(packageFrameworks, packageId: string.Empty, packageVersion: string.Empty, includeComputedBadges: false);
+            var resultWithComputed = _factory.Create(packageFrameworks, packageId: string.Empty, packageVersion: string.Empty, includeComputedBadges: true);
+
+            Assert.Null(resultWithoutComputed.Badges.NetCore.EarliestFramework);
+            Assert.NotNull(resultWithComputed.Badges.NetCore.EarliestFramework);
+        }
     }
 }

@@ -169,12 +169,30 @@ namespace NuGetGallery.Frameworks
             };
         }
 
-        private PackageFrameworkCompatibilityData GetBadgeFramework(IReadOnlyDictionary<string, IReadOnlyCollection<PackageFrameworkCompatibilityData>> table, string productName, bool includeComputed = false)
+        private PackageFrameworkCompatibilityBadgeData GetBadgeFramework(IReadOnlyDictionary<string, IReadOnlyCollection<PackageFrameworkCompatibilityData>> table, string productName, bool includeComputed = false)
         {
             if (table.TryGetValue(productName, out var data))
             {
-                return data
-                    .LastOrDefault(d => includeComputed || !d.IsComputed);
+                var matchingFrameworks = data
+                    .Where(d => includeComputed || !d.IsComputed)
+                    .ToList();
+
+                var latest = matchingFrameworks.LastOrDefault();
+                if (latest == null)
+                {
+                    return null;
+                }
+
+                var earliest = matchingFrameworks[0];
+
+                return new PackageFrameworkCompatibilityBadgeData
+                {
+                    Framework = latest.Framework,
+                    IsComputed = latest.IsComputed,
+                    // Only set when the package supports more than one framework version for this .NET product,
+                    // so consumers know the package remains backwards compatible beyond the latest badge version.
+                    EarliestFramework = earliest.Framework.Equals(latest.Framework) ? null : earliest.Framework
+                };
             }
 
             return null;
