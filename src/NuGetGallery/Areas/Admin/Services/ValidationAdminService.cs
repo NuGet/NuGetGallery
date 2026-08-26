@@ -146,6 +146,7 @@ namespace NuGetGallery.Areas.Admin.Services
                 }
 
                 await _validationService.FailValidationAsync(package);
+                await _packages.CommitChangesAsync();
                 await _auditingService.SaveAuditRecordAsync(
                 new PackageAuditRecord(package, AuditedPackageAction.FailValidation, ForceFailValidationReason));
                 return true;
@@ -164,6 +165,7 @@ namespace NuGetGallery.Areas.Admin.Services
                 }
 
                 await _validationService.FailValidationAsync(symbolPackage);
+                await _symbolPackages.CommitChangesAsync();
                 await _auditingService.SaveAuditRecordAsync(
                 new PackageAuditRecord(symbolPackage.Package, AuditedPackageAction.SymbolsFailValidation, ForceFailValidationReason));
                 return true;
