@@ -4190,8 +4190,8 @@ namespace NuGetGallery
                 var validationIssue = ValidationIssue.PackageIsZip64;
                 var stagedPackages = new[]
                 {
-                    CreateStagedPackage("First.Package", StagedPackageStatus.ValidationFailed, firstTrackingId),
-                    CreateStagedPackage("Second.Package", StagedPackageStatus.ValidationFailed, secondTrackingId),
+                    CreateStagedPackage("First.Package", StagedPackageStatus.FailedValidation, firstTrackingId),
+                    CreateStagedPackage("Second.Package", StagedPackageStatus.FailedValidation, secondTrackingId),
                     CreateStagedPackage("Validating.Package", StagedPackageStatus.Validating, Guid.NewGuid()),
                 };
 

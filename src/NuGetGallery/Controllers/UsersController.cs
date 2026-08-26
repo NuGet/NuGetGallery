@@ -586,7 +586,7 @@ namespace NuGetGallery
             {
                 var stagedPackageEntities = _packageStagingManagementService.GetStagedPackages(currentUser).ToList();
                 var failedValidationTrackingIds = stagedPackageEntities
-                    .Where(package => package.Status == StagedPackageStatus.ValidationFailed)
+                    .Where(package => package.Status == StagedPackageStatus.FailedValidation)
                     .Select(package => package.ValidationTrackingId)
                     .Distinct()
                     .ToList();

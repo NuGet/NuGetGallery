@@ -137,7 +137,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             }
 
             [Fact]
-            public async Task MarksCurrentStagedPackageValidationFailedWithoutChangingPackageStatus()
+            public async Task MarksCurrentStagedPackageFailedValidationWithoutChangingPackageStatus()
             {
                 Package.Key = 42;
                 Package.PackageStatusKey = PackageStatus.Staged;
@@ -158,9 +158,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 await Target.SetStagedValidationStatusAsync(
                     new PackageValidatingEntity(Package),
                     ValidationSet,
-                    StagedPackageStatus.ValidationFailed);
+                    StagedPackageStatus.FailedValidation);
 
-                Assert.Equal(StagedPackageStatus.ValidationFailed, stagedPackage.Status);
+                Assert.Equal(StagedPackageStatus.FailedValidation, stagedPackage.Status);
                 PackageServiceMock.Verify(
                     x => x.UpdateStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), It.IsAny<bool>()),
                     Times.Never);
@@ -189,14 +189,14 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 await Target.SetStagedValidationStatusAsync(
                     new PackageValidatingEntity(Package),
                     ValidationSet,
-                    StagedPackageStatus.ValidationFailed);
+                    StagedPackageStatus.FailedValidation);
 
                 EntitiesContextMock.Verify(x => x.SaveChangesAsync(), Times.Once);
             }
 
             [Theory]
             [InlineData(StagedPackageStatus.Ready)]
-            [InlineData(StagedPackageStatus.ValidationFailed)]
+            [InlineData(StagedPackageStatus.FailedValidation)]
             public async Task IgnoresStagedValidationOutcomeWhenPackageIsNoLongerValidating(
                 StagedPackageStatus currentStatus)
             {
@@ -217,7 +217,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 await Target.SetStagedValidationStatusAsync(
                     new PackageValidatingEntity(Package),
                     ValidationSet,
-                    StagedPackageStatus.ValidationFailed);
+                    StagedPackageStatus.FailedValidation);
 
                 EntitiesContextMock.Verify(x => x.SaveChangesAsync(), Times.Never);
             }

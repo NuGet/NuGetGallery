@@ -83,7 +83,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 }
                 else if (validatingEntity.Status == PackageStatus.Staged)
                 {
-                    await _packageStateProcessor.SetStagedValidationStatusAsync(validatingEntity, validationSet, StagedPackageStatus.ValidationFailed);
+                    await _packageStateProcessor.SetStagedValidationStatusAsync(validatingEntity, validationSet, StagedPackageStatus.FailedValidation);
 
                     await MarkValidationSetAsCompletedAsync(validationSet);
                 }

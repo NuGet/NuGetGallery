@@ -7,6 +7,6 @@ namespace NuGet.Services.Entities
     {
         Validating = 0,
         Ready = 1,
-        ValidationFailed = 2,
+        FailedValidation = 2,
     }
 }

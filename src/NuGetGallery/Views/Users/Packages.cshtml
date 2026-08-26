@@ -78,7 +78,7 @@
                                             @foreach (var package in Model.StagedPackages)
                                             {
                                                 var statusClass = "staging-status-" + package.Status.ToLowerInvariant();
-                                                var statusText = package.Status == StagedPackageStatus.ValidationFailed.ToString() ? "Validation failed" : package.Status;
+                                                var statusText = package.Status == StagedPackageStatus.FailedValidation.ToString() ? "Validation failed" : package.Status;
                                                 var validationIssuesId = "staged-validation-issues-" + stagedPackageIndex++;
                                                 <tr class="manage-package-listing">
                                                     <td class="align-middle package-id">

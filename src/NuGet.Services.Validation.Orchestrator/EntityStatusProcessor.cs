@@ -110,12 +110,12 @@ namespace NuGet.Services.Validation.Orchestrator
             switch (status)
             {
                 case StagedPackageStatus.Ready:
-                case StagedPackageStatus.ValidationFailed:
+                case StagedPackageStatus.FailedValidation:
                     return ApplyStagedValidationStatusAsync(validatingEntity, validationSet, status);
                 default:
                     throw new ArgumentException(
                         $"A staged package validation can only transition to {nameof(StagedPackageStatus.Ready)} or " +
-                        $"{nameof(StagedPackageStatus.ValidationFailed)}.",
+                        $"{nameof(StagedPackageStatus.FailedValidation)}.",
                         nameof(status));
             }
         }

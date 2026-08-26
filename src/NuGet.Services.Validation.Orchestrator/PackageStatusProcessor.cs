@@ -55,7 +55,7 @@ namespace NuGet.Services.Validation.Orchestrator
             {
                 case StagedPackageStatus.Ready:
                     return MarkStagedPackageReadyAsync(validatingEntity, validationSet);
-                case StagedPackageStatus.ValidationFailed:
+                case StagedPackageStatus.FailedValidation:
                     return MarkStagedPackageFailedAsync(validatingEntity, validationSet);
                 default:
                     throw new ArgumentOutOfRangeException(nameof(status));
@@ -106,7 +106,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 return;
             }
 
-            stagedPackage.Status = StagedPackageStatus.ValidationFailed;
+            stagedPackage.Status = StagedPackageStatus.FailedValidation;
             await TrySaveStagedPackageAsync(validationSet);
         }
 
