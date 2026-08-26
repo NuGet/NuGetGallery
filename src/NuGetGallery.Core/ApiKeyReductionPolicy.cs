@@ -23,7 +23,7 @@ namespace NuGetGallery
         /// The hardcoded cutoff date. API keys with a duration longer than <see cref="DurationThresholdDays"/>
         /// days may not effectively expire later than this date.
         /// </summary>
-        public static readonly DateTime CutoffUtc = new DateTime(2026, 8, 23, 0, 0, 0, DateTimeKind.Utc);
+        public static readonly DateTime CutoffUtc = new DateTime(2026, 9, 2, 0, 0, 0, DateTimeKind.Utc);
 
         /// <summary>
         /// The duration threshold, in days, above which the cutoff applies.
