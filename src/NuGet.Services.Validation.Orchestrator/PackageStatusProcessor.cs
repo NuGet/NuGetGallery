@@ -70,11 +70,13 @@ namespace NuGet.Services.Validation.Orchestrator
                 return;
             }
 
-            StagingFileReference file;
-            using (var packageFile = await _packageFileService.DownloadValidationSetPackageFileAsync(validationSet))
-            {
-                file = await _stagingBlobService.SavePackageFileAsync(validationSet.PackageId, validationSet.PackageNormalizedVersion, packageFile);
-            }
+            var packageMetadata = await _packageFileService.UpdatePackageBlobMetadataInValidationSetAsync(validationSet);
+            var packageFileUri = await _packageFileService.GetPackageForValidationSetReadUriAsync(validationSet);
+            var file = await _stagingBlobService.CopyPackageFileToStagingAsync(
+                validationSet.PackageId,
+                validationSet.PackageNormalizedVersion,
+                packageFileUri,
+                packageMetadata);
 
             stagedPackage = GetCurrentStagedPackage(validatingEntity.Key, validationSet.ValidationTrackingId, validationSet.PackageETag);
             if (stagedPackage == null)
@@ -84,12 +86,7 @@ namespace NuGet.Services.Validation.Orchestrator
 
             await _galleryPackageService.UpdateMetadataAsync(
                 validatingEntity.EntityRecord,
-                new PackageStreamMetadata
-                {
-                    HashAlgorithm = CoreConstants.Sha512HashAlgorithmId,
-                    Hash = file.ContentHash,
-                    Size = file.Length,
-                },
+                packageMetadata,
                 commitChanges: false);
 
             stagedPackage.BlobPath = file.Path;

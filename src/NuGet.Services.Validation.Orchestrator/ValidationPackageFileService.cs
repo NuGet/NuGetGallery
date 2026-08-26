@@ -124,13 +124,6 @@ namespace NuGet.Services.Validation.Orchestrator
             return result.GetStreamOrThrow();
         }
 
-        public async Task<Stream> DownloadValidationSetPackageFileAsync(PackageValidationSet validationSet, string sasDefinition = null)
-        {
-            var packageUri = await GetPackageForValidationSetReadUriAsync(validationSet, sasDefinition, DateTimeOffset.UtcNow.Add(AccessDuration));
-            var result = await _fileDownloader.DownloadAsync(packageUri, CancellationToken.None);
-            return result.GetStreamOrThrow();
-        }
-
         public Task CopyValidationPackageForValidationSetAsync(PackageValidationSet validationSet)
         {
             var srcFileName = BuildFileName(validationSet,
@@ -164,8 +157,7 @@ namespace NuGet.Services.Validation.Orchestrator
 
                 var packageUri = await GetPackageForValidationSetReadUriAsync(
                     validationSet,
-                    sasDefinition,
-                    DateTimeOffset.UtcNow.Add(AccessDuration));
+                    sasDefinition);
 
                 using (var result = await _fileDownloader.DownloadAsync(packageUri, CancellationToken.None))
                 {
@@ -239,9 +231,10 @@ namespace NuGet.Services.Validation.Orchestrator
             return _fileStorageService.DeleteFileAsync(_fileMetadataService.ValidationFolderName, fileName);
         }
 
-        public async Task<Uri> GetPackageForValidationSetReadUriAsync(PackageValidationSet validationSet, string sasDefinition, DateTimeOffset endOfAccess)
+        public async Task<Uri> GetPackageForValidationSetReadUriAsync(PackageValidationSet validationSet, string sasDefinition = null, DateTimeOffset? endOfAccess = null)
         {
             var fileName = BuildValidationSetPackageFileName(validationSet, _fileMetadataService.FileExtension);
+            endOfAccess ??= DateTimeOffset.UtcNow.Add(AccessDuration);
 
             if (string.IsNullOrEmpty(sasDefinition))
             {

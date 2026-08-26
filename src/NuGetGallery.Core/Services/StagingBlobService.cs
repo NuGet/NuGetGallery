@@ -7,6 +7,7 @@ using System.Globalization;
 using System.IO;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
+using NuGetGallery.Packaging;
 
 namespace NuGetGallery
 {
@@ -69,6 +70,48 @@ namespace NuGetGallery
             }
 
             return new StagingFileReference(path, etag, length, contentHash);
+        }
+
+        public async Task<StagingFileReference> CopyPackageFileToStagingAsync(
+            string packageId,
+            string normalizedVersion,
+            Uri packageFileUri,
+            PackageStreamMetadata packageMetadata)
+        {
+            if (string.IsNullOrWhiteSpace(packageId))
+            {
+                throw new ArgumentNullException(nameof(packageId));
+            }
+
+            if (string.IsNullOrWhiteSpace(normalizedVersion))
+            {
+                throw new ArgumentNullException(nameof(normalizedVersion));
+            }
+
+            if (packageFileUri == null)
+            {
+                throw new ArgumentNullException(nameof(packageFileUri));
+            }
+
+            if (packageMetadata == null)
+            {
+                throw new ArgumentNullException(nameof(packageMetadata));
+            }
+
+            var path = GeneratePackagePath(packageId, normalizedVersion, Guid.NewGuid());
+            await _fileStorageService.CopyFileAsync(
+                packageFileUri,
+                CoreConstants.Folders.StagingFolderName,
+                path,
+                AccessConditionWrapper.GenerateIfNotExistsCondition());
+
+            var etag = await _fileStorageService.GetETagOrNullAsync(CoreConstants.Folders.StagingFolderName, path);
+            if (etag == null)
+            {
+                throw new InvalidOperationException($"The staged package blob '{path}' was not found after it was copied.");
+            }
+
+            return new StagingFileReference(path, etag, packageMetadata.Size, packageMetadata.Hash);
         }
 
         public async Task CopyStagedPackageToValidationSetAsync(

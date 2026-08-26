@@ -103,19 +103,33 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     .SetupGet(x => x.StagedPackages)
                     .Returns(CreateStagedPackageSet(stagedPackage));
                 EntitiesContextMock.Setup(x => x.SaveChangesAsync()).ReturnsAsync(1);
+                var packageFileUri = new Uri("https://validation.test/package.nupkg?sig=token");
+                var packageMetadata = new PackageStreamMetadata
+                {
+                    Hash = "processed-hash",
+                    HashAlgorithm = CoreConstants.Sha512HashAlgorithmId,
+                    Size = 3,
+                };
                 PackageFileServiceMock
-                    .Setup(x => x.DownloadValidationSetPackageFileAsync(ValidationSet, null))
-                    .ReturnsAsync(new MemoryStream(new byte[] { 1, 2, 3 }));
+                    .Setup(x => x.UpdatePackageBlobMetadataInValidationSetAsync(ValidationSet))
+                    .ReturnsAsync(packageMetadata);
+                PackageFileServiceMock
+                    .Setup(x => x.GetPackageForValidationSetReadUriAsync(
+                        ValidationSet,
+                        null,
+                        null))
+                    .ReturnsAsync(packageFileUri);
                 var processedFile = new StagingFileReference(
                     "packagea/1.0.0/processed.nupkg",
                     "\"processed-etag\"",
                     3,
                     "processed-hash");
                 StagingBlobServiceMock
-                    .Setup(x => x.SavePackageFileAsync(
+                    .Setup(x => x.CopyPackageFileToStagingAsync(
                         Package.PackageRegistration.Id,
                         Package.NormalizedVersion,
-                        It.IsAny<Stream>()))
+                        packageFileUri,
+                        packageMetadata))
                     .ReturnsAsync(processedFile);
 
                 await Target.SetStagedValidationStatusAsync(
@@ -127,9 +141,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 Assert.Equal(processedFile.Path, stagedPackage.BlobPath);
                 PackageServiceMock.Verify(x => x.UpdateMetadataAsync(
                     Package,
-                    It.Is<PackageStreamMetadata>(metadata =>
-                        metadata.Hash == processedFile.ContentHash &&
-                        metadata.Size == processedFile.Length),
+                    packageMetadata,
                     false));
                 PackageServiceMock.Verify(
                     x => x.UpdateStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), It.IsAny<bool>()),
@@ -250,15 +262,15 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     StagedPackageStatus.Ready);
 
                 PackageFileServiceMock.Verify(
-                    x => x.DownloadValidationSetPackageFileAsync(
-                        It.IsAny<PackageValidationSet>(),
-                        It.IsAny<string>()),
+                    x => x.UpdatePackageBlobMetadataInValidationSetAsync(
+                        It.IsAny<PackageValidationSet>()),
                     Times.Never);
                 StagingBlobServiceMock.Verify(
-                    x => x.SavePackageFileAsync(
+                    x => x.CopyPackageFileToStagingAsync(
                         It.IsAny<string>(),
                         It.IsAny<string>(),
-                        It.IsAny<Stream>()),
+                        It.IsAny<Uri>(),
+                        It.IsAny<PackageStreamMetadata>()),
                     Times.Never);
                 EntitiesContextMock.Verify(x => x.SaveChangesAsync(), Times.Never);
             }

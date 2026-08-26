@@ -6,6 +6,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Moq;
+using NuGetGallery.Packaging;
 using Xunit;
 
 namespace NuGetGallery
@@ -46,6 +47,41 @@ namespace NuGetGallery
                 CoreConstants.PackageContentType,
                 It.IsAny<Stream>(),
                 false));
+        }
+
+        [Fact]
+        public async Task CopiesPackageFileToImmutableStagingPath()
+        {
+            var sourceUri = new Uri("https://validation.test/validation/package.nupkg?sig=token");
+            var metadata = new PackageStreamMetadata
+            {
+                Hash = "processed-hash",
+                HashAlgorithm = CoreConstants.Sha512HashAlgorithmId,
+                Size = 42,
+            };
+            var storage = new Mock<ICoreFileStorageService>();
+            storage
+                .Setup(x => x.GetETagOrNullAsync(
+                    CoreConstants.Folders.StagingFolderName,
+                    It.IsAny<string>()))
+                .ReturnsAsync("\"etag\"");
+
+            var result = await new StagingBlobService(storage.Object).CopyPackageFileToStagingAsync(
+                "NuGet.Versioning",
+                "3.4.0",
+                sourceUri,
+                metadata);
+
+            Assert.StartsWith("nuget.versioning/3.4.0/", result.Path);
+            Assert.EndsWith(".nupkg", result.Path);
+            Assert.Equal("\"etag\"", result.ETag);
+            Assert.Equal(metadata.Size, result.Length);
+            Assert.Equal(metadata.Hash, result.ContentHash);
+            storage.Verify(x => x.CopyFileAsync(
+                sourceUri,
+                CoreConstants.Folders.StagingFolderName,
+                result.Path,
+                It.Is<IAccessCondition>(condition => condition.IfNoneMatchETag == "*")));
         }
 
         [Fact]

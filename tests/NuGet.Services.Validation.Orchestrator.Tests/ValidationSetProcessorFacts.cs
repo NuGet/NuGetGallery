@@ -361,7 +361,10 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     s.GetPackageForValidationSetReadUriAsync(
                         ValidationSet,
                         null,
-                        It.Is<DateTimeOffset>(actualEndOfAccess => actualEndOfAccess >= expectedEndOfAccessLower && actualEndOfAccess <= expectedEndOfAccessUpper)),
+                        It.Is<DateTimeOffset?>(actualEndOfAccess =>
+                            actualEndOfAccess.HasValue &&
+                            actualEndOfAccess.Value >= expectedEndOfAccessLower &&
+                            actualEndOfAccess.Value <= expectedEndOfAccessUpper)),
                     Times.Once);
             Assert.NotNull(validationRequest);
             Assert.Contains(ValidationSet.ValidationTrackingId.ToString(), validationRequest.NupkgUrl);
@@ -400,7 +403,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     s.GetPackageForValidationSetReadUriAsync(
                         ValidationSet,
                         SasDefinitionConfiguration.ValidationSetProcessorSasDefinition,
-                        It.IsAny<DateTimeOffset>()),
+                        It.IsAny<DateTimeOffset?>()),
                     Times.Once);
             Assert.NotNull(validationRequest);
             Assert.Contains(ValidationSet.ValidationTrackingId.ToString(), validationRequest.NupkgUrl);
@@ -519,9 +522,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             Validators = new Dictionary<string, Mock<INuGetValidator>>();
 
             PackageFileServiceMock
-                .Setup(pfs => pfs.GetPackageForValidationSetReadUriAsync(It.IsAny<PackageValidationSet>(), It.IsAny<string>(), It.IsAny<DateTimeOffset>()))
-                .Returns<PackageValidationSet, string, DateTimeOffset>(
-                    (p, s, e) => Task.FromResult(new Uri($"https://example.com/{ValidationContainerName}/{p.ValidationTrackingId}/{p.PackageId}.{p.PackageNormalizedVersion}?e={e:yyyy-MM-dd-hh-mm-ss}")));
+                .Setup(pfs => pfs.GetPackageForValidationSetReadUriAsync(It.IsAny<PackageValidationSet>(), It.IsAny<string>(), It.IsAny<DateTimeOffset?>()))
+                .Returns<PackageValidationSet, string, DateTimeOffset?>(
+                    (p, s, e) => Task.FromResult(new Uri($"https://example.com/{ValidationContainerName}/{p.ValidationTrackingId}/{p.PackageId}.{p.PackageNormalizedVersion}?e={e.Value:yyyy-MM-dd-hh-mm-ss}")));
         }
 
         protected ValidationSetProcessor CreateProcessor()
