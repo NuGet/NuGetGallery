@@ -66,19 +66,21 @@
         var badgeVersion = tfmCompatibilityData.Framework.GetBadgeVersion();
         string displayName = GetFrameworkProductName(context);
 
-        if (!badgeVersion.IsEmpty())
+        if (badgeVersion.IsEmpty())
         {
-            displayName = displayName + " " + badgeVersion;
+            return displayName;
         }
 
-        // Indicates the package also supports earlier versions of this .NET product, so consumers are aware of
-        // backwards compatibility even though the badge highlights the latest supported version.
+        // When the package supports more than one framework version for this .NET product, show the full
+        // min-max range (e.g. ".NET 6.0–10.0") instead of just the latest, so consumers can see both the
+        // minimum supported version (compatibility floor) and the latest supported version (modern capability).
         if (tfmCompatibilityData.EarliestFramework != null)
         {
-            displayName += "+";
+            var earliestBadgeVersion = tfmCompatibilityData.EarliestFramework.GetBadgeVersion();
+            return displayName + " " + earliestBadgeVersion + "\u2013" + badgeVersion;
         }
 
-        return displayName;
+        return displayName + " " + badgeVersion;
     }
 
     public string GetFrameworkProductName(FrameworkContext context)
