@@ -22,9 +22,9 @@ namespace NuGetGallery
         public class TheStagePackageAsyncMethod
         {
             [Theory]
-            [InlineData(true, StagedPackageStatus.Validating, 1)]
-            [InlineData(false, StagedPackageStatus.Ready, 2)]
-            public async Task StagesPackage(bool validationStarted, StagedPackageStatus expectedStatus, int expectedSaveCount)
+            [InlineData(true, StagedPackageStatus.Validating)]
+            [InlineData(false, StagedPackageStatus.Ready)]
+            public async Task StagesPackage(bool validationStarted, StagedPackageStatus expectedStatus)
             {
                 var currentUser = new User { Key = 17 };
                 var owner = new User { Key = 23, EmailAddress = "owner@example.com" };
@@ -110,9 +110,6 @@ namespace NuGetGallery
                 stagedPackageRepository
                     .Setup(x => x.InsertOnCommit(It.IsAny<StagedPackage>()))
                     .Callback<StagedPackage>(value => stagedPackage = value);
-                stagedPackageRepository
-                    .Setup(x => x.CommitChangesAsync())
-                    .Returns(Task.CompletedTask);
 
                 var featureFlagService = new Mock<IFeatureFlagService>();
                 featureFlagService
@@ -120,9 +117,15 @@ namespace NuGetGallery
                     .Returns(true);
 
                 var validationMessageEmitter = new Mock<IValidationMessageEmitter<Package>>();
+                var sequence = new MockSequence();
                 validationMessageEmitter
+                    .InSequence(sequence)
                     .Setup(x => x.StartValidationAsync(package, It.IsAny<Guid>()))
                     .ReturnsAsync(validationStarted);
+                stagedPackageRepository
+                    .InSequence(sequence)
+                    .Setup(x => x.CommitChangesAsync())
+                    .Returns(Task.CompletedTask);
 
                 var target = new PackageStagingUploadService(
                     apiScopeEvaluator.Object,
@@ -156,7 +159,7 @@ namespace NuGetGallery
                     package,
                     stagedPackage.ValidationTrackingId));
                 stagedPackageRepository.Verify(x => x.InsertOnCommit(stagedPackage), Times.Once);
-                stagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Exactly(expectedSaveCount));
+                stagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
             }
         }
 

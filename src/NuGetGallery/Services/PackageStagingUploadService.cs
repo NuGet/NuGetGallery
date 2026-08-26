@@ -313,14 +313,14 @@ namespace NuGetGallery
 
             try
             {
-                await _stagedPackageRepository.CommitChangesAsync();
                 var validationStarted = await _validationMessageEmitter.StartValidationAsync(package, validationTrackingId);
                 if (!validationStarted)
                 {
                     // Without asynchronous validation, the staged package is immediately ready.
                     stagedPackage.Status = StagedPackageStatus.Ready;
-                    await _stagedPackageRepository.CommitChangesAsync();
                 }
+
+                await _stagedPackageRepository.CommitChangesAsync();
             }
             catch (Exception exception) when (IsConflict(exception))
             {
