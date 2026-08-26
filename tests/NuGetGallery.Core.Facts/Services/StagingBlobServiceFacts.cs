@@ -135,5 +135,59 @@ namespace NuGetGallery
                     It.IsAny<DateTimeOffset?>()),
                 Times.Never);
         }
+
+        [Theory]
+        [InlineData(CloudBlobCopyStatus.Failed)]
+        [InlineData(CloudBlobCopyStatus.Aborted)]
+        public async Task RestartsTerminalValidationSetCopyWithDestinationETag(CloudBlobCopyStatus initialStatus)
+        {
+            var sourceUri = new Uri("https://staging.test/staging/package/1.0.0/source.nupkg?sig=token");
+            var storage = new Mock<ICoreFileStorageService>();
+            storage
+                .Setup(x => x.GetFileReadUriAsync(
+                    CoreConstants.Folders.StagingFolderName,
+                    "package/1.0.0/source.nupkg",
+                    It.IsAny<DateTimeOffset?>()))
+                .ReturnsAsync(sourceUri);
+
+            var sourceBlob = new Mock<ISimpleCloudBlob>();
+            var copyStatus = initialStatus;
+            var copyState = new Mock<ICloudBlobCopyState>();
+            copyState.SetupGet(x => x.Status).Returns(() => copyStatus);
+            var destinationBlob = new Mock<ISimpleCloudBlob>();
+            destinationBlob.Setup(x => x.ExistsAsync()).ReturnsAsync(true);
+            destinationBlob.SetupGet(x => x.CopyState).Returns(copyState.Object);
+            destinationBlob.SetupGet(x => x.ETag).Returns("\"failed-copy-etag\"");
+            destinationBlob
+                .Setup(x => x.StartCopyAsync(
+                    It.IsAny<ISimpleCloudBlob>(),
+                    It.IsAny<IAccessCondition>(),
+                    It.IsAny<IAccessCondition>()))
+                .Callback(() => copyStatus = CloudBlobCopyStatus.Success)
+                .Returns(Task.CompletedTask);
+            var destinationContainer = new Mock<ICloudBlobContainer>();
+            destinationContainer
+                .Setup(x => x.GetBlobReference("validation-sets/tracking/package.1.0.0.nupkg"))
+                .Returns(destinationBlob.Object);
+            var validationStorageClient = new Mock<ICloudBlobClient>();
+            validationStorageClient.Setup(x => x.GetBlobFromUri(sourceUri)).Returns(sourceBlob.Object);
+            validationStorageClient
+                .Setup(x => x.GetContainerReference(CoreConstants.Folders.ValidationFolderName))
+                .Returns(destinationContainer.Object);
+
+            var service = new StagingBlobService(storage.Object);
+
+            await service.CopyStagedPackageToValidationSetAsync(
+                "package/1.0.0/source.nupkg",
+                "\"source-etag\"",
+                validationStorageClient.Object,
+                "validation-sets/tracking/package.1.0.0.nupkg");
+
+            destinationBlob.Verify(x => x.StartCopyAsync(
+                sourceBlob.Object,
+                It.Is<IAccessCondition>(condition => condition.IfMatchETag == "\"source-etag\""),
+                It.Is<IAccessCondition>(condition => condition.IfMatchETag == "\"failed-copy-etag\"")),
+                Times.Once);
+        }
     }
 }

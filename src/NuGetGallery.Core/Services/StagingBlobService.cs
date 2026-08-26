@@ -95,15 +95,26 @@ namespace NuGetGallery
             var destinationContainer = validationStorageClient.GetContainerReference(CoreConstants.Folders.ValidationFolderName);
             var destinationBlob = destinationContainer.GetBlobReference(validationSetPackageFileName);
 
+            IAccessCondition destinationAccessCondition = null;
             if (await destinationBlob.ExistsAsync())
             {
                 await destinationBlob.FetchAttributesAsync();
+
+                if (destinationBlob.CopyState.Status == CloudBlobCopyStatus.Failed || destinationBlob.CopyState.Status == CloudBlobCopyStatus.Aborted)
+                {
+                    destinationAccessCondition = AccessConditionWrapper.GenerateIfMatchCondition(destinationBlob.ETag);
+                }
             }
             else
             {
+                destinationAccessCondition = AccessConditionWrapper.GenerateIfNotExistsCondition();
+            }
+
+            if (destinationAccessCondition != null)
+            {
                 var sourceUri = await _fileStorageService.GetFileReadUriAsync(CoreConstants.Folders.StagingFolderName, packagePath, DateTimeOffset.UtcNow.Add(MaxCopyDuration));
                 var sourceBlob = validationStorageClient.GetBlobFromUri(sourceUri);
-                await destinationBlob.StartCopyAsync(sourceBlob, AccessConditionWrapper.GenerateIfMatchCondition(packageETag), AccessConditionWrapper.GenerateIfNotExistsCondition());
+                await destinationBlob.StartCopyAsync(sourceBlob, AccessConditionWrapper.GenerateIfMatchCondition(packageETag), destinationAccessCondition);
             }
 
             var stopwatch = Stopwatch.StartNew();
