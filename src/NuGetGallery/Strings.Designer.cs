@@ -2166,7 +2166,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This package targets {0}. The package is compatible with this framework or higher..
+        ///   Looks up a localized string similar to This package supports up to {0}..
         /// </summary>
         public static string SupportedFrameworks_Asset_Tooltip {
             get {
@@ -2175,7 +2175,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This package is compatible with {0} or higher..
+        ///   Looks up a localized string similar to This package is compatible with up to {0}..
         /// </summary>
         public static string SupportedFrameworks_Computed_Tooltip {
             get {
