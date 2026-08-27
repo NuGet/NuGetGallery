@@ -480,10 +480,6 @@ namespace NuGetGallery
                 credentials = new List<CredentialViewModel>();
             }
 
-            var apiKeys = credentials
-                .Select(c => new ApiKeyViewModel(c))
-                .ToList();
-
             // Get package owners (user's self or organizations)
             var owners = new List<ApiKeyOwnerViewModel>
             {
@@ -493,6 +489,12 @@ namespace NuGetGallery
             owners.AddRange(currentUser.Organizations
                 .Select(o => CreateApiKeyOwnerViewModel(currentUser, o.Organization)));
 
+            var isApiKeyReductionDateEnabled = _featureFlagService.IsApiKeyReductionDateEnabled();
+
+            var apiKeys = credentials
+                .Select(c => new ApiKeyViewModel(c, isApiKeyReductionDateEnabled))
+                .ToList();
+
             var model = new ApiKeyListViewModel
             {
                 ApiKeys = apiKeys,
@@ -500,6 +502,7 @@ namespace NuGetGallery
                 PackageOwners = owners.Where(o => o.CanPushNew || o.CanPushExisting || o.CanUnlist).ToList(),
                 IsDeprecationApiEnabled = IsDeprecateApiEnabled(currentUser),
                 IsApiKeyExpirationRestricted = _featureFlagService.IsApiKeyExpirationRestricted(),
+                IsApiKeyReductionDateEnabled = isApiKeyReductionDateEnabled,
             };
 
             return View("ApiKeys", model);
@@ -1025,7 +1028,7 @@ namespace NuGetGallery
 
             await AuthenticationService.RemoveCredential(user, cred);
 
-            return Json(new ApiKeyViewModel(newCredentialViewModel));
+            return Json(new ApiKeyViewModel(newCredentialViewModel, _featureFlagService.IsApiKeyReductionDateEnabled()));
         }
 
         private static bool CredentialKeyMatches(int? credentialKey, Credential c)
@@ -1371,7 +1374,7 @@ namespace NuGetGallery
                     newCredentialViewModel.GetCredentialTypeInfo());
             await MessageService.SendMessageAsync(emailMessage);
 
-            return Json(new ApiKeyViewModel(newCredentialViewModel));
+            return Json(new ApiKeyViewModel(newCredentialViewModel, _featureFlagService.IsApiKeyReductionDateEnabled()));
         }
 
         [UIAuthorize]
@@ -1404,7 +1407,7 @@ namespace NuGetGallery
 
             var credentialViewModel = AuthenticationService.DescribeCredential(cred);
 
-            return Json(new ApiKeyViewModel(credentialViewModel));
+            return Json(new ApiKeyViewModel(credentialViewModel, _featureFlagService.IsApiKeyReductionDateEnabled()));
         }
 
         protected override RouteUrlTemplate<string> GetDeleteCertificateForAccountTemplate(string accountName)
