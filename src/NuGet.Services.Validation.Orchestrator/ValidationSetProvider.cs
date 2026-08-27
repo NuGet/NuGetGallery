@@ -66,31 +66,7 @@ namespace NuGet.Services.Validation.Orchestrator
 
                 validationSet = InitializeValidationSet(message, validatingEntity);
 
-                if (validatingEntity.Status == PackageStatus.Available)
-                {
-                    var packageETag = await _packageFileService.CopyPackageFileForValidationSetAsync(validationSet);
-
-                    // This indicates that the package in the package container is expected to not change.
-                    validationSet.PackageETag = packageETag;
-                }
-                else
-                {
-                    await _packageFileService.CopyValidationPackageForValidationSetAsync(validationSet);
-
-                    // A symbols package for the same id and version can be re-submitted. 
-                    // When this happens a new validation is submitted. After validation the new symbols package will overwrite the old symbols package. 
-                    // Because of this when a new validation for a symbols package is received it can already exist a symbols package in the public symbols container.
-                    if (validatingEntity.ValidatingType == ValidatingType.SymbolPackage)
-                    {
-                        validationSet.PackageETag = await _packageFileService.GetPublicPackageBlobETagOrNullAsync(validationSet);
-                    }
-                    else
-                    {
-                        // This indicates that the package in the packages container is expected to not exist (i.e. it has
-                        // has no etag at all).
-                        validationSet.PackageETag = null;
-                    }
-                }
+                await CopyPackageFileToValidationSetAsync(validationSet, validatingEntity);
 
                 // If there are any processors in the validation set, back up the original. We back up from the
                 // validation set copy to avoid concurrency issues.
@@ -113,6 +89,37 @@ namespace NuGet.Services.Validation.Orchestrator
             }
 
             return validationSet;
+        }
+
+        protected virtual async Task CopyPackageFileToValidationSetAsync(
+            PackageValidationSet validationSet,
+            IValidatingEntity<T> validatingEntity)
+        {
+            if (validatingEntity.Status == PackageStatus.Available)
+            {
+                var packageETag = await _packageFileService.CopyPackageFileForValidationSetAsync(validationSet);
+
+                // This indicates that the package in the package container is expected to not change.
+                validationSet.PackageETag = packageETag;
+            }
+            else
+            {
+                await _packageFileService.CopyValidationPackageForValidationSetAsync(validationSet);
+
+                // A symbols package for the same id and version can be re-submitted. 
+                // When this happens a new validation is submitted. After validation the new symbols package will overwrite the old symbols package. 
+                // Because of this when a new validation for a symbols package is received it can already exist a symbols package in the public symbols container.
+                if (validatingEntity.ValidatingType == ValidatingType.SymbolPackage)
+                {
+                    validationSet.PackageETag = await _packageFileService.GetPublicPackageBlobETagOrNullAsync(validationSet);
+                }
+                else
+                {
+                    // This indicates that the package in the packages container is expected to not exist (i.e. it has
+                    // has no etag at all).
+                    validationSet.PackageETag = null;
+                }
+            }
         }
 
         private async Task<PackageValidationSet> PersistValidationSetAsync(PackageValidationSet validationSet, IValidatingEntity<T> validatingEntity)

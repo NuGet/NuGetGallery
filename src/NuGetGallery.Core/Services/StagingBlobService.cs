@@ -10,6 +10,8 @@ namespace NuGetGallery
 {
     public class StagingBlobService : IStagingBlobService
     {
+        private static readonly TimeSpan ReadAccessDuration = TimeSpan.FromMinutes(10);
+
         private readonly ICoreFileStorageService _fileStorageService;
 
         public StagingBlobService(ICoreFileStorageService fileStorageService)
@@ -54,6 +56,30 @@ namespace NuGetGallery
             }
 
             return new StagingFileReference(path, etag);
+        }
+
+        public async Task<Uri> GetPackageReadUriAsync(string packagePath, string packageETag)
+        {
+            if (string.IsNullOrWhiteSpace(packagePath))
+            {
+                throw new ArgumentNullException(nameof(packagePath));
+            }
+
+            if (string.IsNullOrWhiteSpace(packageETag))
+            {
+                throw new ArgumentNullException(nameof(packageETag));
+            }
+
+            var currentETag = await _fileStorageService.GetETagOrNullAsync(CoreConstants.Folders.StagingFolderName, packagePath);
+            if (!string.Equals(currentETag, packageETag, StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException($"The staged package blob '{packagePath}' has changed or no longer exists.");
+            }
+
+            return await _fileStorageService.GetFileReadUriAsync(
+                CoreConstants.Folders.StagingFolderName,
+                packagePath,
+                DateTimeOffset.UtcNow.Add(ReadAccessDuration));
         }
 
         internal static string GeneratePackagePath(string packageId, string normalizedVersion, Guid fileId)
