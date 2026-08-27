@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace NuGet.Services.Entities
 {
-    public class StagedPackage
+    public class StagedPackage : IEntity
     {
         public int PackageKey { get; set; }
 
@@ -21,5 +21,11 @@ namespace NuGet.Services.Entities
         public string BlobPath { get; set; }
 
         public DateTime UploadedDate { get; set; }
+
+        int IEntity.Key
+        {
+            get => PackageKey;
+            set => PackageKey = value;
+        }
     }
 }
