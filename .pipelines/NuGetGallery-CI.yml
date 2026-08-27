@@ -196,6 +196,53 @@ extends:
                   testResultsFiles: $(NuGetGalleryPath)\Results.*.xml
                   failTaskOnFailedTests: true
 
+      - stage: aspire
+        displayName: Aspire Integration
+        dependsOn: []
+        jobs:
+          - job: aspire_host
+            displayName: Aspire Host Smoke Test
+            cancelTimeoutInMinutes: 1
+            steps:
+              - checkout: self
+                fetchDepth: 1
+                clean: true
+                fetchTags: false
+                path: $(NuGetGalleryDirectory)
+              - task: PowerShell@1
+                name: build
+                displayName: Build Gallery
+                inputs:
+                  scriptName: $(NuGetGalleryPath)\build.ps1
+                  arguments: -Configuration $(BuildConfiguration) -BuildNumber $(Build.BuildId) -SkipArtifacts -SkipCommon -SkipJobs -CommonAssemblyVersion $(CommonAssemblyVersion) -CommonPackageVersion $(CommonPackageVersion) -GalleryAssemblyVersion $(GalleryAssemblyVersion) -GalleryPackageVersion $(GalleryPackageVersion) -JobsAssemblyVersion $(JobsAssemblyVersion) -JobsPackageVersion $(JobsPackageVersion) -Branch $(NuGetGalleryBranch) -CommitSHA $(Build.SourceVersion)
+                  workingFolder: $(NuGetGalleryPath)
+              - task: PowerShell@1
+                name: setup_dev
+                displayName: Setup Dev Environment
+                inputs:
+                  scriptName: $(NuGetGalleryPath)\tools\Setup-DevEnvironment.ps1
+                  workingFolder: $(NuGetGalleryPath)
+              - task: PowerShell@2
+                name: functional_tests
+                displayName: Aspire Functional Tests
+                timeoutInMinutes: 30
+                env:
+                  ConfigurationFilePath: $(NuGetGalleryPath)\tests\NuGetGallery.FunctionalTests\settings.CI.json
+                inputs:
+                  filePath: $(NuGetGalleryPath)\tests\Scripts\RunAspireFunctionalTests.ps1
+                  arguments: -Configuration $(BuildConfiguration) -TrustDevCert
+                  workingDirectory: $(NuGetGalleryPath)
+              - task: PublishTestResults@2
+                name: publish_test_results
+                displayName: Publish Test Results
+                condition: always()
+                inputs:
+                  testResultsFormat: VSTest
+                  testResultsFiles: 'tests/TestResults/FunctionalTests.trx'
+                  searchFolder: $(NuGetGalleryPath)
+                  testRunTitle: 'Aspire Functional Tests'
+                  failTaskOnFailedTests: true
+
       - stage: artifacts
         displayName: Artifacts
         dependsOn: []
