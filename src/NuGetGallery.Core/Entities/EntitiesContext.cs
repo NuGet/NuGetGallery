@@ -479,6 +479,10 @@ namespace NuGetGallery
                 .HasKey(s => s.PackageKey);
 
             modelBuilder.Entity<StagedPackage>()
+                .Property(s => s.RowVersion)
+                .IsRowVersion();
+
+            modelBuilder.Entity<StagedPackage>()
                 .HasRequired(s => s.Package)
                 .WithOptional()
                 .WillCascadeOnDelete(true);
