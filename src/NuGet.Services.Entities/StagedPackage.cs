@@ -8,6 +8,8 @@ namespace NuGet.Services.Entities
 {
     public class StagedPackage : IEntity
     {
+        public int Key { get; set; }
+
         public int PackageKey { get; set; }
 
         public virtual Package Package { get; set; }
@@ -29,11 +31,5 @@ namespace NuGet.Services.Entities
         public DateTime UploadedDate { get; set; }
 
         public byte[] RowVersion { get; set; }
-
-        int IEntity.Key
-        {
-            get => PackageKey;
-            set => PackageKey = value;
-        }
     }
 }

@@ -476,7 +476,7 @@ namespace NuGetGallery
                 .HasForeignKey(p => p.PackageKey);
 
             modelBuilder.Entity<StagedPackage>()
-                .HasKey(s => s.PackageKey);
+                .HasKey(s => s.Key);
 
             modelBuilder.Entity<StagedPackage>()
                 .Property(s => s.RowVersion)
@@ -484,7 +484,8 @@ namespace NuGetGallery
 
             modelBuilder.Entity<StagedPackage>()
                 .HasRequired(s => s.Package)
-                .WithOptional()
+                .WithMany()
+                .HasForeignKey(s => s.PackageKey)
                 .WillCascadeOnDelete(true);
 
             modelBuilder.Entity<StagedPackage>()
