@@ -12,5 +12,6 @@ namespace NuGetGallery
         public IList<ApiKeyOwnerViewModel> PackageOwners { get; set; }
         public bool IsDeprecationApiEnabled { get; set; }
         public bool IsApiKeyExpirationRestricted { get; set; }
+        public bool IsApiKeyReductionDateEnabled { get; set; }
     }
 }
