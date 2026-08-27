@@ -17,7 +17,7 @@ namespace NuGetGallery
             _fileStorageService = fileStorageService ?? throw new ArgumentNullException(nameof(fileStorageService));
         }
 
-        public async Task<string> SavePackageFileAsync(string packageId, string normalizedVersion, Stream packageFile)
+        public async Task<StagingFileReference> SavePackageFileAsync(string packageId, string normalizedVersion, Stream packageFile)
         {
             if (string.IsNullOrWhiteSpace(packageId))
             {
@@ -47,7 +47,13 @@ namespace NuGetGallery
                 packageFile,
                 overwrite: false);
 
-            return path;
+            var etag = await _fileStorageService.GetETagOrNullAsync(CoreConstants.Folders.StagingFolderName, path);
+            if (etag == null)
+            {
+                throw new InvalidOperationException($"The staged package blob '{path}' was not found after it was saved.");
+            }
+
+            return new StagingFileReference(path, etag);
         }
 
         internal static string GeneratePackagePath(string packageId, string normalizedVersion, Guid fileId)

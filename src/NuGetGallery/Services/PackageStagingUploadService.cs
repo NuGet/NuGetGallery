@@ -291,14 +291,16 @@ namespace NuGetGallery
 
         private async Task<PackageCommitResult> CommitPackageAsync(Package package, User owner, Stream packageFile)
         {
-            var blobPath = await _stagingBlobService.SavePackageFileAsync(package.PackageRegistration.Id, package.NormalizedVersion, packageFile);
+            var file = await _stagingBlobService.SavePackageFileAsync(package.PackageRegistration.Id, package.NormalizedVersion, packageFile);
 
             await _packageService.UpdatePackageStatusAsync(package, PackageStatus.Staged, commitChanges: false);
             _stagedPackageRepository.InsertOnCommit(new StagedPackage
             {
                 Package = package,
                 OwnerKey = owner.Key,
-                BlobPath = blobPath,
+                BlobPath = file.Path,
+                BlobETag = file.ETag,
+                Status = StagedPackageStatus.Validating,
                 UploadedDate = DateTime.UtcNow,
             });
 
