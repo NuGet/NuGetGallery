@@ -489,10 +489,6 @@ namespace NuGetGallery
             owners.AddRange(currentUser.Organizations
                 .Select(o => CreateApiKeyOwnerViewModel(currentUser, o.Organization)));
 
-            var anyWithDeprecationApi =
-                _featureFlagService.IsManageDeprecationApiEnabled(currentUser)
-                || currentUser.Organizations.Any(m => _featureFlagService.IsManageDeprecationApiEnabled(m.Organization));
-
             var isApiKeyReductionDateEnabled = _featureFlagService.IsApiKeyReductionDateEnabled();
 
             var apiKeys = credentials
@@ -504,7 +500,7 @@ namespace NuGetGallery
                 ApiKeys = apiKeys,
                 ExpirationInDaysForApiKeyV1 = _config.ExpirationInDaysForApiKeyV1,
                 PackageOwners = owners.Where(o => o.CanPushNew || o.CanPushExisting || o.CanUnlist).ToList(),
-                IsDeprecationApiEnabled = anyWithDeprecationApi,
+                IsDeprecationApiEnabled = IsDeprecateApiEnabled(currentUser),
                 IsApiKeyExpirationRestricted = _featureFlagService.IsApiKeyExpirationRestricted(),
                 IsApiKeyReductionDateEnabled = isApiKeyReductionDateEnabled,
             };
