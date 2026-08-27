@@ -141,8 +141,10 @@ namespace NuGetGallery
 
                 Assert.Equal(PackageStatus.Staged, package.PackageStatusKey);
                 Assert.Equal(owner.Key, stagedPackage.OwnerKey);
-                Assert.Equal(file.Path, stagedPackage.BlobPath);
-                Assert.Equal(file.ETag, stagedPackage.BlobETag);
+                Assert.Equal(file.Path, stagedPackage.UploadedBlobPath);
+                Assert.Equal(file.ETag, stagedPackage.UploadedBlobETag);
+                Assert.Null(stagedPackage.ValidatedBlobPath);
+                Assert.Null(stagedPackage.ValidatedBlobETag);
                 validationMessageEmitter.Verify(x => x.StartValidationAsync(stagedPackage), Times.Once);
                 stagedPackageRepository.Verify(x => x.InsertOnCommit(stagedPackage), Times.Once);
                 stagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Once);

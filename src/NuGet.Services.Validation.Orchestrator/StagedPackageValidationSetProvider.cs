@@ -41,11 +41,11 @@ namespace NuGet.Services.Validation.Orchestrator
         protected override async Task CopyPackageFileToValidationSetAsync(PackageValidationSet validationSet, IValidatingEntity<StagedPackage> validatingEntity)
         {
             var stagedPackage = validatingEntity.EntityRecord;
-            var packageUri = await _stagingBlobService.GetPackageReadUriAsync(stagedPackage.BlobPath, stagedPackage.BlobETag);
+            var packageUri = await _stagingBlobService.GetPackageReadUriAsync(stagedPackage.UploadedBlobPath, stagedPackage.UploadedBlobETag);
 
             await _packageFileService.CopyPackageUrlForValidationSetAsync(validationSet, packageUri.AbsoluteUri);
 
-            validationSet.PackageETag = stagedPackage.BlobETag;
+            validationSet.PackageETag = stagedPackage.UploadedBlobETag;
         }
     }
 }

@@ -72,8 +72,8 @@ namespace NuGet.Services.Validation.Orchestrator
                 packageFileUri);
 
             await _entityService.UpdateMetadataAsync(validatingEntity.EntityRecord, packageMetadata, commitChanges: false);
-            validatingEntity.EntityRecord.BlobPath = file.Path;
-            validatingEntity.EntityRecord.BlobETag = file.ETag;
+            validatingEntity.EntityRecord.ValidatedBlobPath = file.Path;
+            validatingEntity.EntityRecord.ValidatedBlobETag = file.ETag;
             await _entityService.UpdateStatusAsync(validatingEntity.EntityRecord, PackageStatus.Available, commitChanges: true);
         }
 
@@ -91,7 +91,7 @@ namespace NuGet.Services.Validation.Orchestrator
         {
             return
                 validatingEntity.Key == validationSet.PackageKey &&
-                validatingEntity.EntityRecord.BlobETag == validationSet.PackageETag &&
+                validatingEntity.EntityRecord.UploadedBlobETag == validationSet.PackageETag &&
                 validatingEntity.EntityRecord.Status == StagedPackageStatus.Validating;
         }
     }

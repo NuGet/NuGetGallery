@@ -20,11 +20,17 @@ namespace NuGet.Services.Entities
 
         [Required]
         [StringLength(256)]
-        public string BlobPath { get; set; }
+        public string UploadedBlobPath { get; set; }
 
         [Required]
         [StringLength(256)]
-        public string BlobETag { get; set; }
+        public string UploadedBlobETag { get; set; }
+
+        [StringLength(256)]
+        public string ValidatedBlobPath { get; set; }
+
+        [StringLength(256)]
+        public string ValidatedBlobETag { get; set; }
 
         public StagedPackageStatus Status { get; set; }
 

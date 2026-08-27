@@ -302,8 +302,8 @@ namespace NuGetGallery
             {
                 Package = package,
                 OwnerKey = owner.Key,
-                BlobPath = file.Path,
-                BlobETag = file.ETag,
+                UploadedBlobPath = file.Path,
+                UploadedBlobETag = file.ETag,
                 Status = StagedPackageStatus.Validating,
                 UploadedDate = DateTime.UtcNow,
             };
