@@ -19,45 +19,32 @@
 
 .PARAMETER HealthUrls
     URLs to verify after the host starts. The first URL is polled until it responds HTTP 200
-    (this is the main readiness gate). All remaining URLs are retried for up to 60 seconds.
-    Default: Gallery HTTP, Gallery HTTPS, and the Aspire dashboard URL for LaunchProfile.
+    (this is the main readiness gate). All remaining URLs are then checked once.
+    Default: Gallery HTTP, Aspire dashboard HTTP, Gallery HTTPS, Aspire dashboard HTTPS.
 
 .PARAMETER Timeout
     Maximum seconds to wait for the first health URL to respond. Default: 600.
 
 .PARAMETER TrustDevCert
-    When set, verifies that the .NET dev certificate is trusted. If it is not already trusted,
-    exports it and imports it into the local machine trusted root store, which requires elevation.
+    When set, exports the .NET dev certificate and imports it into the local machine trusted root store.
+    Requires elevation (admin). Use this in CI where dotnet dev-certs --trust is not available.
 #>
 param(
 	[string]$Configuration = "Release",
 	[string]$LaunchProfile = "https",
 	[string]$AppHostProfile = "ci-gallery",
-	[string[]]$HealthUrls,
+	[string[]]$HealthUrls = @(
+		"http://localhost/api/health-probe",
+		"http://localhost:15170",
+		"https://localhost/api/health-probe",
+		"https://localhost:17170"
+	),
 	[int]$Timeout = 600,
 	[switch]$TrustDevCert,
 	# WARNING: This flag compiles in an auth bypass for Admin API functional testing.
 	# It must NEVER be used in release or deployment builds.
 	[switch]$UnsafeAdminApiAuthBypassForTesting
 )
-
-if (-not $HealthUrls)
-{
-	$dashboardUrl = if ($LaunchProfile -eq "http")
-	{
-		"http://localhost:15170"
-	}
-	else
-	{
-		"https://localhost:17170"
-	}
-
-	$HealthUrls = @(
-		"http://localhost/api/health-probe",
-		"https://localhost/api/health-probe",
-		$dashboardUrl
-	)
-}
 
 $ErrorActionPreference = "Stop"
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
@@ -82,32 +69,23 @@ Write-Host "##[endgroup]"
 if ($TrustDevCert)
 {
 	Write-Host "##[group]Trusting dev certificate"
-	dotnet dev-certs https --check --trust | Out-Host
-	if ($LASTEXITCODE -eq 0)
+	$crt = Join-Path $env:TEMP "aspire-dev-cert.crt"
+	dotnet dev-certs https -ep $crt --format Pem --no-password | Out-Host
+	if ($LASTEXITCODE -ne 0)
 	{
-		Write-Host "A trusted dev certificate is already available."
+		Write-Error "Failed to export dev cert."
+		exit 1
 	}
-	else
-	{
-		$certificateBaseName = "aspire-dev-cert-$([Guid]::NewGuid().ToString('N'))"
-		$crt = Join-Path $env:TEMP "$certificateBaseName.crt"
-		$key = Join-Path $env:TEMP "$certificateBaseName.key"
-		try
-		{
-			dotnet dev-certs https -ep $crt --format Pem --no-password | Out-Host
-			if ($LASTEXITCODE -ne 0)
-			{
-				throw "Failed to export dev cert."
-			}
 
-			Import-Certificate -FilePath $crt -CertStoreLocation Cert:\LocalMachine\Root | Out-Host
-			Write-Host "Dev certificate trusted successfully."
-		}
-		finally
-		{
-			Remove-Item $crt, $key -Force -ErrorAction SilentlyContinue
-		}
+	Import-Certificate -FilePath $crt -CertStoreLocation Cert:\LocalMachine\Root | Out-Host
+	if (-not $?)
+	{
+		Write-Error "Failed to import dev cert."
+		exit 1
 	}
+
+	Write-Host "Dev certificate trusted successfully."
+	Remove-Item $crt, ($crt -replace '\.crt$', '.key') -ErrorAction SilentlyContinue
 	Write-Host "##[endgroup]"
 }
 
@@ -125,14 +103,6 @@ function Find-GalleryIISExpress
 	# Find the specific IIS Express instance for the NuGet Gallery site
 	Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
 		Where-Object { $_.Name -eq "iisexpress.exe" -and $_.CommandLine -match "NuGet Gallery" }
-}
-
-$existingGalleryProcesses = @(Find-GalleryIISExpress)
-if ($existingGalleryProcesses.Count -gt 0)
-{
-	$processDetails = $existingGalleryProcesses |
-		ForEach-Object { "PID $($_.ProcessId): $($_.CommandLine)" }
-	throw "A NuGet Gallery IIS Express instance is already running and may own ports 80/443. Stop it before starting Aspire.`r`n$($processDetails -join "`r`n")"
 }
 
 function Stop-AppHostProcessTree([System.Diagnostics.Process]$hostProc)
@@ -267,25 +237,16 @@ Write-Host "##[group]Verifying all health URLs"
 $allPassed = $true
 foreach ($url in $HealthUrls)
 {
-	$verificationStopwatch = [System.Diagnostics.Stopwatch]::StartNew()
-	$httpCode = 0
-	$errorMsg = $null
-	do
+	try
 	{
-		try
-		{
-			$response = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 10 -MaximumRedirection 5 -ErrorAction Stop
-			$httpCode = $response.StatusCode
-			$errorMsg = $null
-		}
-		catch
-		{
-			$httpCode = 0
-			$errorMsg = $_.Exception.Message
-			Start-Sleep -Seconds 2
-		}
-	} while (($httpCode -ne 200) -and ($verificationStopwatch.Elapsed.TotalSeconds -lt 60))
-
+		$response = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 30 -MaximumRedirection 5 -ErrorAction Stop
+		$httpCode = $response.StatusCode
+	}
+	catch
+	{
+		$httpCode = 0
+		$errorMsg = $_.Exception.Message
+	}
 	if ($httpCode -eq 200)
 	{
 		Write-Host "  $url -> 200 OK"

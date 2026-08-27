@@ -133,6 +133,8 @@ namespace NuGetGallery.FunctionalTests
         {
             public string AllowedTenantId { get; set; }
             public string AllowedClientId { get; set; }
+            public string SoftDeletePackageId { get; set; }
+            public string SoftDeletePackageVersion { get; set; }
             public string LockUsername { get; set; }
         }
     }
