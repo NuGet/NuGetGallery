@@ -22,22 +22,6 @@ namespace NuGetGallery
             };
         }
 
-        /*[Fact]
-        public void WhenCutoffApplied_CapsExpirationOfLongDurationKey()
-        {
-            // Arrange
-            var created = ApiKeyReductionPolicy.CutoffUtc.AddDays(-100);
-            var expires = ApiKeyReductionPolicy.CutoffUtc.AddDays(200);
-            var cred = CreateCredential(created, expires);
-
-            // Act
-            var model = new ApiKeyViewModel(cred, applyApiKeyReductionCutoff: true);
-
-            // Assert
-            Assert.Equal(ApiKeyReductionPolicy.CutoffUtc.ToString("O"), model.Expires);
-            Assert.False(model.HasExpired);
-        }*/
-
         [Fact]
         public void WhenCutoffNotApplied_KeepsOriginalExpiration()
         {
