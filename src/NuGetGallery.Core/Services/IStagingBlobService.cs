@@ -28,5 +28,14 @@ namespace NuGetGallery
         /// <param name="packageETag">The expected source ETag.</param>
         /// <returns>A temporary read URI for the staged package.</returns>
         Task<Uri> GetPackageReadUriAsync(string packagePath, string packageETag);
+
+        /// <summary>
+        /// Copies a package file to a new immutable path in staging storage.
+        /// </summary>
+        /// <param name="packageId">The package ID.</param>
+        /// <param name="normalizedVersion">The normalized package version.</param>
+        /// <param name="packageFileUri">The URI of the package file to copy.</param>
+        /// <returns>A reference describing the copied package file.</returns>
+        Task<StagingFileReference> CopyPackageFileToStagingAsync(string packageId, string normalizedVersion, Uri packageFileUri);
     }
 }
