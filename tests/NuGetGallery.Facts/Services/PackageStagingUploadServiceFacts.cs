@@ -31,7 +31,7 @@ namespace NuGetGallery
                     PackageRegistration = new PackageRegistration { Id = "PackageA" },
                     NormalizedVersion = "1.0.0",
                 };
-                var blobPath = "packagea/1.0.0/file.nupkg";
+                var file = new StagingFileReference("packagea/1.0.0/file.nupkg", "etag");
 
                 var apiScopeEvaluator = new Mock<IApiScopeEvaluator>(MockBehavior.Strict);
                 apiScopeEvaluator
@@ -95,7 +95,7 @@ namespace NuGetGallery
                 var stagingFiles = new Mock<IStagingBlobService>();
                 stagingFiles
                     .Setup(x => x.SavePackageFileAsync("PackageA", "1.0.0", It.IsAny<Stream>()))
-                    .ReturnsAsync(blobPath);
+                    .ReturnsAsync(file);
 
                 StagedPackage stagedPackage = null;
                 var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
@@ -104,6 +104,11 @@ namespace NuGetGallery
                     .Callback<StagedPackage>(value => stagedPackage = value);
                 stagedPackageRepository
                     .Setup(x => x.CommitChangesAsync())
+                    .Returns(Task.CompletedTask);
+
+                var validationMessageEmitter = new Mock<IStagedPackageValidationMessageEmitter>();
+                validationMessageEmitter
+                    .Setup(x => x.StartValidationAsync(It.IsAny<StagedPackage>()))
                     .Returns(Task.CompletedTask);
 
                 var featureFlagService = new Mock<IFeatureFlagService>();
@@ -119,7 +124,8 @@ namespace NuGetGallery
                     Mock.Of<IReservedNamespaceService>(),
                     securityPolicyService.Object,
                     stagingFiles.Object,
-                    stagedPackageRepository.Object);
+                    stagedPackageRepository.Object,
+                    validationMessageEmitter.Object);
 
                 using (var packageFile = TestPackage.CreateTestPackageStream("PackageA", "1.0.0"))
                 {
@@ -135,7 +141,9 @@ namespace NuGetGallery
 
                 Assert.Equal(PackageStatus.Staged, package.PackageStatusKey);
                 Assert.Equal(owner.Key, stagedPackage.OwnerKey);
-                Assert.Equal(blobPath, stagedPackage.BlobPath);
+                Assert.Equal(file.Path, stagedPackage.BlobPath);
+                Assert.Equal(file.ETag, stagedPackage.BlobETag);
+                validationMessageEmitter.Verify(x => x.StartValidationAsync(stagedPackage), Times.Once);
                 stagedPackageRepository.Verify(x => x.InsertOnCommit(stagedPackage), Times.Once);
                 stagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
             }
