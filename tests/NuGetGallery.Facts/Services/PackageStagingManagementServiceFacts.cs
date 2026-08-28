@@ -43,9 +43,42 @@ namespace NuGetGallery
                     result.Select(stagedPackage => stagedPackage.Owner.Username));
             }
 
+            [Fact]
+            public void GetsTheNewestAttemptForAPackage()
+            {
+                var currentUser = new User("current") { Key = 1, EmailAddress = "current@example.test" };
+                var previousOwner = new User("previous") { Key = 2 };
+                var previousAttempt = CreateStagedPackage(100, 10, "Test.Package", "1.0.0", previousOwner);
+                var currentAttempt = CreateStagedPackage(101, 10, "Test.Package", "1.0.0", currentUser);
+                var packageService = new Mock<IPackageService>();
+                packageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(currentAttempt.Package);
+                var apiScopeEvaluator = new Mock<IApiScopeEvaluator>();
+                apiScopeEvaluator
+                    .Setup(x => x.Evaluate(
+                        It.IsAny<User>(),
+                        It.IsAny<IEnumerable<Scope>>(),
+                        It.IsAny<IActionRequiringEntityPermissions<PackageRegistration>>(),
+                        It.IsAny<PackageRegistration>(),
+                        It.IsAny<string[]>()))
+                    .Returns(new ApiScopeEvaluationResult(currentUser, PermissionsCheckResult.Allowed, scopesAreValid: true));
+                var target = CreateService(
+                    new[] { previousAttempt, currentAttempt },
+                    owner => true,
+                    apiScopeEvaluator.Object,
+                    packageService.Object);
+
+                var result = target.GetPackage(currentUser, Array.Empty<Scope>(), "Test.Package", "1.0.0");
+
+                Assert.NotNull(result);
+            }
+
             private static PackageStagingManagementService CreateService(
                 IEnumerable<StagedPackage> stagedPackages,
-                Func<User, bool> isEnabled)
+                Func<User, bool> isEnabled,
+                IApiScopeEvaluator apiScopeEvaluator = null,
+                IPackageService packageService = null)
             {
                 var stagedPackagesList = stagedPackages.ToList();
                 var stagedPackagesQuery = stagedPackagesList.AsQueryable();
@@ -67,13 +100,18 @@ namespace NuGetGallery
                     .Returns((User owner) => isEnabled(owner));
 
                 return new PackageStagingManagementService(
-                    Mock.Of<IApiScopeEvaluator>(),
+                    apiScopeEvaluator ?? Mock.Of<IApiScopeEvaluator>(),
                     featureFlagService.Object,
-                    Mock.Of<IPackageService>(),
+                    packageService ?? Mock.Of<IPackageService>(),
                     stagedPackageRepository.Object);
             }
 
             private static StagedPackage CreateStagedPackage(int packageKey, string id, string version, User owner)
+            {
+                return CreateStagedPackage(packageKey, packageKey, id, version, owner);
+            }
+
+            private static StagedPackage CreateStagedPackage(int key, int packageKey, string id, string version, User owner)
             {
                 var package = new Package
                 {
@@ -84,6 +122,7 @@ namespace NuGetGallery
 
                 return new StagedPackage
                 {
+                    Key = key,
                     PackageKey = packageKey,
                     Package = package,
                     OwnerKey = owner.Key,

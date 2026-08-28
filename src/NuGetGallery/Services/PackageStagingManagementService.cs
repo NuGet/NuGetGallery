@@ -59,7 +59,9 @@ namespace NuGetGallery
 
             var stagedPackage = _stagedPackageRepository
                 .GetAll()
-                .SingleOrDefault(candidate => candidate.PackageKey == package.Key);
+                .Where(candidate => candidate.PackageKey == package.Key)
+                .OrderByDescending(candidate => candidate.Key)
+                .FirstOrDefault();
             if (stagedPackage == null)
             {
                 return null;
