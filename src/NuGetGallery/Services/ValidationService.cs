@@ -92,6 +92,22 @@ namespace NuGetGallery
             return GetValidationIssues(package.Key, package.PackageStatusKey, ValidatingType.Package);
         }
 
+        public IReadOnlyDictionary<int, IReadOnlyList<ValidationIssue>> GetStagedPackageValidationIssues(IReadOnlyCollection<int> stagedPackageKeys)
+        {
+            if (stagedPackageKeys.Count == 0)
+            {
+                return new Dictionary<int, IReadOnlyList<ValidationIssue>>();
+            }
+
+            return _validationSets.GetAll()
+                .Where(set =>
+                    set.PackageKey.HasValue &&
+                    stagedPackageKeys.Contains(set.PackageKey.Value) &&
+                    set.ValidatingType == ValidatingType.StagedPackage)
+                .Include(set => set.PackageValidations.Select(validation => validation.PackageValidationIssues))
+                .ToDictionary(set => set.PackageKey.Value, set => set.GetValidationIssues());
+        }
+
         public IReadOnlyList<ValidationIssue> GetLatestPackageValidationIssues(SymbolPackage symbolPackage)
         {
             if (symbolPackage == null)

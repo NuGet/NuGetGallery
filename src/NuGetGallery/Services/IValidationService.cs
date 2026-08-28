@@ -94,6 +94,13 @@ namespace NuGetGallery
         IReadOnlyList<ValidationIssue> GetLatestPackageValidationIssues(Package package);
 
         /// <summary>
+        /// Gets the validation issues for specific staged package attempts.
+        /// </summary>
+        /// <param name="stagedPackageKeys">The staged package attempt keys.</param>
+        /// <returns>The validation issues keyed by staged package attempt key.</returns>
+        IReadOnlyDictionary<int, IReadOnlyList<ValidationIssue>> GetStagedPackageValidationIssues(IReadOnlyCollection<int> stagedPackageKeys);
+
+        /// <summary>
         /// Get the symbol package's validation issues from the latest validation.
         /// </summary>
         /// <param name="symbolPackage">The symbol package whose validation issues should be fetched.</param>

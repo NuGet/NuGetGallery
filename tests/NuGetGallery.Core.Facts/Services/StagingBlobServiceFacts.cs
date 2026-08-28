@@ -15,17 +15,23 @@ namespace NuGetGallery
         {
             var content = new byte[] { 1, 2, 3 };
             var storage = new Mock<ICoreFileStorageService>();
+            storage
+                .Setup(x => x.GetETagOrNullAsync(
+                    CoreConstants.Folders.StagingFolderName,
+                    It.IsAny<string>()))
+                .ReturnsAsync("\"etag\"");
 
             var result = await new StagingBlobService(storage.Object).SavePackageFileAsync(
                 "NuGet.Versioning",
                 "3.4.0",
                 new MemoryStream(content));
 
-            Assert.StartsWith("nuget.versioning/3.4.0/", result);
-            Assert.EndsWith(".nupkg", result);
+            Assert.StartsWith("nuget.versioning/3.4.0/", result.Path);
+            Assert.EndsWith(".nupkg", result.Path);
+            Assert.Equal("\"etag\"", result.ETag);
             storage.Verify(x => x.SaveFileAsync(
                 CoreConstants.Folders.StagingFolderName,
-                result,
+                result.Path,
                 CoreConstants.PackageContentType,
                 It.IsAny<Stream>(),
                 false));
