@@ -38,7 +38,7 @@ namespace NuGetGallery
 
         private readonly IEntityRepository<StagedPackage> _stagedPackageRepository;
 
-        private readonly IStagedPackageValidationMessageEmitter _validationMessageEmitter;
+        private readonly IStagedPackageValidationMessageEmitter _stagedValidationMessageEmitter;
 
         public PackageStagingUploadService(
             IApiScopeEvaluator apiScopeEvaluator,
@@ -49,7 +49,7 @@ namespace NuGetGallery
             ISecurityPolicyService securityPolicyService,
             IStagingBlobService stagingBlobService,
             IEntityRepository<StagedPackage> stagedPackageRepository,
-            IStagedPackageValidationMessageEmitter validationMessageEmitter)
+            IStagedPackageValidationMessageEmitter stagedValidationMessageEmitter)
         {
             _apiScopeEvaluator = apiScopeEvaluator ?? throw new ArgumentNullException(nameof(apiScopeEvaluator));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
@@ -59,7 +59,7 @@ namespace NuGetGallery
             _securityPolicyService = securityPolicyService ?? throw new ArgumentNullException(nameof(securityPolicyService));
             _stagingBlobService = stagingBlobService ?? throw new ArgumentNullException(nameof(stagingBlobService));
             _stagedPackageRepository = stagedPackageRepository ?? throw new ArgumentNullException(nameof(stagedPackageRepository));
-            _validationMessageEmitter = validationMessageEmitter ?? throw new ArgumentNullException(nameof(validationMessageEmitter));
+            _stagedValidationMessageEmitter = stagedValidationMessageEmitter ?? throw new ArgumentNullException(nameof(stagedValidationMessageEmitter));
         }
 
         public async Task<PackageStagingResult> StagePackageAsync(User currentUser, IEnumerable<Scope> scopes, HttpContextBase httpContext, Stream packageFile)
@@ -311,7 +311,7 @@ namespace NuGetGallery
 
             try
             {
-                var validationStarted = await _validationMessageEmitter.StartValidationAsync(stagedPackage);
+                var validationStarted = await _stagedValidationMessageEmitter.StartValidationAsync(stagedPackage);
                 if (!validationStarted)
                 {
                     stagedPackage.Status = StagedPackageStatus.Ready;
