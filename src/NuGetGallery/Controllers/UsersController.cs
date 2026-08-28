@@ -12,6 +12,7 @@ using System.Web;
 using System.Web.Mvc;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
+using NuGet.Services.Validation.Issues;
 using NuGet.Versioning;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.ViewModels;
@@ -40,6 +41,7 @@ namespace NuGetGallery
         private readonly IPackageVulnerabilitiesService _packageVulnerabilitiesService;
         private readonly IFederatedCredentialService _federatedCredentialService;
         private readonly IPackageStagingManagementService _packageStagingManagementService;
+        private readonly IValidationService _validationService;
 
         public UsersController(
             IUserService userService,
@@ -63,7 +65,8 @@ namespace NuGetGallery
             IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory,
             IFederatedCredentialService federatedCredentialService,
             IFederatedCredentialRepository federatedCredentialRepository,
-            IPackageStagingManagementService packageStagingManagementService)
+            IPackageStagingManagementService packageStagingManagementService,
+            IValidationService validationService)
             : base(
                   authService,
                   packageService,
@@ -88,6 +91,7 @@ namespace NuGetGallery
             _packageVulnerabilitiesService = packageVulnerabilitiesService ?? throw new ArgumentNullException(nameof(packageVulnerabilitiesService));
             _federatedCredentialService = federatedCredentialService ?? throw new ArgumentNullException(nameof(federatedCredentialService));
             _packageStagingManagementService = packageStagingManagementService ?? throw new ArgumentNullException(nameof(packageStagingManagementService));
+            _validationService = validationService ?? throw new ArgumentNullException(nameof(validationService));
 
             _listPackageItemRequiredSignerViewModelFactory = new ListPackageItemRequiredSignerViewModelFactory(
                 securityPolicyService, iconUrlProvider, packageVulnerabilitiesService, frameworkCompatibilityFactory, featureFlagService);
@@ -580,15 +584,31 @@ namespace NuGetGallery
             var stagedPackages = new List<PackageStagingViewModel>();
             if (isPackageStagingEnabled)
             {
-                stagedPackages = _packageStagingManagementService.GetStagedPackages(currentUser)
-                    .Select(stagedPackage => new PackageStagingViewModel
+                var stagedPackageEntities = _packageStagingManagementService.GetStagedPackages(currentUser).ToList();
+                var failedStagedPackageKeys = stagedPackageEntities
+                    .Where(package => package.Status == StagedPackageStatus.FailedValidation)
+                    .Select(package => package.Key)
+                    .Distinct()
+                    .ToList();
+                var validationIssuesByStagedPackageKey = failedStagedPackageKeys.Count == 0
+                    ? new Dictionary<int, IReadOnlyList<ValidationIssue>>()
+                    : _validationService.GetStagedPackageValidationIssues(failedStagedPackageKeys);
+
+                stagedPackages = stagedPackageEntities
+                    .Select(stagedPackage =>
                     {
-                        Id = stagedPackage.Package.PackageRegistration.Id,
-                        Version = stagedPackage.Package.NormalizedVersion,
-                        Status = stagedPackage.Status.ToString(),
-                        StatusClass = $"staging-status-{stagedPackage.Status.ToString().ToLowerInvariant()}",
-                        Owner = stagedPackage.Owner.Username,
-                        UploadedDate = stagedPackage.UploadedDate,
+                        validationIssuesByStagedPackageKey.TryGetValue(stagedPackage.Key, out var validationIssues);
+
+                        return new PackageStagingViewModel
+                        {
+                            Id = stagedPackage.Package.PackageRegistration.Id,
+                            Version = stagedPackage.Package.NormalizedVersion,
+                            Status = stagedPackage.Status.ToString(),
+                            StatusClass = $"staging-status-{stagedPackage.Status.ToString().ToLowerInvariant()}",
+                            Owner = stagedPackage.Owner.Username,
+                            UploadedDate = stagedPackage.UploadedDate,
+                            ValidationIssues = validationIssues ?? [],
+                        };
                     })
                     .ToList();
             }

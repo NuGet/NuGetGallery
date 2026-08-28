@@ -17,6 +17,7 @@ using Moq;
 
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
+using NuGet.Services.Validation.Issues;
 
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
@@ -4180,6 +4181,46 @@ namespace NuGetGallery
                     .Verify(service => service.IsEnabled(_testUser), Times.Once);
                 GetMock<IPackageStagingManagementService>()
                     .Verify(service => service.GetStagedPackages(_testUser), Times.Once);
+                Assert.Empty(result.ValidationIssues);
+                GetMock<IValidationService>()
+                    .Verify(service => service.GetStagedPackageValidationIssues(It.IsAny<IReadOnlyCollection<int>>()), Times.Never);
+            }
+
+            [Fact]
+            public void GetsFailedStagedPackageValidationIssuesInOneBatch()
+            {
+                var validationIssue = ValidationIssue.PackageIsZip64;
+                var stagedPackages = new[]
+                {
+                    CreateStagedPackage(101, "First.Package", StagedPackageStatus.FailedValidation),
+                    CreateStagedPackage(202, "Second.Package", StagedPackageStatus.FailedValidation),
+                    CreateStagedPackage(303, "Validating.Package", StagedPackageStatus.Validating),
+                };
+
+                GetMock<IPackageService>()
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(_testUser, It.IsAny<bool>(), false))
+                    .Returns(stagedPackages.Select(package => package.Package));
+                GetMock<IPackageStagingManagementService>()
+                    .Setup(service => service.IsEnabled(_testUser))
+                    .Returns(true);
+                GetMock<IPackageStagingManagementService>()
+                    .Setup(service => service.GetStagedPackages(_testUser))
+                    .Returns(stagedPackages);
+                GetMock<IValidationService>()
+                    .Setup(service => service.GetStagedPackageValidationIssues(
+                        It.Is<IReadOnlyCollection<int>>(keys => keys.OrderBy(key => key).SequenceEqual(new[] { 101, 202 }))))
+                    .Returns(new Dictionary<int, IReadOnlyList<ValidationIssue>>
+                    {
+                        { 101, new[] { validationIssue } },
+                    });
+
+                var model = ResultAssert.IsView<ManagePackagesViewModel>(_testController.Packages());
+
+                Assert.Equal(new[] { validationIssue }, model.StagedPackages.Single(package => package.Id == "First.Package").ValidationIssues);
+                Assert.Empty(model.StagedPackages.Single(package => package.Id == "Second.Package").ValidationIssues);
+                Assert.Empty(model.StagedPackages.Single(package => package.Id == "Validating.Package").ValidationIssues);
+                GetMock<IValidationService>()
+                    .Verify(service => service.GetStagedPackageValidationIssues(It.IsAny<IReadOnlyCollection<int>>()), Times.Once);
             }
 
             [Fact]
@@ -4200,6 +4241,23 @@ namespace NuGetGallery
                     .Verify(service => service.IsEnabled(_testUser), Times.Once);
                 GetMock<IPackageStagingManagementService>()
                     .Verify(service => service.GetStagedPackages(It.IsAny<User>()), Times.Never);
+            }
+
+            private StagedPackage CreateStagedPackage(int key, string id, StagedPackageStatus status)
+            {
+                return new StagedPackage
+                {
+                    Key = key,
+                    Package = new Package
+                    {
+                        NormalizedVersion = "1.0.0",
+                        PackageRegistration = new PackageRegistration { Id = id },
+                        PackageStatusKey = PackageStatus.Staged,
+                        Listed = false,
+                    },
+                    Owner = _testUser,
+                    Status = status,
+                };
             }
 
             [Fact]
