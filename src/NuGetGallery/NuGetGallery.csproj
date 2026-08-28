@@ -650,6 +650,7 @@
     <Compile Include="Services\CertificateValidator.cs" />
     <Compile Include="Services\ICertificateService.cs" />
     <Compile Include="Services\ICertificateValidator.cs" />
+    <Compile Include="Services\ImmediateStagedPackageValidationMessageEmitter.cs" />
     <Compile Include="Services\ImmediateValidationMessageEmitter.cs" />
     <Compile Include="Services\StagedPackageValidationMessageEmitter.cs" />
     <Compile Include="Services\ISymbolPackageService.cs" />

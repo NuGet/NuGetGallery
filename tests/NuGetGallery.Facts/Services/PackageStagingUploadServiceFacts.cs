@@ -20,8 +20,10 @@ namespace NuGetGallery
     {
         public class TheStagePackageAsyncMethod
         {
-            [Fact]
-            public async Task StagesPackage()
+            [Theory]
+            [InlineData(true, StagedPackageStatus.Validating)]
+            [InlineData(false, StagedPackageStatus.Ready)]
+            public async Task StagesPackage(bool validationStarted, StagedPackageStatus expectedStatus)
             {
                 var currentUser = new User { Key = 17 };
                 var owner = new User { Key = 23, EmailAddress = "owner@example.com" };
@@ -112,7 +114,7 @@ namespace NuGetGallery
                 validationMessageEmitter
                     .Setup(x => x.StartValidationAsync(It.IsAny<StagedPackage>()))
                     .Callback(() => operations.Add("enqueue"))
-                    .Returns(Task.CompletedTask);
+                    .ReturnsAsync(validationStarted);
 
                 var featureFlagService = new Mock<IFeatureFlagService>();
                 featureFlagService
@@ -148,6 +150,7 @@ namespace NuGetGallery
                 Assert.Equal(file.ETag, stagedPackage.UploadedBlobETag);
                 Assert.Null(stagedPackage.ValidatedBlobPath);
                 Assert.Null(stagedPackage.ValidatedBlobETag);
+                Assert.Equal(expectedStatus, stagedPackage.Status);
                 Assert.Equal(new[] { "enqueue", "save" }, operations);
                 validationMessageEmitter.Verify(x => x.StartValidationAsync(stagedPackage), Times.Once);
                 stagedPackageRepository.Verify(x => x.InsertOnCommit(stagedPackage), Times.Once);

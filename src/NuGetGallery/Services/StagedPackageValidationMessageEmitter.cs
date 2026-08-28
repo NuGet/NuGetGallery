@@ -27,7 +27,7 @@ namespace NuGetGallery
             _diagnosticsSource = diagnosticsService.SafeGetSource(nameof(StagedPackageValidationMessageEmitter));
         }
 
-        public async Task StartValidationAsync(StagedPackage stagedPackage)
+        public async Task<bool> StartValidationAsync(StagedPackage stagedPackage)
         {
             stagedPackage = stagedPackage ?? throw new ArgumentNullException(nameof(stagedPackage));
 
@@ -51,6 +51,8 @@ namespace NuGetGallery
                 var postponeProcessingTill = DateTimeOffset.UtcNow + _appConfiguration.AsynchronousPackageValidationDelay;
                 await _validationEnqueuer.SendMessageAsync(data, postponeProcessingTill);
             }
+
+            return true;
         }
     }
 }

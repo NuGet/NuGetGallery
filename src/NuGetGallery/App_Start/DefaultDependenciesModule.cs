@@ -1269,6 +1269,10 @@ namespace NuGetGallery
                 builder
                     .RegisterGeneric(typeof(ImmediateValidationMessageEmitter<>))
                     .As(typeof(IValidationMessageEmitter<>));
+
+                builder
+                    .RegisterType<ImmediateStagedPackageValidationMessageEmitter>()
+                    .As<IStagedPackageValidationMessageEmitter>();
             }
 
             builder.RegisterType<RevalidationAdminService>()

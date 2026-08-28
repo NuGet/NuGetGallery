@@ -6,8 +6,11 @@ using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
-    public interface IStagedPackageValidationMessageEmitter
+    public class ImmediateStagedPackageValidationMessageEmitter : IStagedPackageValidationMessageEmitter
     {
-        Task<bool> StartValidationAsync(StagedPackage stagedPackage);
+        public Task<bool> StartValidationAsync(StagedPackage stagedPackage)
+        {
+            return Task.FromResult(false);
+        }
     }
 }

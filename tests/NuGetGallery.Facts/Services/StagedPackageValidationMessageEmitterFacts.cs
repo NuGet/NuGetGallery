@@ -38,12 +38,23 @@ namespace NuGetGallery
                 },
             };
 
-            await target.StartValidationAsync(stagedPackage);
+            var validationStarted = await target.StartValidationAsync(stagedPackage);
 
+            Assert.True(validationStarted);
             Assert.Equal("PackageA", message.ProcessValidationSet.PackageId);
             Assert.Equal("1.0.0", message.ProcessValidationSet.PackageVersion);
             Assert.Equal(ValidatingType.StagedPackage, message.ProcessValidationSet.ValidatingType);
             Assert.Null(message.ProcessValidationSet.EntityKey);
+        }
+
+        [Fact]
+        public async Task ImmediateEmitterDoesNotStartValidation()
+        {
+            var target = new ImmediateStagedPackageValidationMessageEmitter();
+
+            var validationStarted = await target.StartValidationAsync(new StagedPackage());
+
+            Assert.False(validationStarted);
         }
     }
 }
