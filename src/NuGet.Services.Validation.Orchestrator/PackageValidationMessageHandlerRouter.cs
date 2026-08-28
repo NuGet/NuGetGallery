@@ -9,6 +9,9 @@ using NuGet.Services.ServiceBus;
 
 namespace NuGet.Services.Validation.Orchestrator
 {
+    /// <summary>
+    /// Routes package validation messages to the ordinary or staged package validation pipeline.
+    /// </summary>
     public class PackageValidationMessageHandlerRouter : IMessageHandler<PackageValidationMessageData>
     {
         private readonly IValidationMessageHandler<Package> _packageHandler;
