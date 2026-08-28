@@ -73,9 +73,16 @@ namespace NuGetGallery.FunctionalTests.Playwright
 
         public async Task DisposeAsync()
         {
-            await DisposeApplicationAsync();
-            RestoreEnvironment();
-            DeleteSettingsFile();
+            try
+            {
+                await DisposeApplicationAsync();
+            }
+            finally
+            {
+                RestoreGalleryConfiguration();
+                RestoreEnvironment();
+                DeleteSettingsFile();
+            }
         }
 
         private async Task SeedFunctionalTestDataAsync()
@@ -130,7 +137,10 @@ namespace NuGetGallery.FunctionalTests.Playwright
                 {
                     try
                     {
-                        await process.WaitForExitAsync(timeout.Token);
+                        await Task.WhenAll(
+                            process.WaitForExitAsync(timeout.Token),
+                            standardOutput,
+                            standardError);
                     }
                     catch (OperationCanceledException) when (!process.HasExited)
                     {

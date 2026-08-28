@@ -678,15 +678,22 @@ public class Program
     /// </summary>
     static void EnsureAbsolutePhysicalPath(string configPath, string galleryPath)
     {
-        var content = File.ReadAllText(configPath);
-        var absPath = Path.GetFullPath(galleryPath);
+        var doc = XDocument.Load(configPath, LoadOptions.PreserveWhitespace);
+        var site = doc
+            .Descendants("site")
+            .Single(element => string.Equals(
+                (string?)element.Attribute("name"),
+                "NuGet Gallery (localhost)",
+                StringComparison.Ordinal));
+        var virtualDirectory = site
+            .Descendants("virtualDirectory")
+            .Single(element => string.Equals(
+                (string?)element.Attribute("path"),
+                "/",
+                StringComparison.Ordinal));
 
-        const string relativePhysicalPath = @"physicalPath=""..\..\src\NuGetGallery""";
-        if (content.Contains(relativePhysicalPath))
-        {
-            content = content.Replace(relativePhysicalPath, $@"physicalPath=""{absPath}""");
-            File.WriteAllText(configPath, content);
-        }
+        virtualDirectory.SetAttributeValue("physicalPath", Path.GetFullPath(galleryPath));
+        doc.Save(configPath, SaveOptions.DisableFormatting);
     }
 
     /// <summary>

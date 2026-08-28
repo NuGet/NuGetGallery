@@ -7,6 +7,8 @@ using Xunit;
 
 namespace NuGetGallery.FunctionalTests.Playwright.ReadOnlyMode
 {
+    [Collection(AspirePlaywrightCollection.Definition)]
+    [Trait("Category", "PlaywrightTests")]
     public class ReadOnlyHomePageValidationTest : NuGetPageTest
     {
         [Fact]

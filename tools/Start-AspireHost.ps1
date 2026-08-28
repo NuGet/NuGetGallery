@@ -87,7 +87,13 @@ if ($TrustDevCert)
 				throw "Failed to export dev cert."
 			}
 
-			Import-Certificate -FilePath $crt -CertStoreLocation Cert:\LocalMachine\Root | Out-Host
+			$importedCertificate = Import-Certificate -FilePath $crt -CertStoreLocation Cert:\LocalMachine\Root -ErrorAction Stop
+			$importedCertificate | Out-Host
+			if (-not $importedCertificate)
+			{
+				throw "Failed to import dev cert."
+			}
+
 			Write-Host "Dev certificate trusted successfully."
 		}
 		finally

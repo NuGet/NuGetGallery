@@ -10,6 +10,9 @@ on:
     - cron: '0 12 * * 1-5' # Weekdays at 8 AM Eastern (UTC 12:00)
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 env:
   BuildConfiguration: Release
   CommonAssemblyVersion: '5.0.0'
@@ -218,50 +221,7 @@ jobs:
         shell: pwsh
         env:
           ConfigurationFilePath: ${{ github.workspace }}\tests\NuGetGallery.FunctionalTests\settings.CI.json
-        run: |
-          $repoRoot = "${{ github.workspace }}"
-          $config = "$env:BuildConfiguration"
-
-          # 1. Start Aspire Host
-          Write-Host "=== Starting Aspire Host ==="
-          $hostPid = & "$repoRoot\tools\Start-AspireHost.ps1" -Configuration $config -TrustDevCert -UnsafeAdminApiAuthBypassForTesting
-          Write-Host "Aspire Host PID: $hostPid"
-
-          try {
-            # 2. Seed functional test data
-            & "$repoRoot\tools\Seed-FunctionalTestData.ps1" -Configuration $config
-            if ($LASTEXITCODE -ne 0) { throw "Seed failed with exit code $LASTEXITCODE" }
-
-            # 3. Build functional tests
-            & "$repoRoot\tests\Scripts\BuildGalleryFunctionalTests.ps1" -Configuration $config
-            if ($LASTEXITCODE -ne 0) { throw "Build functional tests failed with exit code $LASTEXITCODE" }
-
-            # 4. Run functional tests
-            Write-Host "=== Running non-Playwright P0, P1, P2 and Admin API functional tests ==="
-            $testDll = "$repoRoot\tests\NuGetGallery.FunctionalTests\bin\$config\net10.0\NuGetGallery.FunctionalTests.dll"
-            $resultsDir = "$repoRoot\tests\TestResults"
-            New-Item -ItemType Directory -Path $resultsDir -Force | Out-Null
-
-            dotnet test $testDll `
-              --blame-hang-timeout 600s `
-              --filter "(Category=P0Tests|Category=P1Tests|Category=P2Tests|Category=AdminApiTests)&Category!=PlaywrightTests" `
-              --logger "trx;LogFileName=FunctionalTests.trx" `
-              --results-directory $resultsDir
-
-            $testExit = $LASTEXITCODE
-            Write-Host "dotnet test exited with code $testExit"
-
-            if (Test-Path $resultsDir) {
-              Get-ChildItem -Recurse $resultsDir | ForEach-Object { Write-Host "  Result file: $($_.FullName) ($($_.Length) bytes)" }
-            }
-
-            if ($testExit -ne 0) { throw "Functional tests failed with exit code $testExit" }
-          }
-          finally {
-            # 5. Stop Aspire Host
-            Write-Host "=== Stopping Aspire Host ==="
-            & "$repoRoot\tools\Stop-AspireHost.ps1" -HostPid $hostPid
-          }
+        run: .\tests\Scripts\RunAspireFunctionalTests.ps1 -Configuration $env:BuildConfiguration -TrustDevCert -UnsafeAdminApiAuthBypassForTesting
 
       - name: Upload test results
         if: always()

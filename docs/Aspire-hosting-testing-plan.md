@@ -17,12 +17,12 @@ Today the NuGet End-to-End (functional) tests run against a gallery that is star
 The goal is to boot the existing Aspire AppHost **in-process** using
 [`Aspire.Hosting.Testing`](https://aspire.dev/testing/overview/) via a shared xUnit
 fixture, so that a single `dotnet test` (or F5) spins up the whole distributed app,
-seeds data, and runs the **Playwright-based** Funtional tests — a real inner-dev loop.
+seeds data, and runs the **Playwright-based** Functional tests — a real inner-dev loop.
 
 ## Decisions (confirmed)
 
 - **Test scope**: The `Aspire.Hosting.Testing` harness runs **only the Playwright-based
-  functional tests**. Filter the playwrite tests from  `NuGetGallery.FunctionalTests` by
+  functional tests**. Filter the Playwright tests from `NuGetGallery.FunctionalTests` by
   adding by scoping them as a test suite. The remaining (non-Playwright) P0/P1/P2/AdminApi HTTP functional tests stay in
   `NuGetGallery.FunctionalTests` and continue to use the existing `Start-AspireHost.ps1` /
   `Stop-AspireHost.ps1` orchestration — **those scripts are NOT retired**.

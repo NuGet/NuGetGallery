@@ -5,7 +5,10 @@
 param(
     [ValidateSet("Debug", "Release")]
     [string]$Configuration = "Release",
-    [switch]$TrustDevCert
+    [switch]$TrustDevCert,
+    # WARNING: This flag compiles in an auth bypass for Admin API functional testing.
+    # It must NEVER be used in release or deployment builds.
+    [switch]$UnsafeAdminApiAuthBypassForTesting
 )
 
 $ErrorActionPreference = "Stop"
@@ -21,6 +24,10 @@ try
     if ($TrustDevCert)
     {
         $startArguments.TrustDevCert = $true
+    }
+    if ($UnsafeAdminApiAuthBypassForTesting)
+    {
+        $startArguments.UnsafeAdminApiAuthBypassForTesting = $true
     }
 
     $hostPid = & "$repoRoot\tools\Start-AspireHost.ps1" @startArguments
