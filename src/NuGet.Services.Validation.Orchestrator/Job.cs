@@ -503,8 +503,8 @@ namespace NuGet.Services.Validation.Orchestrator
             switch (validatingType)
             {
                 case ValidatingType.Package:
-                    services.AddTransient<PackageValidationMessageHandler>();
-                    services.AddTransient<StagedPackageValidationMessageHandler>();
+                    services.AddTransient<IValidationMessageHandler<Package>, PackageValidationMessageHandler>();
+                    services.AddTransient<IValidationMessageHandler<StagedPackage>, StagedPackageValidationMessageHandler>();
                     services.AddTransient<IMessageHandler<PackageValidationMessageData>, PackageValidationMessageHandlerRouter>();
                     break;
                 case ValidatingType.SymbolPackage:

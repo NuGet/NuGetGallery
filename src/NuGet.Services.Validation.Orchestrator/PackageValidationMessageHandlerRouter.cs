@@ -11,14 +11,14 @@ namespace NuGet.Services.Validation.Orchestrator
 {
     public class PackageValidationMessageHandlerRouter : IMessageHandler<PackageValidationMessageData>
     {
-        private readonly PackageValidationMessageHandler _packageHandler;
-        private readonly StagedPackageValidationMessageHandler _stagedPackageHandler;
+        private readonly IValidationMessageHandler<Package> _packageHandler;
+        private readonly IValidationMessageHandler<StagedPackage> _stagedPackageHandler;
         private readonly IValidationStorageService _validationStorageService;
         private readonly ILogger<PackageValidationMessageHandlerRouter> _logger;
 
         public PackageValidationMessageHandlerRouter(
-            PackageValidationMessageHandler packageHandler,
-            StagedPackageValidationMessageHandler stagedPackageHandler,
+            IValidationMessageHandler<Package> packageHandler,
+            IValidationMessageHandler<StagedPackage> stagedPackageHandler,
             IValidationStorageService validationStorageService,
             ILogger<PackageValidationMessageHandlerRouter> logger)
         {
