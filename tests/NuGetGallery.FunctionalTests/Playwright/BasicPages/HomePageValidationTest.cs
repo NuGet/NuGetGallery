@@ -8,12 +8,13 @@ using Xunit;
 namespace NuGetGallery.FunctionalTests.Playwright.BasicPages
 {
 	[Collection(AspirePlaywrightCollection.Definition)]
-	[Trait("Category", "PlaywrightTests")]
 	public class HomePageValidationTest : NuGetPageTest
     {
         [Fact]
         [Priority(0)]
         [Category("P0Tests")]
+        [Category("ReadOnlyModeTests")]
+        [Category("PlaywrightTests")]
         public async Task HomePageLoads_ContainsExpectedText()
 		{
             // Act

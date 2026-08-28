@@ -10,9 +10,6 @@ on:
     - cron: '0 12 * * 1-5' # Weekdays at 8 AM Eastern (UTC 12:00)
   workflow_dispatch:
 
-permissions:
-  contents: read
-
 env:
   BuildConfiguration: Release
   CommonAssemblyVersion: '5.0.0'

@@ -13,21 +13,10 @@ namespace NuGetGallery.FunctionalTests.Playwright
     public class NuGetPageTest : PageTest
     {
         protected static bool IsAspireHarness =>
-            bool.TryParse(
-                Environment.GetEnvironmentVariable("NUGET_PLAYWRIGHT_ASPIRE_HARNESS"),
-                out var isAspireHarness)
-            && isAspireHarness;
-
-        public override BrowserNewContextOptions ContextOptions()
-        {
-            var options = base.ContextOptions();
-            if (IsAspireHarness)
-            {
-                options.IgnoreHTTPSErrors = true;
-            }
-
-            return options;
-        }
+          bool.TryParse(
+              Environment.GetEnvironmentVariable("NUGET_PLAYWRIGHT_ASPIRE_HARNESS"),
+              out var isAspireHarness)
+          && isAspireHarness;
 
         override public async Task InitializeAsync()
         {

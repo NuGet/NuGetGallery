@@ -54,20 +54,6 @@ Tests use xUnit and Moq. Most unit-test projects target .NET Framework 4.7.2 eve
 
 `src\NuGetGallery.AppHost` orchestrates the Gallery and local V3 pipeline. For the CI-style minimal profile:
 
-```powershell
-.\tools\Setup-DevEnvironment.ps1
-$hostPid = .\tools\Start-AspireHost.ps1 -Configuration Release -UnsafeAdminApiAuthBypassForTesting
-try {
-    .\tools\Seed-FunctionalTestData.ps1 -Configuration Release
-    .\tests\Scripts\BuildGalleryFunctionalTests.ps1 -Configuration Release
-    $env:ConfigurationFilePath = "$PWD\tests\NuGetGallery.FunctionalTests\settings.CI.json"
-    dotnet test tests\NuGetGallery.FunctionalTests\bin\Release\net10.0\NuGetGallery.FunctionalTests.dll --filter "Category=P0Tests|Category=P1Tests|Category=P2Tests|Category=AdminApiTests"
-}
-finally {
-    .\tools\Stop-AspireHost.ps1 -HostPid $hostPid
-}
-```
-
 Always stop the host in a `finally` block when scripting this flow. `Start-AspireHost.ps1` defaults `APPHOST_PROFILE` to `ci-gallery`; the AppHost itself defaults to `full`. The full profile adds the Azure Search-backed resources.
 
 `BuildGalleryFunctionalTests.ps1` restores/builds the functional-test solution and installs its Playwright browsers. `-UnsafeAdminApiAuthBypassForTesting` compiles an authentication bypass; use it only in the AppHost build for Admin API functional tests, never in artifact, signing, or deployment builds.

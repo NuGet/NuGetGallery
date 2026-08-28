@@ -8,13 +8,13 @@ using Xunit;
 namespace NuGetGallery.FunctionalTests.Playwright.BasicPages
 {
 	[Collection(AspirePlaywrightCollection.Definition)]
-	[Trait("Category", "PlaywrightTests")]
 	public class PackagesPageTest : NuGetPageTest
 	{
 		[Fact]
 		[Priority(1)]
 		[Category("P1Tests")]
-		public async Task PackagePage_ContainsPackageIdAndVersion()
+        [Category("PlaywrightTests")]
+        public async Task PackagePage_ContainsPackageIdAndVersion()
 		{
 			// Arrange
 			var packageId = Constants.TestPackageId;

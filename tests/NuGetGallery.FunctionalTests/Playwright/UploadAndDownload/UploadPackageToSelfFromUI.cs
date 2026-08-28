@@ -8,12 +8,12 @@ using Xunit;
 namespace NuGetGallery.FunctionalTests.Playwright.UploadAndDownload
 {
     [Collection(AspirePlaywrightCollection.Definition)]
-    [Trait("Category", "PlaywrightTests")]
     public class UploadPackageToSelfFromUI : NuGetPageTest
     {
         [Fact]
         [Priority(0)]
         [Category("P0Tests")]
+        [Category("PlaywrightTests")]
         public async Task UploadNewPackageRegistrationAsSelf()
         {
             // Arrange
