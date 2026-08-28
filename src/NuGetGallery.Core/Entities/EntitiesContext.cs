@@ -479,10 +479,6 @@ namespace NuGetGallery
                 .HasKey(s => s.Key);
 
             modelBuilder.Entity<StagedPackage>()
-                .Property(s => s.RowVersion)
-                .IsRowVersion();
-
-            modelBuilder.Entity<StagedPackage>()
                 .HasRequired(s => s.Package)
                 .WithMany()
                 .HasForeignKey(s => s.PackageKey)

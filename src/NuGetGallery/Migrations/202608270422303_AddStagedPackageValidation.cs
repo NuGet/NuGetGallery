@@ -13,7 +13,6 @@
             AddColumn("dbo.StagedPackages", "ValidatedBlobPath", c => c.String(maxLength: 256));
             AddColumn("dbo.StagedPackages", "ValidatedBlobETag", c => c.String(maxLength: 256));
             AddColumn("dbo.StagedPackages", "Status", c => c.Int(nullable: false));
-            AddColumn("dbo.StagedPackages", "RowVersion", c => c.Binary(nullable: false, fixedLength: true, timestamp: true, storeType: "rowversion"));
             AddPrimaryKey("dbo.StagedPackages", "Key");
             RenameColumn("dbo.StagedPackages", "BlobPath", "UploadedBlobPath");
         }
@@ -22,7 +21,6 @@
         {
             RenameColumn("dbo.StagedPackages", "UploadedBlobPath", "BlobPath");
             DropPrimaryKey("dbo.StagedPackages");
-            DropColumn("dbo.StagedPackages", "RowVersion");
             DropColumn("dbo.StagedPackages", "Status");
             DropColumn("dbo.StagedPackages", "ValidatedBlobETag");
             DropColumn("dbo.StagedPackages", "ValidatedBlobPath");

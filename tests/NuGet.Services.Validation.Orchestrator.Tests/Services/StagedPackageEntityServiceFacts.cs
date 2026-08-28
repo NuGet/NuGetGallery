@@ -3,9 +3,7 @@
 
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 using System.Linq;
-using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery;
@@ -51,19 +49,6 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             Assert.Null(target.FindPackageByKey(43));
             Assert.Null(target.FindPackageByIdAndVersionStrict("Missing", "1.0.0"));
-        }
-
-        [Fact]
-        public async Task PropagatesConcurrencyConflictForMessageRetry()
-        {
-            var stagedPackage = CreateStagedPackage(43);
-            var target = CreateService(new[] { stagedPackage }, out var entitiesContext);
-            entitiesContext
-                .Setup(x => x.SaveChangesAsync())
-                .ThrowsAsync(new DbUpdateConcurrencyException());
-
-            await Assert.ThrowsAsync<DbUpdateConcurrencyException>(
-                () => target.UpdateStatusAsync(stagedPackage, PackageStatus.Available));
         }
 
         private static StagedPackageEntityService CreateService(

@@ -35,7 +35,5 @@ namespace NuGet.Services.Entities
         public StagedPackageStatus Status { get; set; }
 
         public DateTime UploadedDate { get; set; }
-
-        public byte[] RowVersion { get; set; }
     }
 }
