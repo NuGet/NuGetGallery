@@ -29,6 +29,7 @@ namespace NuGetGallery
                 Mock.Of<IDiagnosticsService>());
             var stagedPackage = new StagedPackage
             {
+                Key = 43,
                 PackageKey = 42,
                 Package = new Package
                 {
@@ -42,7 +43,7 @@ namespace NuGetGallery
             Assert.Equal("PackageA", message.ProcessValidationSet.PackageId);
             Assert.Equal("1.0.0", message.ProcessValidationSet.PackageVersion);
             Assert.Equal(ValidatingType.StagedPackage, message.ProcessValidationSet.ValidatingType);
-            Assert.Equal(42, message.ProcessValidationSet.EntityKey);
+            Assert.Null(message.ProcessValidationSet.EntityKey);
         }
     }
 }

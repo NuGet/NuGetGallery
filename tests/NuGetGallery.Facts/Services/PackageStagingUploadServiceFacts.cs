@@ -98,17 +98,20 @@ namespace NuGetGallery
                     .ReturnsAsync(file);
 
                 StagedPackage stagedPackage = null;
+                var operations = new List<string>();
                 var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
                 stagedPackageRepository
                     .Setup(x => x.InsertOnCommit(It.IsAny<StagedPackage>()))
                     .Callback<StagedPackage>(value => stagedPackage = value);
                 stagedPackageRepository
                     .Setup(x => x.CommitChangesAsync())
+                    .Callback(() => operations.Add("save"))
                     .Returns(Task.CompletedTask);
 
                 var validationMessageEmitter = new Mock<IStagedPackageValidationMessageEmitter>();
                 validationMessageEmitter
                     .Setup(x => x.StartValidationAsync(It.IsAny<StagedPackage>()))
+                    .Callback(() => operations.Add("enqueue"))
                     .Returns(Task.CompletedTask);
 
                 var featureFlagService = new Mock<IFeatureFlagService>();
@@ -145,6 +148,7 @@ namespace NuGetGallery
                 Assert.Equal(file.ETag, stagedPackage.UploadedBlobETag);
                 Assert.Null(stagedPackage.ValidatedBlobPath);
                 Assert.Null(stagedPackage.ValidatedBlobETag);
+                Assert.Equal(new[] { "enqueue", "save" }, operations);
                 validationMessageEmitter.Verify(x => x.StartValidationAsync(stagedPackage), Times.Once);
                 stagedPackageRepository.Verify(x => x.InsertOnCommit(stagedPackage), Times.Once);
                 stagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Once);

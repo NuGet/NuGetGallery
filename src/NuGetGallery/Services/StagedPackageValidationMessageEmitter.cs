@@ -36,13 +36,12 @@ namespace NuGetGallery
                 throw new ReadOnlyModeException(Strings.CannotEnqueueDueToReadOnly);
             }
 
-            var entityKey = stagedPackage.PackageKey == default ? (int?)null : stagedPackage.PackageKey;
             var data = PackageValidationMessageData.NewProcessValidationSet(
                 stagedPackage.Package.Id,
                 stagedPackage.Package.Version,
                 Guid.NewGuid(),
                 ValidatingType.StagedPackage,
-                entityKey);
+                entityKey: null);
 
             var activityName = "Enqueuing asynchronous staged package validation: " +
                 $"{data.ProcessValidationSet.PackageId} {data.ProcessValidationSet.PackageVersion} " +

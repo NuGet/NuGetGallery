@@ -13,7 +13,7 @@ namespace NuGet.Services.Validation.Orchestrator
             EntityRecord = entity ?? throw new ArgumentNullException(nameof(entity));
         }
 
-        public int Key => EntityRecord.PackageKey;
+        public int Key => EntityRecord.Key;
 
         public StagedPackage EntityRecord { get; }
 

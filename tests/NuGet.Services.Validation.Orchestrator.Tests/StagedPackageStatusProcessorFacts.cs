@@ -23,6 +23,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             var stagedPackage = new StagedPackage
             {
+                Key = 43,
                 PackageKey = 42,
                 UploadedBlobPath = uploadedPath,
                 UploadedBlobETag = uploadedETag,
@@ -31,7 +32,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             var validatingEntity = new StagedPackageValidatingEntity(stagedPackage);
             var validationSet = new PackageValidationSet
             {
-                PackageKey = stagedPackage.PackageKey,
+                PackageKey = stagedPackage.Key,
                 PackageId = "PackageA",
                 PackageNormalizedVersion = "1.0.0",
                 PackageETag = uploadedETag,

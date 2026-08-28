@@ -24,9 +24,12 @@ namespace NuGet.Services.Validation.Orchestrator
 
         public IValidatingEntity<StagedPackage> FindPackageByIdAndVersionStrict(string id, string version)
         {
-            var stagedPackage = GetAll().SingleOrDefault(candidate =>
-                candidate.Package.PackageRegistration.Id == id &&
-                candidate.Package.NormalizedVersion == version);
+            var stagedPackage = GetAll()
+                .Where(candidate =>
+                    candidate.Package.PackageRegistration.Id == id &&
+                    candidate.Package.NormalizedVersion == version)
+                .OrderByDescending(candidate => candidate.Key)
+                .FirstOrDefault();
             if (stagedPackage == null)
             {
                 return null;
@@ -37,7 +40,7 @@ namespace NuGet.Services.Validation.Orchestrator
 
         public IValidatingEntity<StagedPackage> FindPackageByKey(int key)
         {
-            var stagedPackage = GetAll().SingleOrDefault(candidate => candidate.PackageKey == key);
+            var stagedPackage = GetAll().SingleOrDefault(candidate => candidate.Key == key);
             if (stagedPackage == null)
             {
                 return null;
