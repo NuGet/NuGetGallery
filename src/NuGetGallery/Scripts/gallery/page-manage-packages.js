@@ -16,16 +16,16 @@
     }
 
     $(function () {
-        var stagingValidationModal = $('#staging-validation-modal');
-        var stagingValidationModalTitle = $('#staging-validation-modal-title');
-        var stagingValidationModalContent = $('.staging-validation-modal-content');
+        const stagingValidationModal = $('#staging-validation-modal');
+        const stagingValidationModalTitle = $('#staging-validation-modal-title');
+        const stagingValidationModalContent = $('.staging-validation-modal-content');
 
         $('.staging-validation-issues-toggle').on('click', function () {
             $('html').addClass('staging-validation-modal-open');
 
-            var trigger = $(this);
-            var packageId = trigger.data('package-id');
-            var validationIssues = $('#' + trigger.data('issues-id')).html();
+            const trigger = $(this);
+            const packageId = trigger.data('package-id');
+            const validationIssues = $('#' + trigger.data('issues-id')).html();
 
             stagingValidationModalTitle.text('Validation errors for ' + packageId);
             stagingValidationModalContent.html(validationIssues);
