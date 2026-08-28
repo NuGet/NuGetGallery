@@ -4173,6 +4173,7 @@ namespace NuGetGallery
                 Assert.Equal("Staged.Package", result.Id);
                 Assert.Equal("1.0.0", result.Version);
                 Assert.Equal(StagedPackageStatus.Ready.ToString(), result.Status);
+                Assert.Equal("staging-status-ready", result.StatusClass);
                 Assert.Equal(_testUser.Username, result.Owner);
                 Assert.Equal(uploadedDate, result.UploadedDate);
                 GetMock<IPackageStagingManagementService>()

@@ -74,7 +74,7 @@
                                                         <a href="@Url.User(package.Owner)">@package.Owner</a>
                                                     </td>
                                                     <td class="align-middle">@package.Version</td>
-                                                    <td class="align-middle"><span class="label staging-status">@package.Status</span></td>
+                                                    <td class="align-middle"><span class="label staging-status @package.StatusClass">@package.Status</span></td>
                                                     <td class="align-middle"><span data-datetime="@package.UploadedDate.ToString("O")">@package.UploadedDate.ToNuGetShortDateString()</span></td>
                                                 </tr>
                                             }

@@ -586,6 +586,7 @@ namespace NuGetGallery
                         Id = stagedPackage.Package.PackageRegistration.Id,
                         Version = stagedPackage.Package.NormalizedVersion,
                         Status = stagedPackage.Status.ToString(),
+                        StatusClass = $"staging-status-{stagedPackage.Status.ToString().ToLowerInvariant()}",
                         Owner = stagedPackage.Owner.Username,
                         UploadedDate = stagedPackage.UploadedDate,
                     })

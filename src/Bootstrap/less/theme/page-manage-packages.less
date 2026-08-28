@@ -50,8 +50,20 @@
   }
 
   .staging-status {
-    background-color: var(--statusGenericLavenderBackground2Rest);
-    color: var(--statusGenericLavenderForeground2Rest);
+    &.staging-status-validating {
+      background-color: var(--statusGenericBlueBackground2Rest);
+      color: var(--statusGenericBlueForeground2Rest);
+    }
+
+    &.staging-status-ready {
+      background-color: var(--statusSuccessBackground1Rest);
+      color: var(--statusSuccessForeground1Rest);
+    }
+
+    &.staging-status-failedvalidation {
+      background-color: var(--statusDangerBackground1Rest);
+      color: var(--statusDangerForeground1Rest);
+    }
   }
 
   .manage-package-listing {

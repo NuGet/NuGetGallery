@@ -15,6 +15,8 @@ namespace NuGetGallery
 
         public string Status { get; set; }
 
+        public string StatusClass { get; set; }
+
         public DateTime UploadedDate { get; set; }
     }
 }
