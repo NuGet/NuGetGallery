@@ -21,9 +21,9 @@ namespace NuGetGallery
         public class TheStagePackageAsyncMethod
         {
             [Theory]
-            [InlineData(true, StagedPackageStatus.Validating)]
-            [InlineData(false, StagedPackageStatus.Ready)]
-            public async Task StagesPackage(bool validationStarted, StagedPackageStatus expectedStatus)
+            [InlineData(StagedPackageStatus.Validating)]
+            [InlineData(StagedPackageStatus.Ready)]
+            public async Task StagesPackage(StagedPackageStatus expectedStatus)
             {
                 var currentUser = new User { Key = 17 };
                 var owner = new User { Key = 23, EmailAddress = "owner@example.com" };
@@ -110,11 +110,11 @@ namespace NuGetGallery
                     .Callback(() => operations.Add("save"))
                     .Returns(Task.CompletedTask);
 
-                var validationMessageEmitter = new Mock<IStagedPackageValidationMessageEmitter>();
-                validationMessageEmitter
+                var stagedValidationMessageEmitter = new Mock<IStagedPackageValidationMessageEmitter>();
+                stagedValidationMessageEmitter
                     .Setup(x => x.StartValidationAsync(It.IsAny<StagedPackage>()))
                     .Callback(() => operations.Add("enqueue"))
-                    .ReturnsAsync(validationStarted);
+                    .ReturnsAsync(expectedStatus);
 
                 var featureFlagService = new Mock<IFeatureFlagService>();
                 featureFlagService
@@ -130,7 +130,7 @@ namespace NuGetGallery
                     securityPolicyService.Object,
                     stagingFiles.Object,
                     stagedPackageRepository.Object,
-                    validationMessageEmitter.Object);
+                    stagedValidationMessageEmitter.Object);
 
                 using (var packageFile = TestPackage.CreateTestPackageStream("PackageA", "1.0.0"))
                 {
@@ -152,7 +152,7 @@ namespace NuGetGallery
                 Assert.Null(stagedPackage.ValidatedBlobETag);
                 Assert.Equal(expectedStatus, stagedPackage.Status);
                 Assert.Equal(new[] { "enqueue", "save" }, operations);
-                validationMessageEmitter.Verify(x => x.StartValidationAsync(stagedPackage), Times.Once);
+                stagedValidationMessageEmitter.Verify(x => x.StartValidationAsync(stagedPackage), Times.Once);
                 stagedPackageRepository.Verify(x => x.InsertOnCommit(stagedPackage), Times.Once);
                 stagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
             }

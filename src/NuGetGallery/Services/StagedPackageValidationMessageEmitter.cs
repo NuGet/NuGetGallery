@@ -27,7 +27,7 @@ namespace NuGetGallery
             _diagnosticsSource = diagnosticsService.SafeGetSource(nameof(StagedPackageValidationMessageEmitter));
         }
 
-        public async Task<bool> StartValidationAsync(StagedPackage stagedPackage)
+        public async Task<StagedPackageStatus> StartValidationAsync(StagedPackage stagedPackage)
         {
             stagedPackage = stagedPackage ?? throw new ArgumentNullException(nameof(stagedPackage));
 
@@ -52,7 +52,7 @@ namespace NuGetGallery
                 await _validationEnqueuer.SendMessageAsync(data, postponeProcessingTill);
             }
 
-            return true;
+            return StagedPackageStatus.Validating;
         }
     }
 }

@@ -15,7 +15,7 @@ namespace NuGetGallery
         /// Starts validation for the specified staged package.
         /// </summary>
         /// <param name="stagedPackage">The staged package to validate.</param>
-        /// <returns>Whether asynchronous validation was started.</returns>
-        Task<bool> StartValidationAsync(StagedPackage stagedPackage);
+        /// <returns>The status that should be applied to the staged package.</returns>
+        Task<StagedPackageStatus> StartValidationAsync(StagedPackage stagedPackage);
     }
 }

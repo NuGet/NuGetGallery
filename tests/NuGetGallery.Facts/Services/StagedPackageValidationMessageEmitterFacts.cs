@@ -38,9 +38,9 @@ namespace NuGetGallery
                 },
             };
 
-            var validationStarted = await target.StartValidationAsync(stagedPackage);
+            var status = await target.StartValidationAsync(stagedPackage);
 
-            Assert.True(validationStarted);
+            Assert.Equal(StagedPackageStatus.Validating, status);
             Assert.Equal("PackageA", message.ProcessValidationSet.PackageId);
             Assert.Equal("1.0.0", message.ProcessValidationSet.PackageVersion);
             Assert.Equal(ValidatingType.StagedPackage, message.ProcessValidationSet.ValidatingType);
@@ -52,9 +52,9 @@ namespace NuGetGallery
         {
             var target = new ImmediateStagedPackageValidationMessageEmitter();
 
-            var validationStarted = await target.StartValidationAsync(new StagedPackage());
+            var status = await target.StartValidationAsync(new StagedPackage());
 
-            Assert.False(validationStarted);
+            Assert.Equal(StagedPackageStatus.Ready, status);
         }
     }
 }

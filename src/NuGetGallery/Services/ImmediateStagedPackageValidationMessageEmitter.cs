@@ -8,9 +8,9 @@ namespace NuGetGallery
 {
     public class ImmediateStagedPackageValidationMessageEmitter : IStagedPackageValidationMessageEmitter
     {
-        public Task<bool> StartValidationAsync(StagedPackage stagedPackage)
+        public Task<StagedPackageStatus> StartValidationAsync(StagedPackage stagedPackage)
         {
-            return Task.FromResult(false);
+            return Task.FromResult(StagedPackageStatus.Ready);
         }
     }
 }

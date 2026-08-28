@@ -311,11 +311,7 @@ namespace NuGetGallery
 
             try
             {
-                var validationStarted = await _stagedValidationMessageEmitter.StartValidationAsync(stagedPackage);
-                if (!validationStarted)
-                {
-                    stagedPackage.Status = StagedPackageStatus.Ready;
-                }
+                stagedPackage.Status = await _stagedValidationMessageEmitter.StartValidationAsync(stagedPackage);
 
                 await _stagedPackageRepository.CommitChangesAsync();
             }
