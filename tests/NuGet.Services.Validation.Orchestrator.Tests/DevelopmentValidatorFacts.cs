@@ -10,7 +10,7 @@ using Xunit;
 
 namespace NuGet.Services.Validation.Orchestrator.Tests
 {
-    public class AlwaysSucceedingValidatorFacts
+    public class DevelopmentValidatorFacts
     {
         public class TheConstructor
         {
@@ -76,13 +76,26 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             [Fact]
             public async Task ReturnsSucceededAfterDelayHasElapsed()
             {
-                var request = CreateRequest();
+                var request = CreateRequest("ValidationPass.Example");
                 var target = CreateTarget(enabled: true);
                 await target.StartAsync(request);
 
                 var response = await target.GetResponseAsync(request);
 
                 Assert.Equal(ValidationStatus.Succeeded, response.Status);
+            }
+
+            [Fact]
+            public async Task ReturnsFailedForConfiguredPackageIdPrefix()
+            {
+                var request = CreateRequest("validationfail.example");
+                var target = CreateTarget(enabled: true, failurePackageIdPrefix: "ValidationFail.");
+                await target.StartAsync(request);
+
+                var response = await target.GetResponseAsync(request);
+
+                Assert.Equal(ValidationStatus.Failed, response.Status);
+                Assert.Equal(ValidationIssueCode.Unknown, Assert.Single(response.Issues).IssueCode);
             }
 
             [Fact]
@@ -112,25 +125,30 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             }
         }
 
-        private static INuGetValidationRequest CreateRequest()
+        private static INuGetValidationRequest CreateRequest(string packageId = "Example.Package")
         {
             var request = new Mock<INuGetValidationRequest>();
             request.SetupGet(x => x.ValidationId).Returns(Guid.NewGuid());
+            request.SetupGet(x => x.PackageId).Returns(packageId);
             return request.Object;
         }
 
-        private static AlwaysSucceedingValidator CreateTarget(bool enabled, int delaySeconds = 0)
+        private static DevelopmentValidator CreateTarget(
+            bool enabled,
+            int delaySeconds = 0,
+            string failurePackageIdPrefix = "ValidationFail.")
         {
-            var configurationAccessor = new Mock<IOptions<AlwaysSucceedingValidatorConfiguration>>();
+            var configurationAccessor = new Mock<IOptions<DevelopmentValidatorConfiguration>>();
             configurationAccessor
                 .SetupGet(x => x.Value)
-                .Returns(new AlwaysSucceedingValidatorConfiguration
+                .Returns(new DevelopmentValidatorConfiguration
                 {
                     Enabled = enabled,
                     DelaySeconds = delaySeconds,
+                    FailurePackageIdPrefix = failurePackageIdPrefix,
                 });
 
-            return new AlwaysSucceedingValidator(configurationAccessor.Object);
+            return new DevelopmentValidator(configurationAccessor.Object);
         }
     }
 }
