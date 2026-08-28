@@ -6,8 +6,16 @@ using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
+    /// <summary>
+    /// Starts validation for staged packages.
+    /// </summary>
     public interface IStagedPackageValidationMessageEmitter
     {
+        /// <summary>
+        /// Starts validation for the specified staged package.
+        /// </summary>
+        /// <param name="stagedPackage">The staged package to validate.</param>
+        /// <returns>Whether asynchronous validation was started.</returns>
         Task<bool> StartValidationAsync(StagedPackage stagedPackage);
     }
 }
