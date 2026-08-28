@@ -69,6 +69,7 @@ namespace NuGet.Services.Validation.Orchestrator
         private const string SymbolsScanBindingKey = "SymbolsScan";
         private const string OrchestratorBindingKey = "Orchestrator";
         private const string FlatContainerBindingKey = "FlatContainer";
+        private const string StagingStorageBindingKey = "StagingStorage";
 
         private const string SymbolsValidatorSectionName = "SymbolsValidator";
         private const string SymbolsValidationBindingKey = SymbolsValidatorSectionName;
@@ -238,6 +239,20 @@ namespace NuGet.Services.Validation.Orchestrator
             containerBuilder
                 .RegisterStorageAccount<ValidationConfiguration>(c => c.ValidationStorageConnectionString)
                 .As<ICloudBlobClient>();
+
+            containerBuilder
+                .RegisterStorageAccount<ValidationConfiguration>(c => c.StagingStorageConnectionString)
+                .Keyed<ICloudBlobClient>(StagingStorageBindingKey);
+
+            containerBuilder
+                .RegisterType<CloudBlobCoreFileStorageService>()
+                .WithKeyedParameter(typeof(ICloudBlobClient), StagingStorageBindingKey)
+                .Keyed<ICoreFileStorageService>(StagingStorageBindingKey);
+
+            containerBuilder
+                .RegisterType<StagingBlobService>()
+                .WithKeyedParameter(typeof(ICoreFileStorageService), StagingStorageBindingKey)
+                .As<IStagingBlobService>();
 
             containerBuilder
                 .Register(c =>
@@ -548,7 +563,6 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddTransient<IValidationOutcomeProcessor<StagedPackage>, ValidationOutcomeProcessor<StagedPackage>>();
             services.AddTransient<IStatusProcessor<StagedPackage>, StagedPackageStatusProcessor>();
             services.AddTransient<IMessageService<StagedPackage>, StagedPackageMessageService>();
-            services.AddTransient<IStagingBlobService, StagingBlobService>();
         }
 
         private static void ConfigureSymbolsValidator(ContainerBuilder builder)
