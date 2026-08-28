@@ -3,10 +3,12 @@
 
 namespace NuGet.Services.Validation.Orchestrator
 {
-    public class AlwaysSucceedingValidatorConfiguration
+    public class DevelopmentValidatorConfiguration
     {
         public bool Enabled { get; set; }
 
         public int DelaySeconds { get; set; }
+
+        public string FailurePackageIdPrefix { get; set; }
     }
 }

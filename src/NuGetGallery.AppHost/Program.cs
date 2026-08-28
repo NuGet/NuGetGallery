@@ -207,7 +207,7 @@ public class Program
                         {
                             new
                             {
-                                Name = "AlwaysSucceedingValidator",
+                                Name = "DevelopmentValidator",
                                 TrackAfter = "00:00:10",
                                 RequiredValidations = Array.Empty<string>(),
                                 ShouldStart = true,
@@ -229,10 +229,11 @@ public class Program
                         ValidatingType = "Package",
                         MaxConcurrentCalls = 1,
                     },
-                    AlwaysSucceedingValidator = new
+                    DevelopmentValidator = new
                     {
                         Enabled = true,
                         DelaySeconds = 60,
+                        FailurePackageIdPrefix = "ValidationFail.",
                     },
                     Email = new
                     {

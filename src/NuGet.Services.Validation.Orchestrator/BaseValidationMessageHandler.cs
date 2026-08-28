@@ -15,7 +15,7 @@ using NuGet.Services.Validation.Orchestrator.Telemetry;
 namespace NuGet.Services.Validation.Orchestrator
 {
     public abstract class BaseValidationMessageHandler<TEntity>
-        : IMessageHandler<PackageValidationMessageData> where TEntity : class, IEntity
+        : IValidationMessageHandler<TEntity> where TEntity : class, IEntity
     {
         private static readonly TimeSpan LeaseTime = TimeSpan.FromMinutes(1);
 

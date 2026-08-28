@@ -38,6 +38,8 @@ namespace NuGetGallery
 
         private readonly IEntityRepository<StagedPackage> _stagedPackageRepository;
 
+        private readonly IStagedPackageValidationMessageEmitter _stagedValidationMessageEmitter;
+
         public PackageStagingUploadService(
             IApiScopeEvaluator apiScopeEvaluator,
             IFeatureFlagService featureFlagService,
@@ -46,7 +48,8 @@ namespace NuGetGallery
             IReservedNamespaceService reservedNamespaceService,
             ISecurityPolicyService securityPolicyService,
             IStagingBlobService stagingBlobService,
-            IEntityRepository<StagedPackage> stagedPackageRepository)
+            IEntityRepository<StagedPackage> stagedPackageRepository,
+            IStagedPackageValidationMessageEmitter stagedValidationMessageEmitter)
         {
             _apiScopeEvaluator = apiScopeEvaluator ?? throw new ArgumentNullException(nameof(apiScopeEvaluator));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
@@ -56,6 +59,7 @@ namespace NuGetGallery
             _securityPolicyService = securityPolicyService ?? throw new ArgumentNullException(nameof(securityPolicyService));
             _stagingBlobService = stagingBlobService ?? throw new ArgumentNullException(nameof(stagingBlobService));
             _stagedPackageRepository = stagedPackageRepository ?? throw new ArgumentNullException(nameof(stagedPackageRepository));
+            _stagedValidationMessageEmitter = stagedValidationMessageEmitter ?? throw new ArgumentNullException(nameof(stagedValidationMessageEmitter));
         }
 
         public async Task<PackageStagingResult> StagePackageAsync(User currentUser, IEnumerable<Scope> scopes, HttpContextBase httpContext, Stream packageFile)
@@ -291,19 +295,24 @@ namespace NuGetGallery
 
         private async Task<PackageCommitResult> CommitPackageAsync(Package package, User owner, Stream packageFile)
         {
-            var blobPath = await _stagingBlobService.SavePackageFileAsync(package.PackageRegistration.Id, package.NormalizedVersion, packageFile);
+            var file = await _stagingBlobService.SavePackageFileAsync(package.PackageRegistration.Id, package.NormalizedVersion, packageFile);
 
             await _packageService.UpdatePackageStatusAsync(package, PackageStatus.Staged, commitChanges: false);
-            _stagedPackageRepository.InsertOnCommit(new StagedPackage
+            var stagedPackage = new StagedPackage
             {
                 Package = package,
                 OwnerKey = owner.Key,
-                BlobPath = blobPath,
+                UploadedBlobPath = file.Path,
+                UploadedBlobETag = file.ETag,
+                Status = StagedPackageStatus.Validating,
                 UploadedDate = DateTime.UtcNow,
-            });
+            };
+            _stagedPackageRepository.InsertOnCommit(stagedPackage);
 
             try
             {
+                stagedPackage.Status = await _stagedValidationMessageEmitter.StartValidationAsync(stagedPackage);
+
                 await _stagedPackageRepository.CommitChangesAsync();
             }
             catch (Exception exception) when (IsConflict(exception))

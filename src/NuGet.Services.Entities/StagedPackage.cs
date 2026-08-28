@@ -6,8 +6,10 @@ using System.ComponentModel.DataAnnotations;
 
 namespace NuGet.Services.Entities
 {
-    public class StagedPackage
+    public class StagedPackage : IEntity
     {
+        public int Key { get; set; }
+
         public int PackageKey { get; set; }
 
         public virtual Package Package { get; set; }
@@ -18,7 +20,19 @@ namespace NuGet.Services.Entities
 
         [Required]
         [StringLength(256)]
-        public string BlobPath { get; set; }
+        public string UploadedBlobPath { get; set; }
+
+        [Required]
+        [StringLength(256)]
+        public string UploadedBlobETag { get; set; }
+
+        [StringLength(256)]
+        public string ValidatedBlobPath { get; set; }
+
+        [StringLength(256)]
+        public string ValidatedBlobETag { get; set; }
+
+        public StagedPackageStatus Status { get; set; }
 
         public DateTime UploadedDate { get; set; }
     }

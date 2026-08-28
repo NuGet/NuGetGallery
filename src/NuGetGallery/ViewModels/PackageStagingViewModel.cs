@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using NuGet.Services.Validation.Issues;
 
 namespace NuGetGallery
 {
@@ -15,6 +17,10 @@ namespace NuGetGallery
 
         public string Status { get; set; }
 
+        public string StatusClass { get; set; }
+
         public DateTime UploadedDate { get; set; }
+
+        public IReadOnlyList<ValidationIssue> ValidationIssues { get; set; }
     }
 }

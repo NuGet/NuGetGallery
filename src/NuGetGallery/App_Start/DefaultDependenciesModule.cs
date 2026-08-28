@@ -1223,6 +1223,15 @@ namespace NuGetGallery
                 builder
                     .Register(c =>
                     {
+                        return new StagedPackageValidationMessageEmitter(
+                            c.ResolveKeyed<IPackageValidationEnqueuer>(BindingKeys.PackageValidationEnqueuer),
+                            c.Resolve<IAppConfiguration>(),
+                            c.Resolve<IDiagnosticsService>());
+                    }).As<IStagedPackageValidationMessageEmitter>();
+
+                builder
+                    .Register(c =>
+                    {
                         return new AsynchronousValidationMessageEmitter<SymbolPackage>(
                             c.ResolveKeyed<IPackageValidationEnqueuer>(BindingKeys.SymbolsPackageValidationEnqueuer),
                             c.Resolve<IAppConfiguration>(),
@@ -1260,6 +1269,10 @@ namespace NuGetGallery
                 builder
                     .RegisterGeneric(typeof(ImmediateValidationMessageEmitter<>))
                     .As(typeof(IValidationMessageEmitter<>));
+
+                builder
+                    .RegisterType<ImmediateStagedPackageValidationMessageEmitter>()
+                    .As<IStagedPackageValidationMessageEmitter>();
             }
 
             builder.RegisterType<RevalidationAdminService>()

@@ -59,7 +59,7 @@ namespace NuGet.Services.Validation.Orchestrator
         private const string FlatContainerConfigurationSectionName = "FlatContainer";
         private const string LeaseConfigurationSectionName = "Leases";
         private const string SasDefinitionConfigurationSectionName = "SasDefinitions";
-        private const string AlwaysSucceedingValidatorConfigurationSectionName = "AlwaysSucceedingValidator";
+        private const string DevelopmentValidatorConfigurationSectionName = "DevelopmentValidator";
 
         private const string EmailBindingKey = EmailConfigurationSectionName;
         private const string PackageVerificationTopicClientBindingKey = "PackageVerificationTopicClient";
@@ -69,6 +69,7 @@ namespace NuGet.Services.Validation.Orchestrator
         private const string SymbolsScanBindingKey = "SymbolsScan";
         private const string OrchestratorBindingKey = "Orchestrator";
         private const string FlatContainerBindingKey = "FlatContainer";
+        private const string StagingStorageBindingKey = "StagingStorage";
 
         private const string SymbolsValidatorSectionName = "SymbolsValidator";
         private const string SymbolsValidationBindingKey = SymbolsValidatorSectionName;
@@ -131,7 +132,7 @@ namespace NuGet.Services.Validation.Orchestrator
             services.Configure<FlatContainerConfiguration>(configurationRoot.GetSection(FlatContainerConfigurationSectionName));
             services.Configure<LeaseConfiguration>(configurationRoot.GetSection(LeaseConfigurationSectionName));
             services.Configure<SasDefinitionConfiguration>(configurationRoot.GetSection(SasDefinitionConfigurationSectionName));
-            services.Configure<AlwaysSucceedingValidatorConfiguration>(configurationRoot.GetSection(AlwaysSucceedingValidatorConfigurationSectionName));
+            services.Configure<DevelopmentValidatorConfiguration>(configurationRoot.GetSection(DevelopmentValidatorConfigurationSectionName));
 
             services.Configure<SymbolsValidationConfiguration>(configurationRoot.GetSection(SymbolsValidatorSectionName));
             services.Configure<SymbolsIngesterConfiguration>(configurationRoot.GetSection(SymbolsIngesterSectionName));
@@ -197,7 +198,7 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddTransient<ISimpleCloudBlobProvider, SimpleCloudBlobProvider>();
             services.AddTransient<PackageSignatureProcessor>();
             services.AddTransient<PackageSignatureValidator>();
-            services.AddSingleton<AlwaysSucceedingValidator>();
+            services.AddSingleton<DevelopmentValidator>();
             services.AddTransient<Messaging.IServiceBusMessageSerializer, Messaging.ServiceBusMessageSerializer>();
             services.AddTransient<IMessageServiceConfiguration, CoreMessageServiceConfiguration>();
             services.AddTransient<IMessageService, AsynchronousEmailMessageService>();
@@ -229,6 +230,7 @@ namespace NuGet.Services.Validation.Orchestrator
 
             ConfigureFileServices(services, configurationRoot);
             ConfigureOrchestratorSymbolTypes(services);
+            ConfigureOrchestratorStagedPackageTypes(services);
             ValidationJobBase.ConfigureFeatureFlagServices(services, configurationRoot);
         }
 
@@ -237,6 +239,20 @@ namespace NuGet.Services.Validation.Orchestrator
             containerBuilder
                 .RegisterStorageAccount<ValidationConfiguration>(c => c.ValidationStorageConnectionString)
                 .As<ICloudBlobClient>();
+
+            containerBuilder
+                .RegisterStorageAccount<ValidationConfiguration>(c => c.StagingStorageConnectionString)
+                .Keyed<ICloudBlobClient>(StagingStorageBindingKey);
+
+            containerBuilder
+                .RegisterType<CloudBlobCoreFileStorageService>()
+                .WithKeyedParameter(typeof(ICloudBlobClient), StagingStorageBindingKey)
+                .Keyed<ICoreFileStorageService>(StagingStorageBindingKey);
+
+            containerBuilder
+                .RegisterType<StagingBlobService>()
+                .WithKeyedParameter(typeof(ICoreFileStorageService), StagingStorageBindingKey)
+                .As<IStagingBlobService>();
 
             containerBuilder
                 .Register(c =>
@@ -487,7 +503,9 @@ namespace NuGet.Services.Validation.Orchestrator
             switch (validatingType)
             {
                 case ValidatingType.Package:
-                    services.AddTransient<IMessageHandler<PackageValidationMessageData>, PackageValidationMessageHandler>();
+                    services.AddTransient<IValidationMessageHandler<Package>, PackageValidationMessageHandler>();
+                    services.AddTransient<IValidationMessageHandler<StagedPackage>, StagedPackageValidationMessageHandler>();
+                    services.AddTransient<IMessageHandler<PackageValidationMessageData>, PackageValidationMessageHandlerRouter>();
                     break;
                 case ValidatingType.SymbolPackage:
                     services.AddTransient<IMessageHandler<PackageValidationMessageData>, SymbolValidationMessageHandler>();
@@ -536,6 +554,15 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddTransient<IBrokeredMessageSerializer<SymbolsValidatorMessage>, SymbolsValidatorMessageSerializer>();
             services.AddTransient<IBrokeredMessageSerializer<SymbolsIngesterMessage>, SymbolsIngesterMessageSerializer>();
             services.AddTransient<ISymbolsValidationEntitiesService, SymbolsValidationEntitiesService>();
+        }
+
+        private static void ConfigureOrchestratorStagedPackageTypes(IServiceCollection services)
+        {
+            services.AddTransient<IEntityService<StagedPackage>, StagedPackageEntityService>();
+            services.AddTransient<IValidationSetProvider<StagedPackage>, StagedPackageValidationSetProvider>();
+            services.AddTransient<IValidationOutcomeProcessor<StagedPackage>, ValidationOutcomeProcessor<StagedPackage>>();
+            services.AddTransient<IStatusProcessor<StagedPackage>, StagedPackageStatusProcessor>();
+            services.AddTransient<IMessageService<StagedPackage>, StagedPackageMessageService>();
         }
 
         private static void ConfigureSymbolsValidator(ContainerBuilder builder)

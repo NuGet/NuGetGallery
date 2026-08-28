@@ -6,21 +6,22 @@ using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using NuGet.Jobs.Validation;
+using NuGet.Services.Validation.Issues;
 
 namespace NuGet.Services.Validation.Orchestrator
 {
     /// <summary>
-    /// Simulates validation for local development and always completes successfully after the configured delay.
+    /// Simulates successful and failed validation outcomes for local development.
     /// </summary>
     [ValidatorName(Name)]
-    public class AlwaysSucceedingValidator : BaseNuGetValidator, INuGetValidator
+    public class DevelopmentValidator : BaseNuGetValidator, INuGetValidator
     {
-        public const string Name = "AlwaysSucceedingValidator";
+        public const string Name = "DevelopmentValidator";
 
-        private readonly AlwaysSucceedingValidatorConfiguration _configuration;
+        private readonly DevelopmentValidatorConfiguration _configuration;
         private readonly ConcurrentDictionary<Guid, DateTimeOffset> _startedValidations = new ConcurrentDictionary<Guid, DateTimeOffset>();
 
-        public AlwaysSucceedingValidator(IOptions<AlwaysSucceedingValidatorConfiguration> configurationAccessor)
+        public DevelopmentValidator(IOptions<DevelopmentValidatorConfiguration> configurationAccessor)
         {
             if (configurationAccessor == null)
             {
@@ -66,9 +67,20 @@ namespace NuGet.Services.Validation.Orchestrator
 
             var response = DateTimeOffset.UtcNow - started < TimeSpan.FromSeconds(_configuration.DelaySeconds)
                 ? NuGetValidationResponse.Incomplete
-                : NuGetValidationResponse.Succeeded;
+                : GetTerminalResponse(request);
 
             return Task.FromResult(response);
+        }
+
+        private INuGetValidationResponse GetTerminalResponse(INuGetValidationRequest request)
+        {
+            if (!string.IsNullOrEmpty(_configuration.FailurePackageIdPrefix)
+                && request.PackageId.StartsWith(_configuration.FailurePackageIdPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                return NuGetValidationResponse.FailedWithIssues(ValidationIssue.Unknown);
+            }
+
+            return NuGetValidationResponse.Succeeded;
         }
     }
 }
