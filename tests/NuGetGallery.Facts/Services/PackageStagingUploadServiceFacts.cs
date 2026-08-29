@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web;
@@ -159,6 +160,103 @@ namespace NuGetGallery
                 stagedValidationMessageEmitter.Verify(x => x.StartValidationAsync(stagedPackage), Times.Once);
                 stagedPackageRepository.Verify(x => x.InsertOnCommit(stagedPackage), Times.Once);
                 stagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
+            }
+
+            [Theory]
+            [InlineData(StagedPackageStatus.Validating, HttpStatusCode.OK)]
+            [InlineData(StagedPackageStatus.Ready, HttpStatusCode.OK)]
+            [InlineData(StagedPackageStatus.FailedValidation, HttpStatusCode.Conflict)]
+            [InlineData(StagedPackageStatus.Superseded, HttpStatusCode.Conflict)]
+            [InlineData(StagedPackageStatus.Deleted, HttpStatusCode.Conflict)]
+            public async Task IdenticalUploadReturnsExpectedStatus(StagedPackageStatus status, HttpStatusCode expectedStatusCode)
+            {
+                var currentUser = new User { Key = 17 };
+                var owner = new User { Key = 23, EmailAddress = "owner@example.com" };
+                var scopes = new List<Scope>();
+                var registration = new PackageRegistration { Id = "PackageA" };
+                var package = new Package
+                {
+                    Key = 29,
+                    PackageRegistration = registration,
+                    NormalizedVersion = "1.0.0",
+                    PackageStatusKey = PackageStatus.Staged,
+                };
+
+                using var packageFile = TestPackage.CreateTestPackageStream("PackageA", "1.0.0");
+                var uploadHash = CryptographyService.GenerateHash(packageFile, CoreConstants.Sha512HashAlgorithmId);
+                packageFile.Position = 0;
+
+                var stagedPackage = new StagedPackage
+                {
+                    Key = 31,
+                    PackageKey = package.Key,
+                    Package = package,
+                    OwnerKey = owner.Key,
+                    Owner = owner,
+                    UploadHash = uploadHash,
+                    Status = status,
+                };
+
+                var apiScopeEvaluator = new Mock<IApiScopeEvaluator>(MockBehavior.Strict);
+                apiScopeEvaluator
+                    .Setup(x => x.Evaluate(
+                        currentUser,
+                        scopes,
+                        It.IsAny<IActionRequiringEntityPermissions<PackageRegistration>>(),
+                        registration,
+                        It.IsAny<string[]>()))
+                    .Returns(new ApiScopeEvaluationResult(owner, PermissionsCheckResult.Allowed, scopesAreValid: true));
+
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService
+                    .Setup(x => x.EnsureValid(It.IsAny<PackageArchiveReader>()))
+                    .Returns(Task.CompletedTask);
+                packageService
+                    .Setup(x => x.FindPackageRegistrationById("PackageA"))
+                    .Returns(registration);
+                packageService
+                    .Setup(x => x.GetPackageStatus("PackageA", It.Is<NuGet.Versioning.NuGetVersion>(value => value.ToNormalizedString() == "1.0.0")))
+                    .Returns(PackageStatus.Staged);
+                packageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict("PackageA", "1.0.0"))
+                    .Returns(package);
+
+                var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
+                stagedPackageRepository
+                    .Setup(x => x.GetAll())
+                    .Returns(new[] { stagedPackage }.AsQueryable());
+
+                var securityPolicyService = new Mock<ISecurityPolicyService>(MockBehavior.Strict);
+                securityPolicyService
+                    .Setup(x => x.EvaluateUserPoliciesAsync(
+                        SecurityPolicyAction.PackagePush,
+                        currentUser,
+                        It.IsAny<HttpContextBase>()))
+                    .ReturnsAsync(SecurityPolicyResult.SuccessResult);
+
+                var featureFlagService = new Mock<IFeatureFlagService>();
+                featureFlagService
+                    .Setup(x => x.IsPackageStagingEnabled(owner))
+                    .Returns(true);
+
+                var target = new PackageStagingUploadService(
+                    apiScopeEvaluator.Object,
+                    featureFlagService.Object,
+                    packageService.Object,
+                    new Mock<IPackageUploadService>(MockBehavior.Strict).Object,
+                    Mock.Of<IReservedNamespaceService>(),
+                    securityPolicyService.Object,
+                    new Mock<IStagingBlobService>(MockBehavior.Strict).Object,
+                    stagedPackageRepository.Object,
+                    new Mock<IStagedPackageValidationMessageEmitter>(MockBehavior.Strict).Object);
+
+                var result = await target.StagePackageAsync(
+                    currentUser,
+                    scopes,
+                    Mock.Of<HttpContextBase>(),
+                    packageFile);
+
+                Assert.Equal(expectedStatusCode, result.StatusCode);
             }
         }
 

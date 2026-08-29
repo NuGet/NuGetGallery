@@ -112,18 +112,24 @@ namespace NuGetGallery
                     return authorizationError;
                 }
 
-                var beforeValidation = await _packageUploadService.ValidateBeforeGeneratePackageAsync(packageReader, packageMetadata, currentUser);
-                if (beforeValidation.Type != PackageValidationResultType.Accepted)
-                {
-                    return PackageStagingResult.Error(HttpStatusCode.BadRequest, beforeValidation.Message.PlainTextMessage);
-                }
-
                 var streamMetadata = new PackageStreamMetadata
                 {
                     HashAlgorithm = CoreConstants.Sha512HashAlgorithmId,
                     Hash = CryptographyService.GenerateHash(seekableStream, CoreConstants.Sha512HashAlgorithmId),
                     Size = seekableStream.Length,
                 };
+
+                var existingPackageResult = GetExistingPackageResult(id, version, owner, streamMetadata.Hash);
+                if (existingPackageResult != null)
+                {
+                    return existingPackageResult;
+                }
+
+                var beforeValidation = await _packageUploadService.ValidateBeforeGeneratePackageAsync(packageReader, packageMetadata, currentUser);
+                if (beforeValidation.Type != PackageValidationResultType.Accepted)
+                {
+                    return PackageStagingResult.Error(HttpStatusCode.BadRequest, beforeValidation.Message.PlainTextMessage);
+                }
 
                 seekableStream.Position = 0;
                 var package = await _packageUploadService.GeneratePackageAsync(id, packageReader, streamMetadata, owner, currentUser);
@@ -225,12 +231,54 @@ namespace NuGetGallery
                 return PackageStagingResult.Error(HttpStatusCode.Forbidden, "The package ID is locked and cannot be staged.");
             }
 
-            if (_packageService.GetPackageStatus(id, version) != null)
+            return null;
+        }
+
+        private PackageStagingResult GetExistingPackageResult(string id, NuGetVersion version, User owner, string uploadHash)
+        {
+            var packageStatus = _packageService.GetPackageStatus(id, version);
+            if (packageStatus == null)
             {
-                return PackageStagingResult.Error(HttpStatusCode.Conflict, string.Format(Strings.PackageExistsAndCannotBeModified, id, version.ToNormalizedString()));
+                return null;
             }
 
-            return null;
+            if (packageStatus != PackageStatus.Staged)
+            {
+                return CreateExistingPackageConflict(id, version);
+            }
+
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version.ToNormalizedString());
+            if (package == null)
+            {
+                return CreateExistingPackageConflict(id, version);
+            }
+
+            var currentAttempt = GetCurrentAttempt(package.Key);
+
+            var isSameOwner = currentAttempt?.OwnerKey == owner.Key;
+            var isActive = currentAttempt?.Status == StagedPackageStatus.Validating || currentAttempt?.Status == StagedPackageStatus.Ready;
+            var isIdentical = string.Equals(currentAttempt?.UploadHash, uploadHash, StringComparison.Ordinal);
+
+            if (!isSameOwner || !isActive || !isIdentical)
+            {
+                return CreateExistingPackageConflict(id, version);
+            }
+
+            return PackageStagingResult.Ok();
+        }
+
+        private StagedPackage GetCurrentAttempt(int packageKey)
+        {
+            return _stagedPackageRepository
+                .GetAll()
+                .Where(candidate => candidate.PackageKey == packageKey)
+                .OrderByDescending(candidate => candidate.Key)
+                .FirstOrDefault();
+        }
+
+        private static PackageStagingResult CreateExistingPackageConflict(string id, NuGetVersion version)
+        {
+            return PackageStagingResult.Error(HttpStatusCode.Conflict, string.Format(Strings.PackageExistsAndCannotBeModified, id, version.ToNormalizedString()));
         }
 
         private ApiScopeEvaluationResult EvaluateAuthorization(User currentUser, IEnumerable<Scope> scopes, PackageRegistration packageRegistration, string id)

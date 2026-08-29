@@ -42,7 +42,7 @@ namespace NuGetGallery
                     return new HttpStatusCodeWithBodyResult(result.StatusCode, result.ErrorMessage);
                 }
 
-                return new HttpStatusCodeWithServerWarningResult(HttpStatusCode.Created, result.Warnings);
+                return new HttpStatusCodeWithServerWarningResult(result.StatusCode, result.Warnings);
             }
             catch (HttpException exception) when (exception.IsMaxRequestLengthExceeded())
             {
