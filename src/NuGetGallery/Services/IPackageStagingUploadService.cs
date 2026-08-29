@@ -23,5 +23,19 @@ namespace NuGetGallery
         /// <param name="packageFile">The stream containing the package file.</param>
         /// <returns>The result of the staging operation.</returns>
         Task<PackageStagingResult> StagePackageAsync(User currentUser, IEnumerable<Scope> scopes, HttpContextBase httpContext, Stream packageFile);
+
+        /// <summary>
+        /// Replaces an authorized current staged package with a new immutable attempt.
+        /// </summary>
+        /// <param name="currentUser">The user replacing the package.</param>
+        /// <param name="httpContext">The current HTTP context.</param>
+        /// <param name="stagedPackage">The authorized current staged package attempt.</param>
+        /// <param name="packageFile">The replacement package stream.</param>
+        /// <returns>The result of the replacement operation.</returns>
+        Task<PackageStagingResult> ReplacePackageAsync(
+            User currentUser,
+            HttpContextBase httpContext,
+            StagedPackage stagedPackage,
+            Stream packageFile);
     }
 }

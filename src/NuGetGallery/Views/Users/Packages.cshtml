@@ -164,6 +164,21 @@
                                                                     <li>
                                                                         <a href="@Url.DownloadStagedPackage(package.Id, package.Version)">Download</a>
                                                                     </li>
+                                                                    <li>
+                                                                        <a href="#" class="staging-replace-trigger">Replace&hellip;</a>
+                                                                        @using (Html.BeginRouteForm(
+                                                                            RouteName.ReplaceManagedStagedPackage,
+                                                                            new { id = package.Id, version = package.Version },
+                                                                            FormMethod.Post,
+                                                                            new { enctype = "multipart/form-data", @class = "hidden staging-replace-form" }))
+                                                                        {
+                                                                            @Html.AntiForgeryToken()
+                                                                            <input type="file"
+                                                                                   class="staging-replace-input"
+                                                                                   name="packageFile"
+                                                                                   accept=".nupkg" />
+                                                                        }
+                                                                    </li>
                                                                     <li role="separator" class="divider"></li>
                                                                     <li>
                                                                         <a href="#"

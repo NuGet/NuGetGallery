@@ -349,5 +349,102 @@ namespace NuGetGallery
             }
         }
 
+        public class TheReplacePackageAsyncMethod
+        {
+            [Fact]
+            public async Task RejectsDifferentPackageIdentity()
+            {
+                var currentUser = new User { Key = 17 };
+                var owner = new User { Key = 23 };
+                var stagedPackage = CreateStagedPackage(owner);
+                var packageService = new Mock<IPackageService>();
+                packageService
+                    .Setup(x => x.EnsureValid(It.IsAny<PackageArchiveReader>()))
+                    .Returns(Task.CompletedTask);
+                var target = CreateService(currentUser, packageService.Object, Mock.Of<IEntityRepository<StagedPackage>>());
+                using var packageFile = TestPackage.CreateTestPackageStream("Different.Package", "1.0.0");
+
+                var result = await target.ReplacePackageAsync(
+                    currentUser,
+                    Mock.Of<HttpContextBase>(),
+                    stagedPackage,
+                    packageFile);
+
+                Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
+                Assert.Equal("The replacement package identity does not match the staged package.", result.ErrorMessage);
+            }
+
+            [Fact]
+            public async Task RejectsStaleAttempt()
+            {
+                var currentUser = new User { Key = 17 };
+                var owner = new User { Key = 23 };
+                var stagedPackage = CreateStagedPackage(owner);
+                var packageService = new Mock<IPackageService>();
+                packageService
+                    .Setup(x => x.EnsureValid(It.IsAny<PackageArchiveReader>()))
+                    .Returns(Task.CompletedTask);
+                var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
+                stagedPackageRepository
+                    .Setup(x => x.GetAll())
+                    .Returns(Enumerable.Empty<StagedPackage>().AsQueryable());
+                var target = CreateService(currentUser, packageService.Object, stagedPackageRepository.Object);
+                using var packageFile = TestPackage.CreateTestPackageStream("PackageA", "1.0.0");
+
+                var result = await target.ReplacePackageAsync(
+                    currentUser,
+                    Mock.Of<HttpContextBase>(),
+                    stagedPackage,
+                    packageFile);
+
+                Assert.Equal(HttpStatusCode.NotFound, result.StatusCode);
+                Assert.Equal("The staged package was not found.", result.ErrorMessage);
+            }
+
+            private static StagedPackage CreateStagedPackage(User owner)
+            {
+                return new StagedPackage
+                {
+                    Key = 31,
+                    PackageKey = 29,
+                    Owner = owner,
+                    OwnerKey = owner.Key,
+                    Package = new Package
+                    {
+                        Key = 29,
+                        NormalizedVersion = "1.0.0",
+                        PackageRegistration = new PackageRegistration { Id = "PackageA" },
+                        PackageStatusKey = PackageStatus.Staged,
+                    },
+                };
+            }
+
+            private static PackageStagingUploadService CreateService(
+                User currentUser,
+                IPackageService packageService,
+                IEntityRepository<StagedPackage> stagedPackageRepository)
+            {
+                var securityPolicyService = new Mock<ISecurityPolicyService>();
+                securityPolicyService
+                    .Setup(x => x.EvaluateUserPoliciesAsync(
+                        SecurityPolicyAction.PackagePush,
+                        currentUser,
+                        It.IsAny<HttpContextBase>()))
+                    .ReturnsAsync(SecurityPolicyResult.SuccessResult);
+
+                return new PackageStagingUploadService(
+                    Mock.Of<IEntitiesContext>(),
+                    Mock.Of<IApiScopeEvaluator>(),
+                    Mock.Of<IFeatureFlagService>(),
+                    packageService,
+                    Mock.Of<IPackageUploadService>(),
+                    Mock.Of<IReservedNamespaceService>(),
+                    securityPolicyService.Object,
+                    Mock.Of<IStagingBlobService>(),
+                    stagedPackageRepository,
+                    Mock.Of<IStagedPackageValidationMessageEmitter>());
+            }
+        }
+
     }
 }

@@ -66,7 +66,74 @@ namespace NuGetGallery
             _stagedValidationMessageEmitter = stagedValidationMessageEmitter ?? throw new ArgumentNullException(nameof(stagedValidationMessageEmitter));
         }
 
-        public async Task<PackageStagingResult> StagePackageAsync(User currentUser, IEnumerable<Scope> scopes, HttpContextBase httpContext, Stream packageFile)
+        public async Task<PackageStagingResult> StagePackageAsync(
+            User currentUser,
+            IEnumerable<Scope> scopes,
+            HttpContextBase httpContext,
+            Stream packageFile)
+        {
+            ValidateRequest(currentUser, httpContext, packageFile);
+
+            var requestError = await ValidateUserPolicyAsync(currentUser, httpContext);
+            if (requestError != null)
+            {
+                return requestError;
+            }
+
+            try
+            {
+                using var upload = await PrepareUploadAsync(packageFile);
+                var targetError = ResolveApiUploadTarget(currentUser, scopes, upload, out var target);
+                if (targetError != null)
+                {
+                    return targetError;
+                }
+
+                return await ProcessUploadAsync(currentUser, httpContext, upload, target);
+            }
+            catch (Exception exception) when (IsInvalidPackage(exception))
+            {
+                return PackageStagingResult.Error(HttpStatusCode.BadRequest, exception.Message);
+            }
+        }
+
+        public async Task<PackageStagingResult> ReplacePackageAsync(
+            User currentUser,
+            HttpContextBase httpContext,
+            StagedPackage stagedPackage,
+            Stream packageFile)
+        {
+            if (stagedPackage == null)
+            {
+                throw new ArgumentNullException(nameof(stagedPackage));
+            }
+
+            ValidateRequest(currentUser, httpContext, packageFile);
+
+            var requestError = await ValidateUserPolicyAsync(currentUser, httpContext);
+            if (requestError != null)
+            {
+                return requestError;
+            }
+
+            try
+            {
+                using var upload = await PrepareUploadAsync(packageFile);
+                var targetError = ResolveUiReplacementTarget(stagedPackage, upload, out var target);
+                if (targetError != null)
+                {
+                    return targetError;
+                }
+
+                return await ProcessUploadAsync(currentUser, httpContext, upload, target);
+            }
+            catch (Exception exception) when (IsInvalidPackage(exception))
+            {
+                return PackageStagingResult.Error(HttpStatusCode.BadRequest, exception.Message);
+            }
+        }
+
+        private static void ValidateRequest(User currentUser, HttpContextBase httpContext, Stream packageFile)
         {
             if (currentUser == null)
             {
@@ -82,109 +149,289 @@ namespace NuGetGallery
             {
                 throw new ArgumentNullException(nameof(packageFile));
             }
+        }
 
+        private async Task<PackageStagingResult> ValidateUserPolicyAsync(User currentUser, HttpContextBase httpContext)
+        {
             var userPolicyResult = await _securityPolicyService.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackagePush, currentUser, httpContext);
             if (!userPolicyResult.Success)
             {
                 return PackageStagingResult.Error(HttpStatusCode.BadRequest, userPolicyResult.ErrorMessage);
             }
 
+            return null;
+        }
+
+        private async Task<PreparedPackageUpload> PrepareUploadAsync(Stream packageFile)
+        {
+            var seekableStream = packageFile.AsSeekableStream();
             try
             {
-                using var seekableStream = packageFile.AsSeekableStream();
-
                 var validationError = ZipArchiveHelpers.GetArchiveValidationError(seekableStream);
                 if (validationError != null)
                 {
-                    return PackageStagingResult.Error(HttpStatusCode.BadRequest, validationError);
+                    throw new InvalidPackageException(validationError);
                 }
 
-                using var packageReader = await ValidatePackageAsync(seekableStream);
-
-                validationError = ValidateManifest(packageReader, out var packageMetadata);
-                if (validationError != null)
+                var packageReader = await ValidatePackageAsync(seekableStream);
+                try
                 {
-                    return PackageStagingResult.Error(HttpStatusCode.BadRequest, validationError);
+                    validationError = ValidateManifest(packageReader, out var packageMetadata);
+                    if (validationError != null)
+                    {
+                        throw new InvalidPackageException(validationError);
+                    }
+
+                    return new PreparedPackageUpload(seekableStream, packageReader, packageMetadata);
                 }
-
-                var id = packageMetadata.Id;
-                var version = packageMetadata.Version;
-                var packageRegistration = _packageService.FindPackageRegistrationById(id);
-                var authorizationError = AuthorizeStaging(currentUser, scopes, packageRegistration, id, version, out var owner);
-                if (authorizationError != null)
+                catch
                 {
-                    return authorizationError;
+                    packageReader.Dispose();
+                    throw;
                 }
-
-                var streamMetadata = new PackageStreamMetadata
-                {
-                    HashAlgorithm = CoreConstants.Sha512HashAlgorithmId,
-                    Hash = CryptographyService.GenerateHash(seekableStream, CoreConstants.Sha512HashAlgorithmId),
-                    Size = seekableStream.Length,
-                };
-
-                var existingPackageResult = GetExistingPackageResult(id, version, owner, streamMetadata.Hash, out var existingPackage, out var currentAttempt);
-                if (existingPackageResult != null)
-                {
-                    return existingPackageResult;
-                }
-
-                var beforeValidation = await _packageUploadService.ValidateBeforeGeneratePackageAsync(packageReader, packageMetadata, currentUser);
-                if (beforeValidation.Type != PackageValidationResultType.Accepted)
-                {
-                    return PackageStagingResult.Error(HttpStatusCode.BadRequest, beforeValidation.Message.PlainTextMessage);
-                }
-
-                Package candidatePackage;
-                if (existingPackage == null)
-                {
-                    seekableStream.Position = 0;
-                    candidatePackage = await _packageUploadService.GeneratePackageAsync(id, packageReader, streamMetadata, owner, currentUser);
-                }
-                else
-                {
-                    candidatePackage = new Package { PackageRegistration = packageRegistration };
-                    _packageService.EnrichPackageFromNuGetPackage(candidatePackage, packageReader, packageMetadata, streamMetadata, currentUser);
-                }
-
-                var packagePolicyResult = await _securityPolicyService.EvaluatePackagePoliciesAsync(SecurityPolicyAction.PackagePush, candidatePackage, currentUser, owner, httpContext);
-                if (!packagePolicyResult.Success)
-                {
-                    return PackageStagingResult.Error(HttpStatusCode.BadRequest, packagePolicyResult.ErrorMessage);
-                }
-
-                var afterValidation = await _packageUploadService.ValidateAfterGeneratePackageAsync(candidatePackage, packageReader, owner, currentUser, isNewPackageRegistration: packageRegistration == null);
-                if (afterValidation.Type != PackageValidationResultType.Accepted)
-                {
-                    return PackageStagingResult.Error(HttpStatusCode.BadRequest, afterValidation.Message.PlainTextMessage);
-                }
-
-                var package = candidatePackage;
-                if (existingPackage != null)
-                {
-                    UpdateExistingPackage(existingPackage, candidatePackage, packageReader, packageMetadata, streamMetadata, currentUser, currentAttempt.Status == StagedPackageStatus.Deleted);
-                    package = existingPackage;
-                }
-
-                seekableStream.Position = 0;
-                var commitResult = await CommitPackageAsync(package, owner, seekableStream, streamMetadata.Hash, currentAttempt);
-                if (commitResult == PackageCommitResult.Conflict)
-                {
-                    return PackageStagingResult.Error(HttpStatusCode.Conflict, Strings.UploadPackage_IdVersionConflict);
-                }
-
-                var warnings = CreateWarnings(beforeValidation, afterValidation, packagePolicyResult);
-                if (existingPackage == null)
-                {
-                    return PackageStagingResult.Created(warnings);
-                }
-
-                return PackageStagingResult.Ok(warnings);
             }
-            catch (Exception ex) when (ex is InvalidPackageException || ex is InvalidDataException || ex is PackagingException || ex is EntityException)
+            catch
             {
-                return PackageStagingResult.Error(HttpStatusCode.BadRequest, ex.Message);
+                seekableStream.Dispose();
+                throw;
             }
+        }
+
+        private PackageStagingResult ResolveApiUploadTarget(
+            User currentUser,
+            IEnumerable<Scope> scopes,
+            PreparedPackageUpload upload,
+            out StagingTarget target)
+        {
+            var packageRegistration = _packageService.FindPackageRegistrationById(upload.Id);
+            var existingPackage = _packageService.FindPackageByIdAndVersionStrict(upload.Id, upload.NormalizedVersion);
+            var currentAttempt = GetCurrentAttempt(existingPackage);
+            var authorizationResult = EvaluateAuthorization(currentUser, scopes, packageRegistration, upload.Id);
+            if (!authorizationResult.IsSuccessful())
+            {
+                target = null;
+                return GetAuthorizationFailure(authorizationResult);
+            }
+
+            return ResolveTarget(
+                upload,
+                packageRegistration,
+                existingPackage,
+                currentAttempt,
+                authorizationResult.Owner,
+                allowCreate: true,
+                out target);
+        }
+
+        private PackageStagingResult ResolveUiReplacementTarget(
+            StagedPackage authorizedStagedPackage,
+            PreparedPackageUpload upload,
+            out StagingTarget target)
+        {
+            var hasMatchingId = string.Equals(
+                authorizedStagedPackage.Package.PackageRegistration.Id,
+                upload.Id,
+                StringComparison.OrdinalIgnoreCase);
+            var hasMatchingVersion = string.Equals(
+                authorizedStagedPackage.Package.NormalizedVersion,
+                upload.NormalizedVersion,
+                StringComparison.OrdinalIgnoreCase);
+            if (!hasMatchingId || !hasMatchingVersion)
+            {
+                target = null;
+                return PackageStagingResult.Error(
+                    HttpStatusCode.BadRequest,
+                    "The replacement package identity does not match the staged package.");
+            }
+
+            var packageRegistration = _packageService.FindPackageRegistrationById(upload.Id);
+            var existingPackage = _packageService.FindPackageByIdAndVersionStrict(upload.Id, upload.NormalizedVersion);
+            var currentAttempt = GetCurrentAttempt(existingPackage);
+            if (currentAttempt?.Key != authorizedStagedPackage.Key)
+            {
+                target = null;
+                return PackageStagingResult.Error(HttpStatusCode.NotFound, "The staged package was not found.");
+            }
+
+            return ResolveTarget(
+                upload,
+                packageRegistration,
+                existingPackage,
+                currentAttempt,
+                authorizedStagedPackage.Owner,
+                allowCreate: false,
+                out target);
+        }
+
+        private PackageStagingResult ResolveTarget(
+            PreparedPackageUpload upload,
+            PackageRegistration packageRegistration,
+            Package existingPackage,
+            StagedPackage currentAttempt,
+            User owner,
+            bool allowCreate,
+            out StagingTarget target)
+        {
+            target = null;
+            if (!_featureFlagService.IsPackageStagingEnabled(owner))
+            {
+                return PackageStagingResult.Error(HttpStatusCode.NotFound, "Package staging is not enabled.");
+            }
+
+            if (packageRegistration?.IsLocked == true)
+            {
+                return PackageStagingResult.Error(HttpStatusCode.Forbidden, "The package ID is locked and cannot be staged.");
+            }
+
+            if (existingPackage == null)
+            {
+                if (!allowCreate)
+                {
+                    return PackageStagingResult.Error(HttpStatusCode.NotFound, "The staged package was not found.");
+                }
+
+                target = new StagingTarget(packageRegistration, existingPackage: null, currentAttempt: null, owner);
+                return null;
+            }
+
+            if (currentAttempt == null)
+            {
+                return CreateExistingPackageConflict(upload.Id, upload.PackageMetadata.Version);
+            }
+
+            if (currentAttempt.OwnerKey != owner.Key)
+            {
+                return CreateExistingPackageConflict(upload.Id, upload.PackageMetadata.Version);
+            }
+
+            if (currentAttempt.Status == StagedPackageStatus.Superseded)
+            {
+                return CreateExistingPackageConflict(upload.Id, upload.PackageMetadata.Version);
+            }
+
+            var canReplace = existingPackage.PackageStatusKey == PackageStatus.Staged;
+
+            // A deleted Package can be restaged only when its latest staging attempt is also Deleted.
+            // This proves the version was deleted from staging before promotion. Packages deleted after
+            // normal push or promotion have no current staging attempt and remain conflicts.
+            var canReactivate = existingPackage.PackageStatusKey == PackageStatus.Deleted
+                && currentAttempt.Status == StagedPackageStatus.Deleted;
+            if (!canReplace && !canReactivate)
+            {
+                return CreateExistingPackageConflict(upload.Id, upload.PackageMetadata.Version);
+            }
+
+            target = new StagingTarget(packageRegistration, existingPackage, currentAttempt, owner);
+            return null;
+        }
+
+        private async Task<PackageStagingResult> ProcessUploadAsync(
+            User currentUser,
+            HttpContextBase httpContext,
+            PreparedPackageUpload upload,
+            StagingTarget target)
+        {
+            var streamMetadata = new PackageStreamMetadata
+            {
+                HashAlgorithm = CoreConstants.Sha512HashAlgorithmId,
+                Hash = CryptographyService.GenerateHash(upload.PackageFile, CoreConstants.Sha512HashAlgorithmId),
+                Size = upload.PackageFile.Length,
+            };
+
+            var isValidating = target.CurrentAttempt?.Status == StagedPackageStatus.Validating;
+            var isReady = target.CurrentAttempt?.Status == StagedPackageStatus.Ready;
+            var isIdentical = string.Equals(target.CurrentAttempt?.UploadHash, streamMetadata.Hash, StringComparison.Ordinal);
+            if ((isValidating || isReady) && isIdentical)
+            {
+                return PackageStagingResult.Ok();
+            }
+
+            var beforeValidation = await _packageUploadService.ValidateBeforeGeneratePackageAsync(
+                upload.PackageReader,
+                upload.PackageMetadata,
+                currentUser);
+            if (beforeValidation.Type != PackageValidationResultType.Accepted)
+            {
+                return PackageStagingResult.Error(HttpStatusCode.BadRequest, beforeValidation.Message.PlainTextMessage);
+            }
+
+            Package candidatePackage;
+            if (target.ExistingPackage == null)
+            {
+                upload.PackageFile.Position = 0;
+                candidatePackage = await _packageUploadService.GeneratePackageAsync(
+                    upload.Id,
+                    upload.PackageReader,
+                    streamMetadata,
+                    target.Owner,
+                    currentUser);
+            }
+            else
+            {
+                candidatePackage = new Package { PackageRegistration = target.PackageRegistration };
+                _packageService.EnrichPackageFromNuGetPackage(
+                    candidatePackage,
+                    upload.PackageReader,
+                    upload.PackageMetadata,
+                    streamMetadata,
+                    currentUser);
+            }
+
+            var packagePolicyResult = await _securityPolicyService.EvaluatePackagePoliciesAsync(
+                SecurityPolicyAction.PackagePush,
+                candidatePackage,
+                currentUser,
+                target.Owner,
+                httpContext);
+            if (!packagePolicyResult.Success)
+            {
+                return PackageStagingResult.Error(HttpStatusCode.BadRequest, packagePolicyResult.ErrorMessage);
+            }
+
+            var afterValidation = await _packageUploadService.ValidateAfterGeneratePackageAsync(
+                candidatePackage,
+                upload.PackageReader,
+                target.Owner,
+                currentUser,
+                isNewPackageRegistration: target.PackageRegistration == null);
+            if (afterValidation.Type != PackageValidationResultType.Accepted)
+            {
+                return PackageStagingResult.Error(HttpStatusCode.BadRequest, afterValidation.Message.PlainTextMessage);
+            }
+
+            var package = candidatePackage;
+            if (target.ExistingPackage != null)
+            {
+                UpdateExistingPackage(
+                    target.ExistingPackage,
+                    candidatePackage,
+                    upload.PackageReader,
+                    upload.PackageMetadata,
+                    streamMetadata,
+                    currentUser,
+                    target.CurrentAttempt.Status == StagedPackageStatus.Deleted);
+                package = target.ExistingPackage;
+            }
+
+            upload.PackageFile.Position = 0;
+            var commitResult = await CommitPackageAsync(
+                package,
+                target.Owner,
+                upload.PackageFile,
+                streamMetadata.Hash,
+                target.CurrentAttempt);
+            if (commitResult == PackageCommitResult.Conflict)
+            {
+                return PackageStagingResult.Error(HttpStatusCode.Conflict, Strings.UploadPackage_IdVersionConflict);
+            }
+
+            var warnings = CreateWarnings(beforeValidation, afterValidation, packagePolicyResult);
+            if (target.ExistingPackage == null)
+            {
+                return PackageStagingResult.Created(warnings);
+            }
+
+            return PackageStagingResult.Ok(warnings);
         }
 
         private async Task<PackageArchiveReader> ValidatePackageAsync(Stream packageFile)
@@ -238,86 +485,6 @@ namespace NuGetGallery
             return null;
         }
 
-        private PackageStagingResult AuthorizeStaging(User currentUser, IEnumerable<Scope> scopes, PackageRegistration packageRegistration, string id, NuGetVersion version, out User owner)
-        {
-            var authorizationResult = EvaluateAuthorization(currentUser, scopes, packageRegistration, id);
-            owner = authorizationResult.Owner;
-            if (!authorizationResult.IsSuccessful())
-            {
-                return GetAuthorizationFailure(authorizationResult);
-            }
-
-            if (!_featureFlagService.IsPackageStagingEnabled(owner))
-            {
-                return PackageStagingResult.Error(HttpStatusCode.NotFound, "Package staging is not enabled.");
-            }
-
-            if (packageRegistration?.IsLocked == true)
-            {
-                return PackageStagingResult.Error(HttpStatusCode.Forbidden, "The package ID is locked and cannot be staged.");
-            }
-
-            return null;
-        }
-
-        private PackageStagingResult GetExistingPackageResult(
-            string id,
-            NuGetVersion version,
-            User owner,
-            string uploadHash,
-            out Package existingPackage,
-            out StagedPackage currentAttempt)
-        {
-            existingPackage = null;
-            currentAttempt = null;
-
-            var packageStatus = _packageService.GetPackageStatus(id, version);
-            if (packageStatus == null)
-            {
-                return null;
-            }
-
-            if (packageStatus != PackageStatus.Staged && packageStatus != PackageStatus.Deleted)
-            {
-                return CreateExistingPackageConflict(id, version);
-            }
-
-            existingPackage = _packageService.FindPackageByIdAndVersionStrict(id, version.ToNormalizedString());
-            if (existingPackage == null)
-            {
-                return CreateExistingPackageConflict(id, version);
-            }
-
-            currentAttempt = GetCurrentAttempt(existingPackage.Key);
-
-            var isSameOwner = currentAttempt?.OwnerKey == owner.Key;
-            var isActive = currentAttempt?.Status == StagedPackageStatus.Validating || currentAttempt?.Status == StagedPackageStatus.Ready;
-            var isIdentical = string.Equals(currentAttempt?.UploadHash, uploadHash, StringComparison.Ordinal);
-
-            // A superseded attempt cannot be current because its successor must have a higher key.
-            if (!isSameOwner || currentAttempt.Status == StagedPackageStatus.Superseded)
-            {
-                return CreateExistingPackageConflict(id, version);
-            }
-
-            if (isActive && isIdentical)
-            {
-                return PackageStagingResult.Ok();
-            }
-
-            // A deleted Package can be restaged only when its latest staging attempt is also Deleted.
-            // This proves the version was deleted from staging before promotion. Packages deleted after
-            // normal push or promotion have no current staging attempt and remain conflicts.
-            var canCreateSuccessor = packageStatus == PackageStatus.Staged
-                || (packageStatus == PackageStatus.Deleted && currentAttempt.Status == StagedPackageStatus.Deleted);
-            if (!canCreateSuccessor)
-            {
-                return CreateExistingPackageConflict(id, version);
-            }
-
-            return null;
-        }
-
         private StagedPackage GetCurrentAttempt(int packageKey)
         {
             return _stagedPackageRepository
@@ -325,6 +492,16 @@ namespace NuGetGallery
                 .Where(candidate => candidate.PackageKey == packageKey)
                 .OrderByDescending(candidate => candidate.Key)
                 .FirstOrDefault();
+        }
+
+        private StagedPackage GetCurrentAttempt(Package package)
+        {
+            if (package == null)
+            {
+                return null;
+            }
+
+            return GetCurrentAttempt(package.Key);
         }
 
         private static PackageStagingResult CreateExistingPackageConflict(string id, NuGetVersion version)
@@ -482,5 +659,61 @@ namespace NuGetGallery
             return exception is DbUpdateException updateException && updateException.IsSqlUniqueConstraintViolation();
         }
 
+        private static bool IsInvalidPackage(Exception exception)
+        {
+            return exception is InvalidPackageException
+                || exception is InvalidDataException
+                || exception is PackagingException
+                || exception is EntityException;
+        }
+
+        private sealed class PreparedPackageUpload : IDisposable
+        {
+            public PreparedPackageUpload(Stream packageFile, PackageArchiveReader packageReader, PackageMetadata packageMetadata)
+            {
+                PackageFile = packageFile;
+                PackageReader = packageReader;
+                PackageMetadata = packageMetadata;
+            }
+
+            public string Id => PackageMetadata.Id;
+
+            public string NormalizedVersion => PackageMetadata.Version.ToNormalizedString();
+
+            public Stream PackageFile { get; }
+
+            public PackageArchiveReader PackageReader { get; }
+
+            public PackageMetadata PackageMetadata { get; }
+
+            public void Dispose()
+            {
+                PackageReader.Dispose();
+                PackageFile.Dispose();
+            }
+        }
+
+        private sealed class StagingTarget
+        {
+            public StagingTarget(
+                PackageRegistration packageRegistration,
+                Package existingPackage,
+                StagedPackage currentAttempt,
+                User owner)
+            {
+                PackageRegistration = packageRegistration;
+                ExistingPackage = existingPackage;
+                CurrentAttempt = currentAttempt;
+                Owner = owner;
+            }
+
+            public PackageRegistration PackageRegistration { get; }
+
+            public Package ExistingPackage { get; }
+
+            public StagedPackage CurrentAttempt { get; }
+
+            public User Owner { get; }
+        }
     }
 }

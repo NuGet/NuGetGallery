@@ -4,6 +4,7 @@
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
 using Moq;
 using NuGet.Services.Entities;
@@ -130,6 +131,62 @@ namespace NuGetGallery
             GetMock<IPackageStagingManagementService>().Verify(
                 x => x.DeletePackageAsync(stagedPackage),
                 Times.Once);
+        }
+
+        [Fact]
+        public async Task ReplacesAuthorizedPackage()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var stagedPackage = new StagedPackage();
+            var packageFile = new Mock<HttpPostedFileBase>();
+            using var content = new MemoryStream();
+            packageFile.SetupGet(x => x.ContentLength).Returns(1);
+            packageFile.SetupGet(x => x.InputStream).Returns(content);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
+                .Returns(stagedPackage);
+            GetMock<IPackageStagingAuthorizationService>()
+                .Setup(x => x.CanManage(currentUser, stagedPackage))
+                .Returns(true);
+            GetMock<IPackageStagingUploadService>()
+                .Setup(x => x.ReplacePackageAsync(currentUser, It.IsAny<HttpContextBase>(), stagedPackage, content))
+                .ReturnsAsync(PackageStagingResult.Ok());
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(currentUser);
+
+            var result = await target.ReplacePackage("PackageA", "1.0.0", packageFile.Object);
+
+            Assert.IsType<RedirectResult>(result);
+            GetMock<IPackageStagingUploadService>().Verify(
+                x => x.ReplacePackageAsync(currentUser, It.IsAny<HttpContextBase>(), stagedPackage, content),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task RequiresAReplacementFile()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var stagedPackage = new StagedPackage();
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
+                .Returns(stagedPackage);
+            GetMock<IPackageStagingAuthorizationService>()
+                .Setup(x => x.CanManage(currentUser, stagedPackage))
+                .Returns(true);
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(currentUser);
+
+            var result = await target.ReplacePackage("PackageA", "1.0.0", packageFile: null);
+
+            Assert.IsType<RedirectResult>(result);
+            Assert.Equal("Select a package file.", target.TempData["ErrorMessage"]);
+            GetMock<IPackageStagingUploadService>().Verify(
+                x => x.ReplacePackageAsync(
+                    It.IsAny<User>(),
+                    It.IsAny<HttpContextBase>(),
+                    It.IsAny<StagedPackage>(),
+                    It.IsAny<Stream>()),
+                Times.Never);
         }
     }
 }

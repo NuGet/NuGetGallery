@@ -54,6 +54,17 @@
             }
         });
 
+        $('.staging-replace-trigger').on('click', function (event) {
+            event.preventDefault();
+            $(this).siblings('.staging-replace-form').find('.staging-replace-input').trigger('click');
+        });
+
+        $('.staging-replace-input').on('change', function () {
+            if (this.files.length > 0) {
+                this.form.submit();
+            }
+        });
+
         $('.staging-validation-issues-toggle').on('click', function () {
             $('html').addClass('staging-validation-modal-open');
 
