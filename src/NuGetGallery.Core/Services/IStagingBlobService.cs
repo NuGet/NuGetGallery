@@ -30,6 +30,14 @@ namespace NuGetGallery
         Task<Uri> GetPackageReadUriAsync(string packagePath, string packageETag);
 
         /// <summary>
+        /// Opens an unchanged package from private staging storage.
+        /// </summary>
+        /// <param name="packagePath">The package path in private staging storage.</param>
+        /// <param name="packageETag">The expected package ETag.</param>
+        /// <returns>The package stream.</returns>
+        Task<Stream> OpenPackageFileAsync(string packagePath, string packageETag);
+
+        /// <summary>
         /// Copies a package file to a new immutable path in staging storage.
         /// </summary>
         /// <param name="packageId">The package ID.</param>

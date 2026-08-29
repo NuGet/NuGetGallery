@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
 using NuGet.Services.Entities;
 
 namespace NuGetGallery
@@ -27,6 +29,15 @@ namespace NuGetGallery
         /// <param name="currentUser">The user whose staging access should be checked.</param>
         /// <returns><see langword="true"/> when at least one eligible staging owner is enabled.</returns>
         bool IsEnabled(User currentUser);
+
+        /// <summary>
+        /// Opens the owner-visible content for the current staged package attempt.
+        /// </summary>
+        /// <param name="currentUser">The user requesting the package.</param>
+        /// <param name="id">The package ID.</param>
+        /// <param name="version">The package version.</param>
+        /// <returns>The package stream, or <see langword="null"/> when the package is not visible to the caller.</returns>
+        Task<Stream> OpenPackageContentAsync(User currentUser, string id, string version);
 
         /// <summary>
         /// Gets staged packages owned by the user or an enabled organization the user belongs to.

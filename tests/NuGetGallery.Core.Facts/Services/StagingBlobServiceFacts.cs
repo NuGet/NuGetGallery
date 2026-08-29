@@ -80,5 +80,39 @@ namespace NuGetGallery
                     It.IsAny<DateTimeOffset?>()),
                 Times.Never);
         }
+
+        [Fact]
+        public async Task OpensPackageWhenETagMatches()
+        {
+            var expected = new MemoryStream();
+            var file = new Mock<IFileReference>();
+            file.SetupGet(x => x.ContentId).Returns("\"etag\"");
+            file.Setup(x => x.OpenRead()).Returns(expected);
+            var storage = new Mock<ICoreFileStorageService>();
+            storage
+                .Setup(x => x.GetFileReferenceAsync(CoreConstants.Folders.StagingFolderName, "package/path", null))
+                .ReturnsAsync(file.Object);
+            var target = new StagingBlobService(storage.Object);
+
+            var actual = await target.OpenPackageFileAsync("package/path", "\"etag\"");
+
+            Assert.Same(expected, actual);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("\"different-etag\"")]
+        public async Task RejectsOpenWhenETagDoesNotMatch(string currentETag)
+        {
+            var file = currentETag == null ? null : Mock.Of<IFileReference>(x => x.ContentId == currentETag);
+            var storage = new Mock<ICoreFileStorageService>();
+            storage
+                .Setup(x => x.GetFileReferenceAsync(CoreConstants.Folders.StagingFolderName, "package/path", null))
+                .ReturnsAsync(file);
+            var target = new StagingBlobService(storage.Object);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                () => target.OpenPackageFileAsync("package/path", "\"expected-etag\""));
+        }
     }
 }

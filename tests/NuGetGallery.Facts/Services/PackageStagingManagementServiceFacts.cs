@@ -4,7 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery.Authentication;
@@ -44,6 +46,21 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public void ListsOnlyTheNewestAttemptForEachStagedPackage()
+            {
+                var currentUser = new User("current") { Key = 1 };
+                var previousAttempt = CreateStagedPackage(100, 10, "Test.Package", "1.0.0", currentUser);
+                previousAttempt.Status = StagedPackageStatus.Superseded;
+                var currentAttempt = CreateStagedPackage(101, 10, "Test.Package", "1.0.0", currentUser);
+
+                var target = CreateService(new[] { previousAttempt, currentAttempt }, owner => true);
+
+                var result = target.GetStagedPackages(currentUser);
+
+                Assert.Same(currentAttempt, Assert.Single(result));
+            }
+
+            [Fact]
             public void GetsTheNewestAttemptForAPackage()
             {
                 var currentUser = new User("current") { Key = 1, EmailAddress = "current@example.test" };
@@ -74,11 +91,67 @@ namespace NuGetGallery
                 Assert.NotNull(result);
             }
 
+            [Theory]
+            [InlineData(StagedPackageStatus.Validating, "uploaded", "uploaded-etag")]
+            [InlineData(StagedPackageStatus.FailedValidation, "uploaded", "uploaded-etag")]
+            [InlineData(StagedPackageStatus.Ready, "validated", "validated-etag")]
+            public async Task OpensExpectedContentForCurrentAttempt(StagedPackageStatus status, string expectedPath, string expectedETag)
+            {
+                var currentUser = new User("current") { Key = 1 };
+                var stagedPackage = CreateStagedPackage(10, "Test.Package", "1.0.0", currentUser);
+                stagedPackage.Status = status;
+                stagedPackage.UploadedBlobPath = "uploaded";
+                stagedPackage.UploadedBlobETag = "uploaded-etag";
+                stagedPackage.ValidatedBlobPath = "validated";
+                stagedPackage.ValidatedBlobETag = "validated-etag";
+                var packageService = new Mock<IPackageService>();
+                packageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict("Test.Package", "1.0.0"))
+                    .Returns(stagedPackage.Package);
+                var expected = new MemoryStream();
+                var stagingBlobService = new Mock<IStagingBlobService>();
+                stagingBlobService
+                    .Setup(x => x.OpenPackageFileAsync(expectedPath, expectedETag))
+                    .ReturnsAsync(expected);
+                var target = CreateService(
+                    new[] { stagedPackage },
+                    owner => true,
+                    packageService: packageService.Object,
+                    stagingBlobService: stagingBlobService.Object);
+
+                var actual = await target.OpenPackageContentAsync(currentUser, "Test.Package", "1.0.0");
+
+                Assert.Same(expected, actual);
+            }
+
+            [Fact]
+            public async Task DoesNotOpenAnotherOwnersContent()
+            {
+                var owner = new User("owner") { Key = 1 };
+                var currentUser = new User("current") { Key = 2 };
+                var stagedPackage = CreateStagedPackage(10, "Test.Package", "1.0.0", owner);
+                var packageService = new Mock<IPackageService>();
+                packageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict("Test.Package", "1.0.0"))
+                    .Returns(stagedPackage.Package);
+                var stagingBlobService = new Mock<IStagingBlobService>(MockBehavior.Strict);
+                var target = CreateService(
+                    new[] { stagedPackage },
+                    user => true,
+                    packageService: packageService.Object,
+                    stagingBlobService: stagingBlobService.Object);
+
+                var result = await target.OpenPackageContentAsync(currentUser, "Test.Package", "1.0.0");
+
+                Assert.Null(result);
+            }
+
             private static PackageStagingManagementService CreateService(
                 IEnumerable<StagedPackage> stagedPackages,
                 Func<User, bool> isEnabled,
                 IApiScopeEvaluator apiScopeEvaluator = null,
-                IPackageService packageService = null)
+                IPackageService packageService = null,
+                IStagingBlobService stagingBlobService = null)
             {
                 var stagedPackagesList = stagedPackages.ToList();
                 var stagedPackagesQuery = stagedPackagesList.AsQueryable();
@@ -103,7 +176,8 @@ namespace NuGetGallery
                     apiScopeEvaluator ?? Mock.Of<IApiScopeEvaluator>(),
                     featureFlagService.Object,
                     packageService ?? Mock.Of<IPackageService>(),
-                    stagedPackageRepository.Object);
+                    stagedPackageRepository.Object,
+                    stagingBlobService ?? Mock.Of<IStagingBlobService>());
             }
 
             private static StagedPackage CreateStagedPackage(int packageKey, string id, string version, User owner)
@@ -113,11 +187,14 @@ namespace NuGetGallery
 
             private static StagedPackage CreateStagedPackage(int key, int packageKey, string id, string version, User owner)
             {
+                var registration = new PackageRegistration { Id = id };
+                registration.Owners.Add(owner);
                 var package = new Package
                 {
                     Key = packageKey,
                     NormalizedVersion = version,
-                    PackageRegistration = new PackageRegistration { Id = id },
+                    PackageRegistration = registration,
+                    PackageStatusKey = PackageStatus.Staged,
                 };
 
                 return new StagedPackage

@@ -82,6 +82,27 @@ namespace NuGetGallery
                 DateTimeOffset.UtcNow.Add(ReadAccessDuration));
         }
 
+        public async Task<Stream> OpenPackageFileAsync(string packagePath, string packageETag)
+        {
+            if (string.IsNullOrWhiteSpace(packagePath))
+            {
+                throw new ArgumentNullException(nameof(packagePath));
+            }
+
+            if (string.IsNullOrWhiteSpace(packageETag))
+            {
+                throw new ArgumentNullException(nameof(packageETag));
+            }
+
+            var file = await _fileStorageService.GetFileReferenceAsync(CoreConstants.Folders.StagingFolderName, packagePath);
+            if (file == null || !string.Equals(file.ContentId, packageETag, StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException($"The staged package blob '{packagePath}' has changed or no longer exists.");
+            }
+
+            return file.OpenRead();
+        }
+
         public async Task<StagingFileReference> CopyPackageFileToStagingAsync(string packageId, string normalizedVersion, Uri packageFileUri)
         {
             if (string.IsNullOrWhiteSpace(packageId))
