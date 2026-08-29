@@ -3,14 +3,8 @@
 
 namespace NuGetGallery
 {
-    public class PackageStagingStatus
+    public class UpdateStagedPackageRequest
     {
-        public string Id { get; set; }
-
-        public string Version { get; set; }
-
-        public string Status { get; set; }
-
         public bool Listed { get; set; }
     }
 }

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Moq;
@@ -81,6 +82,29 @@ namespace NuGetGallery
             var result = await target.DownloadPackage("PackageA", "1.0.0");
 
             Assert.IsType<HttpNotFoundResult>(result);
+        }
+
+        [Fact]
+        public async Task UpdatesListedIntentForAuthorizedPackage()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var stagedPackage = new StagedPackage();
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
+                .Returns(stagedPackage);
+            GetMock<IPackageStagingAuthorizationService>()
+                .Setup(x => x.CanManage(currentUser, stagedPackage))
+                .Returns(true);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.UpdateListedAsync(stagedPackage, true))
+                .Returns(Task.CompletedTask);
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(currentUser);
+
+            var result = await target.UpdateListed("PackageA", "1.0.0", listed: true);
+
+            var status = Assert.IsType<HttpStatusCodeResult>(result);
+            Assert.Equal(HttpStatusCode.NoContent, (HttpStatusCode)status.StatusCode);
         }
     }
 }

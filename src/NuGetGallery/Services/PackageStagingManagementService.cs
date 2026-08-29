@@ -76,11 +76,22 @@ namespace NuGetGallery
                 return null;
             }
 
+            return GetStatus(stagedPackage);
+        }
+
+        public PackageStagingStatus GetStatus(StagedPackage stagedPackage)
+        {
+            if (stagedPackage == null)
+            {
+                throw new ArgumentNullException(nameof(stagedPackage));
+            }
+
             return new PackageStagingStatus
             {
-                Id = package.PackageRegistration.Id,
-                Version = package.NormalizedVersion,
-                Status = PackageStatus.Staged.ToString(),
+                Id = stagedPackage.Package.PackageRegistration.Id,
+                Version = stagedPackage.Package.NormalizedVersion,
+                Status = stagedPackage.Status.ToString(),
+                Listed = stagedPackage.Package.Listed,
             };
         }
 
@@ -132,6 +143,17 @@ namespace NuGetGallery
             }
 
             return await _stagingBlobService.OpenPackageFileAsync(path, etag);
+        }
+
+        public async Task UpdateListedAsync(StagedPackage stagedPackage, bool listed)
+        {
+            if (stagedPackage == null)
+            {
+                throw new ArgumentNullException(nameof(stagedPackage));
+            }
+
+            stagedPackage.Package.Listed = listed;
+            await _stagedPackageRepository.CommitChangesAsync();
         }
 
         public IReadOnlyList<StagedPackage> GetStagedPackages(User currentUser)

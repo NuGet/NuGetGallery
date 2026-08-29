@@ -17,13 +17,16 @@ namespace NuGetGallery
     [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
     public class StagingApiController : AppController
     {
+        private readonly IPackageStagingAuthorizationService _packageStagingAuthorizationService;
         private readonly IPackageStagingManagementService _packageStagingManagementService;
         private readonly IPackageStagingUploadService _packageStagingUploadService;
 
         public StagingApiController(
+            IPackageStagingAuthorizationService packageStagingAuthorizationService,
             IPackageStagingManagementService packageStagingManagementService,
             IPackageStagingUploadService packageStagingUploadService)
         {
+            _packageStagingAuthorizationService = packageStagingAuthorizationService ?? throw new ArgumentNullException(nameof(packageStagingAuthorizationService));
             _packageStagingManagementService = packageStagingManagementService ?? throw new ArgumentNullException(nameof(packageStagingManagementService));
             _packageStagingUploadService = packageStagingUploadService ?? throw new ArgumentNullException(nameof(packageStagingUploadService));
         }
@@ -68,6 +71,27 @@ namespace NuGetGallery
             }
 
             return Json(package, JsonRequestBehavior.AllowGet);
+        }
+
+        [AcceptVerbs(HttpVerbs.Patch)]
+        public virtual async Task<ActionResult> UpdateStagedPackage(string id, string version, UpdateStagedPackageRequest request)
+        {
+            if (request == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            var currentUser = GetCurrentUser();
+            var scopes = User.Identity.GetScopesFromClaim();
+            var stagedPackage = _packageStagingManagementService.FindCurrentStagedPackage(id, version);
+            if (stagedPackage == null || !_packageStagingAuthorizationService.CanManageWithApiKey(currentUser, scopes, stagedPackage))
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+            }
+
+            await _packageStagingManagementService.UpdateListedAsync(stagedPackage, request.Listed);
+
+            return Json(_packageStagingManagementService.GetStatus(stagedPackage));
         }
     }
 }

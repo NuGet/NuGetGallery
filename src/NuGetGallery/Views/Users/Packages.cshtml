@@ -60,7 +60,7 @@
                                             <col class="staging-package-owner-column" />
                                             <col class="staging-package-version-column" />
                                             <col class="staging-package-status-column" />
-                                            <col class="staging-package-uploaded-column" />
+                                            <col class="staging-package-listed-column" />
                                             <col class="staging-package-actions-column" />
                                         </colgroup>
                                         <thead>
@@ -69,7 +69,7 @@
                                                 <th>Owner</th>
                                                 <th>Version</th>
                                                 <th>Status</th>
-                                                <th>Uploaded</th>
+                                                <th>Listed</th>
                                                 <th><span class="sr-only">Actions</span></th>
                                             </tr>
                                         </thead>
@@ -80,7 +80,9 @@
                                             @foreach (var package in Model.StagedPackages)
                                             {
                                                 var statusText = package.Status == StagedPackageStatus.FailedValidation.ToString() ? "Validation failed" : package.Status;
-                                                var validationIssuesId = "staged-validation-issues-" + stagedPackageIndex++;
+                                                var rowIndex = stagedPackageIndex++;
+                                                var validationIssuesId = "staged-validation-issues-" + rowIndex;
+                                                var listedInputId = "staged-listed-" + rowIndex;
                                                 <tr class="manage-package-listing">
                                                     <td class="align-middle package-id">
                                                         @package.Id
@@ -118,7 +120,33 @@
                                                             </div>
                                                         }
                                                     </td>
-                                                    <td class="align-middle"><span data-datetime="@package.UploadedDate.ToString("O")">@package.UploadedDate.ToNuGetShortDateString()</span></td>
+                                                    <td class="align-middle staging-package-listed">
+                                                        @if (package.CanManage)
+                                                        {
+                                                            using (Html.BeginRouteForm(
+                                                                RouteName.UpdateManagedStagedPackageListed,
+                                                                new { id = package.Id, version = package.Version },
+                                                                FormMethod.Post,
+                                                                new { @class = "staging-listed-form" }))
+                                                            {
+                                                                @Html.AntiForgeryToken()
+                                                                @Html.CheckBox(
+                                                                    "listed",
+                                                                    package.Listed,
+                                                                    new
+                                                                    {
+                                                                        id = listedInputId,
+                                                                        @class = "brand-checkbox staging-listed-input",
+                                                                        aria_label = $"List {package.Id} {package.Version} after promotion",
+                                                                    })
+                                                                <span class="staging-listed-status" aria-live="polite"></span>
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            @(package.Listed ? "Yes" : "No")
+                                                        }
+                                                    </td>
                                                     <td class="text-right align-middle package-controls">
                                                         @if (package.CanManage)
                                                         {

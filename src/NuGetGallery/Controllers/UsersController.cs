@@ -608,6 +608,7 @@ namespace NuGetGallery
                             Owner = stagedPackage.Owner.Username,
                             UploadedDate = stagedPackage.UploadedDate,
                             ValidationIssues = validationIssues ?? [],
+                            Listed = stagedPackage.Package.Listed,
                             CanManage = true,
                         };
                     })

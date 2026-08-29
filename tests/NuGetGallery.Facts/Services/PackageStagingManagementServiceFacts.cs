@@ -52,6 +52,7 @@ namespace NuGetGallery
                 var previousAttempt = CreateStagedPackage(100, 10, "Test.Package", "1.0.0", currentUser);
                 previousAttempt.Status = StagedPackageStatus.Superseded;
                 var currentAttempt = CreateStagedPackage(101, 10, "Test.Package", "1.0.0", currentUser);
+                currentAttempt.Package.Listed = true;
 
                 var target = CreateService(new[] { previousAttempt, currentAttempt }, owner => true);
 
@@ -87,6 +88,7 @@ namespace NuGetGallery
                 var result = target.GetPackage(currentUser, Array.Empty<Scope>(), "Test.Package", "1.0.0");
 
                 Assert.NotNull(result);
+                Assert.True(result.Listed);
             }
 
             [Theory]
@@ -137,12 +139,31 @@ namespace NuGetGallery
                 Assert.Null(result);
             }
 
+            [Fact]
+            public async Task UpdatesListedIntent()
+            {
+                var owner = new User("owner") { Key = 1 };
+                var stagedPackage = CreateStagedPackage(10, "Test.Package", "1.0.0", owner);
+                stagedPackage.Package.Listed = false;
+                var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
+                var target = CreateService(
+                    new[] { stagedPackage },
+                    user => true,
+                    stagedPackageRepository: stagedPackageRepository);
+
+                await target.UpdateListedAsync(stagedPackage, listed: true);
+
+                Assert.True(stagedPackage.Package.Listed);
+                stagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
+            }
+
             private static PackageStagingManagementService CreateService(
                 IEnumerable<StagedPackage> stagedPackages,
                 Func<User, bool> isEnabled,
                 IPackageStagingAuthorizationService authorizationService = null,
                 IPackageService packageService = null,
-                IStagingBlobService stagingBlobService = null)
+                IStagingBlobService stagingBlobService = null,
+                Mock<IEntityRepository<StagedPackage>> stagedPackageRepository = null)
             {
                 var stagedPackagesList = stagedPackages.ToList();
                 var stagedPackagesQuery = stagedPackagesList.AsQueryable();
@@ -153,10 +174,13 @@ namespace NuGetGallery
                 stagedPackagesSet.As<IQueryable<StagedPackage>>().Setup(x => x.GetEnumerator()).Returns(() => stagedPackagesQuery.GetEnumerator());
                 stagedPackagesSet.Setup(x => x.Include("Package.PackageRegistration")).Returns(stagedPackagesSet.Object);
                 stagedPackagesSet.Setup(x => x.Include("Owner")).Returns(stagedPackagesSet.Object);
-                var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
+                stagedPackageRepository = stagedPackageRepository ?? new Mock<IEntityRepository<StagedPackage>>();
                 stagedPackageRepository
                     .Setup(x => x.GetAll())
                     .Returns(stagedPackagesSet.Object);
+                stagedPackageRepository
+                    .Setup(x => x.CommitChangesAsync())
+                    .Returns(Task.CompletedTask);
 
                 var featureFlagService = new Mock<IFeatureFlagService>();
                 featureFlagService

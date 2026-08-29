@@ -20,6 +20,33 @@
         const stagingValidationModalTitle = $('#staging-validation-modal-title');
         const stagingValidationModalContent = $('.staging-validation-modal-content');
 
+        $('.staging-listed-input').on('change', function () {
+            const input = $(this);
+            const form = input.closest('form');
+            const status = form.find('.staging-listed-status');
+            const previousValue = !input.prop('checked');
+            const data = form.serialize();
+
+            input.prop('disabled', true);
+            form.attr('aria-busy', 'true');
+            status.text('');
+
+            $.ajax({
+                method: 'POST',
+                url: form.attr('action'),
+                cache: false,
+                data: data
+            })
+                .fail(function () {
+                    input.prop('checked', previousValue);
+                    status.text('Not saved');
+                })
+                .always(function () {
+                    input.prop('disabled', false);
+                    form.removeAttr('aria-busy');
+                });
+        });
+
         $('.staging-validation-issues-toggle').on('click', function () {
             $('html').addClass('staging-validation-modal-open');
 

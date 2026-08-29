@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGetGallery.Filters;
@@ -38,6 +39,21 @@ namespace NuGetGallery
             }
 
             return File(content, CoreConstants.PackageContentType, $"{id}.{version}{CoreConstants.NuGetPackageFileExtension}");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> UpdateListed(string id, string version, bool listed)
+        {
+            var stagedPackage = _packageStagingManagementService.FindCurrentStagedPackage(id, version);
+            if (stagedPackage == null || !_packageStagingAuthorizationService.CanManage(GetCurrentUser(), stagedPackage))
+            {
+                return HttpNotFound();
+            }
+
+            await _packageStagingManagementService.UpdateListedAsync(stagedPackage, listed);
+
+            return new HttpStatusCodeResult(HttpStatusCode.NoContent);
         }
     }
 }

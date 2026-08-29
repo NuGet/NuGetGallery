@@ -24,6 +24,13 @@ namespace NuGetGallery
         PackageStagingStatus GetPackage(User currentUser, IEnumerable<Scope> scopes, string id, string version);
 
         /// <summary>
+        /// Gets the owner-visible status for a staged package attempt.
+        /// </summary>
+        /// <param name="stagedPackage">The staged package attempt.</param>
+        /// <returns>The staged package status.</returns>
+        PackageStagingStatus GetStatus(StagedPackage stagedPackage);
+
+        /// <summary>
         /// Determines whether package staging is enabled for the user or an organization the user belongs to.
         /// </summary>
         /// <param name="currentUser">The user whose staging access should be checked.</param>
@@ -44,6 +51,13 @@ namespace NuGetGallery
         /// <param name="stagedPackage">The authorized staged package attempt.</param>
         /// <returns>The package stream.</returns>
         Task<Stream> OpenPackageContentAsync(StagedPackage stagedPackage);
+
+        /// <summary>
+        /// Changes whether the package should be listed after promotion.
+        /// </summary>
+        /// <param name="stagedPackage">The authorized current staged package attempt.</param>
+        /// <param name="listed">Whether the package should be listed after promotion.</param>
+        Task UpdateListedAsync(StagedPackage stagedPackage, bool listed);
 
         /// <summary>
         /// Gets staged packages owned by the user or an enabled organization the user belongs to.

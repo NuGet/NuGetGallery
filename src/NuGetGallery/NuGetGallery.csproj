@@ -617,6 +617,7 @@
       <DependentUpon>201711021733062_ApiKeyOwnerScope.cs</DependentUpon>
     </Compile>
     <Compile Include="RequestModels\SimulatedErrorType.cs" />
+    <Compile Include="RequestModels\UpdateStagedPackageRequest.cs" />
     <Compile Include="Services\AsynchronousValidationMessageEmitter.cs" />
     <Compile Include="Services\IStagedPackageValidationMessageEmitter.cs" />
     <Compile Include="Services\IPackageStagingAuthorizationService.cs" />

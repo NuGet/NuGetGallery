@@ -155,6 +155,12 @@ namespace NuGetGallery
                 new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
+                RouteName.UpdateManagedStagedPackageListed,
+                "account/staging/package/{id}/{version}/listed",
+                new { controller = "Staging", action = nameof(StagingController.UpdateListed) },
+                new { httpMethod = new HttpMethodConstraint("POST") });
+
+            routes.MapRoute(
                 RouteName.VerifyPackage,
                 "packages/manage/verify-upload",
                 new { controller = "Packages", action = "VerifyPackage" });
@@ -908,6 +914,12 @@ namespace NuGetGallery
                 "api/v3/staging/package/{id}/{version}",
                 new { controller = "StagingApi", action = "GetStagedPackage" },
                 new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
+                RouteName.UpdateStagedPackage,
+                "api/v3/staging/package/{id}/{version}",
+                new { controller = "StagingApi", action = nameof(StagingApiController.UpdateStagedPackage) },
+                new { httpMethod = new HttpMethodConstraint("PATCH") });
 
             routes.MapRoute(
                 RouteName.StagePackage,
