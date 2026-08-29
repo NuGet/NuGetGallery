@@ -8,26 +8,25 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
-using NuGetGallery.Authentication;
 
 namespace NuGetGallery
 {
     public class PackageStagingManagementService : IPackageStagingManagementService
     {
-        private readonly IApiScopeEvaluator _apiScopeEvaluator;
+        private readonly IPackageStagingAuthorizationService _packageStagingAuthorizationService;
         private readonly IFeatureFlagService _featureFlagService;
         private readonly IPackageService _packageService;
         private readonly IEntityRepository<StagedPackage> _stagedPackageRepository;
         private readonly IStagingBlobService _stagingBlobService;
 
         public PackageStagingManagementService(
-            IApiScopeEvaluator apiScopeEvaluator,
+            IPackageStagingAuthorizationService packageStagingAuthorizationService,
             IFeatureFlagService featureFlagService,
             IPackageService packageService,
             IEntityRepository<StagedPackage> stagedPackageRepository,
             IStagingBlobService stagingBlobService)
         {
-            _apiScopeEvaluator = apiScopeEvaluator ?? throw new ArgumentNullException(nameof(apiScopeEvaluator));
+            _packageStagingAuthorizationService = packageStagingAuthorizationService ?? throw new ArgumentNullException(nameof(packageStagingAuthorizationService));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _stagedPackageRepository = stagedPackageRepository ?? throw new ArgumentNullException(nameof(stagedPackageRepository));
@@ -72,15 +71,7 @@ namespace NuGetGallery
                 return null;
             }
 
-            var authorizationResult = _apiScopeEvaluator.Evaluate(
-                currentUser,
-                scopes,
-                ActionsRequiringPermissions.UploadNewPackageVersion,
-                package.PackageRegistration,
-                NuGetScopes.PackagePushVersion,
-                NuGetScopes.PackagePush);
-            var owner = authorizationResult.Owner;
-            if (!authorizationResult.IsSuccessful() || stagedPackage.OwnerKey != owner.Key || !_featureFlagService.IsPackageStagingEnabled(owner))
+            if (!_packageStagingAuthorizationService.CanManageWithApiKey(currentUser, scopes, stagedPackage))
             {
                 return null;
             }
@@ -103,13 +94,8 @@ namespace NuGetGallery
             return GetEnabledOwners(currentUser).Any();
         }
 
-        public async Task<Stream> OpenPackageContentAsync(User currentUser, string id, string version)
+        public StagedPackage FindCurrentStagedPackage(string id, string version)
         {
-            if (currentUser == null)
-            {
-                throw new ArgumentNullException(nameof(currentUser));
-            }
-
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
             if (package?.PackageStatusKey != PackageStatus.Staged)
             {
@@ -117,28 +103,19 @@ namespace NuGetGallery
             }
 
             var stagedPackage = GetCurrentAttempt(package.Key);
+            if (stagedPackage?.Status == StagedPackageStatus.Superseded || stagedPackage?.Status == StagedPackageStatus.Deleted)
+            {
+                return null;
+            }
+
+            return stagedPackage;
+        }
+
+        public async Task<Stream> OpenPackageContentAsync(StagedPackage stagedPackage)
+        {
             if (stagedPackage == null)
             {
-                return null;
-            }
-
-            if (stagedPackage.Status == StagedPackageStatus.Superseded || stagedPackage.Status == StagedPackageStatus.Deleted)
-            {
-                return null;
-            }
-
-            if (!_featureFlagService.IsPackageStagingEnabled(stagedPackage.Owner))
-            {
-                return null;
-            }
-
-            var permissions = ActionsRequiringPermissions.UploadNewPackageVersion.CheckPermissions(
-                currentUser,
-                stagedPackage.Owner,
-                package.PackageRegistration);
-            if (permissions != PermissionsCheckResult.Allowed)
-            {
-                return null;
+                throw new ArgumentNullException(nameof(stagedPackage));
             }
 
             var path = stagedPackage.UploadedBlobPath;
@@ -178,6 +155,7 @@ namespace NuGetGallery
                 .AsEnumerable()
                 .GroupBy(stagedPackage => stagedPackage.PackageKey)
                 .Select(attempts => attempts.OrderByDescending(attempt => attempt.Key).First())
+                .Where(stagedPackage => _packageStagingAuthorizationService.CanManage(currentUser, stagedPackage))
                 .OrderBy(stagedPackage => stagedPackage.Package.PackageRegistration.Id)
                 .ThenByDescending(stagedPackage => stagedPackage.UploadedDate)
                 .ToList();

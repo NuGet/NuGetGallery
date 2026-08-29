@@ -31,13 +31,19 @@ namespace NuGetGallery
         bool IsEnabled(User currentUser);
 
         /// <summary>
-        /// Opens the owner-visible content for the current staged package attempt.
+        /// Finds the current attempt for a staged package.
         /// </summary>
-        /// <param name="currentUser">The user requesting the package.</param>
         /// <param name="id">The package ID.</param>
         /// <param name="version">The package version.</param>
-        /// <returns>The package stream, or <see langword="null"/> when the package is not visible to the caller.</returns>
-        Task<Stream> OpenPackageContentAsync(User currentUser, string id, string version);
+        /// <returns>The current attempt, or <see langword="null"/> when the package is not staged.</returns>
+        StagedPackage FindCurrentStagedPackage(string id, string version);
+
+        /// <summary>
+        /// Opens the downloadable content for an authorized staged package attempt.
+        /// </summary>
+        /// <param name="stagedPackage">The authorized staged package attempt.</param>
+        /// <returns>The package stream.</returns>
+        Task<Stream> OpenPackageContentAsync(StagedPackage stagedPackage);
 
         /// <summary>
         /// Gets staged packages owned by the user or an enabled organization the user belongs to.

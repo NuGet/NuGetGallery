@@ -619,9 +619,11 @@
     <Compile Include="RequestModels\SimulatedErrorType.cs" />
     <Compile Include="Services\AsynchronousValidationMessageEmitter.cs" />
     <Compile Include="Services\IStagedPackageValidationMessageEmitter.cs" />
+    <Compile Include="Services\IPackageStagingAuthorizationService.cs" />
     <Compile Include="Services\IPackageStagingManagementService.cs" />
     <Compile Include="Services\IPackageStagingUploadService.cs" />
     <Compile Include="Services\PackageStagingResult.cs" />
+    <Compile Include="Services\PackageStagingAuthorizationService.cs" />
     <Compile Include="Services\PackageStagingManagementService.cs" />
     <Compile Include="Services\PackageStagingStatus.cs" />
     <Compile Include="Services\PackageStagingUploadService.cs" />

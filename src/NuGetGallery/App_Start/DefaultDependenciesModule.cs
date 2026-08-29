@@ -399,6 +399,10 @@ namespace NuGetGallery
                 .As<IPackageStagingManagementService>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<PackageStagingAuthorizationService>()
+                .As<IPackageStagingAuthorizationService>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<PackageStagingUploadService>()
                 .As<IPackageStagingUploadService>()
                 .InstancePerLifetimeScope();

@@ -71,19 +71,17 @@ namespace NuGetGallery
                 packageService
                     .Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
                     .Returns(currentAttempt.Package);
-                var apiScopeEvaluator = new Mock<IApiScopeEvaluator>();
-                apiScopeEvaluator
-                    .Setup(x => x.Evaluate(
+                var authorizationService = new Mock<IPackageStagingAuthorizationService>();
+                authorizationService
+                    .Setup(x => x.CanManageWithApiKey(
                         It.IsAny<User>(),
                         It.IsAny<IEnumerable<Scope>>(),
-                        It.IsAny<IActionRequiringEntityPermissions<PackageRegistration>>(),
-                        It.IsAny<PackageRegistration>(),
-                        It.IsAny<string[]>()))
-                    .Returns(new ApiScopeEvaluationResult(currentUser, PermissionsCheckResult.Allowed, scopesAreValid: true));
+                        currentAttempt))
+                    .Returns(true);
                 var target = CreateService(
                     new[] { previousAttempt, currentAttempt },
                     owner => true,
-                    apiScopeEvaluator.Object,
+                    authorizationService.Object,
                     packageService.Object);
 
                 var result = target.GetPackage(currentUser, Array.Empty<Scope>(), "Test.Package", "1.0.0");
@@ -104,10 +102,6 @@ namespace NuGetGallery
                 stagedPackage.UploadedBlobETag = "uploaded-etag";
                 stagedPackage.ValidatedBlobPath = "validated";
                 stagedPackage.ValidatedBlobETag = "validated-etag";
-                var packageService = new Mock<IPackageService>();
-                packageService
-                    .Setup(x => x.FindPackageByIdAndVersionStrict("Test.Package", "1.0.0"))
-                    .Returns(stagedPackage.Package);
                 var expected = new MemoryStream();
                 var stagingBlobService = new Mock<IStagingBlobService>();
                 stagingBlobService
@@ -116,32 +110,29 @@ namespace NuGetGallery
                 var target = CreateService(
                     new[] { stagedPackage },
                     owner => true,
-                    packageService: packageService.Object,
                     stagingBlobService: stagingBlobService.Object);
 
-                var actual = await target.OpenPackageContentAsync(currentUser, "Test.Package", "1.0.0");
+                var actual = await target.OpenPackageContentAsync(stagedPackage);
 
                 Assert.Same(expected, actual);
             }
 
             [Fact]
-            public async Task DoesNotOpenAnotherOwnersContent()
+            public void DoesNotFindADeletedAttempt()
             {
                 var owner = new User("owner") { Key = 1 };
-                var currentUser = new User("current") { Key = 2 };
                 var stagedPackage = CreateStagedPackage(10, "Test.Package", "1.0.0", owner);
+                stagedPackage.Status = StagedPackageStatus.Deleted;
                 var packageService = new Mock<IPackageService>();
                 packageService
                     .Setup(x => x.FindPackageByIdAndVersionStrict("Test.Package", "1.0.0"))
                     .Returns(stagedPackage.Package);
-                var stagingBlobService = new Mock<IStagingBlobService>(MockBehavior.Strict);
                 var target = CreateService(
                     new[] { stagedPackage },
                     user => true,
-                    packageService: packageService.Object,
-                    stagingBlobService: stagingBlobService.Object);
+                    packageService: packageService.Object);
 
-                var result = await target.OpenPackageContentAsync(currentUser, "Test.Package", "1.0.0");
+                var result = target.FindCurrentStagedPackage("Test.Package", "1.0.0");
 
                 Assert.Null(result);
             }
@@ -149,7 +140,7 @@ namespace NuGetGallery
             private static PackageStagingManagementService CreateService(
                 IEnumerable<StagedPackage> stagedPackages,
                 Func<User, bool> isEnabled,
-                IApiScopeEvaluator apiScopeEvaluator = null,
+                IPackageStagingAuthorizationService authorizationService = null,
                 IPackageService packageService = null,
                 IStagingBlobService stagingBlobService = null)
             {
@@ -171,9 +162,13 @@ namespace NuGetGallery
                 featureFlagService
                     .Setup(x => x.IsPackageStagingEnabled(It.IsAny<User>()))
                     .Returns((User owner) => isEnabled(owner));
+                var defaultAuthorizationService = new Mock<IPackageStagingAuthorizationService>();
+                defaultAuthorizationService
+                    .Setup(x => x.CanManage(It.IsAny<User>(), It.IsAny<StagedPackage>()))
+                    .Returns(true);
 
                 return new PackageStagingManagementService(
-                    apiScopeEvaluator ?? Mock.Of<IApiScopeEvaluator>(),
+                    authorizationService ?? defaultAuthorizationService.Object,
                     featureFlagService.Object,
                     packageService ?? Mock.Of<IPackageService>(),
                     stagedPackageRepository.Object,
