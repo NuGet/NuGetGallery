@@ -14,6 +14,7 @@ namespace NuGetGallery.FunctionalTests.Playwright
 {
     public sealed class AspirePlaywrightFixture : IAsyncLifetime
     {
+        internal const string ExternalHostEnvironmentVariable = "NUGET_PLAYWRIGHT_EXTERNAL_HOST";
         internal const string HarnessEnvironmentVariable = "NUGET_PLAYWRIGHT_ASPIRE_HARNESS";
         private static readonly TimeSpan StartupTimeout = TimeSpan.FromMinutes(10);
         private readonly string _settingsPath = Path.Combine(
@@ -29,6 +30,15 @@ namespace NuGetGallery.FunctionalTests.Playwright
 
         public async Task InitializeAsync()
         {
+            // xUnit may initialize collection fixtures even when all tests in the collection are filtered out.
+            if (string.Equals(
+                Environment.GetEnvironmentVariable(ExternalHostEnvironmentVariable),
+                bool.TrueString,
+                StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
             _originalAppHostProfile = Environment.GetEnvironmentVariable("APPHOST_PROFILE");
             _originalConfigurationFilePath = Environment.GetEnvironmentVariable(
                 EnvironmentSettings.ConfigurationFilePathVariableName);

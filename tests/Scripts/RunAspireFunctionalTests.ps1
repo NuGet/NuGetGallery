@@ -14,9 +14,17 @@ param(
 $ErrorActionPreference = "Stop"
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
 $hostPid = $null
+$originalExternalHost = $env:NUGET_PLAYWRIGHT_EXTERNAL_HOST
 
 try
 {
+    Write-Host "=== Building functional tests ==="
+    & "$PSScriptRoot\BuildGalleryFunctionalTests.ps1" -Configuration $Configuration
+    if ($LASTEXITCODE -ne 0)
+    {
+        throw "Building functional tests failed with exit code $LASTEXITCODE."
+    }
+
     Write-Host "=== Starting Aspire Host ==="
     $startArguments = @{
         Configuration = $Configuration
@@ -40,21 +48,21 @@ try
         throw "Seeding functional test data failed with exit code $LASTEXITCODE."
     }
 
-    Write-Host "=== Building functional tests ==="
-    & "$PSScriptRoot\BuildGalleryFunctionalTests.ps1" -Configuration $Configuration
-    if ($LASTEXITCODE -ne 0)
+    $categories = "Category=P0Tests|Category=P1Tests|Category=P2Tests"
+    if ($UnsafeAdminApiAuthBypassForTesting)
     {
-        throw "Building functional tests failed with exit code $LASTEXITCODE."
+        $categories += "|Category=AdminApiTests"
     }
 
-    Write-Host "=== Running non-Playwright P0, P1, and P2 functional tests ==="
+    Write-Host "=== Running non-Playwright functional tests: $categories ==="
     $testDll = Join-Path $repoRoot "tests\NuGetGallery.FunctionalTests\bin\$Configuration\net10.0\NuGetGallery.FunctionalTests.dll"
     $resultsDirectory = Join-Path $repoRoot "tests\TestResults"
     New-Item -ItemType Directory -Path $resultsDirectory -Force | Out-Null
+    $env:NUGET_PLAYWRIGHT_EXTERNAL_HOST = [bool]::TrueString
 
     dotnet test $testDll `
         --blame-hang-timeout 600s `
-        --filter "(Category=P0Tests|Category=P1Tests|Category=P2Tests)&Category!=PlaywrightTests" `
+        --filter "($categories)&Category!=PlaywrightTests" `
         --logger "trx;LogFileName=FunctionalTests.trx" `
         --results-directory $resultsDirectory
 
@@ -72,9 +80,16 @@ try
 }
 finally
 {
-    if ($null -ne $hostPid)
+    try
     {
-        Write-Host "=== Stopping Aspire Host ==="
-        & "$repoRoot\tools\Stop-AspireHost.ps1" -HostPid $hostPid
+        if ($null -ne $hostPid)
+        {
+            Write-Host "=== Stopping Aspire Host ==="
+            & "$repoRoot\tools\Stop-AspireHost.ps1" -HostPid $hostPid
+        }
+    }
+    finally
+    {
+        $env:NUGET_PLAYWRIGHT_EXTERNAL_HOST = $originalExternalHost
     }
 }

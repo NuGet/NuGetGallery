@@ -31,6 +31,7 @@ namespace NuGetGallery.FunctionalTests.Playwright.UploadAndDownload
         [Fact]
         [Priority(0)]
         [Category("P0Tests")]
+        [Category("PlaywrightTests")]
         public async Task UploadNewVersionOfExistingPackageAsSelf()
         {
             // Arrange
@@ -52,6 +53,7 @@ namespace NuGetGallery.FunctionalTests.Playwright.UploadAndDownload
         [Fact]
         [Priority(0)]
         [Category("P0Tests")]
+        [Category("PlaywrightTests")]
         public async Task UploadNewPackageRegistrationAsCollaborator()
         {
             // Arrange
@@ -70,6 +72,7 @@ namespace NuGetGallery.FunctionalTests.Playwright.UploadAndDownload
         [Fact]
         [Priority(0)]
         [Category("P0Tests")]
+        [Category("PlaywrightTests")]
         public async Task UploadNewVersionOfExistingPackageAsCollaborator()
         {
             // Arrange
@@ -91,6 +94,7 @@ namespace NuGetGallery.FunctionalTests.Playwright.UploadAndDownload
         [Fact]
         [Priority(0)]
         [Category("P0Tests")]
+        [Category("PlaywrightTests")]
         public async Task UploadNewPackageRegistrationAsAdmin()
         {
             // Arrange
@@ -109,6 +113,7 @@ namespace NuGetGallery.FunctionalTests.Playwright.UploadAndDownload
         [Fact]
         [Priority(0)]
         [Category("P0Tests")]
+        [Category("PlaywrightTests")]
         public async Task UploadNewVersionOfExistingPackageAsAdmin()
         {
             // Arrange
