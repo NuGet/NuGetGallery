@@ -204,8 +204,6 @@ namespace NuGetGallery
             out StagingTarget target)
         {
             var packageRegistration = _packageService.FindPackageRegistrationById(upload.Id);
-            var existingPackage = _packageService.FindPackageByIdAndVersionStrict(upload.Id, upload.NormalizedVersion);
-            var currentAttempt = GetCurrentAttempt(existingPackage);
             var authorizationResult = EvaluateAuthorization(currentUser, scopes, packageRegistration, upload.Id);
             if (!authorizationResult.IsSuccessful())
             {
@@ -213,9 +211,19 @@ namespace NuGetGallery
                 return GetAuthorizationFailure(authorizationResult);
             }
 
+            Package existingPackage = null;
+            var packageStatus = _packageService.GetPackageStatus(upload.Id, upload.PackageMetadata.Version);
+            if (packageStatus != null)
+            {
+                existingPackage = _packageService.FindPackageByIdAndVersionStrict(upload.Id, upload.NormalizedVersion);
+            }
+
+            var currentAttempt = GetCurrentAttempt(existingPackage);
+
             return ResolveTarget(
                 upload,
                 packageRegistration,
+                packageStatus,
                 existingPackage,
                 currentAttempt,
                 authorizationResult.Owner,
@@ -228,24 +236,23 @@ namespace NuGetGallery
             PreparedPackageUpload upload,
             out StagingTarget target)
         {
-            var hasMatchingId = string.Equals(
-                authorizedStagedPackage.Package.PackageRegistration.Id,
-                upload.Id,
-                StringComparison.OrdinalIgnoreCase);
-            var hasMatchingVersion = string.Equals(
-                authorizedStagedPackage.Package.NormalizedVersion,
-                upload.NormalizedVersion,
-                StringComparison.OrdinalIgnoreCase);
+            var hasMatchingId = string.Equals(authorizedStagedPackage.Package.PackageRegistration.Id, upload.Id, StringComparison.OrdinalIgnoreCase);
+            var hasMatchingVersion = string.Equals(authorizedStagedPackage.Package.NormalizedVersion, upload.NormalizedVersion, StringComparison.OrdinalIgnoreCase);
             if (!hasMatchingId || !hasMatchingVersion)
             {
                 target = null;
-                return PackageStagingResult.Error(
-                    HttpStatusCode.BadRequest,
-                    "The replacement package identity does not match the staged package.");
+                return PackageStagingResult.Error(HttpStatusCode.BadRequest, "The replacement package identity does not match the staged package.");
             }
 
             var packageRegistration = _packageService.FindPackageRegistrationById(upload.Id);
-            var existingPackage = _packageService.FindPackageByIdAndVersionStrict(upload.Id, upload.NormalizedVersion);
+
+            Package existingPackage = null;
+            var packageStatus = _packageService.GetPackageStatus(upload.Id, upload.PackageMetadata.Version);
+            if (packageStatus != null)
+            {
+                existingPackage = _packageService.FindPackageByIdAndVersionStrict(upload.Id, upload.NormalizedVersion);
+            }
+
             var currentAttempt = GetCurrentAttempt(existingPackage);
             if (currentAttempt?.Key != authorizedStagedPackage.Key)
             {
@@ -256,6 +263,7 @@ namespace NuGetGallery
             return ResolveTarget(
                 upload,
                 packageRegistration,
+                packageStatus,
                 existingPackage,
                 currentAttempt,
                 authorizedStagedPackage.Owner,
@@ -266,6 +274,7 @@ namespace NuGetGallery
         private PackageStagingResult ResolveTarget(
             PreparedPackageUpload upload,
             PackageRegistration packageRegistration,
+            PackageStatus? packageStatus,
             Package existingPackage,
             StagedPackage currentAttempt,
             User owner,
@@ -283,7 +292,7 @@ namespace NuGetGallery
                 return PackageStagingResult.Error(HttpStatusCode.Forbidden, "The package ID is locked and cannot be staged.");
             }
 
-            if (existingPackage == null)
+            if (packageStatus == null)
             {
                 if (!allowCreate)
                 {
@@ -292,6 +301,16 @@ namespace NuGetGallery
 
                 target = new StagingTarget(packageRegistration, existingPackage: null, currentAttempt: null, owner);
                 return null;
+            }
+
+            if (existingPackage == null)
+            {
+                if (allowCreate)
+                {
+                    return CreateExistingPackageConflict(upload.Id, upload.PackageMetadata.Version);
+                }
+
+                return PackageStagingResult.Error(HttpStatusCode.NotFound, "The staged package was not found.");
             }
 
             if (currentAttempt == null)
@@ -309,12 +328,12 @@ namespace NuGetGallery
                 return CreateExistingPackageConflict(upload.Id, upload.PackageMetadata.Version);
             }
 
-            var canReplace = existingPackage.PackageStatusKey == PackageStatus.Staged;
+            var canReplace = packageStatus == PackageStatus.Staged;
 
             // A deleted Package can be restaged only when its latest staging attempt is also Deleted.
             // This proves the version was deleted from staging before promotion. Packages deleted after
             // normal push or promotion have no current staging attempt and remain conflicts.
-            var canReactivate = existingPackage.PackageStatusKey == PackageStatus.Deleted
+            var canReactivate = packageStatus == PackageStatus.Deleted
                 && currentAttempt.Status == StagedPackageStatus.Deleted;
             if (!canReplace && !canReactivate)
             {
