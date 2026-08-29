@@ -54,6 +54,7 @@ namespace NuGetGallery
                     .Callback(() => package.PackageStatusKey = PackageStatus.Staged)
                     .Returns(Task.CompletedTask);
 
+                PackageStreamMetadata streamMetadata = null;
                 var packageUploadService = new Mock<IPackageUploadService>();
                 packageUploadService
                     .Setup(x => x.ValidateBeforeGeneratePackageAsync(
@@ -68,6 +69,8 @@ namespace NuGetGallery
                         It.IsAny<PackageStreamMetadata>(),
                         owner,
                         currentUser))
+                    .Callback<string, PackageArchiveReader, PackageStreamMetadata, User, User>(
+                        (id, reader, metadata, packageOwner, uploader) => streamMetadata = metadata)
                     .ReturnsAsync(package);
                 packageUploadService
                     .Setup(x => x.ValidateAfterGeneratePackageAsync(
@@ -148,6 +151,7 @@ namespace NuGetGallery
                 Assert.Equal(owner.Key, stagedPackage.OwnerKey);
                 Assert.Equal(file.Path, stagedPackage.UploadedBlobPath);
                 Assert.Equal(file.ETag, stagedPackage.UploadedBlobETag);
+                Assert.Equal(streamMetadata.Hash, stagedPackage.UploadHash);
                 Assert.Null(stagedPackage.ValidatedBlobPath);
                 Assert.Null(stagedPackage.ValidatedBlobETag);
                 Assert.Equal(expectedStatus, stagedPackage.Status);

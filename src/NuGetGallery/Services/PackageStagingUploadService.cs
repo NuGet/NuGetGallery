@@ -140,7 +140,7 @@ namespace NuGetGallery
                 }
 
                 seekableStream.Position = 0;
-                var commitResult = await CommitPackageAsync(package, owner, seekableStream);
+                var commitResult = await CommitPackageAsync(package, owner, seekableStream, streamMetadata.Hash);
                 if (commitResult == PackageCommitResult.Conflict)
                 {
                     return PackageStagingResult.Error(HttpStatusCode.Conflict, Strings.UploadPackage_IdVersionConflict);
@@ -293,7 +293,7 @@ namespace NuGetGallery
             return warnings;
         }
 
-        private async Task<PackageCommitResult> CommitPackageAsync(Package package, User owner, Stream packageFile)
+        private async Task<PackageCommitResult> CommitPackageAsync(Package package, User owner, Stream packageFile, string uploadHash)
         {
             var file = await _stagingBlobService.SavePackageFileAsync(package.PackageRegistration.Id, package.NormalizedVersion, packageFile);
 
@@ -304,6 +304,7 @@ namespace NuGetGallery
                 OwnerKey = owner.Key,
                 UploadedBlobPath = file.Path,
                 UploadedBlobETag = file.ETag,
+                UploadHash = uploadHash,
                 Status = StagedPackageStatus.Validating,
                 UploadedDate = DateTime.UtcNow,
             };
