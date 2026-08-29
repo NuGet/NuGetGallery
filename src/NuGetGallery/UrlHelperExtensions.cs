@@ -1185,6 +1185,19 @@ namespace NuGetGallery
             return GetActionLink(url, "Packages", "Users", relativeUrl);
         }
 
+        public static string DownloadStagedPackage(this UrlHelper url, string id, string version, bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.DownloadManagedStagedPackage,
+                relativeUrl,
+                new RouteValueDictionary
+                {
+                    { "id", id },
+                    { "version", version },
+                });
+        }
+
         public static string ManageMyReceivedPackageOwnershipRequests(this UrlHelper url, bool relativeUrl = true)
         {
             return url.ManageMyPackages(relativeUrl) + Fragments.ManagePackagesPage.ShowRequestsReceivedContainer;

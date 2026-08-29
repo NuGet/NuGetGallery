@@ -61,7 +61,7 @@
                                             <col class="staging-package-version-column" />
                                             <col class="staging-package-status-column" />
                                             <col class="staging-package-uploaded-column" />
-                                            <col />
+                                            <col class="staging-package-actions-column" />
                                         </colgroup>
                                         <thead>
                                             <tr class="manage-package-headings">
@@ -70,7 +70,7 @@
                                                 <th>Version</th>
                                                 <th>Status</th>
                                                 <th>Uploaded</th>
-                                                <th>Actions</th>
+                                                <th><span class="sr-only">Actions</span></th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -119,8 +119,26 @@
                                                         }
                                                     </td>
                                                     <td class="align-middle"><span data-datetime="@package.UploadedDate.ToString("O")">@package.UploadedDate.ToNuGetShortDateString()</span></td>
-                                                    <td class="align-middle">
-                                                        <a href="@Url.RouteUrl(RouteName.DownloadManagedStagedPackage, new { id = package.Id, version = package.Version })">Download</a>
+                                                    <td class="text-right align-middle package-controls">
+                                                        @if (package.CanManage)
+                                                        {
+                                                            <div class="dropdown staging-package-actions">
+                                                                <button type="button"
+                                                                        class="btn dropdown-toggle staging-package-actions-toggle"
+                                                                        data-toggle="dropdown"
+                                                                        aria-haspopup="true"
+                                                                        aria-expanded="false"
+                                                                        aria-label="Actions for @package.Id @package.Version"
+                                                                        title="Package actions">
+                                                                    <span aria-hidden="true">&hellip;</span>
+                                                                </button>
+                                                                <ul class="dropdown-menu dropdown-menu-right">
+                                                                    <li>
+                                                                        <a href="@Url.DownloadStagedPackage(package.Id, package.Version)">Download</a>
+                                                                    </li>
+                                                                </ul>
+                                                            </div>
+                                                        }
                                                     </td>
                                                 </tr>
                                             }

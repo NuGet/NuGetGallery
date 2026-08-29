@@ -95,6 +95,64 @@
     }
   }
 
+  .staging-package-actions {
+    display: inline-block;
+
+    .staging-package-actions-toggle {
+      align-items: center;
+      background-color: transparent;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      color: var(--neutralForeground1Rest);
+      display: inline-flex;
+      font-size: 20px;
+      height: 32px;
+      justify-content: center;
+      line-height: 1;
+      padding: 0;
+      width: 32px;
+
+      &:hover,
+      &:focus {
+        background-color: var(--neutralBackgroundSubtleHover);
+        border-color: transparent;
+        color: var(--neutralForeground1Rest);
+      }
+
+      &:focus {
+        outline: 2px solid var(--neutralStrokeFocus2Rest);
+        outline-offset: 1px;
+      }
+    }
+
+    &.open .staging-package-actions-toggle,
+    .staging-package-actions-toggle:active {
+      background-color: var(--neutralBackgroundSubtlePressed);
+      border-color: transparent;
+      color: var(--neutralForeground1Rest);
+    }
+
+    .dropdown-menu {
+      background-color: var(--neutralBackground2Rest);
+      border: 1px solid var(--neutralStroke1Rest);
+      box-shadow: 0 4px 12px var(--shadowAmbient);
+      min-width: 0;
+      padding: 4px 0;
+      width: 120px;
+
+      > li > a {
+        color: var(--neutralForeground1Rest);
+        padding: 6px 12px;
+
+        &:hover,
+        &:focus {
+          background-color: var(--neutralBackground2Hover);
+          color: var(--neutralForeground1Rest);
+        }
+      }
+    }
+  }
+
   .staging-status-content {
     display: flex;
     align-items: center;

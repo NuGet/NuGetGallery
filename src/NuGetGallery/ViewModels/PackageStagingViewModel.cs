@@ -22,5 +22,7 @@ namespace NuGetGallery
         public DateTime UploadedDate { get; set; }
 
         public IReadOnlyList<ValidationIssue> ValidationIssues { get; set; }
+
+        public bool CanManage { get; set; }
     }
 }
