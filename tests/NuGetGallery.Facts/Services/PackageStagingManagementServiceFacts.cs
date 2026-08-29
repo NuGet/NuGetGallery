@@ -62,6 +62,35 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public void ListsOnlyNewestApiKeyAuthorizedAttempts()
+            {
+                var currentUser = new User("current") { Key = 1 };
+                var scopes = Array.Empty<Scope>();
+                var previousAttempt = CreateStagedPackage(100, 10, "Test.Package", "1.0.0", currentUser);
+                previousAttempt.Status = StagedPackageStatus.Superseded;
+                var currentAttempt = CreateStagedPackage(101, 10, "Test.Package", "1.0.0", currentUser);
+                currentAttempt.Status = StagedPackageStatus.Ready;
+                currentAttempt.Package.Listed = true;
+                var hiddenPackage = CreateStagedPackage(102, 11, "Hidden.Package", "2.0.0", currentUser);
+                var authorizationService = new Mock<IPackageStagingAuthorizationService>();
+                authorizationService
+                    .Setup(x => x.CanManageWithApiKey(currentUser, scopes, currentAttempt))
+                    .Returns(true);
+                var target = CreateService(
+                    new[] { previousAttempt, currentAttempt, hiddenPackage },
+                    owner => true,
+                    authorizationService.Object);
+
+                var result = target.GetPackages(currentUser, scopes);
+
+                var package = Assert.Single(result);
+                Assert.Equal("Test.Package", package.Id);
+                Assert.Equal("1.0.0", package.Version);
+                Assert.Equal(StagedPackageStatus.Ready.ToString(), package.Status);
+                Assert.True(package.Listed);
+            }
+
+            [Fact]
             public void GetsTheNewestAttemptForAPackage()
             {
                 var currentUser = new User("current") { Key = 1, EmailAddress = "current@example.test" };

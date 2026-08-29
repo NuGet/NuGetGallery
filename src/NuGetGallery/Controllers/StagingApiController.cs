@@ -60,6 +60,16 @@ namespace NuGetGallery
         }
 
         [HttpGet]
+        public virtual ActionResult GetStagedPackages()
+        {
+            var currentUser = GetCurrentUser();
+            var scopes = User.Identity.GetScopesFromClaim();
+
+            var packages = _packageStagingManagementService.GetPackages(currentUser, scopes);
+            return Json(packages, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
         public virtual ActionResult GetStagedPackage(string id, string version)
         {
             var currentUser = GetCurrentUser();

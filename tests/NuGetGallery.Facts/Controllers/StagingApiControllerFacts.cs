@@ -25,6 +25,26 @@ namespace NuGetGallery
         }
 
         [Fact]
+        public void GetsStagedPackages()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var packages = new[] { new PackageStagingStatus { Id = "PackageA" } };
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetPackages(currentUser, It.IsAny<IEnumerable<Scope>>()))
+                .Returns(packages);
+            GetMock<HttpContextBase>()
+                .SetupGet(x => x.User)
+                .Returns(Fakes.ToPrincipal(currentUser));
+            var target = GetController<StagingApiController>();
+            target.SetCurrentUser(currentUser);
+
+            var result = target.GetStagedPackages();
+
+            var json = Assert.IsType<JsonResult>(result);
+            Assert.Same(packages, json.Data);
+        }
+
+        [Fact]
         public async Task UpdatesListedIntentForAuthorizedPackage()
         {
             var currentUser = new User("current") { Key = 1 };

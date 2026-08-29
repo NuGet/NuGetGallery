@@ -14,6 +14,14 @@ namespace NuGetGallery
     public interface IPackageStagingManagementService
     {
         /// <summary>
+        /// Gets staged packages visible to the API credential.
+        /// </summary>
+        /// <param name="currentUser">The user associated with the staging credential.</param>
+        /// <param name="scopes">The scopes granted to the staging credential.</param>
+        /// <returns>The current staged package statuses visible to the credential.</returns>
+        IReadOnlyList<PackageStagingStatus> GetPackages(User currentUser, IEnumerable<Scope> scopes);
+
+        /// <summary>
         /// Gets an owner-visible staged package.
         /// </summary>
         /// <param name="currentUser">The user associated with the staging credential.</param>

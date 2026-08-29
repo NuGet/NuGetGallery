@@ -940,6 +940,12 @@ namespace NuGetGallery
                 new { httpMethod = new HttpMethodConstraint("DELETE") });
 
             routes.MapRoute(
+                RouteName.GetStagedPackages,
+                "api/v3/staging/package",
+                new { controller = "StagingApi", action = nameof(StagingApiController.GetStagedPackages) },
+                new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
                 RouteName.StagePackage,
                 "api/v3/staging/package",
                 new { controller = "StagingApi", action = "StagePackage" },

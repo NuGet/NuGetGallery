@@ -180,20 +180,48 @@ namespace NuGetGallery
                 .Select(owner => owner.Key)
                 .ToArray();
 
-            var stagedPackages = _stagedPackageRepository.GetAll();
+            return GetCurrentStagedPackages(ownerKeys)
+                .Where(stagedPackage => _packageStagingAuthorizationService.CanManage(currentUser, stagedPackage))
+                .OrderBy(stagedPackage => stagedPackage.Package.PackageRegistration.Id)
+                .ThenByDescending(stagedPackage => stagedPackage.UploadedDate)
+                .ToList();
+        }
 
-            return stagedPackages
+        public IReadOnlyList<PackageStagingStatus> GetPackages(User currentUser, IEnumerable<Scope> scopes)
+        {
+            if (currentUser == null)
+            {
+                throw new ArgumentNullException(nameof(currentUser));
+            }
+
+            if (scopes == null)
+            {
+                throw new ArgumentNullException(nameof(scopes));
+            }
+
+            var ownerKeys = GetEnabledOwners(currentUser)
+                .Select(owner => owner.Key)
+                .ToArray();
+
+            return GetCurrentStagedPackages(ownerKeys)
+                .Where(stagedPackage => _packageStagingAuthorizationService.CanManageWithApiKey(currentUser, scopes, stagedPackage))
+                .Select(GetStatus)
+                .OrderBy(package => package.Id)
+                .ThenBy(package => package.Version)
+                .ToList();
+        }
+
+        private IEnumerable<StagedPackage> GetCurrentStagedPackages(int[] ownerKeys)
+        {
+            return _stagedPackageRepository
+                .GetAll()
                 .Include(stagedPackage => stagedPackage.Package.PackageRegistration)
                 .Include(stagedPackage => stagedPackage.Owner)
                 .Where(stagedPackage => ownerKeys.Contains(stagedPackage.OwnerKey))
                 .Where(stagedPackage => stagedPackage.Package.PackageStatusKey == PackageStatus.Staged)
                 .AsEnumerable()
                 .GroupBy(stagedPackage => stagedPackage.PackageKey)
-                .Select(attempts => attempts.OrderByDescending(attempt => attempt.Key).First())
-                .Where(stagedPackage => _packageStagingAuthorizationService.CanManage(currentUser, stagedPackage))
-                .OrderBy(stagedPackage => stagedPackage.Package.PackageRegistration.Id)
-                .ThenByDescending(stagedPackage => stagedPackage.UploadedDate)
-                .ToList();
+                .Select(attempts => attempts.OrderByDescending(attempt => attempt.Key).First());
         }
 
         private StagedPackage GetCurrentAttempt(int packageKey)
