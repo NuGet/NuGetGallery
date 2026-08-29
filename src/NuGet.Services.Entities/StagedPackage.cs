@@ -39,5 +39,10 @@ namespace NuGet.Services.Entities
         public StagedPackageStatus Status { get; set; }
 
         public DateTime UploadedDate { get; set; }
+
+        /// <summary>
+        /// Used for optimistic concurrency when updating the staged attempt.
+        /// </summary>
+        public byte[] RowVersion { get; set; }
     }
 }

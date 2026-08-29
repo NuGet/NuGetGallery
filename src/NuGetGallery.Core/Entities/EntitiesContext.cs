@@ -490,6 +490,10 @@ namespace NuGetGallery
                 .HasForeignKey(s => s.OwnerKey)
                 .WillCascadeOnDelete(false);
 
+            modelBuilder.Entity<StagedPackage>()
+                .Property(s => s.RowVersion)
+                .IsRowVersion();
+
             modelBuilder.Entity<SymbolPackage>()
                 .Property(s => s.RowVersion)
                 .IsRowVersion();
