@@ -126,6 +126,7 @@ namespace NuGetGallery
                     .Returns(true);
 
                 var target = new PackageStagingUploadService(
+                    Mock.Of<IEntitiesContext>(),
                     apiScopeEvaluator.Object,
                     featureFlagService.Object,
                     packageService.Object,
@@ -163,12 +164,17 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData(StagedPackageStatus.Validating, HttpStatusCode.OK)]
-            [InlineData(StagedPackageStatus.Ready, HttpStatusCode.OK)]
-            [InlineData(StagedPackageStatus.FailedValidation, HttpStatusCode.Conflict)]
-            [InlineData(StagedPackageStatus.Superseded, HttpStatusCode.Conflict)]
-            [InlineData(StagedPackageStatus.Deleted, HttpStatusCode.Conflict)]
-            public async Task IdenticalUploadReturnsExpectedStatus(StagedPackageStatus status, HttpStatusCode expectedStatusCode)
+            [InlineData(StagedPackageStatus.Validating, HttpStatusCode.OK, true)]
+            [InlineData(StagedPackageStatus.Ready, HttpStatusCode.OK, true)]
+            [InlineData(StagedPackageStatus.FailedValidation, HttpStatusCode.OK, true)]
+            [InlineData(StagedPackageStatus.Superseded, HttpStatusCode.Conflict, true)]
+            [InlineData(StagedPackageStatus.Deleted, HttpStatusCode.OK, true)]
+            [InlineData(StagedPackageStatus.Validating, HttpStatusCode.OK, false)]
+            [InlineData(StagedPackageStatus.Ready, HttpStatusCode.OK, false)]
+            [InlineData(StagedPackageStatus.FailedValidation, HttpStatusCode.OK, false)]
+            [InlineData(StagedPackageStatus.Superseded, HttpStatusCode.Conflict, false)]
+            [InlineData(StagedPackageStatus.Deleted, HttpStatusCode.OK, false)]
+            public async Task UploadReturnsExpectedStatus(StagedPackageStatus status, HttpStatusCode expectedStatusCode, bool identical)
             {
                 var currentUser = new User { Key = 17 };
                 var owner = new User { Key = 23, EmailAddress = "owner@example.com" };
@@ -181,6 +187,10 @@ namespace NuGetGallery
                     NormalizedVersion = "1.0.0",
                     PackageStatusKey = PackageStatus.Staged,
                 };
+                if (status == StagedPackageStatus.Deleted)
+                {
+                    package.PackageStatusKey = PackageStatus.Deleted;
+                }
 
                 using var packageFile = TestPackage.CreateTestPackageStream("PackageA", "1.0.0");
                 var uploadHash = CryptographyService.GenerateHash(packageFile, CoreConstants.Sha512HashAlgorithmId);
@@ -193,9 +203,15 @@ namespace NuGetGallery
                     Package = package,
                     OwnerKey = owner.Key,
                     Owner = owner,
+                    UploadedBlobPath = "old.nupkg",
+                    UploadedBlobETag = "old-etag",
                     UploadHash = uploadHash,
                     Status = status,
                 };
+                if (!identical)
+                {
+                    stagedPackage.UploadHash = "different";
+                }
 
                 var apiScopeEvaluator = new Mock<IApiScopeEvaluator>(MockBehavior.Strict);
                 apiScopeEvaluator
@@ -216,15 +232,37 @@ namespace NuGetGallery
                     .Returns(registration);
                 packageService
                     .Setup(x => x.GetPackageStatus("PackageA", It.Is<NuGet.Versioning.NuGetVersion>(value => value.ToNormalizedString() == "1.0.0")))
-                    .Returns(PackageStatus.Staged);
+                    .Returns(package.PackageStatusKey);
                 packageService
                     .Setup(x => x.FindPackageByIdAndVersionStrict("PackageA", "1.0.0"))
                     .Returns(package);
+                packageService
+                    .Setup(x => x.EnrichPackageFromNuGetPackage(
+                        It.IsAny<Package>(),
+                        It.IsAny<PackageArchiveReader>(),
+                        It.IsAny<PackageMetadata>(),
+                        It.IsAny<PackageStreamMetadata>(),
+                        currentUser))
+                    .Returns((Package value, PackageArchiveReader reader, PackageMetadata metadata, PackageStreamMetadata streamMetadata, User user) =>
+                    {
+                        value.PackageRegistration = registration;
+                        value.NormalizedVersion = metadata.Version.ToNormalizedString();
+                        return value;
+                    });
+                packageService
+                    .Setup(x => x.UpdatePackageStatusAsync(package, PackageStatus.Staged, false))
+                    .Callback(() => package.PackageStatusKey = PackageStatus.Staged)
+                    .Returns(Task.CompletedTask);
 
                 var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
+                StagedPackage successor = null;
                 stagedPackageRepository
                     .Setup(x => x.GetAll())
                     .Returns(new[] { stagedPackage }.AsQueryable());
+                stagedPackageRepository
+                    .Setup(x => x.InsertOnCommit(It.IsAny<StagedPackage>()))
+                    .Callback<StagedPackage>(value => successor = value);
+                stagedPackageRepository.Setup(x => x.CommitChangesAsync()).Returns(Task.CompletedTask);
 
                 var securityPolicyService = new Mock<ISecurityPolicyService>(MockBehavior.Strict);
                 securityPolicyService
@@ -233,6 +271,32 @@ namespace NuGetGallery
                         currentUser,
                         It.IsAny<HttpContextBase>()))
                     .ReturnsAsync(SecurityPolicyResult.SuccessResult);
+                securityPolicyService
+                    .Setup(x => x.EvaluatePackagePoliciesAsync(
+                        SecurityPolicyAction.PackagePush,
+                        It.IsAny<Package>(),
+                        currentUser,
+                        owner,
+                        It.IsAny<HttpContextBase>()))
+                    .ReturnsAsync(SecurityPolicyResult.SuccessResult);
+
+                var packageUploadService = new Mock<IPackageUploadService>(MockBehavior.Strict);
+                packageUploadService
+                    .Setup(x => x.ValidateBeforeGeneratePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageMetadata>(), currentUser))
+                    .ReturnsAsync(PackageValidationResult.Accepted());
+                packageUploadService
+                    .Setup(x => x.ValidateAfterGeneratePackageAsync(It.IsAny<Package>(), It.IsAny<PackageArchiveReader>(), owner, currentUser, false))
+                    .ReturnsAsync(PackageValidationResult.Accepted());
+
+                var stagingBlobService = new Mock<IStagingBlobService>(MockBehavior.Strict);
+                stagingBlobService
+                    .Setup(x => x.SavePackageFileAsync("PackageA", "1.0.0", It.IsAny<Stream>()))
+                    .ReturnsAsync(new StagingFileReference("new.nupkg", "etag"));
+
+                var stagedValidationMessageEmitter = new Mock<IStagedPackageValidationMessageEmitter>(MockBehavior.Strict);
+                stagedValidationMessageEmitter
+                    .Setup(x => x.StartValidationAsync(It.IsAny<StagedPackage>()))
+                    .ReturnsAsync(StagedPackageStatus.Validating);
 
                 var featureFlagService = new Mock<IFeatureFlagService>();
                 featureFlagService
@@ -240,15 +304,16 @@ namespace NuGetGallery
                     .Returns(true);
 
                 var target = new PackageStagingUploadService(
+                    Mock.Of<IEntitiesContext>(),
                     apiScopeEvaluator.Object,
                     featureFlagService.Object,
                     packageService.Object,
-                    new Mock<IPackageUploadService>(MockBehavior.Strict).Object,
+                    packageUploadService.Object,
                     Mock.Of<IReservedNamespaceService>(),
                     securityPolicyService.Object,
-                    new Mock<IStagingBlobService>(MockBehavior.Strict).Object,
+                    stagingBlobService.Object,
                     stagedPackageRepository.Object,
-                    new Mock<IStagedPackageValidationMessageEmitter>(MockBehavior.Strict).Object);
+                    stagedValidationMessageEmitter.Object);
 
                 var result = await target.StagePackageAsync(
                     currentUser,
@@ -257,6 +322,30 @@ namespace NuGetGallery
                     packageFile);
 
                 Assert.Equal(expectedStatusCode, result.StatusCode);
+                var isActiveNoOp = identical && (status == StagedPackageStatus.Validating || status == StagedPackageStatus.Ready);
+                var createsSuccessor = expectedStatusCode == HttpStatusCode.OK && !isActiveNoOp;
+                if (createsSuccessor && (status == StagedPackageStatus.Validating || status == StagedPackageStatus.Ready))
+                {
+                    Assert.Equal(StagedPackageStatus.Superseded, stagedPackage.Status);
+                }
+                else
+                {
+                    Assert.Equal(status, stagedPackage.Status);
+                }
+
+                if (createsSuccessor)
+                {
+                    stagedPackageRepository.Verify(x => x.InsertOnCommit(It.IsAny<StagedPackage>()), Times.Once());
+                    Assert.NotSame(stagedPackage, successor);
+                    Assert.Equal("old.nupkg", stagedPackage.UploadedBlobPath);
+                    Assert.Equal("old-etag", stagedPackage.UploadedBlobETag);
+                    Assert.Equal("new.nupkg", successor.UploadedBlobPath);
+                    Assert.Equal("etag", successor.UploadedBlobETag);
+                }
+                else
+                {
+                    stagedPackageRepository.Verify(x => x.InsertOnCommit(It.IsAny<StagedPackage>()), Times.Never());
+                }
             }
         }
 

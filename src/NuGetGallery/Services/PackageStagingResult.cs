@@ -29,9 +29,9 @@ namespace NuGetGallery
             return new PackageStagingResult(HttpStatusCode.Created, errorMessage: null, warnings);
         }
 
-        public static PackageStagingResult Ok()
+        public static PackageStagingResult Ok(IReadOnlyList<IValidationMessage> warnings = null)
         {
-            return new PackageStagingResult(HttpStatusCode.OK, errorMessage: null, warnings: null);
+            return new PackageStagingResult(HttpStatusCode.OK, errorMessage: null, warnings);
         }
 
         public static PackageStagingResult Error(HttpStatusCode statusCode, string errorMessage)
