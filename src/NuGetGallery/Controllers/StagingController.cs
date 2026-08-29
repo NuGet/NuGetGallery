@@ -5,6 +5,7 @@ using System;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using NuGet.Services.Entities;
 using NuGetGallery.Filters;
 
 namespace NuGetGallery
@@ -26,8 +27,8 @@ namespace NuGetGallery
         [HttpGet]
         public virtual async Task<ActionResult> DownloadPackage(string id, string version)
         {
-            var stagedPackage = _packageStagingManagementService.FindCurrentStagedPackage(id, version);
-            if (stagedPackage == null || !_packageStagingAuthorizationService.CanManage(GetCurrentUser(), stagedPackage))
+            var stagedPackage = FindAuthorizedStagedPackage(id, version);
+            if (stagedPackage == null)
             {
                 return HttpNotFound();
             }
@@ -45,15 +46,45 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> UpdateListed(string id, string version, bool listed)
         {
-            var stagedPackage = _packageStagingManagementService.FindCurrentStagedPackage(id, version);
-            if (stagedPackage == null || !_packageStagingAuthorizationService.CanManage(GetCurrentUser(), stagedPackage))
+            var stagedPackage = FindAuthorizedStagedPackage(id, version);
+            if (stagedPackage == null)
             {
                 return HttpNotFound();
             }
 
             await _packageStagingManagementService.UpdateListedAsync(stagedPackage, listed);
-
             return new HttpStatusCodeResult(HttpStatusCode.NoContent);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> DeletePackage(string id, string version)
+        {
+            var stagedPackage = FindAuthorizedStagedPackage(id, version);
+            if (stagedPackage == null)
+            {
+                return HttpNotFound();
+            }
+
+            await _packageStagingManagementService.DeletePackageAsync(stagedPackage);
+            return Redirect(Url.ManageMyPackages());
+        }
+
+        private StagedPackage FindAuthorizedStagedPackage(string id, string version)
+        {
+            var stagedPackage = _packageStagingManagementService.FindCurrentStagedPackage(id, version);
+            if (stagedPackage == null)
+            {
+                return null;
+            }
+
+            var currentUser = GetCurrentUser();
+            if (!_packageStagingAuthorizationService.CanManage(currentUser, stagedPackage))
+            {
+                return null;
+            }
+
+            return stagedPackage;
         }
     }
 }

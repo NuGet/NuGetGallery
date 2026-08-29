@@ -164,6 +164,22 @@
                                                                     <li>
                                                                         <a href="@Url.DownloadStagedPackage(package.Id, package.Version)">Download</a>
                                                                     </li>
+                                                                    <li role="separator" class="divider"></li>
+                                                                    <li>
+                                                                        <a href="#"
+                                                                           class="staging-delete-trigger"
+                                                                           data-confirm-message="Delete staged package @package.Id @package.Version?">
+                                                                            Delete&hellip;
+                                                                        </a>
+                                                                        @using (Html.BeginRouteForm(
+                                                                            RouteName.DeleteManagedStagedPackage,
+                                                                            new { id = package.Id, version = package.Version },
+                                                                            FormMethod.Post,
+                                                                            new { @class = "hidden staging-delete-form" }))
+                                                                        {
+                                                                            @Html.AntiForgeryToken()
+                                                                        }
+                                                                    </li>
                                                                 </ul>
                                                             </div>
                                                         }

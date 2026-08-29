@@ -47,6 +47,13 @@
                 });
         });
 
+        $('.staging-delete-trigger').on('click', function (event) {
+            event.preventDefault();
+            if (confirm($(this).data('confirm-message'))) {
+                $(this).siblings('.staging-delete-form')[0].submit();
+            }
+        });
+
         $('.staging-validation-issues-toggle').on('click', function () {
             $('html').addClass('staging-validation-modal-open');
 

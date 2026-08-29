@@ -156,6 +156,19 @@ namespace NuGetGallery
             await _stagedPackageRepository.CommitChangesAsync();
         }
 
+        public async Task DeletePackageAsync(StagedPackage stagedPackage)
+        {
+            if (stagedPackage == null)
+            {
+                throw new ArgumentNullException(nameof(stagedPackage));
+            }
+
+            stagedPackage.Status = StagedPackageStatus.Deleted;
+            stagedPackage.Package.Listed = false;
+            await _packageService.UpdatePackageStatusAsync(stagedPackage.Package, PackageStatus.Deleted, commitChanges: false);
+            await _stagedPackageRepository.CommitChangesAsync();
+        }
+
         public IReadOnlyList<StagedPackage> GetStagedPackages(User currentUser)
         {
             if (currentUser == null)

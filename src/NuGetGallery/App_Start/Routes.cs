@@ -161,6 +161,12 @@ namespace NuGetGallery
                 new { httpMethod = new HttpMethodConstraint("POST") });
 
             routes.MapRoute(
+                RouteName.DeleteManagedStagedPackage,
+                "account/staging/package/{id}/{version}/delete",
+                new { controller = "Staging", action = nameof(StagingController.DeletePackage) },
+                new { httpMethod = new HttpMethodConstraint("POST") });
+
+            routes.MapRoute(
                 RouteName.VerifyPackage,
                 "packages/manage/verify-upload",
                 new { controller = "Packages", action = "VerifyPackage" });
@@ -920,6 +926,12 @@ namespace NuGetGallery
                 "api/v3/staging/package/{id}/{version}",
                 new { controller = "StagingApi", action = nameof(StagingApiController.UpdateStagedPackage) },
                 new { httpMethod = new HttpMethodConstraint("PATCH") });
+
+            routes.MapRoute(
+                RouteName.DeleteStagedPackage,
+                "api/v3/staging/package/{id}/{version}",
+                new { controller = "StagingApi", action = nameof(StagingApiController.DeleteStagedPackage) },
+                new { httpMethod = new HttpMethodConstraint("DELETE") });
 
             routes.MapRoute(
                 RouteName.StagePackage,

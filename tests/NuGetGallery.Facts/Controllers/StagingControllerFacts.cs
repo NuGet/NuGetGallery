@@ -106,5 +106,30 @@ namespace NuGetGallery
             var status = Assert.IsType<HttpStatusCodeResult>(result);
             Assert.Equal(HttpStatusCode.NoContent, (HttpStatusCode)status.StatusCode);
         }
+
+        [Fact]
+        public async Task DeletesAuthorizedPackage()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var stagedPackage = new StagedPackage();
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
+                .Returns(stagedPackage);
+            GetMock<IPackageStagingAuthorizationService>()
+                .Setup(x => x.CanManage(currentUser, stagedPackage))
+                .Returns(true);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.DeletePackageAsync(stagedPackage))
+                .Returns(Task.CompletedTask);
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(currentUser);
+
+            var result = await target.DeletePackage("PackageA", "1.0.0");
+
+            Assert.IsType<RedirectResult>(result);
+            GetMock<IPackageStagingManagementService>().Verify(
+                x => x.DeletePackageAsync(stagedPackage),
+                Times.Once);
+        }
     }
 }

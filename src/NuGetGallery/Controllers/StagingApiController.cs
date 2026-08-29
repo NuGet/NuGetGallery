@@ -8,6 +8,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using NuGet.Services.Entities;
 using NuGetGallery.Authentication;
 using NuGetGallery.Filters;
 
@@ -81,10 +82,8 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-            var currentUser = GetCurrentUser();
-            var scopes = User.Identity.GetScopesFromClaim();
-            var stagedPackage = _packageStagingManagementService.FindCurrentStagedPackage(id, version);
-            if (stagedPackage == null || !_packageStagingAuthorizationService.CanManageWithApiKey(currentUser, scopes, stagedPackage))
+            var stagedPackage = FindAuthorizedStagedPackage(id, version);
+            if (stagedPackage == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
@@ -92,6 +91,37 @@ namespace NuGetGallery
             await _packageStagingManagementService.UpdateListedAsync(stagedPackage, request.Listed);
 
             return Json(_packageStagingManagementService.GetStatus(stagedPackage));
+        }
+
+        [HttpDelete]
+        public virtual async Task<ActionResult> DeleteStagedPackage(string id, string version)
+        {
+            var stagedPackage = FindAuthorizedStagedPackage(id, version);
+            if (stagedPackage == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+            }
+
+            await _packageStagingManagementService.DeletePackageAsync(stagedPackage);
+            return new HttpStatusCodeResult(HttpStatusCode.NoContent);
+        }
+
+        private StagedPackage FindAuthorizedStagedPackage(string id, string version)
+        {
+            var stagedPackage = _packageStagingManagementService.FindCurrentStagedPackage(id, version);
+            if (stagedPackage == null)
+            {
+                return null;
+            }
+
+            var currentUser = GetCurrentUser();
+            var scopes = User.Identity.GetScopesFromClaim();
+            if (!_packageStagingAuthorizationService.CanManageWithApiKey(currentUser, scopes, stagedPackage))
+            {
+                return null;
+            }
+
+            return stagedPackage;
         }
     }
 }

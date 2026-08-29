@@ -60,6 +60,12 @@ namespace NuGetGallery
         Task UpdateListedAsync(StagedPackage stagedPackage, bool listed);
 
         /// <summary>
+        /// Deletes an authorized current staged package attempt while retaining its reserved package row.
+        /// </summary>
+        /// <param name="stagedPackage">The authorized current staged package attempt.</param>
+        Task DeletePackageAsync(StagedPackage stagedPackage);
+
+        /// <summary>
         /// Gets staged packages owned by the user or an enabled organization the user belongs to.
         /// </summary>
         /// <param name="currentUser">The user requesting the staged packages.</param>

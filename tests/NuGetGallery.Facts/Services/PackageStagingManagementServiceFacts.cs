@@ -157,6 +157,32 @@ namespace NuGetGallery
                 stagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
             }
 
+            [Fact]
+            public async Task DeletesCurrentAttemptAndRetainsDeletedPackage()
+            {
+                var owner = new User("owner") { Key = 1 };
+                var stagedPackage = CreateStagedPackage(10, "Test.Package", "1.0.0", owner);
+                stagedPackage.Package.Listed = true;
+                var packageService = new Mock<IPackageService>();
+                packageService
+                    .Setup(x => x.UpdatePackageStatusAsync(stagedPackage.Package, PackageStatus.Deleted, false))
+                    .Callback(() => stagedPackage.Package.PackageStatusKey = PackageStatus.Deleted)
+                    .Returns(Task.CompletedTask);
+                var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
+                var target = CreateService(
+                    new[] { stagedPackage },
+                    user => true,
+                    packageService: packageService.Object,
+                    stagedPackageRepository: stagedPackageRepository);
+
+                await target.DeletePackageAsync(stagedPackage);
+
+                Assert.Equal(StagedPackageStatus.Deleted, stagedPackage.Status);
+                Assert.Equal(PackageStatus.Deleted, stagedPackage.Package.PackageStatusKey);
+                Assert.False(stagedPackage.Package.Listed);
+                stagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
+            }
+
             private static PackageStagingManagementService CreateService(
                 IEnumerable<StagedPackage> stagedPackages,
                 Func<User, bool> isEnabled,
