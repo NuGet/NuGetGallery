@@ -70,6 +70,19 @@ namespace NuGetGallery
         }
 
         [HttpGet]
+        public virtual async Task<ActionResult> DownloadStagedPackage(string id, string version)
+        {
+            var stagedPackage = FindAuthorizedStagedPackage(id, version);
+            if (stagedPackage == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+            }
+
+            var content = await _packageStagingManagementService.OpenPackageContentAsync(stagedPackage);
+            return File(content, CoreConstants.PackageContentType, $"{id}.{version}{CoreConstants.NuGetPackageFileExtension}");
+        }
+
+        [HttpGet]
         public virtual ActionResult GetStagedPackage(string id, string version)
         {
             var currentUser = GetCurrentUser();
