@@ -106,12 +106,6 @@ namespace NuGetGallery
 
             ValidateRequest(currentUser, httpContext, packageFile);
 
-            var requestError = await ValidateUserPolicyAsync(currentUser, httpContext);
-            if (requestError != null)
-            {
-                return requestError;
-            }
-
             try
             {
                 using var upload = await PrepareUploadAsync(packageFile);
