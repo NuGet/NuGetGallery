@@ -20,6 +20,16 @@
         const stagingValidationModalTitle = $('#staging-validation-modal-title');
         const stagingValidationModalContent = $('.staging-validation-modal-content');
 
+        function disableStagingPackageRow(row) {
+            row.addClass('staging-package-busy').attr('aria-busy', 'true');
+            row.find('.staging-listed-input, .staging-package-actions-toggle').prop('disabled', true);
+            row.find('.staging-package-actions li:not(.divider)').addClass('disabled');
+            row.find('.staging-package-actions a').attr({
+                'aria-disabled': 'true',
+                'tabindex': '-1'
+            });
+        }
+
         $('.staging-listed-input').on('change', function () {
             const input = $(this);
             const form = input.closest('form');
@@ -51,12 +61,15 @@
 
         $('.staging-delete-trigger').on('click', function (event) {
             event.preventDefault();
-            if ($(this).closest('tr').hasClass('staging-package-busy')) {
+            const trigger = $(this);
+            const row = trigger.closest('tr');
+            if (row.hasClass('staging-package-busy')) {
                 return;
             }
 
-            if (confirm($(this).data('confirm-message'))) {
-                $(this).siblings('.staging-delete-form')[0].submit();
+            if (confirm(trigger.data('confirm-message'))) {
+                disableStagingPackageRow(row);
+                trigger.siblings('.staging-delete-form')[0].submit();
             }
         });
 
@@ -72,13 +85,7 @@
         $('.staging-replace-input').on('change', function () {
             if (this.files.length > 0) {
                 const row = $(this).closest('tr');
-                row.addClass('staging-package-busy').attr('aria-busy', 'true');
-                row.find('.staging-listed-input, .staging-package-actions-toggle').prop('disabled', true);
-                row.find('.staging-package-actions li:not(.divider)').addClass('disabled');
-                row.find('.staging-package-actions a').attr({
-                    'aria-disabled': 'true',
-                    'tabindex': '-1'
-                });
+                disableStagingPackageRow(row);
                 this.form.submit();
             }
         });
