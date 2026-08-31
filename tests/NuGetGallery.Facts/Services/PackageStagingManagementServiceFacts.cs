@@ -120,6 +120,27 @@ namespace NuGetGallery
                 Assert.True(result.Listed);
             }
 
+            [Fact]
+            public void DoesNotGetADeletedPackage()
+            {
+                var currentUser = new User("current") { Key = 1 };
+                var stagedPackage = CreateStagedPackage(100, 10, "Test.Package", "1.0.0", currentUser);
+                stagedPackage.Status = StagedPackageStatus.Deleted;
+                stagedPackage.Package.PackageStatusKey = PackageStatus.Deleted;
+                var packageService = new Mock<IPackageService>();
+                packageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict("Test.Package", "1.0.0"))
+                    .Returns(stagedPackage.Package);
+                var target = CreateService(
+                    new[] { stagedPackage },
+                    owner => true,
+                    packageService: packageService.Object);
+
+                var result = target.GetPackage(currentUser, Array.Empty<Scope>(), "Test.Package", "1.0.0");
+
+                Assert.Null(result);
+            }
+
             [Theory]
             [InlineData(StagedPackageStatus.Validating, "uploaded", "uploaded-etag")]
             [InlineData(StagedPackageStatus.FailedValidation, "uploaded", "uploaded-etag")]

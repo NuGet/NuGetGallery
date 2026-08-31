@@ -55,17 +55,7 @@ namespace NuGetGallery
                 throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(version));
             }
 
-            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
-            if (package == null)
-            {
-                return null;
-            }
-
-            var stagedPackage = _stagedPackageRepository
-                .GetAll()
-                .Where(candidate => candidate.PackageKey == package.Key)
-                .OrderByDescending(candidate => candidate.Key)
-                .FirstOrDefault();
+            var stagedPackage = FindCurrentStagedPackage(id, version);
             if (stagedPackage == null)
             {
                 return null;
