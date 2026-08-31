@@ -7,6 +7,9 @@ using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
+    /// <summary>
+    /// Provides persistence and explicit transaction support for staged packages.
+    /// </summary>
     public class StagedPackageRepository : EntityRepository<StagedPackage>, IStagedPackageRepository
     {
         private readonly IEntitiesContext _entitiesContext;
@@ -17,6 +20,7 @@ namespace NuGetGallery
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
         }
 
+        /// <inheritdoc />
         public async Task ExecuteInTransactionAsync(Func<Task> action)
         {
             action = action ?? throw new ArgumentNullException(nameof(action));

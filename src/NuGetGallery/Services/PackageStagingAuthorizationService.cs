@@ -8,6 +8,9 @@ using NuGetGallery.Authentication;
 
 namespace NuGetGallery
 {
+    /// <summary>
+    /// Authorizes staged-package management using ownership, feature flags, and API scopes.
+    /// </summary>
     public class PackageStagingAuthorizationService : IPackageStagingAuthorizationService
     {
         private readonly IApiScopeEvaluator _apiScopeEvaluator;

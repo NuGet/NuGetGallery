@@ -11,6 +11,9 @@ using NuGetGallery.Filters;
 
 namespace NuGetGallery
 {
+    /// <summary>
+    /// Handles signed-in owner management of private staged packages.
+    /// </summary>
     [UIAuthorize]
     public class StagingController : AppController
     {

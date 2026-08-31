@@ -149,6 +149,15 @@ namespace NuGetGallery
 
         Package EnrichPackageFromNuGetPackage(Package package, PackageArchiveReader packageArchive, PackageMetadata packageMetadata, PackageStreamMetadata packageStreamMetadata, User user);
 
+        /// <summary>
+        /// Replaces a package's mutable metadata with metadata from a package archive.
+        /// </summary>
+        /// <param name="package">The package whose metadata should be replaced.</param>
+        /// <param name="packageArchive">The package archive.</param>
+        /// <param name="packageMetadata">The package manifest metadata.</param>
+        /// <param name="packageStreamMetadata">The package stream metadata.</param>
+        /// <param name="user">The user replacing the package metadata.</param>
+        /// <returns>The updated package.</returns>
         Package ReplacePackageMetadataFromNuGetPackage(Package package, PackageArchiveReader packageArchive, PackageMetadata packageMetadata, PackageStreamMetadata packageStreamMetadata, User user);
 
         IEnumerable<NuGetFramework> GetSupportedFrameworks(PackageArchiveReader package);
