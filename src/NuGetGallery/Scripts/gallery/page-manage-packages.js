@@ -42,13 +42,19 @@
                     status.text('Not saved');
                 })
                 .always(function () {
-                    input.prop('disabled', false);
+                    if (!form.closest('tr').hasClass('staging-package-busy')) {
+                        input.prop('disabled', false);
+                    }
                     form.removeAttr('aria-busy');
                 });
         });
 
         $('.staging-delete-trigger').on('click', function (event) {
             event.preventDefault();
+            if ($(this).closest('tr').hasClass('staging-package-busy')) {
+                return;
+            }
+
             if (confirm($(this).data('confirm-message'))) {
                 $(this).siblings('.staging-delete-form')[0].submit();
             }
@@ -56,13 +62,29 @@
 
         $('.staging-replace-trigger').on('click', function (event) {
             event.preventDefault();
+            if ($(this).closest('tr').hasClass('staging-package-busy')) {
+                return;
+            }
+
             $(this).siblings('.staging-replace-form').find('.staging-replace-input').trigger('click');
         });
 
         $('.staging-replace-input').on('change', function () {
             if (this.files.length > 0) {
+                const row = $(this).closest('tr');
+                row.addClass('staging-package-busy').attr('aria-busy', 'true');
+                row.find('.staging-listed-input, .staging-package-actions-toggle').prop('disabled', true);
+                row.find('.staging-package-actions li:not(.divider)').addClass('disabled');
+                row.find('.staging-package-actions a').attr({
+                    'aria-disabled': 'true',
+                    'tabindex': '-1'
+                });
                 this.form.submit();
             }
+        });
+
+        $('.staging-package-actions').on('click', 'a[aria-disabled="true"]', function (event) {
+            event.preventDefault();
         });
 
         $('.staging-validation-issues-toggle').on('click', function () {
