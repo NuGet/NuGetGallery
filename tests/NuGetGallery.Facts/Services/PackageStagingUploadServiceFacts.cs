@@ -105,20 +105,37 @@ namespace NuGetGallery
 
                 StagedPackage stagedPackage = null;
                 var operations = new List<string>();
-                var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
+                var stagedPackageRepository = new Mock<IStagedPackageRepository>();
                 stagedPackageRepository
                     .Setup(x => x.InsertOnCommit(It.IsAny<StagedPackage>()))
                     .Callback<StagedPackage>(value => stagedPackage = value);
                 stagedPackageRepository
                     .Setup(x => x.CommitChangesAsync())
-                    .Callback(() => operations.Add("save"))
+                    .Callback(() =>
+                    {
+                        operations.Add("save");
+                        stagedPackage.Key = 43;
+                    })
                     .Returns(Task.CompletedTask);
 
                 var stagedValidationMessageEmitter = new Mock<IStagedPackageValidationMessageEmitter>();
                 stagedValidationMessageEmitter
                     .Setup(x => x.StartValidationAsync(It.IsAny<StagedPackage>()))
-                    .Callback(() => operations.Add("enqueue"))
+                    .Callback<StagedPackage>(value =>
+                    {
+                        Assert.Equal(43, value.Key);
+                        operations.Add("enqueue");
+                    })
                     .ReturnsAsync(expectedStatus);
+
+                stagedPackageRepository
+                    .Setup(x => x.ExecuteInTransactionAsync(It.IsAny<System.Func<Task>>()))
+                    .Returns<System.Func<Task>>(async action =>
+                    {
+                        operations.Add("begin");
+                        await action();
+                        operations.Add("commit");
+                    });
 
                 var featureFlagService = new Mock<IFeatureFlagService>();
                 featureFlagService
@@ -156,10 +173,16 @@ namespace NuGetGallery
                 Assert.Null(stagedPackage.ValidatedBlobPath);
                 Assert.Null(stagedPackage.ValidatedBlobETag);
                 Assert.Equal(expectedStatus, stagedPackage.Status);
-                Assert.Equal(new[] { "enqueue", "save" }, operations);
+                var expectedOperations = expectedStatus == StagedPackageStatus.Validating
+                    ? new[] { "begin", "save", "enqueue", "commit" }
+                    : new[] { "begin", "save", "enqueue", "save", "commit" };
+                Assert.Equal(expectedOperations, operations);
                 stagedValidationMessageEmitter.Verify(x => x.StartValidationAsync(stagedPackage), Times.Once);
                 stagedPackageRepository.Verify(x => x.InsertOnCommit(stagedPackage), Times.Once);
-                stagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
+                stagedPackageRepository.Verify(
+                    x => x.CommitChangesAsync(),
+                    expectedStatus == StagedPackageStatus.Validating ? Times.Once() : Times.Exactly(2));
+                stagedPackageRepository.Verify(x => x.ExecuteInTransactionAsync(It.IsAny<System.Func<Task>>()), Times.Once);
             }
 
             [Theory]
@@ -261,7 +284,7 @@ namespace NuGetGallery
                     .Callback(() => package.PackageStatusKey = PackageStatus.Staged)
                     .Returns(Task.CompletedTask);
 
-                var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
+                var stagedPackageRepository = new Mock<IStagedPackageRepository>();
                 StagedPackage successor = null;
                 stagedPackageRepository
                     .Setup(x => x.GetAll())
@@ -270,6 +293,9 @@ namespace NuGetGallery
                     .Setup(x => x.InsertOnCommit(It.IsAny<StagedPackage>()))
                     .Callback<StagedPackage>(value => successor = value);
                 stagedPackageRepository.Setup(x => x.CommitChangesAsync()).Returns(Task.CompletedTask);
+                stagedPackageRepository
+                    .Setup(x => x.ExecuteInTransactionAsync(It.IsAny<System.Func<Task>>()))
+                    .Returns<System.Func<Task>>(action => action());
 
                 var securityPolicyService = new Mock<ISecurityPolicyService>(MockBehavior.Strict);
                 securityPolicyService
@@ -367,7 +393,7 @@ namespace NuGetGallery
                 packageService
                     .Setup(x => x.EnsureValid(It.IsAny<PackageArchiveReader>()))
                     .Returns(Task.CompletedTask);
-                var target = CreateService(currentUser, packageService.Object, Mock.Of<IEntityRepository<StagedPackage>>());
+                var target = CreateService(currentUser, packageService.Object, Mock.Of<IStagedPackageRepository>());
                 using var packageFile = TestPackage.CreateTestPackageStream("Different.Package", "1.0.0");
 
                 var result = await target.ReplacePackageAsync(
@@ -390,7 +416,7 @@ namespace NuGetGallery
                 packageService
                     .Setup(x => x.EnsureValid(It.IsAny<PackageArchiveReader>()))
                     .Returns(Task.CompletedTask);
-                var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
+                var stagedPackageRepository = new Mock<IStagedPackageRepository>();
                 stagedPackageRepository
                     .Setup(x => x.GetAll())
                     .Returns(Enumerable.Empty<StagedPackage>().AsQueryable());
@@ -428,7 +454,7 @@ namespace NuGetGallery
             private static PackageStagingUploadService CreateService(
                 User currentUser,
                 IPackageService packageService,
-                IEntityRepository<StagedPackage> stagedPackageRepository)
+                IStagedPackageRepository stagedPackageRepository)
             {
                 var securityPolicyService = new Mock<ISecurityPolicyService>();
                 securityPolicyService

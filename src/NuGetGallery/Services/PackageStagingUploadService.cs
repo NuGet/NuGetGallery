@@ -36,7 +36,7 @@ namespace NuGetGallery
 
         private readonly IStagingBlobService _stagingBlobService;
 
-        private readonly IEntityRepository<StagedPackage> _stagedPackageRepository;
+        private readonly IStagedPackageRepository _stagedPackageRepository;
 
         private readonly IStagedPackageValidationMessageEmitter _stagedValidationMessageEmitter;
 
@@ -48,7 +48,7 @@ namespace NuGetGallery
             IReservedNamespaceService reservedNamespaceService,
             ISecurityPolicyService securityPolicyService,
             IStagingBlobService stagingBlobService,
-            IEntityRepository<StagedPackage> stagedPackageRepository,
+            IStagedPackageRepository stagedPackageRepository,
             IStagedPackageValidationMessageEmitter stagedValidationMessageEmitter)
         {
             _apiScopeEvaluator = apiScopeEvaluator ?? throw new ArgumentNullException(nameof(apiScopeEvaluator));
@@ -625,9 +625,19 @@ namespace NuGetGallery
 
             try
             {
-                stagedPackage.Status = await _stagedValidationMessageEmitter.StartValidationAsync(stagedPackage);
+                await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
+                {
+                    // Save the insert without committing the transaction so SQL assigns the exact attempt key before enqueueing validation.
+                    await _stagedPackageRepository.CommitChangesAsync();
 
-                await _stagedPackageRepository.CommitChangesAsync();
+                    var status = await _stagedValidationMessageEmitter.StartValidationAsync(stagedPackage);
+                    if (status != stagedPackage.Status)
+                    {
+                        // Asynchronous validation remains Validating; immediate validation returns Ready and requires another save.
+                        stagedPackage.Status = status;
+                        await _stagedPackageRepository.CommitChangesAsync();
+                    }
+                });
             }
             catch (Exception exception) when (IsConflict(exception))
             {
