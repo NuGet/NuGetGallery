@@ -149,6 +149,8 @@ namespace NuGetGallery
 
         Package EnrichPackageFromNuGetPackage(Package package, PackageArchiveReader packageArchive, PackageMetadata packageMetadata, PackageStreamMetadata packageStreamMetadata, User user);
 
+        Package ReplacePackageMetadataFromNuGetPackage(Package package, PackageArchiveReader packageArchive, PackageMetadata packageMetadata, PackageStreamMetadata packageStreamMetadata, User user);
+
         IEnumerable<NuGetFramework> GetSupportedFrameworks(PackageArchiveReader package);
 
         IEnumerable<NuGetFramework> GetSupportedFrameworks(NuspecReader nuspecReader, IList<string> packageFiles);

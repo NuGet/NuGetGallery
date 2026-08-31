@@ -126,7 +126,6 @@ namespace NuGetGallery
                     .Returns(true);
 
                 var target = new PackageStagingUploadService(
-                    Mock.Of<IEntitiesContext>(),
                     apiScopeEvaluator.Object,
                     featureFlagService.Object,
                     packageService.Object,
@@ -250,6 +249,14 @@ namespace NuGetGallery
                         return value;
                     });
                 packageService
+                    .Setup(x => x.ReplacePackageMetadataFromNuGetPackage(
+                        package,
+                        It.IsAny<PackageArchiveReader>(),
+                        It.IsAny<PackageMetadata>(),
+                        It.IsAny<PackageStreamMetadata>(),
+                        currentUser))
+                    .Returns(package);
+                packageService
                     .Setup(x => x.UpdatePackageStatusAsync(package, PackageStatus.Staged, false))
                     .Callback(() => package.PackageStatusKey = PackageStatus.Staged)
                     .Returns(Task.CompletedTask);
@@ -304,7 +311,6 @@ namespace NuGetGallery
                     .Returns(true);
 
                 var target = new PackageStagingUploadService(
-                    Mock.Of<IEntitiesContext>(),
                     apiScopeEvaluator.Object,
                     featureFlagService.Object,
                     packageService.Object,
@@ -433,7 +439,6 @@ namespace NuGetGallery
                     .ReturnsAsync(SecurityPolicyResult.SuccessResult);
 
                 return new PackageStagingUploadService(
-                    Mock.Of<IEntitiesContext>(),
                     Mock.Of<IApiScopeEvaluator>(),
                     Mock.Of<IFeatureFlagService>(),
                     packageService,

@@ -22,8 +22,6 @@ namespace NuGetGallery
 {
     public class PackageStagingUploadService : IPackageStagingUploadService
     {
-        private readonly IEntitiesContext _entitiesContext;
-
         private readonly IApiScopeEvaluator _apiScopeEvaluator;
 
         private readonly IFeatureFlagService _featureFlagService;
@@ -43,7 +41,6 @@ namespace NuGetGallery
         private readonly IStagedPackageValidationMessageEmitter _stagedValidationMessageEmitter;
 
         public PackageStagingUploadService(
-            IEntitiesContext entitiesContext,
             IApiScopeEvaluator apiScopeEvaluator,
             IFeatureFlagService featureFlagService,
             IPackageService packageService,
@@ -54,7 +51,6 @@ namespace NuGetGallery
             IEntityRepository<StagedPackage> stagedPackageRepository,
             IStagedPackageValidationMessageEmitter stagedValidationMessageEmitter)
         {
-            _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _apiScopeEvaluator = apiScopeEvaluator ?? throw new ArgumentNullException(nameof(apiScopeEvaluator));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
@@ -598,33 +594,12 @@ namespace NuGetGallery
             bool wasDeleted)
         {
             var listed = package.Listed;
-            ClearPackageMetadata(package);
-            _packageService.EnrichPackageFromNuGetPackage(package, packageReader, packageMetadata, streamMetadata, currentUser);
+            _packageService.ReplacePackageMetadataFromNuGetPackage(package, packageReader, packageMetadata, streamMetadata, currentUser);
             package.PackageRegistration = candidatePackage.PackageRegistration;
             if (!wasDeleted)
             {
                 package.Listed = listed;
             }
-        }
-
-        private void ClearPackageMetadata(Package package)
-        {
-#pragma warning disable 618
-            RemoveAll(package.Authors);
-#pragma warning restore 618
-            RemoveAll(package.Dependencies);
-            RemoveAll(package.PackageTypes);
-            RemoveAll(package.SupportedFrameworks);
-        }
-
-        private void RemoveAll<TEntity>(ICollection<TEntity> entities) where TEntity : class
-        {
-            foreach (var entity in entities.ToList())
-            {
-                _entitiesContext.Set<TEntity>().Remove(entity);
-            }
-
-            entities.Clear();
         }
 
         private async Task<PackageCommitResult> CommitPackageAsync(
