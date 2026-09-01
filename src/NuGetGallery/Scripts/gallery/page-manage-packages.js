@@ -34,7 +34,7 @@
         });
 
         function StagedPackageViewModel(packageItem) {
-            var self = this;
+            const self = this;
 
             this.Id = packageItem.Id;
             this.Version = packageItem.Version;
@@ -60,9 +60,9 @@
             });
 
             this.UpdateListed = function (model, event) {
-                var input = $(event.currentTarget);
-                var form = input.closest('form');
-                var previousValue = !self.Listed();
+                const input = $(event.currentTarget);
+                const form = input.closest('form');
+                const previousValue = !self.Listed();
 
                 self.IsSavingListed(true);
                 self.ListedStatus('');
@@ -102,7 +102,7 @@
             };
 
             this.Replace = function (model, event) {
-                var input = event.currentTarget;
+                const input = event.currentTarget;
                 if (input.files.length > 0) {
                     self.IsBusy(true);
                     input.form.submit();
@@ -111,8 +111,8 @@
 
             this.Delete = function (model, event) {
                 event.preventDefault();
-                var trigger = $(event.currentTarget);
-                var message = 'Delete staged package ' + self.Id + ' ' + self.Version + '?';
+                const trigger = $(event.currentTarget);
+                const message = `Delete staged package ${self.Id} ${self.Version}?`;
                 if (!self.IsBusy() && window.nuget.confirmEvent(message)) {
                     self.IsBusy(true);
                     trigger.siblings('.staging-delete-form')[0].submit();
@@ -120,10 +120,10 @@
             };
 
             this.ShowValidationIssues = function () {
-                var validationIssues = $('#' + self.ValidationIssuesId).html();
+                const validationIssues = $(`#${self.ValidationIssuesId}`).html();
 
                 $('html').addClass('staging-validation-modal-open');
-                stagingValidationModalTitle.text('Validation errors for ' + self.Id);
+                stagingValidationModalTitle.text(`Validation errors for ${self.Id}`);
                 stagingValidationModalContent.html(validationIssues);
                 return true;
             };
