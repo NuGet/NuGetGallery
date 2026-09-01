@@ -54,7 +54,7 @@ namespace NuGetGallery
                     owner,
                     It.IsAny<IEnumerable<Scope>>(),
                     ActionsRequiringPermissions.ManageStagedPackage,
-                    stagedPackage.Package.PackageRegistration,
+                    stagedPackage,
                     It.IsAny<string[]>()))
                 .Returns(new ApiScopeEvaluationResult(owner, PermissionsCheckResult.Allowed, scopesAreValid: true));
             var featureFlagService = new Mock<IFeatureFlagService>();

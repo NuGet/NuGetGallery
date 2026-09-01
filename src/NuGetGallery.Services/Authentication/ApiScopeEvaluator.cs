@@ -36,6 +36,22 @@ namespace NuGetGallery.Authentication
         {
             return Evaluate(currentUser, scopes, action, context, c => c.PackageId, requestedActions);
         }
+
+        public ApiScopeEvaluationResult Evaluate(
+            User currentUser,
+            IEnumerable<Scope> scopes,
+            IActionRequiringEntityPermissions<StagedPackage> action,
+            StagedPackage stagedPackage,
+            params string[] requestedActions)
+        {
+            return Evaluate(
+                currentUser,
+                scopes,
+                action,
+                stagedPackage,
+                s => s.Package.PackageRegistration.Id,
+                requestedActions);
+        }
         
         /// <remarks>This method is internal because it is tested directly.</remarks>
         internal ApiScopeEvaluationResult Evaluate<TEntity>(

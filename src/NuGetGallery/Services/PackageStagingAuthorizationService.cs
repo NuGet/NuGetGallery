@@ -39,7 +39,7 @@ namespace NuGetGallery
             var permissionsResult = ActionsRequiringPermissions.ManageStagedPackage.CheckPermissions(
                 currentUser,
                 stagedPackage.Owner,
-                stagedPackage.Package.PackageRegistration);
+                stagedPackage);
 
             return permissionsResult == PermissionsCheckResult.Allowed
                 && _featureFlagService.IsPackageStagingEnabled(stagedPackage.Owner);
@@ -61,12 +61,11 @@ namespace NuGetGallery
                 currentUser,
                 scopes,
                 ActionsRequiringPermissions.ManageStagedPackage,
-                stagedPackage.Package.PackageRegistration,
+                stagedPackage,
                 NuGetScopes.PackagePushVersion,
                 NuGetScopes.PackagePush);
 
             return authorizationResult.IsSuccessful()
-                && authorizationResult.Owner.Key == stagedPackage.OwnerKey
                 && _featureFlagService.IsPackageStagingEnabled(authorizationResult.Owner);
         }
     }

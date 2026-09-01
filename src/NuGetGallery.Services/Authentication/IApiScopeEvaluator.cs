@@ -39,5 +39,15 @@ namespace NuGetGallery.Authentication
             IActionRequiringEntityPermissions<ActionOnNewPackageContext> action,
             ActionOnNewPackageContext context,
             params string[] requestedActions);
+
+        /// <summary>
+        /// Evaluates whether an action on a staged package is allowed by the supplied scopes.
+        /// </summary>
+        ApiScopeEvaluationResult Evaluate(
+            User currentUser,
+            IEnumerable<Scope> scopes,
+            IActionRequiringEntityPermissions<StagedPackage> action,
+            StagedPackage stagedPackage,
+            params string[] requestedActions);
     }
 }
