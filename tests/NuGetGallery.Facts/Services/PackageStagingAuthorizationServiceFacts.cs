@@ -53,7 +53,7 @@ namespace NuGetGallery
                 .Setup(x => x.Evaluate(
                     owner,
                     It.IsAny<IEnumerable<Scope>>(),
-                    It.IsAny<IActionRequiringEntityPermissions<PackageRegistration>>(),
+                    ActionsRequiringPermissions.ManageStagedPackage,
                     stagedPackage.Package.PackageRegistration,
                     It.IsAny<string[]>()))
                 .Returns(new ApiScopeEvaluationResult(owner, PermissionsCheckResult.Allowed, scopesAreValid: true));

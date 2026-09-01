@@ -36,7 +36,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(stagedPackage));
             }
 
-            var permissionsResult = ActionsRequiringPermissions.UploadNewPackageVersion.CheckPermissions(
+            var permissionsResult = ActionsRequiringPermissions.ManageStagedPackage.CheckPermissions(
                 currentUser,
                 stagedPackage.Owner,
                 stagedPackage.Package.PackageRegistration);
@@ -60,7 +60,7 @@ namespace NuGetGallery
             var authorizationResult = _apiScopeEvaluator.Evaluate(
                 currentUser,
                 scopes,
-                ActionsRequiringPermissions.UploadNewPackageVersion,
+                ActionsRequiringPermissions.ManageStagedPackage,
                 stagedPackage.Package.PackageRegistration,
                 NuGetScopes.PackagePushVersion,
                 NuGetScopes.PackagePush);
