@@ -36,7 +36,7 @@ namespace NuGetGallery
 
         private readonly IStagingBlobService _stagingBlobService;
 
-        private readonly IStagedPackageRepository _stagedPackageRepository;
+        private readonly IEntityRepository<StagedPackage> _stagedPackageRepository;
 
         private readonly IStagedPackageValidationMessageEmitter _stagedValidationMessageEmitter;
 
@@ -48,7 +48,7 @@ namespace NuGetGallery
             IReservedNamespaceService reservedNamespaceService,
             ISecurityPolicyService securityPolicyService,
             IStagingBlobService stagingBlobService,
-            IStagedPackageRepository stagedPackageRepository,
+            IEntityRepository<StagedPackage> stagedPackageRepository,
             IStagedPackageValidationMessageEmitter stagedValidationMessageEmitter)
         {
             _apiScopeEvaluator = apiScopeEvaluator ?? throw new ArgumentNullException(nameof(apiScopeEvaluator));

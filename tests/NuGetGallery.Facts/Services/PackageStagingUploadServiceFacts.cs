@@ -105,7 +105,7 @@ namespace NuGetGallery
 
                 StagedPackage stagedPackage = null;
                 var operations = new List<string>();
-                var stagedPackageRepository = new Mock<IStagedPackageRepository>();
+                var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
                 stagedPackageRepository
                     .Setup(x => x.InsertOnCommit(It.IsAny<StagedPackage>()))
                     .Callback<StagedPackage>(value => stagedPackage = value);
@@ -284,7 +284,7 @@ namespace NuGetGallery
                     .Callback(() => package.PackageStatusKey = PackageStatus.Staged)
                     .Returns(Task.CompletedTask);
 
-                var stagedPackageRepository = new Mock<IStagedPackageRepository>();
+                var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
                 StagedPackage successor = null;
                 stagedPackageRepository
                     .Setup(x => x.GetAll())
@@ -393,7 +393,7 @@ namespace NuGetGallery
                 packageService
                     .Setup(x => x.EnsureValid(It.IsAny<PackageArchiveReader>()))
                     .Returns(Task.CompletedTask);
-                var target = CreateService(currentUser, packageService.Object, Mock.Of<IStagedPackageRepository>());
+                var target = CreateService(currentUser, packageService.Object, Mock.Of<IEntityRepository<StagedPackage>>());
                 using var packageFile = TestPackage.CreateTestPackageStream("Different.Package", "1.0.0");
 
                 var result = await target.ReplacePackageAsync(
@@ -416,7 +416,7 @@ namespace NuGetGallery
                 packageService
                     .Setup(x => x.EnsureValid(It.IsAny<PackageArchiveReader>()))
                     .Returns(Task.CompletedTask);
-                var stagedPackageRepository = new Mock<IStagedPackageRepository>();
+                var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
                 stagedPackageRepository
                     .Setup(x => x.GetAll())
                     .Returns(Enumerable.Empty<StagedPackage>().AsQueryable());
@@ -454,7 +454,7 @@ namespace NuGetGallery
             private static PackageStagingUploadService CreateService(
                 User currentUser,
                 IPackageService packageService,
-                IStagedPackageRepository stagedPackageRepository)
+                IEntityRepository<StagedPackage> stagedPackageRepository)
             {
                 var securityPolicyService = new Mock<ISecurityPolicyService>();
                 securityPolicyService

@@ -8,8 +8,17 @@ using Xunit;
 
 namespace NuGetGallery
 {
-    public class StagedPackageRepositoryFacts
+    public class EntityRepositoryFacts
     {
+        [Fact]
+        public async Task RejectsNullTransactionAction()
+        {
+            var target = new EntityRepository<object>(Mock.Of<IEntitiesContext>());
+
+            await Assert.ThrowsAsync<ArgumentNullException>(
+                () => target.ExecuteInTransactionAsync(null));
+        }
+
         [Fact]
         public async Task CommitsTransactionAfterActionCompletes()
         {
@@ -24,7 +33,7 @@ namespace NuGetGallery
             entitiesContext
                 .Setup(x => x.GetDatabase())
                 .Returns(database.Object);
-            var target = new StagedPackageRepository(entitiesContext.Object);
+            var target = new EntityRepository<object>(entitiesContext.Object);
             var actionCompleted = false;
 
             await target.ExecuteInTransactionAsync(() =>
@@ -49,7 +58,7 @@ namespace NuGetGallery
             entitiesContext
                 .Setup(x => x.GetDatabase())
                 .Returns(database.Object);
-            var target = new StagedPackageRepository(entitiesContext.Object);
+            var target = new EntityRepository<object>(entitiesContext.Object);
 
             await Assert.ThrowsAsync<InvalidOperationException>(
                 () => target.ExecuteInTransactionAsync(
