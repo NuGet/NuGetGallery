@@ -84,23 +84,20 @@
                                                 <td class="align-middle">
                                                     <div class="staging-status-content">
                                                         <span class="label staging-status" data-bind="text: Status, css: StatusClass"></span>
-                                                        <!-- ko if: HasValidationIssues -->
                                                         <button type="button"
                                                                 class="btn btn-brand-transparent staging-validation-issues-toggle"
                                                                 data-toggle="modal"
                                                                 data-target="#staging-validation-modal"
-                                                                data-bind="click: ShowValidationIssues, attr: { 'aria-label': 'View validation errors for ' + Id + ' ' + Version }"
+                                                                data-bind="visible: HasValidationIssues, click: ShowValidationIssues, attr: { 'aria-label': 'View validation errors for ' + Id + ' ' + Version }"
                                                                 title="View validation errors">
                                                             <i class="ms-Icon ms-Icon--View" aria-hidden="true"></i>
                                                         </button>
-                                                        <!-- /ko -->
                                                     </div>
                                                 </td>
                                                 <td class="align-middle staging-package-listed">
-                                                    <!-- ko if: CanManage -->
                                                     <form method="post"
                                                           class="staging-listed-form"
-                                                          data-bind="attr: { action: UpdateListedUrl, 'aria-busy': IsSavingListed() ? 'true' : null }">
+                                                          data-bind="visible: CanManage, attr: { action: UpdateListedUrl, 'aria-busy': IsSavingListed() ? 'true' : null }">
                                                         @Html.AntiForgeryToken()
                                                         <input type="checkbox"
                                                                name="listed"
@@ -110,14 +107,10 @@
                                                         <input type="hidden" name="listed" value="false" />
                                                         <span class="staging-listed-status" aria-live="polite" data-bind="text: ListedStatus"></span>
                                                     </form>
-                                                    <!-- /ko -->
-                                                    <!-- ko if: !CanManage -->
-                                                    <span data-bind="text: Listed() ? 'Yes' : 'No'"></span>
-                                                    <!-- /ko -->
+                                                    <span data-bind="visible: !CanManage, text: Listed() ? 'Yes' : 'No'"></span>
                                                 </td>
                                                 <td class="text-right align-middle package-controls">
-                                                    <!-- ko if: CanManage -->
-                                                    <div class="dropdown staging-package-actions">
+                                                    <div class="dropdown staging-package-actions" data-bind="visible: CanManage">
                                                         <button type="button"
                                                                 class="btn dropdown-toggle staging-package-actions-toggle"
                                                                 data-toggle="dropdown"
@@ -160,7 +153,6 @@
                                                             </li>
                                                         </ul>
                                                     </div>
-                                                    <!-- /ko -->
                                                 </td>
                                             </tr>
                                         </tbody>
