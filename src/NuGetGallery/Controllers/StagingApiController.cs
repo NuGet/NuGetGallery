@@ -98,7 +98,7 @@ namespace NuGetGallery
         }
 
         [AcceptVerbs(HttpVerbs.Patch)]
-        public virtual async Task<ActionResult> UpdateStagedPackage(string id, string version, UpdateStagedPackageRequest request)
+        public virtual async Task<ActionResult> UpdateStagedPackageListed(string id, string version, UpdateStagedPackageRequest request)
         {
             if (request == null)
             {

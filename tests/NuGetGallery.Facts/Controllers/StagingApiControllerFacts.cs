@@ -133,7 +133,7 @@ namespace NuGetGallery
             var target = GetController<StagingApiController>();
             target.SetCurrentUser(currentUser);
 
-            var result = await target.UpdateStagedPackage(
+            var result = await target.UpdateStagedPackageListed(
                 "PackageA",
                 "1.0.0",
                 new UpdateStagedPackageRequest { Listed = true });
@@ -147,7 +147,7 @@ namespace NuGetGallery
         {
             var target = GetController<StagingApiController>();
 
-            var result = await target.UpdateStagedPackage("PackageA", "1.0.0", request: null);
+            var result = await target.UpdateStagedPackageListed("PackageA", "1.0.0", request: null);
 
             var status = Assert.IsType<HttpStatusCodeResult>(result);
             Assert.Equal(400, status.StatusCode);
@@ -173,7 +173,7 @@ namespace NuGetGallery
             var target = GetController<StagingApiController>();
             target.SetCurrentUser(currentUser);
 
-            var result = await target.UpdateStagedPackage(
+            var result = await target.UpdateStagedPackageListed(
                 "PackageA",
                 "1.0.0",
                 new UpdateStagedPackageRequest { Listed = true });

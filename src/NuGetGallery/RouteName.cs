@@ -60,7 +60,7 @@ namespace NuGetGallery
         public const string GetStagedPackages = "GetStagedPackages";
         public const string GetStagedPackage = "GetStagedPackage";
         public const string DownloadStagedPackage = "DownloadStagedPackage";
-        public const string UpdateStagedPackage = "UpdateStagedPackage";
+        public const string UpdateStagedPackageListed = "UpdateStagedPackageListed";
         public const string DeleteStagedPackage = "DeleteStagedPackage";
         public const string DownloadManagedStagedPackage = "DownloadManagedStagedPackage";
         public const string ReplaceManagedStagedPackage = "ReplaceManagedStagedPackage";
