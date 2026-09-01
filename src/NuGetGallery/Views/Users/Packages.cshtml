@@ -73,136 +73,113 @@
                                                 <th><span class="sr-only">Actions</span></th>
                                             </tr>
                                         </thead>
-                                        <tbody>
-                                            @{
-                                                var stagedPackageIndex = 0;
-                                            }
-                                            @foreach (var package in Model.StagedPackages)
-                                            {
-                                                var statusText = package.Status == StagedPackageStatus.FailedValidation.ToString() ? "Validation failed" : package.Status;
-                                                var rowIndex = stagedPackageIndex++;
-                                                var validationIssuesId = "staged-validation-issues-" + rowIndex;
-                                                var listedInputId = "staged-listed-" + rowIndex;
-                                                <tr class="manage-package-listing">
-                                                    <td class="align-middle package-id">
-                                                        @package.Id
-                                                    </td>
-                                                    <td class="align-middle staging-package-owner">
-                                                        <a href="@Url.User(package.Owner)">@package.Owner</a>
-                                                    </td>
-                                                    <td class="align-middle staging-package-version">@package.Version</td>
-                                                    <td class="align-middle">
-                                                        <div class="staging-status-content">
-                                                            <span class="label staging-status @package.StatusClass">@statusText</span>
-                                                            @if (package.ValidationIssues.Count > 0)
-                                                            {
-                                                                <button type="button"
-                                                                        class="btn btn-brand-transparent staging-validation-issues-toggle"
-                                                                        data-toggle="modal"
-                                                                        data-target="#staging-validation-modal"
-                                                                        data-issues-id="@validationIssuesId"
-                                                                        data-package-id="@package.Id"
-                                                                        aria-label="View validation errors for @package.Id @package.Version"
-                                                                        title="View validation errors">
-                                                                    <i class="ms-Icon ms-Icon--View" aria-hidden="true"></i>
-                                                                </button>
-                                                            }
-                                                        </div>
-                                                        @if (package.ValidationIssues.Count > 0)
-                                                        {
-                                                            <div id="@validationIssuesId" class="staging-validation-issues-source hidden">
-                                                                <ul class="validation-issues">
-                                                                    @foreach (var issue in package.ValidationIssues)
-                                                                    {
-                                                                        <li>@Html.Partial("~/Views/Packages/_ValidationIssue.cshtml", issue)</li>
-                                                                    }
-                                                                </ul>
-                                                            </div>
-                                                        }
-                                                    </td>
-                                                    <td class="align-middle staging-package-listed">
-                                                        @if (package.CanManage)
-                                                        {
-                                                            using (Html.BeginRouteForm(
-                                                                RouteName.UpdateManagedStagedPackageListed,
-                                                                new { id = package.Id, version = package.Version },
-                                                                FormMethod.Post,
-                                                                new { @class = "staging-listed-form" }))
-                                                            {
-                                                                @Html.AntiForgeryToken()
-                                                                @Html.CheckBox(
-                                                                    "listed",
-                                                                    package.Listed,
-                                                                    new
-                                                                    {
-                                                                        id = listedInputId,
-                                                                        @class = "brand-checkbox staging-listed-input",
-                                                                        aria_label = $"List {package.Id} {package.Version} after promotion",
-                                                                    })
-                                                                <span class="staging-listed-status" aria-live="polite"></span>
-                                                            }
-                                                        }
-                                                        else
-                                                        {
-                                                            @(package.Listed ? "Yes" : "No")
-                                                        }
-                                                    </td>
-                                                    <td class="text-right align-middle package-controls">
-                                                        @if (package.CanManage)
-                                                        {
-                                                            <div class="dropdown staging-package-actions">
-                                                                <button type="button"
-                                                                        class="btn dropdown-toggle staging-package-actions-toggle"
-                                                                        data-toggle="dropdown"
-                                                                        aria-haspopup="true"
-                                                                        aria-expanded="false"
-                                                                        aria-label="Actions for @package.Id @package.Version"
-                                                                        title="Package actions">
-                                                                    <span aria-hidden="true">&hellip;</span>
-                                                                </button>
-                                                                <ul class="dropdown-menu dropdown-menu-right">
-                                                                    <li>
-                                                                        <a href="@Url.DownloadStagedPackage(package.Id, package.Version)">Download</a>
-                                                                    </li>
-                                                                    <li>
-                                                                        <a href="#" class="staging-replace-trigger">Replace&hellip;</a>
-                                                                        @using (Html.BeginRouteForm(
-                                                                            RouteName.ReplaceManagedStagedPackage,
-                                                                            new { id = package.Id, version = package.Version },
-                                                                            FormMethod.Post,
-                                                                            new { enctype = "multipart/form-data", @class = "hidden staging-replace-form" }))
-                                                                        {
-                                                                            @Html.AntiForgeryToken()
-                                                                            <input type="file"
-                                                                                   class="staging-replace-input"
-                                                                                   name="packageFile"
-                                                                                   accept=".nupkg" />
-                                                                        }
-                                                                    </li>
-                                                                    <li role="separator" class="divider"></li>
-                                                                    <li>
-                                                                        <a href="#"
-                                                                           class="staging-delete-trigger"
-                                                                           data-confirm-message="Delete staged package @package.Id @package.Version?">
-                                                                            Delete&hellip;
-                                                                        </a>
-                                                                        @using (Html.BeginRouteForm(
-                                                                            RouteName.DeleteManagedStagedPackage,
-                                                                            new { id = package.Id, version = package.Version },
-                                                                            FormMethod.Post,
-                                                                            new { @class = "hidden staging-delete-form" }))
-                                                                        {
-                                                                            @Html.AntiForgeryToken()
-                                                                        }
-                                                                    </li>
-                                                                </ul>
-                                                            </div>
-                                                        }
-                                                    </td>
-                                                </tr>
-                                            }
+                                        <tbody data-bind="foreach: StagedPackages">
+                                            <tr class="manage-package-listing"
+                                                data-bind="css: { 'staging-package-busy': IsBusy }, attr: { 'aria-busy': IsBusy() ? 'true' : null }">
+                                                <td class="align-middle package-id" data-bind="text: Id"></td>
+                                                <td class="align-middle staging-package-owner">
+                                                    <a data-bind="text: Owner, attr: { href: OwnerUrl }"></a>
+                                                </td>
+                                                <td class="align-middle staging-package-version" data-bind="text: Version"></td>
+                                                <td class="align-middle">
+                                                    <div class="staging-status-content">
+                                                        <span class="label staging-status" data-bind="text: Status, css: StatusClass"></span>
+                                                        <!-- ko if: HasValidationIssues -->
+                                                        <button type="button"
+                                                                class="btn btn-brand-transparent staging-validation-issues-toggle"
+                                                                data-toggle="modal"
+                                                                data-target="#staging-validation-modal"
+                                                                data-bind="click: ShowValidationIssues, attr: { 'aria-label': 'View validation errors for ' + Id + ' ' + Version }"
+                                                                title="View validation errors">
+                                                            <i class="ms-Icon ms-Icon--View" aria-hidden="true"></i>
+                                                        </button>
+                                                        <!-- /ko -->
+                                                    </div>
+                                                </td>
+                                                <td class="align-middle staging-package-listed">
+                                                    <!-- ko if: CanManage -->
+                                                    <form method="post"
+                                                          class="staging-listed-form"
+                                                          data-bind="attr: { action: UpdateListedUrl, 'aria-busy': IsSavingListed() ? 'true' : null }">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="checkbox"
+                                                               name="listed"
+                                                               value="true"
+                                                               class="brand-checkbox staging-listed-input"
+                                                               data-bind="checked: Listed, event: { change: UpdateListed }, disable: IsDisabled, attr: { id: ListedInputId, 'aria-label': 'List ' + Id + ' ' + Version + ' after promotion' }" />
+                                                        <input type="hidden" name="listed" value="false" />
+                                                        <span class="staging-listed-status" aria-live="polite" data-bind="text: ListedStatus"></span>
+                                                    </form>
+                                                    <!-- /ko -->
+                                                    <!-- ko if: !CanManage -->
+                                                    <span data-bind="text: Listed() ? 'Yes' : 'No'"></span>
+                                                    <!-- /ko -->
+                                                </td>
+                                                <td class="text-right align-middle package-controls">
+                                                    <!-- ko if: CanManage -->
+                                                    <div class="dropdown staging-package-actions">
+                                                        <button type="button"
+                                                                class="btn dropdown-toggle staging-package-actions-toggle"
+                                                                data-toggle="dropdown"
+                                                                aria-haspopup="true"
+                                                                aria-expanded="false"
+                                                                data-bind="disable: IsBusy, attr: { 'aria-label': 'Actions for ' + Id + ' ' + Version }"
+                                                                title="Package actions">
+                                                            <span aria-hidden="true">&hellip;</span>
+                                                        </button>
+                                                        <ul class="dropdown-menu dropdown-menu-right">
+                                                            <li data-bind="css: { disabled: IsBusy }">
+                                                                <a data-bind="click: FollowLink, attr: { href: DownloadUrl, 'aria-disabled': IsBusy() ? 'true' : null, tabindex: IsBusy() ? '-1' : null }">Download</a>
+                                                            </li>
+                                                            <li data-bind="css: { disabled: IsBusy }">
+                                                                <a href="#"
+                                                                   class="staging-replace-trigger"
+                                                                   data-bind="click: ChooseReplacement, attr: { 'aria-disabled': IsBusy() ? 'true' : null, tabindex: IsBusy() ? '-1' : null }">Replace&hellip;</a>
+                                                                <form method="post"
+                                                                      enctype="multipart/form-data"
+                                                                      class="hidden staging-replace-form"
+                                                                      data-bind="attr: { action: ReplaceUrl }">
+                                                                    @Html.AntiForgeryToken()
+                                                                    <input type="file"
+                                                                           class="staging-replace-input"
+                                                                           name="packageFile"
+                                                                           data-bind="event: { change: Replace }"
+                                                                           accept=".nupkg" />
+                                                                </form>
+                                                            </li>
+                                                            <li role="separator" class="divider"></li>
+                                                            <li data-bind="css: { disabled: IsBusy }">
+                                                                <a href="#"
+                                                                   class="staging-delete-trigger"
+                                                                   data-bind="click: Delete, attr: { 'aria-disabled': IsBusy() ? 'true' : null, tabindex: IsBusy() ? '-1' : null }">Delete&hellip;</a>
+                                                                <form method="post"
+                                                                      class="hidden staging-delete-form"
+                                                                      data-bind="attr: { action: DeleteUrl }">
+                                                                    @Html.AntiForgeryToken()
+                                                                </form>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                    <!-- /ko -->
+                                                </td>
+                                            </tr>
                                         </tbody>
                                     </table>
+                                    for (var index = 0; index < Model.StagedPackages.Count; index++)
+                                    {
+                                        var package = Model.StagedPackages[index];
+                                        if (package.ValidationIssues.Count > 0)
+                                        {
+                                            <div id="@GetStagedValidationIssuesId(index)" class="staging-validation-issues-source hidden">
+                                                <ul class="validation-issues">
+                                                    @foreach (var issue in package.ValidationIssues)
+                                                    {
+                                                        <li>@Html.Partial("~/Views/Packages/_ValidationIssue.cshtml", issue)</li>
+                                                    }
+                                                </ul>
+                                            </div>
+                                        }
+                                    }
                                     <div class="modal fade staging-validation-modal"
                                          id="staging-validation-modal"
                                          tabindex="-1"
@@ -564,6 +541,33 @@
         };
     }
 
+    string GetStagedValidationIssuesId(int index)
+    {
+        return "staged-validation-issues-" + index;
+    }
+
+    dynamic GetSerializableStagedPackage(PackageStagingViewModel package, int index)
+    {
+        return new
+        {
+            package.Id,
+            package.Version,
+            package.Owner,
+            OwnerUrl = Url.User(package.Owner),
+            Status = package.Status == StagedPackageStatus.FailedValidation.ToString() ? "Validation failed" : package.Status,
+            package.StatusClass,
+            HasValidationIssues = package.ValidationIssues.Count > 0,
+            ValidationIssuesId = GetStagedValidationIssuesId(index),
+            package.CanManage,
+            package.Listed,
+            ListedInputId = "staged-listed-" + index,
+            DownloadUrl = Url.DownloadStagedPackage(package.Id, package.Version),
+            ReplaceUrl = Url.RouteUrl(RouteName.ReplaceManagedStagedPackage, new { id = package.Id, version = package.Version }),
+            UpdateListedUrl = Url.RouteUrl(RouteName.UpdateManagedStagedPackageListed, new { id = package.Id, version = package.Version }),
+            DeleteUrl = Url.RouteUrl(RouteName.DeleteManagedStagedPackage, new { id = package.Id, version = package.Version }),
+        };
+    }
+
     dynamic GetSerializableNamespace(ReservedNamespaceListItemViewModel n)
     {
         if (searchUrlTemplate == null)
@@ -698,6 +702,8 @@
                             .Select(p => GetSerializablePackage(p)),
                          UnlistedPackages = Model.UnlistedPackages
                             .Select(p => GetSerializablePackage(p)),
+                         StagedPackages = Model.StagedPackages
+                            .Select((p, index) => GetSerializableStagedPackage(p, index)),
                          ReservedNamespaces = Model.ReservedNamespaces.ReservedNamespaces
                             .Select(n => GetSerializableNamespace(n)),
                          RequestsReceived = Model.OwnerRequests.Received.Requests

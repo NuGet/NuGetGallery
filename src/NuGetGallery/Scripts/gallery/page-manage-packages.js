@@ -20,91 +20,6 @@
         const stagingValidationModalTitle = $('#staging-validation-modal-title');
         const stagingValidationModalContent = $('.staging-validation-modal-content');
 
-        function disableStagingPackageRow(row) {
-            row.addClass('staging-package-busy').attr('aria-busy', 'true');
-            row.find('.staging-listed-input, .staging-package-actions-toggle').prop('disabled', true);
-            row.find('.staging-package-actions li:not(.divider)').addClass('disabled');
-            row.find('.staging-package-actions a').attr({
-                'aria-disabled': 'true',
-                'tabindex': '-1'
-            });
-        }
-
-        $('.staging-listed-input').on('change', function () {
-            const input = $(this);
-            const form = input.closest('form');
-            const status = form.find('.staging-listed-status');
-            const previousValue = !input.prop('checked');
-            const data = form.serialize();
-
-            input.prop('disabled', true);
-            form.attr('aria-busy', 'true');
-            status.text('');
-
-            $.ajax({
-                method: 'POST',
-                url: form.attr('action'),
-                cache: false,
-                data: data
-            })
-                .fail(function () {
-                    input.prop('checked', previousValue);
-                    status.text('Not saved');
-                })
-                .always(function () {
-                    if (!form.closest('tr').hasClass('staging-package-busy')) {
-                        input.prop('disabled', false);
-                    }
-                    form.removeAttr('aria-busy');
-                });
-        });
-
-        $('.staging-delete-trigger').on('click', function (event) {
-            event.preventDefault();
-            const trigger = $(this);
-            const row = trigger.closest('tr');
-            if (row.hasClass('staging-package-busy')) {
-                return;
-            }
-
-            if (confirm(trigger.data('confirm-message'))) {
-                disableStagingPackageRow(row);
-                trigger.siblings('.staging-delete-form')[0].submit();
-            }
-        });
-
-        $('.staging-replace-trigger').on('click', function (event) {
-            event.preventDefault();
-            if ($(this).closest('tr').hasClass('staging-package-busy')) {
-                return;
-            }
-
-            $(this).siblings('.staging-replace-form').find('.staging-replace-input').trigger('click');
-        });
-
-        $('.staging-replace-input').on('change', function () {
-            if (this.files.length > 0) {
-                const row = $(this).closest('tr');
-                disableStagingPackageRow(row);
-                this.form.submit();
-            }
-        });
-
-        $('.staging-package-actions').on('click', 'a[aria-disabled="true"]', function (event) {
-            event.preventDefault();
-        });
-
-        $('.staging-validation-issues-toggle').on('click', function () {
-            $('html').addClass('staging-validation-modal-open');
-
-            const trigger = $(this);
-            const packageId = trigger.data('package-id');
-            const validationIssues = $('#' + trigger.data('issues-id')).html();
-
-            stagingValidationModalTitle.text('Validation errors for ' + packageId);
-            stagingValidationModalContent.html(validationIssues);
-        });
-
         stagingValidationModal.on('shown.bs.modal', function () {
             stagingValidationModalTitle.focus();
         });
@@ -117,6 +32,102 @@
             stagingValidationModal.removeClass('staging-validation-modal-closing');
             $('html').removeClass('staging-validation-modal-open');
         });
+
+        function StagedPackageViewModel(packageItem) {
+            var self = this;
+
+            this.Id = packageItem.Id;
+            this.Version = packageItem.Version;
+            this.Owner = packageItem.Owner;
+            this.OwnerUrl = packageItem.OwnerUrl;
+            this.Status = packageItem.Status;
+            this.StatusClass = packageItem.StatusClass;
+            this.HasValidationIssues = packageItem.HasValidationIssues;
+            this.ValidationIssuesId = packageItem.ValidationIssuesId;
+            this.CanManage = packageItem.CanManage;
+            this.ListedInputId = packageItem.ListedInputId;
+            this.DownloadUrl = packageItem.DownloadUrl;
+            this.ReplaceUrl = packageItem.ReplaceUrl;
+            this.UpdateListedUrl = packageItem.UpdateListedUrl;
+            this.DeleteUrl = packageItem.DeleteUrl;
+
+            this.Listed = ko.observable(packageItem.Listed);
+            this.IsBusy = ko.observable(false);
+            this.IsSavingListed = ko.observable(false);
+            this.ListedStatus = ko.observable('');
+            this.IsDisabled = ko.pureComputed(function () {
+                return self.IsBusy() || self.IsSavingListed();
+            });
+
+            this.UpdateListed = function (model, event) {
+                var input = $(event.currentTarget);
+                var form = input.closest('form');
+                var previousValue = !self.Listed();
+
+                self.IsSavingListed(true);
+                self.ListedStatus('');
+
+                $.ajax({
+                    method: 'POST',
+                    url: form.attr('action'),
+                    cache: false,
+                    data: form.serialize()
+                })
+                    .fail(function () {
+                        self.Listed(previousValue);
+                        self.ListedStatus('Not saved');
+                    })
+                    .always(function () {
+                        self.IsSavingListed(false);
+                    });
+            };
+
+            this.FollowLink = function (model, event) {
+                if (self.IsBusy()) {
+                    event.preventDefault();
+                    return false;
+                }
+
+                return true;
+            };
+
+            this.ChooseReplacement = function (model, event) {
+                event.preventDefault();
+                if (!self.IsBusy()) {
+                    $(event.currentTarget)
+                        .siblings('.staging-replace-form')
+                        .find('.staging-replace-input')
+                        .trigger('click');
+                }
+            };
+
+            this.Replace = function (model, event) {
+                var input = event.currentTarget;
+                if (input.files.length > 0) {
+                    self.IsBusy(true);
+                    input.form.submit();
+                }
+            };
+
+            this.Delete = function (model, event) {
+                event.preventDefault();
+                var trigger = $(event.currentTarget);
+                var message = 'Delete staged package ' + self.Id + ' ' + self.Version + '?';
+                if (!self.IsBusy() && window.nuget.confirmEvent(message)) {
+                    self.IsBusy(true);
+                    trigger.siblings('.staging-delete-form')[0].submit();
+                }
+            };
+
+            this.ShowValidationIssues = function () {
+                var validationIssues = $('#' + self.ValidationIssuesId).html();
+
+                $('html').addClass('staging-validation-modal-open');
+                stagingValidationModalTitle.text('Validation errors for ' + self.Id);
+                stagingValidationModalContent.html(validationIssues);
+                return true;
+            };
+        }
 
         function PackageListItemViewModel(packagesListViewModel, packageItem) {
             var self = this;
@@ -454,6 +465,9 @@
 
             this.ListedPackages = new PackagesListViewModel(this, "published", initialData.ListedPackages);
             this.UnlistedPackages = new PackagesListViewModel(this, "unlisted", initialData.UnlistedPackages);
+            this.StagedPackages = $.map(initialData.StagedPackages, function (packageItem) {
+                return new StagedPackageViewModel(packageItem);
+            });
             this.ReservedNamespaces = new ReservedNamespaceListViewModel(this, initialData.ReservedNamespaces);
             this.RequestsReceived = new OwnerRequestsListViewModel(this, initialData.RequestsReceived, true, false);
             this.RequestsSent = new OwnerRequestsListViewModel(this, initialData.RequestsSent, false, true);
