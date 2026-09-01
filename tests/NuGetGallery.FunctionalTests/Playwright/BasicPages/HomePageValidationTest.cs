@@ -7,7 +7,7 @@ using Xunit;
 
 namespace NuGetGallery.FunctionalTests.Playwright.BasicPages
 {
-	[Collection(AspirePlaywrightCollection.Definition)]
+	[Collection(GalleryTestCollection.Definition)]
 	public class HomePageValidationTest : NuGetPageTest
     {
         [Fact]

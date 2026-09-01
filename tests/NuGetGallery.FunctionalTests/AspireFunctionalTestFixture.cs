@@ -10,9 +10,9 @@ using Aspire.Hosting;
 using Aspire.Hosting.Testing;
 using Xunit;
 
-namespace NuGetGallery.FunctionalTests.Playwright
+namespace NuGetGallery.FunctionalTests
 {
-    public sealed class AspirePlaywrightFixture : IAsyncLifetime
+    public sealed class AspireFunctionalTestFixture : IAsyncLifetime
     {
         internal const string ExternalHostEnvironmentVariable = "NUGET_PLAYWRIGHT_EXTERNAL_HOST";
         internal const string HarnessEnvironmentVariable = "NUGET_PLAYWRIGHT_ASPIRE_HARNESS";
@@ -23,6 +23,7 @@ namespace NuGetGallery.FunctionalTests.Playwright
 
         private DistributedApplication _application;
         private GalleryConfiguration _originalGalleryConfiguration;
+        private bool _externalHost;
         private bool _galleryConfigurationInitialized;
         private string _originalAppHostProfile;
         private string _originalConfigurationFilePath;
@@ -36,6 +37,8 @@ namespace NuGetGallery.FunctionalTests.Playwright
                 bool.TrueString,
                 StringComparison.OrdinalIgnoreCase))
             {
+                _externalHost = true;
+                _ = new GalleryTestFixture();
                 return;
             }
 
@@ -70,6 +73,7 @@ namespace NuGetGallery.FunctionalTests.Playwright
                     _settingsPath);
                 _originalGalleryConfiguration = GalleryConfiguration.Initialize(_settingsPath);
                 _galleryConfigurationInitialized = true;
+                _ = new GalleryTestFixture();
             }
             catch
             {
@@ -83,6 +87,11 @@ namespace NuGetGallery.FunctionalTests.Playwright
 
         public async Task DisposeAsync()
         {
+            if (_externalHost)
+            {
+                return;
+            }
+
             try
             {
                 await DisposeApplicationAsync();

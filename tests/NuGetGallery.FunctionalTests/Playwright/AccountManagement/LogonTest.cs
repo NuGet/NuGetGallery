@@ -6,7 +6,7 @@ using Xunit;
 
 namespace NuGetGallery.FunctionalTests.Playwright.AccountManagement
 {
-	[Collection(AspirePlaywrightCollection.Definition)]
+	[Collection(GalleryTestCollection.Definition)]
 	public class LogonTest : NuGetPageTest
 	{
 		[Fact]
