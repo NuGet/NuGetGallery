@@ -562,9 +562,9 @@
             package.Listed,
             ListedInputId = "staged-listed-" + index,
             DownloadUrl = Url.DownloadStagedPackage(package.Id, package.Version),
-            ReplaceUrl = Url.RouteUrl(RouteName.ReplaceManagedStagedPackage, new { id = package.Id, version = package.Version }),
-            UpdateListedUrl = Url.RouteUrl(RouteName.UpdateManagedStagedPackageListed, new { id = package.Id, version = package.Version }),
-            DeleteUrl = Url.RouteUrl(RouteName.DeleteManagedStagedPackage, new { id = package.Id, version = package.Version }),
+            ReplaceUrl = Url.ReplaceStagedPackage(package.Id, package.Version),
+            UpdateListedUrl = Url.UpdateStagedPackageListed(package.Id, package.Version),
+            DeleteUrl = Url.DeleteStagedPackage(package.Id, package.Version),
         };
     }
 
