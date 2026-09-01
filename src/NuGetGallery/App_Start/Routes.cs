@@ -923,14 +923,14 @@ namespace NuGetGallery
         {
             routes.MapRoute(
                 RouteName.DownloadStagedPackage,
-                "api/v3/staging/package/{id}/{version}/content",
+                "api/v3/staging/package/{id}/{version}",
                 new { controller = "StagingApi", action = nameof(StagingApiController.DownloadStagedPackage) },
                 new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
-                RouteName.GetStagedPackage,
-                "api/v3/staging/package/{id}/{version}",
-                new { controller = "StagingApi", action = "GetStagedPackage" },
+                RouteName.GetStagedPackageStatus,
+                "api/v3/staging/package/{id}/{version}/status",
+                new { controller = "StagingApi", action = nameof(StagingApiController.GetStagedPackageStatus) },
                 new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(

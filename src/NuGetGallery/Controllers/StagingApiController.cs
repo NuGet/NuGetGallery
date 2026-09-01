@@ -83,12 +83,12 @@ namespace NuGetGallery
         }
 
         [HttpGet]
-        public virtual ActionResult GetStagedPackage(string id, string version)
+        public virtual ActionResult GetStagedPackageStatus(string id, string version)
         {
             var currentUser = GetCurrentUser();
             var scopes = User.Identity.GetScopesFromClaim();
 
-            var package = _packageStagingManagementService.GetPackage(currentUser, scopes, id, version);
+            var package = _packageStagingManagementService.GetPackageStatus(currentUser, scopes, id, version);
             if (package == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);

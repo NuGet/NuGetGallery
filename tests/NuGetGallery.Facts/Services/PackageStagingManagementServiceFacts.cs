@@ -114,7 +114,7 @@ namespace NuGetGallery
                     authorizationService.Object,
                     packageService.Object);
 
-                var result = target.GetPackage(currentUser, Array.Empty<Scope>(), "Test.Package", "1.0.0");
+                var result = target.GetPackageStatus(currentUser, Array.Empty<Scope>(), "Test.Package", "1.0.0");
 
                 Assert.NotNull(result);
                 Assert.True(result.Listed);
@@ -136,7 +136,7 @@ namespace NuGetGallery
                     owner => true,
                     packageService: packageService.Object);
 
-                var result = target.GetPackage(currentUser, Array.Empty<Scope>(), "Test.Package", "1.0.0");
+                var result = target.GetPackageStatus(currentUser, Array.Empty<Scope>(), "Test.Package", "1.0.0");
 
                 Assert.Null(result);
             }

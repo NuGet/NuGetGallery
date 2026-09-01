@@ -33,7 +33,7 @@ namespace NuGetGallery
             _stagingBlobService = stagingBlobService ?? throw new ArgumentNullException(nameof(stagingBlobService));
         }
 
-        public PackageStagingStatus GetPackage(User currentUser, IEnumerable<Scope> scopes, string id, string version)
+        public PackageStagingStatus GetPackageStatus(User currentUser, IEnumerable<Scope> scopes, string id, string version)
         {
             if (currentUser == null)
             {

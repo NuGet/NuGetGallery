@@ -29,7 +29,7 @@ namespace NuGetGallery
         /// <param name="id">The package ID.</param>
         /// <param name="version">The package version.</param>
         /// <returns>The staged package status, or <see langword="null"/> when the package is not visible to the caller.</returns>
-        PackageStagingStatus GetPackage(User currentUser, IEnumerable<Scope> scopes, string id, string version);
+        PackageStagingStatus GetPackageStatus(User currentUser, IEnumerable<Scope> scopes, string id, string version);
 
         /// <summary>
         /// Gets the owner-visible status for a staged package attempt.
