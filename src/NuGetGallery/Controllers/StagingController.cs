@@ -34,6 +34,8 @@ namespace NuGetGallery
         [HttpGet]
         public virtual async Task<ActionResult> DownloadPackage(string id, string version)
         {
+            ValidatePackageIdentity(id, version);
+
             var stagedPackage = FindAuthorizedStagedPackage(id, version);
             if (stagedPackage == null)
             {
@@ -53,6 +55,8 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> ReplacePackage(string id, string version, HttpPostedFileBase packageFile)
         {
+            ValidatePackageIdentity(id, version);
+
             var stagedPackage = FindAuthorizedStagedPackage(id, version);
             if (stagedPackage == null)
             {
@@ -82,6 +86,8 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> UpdateListed(string id, string version, bool listed)
         {
+            ValidatePackageIdentity(id, version);
+
             var stagedPackage = FindAuthorizedStagedPackage(id, version);
             if (stagedPackage == null)
             {
@@ -96,6 +102,8 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> DeletePackage(string id, string version)
         {
+            ValidatePackageIdentity(id, version);
+
             var stagedPackage = FindAuthorizedStagedPackage(id, version);
             if (stagedPackage == null)
             {
@@ -104,6 +112,19 @@ namespace NuGetGallery
 
             await _packageStagingManagementService.DeletePackageAsync(stagedPackage);
             return Redirect(Url.ManageMyPackages());
+        }
+
+        private static void ValidatePackageIdentity(string id, string version)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+
+            if (string.IsNullOrWhiteSpace(version))
+            {
+                throw new ArgumentNullException(nameof(version));
+            }
         }
 
         private StagedPackage FindAuthorizedStagedPackage(string id, string version)
