@@ -89,6 +89,7 @@ namespace NuGetGallery
             }
             catch (Exception exception) when (IsInvalidPackage(exception))
             {
+                exception.Log();
                 return PackageStagingResult.Error(HttpStatusCode.BadRequest, exception.Message);
             }
         }
@@ -119,6 +120,7 @@ namespace NuGetGallery
             }
             catch (Exception exception) when (IsInvalidPackage(exception))
             {
+                exception.Log();
                 return PackageStagingResult.Error(HttpStatusCode.BadRequest, exception.Message);
             }
         }
@@ -453,7 +455,6 @@ namespace NuGetGallery
             }
             catch (Exception exception)
             {
-                exception.Log();
                 packageReader?.Dispose();
 
                 if (exception is InvalidPackageException || exception is InvalidDataException || exception is EntityException)
