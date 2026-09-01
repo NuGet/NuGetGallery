@@ -64,7 +64,7 @@ namespace NuGetGallery
 
         public async Task<PackageStagingResult> StagePackageAsync(
             User currentUser,
-            IEnumerable<Scope> scopes,
+            IReadOnlyCollection<Scope> scopes,
             HttpContextBase httpContext,
             Stream packageFile)
         {
@@ -189,7 +189,7 @@ namespace NuGetGallery
 
         private PackageStagingResult ResolveApiUploadTarget(
             User currentUser,
-            IEnumerable<Scope> scopes,
+            IReadOnlyCollection<Scope> scopes,
             PreparedPackageUpload upload,
             out StagingTarget target)
         {
@@ -517,7 +517,7 @@ namespace NuGetGallery
             return PackageStagingResult.Error(HttpStatusCode.Conflict, string.Format(Strings.PackageExistsAndCannotBeModified, id, version.ToNormalizedString()));
         }
 
-        private ApiScopeEvaluationResult EvaluateAuthorization(User currentUser, IEnumerable<Scope> scopes, PackageRegistration packageRegistration, string id)
+        private ApiScopeEvaluationResult EvaluateAuthorization(User currentUser, IReadOnlyCollection<Scope> scopes, PackageRegistration packageRegistration, string id)
         {
             if (packageRegistration == null)
             {
