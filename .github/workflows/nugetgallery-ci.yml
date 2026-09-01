@@ -215,6 +215,12 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Build AppHost
+        shell: pwsh
+        # WARNING: UnsafeAdminApiAuthBypassForTesting enables self-signed test tokens for functional tests.
+        # This property must NEVER be used in release or deployment builds.
+        run: dotnet build src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj -c $env:BuildConfiguration /p:UnsafeAdminApiAuthBypassForTesting=true
+
       - name: Setup Dev Environment
         shell: pwsh
         run: .\tools\Setup-DevEnvironment.ps1
@@ -239,6 +245,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
+
+      - name: Build AppHost
+        shell: pwsh
+        run: dotnet build src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj -c $env:BuildConfiguration
 
       - name: Setup Dev Environment
         shell: pwsh
