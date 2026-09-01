@@ -412,13 +412,12 @@ namespace NuGetGallery
             if (target.ExistingPackage != null)
             {
                 UpdateExistingPackage(
-                    target.ExistingPackage,
+                    target.CurrentAttempt,
                     candidatePackage,
                     upload.PackageReader,
                     upload.PackageMetadata,
                     streamMetadata,
-                    currentUser,
-                    target.CurrentAttempt.Status == StagedPackageStatus.Deleted);
+                    currentUser);
                 package = target.ExistingPackage;
             }
 
@@ -579,18 +578,18 @@ namespace NuGetGallery
         }
 
         private void UpdateExistingPackage(
-            Package package,
+            StagedPackage stagedPackage,
             Package candidatePackage,
             PackageArchiveReader packageReader,
             PackageMetadata packageMetadata,
             PackageStreamMetadata streamMetadata,
-            User currentUser,
-            bool wasDeleted)
+            User currentUser)
         {
+            var package = stagedPackage.Package;
             var listed = package.Listed;
-            _packageService.ReplacePackageMetadataFromNuGetPackage(package, packageReader, packageMetadata, streamMetadata, currentUser);
+            _packageService.ReplacePackageMetadataForStagedPackage(stagedPackage, packageReader, packageMetadata, streamMetadata, currentUser);
             package.PackageRegistration = candidatePackage.PackageRegistration;
-            if (!wasDeleted)
+            if (stagedPackage.Status != StagedPackageStatus.Deleted)
             {
                 package.Listed = listed;
             }

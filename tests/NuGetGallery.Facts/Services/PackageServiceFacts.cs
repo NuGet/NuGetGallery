@@ -3585,6 +3585,87 @@ namespace NuGetGallery
             }
         }
 
+        public class TheReplacePackageMetadataForStagedPackageMethod
+        {
+            [Fact]
+            public void RejectsNullStagedPackage()
+            {
+                var service = CreateService();
+
+                var exception = Assert.Throws<ArgumentNullException>(() => service.ReplacePackageMetadataForStagedPackage(
+                    stagedPackage: null,
+                    packageArchive: null,
+                    packageMetadata: null,
+                    packageStreamMetadata: null,
+                    user: null));
+
+                Assert.Equal("stagedPackage", exception.ParamName);
+            }
+
+            [Fact]
+            public void RejectsMissingPackageReference()
+            {
+                var service = CreateService();
+                var stagedPackage = new StagedPackage();
+
+                var exception = Assert.Throws<ArgumentException>(() => service.ReplacePackageMetadataForStagedPackage(
+                    stagedPackage,
+                    packageArchive: null,
+                    packageMetadata: null,
+                    packageStreamMetadata: null,
+                    user: null));
+
+                Assert.Equal("stagedPackage", exception.ParamName);
+            }
+
+            [Theory]
+            [InlineData(PackageStatus.Available, StagedPackageStatus.Ready)]
+            [InlineData(PackageStatus.Staged, StagedPackageStatus.Superseded)]
+            [InlineData(PackageStatus.Deleted, StagedPackageStatus.Ready)]
+            public void RejectsIneligibleState(PackageStatus packageStatus, StagedPackageStatus stagedPackageStatus)
+            {
+                var service = CreateService();
+                var stagedPackage = new StagedPackage
+                {
+                    Package = new Package { PackageStatusKey = packageStatus },
+                    Status = stagedPackageStatus,
+                };
+
+                var exception = Assert.Throws<ArgumentException>(() => service.ReplacePackageMetadataForStagedPackage(
+                    stagedPackage,
+                    packageArchive: null,
+                    packageMetadata: null,
+                    packageStreamMetadata: null,
+                    user: null));
+
+                Assert.Equal("stagedPackage", exception.ParamName);
+            }
+
+            [Theory]
+            [InlineData(PackageStatus.Staged, StagedPackageStatus.Validating)]
+            [InlineData(PackageStatus.Staged, StagedPackageStatus.Ready)]
+            [InlineData(PackageStatus.Staged, StagedPackageStatus.FailedValidation)]
+            [InlineData(PackageStatus.Deleted, StagedPackageStatus.Deleted)]
+            public void AcceptsEligibleState(PackageStatus packageStatus, StagedPackageStatus stagedPackageStatus)
+            {
+                var service = CreateService();
+                var stagedPackage = new StagedPackage
+                {
+                    Package = new Package { PackageStatusKey = packageStatus },
+                    Status = stagedPackageStatus,
+                };
+
+                var exception = Assert.Throws<ArgumentNullException>(() => service.ReplacePackageMetadataForStagedPackage(
+                    stagedPackage,
+                    packageArchive: null,
+                    packageMetadata: null,
+                    packageStreamMetadata: null,
+                    user: null));
+
+                Assert.Equal("packageArchive", exception.ParamName);
+            }
+        }
+
         public class TheEnrichPackageFromNuGetPackageMethod
         {
             [Theory]

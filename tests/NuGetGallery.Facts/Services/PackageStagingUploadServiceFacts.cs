@@ -272,8 +272,8 @@ namespace NuGetGallery
                         return value;
                     });
                 packageService
-                    .Setup(x => x.ReplacePackageMetadataFromNuGetPackage(
-                        package,
+                    .Setup(x => x.ReplacePackageMetadataForStagedPackage(
+                        stagedPackage,
                         It.IsAny<PackageArchiveReader>(),
                         It.IsAny<PackageMetadata>(),
                         It.IsAny<PackageStreamMetadata>(),
