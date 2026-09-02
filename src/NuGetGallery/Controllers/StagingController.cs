@@ -19,15 +19,18 @@ namespace NuGetGallery
     {
         private readonly IPackageStagingAuthorizationService _packageStagingAuthorizationService;
         private readonly IPackageStagingManagementService _packageStagingManagementService;
+        private readonly IPackageStagingPromotionService _packageStagingPromotionService;
         private readonly IPackageStagingUploadService _packageStagingUploadService;
 
         public StagingController(
             IPackageStagingAuthorizationService packageStagingAuthorizationService,
             IPackageStagingManagementService packageStagingManagementService,
+            IPackageStagingPromotionService packageStagingPromotionService,
             IPackageStagingUploadService packageStagingUploadService)
         {
             _packageStagingAuthorizationService = packageStagingAuthorizationService ?? throw new ArgumentNullException(nameof(packageStagingAuthorizationService));
             _packageStagingManagementService = packageStagingManagementService ?? throw new ArgumentNullException(nameof(packageStagingManagementService));
+            _packageStagingPromotionService = packageStagingPromotionService ?? throw new ArgumentNullException(nameof(packageStagingPromotionService));
             _packageStagingUploadService = packageStagingUploadService ?? throw new ArgumentNullException(nameof(packageStagingUploadService));
         }
 
@@ -112,6 +115,36 @@ namespace NuGetGallery
 
             await _packageStagingManagementService.DeletePackageAsync(stagedPackage);
             return Redirect(Url.ManageMyPackages());
+        }
+
+        /// <summary>
+        /// Begins asynchronous publication of a ready staged package.
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> PromotePackage(string id, string version)
+        {
+            ValidatePackageIdentity(id, version);
+
+            var stagedPackage = FindAuthorizedStagedPackage(id, version);
+            if (stagedPackage == null)
+            {
+                return HttpNotFound();
+            }
+
+            var result = await _packageStagingPromotionService.PromotePackageAsync(GetCurrentUser(), stagedPackage);
+            switch (result)
+            {
+                case PackageStagingPromotionResult.Accepted:
+                    return Redirect(Url.ManageMyPackages());
+                case PackageStagingPromotionResult.Unauthorized:
+                    return HttpNotFound();
+                case PackageStagingPromotionResult.NotReady:
+                    TempData["ErrorMessage"] = "The staged package is not ready for promotion.";
+                    return Redirect(Url.ManageMyPackages());
+                default:
+                    throw new InvalidOperationException($"Unknown package promotion result '{result}'.");
+            }
         }
 
         private static void ValidatePackageIdentity(string id, string version)

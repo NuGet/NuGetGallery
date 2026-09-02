@@ -45,14 +45,16 @@
             this.HasValidationIssues = packageItem.HasValidationIssues;
             this.ValidationIssuesId = packageItem.ValidationIssuesId;
             this.CanManage = packageItem.CanManage;
+            this.CanPromote = packageItem.CanPromote;
             this.ListedInputId = packageItem.ListedInputId;
             this.DownloadUrl = packageItem.DownloadUrl;
             this.ReplaceUrl = packageItem.ReplaceUrl;
             this.UpdateListedUrl = packageItem.UpdateListedUrl;
+            this.PromoteUrl = packageItem.PromoteUrl;
             this.DeleteUrl = packageItem.DeleteUrl;
 
             this.Listed = ko.observable(packageItem.Listed);
-            this.IsBusy = ko.observable(false);
+            this.IsBusy = ko.observable(packageItem.Status === 'Promoting');
             this.IsSavingListed = ko.observable(false);
             this.ListedStatus = ko.observable('');
             this.IsDisabled = ko.pureComputed(function () {
@@ -109,10 +111,20 @@
                 }
             };
 
+            this.Promote = function (model, event) {
+                event.preventDefault();
+                const trigger = $(event.currentTarget);
+                const message = 'Promote staged package ' + self.Id + ' ' + self.Version + '?';
+                if (!self.IsBusy() && window.nuget.confirmEvent(message)) {
+                    self.IsBusy(true);
+                    trigger.siblings('.staging-promote-form')[0].submit();
+                }
+            };
+
             this.Delete = function (model, event) {
                 event.preventDefault();
                 const trigger = $(event.currentTarget);
-                const message = `Delete staged package ${self.Id} ${self.Version}?`;
+                const message = 'Delete staged package ' + self.Id + ' ' + self.Version + '?';
                 if (!self.IsBusy() && window.nuget.confirmEvent(message)) {
                     self.IsBusy(true);
                     trigger.siblings('.staging-delete-form')[0].submit();
@@ -120,10 +132,10 @@
             };
 
             this.ShowValidationIssues = function () {
-                const validationIssues = $(`#${self.ValidationIssuesId}`).html();
+                const validationIssues = $('#' + self.ValidationIssuesId).html();
 
                 $('html').addClass('staging-validation-modal-open');
-                stagingValidationModalTitle.text(`Validation errors for ${self.Id}`);
+                stagingValidationModalTitle.text('Validation errors for ' + self.Id);
                 stagingValidationModalContent.html(validationIssues);
                 return true;
             };

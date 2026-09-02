@@ -26,5 +26,7 @@ namespace NuGetGallery
         public bool Listed { get; set; }
 
         public bool CanManage { get; set; }
+
+        public bool CanPromote { get; set; }
     }
 }

@@ -610,6 +610,7 @@ namespace NuGetGallery
                             ValidationIssues = validationIssues ?? [],
                             Listed = stagedPackage.Package.Listed,
                             CanManage = true,
+                            CanPromote = stagedPackage.Status == StagedPackageStatus.Ready,
                         };
                     })
                     .ToList();

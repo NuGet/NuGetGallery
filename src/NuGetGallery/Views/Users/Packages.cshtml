@@ -128,6 +128,19 @@
                                                             <span aria-hidden="true">&hellip;</span>
                                                         </button>
                                                         <ul class="dropdown-menu dropdown-menu-right">
+                                                            <!-- ko if: CanPromote -->
+                                                            <li data-bind="css: { disabled: IsBusy }">
+                                                                <a href="#"
+                                                                   class="staging-promote-trigger"
+                                                                   data-bind="click: Promote, attr: { 'aria-disabled': IsBusy() ? 'true' : null, tabindex: IsBusy() ? '-1' : null }">Promote&hellip;</a>
+                                                                <form method="post"
+                                                                      class="hidden staging-promote-form"
+                                                                      data-bind="attr: { action: PromoteUrl }">
+                                                                    @Html.AntiForgeryToken()
+                                                                </form>
+                                                            </li>
+                                                            <li role="separator" class="divider"></li>
+                                                            <!-- /ko -->
                                                             <li data-bind="css: { disabled: IsBusy }">
                                                                 <a data-bind="click: FollowLink, attr: { href: DownloadUrl, 'aria-disabled': IsBusy() ? 'true' : null, tabindex: IsBusy() ? '-1' : null }">Download</a>
                                                             </li>
@@ -559,11 +572,13 @@
             HasValidationIssues = package.ValidationIssues.Count > 0,
             ValidationIssuesId = GetStagedValidationIssuesId(index),
             package.CanManage,
+            package.CanPromote,
             package.Listed,
             ListedInputId = "staged-listed-" + index,
             DownloadUrl = Url.DownloadStagedPackage(package.Id, package.Version),
             ReplaceUrl = Url.ReplaceStagedPackage(package.Id, package.Version),
             UpdateListedUrl = Url.UpdateStagedPackageListed(package.Id, package.Version),
+            PromoteUrl = Url.PromoteStagedPackage(package.Id, package.Version),
             DeleteUrl = Url.DeleteStagedPackage(package.Id, package.Version),
         };
     }

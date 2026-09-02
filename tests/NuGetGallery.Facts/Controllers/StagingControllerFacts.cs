@@ -134,6 +134,54 @@ namespace NuGetGallery
         }
 
         [Fact]
+        public async Task PromotesAuthorizedReadyPackage()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var stagedPackage = new StagedPackage();
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
+                .Returns(stagedPackage);
+            GetMock<IPackageStagingAuthorizationService>()
+                .Setup(x => x.CanManage(currentUser, stagedPackage))
+                .Returns(true);
+            GetMock<IPackageStagingPromotionService>()
+                .Setup(x => x.PromotePackageAsync(currentUser, stagedPackage))
+                .ReturnsAsync(PackageStagingPromotionResult.Accepted);
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(currentUser);
+
+            var result = await target.PromotePackage("PackageA", "1.0.0");
+
+            Assert.IsType<RedirectResult>(result);
+            GetMock<IPackageStagingPromotionService>().Verify(
+                x => x.PromotePackageAsync(currentUser, stagedPackage),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task ReportsWhenPackageIsNotReadyForPromotion()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var stagedPackage = new StagedPackage();
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
+                .Returns(stagedPackage);
+            GetMock<IPackageStagingAuthorizationService>()
+                .Setup(x => x.CanManage(currentUser, stagedPackage))
+                .Returns(true);
+            GetMock<IPackageStagingPromotionService>()
+                .Setup(x => x.PromotePackageAsync(currentUser, stagedPackage))
+                .ReturnsAsync(PackageStagingPromotionResult.NotReady);
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(currentUser);
+
+            var result = await target.PromotePackage("PackageA", "1.0.0");
+
+            Assert.IsType<RedirectResult>(result);
+            Assert.Equal("The staged package is not ready for promotion.", target.TempData["ErrorMessage"]);
+        }
+
+        [Fact]
         public async Task ReplacesAuthorizedPackage()
         {
             var currentUser = new User("current") { Key = 1 };

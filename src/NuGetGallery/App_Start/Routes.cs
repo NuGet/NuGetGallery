@@ -167,6 +167,12 @@ namespace NuGetGallery
                 new { httpMethod = new HttpMethodConstraint("POST") });
 
             routes.MapRoute(
+                RouteName.PromoteManagedStagedPackage,
+                "account/staging/package/{id}/{version}/promote",
+                new { controller = "Staging", action = nameof(StagingController.PromotePackage) },
+                new { httpMethod = new HttpMethodConstraint("POST") });
+
+            routes.MapRoute(
                 RouteName.DeleteManagedStagedPackage,
                 "account/staging/package/{id}/{version}/delete",
                 new { controller = "Staging", action = nameof(StagingController.DeletePackage) },
