@@ -99,7 +99,7 @@ namespace NuGetGallery
             catch (Exception ex)
             {
                 // Could catch Azure's StorageException alone. But, the status page is not supposed to throw at any cost
-                // And, catching StorageException will compromise the IFileStorageService abstraction
+                // And, catching StorageException will compromise the ICoreFileStorageService abstraction
 
                 QuietLog.LogHandledException(ex);
             }

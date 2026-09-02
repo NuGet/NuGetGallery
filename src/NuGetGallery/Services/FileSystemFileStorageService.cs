@@ -9,11 +9,10 @@ using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 using System.Web.Hosting;
-using System.Web.Mvc;
 
 namespace NuGetGallery
 {
-    public class FileSystemFileStorageService : IFileStorageService
+    public class FileSystemFileStorageService : ICoreFileStorageService
     {
         private readonly IAppConfiguration _configuration;
         private readonly IFileSystemService _fileSystemService;
@@ -24,7 +23,7 @@ namespace NuGetGallery
             _fileSystemService = fileSystemService;
         }
 
-        public Task<ActionResult> CreateDownloadFileActionResultAsync(Uri requestUrl, string folderName, string fileName, string versionParameter)
+        public Task<FileStorageResult> CreateDownloadFileResultAsync(Uri requestUrl, string folderName, string fileName, string versionParameter)
         {
             if (string.IsNullOrWhiteSpace(folderName))
             {
@@ -39,15 +38,14 @@ namespace NuGetGallery
             var path = BuildPath(_configuration.FileStorageDirectory, folderName, fileName);
             if (!_fileSystemService.FileExists(path))
             {
-                return Task.FromResult<ActionResult>(new HttpNotFoundResult());
+                return Task.FromResult<FileStorageResult>(new FileStorageResult.NotFound());
             }
 
-            var result = new FilePathResult(path, GetContentType(folderName))
-            {
-                FileDownloadName = new FileInfo(fileName).Name
-            };
-
-            return Task.FromResult<ActionResult>(result);
+            return Task.FromResult<FileStorageResult>(
+                new FileStorageResult.FilePath(
+                    path,
+                    GetContentType(folderName),
+                    new FileInfo(fileName).Name));
         }
 
         public Task DeleteFileAsync(string folderName, string fileName)

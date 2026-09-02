@@ -1529,6 +1529,7 @@
     <Compile Include="Services\IReportService.cs" />
     <Compile Include="Services\IStatisticsService.cs" />
     <Compile Include="Services\FileSystemFileStorageService.cs" />
+    <Compile Include="Services\FileStorageResultExtensions.cs" />
     <Compile Include="Services\IAggregateStatsService.cs" />
     <Compile Include="Services\ISearchService.cs" />
     <Compile Include="Services\IUploadFileService.cs" />

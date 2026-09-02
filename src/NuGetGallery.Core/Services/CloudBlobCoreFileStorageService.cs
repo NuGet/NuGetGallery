@@ -44,6 +44,15 @@ namespace NuGetGallery
             _initializeContainer = initializeContainer;
         }
 
+        public virtual async Task<FileStorageResult> CreateDownloadFileResultAsync(
+            Uri requestUrl,
+            string folderName,
+            string fileName,
+            string versionParameter)
+        {
+            return new FileStorageResult.Redirect(await GetFileUriAsync(folderName, fileName));
+        }
+
         public async Task DeleteFileAsync(string folderName, string fileName)
         {
             ICloudBlobContainer container = await GetContainerAsync(folderName);
@@ -99,6 +108,12 @@ namespace NuGetGallery
                 // Not found
                 return null;
             }
+        }
+
+        public async Task<bool> IsAvailableAsync()
+        {
+            var container = await GetContainerAsync(CoreConstants.Folders.PackagesFolderName);
+            return await container.ExistsAsync(cloudBlobLocationMode: null);
         }
 
         public Task CopyFileAsync(

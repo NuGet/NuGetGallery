@@ -10,6 +10,23 @@ namespace NuGetGallery
 {
     public interface ICoreFileStorageService
     {
+        /// <summary>
+        /// Creates a result for downloading a file identified by <paramref name="folderName"/> and
+        /// <paramref name="fileName"/>. The result may serve a local file, indicate that the file was not found,
+        /// or redirect to a storage or CDN URL derived from the incoming <paramref name="requestUrl"/>.
+        /// </summary>
+        /// <param name="requestUrl">
+        /// The incoming download request URL. Implementations may use its scheme, port, and query parameters when
+        /// constructing a redirect URL. This is not the URL of the stored file.
+        /// </param>
+        /// <param name="folderName">The storage folder containing the requested file.</param>
+        /// <param name="fileName">The name of the requested file within <paramref name="folderName"/>.</param>
+        /// <param name="versionParameter">
+        /// The normalized file version to include in a redirect URL for cache and CDN versioning.
+        /// </param>
+        /// <returns>A task that represents the asynchronous operation and contains the download result.</returns>
+        Task<FileStorageResult> CreateDownloadFileResultAsync(Uri requestUrl, string folderName, string fileName, string versionParameter);
+
         Task DeleteFileAsync(string folderName, string fileName);
 
         Task<bool> FileExistsAsync(string folderName, string fileName);
@@ -181,5 +198,14 @@ namespace NuGetGallery
         Task<string> GetETagOrNullAsync(
             string folderName,
             string fileName);
+
+        /// <summary>
+        /// Determines whether the storage service is available.
+        /// </summary>
+        /// <returns>
+        /// A task that represents the asynchronous operation and contains <see langword="true"/> when the storage
+        /// service is available; otherwise, <see langword="false"/>.
+        /// </returns>
+        Task<bool> IsAvailableAsync();
     }
 }

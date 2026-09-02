@@ -18,9 +18,9 @@ namespace NuGetGallery
         /// </summary>
         private const string ReadMeFilePathTemplateActive = "active/{0}/{1}{2}";
 
-        private readonly IFileStorageService _fileStorageService;
+        private readonly ICoreFileStorageService _fileStorageService;
 
-        public PackageFileService(IFileStorageService fileStorageService)
+        public PackageFileService(ICoreFileStorageService fileStorageService)
             : base(fileStorageService, new PackageFileMetadataService())
         {
             _fileStorageService = fileStorageService;
@@ -42,7 +42,9 @@ namespace NuGetGallery
 
             var packageVersion = NuGetVersionFormatter.GetNormalizedPackageVersion(package);
 
-            return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, CoreConstants.Folders.PackagesFolderName, fileName, packageVersion);
+            return _fileStorageService
+                .CreateDownloadFileResultAsync(requestUrl, CoreConstants.Folders.PackagesFolderName, fileName, packageVersion)
+                .ToActionResultAsync();
         }
 
         public Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, string id, string version)
@@ -65,7 +67,9 @@ namespace NuGetGallery
             var fileName = FileNameHelper.BuildFileName(id, version, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetPackageFileExtension);
 
             // version cannot be null here as BuildFileName will throw if it is
-            return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, CoreConstants.Folders.PackagesFolderName, fileName, NuGetVersionFormatter.Normalize(version));
+            return _fileStorageService
+                .CreateDownloadFileResultAsync(requestUrl, CoreConstants.Folders.PackagesFolderName, fileName, NuGetVersionFormatter.Normalize(version))
+                .ToActionResultAsync();
         }
 
         /// <summary>

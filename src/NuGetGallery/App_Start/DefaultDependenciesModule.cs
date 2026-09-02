@@ -1510,7 +1510,6 @@ namespace NuGetGallery
 
             builder.RegisterType<FileSystemFileStorageService>()
                 .AsSelf()
-                .As<IFileStorageService>()
                 .As<ICoreFileStorageService>()
                 .SingleInstance();
 
@@ -1562,12 +1561,12 @@ namespace NuGetGallery
 
         private static void ConfigureForAzureStorage(ContainerBuilder builder, IGalleryConfigurationService configuration, ITelemetryService telemetryService)
         {
-            /// The goal here is to initialize a <see cref="ICloudBlobClient"/> and <see cref="IFileStorageService"/>
-            /// instance for each unique connection string. Each dependent of <see cref="IFileStorageService"/> (that
-            /// is, each service that has a <see cref="IFileStorageService"/> constructor parameter) is registered in
+            /// The goal here is to initialize a <see cref="ICloudBlobClient"/> and <see cref="ICoreFileStorageService"/>
+            /// instance for each unique connection string. Each dependent of <see cref="ICoreFileStorageService"/> (that
+            /// is, each service that has a <see cref="ICoreFileStorageService"/> constructor parameter) is registered in
             /// <see cref="StorageDependent.GetAll(IAppConfiguration)"/> and is grouped by the respective storage
             /// connection string. Each group is given a binding key which refers to the appropriate instance of the
-            /// <see cref="IFileStorageService"/>.
+            /// <see cref="ICoreFileStorageService"/>.
             var completedBindingKeys = new HashSet<string>();
             foreach (var dependent in StorageDependent.GetAll(configuration.Current))
             {
@@ -1591,16 +1590,15 @@ namespace NuGetGallery
                             (pi, ctx) => pi.ParameterType == typeof(ICloudBlobClient),
                             (pi, ctx) => ctx.ResolveKeyed<ICloudBlobClient>(dependent.BindingKey)))
                         .AsSelf()
-                        .As<IFileStorageService>()
                         .As<ICoreFileStorageService>()
                         .SingleInstance()
-                        .Keyed<IFileStorageService>(dependent.BindingKey);
+                        .Keyed<ICoreFileStorageService>(dependent.BindingKey);
                 }
 
                 var registration = builder.RegisterType(dependent.ImplementationType)
                     .WithParameter(new ResolvedParameter(
-                       (pi, ctx) => pi.ParameterType.IsAssignableFrom(typeof(IFileStorageService)),
-                       (pi, ctx) => ctx.ResolveKeyed<IFileStorageService>(dependent.BindingKey)))
+                       (pi, ctx) => pi.ParameterType == typeof(ICoreFileStorageService),
+                       (pi, ctx) => ctx.ResolveKeyed<ICoreFileStorageService>(dependent.BindingKey)))
                     .AsSelf()
                     .As(dependent.InterfaceType);
 

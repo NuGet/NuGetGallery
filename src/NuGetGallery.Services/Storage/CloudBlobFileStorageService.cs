@@ -6,13 +6,12 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Web;
-using System.Web.Mvc;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery
 {
-    public class CloudBlobFileStorageService : CloudBlobCoreFileStorageService, IFileStorageService
+    public class CloudBlobFileStorageService : CloudBlobCoreFileStorageService
     {
         private readonly IAppConfiguration _configuration;
         private readonly ISourceDestinationRedirectPolicy _redirectPolicy;
@@ -29,26 +28,13 @@ namespace NuGetGallery
             _redirectPolicy = redirectPolicy;
         }
 
-        public async Task<ActionResult> CreateDownloadFileActionResultAsync(Uri requestUrl, string folderName, string fileName, string versionParameter)
+        public override async Task<FileStorageResult> CreateDownloadFileResultAsync(Uri requestUrl, string folderName, string fileName, string versionParameter)
         {
             ICloudBlobContainer container = await GetContainerAsync(folderName);
             var blob = container.GetBlobReference(fileName);
 
             var redirectUri = GetRedirectUri(requestUrl, blob.Uri, versionParameter);
-            return new RedirectResult(redirectUri.AbsoluteUri, false);
-        }
-
-        internal async Task<ActionResult> CreateDownloadFileActionResult(
-            HttpContextBase httpContext,
-            string folderName,
-            string fileName,
-            string versionParameter)
-        {
-            var container = await GetContainerAsync(folderName);
-            var blob = container.GetBlobReference(fileName);
-
-            var redirectUri = GetRedirectUri(httpContext.Request.Url, blob.Uri, versionParameter);
-            return new RedirectResult(redirectUri.AbsoluteUri, false);
+            return new FileStorageResult.Redirect(redirectUri);
         }
 
         internal Uri GetRedirectUri(Uri requestUrl, Uri blobUri, string versionParameter)
@@ -95,12 +81,6 @@ namespace NuGetGallery
             };
 
             return urlBuilder.Uri;
-        }
-
-        public async Task<bool> IsAvailableAsync()
-        {
-            var container = await GetContainerAsync(CoreConstants.Folders.PackagesFolderName);
-            return await container.ExistsAsync(cloudBlobLocationMode: null);
         }
 
         private static NameValueCollection ParseQueryString(Uri uri)

@@ -47,7 +47,7 @@ namespace NuGetGallery
             [Fact]
             public async Task WillDeleteTheFileViaTheFileStorageServiceUsingThePackagesFolder()
             {
-                var fileStorageSvc = new Mock<IFileStorageService>();
+                var fileStorageSvc = new Mock<ICoreFileStorageService>();
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
                 fileStorageSvc.Setup(x => x.DeleteFileAsync(CoreConstants.Folders.PackagesFolderName, It.IsAny<string>()))
                     .Completes()
@@ -61,7 +61,7 @@ namespace NuGetGallery
             [Fact]
             public async Task WillDeleteTheFileViaTheFileStorageServiceUsingAFileNameWithIdAndVersion()
             {
-                var fileStorageSvc = new Mock<IFileStorageService>();
+                var fileStorageSvc = new Mock<ICoreFileStorageService>();
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
                 fileStorageSvc.Setup(x => x.DeleteFileAsync(It.IsAny<string>(), BuildFileName("theId", "theVersion", CoreConstants.NuGetPackageFileExtension, CoreConstants.PackageFileSavePathTemplate)))
                     .Completes()
@@ -152,10 +152,10 @@ namespace NuGetGallery
             [Fact]
             public async Task WillGetAResultFromTheFileStorageServiceUsingThePackagesFolder()
             {
-                var fileStorageSvc = new Mock<IFileStorageService>();
+                var fileStorageSvc = new Mock<ICoreFileStorageService>();
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
-                fileStorageSvc.Setup(x => x.CreateDownloadFileActionResultAsync(new Uri("http://fake"), CoreConstants.Folders.PackagesFolderName, It.IsAny<string>(), It.IsAny<string>()))
-                    .CompletesWithNull()
+                fileStorageSvc.Setup(x => x.CreateDownloadFileResultAsync(new Uri("http://fake"), CoreConstants.Folders.PackagesFolderName, It.IsAny<string>(), It.IsAny<string>()))
+                    .CompletesWith(new FileStorageResult.NotFound())
                     .Verifiable();
 
                 await service.CreateDownloadPackageActionResultAsync(new Uri("http://fake"), CreatePackage());
@@ -166,11 +166,11 @@ namespace NuGetGallery
             [Fact]
             public async Task WillGetAResultFromTheFileStorageServiceUsingAFileNameWithIdAndNormalizedVersion()
             {
-                var fileStorageSvc = new Mock<IFileStorageService>();
+                var fileStorageSvc = new Mock<ICoreFileStorageService>();
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
                 var normalizedVersion = "theNormalizedVersion";
-                fileStorageSvc.Setup(x => x.CreateDownloadFileActionResultAsync(new Uri("http://fake"), It.IsAny<string>(), BuildFileName("theId", normalizedVersion, CoreConstants.NuGetPackageFileExtension, CoreConstants.PackageFileSavePathTemplate), normalizedVersion))
-                    .CompletesWithNull()
+                fileStorageSvc.Setup(x => x.CreateDownloadFileResultAsync(new Uri("http://fake"), It.IsAny<string>(), BuildFileName("theId", normalizedVersion, CoreConstants.NuGetPackageFileExtension, CoreConstants.PackageFileSavePathTemplate), normalizedVersion))
+                    .CompletesWith(new FileStorageResult.NotFound())
                     .Verifiable();
 
                 await service.CreateDownloadPackageActionResultAsync(new Uri("http://fake"), CreatePackage());
@@ -181,13 +181,13 @@ namespace NuGetGallery
             [Fact]
             public async Task WillUseNormalizedRegularVersionIfNormalizedVersionMissing()
             {
-                var fileStorageSvc = new Mock<IFileStorageService>();
+                var fileStorageSvc = new Mock<ICoreFileStorageService>();
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
                 var packageRegistraion = new PackageRegistration { Id = "theId" };
                 var package = new Package { PackageRegistration = packageRegistraion, NormalizedVersion = null, Version = "01.01.01" };
 
-                fileStorageSvc.Setup(x => x.CreateDownloadFileActionResultAsync(new Uri("http://fake"), It.IsAny<string>(), BuildFileName("theId", "1.1.1", CoreConstants.NuGetPackageFileExtension, CoreConstants.PackageFileSavePathTemplate), "1.1.1"))
-                    .CompletesWithNull()
+                fileStorageSvc.Setup(x => x.CreateDownloadFileResultAsync(new Uri("http://fake"), It.IsAny<string>(), BuildFileName("theId", "1.1.1", CoreConstants.NuGetPackageFileExtension, CoreConstants.PackageFileSavePathTemplate), "1.1.1"))
+                    .CompletesWith(new FileStorageResult.NotFound())
                     .Verifiable();
 
                 await service.CreateDownloadPackageActionResultAsync(new Uri("http://fake"), package);
@@ -198,16 +198,16 @@ namespace NuGetGallery
             [Fact]
             public async Task WillReturnTheResultFromTheFileStorageService()
             {
-                ActionResult fakeResult = new RedirectResult("http://aUrl");
-                var fileStorageSvc = new Mock<IFileStorageService>();
-                fileStorageSvc.Setup(x => x.CreateDownloadFileActionResultAsync(new Uri("http://fake"), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                var fakeResult = new FileStorageResult.Redirect(new Uri("http://aUrl"));
+                var fileStorageSvc = new Mock<ICoreFileStorageService>();
+                fileStorageSvc.Setup(x => x.CreateDownloadFileResultAsync(new Uri("http://fake"), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                     .CompletesWith(fakeResult);
 
                 var service = CreateService(fileStorageSvc: fileStorageSvc);
 
                 var result = await service.CreateDownloadPackageActionResultAsync(new Uri("http://fake"), CreatePackage()) as RedirectResult;
 
-                Assert.Equal(fakeResult, result);
+                Assert.Equal(fakeResult.RedirectUri.AbsoluteUri, result.Url);
             }
         }
 
@@ -231,7 +231,7 @@ namespace NuGetGallery
                     Version = "1.0.0",
                 };
 
-                var fileServiceMock = new Mock<IFileStorageService>();
+                var fileServiceMock = new Mock<ICoreFileStorageService>();
                 fileServiceMock.Setup(fs => fs.DeleteFileAsync(It.IsAny<string>(), It.IsAny<string>()))
                     .Returns(Task.CompletedTask)
                     .Verifiable();
@@ -271,7 +271,7 @@ namespace NuGetGallery
             public async Task WhenValid_SavesReadMeFile()
             {
                 // Arrange.
-                var fileServiceMock = new Mock<IFileStorageService>();
+                var fileServiceMock = new Mock<ICoreFileStorageService>();
                 fileServiceMock.Setup(f => f.SaveFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Stream>(), It.IsAny<bool>()))
                     .Returns(Task.CompletedTask)
                     .Verifiable();
@@ -310,7 +310,7 @@ namespace NuGetGallery
                 // Arrange.
                 using (Stream stream = new MemoryStream(Encoding.UTF8.GetBytes(expectedMd)))
                 {
-                    var fileServiceMock = new Mock<IFileStorageService>();
+                    var fileServiceMock = new Mock<ICoreFileStorageService>();
                     var service = CreateService(fileStorageSvc: fileServiceMock);
 
                     var package = new Package()
@@ -339,7 +339,7 @@ namespace NuGetGallery
             public async Task WhenDoesNotExist_ReturnsNull()
             {
                 // Arrange
-                var fileServiceMock = new Mock<IFileStorageService>();
+                var fileServiceMock = new Mock<ICoreFileStorageService>();
                 var service = CreateService(fileServiceMock);
 
                 var package = new Package()
@@ -383,9 +383,9 @@ namespace NuGetGallery
             return package;
         }
 
-        static PackageFileService CreateService(Mock<IFileStorageService> fileStorageSvc = null)
+        static PackageFileService CreateService(Mock<ICoreFileStorageService> fileStorageSvc = null)
         {
-            fileStorageSvc = fileStorageSvc ?? new Mock<IFileStorageService>();
+            fileStorageSvc = fileStorageSvc ?? new Mock<ICoreFileStorageService>();
 
             return new PackageFileService(
                 fileStorageSvc.Object);

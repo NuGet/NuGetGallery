@@ -17,17 +17,14 @@ namespace NuGetGallery
     public class StorageDependentFacts
     {
         [Fact]
-        public void AllTypesDependingOnIFileStorageServiceAreReturnedByGetStorageDependents()
+        public void AllTypesDependingOnICoreFileStorageServiceAreReturnedByGetStorageDependents()
         {
             // Arrange
             var config = GetConfiguration();
             var allGalleryTypes = typeof(DefaultDependenciesModule).Assembly.GetTypes();
             var allGalleryAndCoreTypes = allGalleryTypes.Concat(typeof(ICoreFileStorageService).Assembly.GetTypes());
 
-            Assert.True(typeof(ICoreFileStorageService).IsAssignableFrom(typeof(IFileStorageService)));
-
-            // classes in Gallery and Gallery.Core that depend on ICoreFileStorageService (or,
-            // transitively, on IFileStorageService since the latter implements the former)
+            // classes in Gallery and Gallery.Core that depend on ICoreFileStorageService
             var fileStorageDependents = new HashSet<Type>(allGalleryAndCoreTypes
                     .Where(gct => gct
                         .GetConstructors()

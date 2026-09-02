@@ -10,9 +10,9 @@ namespace NuGetGallery
 {
     public class SymbolPackageFileService : CorePackageFileService, ISymbolPackageFileService
     {
-        private readonly IFileStorageService _fileStorageService;
+        private readonly ICoreFileStorageService _fileStorageService;
 
-        public SymbolPackageFileService(IFileStorageService fileStorageService)
+        public SymbolPackageFileService(ICoreFileStorageService fileStorageService)
             : base(fileStorageService, new SymbolPackageFileMetadataService())
         {
             _fileStorageService = fileStorageService;
@@ -24,7 +24,9 @@ namespace NuGetGallery
 
             var packageVersion = NuGetVersionFormatter.GetNormalizedPackageVersion(symbolPackage.Package);
 
-            return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, CoreConstants.Folders.SymbolPackagesFolderName, fileName, packageVersion);
+            return _fileStorageService
+                .CreateDownloadFileResultAsync(requestUrl, CoreConstants.Folders.SymbolPackagesFolderName, fileName, packageVersion)
+                .ToActionResultAsync();
         }
 
         public Task<ActionResult> CreateDownloadSymbolPackageActionResultAsync(Uri requestUrl, string id, string version)
@@ -32,7 +34,9 @@ namespace NuGetGallery
             var fileName = FileNameHelper.BuildFileName(id, version, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetSymbolPackageFileExtension);
 
             // version cannot be null here as BuildFileName will throw if it is
-            return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, CoreConstants.Folders.SymbolPackagesFolderName, fileName, NuGetVersionFormatter.Normalize(version));
+            return _fileStorageService
+                .CreateDownloadFileResultAsync(requestUrl, CoreConstants.Folders.SymbolPackagesFolderName, fileName, NuGetVersionFormatter.Normalize(version))
+                .ToActionResultAsync();
         }
     }
 }

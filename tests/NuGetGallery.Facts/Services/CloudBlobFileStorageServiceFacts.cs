@@ -7,9 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using System.Web;
-using System.Web.Mvc;
-
 using Moq;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
@@ -110,10 +107,9 @@ namespace NuGetGallery
                             });
                 fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
-                var httpContext = GetContext();
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, folderName, "theFileName", "theVersion");
+                await service.CreateDownloadFileResultAsync(HttpRequestUrl, folderName, "theFileName", "theVersion");
 
                 fakeBlobContainer.Verify(x => x.GetBlobReference("theFileName"));
             }
@@ -133,10 +129,10 @@ namespace NuGetGallery
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri(requestUri.Scheme + "://theUri"));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                var result = await service.CreateDownloadFileActionResultAsync(requestUri, CoreConstants.Folders.PackagesFolderName, "theFileName", "theVersion") as RedirectResult;
+                var result = await service.CreateDownloadFileResultAsync(requestUri, CoreConstants.Folders.PackagesFolderName, "theFileName", "theVersion") as FileStorageResult.Redirect;
 
                 Assert.NotNull(result);
-                Assert.Equal(scheme + "theuri/?packageVersion=theVersion", result.Url);
+                Assert.Equal(scheme + "theuri/?packageVersion=theVersion", result.RedirectUri.AbsoluteUri);
             }
 
             [Theory]
@@ -154,8 +150,8 @@ namespace NuGetGallery
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri(blobUrl));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                var result = await service.CreateDownloadFileActionResultAsync(new Uri(requestUrl), CoreConstants.Folders.PackagesFolderName, "theFileName", "theVersion") as RedirectResult;
-                var redirectUrl = new Uri(result.Url);
+                var result = await service.CreateDownloadFileResultAsync(new Uri(requestUrl), CoreConstants.Folders.PackagesFolderName, "theFileName", "theVersion") as FileStorageResult.Redirect;
+                var redirectUrl = result.RedirectUri;
                 Assert.Equal(expectedPort, redirectUrl.Port);
             }
 
@@ -173,10 +169,10 @@ namespace NuGetGallery
                 fakePolicy.Setup(x => x.IsAllowed(It.IsAny<Uri>(), It.IsAny<Uri>())).Returns(true).Verifiable();
                 var service = CreateService(fakeBlobClient: fakeBlobClient, redirectPolicy: fakePolicy);
 
-                var result = await service.CreateDownloadFileActionResultAsync(
+                var result = await service.CreateDownloadFileResultAsync(
                     new Uri(HttpsRequestUrlString),
                     CoreConstants.Folders.PackagesFolderName,
-                    "theFileName", "theVersion") as RedirectResult;
+                    "theFileName", "theVersion") as FileStorageResult.Redirect;
                 fakePolicy.Verify();
             }
 
@@ -195,22 +191,12 @@ namespace NuGetGallery
                 var service = CreateService(fakeBlobClient: fakeBlobClient, redirectPolicy: fakePolicy);
 
                 await Assert.ThrowsAsync<InvalidOperationException>(
-                    () => service.CreateDownloadFileActionResultAsync(
+                    () => service.CreateDownloadFileResultAsync(
                         new Uri(HttpsRequestUrlString),
                         CoreConstants.Folders.PackagesFolderName, "theFileName", "theVersion")
                     );
             }
         }
 
-        private static HttpContextBase GetContext(string protocol = "http://")
-        {
-            var httpRequest = new Mock<HttpRequestBase>();
-            httpRequest.SetupGet(r => r.Url).Returns(new Uri(protocol + "nuget.org"));
-
-            var httpContext = new Mock<HttpContextBase>();
-            httpContext.SetupGet(c => c.Request).Returns(httpRequest.Object);
-
-            return httpContext.Object;
-        }
     }
 }

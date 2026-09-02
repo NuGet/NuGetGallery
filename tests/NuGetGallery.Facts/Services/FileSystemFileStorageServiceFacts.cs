@@ -13,8 +13,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web.Mvc;
-
 using Xunit;
 
 namespace NuGetGallery
@@ -51,7 +49,7 @@ namespace NuGetGallery
                 fileSystemService.Object);
         }
 
-        public class TheCreateDownloadFileActionResultMethod
+        public class TheCreateDownloadFileResultMethod
         {
             [Theory]
             [InlineData(null)]
@@ -61,7 +59,7 @@ namespace NuGetGallery
                 var service = CreateService();
 
                 var ex = await Assert.ThrowsAsync<ArgumentNullException>(
-                    () => service.CreateDownloadFileActionResultAsync(
+                    () => service.CreateDownloadFileResultAsync(
                         HttpRequestUrl,
                         folderName,
                         "theFileName", "theVersion"));
@@ -77,7 +75,7 @@ namespace NuGetGallery
                 var service = CreateService();
 
                 var ex = await Assert.ThrowsAsync<ArgumentNullException>(
-                    () => service.CreateDownloadFileActionResultAsync(
+                    () => service.CreateDownloadFileResultAsync(
                         HttpRequestUrl,
                         CoreConstants.Folders.PackagesFolderName,
                         fileName, "theVersion"));
@@ -90,22 +88,22 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var result = await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, CoreConstants.Folders.PackagesFolderName, "theFileName", "theVersion") as FilePathResult;
+                var result = await service.CreateDownloadFileResultAsync(HttpRequestUrl, CoreConstants.Folders.PackagesFolderName, "theFileName", "theVersion") as FileStorageResult.FilePath;
 
                 Assert.NotNull(result);
                 Assert.Equal(
                     Path.Combine(FakeConfiguredFileStorageDirectory, CoreConstants.Folders.PackagesFolderName, "theFileName"),
-                    result.FileName);
+                    result.Path);
             }
 
             [Fact]
-            public async Task WillReturnAnHttpNotFoundResultWhenTheFileDoesNotExist()
+            public async Task WillReturnANotFoundResultWhenTheFileDoesNotExist()
             {
                 var fakeFileSystemService = new Mock<IFileSystemService>();
                 fakeFileSystemService.Setup(x => x.FileExists(It.IsAny<string>())).Returns(false);
                 var service = CreateService(fileSystemService: fakeFileSystemService);
 
-                var result = await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, CoreConstants.Folders.PackagesFolderName, "theFileName", "theVersion") as HttpNotFoundResult;
+                var result = await service.CreateDownloadFileResultAsync(HttpRequestUrl, CoreConstants.Folders.PackagesFolderName, "theFileName", "theVersion") as FileStorageResult.NotFound;
 
                 Assert.NotNull(result);
             }
@@ -115,7 +113,7 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var result = await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, CoreConstants.Folders.PackagesFolderName, "theFileName", "theVersion") as FilePathResult;
+                var result = await service.CreateDownloadFileResultAsync(HttpRequestUrl, CoreConstants.Folders.PackagesFolderName, "theFileName", "theVersion") as FileStorageResult.FilePath;
 
                 Assert.NotNull(result);
                 Assert.Equal(CoreConstants.PackageContentType, result.ContentType);
@@ -126,7 +124,7 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var result = await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, CoreConstants.Folders.SymbolPackagesFolderName, "theFileName", "theVersion") as FilePathResult;
+                var result = await service.CreateDownloadFileResultAsync(HttpRequestUrl, CoreConstants.Folders.SymbolPackagesFolderName, "theFileName", "theVersion") as FileStorageResult.FilePath;
 
                 Assert.NotNull(result);
                 Assert.Equal(CoreConstants.PackageContentType, result.ContentType);
@@ -137,7 +135,7 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var result = await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, CoreConstants.Folders.PackagesFolderName, "theFileName", "theVersion") as FilePathResult;
+                var result = await service.CreateDownloadFileResultAsync(HttpRequestUrl, CoreConstants.Folders.PackagesFolderName, "theFileName", "theVersion") as FileStorageResult.FilePath;
 
                 Assert.NotNull(result);
                 Assert.Equal(
