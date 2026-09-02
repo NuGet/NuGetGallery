@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <Description>Promotion processing for validated staged packages.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NuGetGallery.Services\NuGetGallery.Services.csproj" />
+  </ItemGroup>
+</Project>
