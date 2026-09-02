@@ -626,10 +626,12 @@
     <Compile Include="Services\IStagedPackageValidationMessageEmitter.cs" />
     <Compile Include="Services\IPackageStagingAuthorizationService.cs" />
     <Compile Include="Services\IPackageStagingManagementService.cs" />
+    <Compile Include="Services\IPackageStagingPromotionService.cs" />
     <Compile Include="Services\IPackageStagingUploadService.cs" />
     <Compile Include="Services\PackageStagingResult.cs" />
     <Compile Include="Services\PackageStagingAuthorizationService.cs" />
     <Compile Include="Services\PackageStagingManagementService.cs" />
+    <Compile Include="Services\PackageStagingPromotionService.cs" />
     <Compile Include="Services\PackageStagingStatus.cs" />
     <Compile Include="Services\PackageStagingUploadService.cs" />
     <Compile Include="ViewModels\PackageStagingViewModel.cs" />

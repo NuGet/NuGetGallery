@@ -75,6 +75,7 @@ namespace NuGetGallery
             public const string FeatureFlaggedStatisticsKey = "FeatureFlaggedStatisticsKey";
 
             public const string AccountDeleterTopic = "AccountDeleterBindingKey";
+            public const string StagingPromotionTopic = "StagingPromotionBindingKey";
             public const string PackageValidationTopic = "PackageValidationBindingKey";
             public const string SymbolsPackageValidationTopic = "SymbolsPackageValidationBindingKey";
             public const string PackageValidationEnqueuer = "PackageValidationEnqueuerBindingKey";
@@ -399,6 +400,10 @@ namespace NuGetGallery
                 .As<IPackageStagingManagementService>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<PackageStagingPromotionService>()
+                .As<IPackageStagingPromotionService>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<PackageStagingAuthorizationService>()
                 .As<IPackageStagingAuthorizationService>()
                 .InstancePerLifetimeScope();
@@ -406,6 +411,8 @@ namespace NuGetGallery
             builder.RegisterType<PackageStagingUploadService>()
                 .As<IPackageStagingUploadService>()
                 .InstancePerLifetimeScope();
+
+            RegisterStagingPromotionMessaging(builder, configuration);
 
             builder.RegisterType<SymbolPackageUploadService>()
                 .AsSelf()
@@ -979,6 +986,28 @@ namespace NuGetGallery
                     return c.Resolve<DeleteAccountService>();
                 })
                 .InstancePerLifetimeScope();
+        }
+
+        private static void RegisterStagingPromotionMessaging(ContainerBuilder builder, ConfigurationService configuration)
+        {
+            var connectionString = configuration.ServiceBus.StagingPromotion_ConnectionString;
+            var topicName = configuration.ServiceBus.StagingPromotion_TopicName;
+
+            builder
+                .Register(c => new TopicClientWrapper(connectionString, topicName, configuration.ServiceBus.ManagedIdentityClientId))
+                .SingleInstance()
+                .Keyed<ITopicClient>(BindingKeys.StagingPromotionTopic)
+                .OnRelease(x => _ = x.CloseAsync());
+
+            builder.RegisterType<StagedPackagePromotionMessageSerializer>()
+                .As<IBrokeredMessageSerializer<StagedPackagePromotionMessage>>();
+
+            builder
+                .RegisterType<StagedPackagePromotionMessageEnqueuer>()
+                .WithParameter(new ResolvedParameter(
+                    (parameter, context) => parameter.ParameterType == typeof(ITopicClient),
+                    (parameter, context) => context.ResolveKeyed<ITopicClient>(BindingKeys.StagingPromotionTopic)))
+                .As<IStagedPackagePromotionMessageEnqueuer>();
         }
 
         private static void RegisterFeatureFlagsService(ContainerBuilder builder, ConfigurationService configuration)
