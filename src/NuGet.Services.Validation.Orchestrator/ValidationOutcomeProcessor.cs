@@ -100,7 +100,7 @@ namespace NuGet.Services.Validation.Orchestrator
 
                 await _packageFileService.DeletePackageForValidationSetAsync(validationSet);
             }
-            else if (AllRequiredValidationsSucceeded(validationSet))
+            else if (!HasMaliciousValidation(validationSet) && AllRequiredValidationsSucceeded(validationSet))
             {
                 _logger.LogInformation("All validations are complete for the package {PackageId} {PackageVersion}, validation set {ValidationSetId}",
                     validationSet.PackageId,
