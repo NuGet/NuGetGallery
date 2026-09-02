@@ -113,6 +113,84 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 Times.Exactly(2));
         }
 
+        [Fact]
+        public async Task RemovesPublishedPackageWhenBlobPropertyUpdateFails()
+        {
+            var context = new TestContext();
+            var expected = new InvalidOperationException("Property update failed.");
+            context.PackageFileStorageService
+                .Setup(x => x.SetPropertiesAsync(
+                    CoreConstants.Folders.PackagesFolderName,
+                    "example.package.1.2.3.nupkg",
+                    It.IsAny<Func<Lazy<Task<Stream>>, ICloudBlobProperties, Task<bool>>>()))
+                .ThrowsAsync(expected);
+
+            var actual = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => context.Target.HandleAsync(context.Message));
+
+            Assert.Same(expected, actual);
+            context.PackageFileStorageService.Verify(
+                x => x.DeleteFileAsync(
+                    CoreConstants.Folders.PackagesFolderName,
+                    "example.package.1.2.3.nupkg"),
+                Times.Once);
+            context.StagedPackageRepository.Verify(
+                x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()),
+                Times.Never);
+        }
+
+        [Fact]
+        public async Task RemovesPublishedFilesWhenContentExtractionFails()
+        {
+            var context = new TestContext();
+            var expected = new InvalidOperationException("Readme extraction failed.");
+            context.Package.EmbeddedLicenseType = EmbeddedLicenseFileType.PlainText;
+            context.Package.EmbeddedReadmeType = EmbeddedReadmeFileType.Markdown;
+            context.Package.HasReadMe = true;
+            context.ReadmeFileService
+                .Setup(x => x.ExtractAndSaveReadmeFileAsync(context.Package, It.IsAny<Stream>()))
+                .ThrowsAsync(expected);
+
+            var actual = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => context.Target.HandleAsync(context.Message));
+
+            Assert.Same(expected, actual);
+            context.PackageFileStorageService.Verify(
+                x => x.DeleteFileAsync(
+                    CoreConstants.Folders.PackagesFolderName,
+                    "example.package.1.2.3.nupkg"),
+                Times.Once);
+            context.LicenseFileService.Verify(
+                x => x.DeleteLicenseFileAsync(context.Package.Id, context.Package.NormalizedVersion),
+                Times.Once);
+            context.ReadmeFileService.Verify(
+                x => x.DeleteReadmeFileAsync(context.Package.Id, context.Package.NormalizedVersion),
+                Times.Once);
+            context.StagedPackageRepository.Verify(
+                x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()),
+                Times.Never);
+        }
+
+        [Fact]
+        public async Task RemovesPublishedPackageWhenDatabaseCommitFails()
+        {
+            var context = new TestContext();
+            var expected = new InvalidOperationException("Database commit failed.");
+            context.StagedPackageRepository
+                .Setup(x => x.CommitChangesAsync())
+                .ThrowsAsync(expected);
+
+            var actual = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => context.Target.HandleAsync(context.Message));
+
+            Assert.Same(expected, actual);
+            context.PackageFileStorageService.Verify(
+                x => x.DeleteFileAsync(
+                    CoreConstants.Folders.PackagesFolderName,
+                    "example.package.1.2.3.nupkg"),
+                Times.Once);
+        }
+
         public enum InvalidState
         {
             MissingStagedPackage,

@@ -58,9 +58,19 @@ namespace NuGet.Services.Staging.Promotion
 
             var package = stagedPackage.Package;
             var streamMetadata = await GetStreamMetadataAsync(stagedPackage);
-            await PublishPackageAsync(package, stagedPackage);
-            await ExtractPackageContentAsync(package, stagedPackage);
-            await CompletePromotionAsync(package, stagedPackage, streamMetadata);
+            var packageFileName = await CopyPackageAsync(package, stagedPackage);
+
+            try
+            {
+                await SetPackagePropertiesAsync(packageFileName);
+                await ExtractPackageContentAsync(package, stagedPackage);
+                await CompletePromotionAsync(package, stagedPackage, streamMetadata);
+            }
+            catch
+            {
+                await DeletePublishedFilesAsync(package, packageFileName);
+                throw;
+            }
 
             return true;
         }
@@ -89,7 +99,7 @@ namespace NuGet.Services.Staging.Promotion
             }
         }
 
-        private async Task PublishPackageAsync(Package package, StagedPackage stagedPackage)
+        private async Task<string> CopyPackageAsync(Package package, StagedPackage stagedPackage)
         {
             var sourceUri = await _stagingBlobService.GetPackageReadUriAsync(stagedPackage.ValidatedBlobPath, stagedPackage.ValidatedBlobETag);
 
@@ -105,7 +115,12 @@ namespace NuGet.Services.Staging.Promotion
                 packageFileName,
                 AccessConditionWrapper.GenerateIfNotExistsCondition());
 
-            await _packageFileStorageService.SetPropertiesAsync(
+            return packageFileName;
+        }
+
+        private Task SetPackagePropertiesAsync(string packageFileName)
+        {
+            return _packageFileStorageService.SetPropertiesAsync(
                 _packageFileMetadataService.FileFolderName,
                 packageFileName,
                 (_, properties) =>
@@ -150,6 +165,21 @@ namespace NuGet.Services.Staging.Promotion
                 _stagedPackageRepository.DeleteOnCommit(stagedPackage);
                 await _stagedPackageRepository.CommitChangesAsync();
             });
+        }
+
+        private async Task DeletePublishedFilesAsync(Package package, string packageFileName)
+        {
+            await _packageFileStorageService.DeleteFileAsync(_packageFileMetadataService.FileFolderName, packageFileName);
+
+            if (package.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
+            {
+                await _licenseFileService.DeleteLicenseFileAsync(package.Id, package.NormalizedVersion);
+            }
+
+            if (package.HasEmbeddedReadme)
+            {
+                await _readmeFileService.DeleteReadmeFileAsync(package.Id, package.NormalizedVersion);
+            }
         }
     }
 }
