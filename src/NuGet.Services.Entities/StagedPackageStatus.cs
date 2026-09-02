@@ -10,5 +10,7 @@ namespace NuGet.Services.Entities
         FailedValidation = 2,
         Superseded = 3,
         Deleted = 4,
+        Promoting = 5,
+        PromotionFailed = 6,
     }
 }

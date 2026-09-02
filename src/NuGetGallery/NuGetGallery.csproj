@@ -415,6 +415,10 @@
     <Compile Include="Migrations\202608290458316_AddStagedPackageRowVersion.Designer.cs">
       <DependentUpon>202608290458316_AddStagedPackageRowVersion.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202609020256140_AddStagedPackagePromotionState.cs" />
+    <Compile Include="Migrations\202609020256140_AddStagedPackagePromotionState.Designer.cs">
+      <DependentUpon>202609020256140_AddStagedPackagePromotionState.cs</DependentUpon>
+    </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
     <Compile Include="RequestModels\UpdateListedRequest.cs" />
@@ -1834,6 +1838,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202608290458316_AddStagedPackageRowVersion.resx">
       <DependentUpon>202608290458316_AddStagedPackageRowVersion.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609020256140_AddStagedPackagePromotionState.resx">
+      <DependentUpon>202609020256140_AddStagedPackagePromotionState.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
