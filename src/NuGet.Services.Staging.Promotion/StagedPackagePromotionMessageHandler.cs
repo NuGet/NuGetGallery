@@ -12,6 +12,9 @@ using NuGetGallery.Packaging;
 
 namespace NuGet.Services.Staging.Promotion
 {
+    /// <summary>
+    /// Publishes validated staged package content and completes the corresponding Gallery state transition.
+    /// </summary>
     public class StagedPackagePromotionMessageHandler : IMessageHandler<StagedPackagePromotionMessage>
     {
         private readonly IEntityRepository<StagedPackage> _stagedPackageRepository;
@@ -22,6 +25,16 @@ namespace NuGet.Services.Staging.Promotion
         private readonly ICoreLicenseFileService _licenseFileService;
         private readonly ICoreReadmeFileService _readmeFileService;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StagedPackagePromotionMessageHandler"/> class.
+        /// </summary>
+        /// <param name="stagedPackageRepository">The staged package repository.</param>
+        /// <param name="packageService">The package service.</param>
+        /// <param name="stagingBlobService">The private staging blob service.</param>
+        /// <param name="packageFileStorageService">The public package file storage service.</param>
+        /// <param name="packageFileMetadataService">The public package file naming metadata.</param>
+        /// <param name="licenseFileService">The public embedded-license file service.</param>
+        /// <param name="readmeFileService">The public embedded-readme file service.</param>
         public StagedPackagePromotionMessageHandler(
             IEntityRepository<StagedPackage> stagedPackageRepository,
             ICorePackageService packageService,
@@ -40,6 +53,7 @@ namespace NuGet.Services.Staging.Promotion
             _readmeFileService = readmeFileService ?? throw new ArgumentNullException(nameof(readmeFileService));
         }
 
+        /// <inheritdoc />
         public async Task<bool> HandleAsync(StagedPackagePromotionMessage message)
         {
             if (message == null)

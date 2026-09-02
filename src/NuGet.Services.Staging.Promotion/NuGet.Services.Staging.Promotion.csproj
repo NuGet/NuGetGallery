@@ -1,9 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
+    <OutputType>Exe</OutputType>
     <Description>Promotion processing for validated staged packages.</Description>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Validation.Common.Job\Validation.Common.Job.csproj" />
     <ProjectReference Include="..\NuGetGallery.Services\NuGetGallery.Services.csproj" />
   </ItemGroup>
 </Project>
