@@ -65,8 +65,14 @@ namespace NuGet.Services.Staging.Promotion
                 .GetAll()
                 .Include(candidate => candidate.Package.PackageRegistration.Owners)
                 .SingleOrDefault(candidate => candidate.Key == message.StagedPackageKey);
-            if (!CanPromote(stagedPackage, message.PromotionId))
+            if (!IsActivePromotionAttempt(stagedPackage, message.PromotionId))
             {
+                return true;
+            }
+
+            if (!HasValidPromotionState(stagedPackage))
+            {
+                await MarkPromotionFailedAsync(stagedPackage);
                 return true;
             }
 
@@ -89,15 +95,25 @@ namespace NuGet.Services.Staging.Promotion
             return true;
         }
 
-        private static bool CanPromote(StagedPackage stagedPackage, Guid promotionId)
+        private static bool IsActivePromotionAttempt(StagedPackage stagedPackage, Guid promotionId)
         {
             return stagedPackage != null
                 && stagedPackage.Status == StagedPackageStatus.Promoting
                 && stagedPackage.ActivePromotionId == promotionId
-                && stagedPackage.Package.PackageStatusKey == PackageStatus.Staged
-                && !string.IsNullOrWhiteSpace(stagedPackage.ValidatedBlobPath)
+                && stagedPackage.Package.PackageStatusKey == PackageStatus.Staged;
+        }
+
+        private static bool HasValidPromotionState(StagedPackage stagedPackage)
+        {
+            return !string.IsNullOrWhiteSpace(stagedPackage.ValidatedBlobPath)
                 && !string.IsNullOrWhiteSpace(stagedPackage.ValidatedBlobETag)
                 && stagedPackage.Package.PackageRegistration.Owners.Any(owner => owner.Key == stagedPackage.OwnerKey);
+        }
+
+        private async Task MarkPromotionFailedAsync(StagedPackage stagedPackage)
+        {
+            stagedPackage.Status = StagedPackageStatus.PromotionFailed;
+            await _stagedPackageRepository.CommitChangesAsync();
         }
 
         private async Task<PackageStreamMetadata> GetStreamMetadataAsync(StagedPackage stagedPackage)

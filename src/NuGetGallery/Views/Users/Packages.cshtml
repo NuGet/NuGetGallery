@@ -559,6 +559,21 @@
         return "staged-validation-issues-" + index;
     }
 
+    string GetStagedPackageStatus(string status)
+    {
+        if (status == StagedPackageStatus.FailedValidation.ToString())
+        {
+            return "Validation failed";
+        }
+
+        if (status == StagedPackageStatus.PromotionFailed.ToString())
+        {
+            return "Promotion failed";
+        }
+
+        return status;
+    }
+
     dynamic GetSerializableStagedPackage(PackageStagingViewModel package, int index)
     {
         return new
@@ -567,7 +582,7 @@
             package.Version,
             package.Owner,
             OwnerUrl = Url.User(package.Owner),
-            Status = package.Status == StagedPackageStatus.FailedValidation.ToString() ? "Validation failed" : package.Status,
+            Status = GetStagedPackageStatus(package.Status),
             package.StatusClass,
             HasValidationIssues = package.ValidationIssues.Count > 0,
             ValidationIssuesId = GetStagedValidationIssuesId(index),

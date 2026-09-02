@@ -122,11 +122,22 @@ namespace NuGet.Services.Staging.Promotion.Tests
             context.VerifyNotPublished();
         }
 
+        [Fact]
+        public async Task ConsumesMessageWhenPackageIsNoLongerStaged()
+        {
+            var context = new TestContext();
+            context.Package.PackageStatusKey = PackageStatus.Available;
+
+            var handled = await context.Target.HandleAsync(context.Message);
+
+            Assert.True(handled);
+            context.VerifyNotPublished();
+        }
+
         [Theory]
-        [InlineData(InvalidState.PackageNotStaged)]
         [InlineData(InvalidState.MissingValidatedBlob)]
         [InlineData(InvalidState.OwnerNoLongerOwnsPackage)]
-        public async Task ConsumesMessageWithoutPublishingWhenAuthoritativeStateIsInvalid(InvalidState state)
+        public async Task MarksPromotionFailedWhenRequiredStateIsMissing(InvalidState state)
         {
             var context = new TestContext();
             context.Apply(state);
@@ -134,7 +145,9 @@ namespace NuGet.Services.Staging.Promotion.Tests
             var handled = await context.Target.HandleAsync(context.Message);
 
             Assert.True(handled);
+            Assert.Equal(StagedPackageStatus.PromotionFailed, context.StagedPackage.Status);
             context.VerifyNotPublished();
+            context.StagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
         }
 
         [Fact]
@@ -176,6 +189,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 () => context.Target.HandleAsync(context.Message));
 
             Assert.Same(expected, actual);
+            Assert.Equal(StagedPackageStatus.Promoting, context.StagedPackage.Status);
             context.PackageFileStorageService.Verify(
                 x => x.DeleteFileAsync(
                     CoreConstants.Folders.PackagesFolderName,
@@ -202,6 +216,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 () => context.Target.HandleAsync(context.Message));
 
             Assert.Same(expected, actual);
+            Assert.Equal(StagedPackageStatus.Promoting, context.StagedPackage.Status);
             context.PackageFileStorageService.Verify(
                 x => x.DeleteFileAsync(
                     CoreConstants.Folders.PackagesFolderName,
@@ -231,6 +246,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 () => context.Target.HandleAsync(context.Message));
 
             Assert.Same(expected, actual);
+            Assert.Equal(StagedPackageStatus.Promoting, context.StagedPackage.Status);
             context.PackageFileStorageService.Verify(
                 x => x.DeleteFileAsync(
                     CoreConstants.Folders.PackagesFolderName,
@@ -238,9 +254,31 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 Times.Once);
         }
 
+        [Fact]
+        public async Task KeepsPromotingWhenPackageCopyFails()
+        {
+            var context = new TestContext();
+            var expected = new InvalidOperationException("Package copy failed.");
+            context.PackageFileStorageService
+                .Setup(x => x.CopyFileAsync(
+                    context.SourceUri,
+                    CoreConstants.Folders.PackagesFolderName,
+                    "example.package.1.2.3.nupkg",
+                    It.IsAny<IAccessCondition>()))
+                .ThrowsAsync(expected);
+
+            var actual = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => context.Target.HandleAsync(context.Message));
+
+            Assert.Same(expected, actual);
+            Assert.Equal(StagedPackageStatus.Promoting, context.StagedPackage.Status);
+            context.PackageFileStorageService.Verify(
+                x => x.DeleteFileAsync(It.IsAny<string>(), It.IsAny<string>()),
+                Times.Never);
+        }
+
         public enum InvalidState
         {
-            PackageNotStaged,
             MissingValidatedBlob,
             OwnerNoLongerOwnsPackage,
         }
@@ -348,9 +386,6 @@ namespace NuGet.Services.Staging.Promotion.Tests
             {
                 switch (state)
                 {
-                    case InvalidState.PackageNotStaged:
-                        Package.PackageStatusKey = PackageStatus.Available;
-                        break;
                     case InvalidState.MissingValidatedBlob:
                         StagedPackage.ValidatedBlobPath = null;
                         break;
