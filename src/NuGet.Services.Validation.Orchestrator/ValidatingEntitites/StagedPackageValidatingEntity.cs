@@ -29,6 +29,11 @@ namespace NuGet.Services.Validation.Orchestrator
                         return PackageStatus.Available;
                     case StagedPackageStatus.FailedValidation:
                         return PackageStatus.FailedValidation;
+                    case StagedPackageStatus.Superseded:
+                    case StagedPackageStatus.Deleted:
+                        // Available means "already complete" only to the generic pipeline, so stale
+                        // outcomes do not update the attempt or send notifications.
+                        return PackageStatus.Available;
                     default:
                         throw new ArgumentOutOfRangeException(nameof(EntityRecord.Status));
                 }

@@ -50,6 +50,13 @@ namespace NuGetGallery
                 packageRegistrationPermissionsRequirement: PermissionsRequirement.Owner);
 
         /// <summary>
+        /// The action of managing a staged package.
+        /// </summary>
+        public static ActionRequiringStagedPackagePermissions ManageStagedPackage =>
+            new ActionRequiringStagedPackagePermissions(
+                accountOnBehalfOfPermissionsRequirement: RequireOwnerOrOrganizationMember);
+
+        /// <summary>
         /// The action of uploading a symbols package for an existing package.
         /// </summary>
         public static ActionRequiringPackagePermissions UploadSymbolPackage =>

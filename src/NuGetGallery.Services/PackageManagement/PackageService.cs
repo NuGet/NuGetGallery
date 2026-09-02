@@ -902,6 +902,77 @@ namespace NuGetGallery
             return package;
         }
 
+        public virtual Package ReplacePackageMetadataForStagedPackage(
+            StagedPackage stagedPackage,
+            PackageArchiveReader packageArchive,
+            PackageMetadata packageMetadata,
+            PackageStreamMetadata packageStreamMetadata,
+            User user)
+        {
+            if (stagedPackage == null)
+            {
+                throw new ArgumentNullException(nameof(stagedPackage));
+            }
+
+            if (stagedPackage.Package == null)
+            {
+                throw new ArgumentException("The staged package must have a populated Package reference.", nameof(stagedPackage));
+            }
+
+            var package = stagedPackage.Package;
+            var isActiveStagedPackage =
+                package.PackageStatusKey == PackageStatus.Staged &&
+                (stagedPackage.Status == StagedPackageStatus.Validating ||
+                 stagedPackage.Status == StagedPackageStatus.Ready ||
+                 stagedPackage.Status == StagedPackageStatus.FailedValidation);
+            var isDeletedStagedPackage =
+                package.PackageStatusKey == PackageStatus.Deleted &&
+                stagedPackage.Status == StagedPackageStatus.Deleted;
+            if (!isActiveStagedPackage && !isDeletedStagedPackage)
+            {
+                throw new ArgumentException("The staged package is not in a state that allows its metadata to be replaced.", nameof(stagedPackage));
+            }
+
+            if (packageArchive == null)
+            {
+                throw new ArgumentNullException(nameof(packageArchive));
+            }
+
+            if (packageMetadata == null)
+            {
+                throw new ArgumentNullException(nameof(packageMetadata));
+            }
+
+            if (packageStreamMetadata == null)
+            {
+                throw new ArgumentNullException(nameof(packageStreamMetadata));
+            }
+
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+#pragma warning disable 618
+            RemoveAll(package.Authors);
+#pragma warning restore 618
+            RemoveAll(package.Dependencies);
+            RemoveAll(package.PackageTypes);
+            RemoveAll(package.SupportedFrameworks);
+
+            return EnrichPackageFromNuGetPackage(package, packageArchive, packageMetadata, packageStreamMetadata, user);
+        }
+
+        private void RemoveAll<TEntity>(ICollection<TEntity> entities) where TEntity : class
+        {
+            foreach (var entity in entities.ToList())
+            {
+                _entitiesContext.Set<TEntity>().Remove(entity);
+            }
+
+            entities.Clear();
+        }
+
         public virtual IEnumerable<NuGetFramework> GetSupportedFrameworks(PackageArchiveReader package)
         {
             if (_featureFlagService.ArePatternSetTfmHeuristicsEnabled())

@@ -70,11 +70,11 @@
     table-layout: fixed;
 
     .staging-package-id-column {
-      width: 30%;
+      width: 25%;
     }
 
     .staging-package-owner-column {
-      width: 20%;
+      width: 18%;
     }
 
     .staging-package-version-column {
@@ -82,16 +82,114 @@
     }
 
     .staging-package-status-column {
-      width: 17%;
+      width: 22%;
     }
 
-    .staging-package-uploaded-column {
-      width: 15%;
+    .staging-package-listed-column {
+      width: 10%;
+    }
+
+    .staging-package-actions-column {
+      width: 7%;
+    }
+
+    .staging-listed-form {
+      align-items: center;
+      display: inline-flex;
+      gap: 8px;
+      margin: 0;
+    }
+
+    .staging-listed-status {
+      color: var(--statusDangerForeground1Rest);
+      font-size: 13px;
+      font-weight: normal;
+      line-height: 16px;
+      white-space: nowrap;
+    }
+
+    input[type="checkbox"].staging-listed-input {
+      margin: 0 !important;
+    }
+
+    input[type="checkbox"].staging-listed-input:checked::after {
+      border: solid var(--neutralForegroundOnBrandRest);
+      border-width: 0 2px 2px 0;
+      content: "";
+      display: block;
+      height: 9px;
+      left: 5px;
+      position: absolute;
+      top: 2px;
+      transform: rotate(45deg);
+      width: 5px;
     }
 
     .staging-package-owner,
     .staging-package-version {
       .break-word;
+    }
+  }
+
+  .staging-package-actions {
+    display: inline-block;
+
+    .staging-package-actions-toggle {
+      align-items: center;
+      background-color: transparent;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      color: var(--neutralForeground1Rest);
+      display: inline-flex;
+      font-size: 20px;
+      height: 32px;
+      justify-content: center;
+      line-height: 1;
+      padding: 0;
+      width: 32px;
+
+      &:hover,
+      &:focus {
+        background-color: var(--neutralBackgroundSubtleHover);
+        border-color: transparent;
+        color: var(--neutralForeground1Rest);
+      }
+
+      &:focus {
+        outline: 2px solid var(--neutralStrokeFocus2Rest);
+        outline-offset: 1px;
+      }
+    }
+
+    &.open .staging-package-actions-toggle,
+    .staging-package-actions-toggle:active {
+      background-color: var(--neutralBackgroundSubtlePressed);
+      border-color: transparent;
+      color: var(--neutralForeground1Rest);
+    }
+
+    .dropdown-menu {
+      background-color: var(--neutralBackground2Rest);
+      border: 1px solid var(--neutralStroke1Rest);
+      box-shadow: 0 4px 12px var(--shadowAmbient);
+      min-width: 0;
+      padding: 4px 0;
+      width: 120px;
+
+      > li > a {
+        color: var(--neutralForeground1Rest);
+        padding: 6px 12px;
+
+        &:hover,
+        &:focus {
+          background-color: var(--neutralBackground2Hover);
+          color: var(--neutralForeground1Rest);
+        }
+      }
+
+      .divider {
+        background-color: var(--neutralStroke2Rest);
+      }
     }
   }
 

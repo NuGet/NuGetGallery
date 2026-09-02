@@ -10,5 +10,7 @@ namespace NuGetGallery
         public string Version { get; set; }
 
         public string Status { get; set; }
+
+        public bool Listed { get; set; }
     }
 }

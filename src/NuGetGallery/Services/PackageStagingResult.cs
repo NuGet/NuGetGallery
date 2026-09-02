@@ -22,11 +22,16 @@ namespace NuGetGallery
 
         public IReadOnlyList<IValidationMessage> Warnings { get; }
 
-        public bool Success => StatusCode == HttpStatusCode.Created;
+        public bool Success => (int)StatusCode >= (int)HttpStatusCode.OK && (int)StatusCode < (int)HttpStatusCode.MultipleChoices;
 
         public static PackageStagingResult Created(IReadOnlyList<IValidationMessage> warnings)
         {
             return new PackageStagingResult(HttpStatusCode.Created, errorMessage: null, warnings);
+        }
+
+        public static PackageStagingResult Ok(IReadOnlyList<IValidationMessage> warnings = null)
+        {
+            return new PackageStagingResult(HttpStatusCode.OK, errorMessage: null, warnings);
         }
 
         public static PackageStagingResult Error(HttpStatusCode statusCode, string errorMessage)

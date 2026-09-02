@@ -61,7 +61,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 return;
             }
 
-            var packageMetadata = await _packageFileService.UpdatePackageBlobMetadataInValidationSetAsync(validationSet);
+            await _packageFileService.UpdatePackageBlobMetadataInValidationSetAsync(validationSet);
             var packageFileUri = await _packageFileService.GetPackageForValidationSetReadUriAsync(
                 validationSet,
                 sasDefinition: null,
@@ -71,7 +71,6 @@ namespace NuGet.Services.Validation.Orchestrator
                 validationSet.PackageNormalizedVersion,
                 packageFileUri);
 
-            await _entityService.UpdateMetadataAsync(validatingEntity.EntityRecord, packageMetadata, commitChanges: false);
             validatingEntity.EntityRecord.ValidatedBlobPath = file.Path;
             validatingEntity.EntityRecord.ValidatedBlobETag = file.ETag;
             await _entityService.UpdateStatusAsync(validatingEntity.EntityRecord, PackageStatus.Available, commitChanges: true);

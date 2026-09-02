@@ -38,5 +38,10 @@ namespace NuGetGallery
         /// but none of the namespaces currently have owners.
         /// </summary>
         OwnerlessReservedNamespaceFailure,
+
+        /// <summary>
+        /// The account on whose behalf the action is performed does not own the staged package attempt.
+        /// </summary>
+        StagedPackageFailure,
     }
 }

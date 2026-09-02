@@ -8,5 +8,7 @@ namespace NuGet.Services.Entities
         Validating = 0,
         Ready = 1,
         FailedValidation = 2,
+        Superseded = 3,
+        Deleted = 4,
     }
 }

@@ -44,7 +44,7 @@ namespace NuGetGallery
             Assert.Equal("PackageA", message.ProcessValidationSet.PackageId);
             Assert.Equal("1.0.0", message.ProcessValidationSet.PackageVersion);
             Assert.Equal(ValidatingType.StagedPackage, message.ProcessValidationSet.ValidatingType);
-            Assert.Null(message.ProcessValidationSet.EntityKey);
+            Assert.Equal(stagedPackage.Key, message.ProcessValidationSet.EntityKey);
         }
 
         [Fact]

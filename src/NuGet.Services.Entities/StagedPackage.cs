@@ -32,8 +32,17 @@ namespace NuGet.Services.Entities
         [StringLength(256)]
         public string ValidatedBlobETag { get; set; }
 
+        [Required]
+        [StringLength(256)]
+        public string UploadHash { get; set; }
+
         public StagedPackageStatus Status { get; set; }
 
         public DateTime UploadedDate { get; set; }
+
+        /// <summary>
+        /// Used for optimistic concurrency when updating the staged attempt.
+        /// </summary>
+        public byte[] RowVersion { get; set; }
     }
 }

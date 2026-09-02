@@ -4,7 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery.Authentication;
@@ -44,6 +46,51 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public void ListsOnlyTheNewestAttemptForEachStagedPackage()
+            {
+                var currentUser = new User("current") { Key = 1 };
+                var previousAttempt = CreateStagedPackage(100, 10, "Test.Package", "1.0.0", currentUser);
+                previousAttempt.Status = StagedPackageStatus.Superseded;
+                var currentAttempt = CreateStagedPackage(101, 10, "Test.Package", "1.0.0", currentUser);
+                currentAttempt.Package.Listed = true;
+
+                var target = CreateService(new[] { previousAttempt, currentAttempt }, owner => true);
+
+                var result = target.GetStagedPackages(currentUser);
+
+                Assert.Same(currentAttempt, Assert.Single(result));
+            }
+
+            [Fact]
+            public void ListsOnlyNewestApiKeyAuthorizedAttempts()
+            {
+                var currentUser = new User("current") { Key = 1 };
+                var scopes = Array.Empty<Scope>();
+                var previousAttempt = CreateStagedPackage(100, 10, "Test.Package", "1.0.0", currentUser);
+                previousAttempt.Status = StagedPackageStatus.Superseded;
+                var currentAttempt = CreateStagedPackage(101, 10, "Test.Package", "1.0.0", currentUser);
+                currentAttempt.Status = StagedPackageStatus.Ready;
+                currentAttempt.Package.Listed = true;
+                var hiddenPackage = CreateStagedPackage(102, 11, "Hidden.Package", "2.0.0", currentUser);
+                var authorizationService = new Mock<IPackageStagingAuthorizationService>();
+                authorizationService
+                    .Setup(x => x.CanManageWithApiKey(currentUser, scopes, currentAttempt))
+                    .Returns(true);
+                var target = CreateService(
+                    new[] { previousAttempt, currentAttempt, hiddenPackage },
+                    owner => true,
+                    authorizationService.Object);
+
+                var result = target.GetPackages(currentUser, scopes);
+
+                var package = Assert.Single(result);
+                Assert.Equal("Test.Package", package.Id);
+                Assert.Equal("1.0.0", package.Version);
+                Assert.Equal(StagedPackageStatus.Ready.ToString(), package.Status);
+                Assert.True(package.Listed);
+            }
+
+            [Fact]
             public void GetsTheNewestAttemptForAPackage()
             {
                 var currentUser = new User("current") { Key = 1, EmailAddress = "current@example.test" };
@@ -54,31 +101,145 @@ namespace NuGetGallery
                 packageService
                     .Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
                     .Returns(currentAttempt.Package);
-                var apiScopeEvaluator = new Mock<IApiScopeEvaluator>();
-                apiScopeEvaluator
-                    .Setup(x => x.Evaluate(
+                var authorizationService = new Mock<IPackageStagingAuthorizationService>();
+                authorizationService
+                    .Setup(x => x.CanManageWithApiKey(
                         It.IsAny<User>(),
                         It.IsAny<IEnumerable<Scope>>(),
-                        It.IsAny<IActionRequiringEntityPermissions<PackageRegistration>>(),
-                        It.IsAny<PackageRegistration>(),
-                        It.IsAny<string[]>()))
-                    .Returns(new ApiScopeEvaluationResult(currentUser, PermissionsCheckResult.Allowed, scopesAreValid: true));
+                        currentAttempt))
+                    .Returns(true);
                 var target = CreateService(
                     new[] { previousAttempt, currentAttempt },
                     owner => true,
-                    apiScopeEvaluator.Object,
+                    authorizationService.Object,
                     packageService.Object);
 
-                var result = target.GetPackage(currentUser, Array.Empty<Scope>(), "Test.Package", "1.0.0");
+                var result = target.GetPackageStatus(currentUser, Array.Empty<Scope>(), "Test.Package", "1.0.0");
 
                 Assert.NotNull(result);
+                Assert.True(result.Listed);
+            }
+
+            [Fact]
+            public void DoesNotGetADeletedPackage()
+            {
+                var currentUser = new User("current") { Key = 1 };
+                var stagedPackage = CreateStagedPackage(100, 10, "Test.Package", "1.0.0", currentUser);
+                stagedPackage.Status = StagedPackageStatus.Deleted;
+                stagedPackage.Package.PackageStatusKey = PackageStatus.Deleted;
+                var packageService = new Mock<IPackageService>();
+                packageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict("Test.Package", "1.0.0"))
+                    .Returns(stagedPackage.Package);
+                var target = CreateService(
+                    new[] { stagedPackage },
+                    owner => true,
+                    packageService: packageService.Object);
+
+                var result = target.GetPackageStatus(currentUser, Array.Empty<Scope>(), "Test.Package", "1.0.0");
+
+                Assert.Null(result);
+            }
+
+            [Theory]
+            [InlineData(StagedPackageStatus.Validating, "uploaded", "uploaded-etag")]
+            [InlineData(StagedPackageStatus.FailedValidation, "uploaded", "uploaded-etag")]
+            [InlineData(StagedPackageStatus.Ready, "validated", "validated-etag")]
+            public async Task OpensExpectedContentForCurrentAttempt(StagedPackageStatus status, string expectedPath, string expectedETag)
+            {
+                var currentUser = new User("current") { Key = 1 };
+                var stagedPackage = CreateStagedPackage(10, "Test.Package", "1.0.0", currentUser);
+                stagedPackage.Status = status;
+                stagedPackage.UploadedBlobPath = "uploaded";
+                stagedPackage.UploadedBlobETag = "uploaded-etag";
+                stagedPackage.ValidatedBlobPath = "validated";
+                stagedPackage.ValidatedBlobETag = "validated-etag";
+                var expected = new MemoryStream();
+                var stagingBlobService = new Mock<IStagingBlobService>();
+                stagingBlobService
+                    .Setup(x => x.OpenPackageFileAsync(expectedPath, expectedETag))
+                    .ReturnsAsync(expected);
+                var target = CreateService(
+                    new[] { stagedPackage },
+                    owner => true,
+                    stagingBlobService: stagingBlobService.Object);
+
+                var actual = await target.OpenPackageContentAsync(stagedPackage);
+
+                Assert.Same(expected, actual);
+            }
+
+            [Fact]
+            public void DoesNotFindADeletedAttempt()
+            {
+                var owner = new User("owner") { Key = 1 };
+                var stagedPackage = CreateStagedPackage(10, "Test.Package", "1.0.0", owner);
+                stagedPackage.Status = StagedPackageStatus.Deleted;
+                var packageService = new Mock<IPackageService>();
+                packageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict("Test.Package", "1.0.0"))
+                    .Returns(stagedPackage.Package);
+                var target = CreateService(
+                    new[] { stagedPackage },
+                    user => true,
+                    packageService: packageService.Object);
+
+                var result = target.FindCurrentStagedPackage("Test.Package", "1.0.0");
+
+                Assert.Null(result);
+            }
+
+            [Fact]
+            public async Task UpdatesListedIntent()
+            {
+                var owner = new User("owner") { Key = 1 };
+                var stagedPackage = CreateStagedPackage(10, "Test.Package", "1.0.0", owner);
+                stagedPackage.Package.Listed = false;
+                var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
+                var target = CreateService(
+                    new[] { stagedPackage },
+                    user => true,
+                    stagedPackageRepository: stagedPackageRepository);
+
+                await target.UpdateListedAsync(stagedPackage, listed: true);
+
+                Assert.True(stagedPackage.Package.Listed);
+                stagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
+            }
+
+            [Fact]
+            public async Task DeletesCurrentAttemptAndRetainsDeletedPackage()
+            {
+                var owner = new User("owner") { Key = 1 };
+                var stagedPackage = CreateStagedPackage(10, "Test.Package", "1.0.0", owner);
+                stagedPackage.Package.Listed = true;
+                var packageService = new Mock<IPackageService>();
+                packageService
+                    .Setup(x => x.UpdatePackageStatusAsync(stagedPackage.Package, PackageStatus.Deleted, false))
+                    .Callback(() => stagedPackage.Package.PackageStatusKey = PackageStatus.Deleted)
+                    .Returns(Task.CompletedTask);
+                var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
+                var target = CreateService(
+                    new[] { stagedPackage },
+                    user => true,
+                    packageService: packageService.Object,
+                    stagedPackageRepository: stagedPackageRepository);
+
+                await target.DeletePackageAsync(stagedPackage);
+
+                Assert.Equal(StagedPackageStatus.Deleted, stagedPackage.Status);
+                Assert.Equal(PackageStatus.Deleted, stagedPackage.Package.PackageStatusKey);
+                Assert.False(stagedPackage.Package.Listed);
+                stagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
             }
 
             private static PackageStagingManagementService CreateService(
                 IEnumerable<StagedPackage> stagedPackages,
                 Func<User, bool> isEnabled,
-                IApiScopeEvaluator apiScopeEvaluator = null,
-                IPackageService packageService = null)
+                IPackageStagingAuthorizationService authorizationService = null,
+                IPackageService packageService = null,
+                IStagingBlobService stagingBlobService = null,
+                Mock<IEntityRepository<StagedPackage>> stagedPackageRepository = null)
             {
                 var stagedPackagesList = stagedPackages.ToList();
                 var stagedPackagesQuery = stagedPackagesList.AsQueryable();
@@ -89,21 +250,29 @@ namespace NuGetGallery
                 stagedPackagesSet.As<IQueryable<StagedPackage>>().Setup(x => x.GetEnumerator()).Returns(() => stagedPackagesQuery.GetEnumerator());
                 stagedPackagesSet.Setup(x => x.Include("Package.PackageRegistration")).Returns(stagedPackagesSet.Object);
                 stagedPackagesSet.Setup(x => x.Include("Owner")).Returns(stagedPackagesSet.Object);
-                var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
+                stagedPackageRepository = stagedPackageRepository ?? new Mock<IEntityRepository<StagedPackage>>();
                 stagedPackageRepository
                     .Setup(x => x.GetAll())
                     .Returns(stagedPackagesSet.Object);
+                stagedPackageRepository
+                    .Setup(x => x.CommitChangesAsync())
+                    .Returns(Task.CompletedTask);
 
                 var featureFlagService = new Mock<IFeatureFlagService>();
                 featureFlagService
                     .Setup(x => x.IsPackageStagingEnabled(It.IsAny<User>()))
                     .Returns((User owner) => isEnabled(owner));
+                var defaultAuthorizationService = new Mock<IPackageStagingAuthorizationService>();
+                defaultAuthorizationService
+                    .Setup(x => x.CanManage(It.IsAny<User>(), It.IsAny<StagedPackage>()))
+                    .Returns(true);
 
                 return new PackageStagingManagementService(
-                    apiScopeEvaluator ?? Mock.Of<IApiScopeEvaluator>(),
+                    authorizationService ?? defaultAuthorizationService.Object,
                     featureFlagService.Object,
                     packageService ?? Mock.Of<IPackageService>(),
-                    stagedPackageRepository.Object);
+                    stagedPackageRepository.Object,
+                    stagingBlobService ?? Mock.Of<IStagingBlobService>());
             }
 
             private static StagedPackage CreateStagedPackage(int packageKey, string id, string version, User owner)
@@ -113,11 +282,14 @@ namespace NuGetGallery
 
             private static StagedPackage CreateStagedPackage(int key, int packageKey, string id, string version, User owner)
             {
+                var registration = new PackageRegistration { Id = id };
+                registration.Owners.Add(owner);
                 var package = new Package
                 {
                     Key = packageKey,
                     NormalizedVersion = version,
-                    PackageRegistration = new PackageRegistration { Id = id },
+                    PackageRegistration = registration,
+                    PackageStatusKey = PackageStatus.Staged,
                 };
 
                 return new StagedPackage

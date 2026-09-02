@@ -43,9 +43,6 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             var entityService = new Mock<IEntityService<StagedPackage>>();
             entityService
-                .Setup(x => x.UpdateMetadataAsync(stagedPackage, metadata, false))
-                .Returns(Task.CompletedTask);
-            entityService
                 .Setup(x => x.UpdateStatusAsync(stagedPackage, PackageStatus.Available, true))
                 .Returns(Task.CompletedTask);
 
@@ -79,7 +76,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             Assert.Equal(uploadedETag, stagedPackage.UploadedBlobETag);
             Assert.Equal(validatedPath, stagedPackage.ValidatedBlobPath);
             Assert.Equal(validatedETag, stagedPackage.ValidatedBlobETag);
-            entityService.Verify(x => x.UpdateMetadataAsync(stagedPackage, metadata, false), Times.Once);
+            entityService.Verify(x => x.UpdateMetadataAsync(It.IsAny<StagedPackage>(), It.IsAny<object>(), It.IsAny<bool>()), Times.Never);
             entityService.Verify(x => x.UpdateStatusAsync(stagedPackage, PackageStatus.Available, true), Times.Once);
         }
 

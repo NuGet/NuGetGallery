@@ -149,6 +149,30 @@ namespace NuGetGallery
                 new { controller = "Packages", action = "UploadPackageProgress" });
 
             routes.MapRoute(
+                RouteName.DownloadManagedStagedPackage,
+                "account/staging/package/{id}/{version}/content",
+                new { controller = "Staging", action = nameof(StagingController.DownloadPackage) },
+                new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
+                RouteName.ReplaceManagedStagedPackage,
+                "account/staging/package/{id}/{version}/replace",
+                new { controller = "Staging", action = nameof(StagingController.ReplacePackage) },
+                new { httpMethod = new HttpMethodConstraint("POST") });
+
+            routes.MapRoute(
+                RouteName.UpdateManagedStagedPackageListed,
+                "account/staging/package/{id}/{version}/listed",
+                new { controller = "Staging", action = nameof(StagingController.UpdateListed) },
+                new { httpMethod = new HttpMethodConstraint("POST") });
+
+            routes.MapRoute(
+                RouteName.DeleteManagedStagedPackage,
+                "account/staging/package/{id}/{version}/delete",
+                new { controller = "Staging", action = nameof(StagingController.DeletePackage) },
+                new { httpMethod = new HttpMethodConstraint("POST") });
+
+            routes.MapRoute(
                 RouteName.VerifyPackage,
                 "packages/manage/verify-upload",
                 new { controller = "Packages", action = "VerifyPackage" });
@@ -898,9 +922,33 @@ namespace NuGetGallery
         public static void RegisterStagingApiRoutes(RouteCollection routes)
         {
             routes.MapRoute(
-                RouteName.GetStagedPackage,
+                RouteName.DownloadStagedPackage,
                 "api/v3/staging/package/{id}/{version}",
-                new { controller = "StagingApi", action = "GetStagedPackage" },
+                new { controller = "StagingApi", action = nameof(StagingApiController.DownloadStagedPackage) },
+                new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
+                RouteName.GetStagedPackageStatus,
+                "api/v3/staging/package/{id}/{version}/status",
+                new { controller = "StagingApi", action = nameof(StagingApiController.GetStagedPackageStatus) },
+                new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
+                RouteName.UpdateStagedPackageListed,
+                "api/v3/staging/package/{id}/{version}/listed",
+                new { controller = "StagingApi", action = nameof(StagingApiController.UpdateStagedPackageListed) },
+                new { httpMethod = new HttpMethodConstraint("PATCH") });
+
+            routes.MapRoute(
+                RouteName.DeleteStagedPackage,
+                "api/v3/staging/package/{id}/{version}",
+                new { controller = "StagingApi", action = nameof(StagingApiController.DeleteStagedPackage) },
+                new { httpMethod = new HttpMethodConstraint("DELETE") });
+
+            routes.MapRoute(
+                RouteName.GetStagedPackages,
+                "api/v3/staging/package",
+                new { controller = "StagingApi", action = nameof(StagingApiController.GetStagedPackages) },
                 new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(

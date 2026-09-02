@@ -407,6 +407,14 @@
     <Compile Include="Migrations\202608270422303_AddStagedPackageValidation.Designer.cs">
       <DependentUpon>202608270422303_AddStagedPackageValidation.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202608282336197_AddStagedPackageUploadHash.cs" />
+    <Compile Include="Migrations\202608282336197_AddStagedPackageUploadHash.Designer.cs">
+      <DependentUpon>202608282336197_AddStagedPackageUploadHash.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202608290458316_AddStagedPackageRowVersion.cs" />
+    <Compile Include="Migrations\202608290458316_AddStagedPackageRowVersion.Designer.cs">
+      <DependentUpon>202608290458316_AddStagedPackageRowVersion.cs</DependentUpon>
+    </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
     <Compile Include="RequestModels\UpdateListedRequest.cs" />
@@ -609,11 +617,14 @@
       <DependentUpon>201711021733062_ApiKeyOwnerScope.cs</DependentUpon>
     </Compile>
     <Compile Include="RequestModels\SimulatedErrorType.cs" />
+    <Compile Include="RequestModels\UpdateStagedPackageRequest.cs" />
     <Compile Include="Services\AsynchronousValidationMessageEmitter.cs" />
     <Compile Include="Services\IStagedPackageValidationMessageEmitter.cs" />
+    <Compile Include="Services\IPackageStagingAuthorizationService.cs" />
     <Compile Include="Services\IPackageStagingManagementService.cs" />
     <Compile Include="Services\IPackageStagingUploadService.cs" />
     <Compile Include="Services\PackageStagingResult.cs" />
+    <Compile Include="Services\PackageStagingAuthorizationService.cs" />
     <Compile Include="Services\PackageStagingManagementService.cs" />
     <Compile Include="Services\PackageStagingStatus.cs" />
     <Compile Include="Services\PackageStagingUploadService.cs" />
@@ -1582,6 +1593,7 @@
     <Compile Include="App_Start\AppActivator.cs" />
     <Compile Include="Controllers\ApiController.cs" />
     <Compile Include="Controllers\StagingApiController.cs" />
+    <Compile Include="Controllers\StagingController.cs" />
     <Compile Include="Controllers\JsonApiController.cs" />
     <Compile Include="Controllers\PackagesController.cs" />
     <Compile Include="Controllers\AuthenticationController.cs" />
@@ -1816,6 +1828,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202608270422303_AddStagedPackageValidation.resx">
       <DependentUpon>202608270422303_AddStagedPackageValidation.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202608282336197_AddStagedPackageUploadHash.resx">
+      <DependentUpon>202608282336197_AddStagedPackageUploadHash.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202608290458316_AddStagedPackageRowVersion.resx">
+      <DependentUpon>202608290458316_AddStagedPackageRowVersion.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

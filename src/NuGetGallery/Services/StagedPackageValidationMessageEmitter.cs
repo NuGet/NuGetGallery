@@ -41,7 +41,7 @@ namespace NuGetGallery
                 stagedPackage.Package.Version,
                 Guid.NewGuid(),
                 ValidatingType.StagedPackage,
-                entityKey: null);
+                entityKey: stagedPackage.Key);
 
             var activityName = "Enqueuing asynchronous staged package validation: " +
                 $"{data.ProcessValidationSet.PackageId} {data.ProcessValidationSet.PackageVersion} " +
