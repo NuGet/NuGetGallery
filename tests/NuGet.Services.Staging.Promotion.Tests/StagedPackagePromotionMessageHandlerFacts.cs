@@ -61,16 +61,72 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 Times.Once);
             context.StagedPackageRepository.Verify(x => x.DeleteOnCommit(context.StagedPackage), Times.Once);
             context.StagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
+            Assert.Empty(context.StagedPackages);
+        }
+
+        [Fact]
+        public async Task ConsumesDuplicateDeliveryAfterPromotionCompletes()
+        {
+            var context = new TestContext();
+
+            var firstHandled = await context.Target.HandleAsync(context.Message);
+            var duplicateHandled = await context.Target.HandleAsync(context.Message);
+
+            Assert.True(firstHandled);
+            Assert.True(duplicateHandled);
+            context.PackageFileStorageService.Verify(
+                x => x.CopyFileAsync(
+                    context.SourceUri,
+                    CoreConstants.Folders.PackagesFolderName,
+                    "example.package.1.2.3.nupkg",
+                    It.IsAny<IAccessCondition>()),
+                Times.Once);
+            context.StagedPackageRepository.Verify(
+                x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task ConsumesOrphanMessage()
+        {
+            var context = new TestContext();
+            context.StagedPackages.Clear();
+
+            var handled = await context.Target.HandleAsync(context.Message);
+
+            Assert.True(handled);
+            context.VerifyNotPublished();
+        }
+
+        [Fact]
+        public async Task ConsumesMessageForEarlierPromotionAttempt()
+        {
+            var context = new TestContext();
+            context.StagedPackage.ActivePromotionId = Guid.NewGuid();
+
+            var handled = await context.Target.HandleAsync(context.Message);
+
+            Assert.True(handled);
+            context.VerifyNotPublished();
+        }
+
+        [Fact]
+        public async Task ConsumesMessageWhenPromotionIsNoLongerActive()
+        {
+            var context = new TestContext();
+            context.StagedPackage.Status = StagedPackageStatus.Ready;
+
+            var handled = await context.Target.HandleAsync(context.Message);
+
+            Assert.True(handled);
+            context.VerifyNotPublished();
         }
 
         [Theory]
-        [InlineData(InvalidState.MissingStagedPackage)]
-        [InlineData(InvalidState.NotPromoting)]
-        [InlineData(InvalidState.DifferentPromotion)]
         [InlineData(InvalidState.PackageNotStaged)]
         [InlineData(InvalidState.MissingValidatedBlob)]
         [InlineData(InvalidState.OwnerNoLongerOwnsPackage)]
-        public async Task ConsumesMessageWithoutPublishingWhenPromotionIsNotCurrent(InvalidState state)
+        public async Task ConsumesMessageWithoutPublishingWhenAuthoritativeStateIsInvalid(InvalidState state)
         {
             var context = new TestContext();
             context.Apply(state);
@@ -78,16 +134,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
             var handled = await context.Target.HandleAsync(context.Message);
 
             Assert.True(handled);
-            context.PackageFileStorageService.Verify(
-                x => x.CopyFileAsync(
-                    It.IsAny<Uri>(),
-                    It.IsAny<string>(),
-                    It.IsAny<string>(),
-                    It.IsAny<IAccessCondition>()),
-                Times.Never);
-            context.StagedPackageRepository.Verify(
-                x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()),
-                Times.Never);
+            context.VerifyNotPublished();
         }
 
         [Fact]
@@ -193,9 +240,6 @@ namespace NuGet.Services.Staging.Promotion.Tests
 
         public enum InvalidState
         {
-            MissingStagedPackage,
-            NotPromoting,
-            DifferentPromotion,
             PackageNotStaged,
             MissingValidatedBlob,
             OwnerNoLongerOwnsPackage,
@@ -247,6 +291,9 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 StagedPackageRepository
                     .Setup(x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()))
                     .Returns((Func<Task> action) => action());
+                StagedPackageRepository
+                    .Setup(x => x.DeleteOnCommit(StagedPackage))
+                    .Callback(() => StagedPackages.Remove(StagedPackage));
 
                 PackageService = new Mock<ICorePackageService>();
                 PackageService
@@ -301,15 +348,6 @@ namespace NuGet.Services.Staging.Promotion.Tests
             {
                 switch (state)
                 {
-                    case InvalidState.MissingStagedPackage:
-                        StagedPackages.Clear();
-                        break;
-                    case InvalidState.NotPromoting:
-                        StagedPackage.Status = StagedPackageStatus.Ready;
-                        break;
-                    case InvalidState.DifferentPromotion:
-                        StagedPackage.ActivePromotionId = Guid.NewGuid();
-                        break;
                     case InvalidState.PackageNotStaged:
                         Package.PackageStatusKey = PackageStatus.Available;
                         break;
@@ -322,6 +360,20 @@ namespace NuGet.Services.Staging.Promotion.Tests
                     default:
                         throw new ArgumentOutOfRangeException(nameof(state));
                 }
+            }
+
+            public void VerifyNotPublished()
+            {
+                PackageFileStorageService.Verify(
+                    x => x.CopyFileAsync(
+                        It.IsAny<Uri>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<IAccessCondition>()),
+                    Times.Never);
+                StagedPackageRepository.Verify(
+                    x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()),
+                    Times.Never);
             }
 
             public byte[] Content { get; }
