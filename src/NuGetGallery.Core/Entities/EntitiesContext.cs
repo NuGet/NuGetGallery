@@ -159,7 +159,7 @@ namespace NuGetGallery
                 .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<Scope>()
-                .HasRequired<Credential>(sc => sc.Credential)
+                .HasOptional<Credential>(sc => sc.Credential)
                 .WithMany(cr => cr.Scopes)
                 .HasForeignKey(sc => sc.CredentialKey)
                 .WillCascadeOnDelete(true);
@@ -589,6 +589,12 @@ namespace NuGetGallery
                 .HasMany(x => x.Credentials)
                 .WithOptional(c => c.FederatedCredentialPolicy)
                 .WillCascadeOnDelete(false); // deletion must be done explicitly to improve per-credential auditing
+
+            modelBuilder.Entity<FederatedCredentialPolicy>()
+                .HasMany(x => x.Scopes)
+                .WithOptional()
+                .HasForeignKey(s => s.FederatedCredentialPolicyKey)
+                .WillCascadeOnDelete(true);
 
             modelBuilder.Entity<FederatedCredential>()
                 .HasKey(x => x.Key);

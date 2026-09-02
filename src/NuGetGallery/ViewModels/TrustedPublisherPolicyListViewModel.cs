@@ -10,8 +10,10 @@ namespace NuGetGallery
     [DebuggerDisplay("{Username,nq}, policies={Policies.Count}")]
     public class TrustedPublisherPolicyListViewModel
     {
+        public const int MaxScopeSubjectsInputLength = 1000;
         public string Username { get; set; }
-        public IReadOnlyList<string> PackageOwners { get; set; } = Array.Empty<string>();
+        public IReadOnlyList<TrustedPublisherPolicyOwnerViewModel> PackageOwners { get; set; } = Array.Empty<TrustedPublisherPolicyOwnerViewModel>();
         public IReadOnlyList<TrustedPublisherPolicyViewModel> Policies { get; set; } = Array.Empty<TrustedPublisherPolicyViewModel>();
+        public bool IsDeprecateApiEnabled { get; set; }
     }
 }

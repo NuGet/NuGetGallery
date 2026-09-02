@@ -37,8 +37,8 @@
 
 @helper DisplayNavigationItem(string tab, string url, bool bold = false, string title = null, string className = null)
 {
-    <li class="@(ViewBag.Tab == tab ? "active" : string.Empty)" role="presentation">
-        <a role="tab" name="@tab" aria-selected="@(ViewBag.Tab == tab ? "true" : "false")" href="@url" title="@title" class="@className">
+    <li class="@(ViewBag.Tab == tab ? "active" : string.Empty)">
+        <a name="@tab" @(ViewBag.Tab == tab ? Html.Raw("aria-current=\"page\"") : null) href="@url" title="@title" class="@className">
             @if (bold)
             {
                 @:<b>
@@ -73,7 +73,7 @@
                     </a>
                 </div>
                 <div id="navbar" class="navbar-collapse collapse">
-                    <ul class="nav navbar-nav" role="tablist">
+                    <ul class="nav navbar-nav">
                         @DisplayNavigationItem("Packages", Url.PackageList(), className: GalleryConstants.SearchFilterIds.PackagesLinkClass)
                         @DisplayNavigationItem("Upload", Url.UploadPackage())
                         @if (StatisticsHelper.IsStatisticsPageAvailable)
@@ -90,7 +90,7 @@
                     </ul>
                     @if (ShowAuthInHeader)
                     {
-                        <ul class="nav navbar-nav navbar-right" role="tablist">
+                        <ul class="nav navbar-nav navbar-right">
                             @if (!User.Identity.IsAuthenticated)
                             {
                                 var returnUrl = ViewData.ContainsKey(GalleryConstants.ReturnUrlViewDataKey) ? (string)ViewData[GalleryConstants.ReturnUrlViewDataKey] : Request.RawUrl;
@@ -98,8 +98,8 @@
                             }
                             else
                             {
-                                <li class="@(ViewBag.Tab == User.Identity.Name ? "active" : string.Empty) dropdown" role="presentation">
-                                    <a href="#" aria-selected="@(ViewBag.Tab == User.Identity.Name ? "true" : "false")" role="tab" id="account-dropdown" class="dropdown-toggle" title="Open profile dropdown" data-toggle="dropdown">
+                                <li class="@(ViewBag.Tab == User.Identity.Name ? "active" : string.Empty) dropdown">
+                                    <a href="#" @(ViewBag.Tab == User.Identity.Name ? Html.Raw("aria-current=\"page\"") : null) id="account-dropdown" class="dropdown-toggle" title="Open profile dropdown" data-toggle="dropdown">
                                         <div>
                                             @if (ShowWarningIndicator)
                                             {

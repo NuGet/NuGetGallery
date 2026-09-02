@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -21,16 +21,18 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
         protected ILogger Logger { get; set; }
         protected AuthenticationService Auth { get; set; }
         protected ICredentialBuilder CredentialBuilder { get; set; }
+        protected IFeatureFlagService FeatureFlagService { get; set; }
 
         private ApiKeyAuthenticationOptions TheOptions { get { return _options ?? Options; } }
 
         internal ApiKeyAuthenticationHandler() { }
 
-        public ApiKeyAuthenticationHandler(ILogger logger, AuthenticationService auth, ICredentialBuilder credentialBuilder)
+        public ApiKeyAuthenticationHandler(ILogger logger, AuthenticationService auth, ICredentialBuilder credentialBuilder, IFeatureFlagService featureFlagService)
         {
             Logger = logger ?? throw new ArgumentNullException(nameof(logger));
             Auth = auth ?? throw new ArgumentNullException(nameof(auth));
             CredentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
+            FeatureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
         }
 
         internal Task InitializeAsync(ApiKeyAuthenticationOptions options, IOwinContext context)
@@ -88,6 +90,19 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                     if (!user.MatchesOwnerScope(credential))
                     {
                         WriteStatus(ServicesStrings.ApiKeyNotAuthorized, 403);
+                    }
+
+                    // Enforce the API key reduction cutoff for ALL API key operations, not just push.
+                    if (credential.IsApiKey()
+                        && credential.Expires.HasValue
+                        && FeatureFlagService.IsApiKeyReductionDateEnabled())
+                    {
+                        var effectiveExpiration = ApiKeyReductionPolicy.GetEffectiveExpiration(credential.Created, credential.Expires);
+                        if (effectiveExpiration.HasValue && DateTime.UtcNow >= effectiveExpiration.Value)
+                        {
+                            WriteStatus(ServicesStrings.ApiKeyExpiredUnderReductionPolicy, 403);
+                            return null;
+                        }
                     }
 
                     // Set the current user

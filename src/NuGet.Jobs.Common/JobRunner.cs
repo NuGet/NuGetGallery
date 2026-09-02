@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -175,15 +175,20 @@ namespace NuGet.Jobs
                 jobArgsDictionary,
                 JobArgumentNames.HeartbeatIntervalSeconds);
 
+            var enableDependencyTracking = JobConfigurationManager.TryGetBoolArgument(
+                jobArgsDictionary,
+                JobArgumentNames.EnableDependencyTracking);
+
             if (heartbeatIntervalSeconds.HasValue)
             {
                 applicationInsightsConfiguration = ApplicationInsights.Initialize(
                     instrumentationKey,
-                    TimeSpan.FromSeconds(heartbeatIntervalSeconds.Value));
+                    TimeSpan.FromSeconds(heartbeatIntervalSeconds.Value),
+                    enableDependencyTracking);
             }
             else
             {
-                applicationInsightsConfiguration = ApplicationInsights.Initialize(instrumentationKey);
+                applicationInsightsConfiguration = ApplicationInsights.Initialize(instrumentationKey, enableDependencyTracking);
             }
 
             // Determine job and instance name, for logging.

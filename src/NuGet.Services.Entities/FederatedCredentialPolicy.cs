@@ -90,5 +90,10 @@ namespace NuGet.Services.Entities
         /// The navigation property for the credentials that were allowed and created by this policy.
         /// </summary>
         public virtual ICollection<Credential> Credentials { get; set; }
+
+        /// <summary>
+        /// The navigation property for the scopes of the policy.
+        /// </summary>
+        public virtual ICollection<Scope> Scopes { get; set; }
     }
 }

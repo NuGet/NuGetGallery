@@ -48,10 +48,17 @@ namespace NuGetGallery.Infrastructure.Authentication
             plaintextApiKey = apiKey.PlaintextApiKey;
 
             var credential = new Credential(CredentialTypes.ApiKey.V5, apiKey.HashedApiKey, expiration: expiration);
-
             credential.FederatedCredentialPolicy = policy;
             credential.Description = "Short-lived API key generated via a federated credential";
-            credential.Scopes = [new Scope(policy.PackageOwner, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.All)];
+
+            if (policy.Scopes == null || policy.Scopes.Count == 0)
+            {
+                credential.Scopes = [ new Scope(policy.PackageOwner, subject: NuGetPackagePattern.AllInclusivePattern, allowedAction: NuGetScopes.All) ];
+            }
+            else
+            {
+                credential.Scopes = policy.Scopes.Select(s => new Scope(s.Owner, s.Subject, s.AllowedAction)).ToList();
+            }
 
             return credential;
         }

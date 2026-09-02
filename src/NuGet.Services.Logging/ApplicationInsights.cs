@@ -1,9 +1,10 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
+using Microsoft.ApplicationInsights.DependencyCollector;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.Implementation;
 using Microsoft.ApplicationInsights.Extensibility.Implementation.Tracing;
@@ -30,9 +31,15 @@ namespace NuGet.Services.Logging
         /// <paramref name="instrumentationKey"/>, taking into account the <c>ApplicationInsights.config</c> file if present.
         /// </summary>
         /// <param name="instrumentationKey">The instrumentation key to use.</param>
-        public static ApplicationInsightsConfiguration Initialize(string instrumentationKey)
+        /// <param name="enableDependencyTracking">
+        /// When <c>true</c>, a <see cref="DependencyTrackingTelemetryModule"/> is initialized so outbound
+        /// dependency calls are collected into the <c>dependencies</c> table. Defaults to <c>false</c>.
+        /// </param>
+        public static ApplicationInsightsConfiguration Initialize(
+            string instrumentationKey,
+            bool enableDependencyTracking = false)
         {
-            return InitializeApplicationInsightsConfiguration(instrumentationKey, heartbeatInterval: null);
+            return InitializeApplicationInsightsConfiguration(instrumentationKey, heartbeatInterval: null, enableDependencyTracking);
         }
 
         /// <summary>
@@ -42,16 +49,22 @@ namespace NuGet.Services.Logging
         /// </summary>
         /// <param name="instrumentationKey">The instrumentation key to use.</param>
         /// <param name="heartbeatInterval">The heartbeat interval to use.</param>
+        /// <param name="enableDependencyTracking">
+        /// When <c>true</c>, a <see cref="DependencyTrackingTelemetryModule"/> is initialized so outbound
+        /// dependency calls are collected into the <c>dependencies</c> table. Defaults to <c>false</c>.
+        /// </param>
         public static ApplicationInsightsConfiguration Initialize(
             string instrumentationKey,
-            TimeSpan heartbeatInterval)
+            TimeSpan heartbeatInterval,
+            bool enableDependencyTracking = false)
         {
-            return InitializeApplicationInsightsConfiguration(instrumentationKey, heartbeatInterval);
+            return InitializeApplicationInsightsConfiguration(instrumentationKey, heartbeatInterval, enableDependencyTracking);
         }
 
         private static ApplicationInsightsConfiguration InitializeApplicationInsightsConfiguration(
             string instrumentationKey,
-            TimeSpan? heartbeatInterval)
+            TimeSpan? heartbeatInterval,
+            bool enableDependencyTracking = false)
         {
             // Note: TelemetryConfiguration.Active is being deprecated
             // https://github.com/microsoft/ApplicationInsights-dotnet/issues/1152
@@ -95,7 +108,22 @@ namespace NuGet.Services.Logging
 
             telemetryClient.TrackTrace(traceMessage, SeverityLevel.Information);
 
-            return new ApplicationInsightsConfiguration(telemetryConfiguration, diagnosticsTelemetryModule);
+            // Optionally enable collection of outbound dependency telemetry (HTTP, SQL, etc.).
+            DependencyTrackingTelemetryModule dependencyTrackingTelemetryModule = null;
+            if (enableDependencyTracking)
+            {
+                dependencyTrackingTelemetryModule = new DependencyTrackingTelemetryModule();
+                dependencyTrackingTelemetryModule.Initialize(telemetryConfiguration);
+
+                telemetryClient.TrackTrace(
+                    "DependencyTrackingTelemetryModule initialized; outbound dependency collection is enabled.",
+                    SeverityLevel.Information);
+            }
+
+            return new ApplicationInsightsConfiguration(
+                telemetryConfiguration,
+                diagnosticsTelemetryModule,
+                dependencyTrackingTelemetryModule);
         }
     }
 }

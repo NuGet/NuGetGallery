@@ -1,5 +1,8 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System.Collections;
+using System.Collections.Generic;
 
 namespace NuGetGallery.Authentication
 {
@@ -10,6 +13,8 @@ namespace NuGetGallery.Authentication
         public const string PackagePush = "package:push";
         public const string PackageUnlist = "package:unlist";
         public const string PackageVerify = "package:verify";
+
+        public static readonly IList<string> ListOfScopes = [ All, PackagePushVersion, PackagePush, PackageUnlist, PackageVerify ];
 
         public static string Describe(string scope, bool isDeprecateApiEnabled)
         {

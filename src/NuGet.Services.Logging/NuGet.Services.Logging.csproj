@@ -12,6 +12,7 @@
   
   <ItemGroup>
     <PackageReference Include="Microsoft.ApplicationInsights" />
+    <PackageReference Include="Microsoft.ApplicationInsights.DependencyCollector" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="Serilog.Enrichers.Environment" />
