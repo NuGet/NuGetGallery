@@ -1,13 +1,16 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
+using System.Security.Principal;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
+using NuGetGallery.Authentication;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Framework;
 using Xunit;
@@ -1004,6 +1007,113 @@ namespace NuGetGallery
                         It.IsAny<int>()),
                     Times.Once);
                 Assert.Contains("InvalidOperationException", service.LastTraceMessage);
+            }
+        }
+
+        public class TheCredentialTypeDimension : BaseFacts
+        {
+            private static readonly Fakes fakes = new Fakes();
+
+            private static IIdentity CreateApiKeyIdentity(string credentialType)
+            {
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimsIdentity.DefaultNameClaimType, fakes.User.Username),
+                    new Claim(ClaimTypes.AuthenticationMethod, Authentication.AuthenticationTypes.ApiKey),
+                };
+
+                if (credentialType != null)
+                {
+                    claims.Add(new Claim(NuGetClaims.CredentialType, credentialType));
+                }
+
+                return new ClaimsIdentity(claims, Authentication.AuthenticationTypes.ApiKey);
+            }
+
+            private static IDictionary<string, string> Track(TrackAction track)
+            {
+                var service = CreateService();
+                var allProperties = new List<IDictionary<string, string>>();
+                service.TelemetryClient
+                    .Setup(x => x.TrackMetric(It.IsAny<string>(), It.IsAny<double>(), It.IsAny<IDictionary<string, string>>()))
+                    .Callback<string, double, IDictionary<string, string>>((_, __, p) => allProperties.Add(p));
+
+                track(service);
+
+                return Assert.Single(allProperties);
+            }
+
+            [Theory]
+            [InlineData("apikey.v1")]
+            [InlineData("apikey.v2")]
+            [InlineData("apikey.v4")]
+            [InlineData("apikey.v5")]
+            public void TrackPackagePushEventIncludesSpecificCredentialType(string credentialType)
+            {
+                // Arrange
+                var package = fakes.Package.Packages.First();
+                var identity = CreateApiKeyIdentity(credentialType);
+
+                // Act
+                var properties = Track(s => s.TrackPackagePushEvent(package, fakes.User, identity));
+
+                // Assert
+                Assert.Contains(
+                    new KeyValuePair<string, string>(TelemetryService.CredentialType, credentialType),
+                    properties);
+
+                // The coarse authentication bucket is still emitted alongside it.
+                Assert.Contains(
+                    new KeyValuePair<string, string>(TelemetryService.AuthenticationMethod, Authentication.AuthenticationTypes.ApiKey),
+                    properties);
+            }
+
+            [Fact]
+            public void TrackCreatePackageVerificationKeyEventIncludesCredentialType()
+            {
+                // Arrange
+                var package = fakes.Package.Packages.First();
+                var identity = CreateApiKeyIdentity(CredentialTypes.ApiKey.VerifyV1);
+
+                // Act
+                var properties = Track(s => s.TrackCreatePackageVerificationKeyEvent(
+                    package.PackageRegistration.Id, package.NormalizedVersion, fakes.User, identity));
+
+                // Assert
+                Assert.Contains(
+                    new KeyValuePair<string, string>(TelemetryService.CredentialType, CredentialTypes.ApiKey.VerifyV1),
+                    properties);
+            }
+
+            [Fact]
+            public void TrackPackagePushNamespaceConflictEventIncludesCredentialType()
+            {
+                // Arrange
+                var package = fakes.Package.Packages.First();
+                var identity = CreateApiKeyIdentity(CredentialTypes.ApiKey.V2);
+
+                // Act
+                var properties = Track(s => s.TrackPackagePushNamespaceConflictEvent(
+                    package.PackageRegistration.Id, package.NormalizedVersion, fakes.User, identity));
+
+                // Assert
+                Assert.Contains(
+                    new KeyValuePair<string, string>(TelemetryService.CredentialType, CredentialTypes.ApiKey.V2),
+                    properties);
+            }
+
+            [Fact]
+            public void TrackPackagePushEventWithoutCredentialTypeClaimDoesNotThrow()
+            {
+                // Arrange - GenericIdentity has no claims, so no CredentialType is present.
+                var package = fakes.Package.Packages.First();
+                var identity = Fakes.ToIdentity(fakes.User);
+
+                // Act
+                var properties = Track(s => s.TrackPackagePushEvent(package, fakes.User, identity));
+
+                // Assert - the dimension key is present; value reflects "no specific type".
+                Assert.True(properties.ContainsKey(TelemetryService.CredentialType));
             }
         }
 

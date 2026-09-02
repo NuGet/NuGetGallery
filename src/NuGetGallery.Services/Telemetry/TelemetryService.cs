@@ -128,6 +128,7 @@ namespace NuGetGallery
 
         // Package event properties
         public const string AuthenticationMethod = "AuthenticationMethod";
+        public const string CredentialType = "CredentialType";
         public const string ClientVersion = "ClientVersion";
         public const string ProtocolVersion = "ProtocolVersion";
         public const string ClientInformation = "ClientInformation";
@@ -451,7 +452,8 @@ namespace NuGetGallery
             TrackMetricForAccountActivity(enabledMultiFactorAuth ? Events.UserMultiFactorAuthenticationEnabled : Events.UserMultiFactorAuthenticationDisabled,
                 user,
                 credential: null,
-                addProperties: addProperties => {
+                addProperties: addProperties =>
+                {
                     addProperties.Add("Referrer", referrer);
                 });
         }
@@ -463,7 +465,8 @@ namespace NuGetGallery
 
         public void TrackUserLogin(User user, Credential credential, bool wasMultiFactorAuthenticated)
         {
-            TrackMetricForAccountActivity(Events.CredentialUsed, user, credential, addProperties => {
+            TrackMetricForAccountActivity(Events.CredentialUsed, user, credential, addProperties =>
+            {
                 addProperties.Add(WasMultiFactorAuthenticated, wasMultiFactorAuthenticated.ToString());
             });
         }
@@ -803,6 +806,7 @@ namespace NuGetGallery
                 properties.Add(PackageVersion, packageVersion);
                 properties.Add(AccountCreationDate, GetAccountCreationDate(user));
                 properties.Add(AuthenticationMethod, identity.GetAuthenticationType());
+                properties.Add(CredentialType, identity.GetCredentialType());
                 properties.Add(KeyCreationDate, GetApiKeyCreationDate(user, identity));
                 properties.Add(IsScoped, identity.IsScopedAuthentication().ToString());
                 addProperties?.Invoke(properties);
@@ -1239,7 +1243,7 @@ namespace NuGetGallery
 
         private IDisposable TrackSqlConnectionCreationDuration(string kind)
         {
-            return new DurationTracker(duration => 
+            return new DurationTracker(duration =>
                 _telemetryClient.TrackAggregatedMetric(Events.CreateSqlConnectionDurationMs, duration.TotalMilliseconds, Kind, kind));
         }
 
