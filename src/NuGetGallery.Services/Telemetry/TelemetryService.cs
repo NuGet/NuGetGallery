@@ -452,8 +452,7 @@ namespace NuGetGallery
             TrackMetricForAccountActivity(enabledMultiFactorAuth ? Events.UserMultiFactorAuthenticationEnabled : Events.UserMultiFactorAuthenticationDisabled,
                 user,
                 credential: null,
-                addProperties: addProperties =>
-                {
+                addProperties: addProperties => {
                     addProperties.Add("Referrer", referrer);
                 });
         }
@@ -465,8 +464,7 @@ namespace NuGetGallery
 
         public void TrackUserLogin(User user, Credential credential, bool wasMultiFactorAuthenticated)
         {
-            TrackMetricForAccountActivity(Events.CredentialUsed, user, credential, addProperties =>
-            {
+            TrackMetricForAccountActivity(Events.CredentialUsed, user, credential, addProperties => {
                 addProperties.Add(WasMultiFactorAuthenticated, wasMultiFactorAuthenticated.ToString());
             });
         }
@@ -1243,7 +1241,7 @@ namespace NuGetGallery
 
         private IDisposable TrackSqlConnectionCreationDuration(string kind)
         {
-            return new DurationTracker(duration =>
+            return new DurationTracker(duration => 
                 _telemetryClient.TrackAggregatedMetric(Events.CreateSqlConnectionDurationMs, duration.TotalMilliseconds, Kind, kind));
         }
 
