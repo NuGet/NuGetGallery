@@ -169,6 +169,7 @@ public class Program
         // Generate appsettings.Aspire.config to switch Gallery to Azurite blob storage
         var galleryAspireConfigPath = GenerateGalleryAspireConfig(
             galleryPath, azuriteConnStr, validationTopicName, stagingPromotionTopicName,
+            config.SearchServiceBaseAddress,
             packages: config.Containers.Packages, auditing: config.Containers.Auditing,
             content: config.Containers.Content, uploads: config.Containers.Uploads);
 
@@ -407,6 +408,7 @@ public class Program
                 "-storageConnectionStringAuditing", azuriteConnStr,
                 "-storageContainerAuditing",   config.Containers.Auditing,
                 "-storagePathAuditing",        "package",
+                "-skipCreatedPackagesProcessing", "true",
                 "-verbose",             "true",
                 "-interval",            config.Settings.PollIntervalSeconds.ToString())
             .WaitForCompletion(dbMigrateGallery)
@@ -627,6 +629,8 @@ public class Program
             .WaitFor(search)
             .WaitFor(storage)
             .WithParentRelationship(pipelineGroup);
+
+        gallery.WaitFor(searchService);
 
         builder.AddProject<Projects.NuGetGallery_AppHost_Tools>("warmup-search")
             .WithArgs("warmup")
@@ -901,7 +905,7 @@ public class Program
     /// </summary>
     static string GenerateGalleryAspireConfig(
         string galleryDir, string connectionString, string validationTopicName,
-        string stagingPromotionTopicName,
+        string stagingPromotionTopicName, string searchServiceBaseAddress,
         string packages, string auditing, string content, string uploads)
     {
         var doc = new XDocument(
@@ -929,6 +933,7 @@ public class Program
                 Setting("AzureServiceBus.SymbolsValidation.TopicName", validationTopicName),
                 Setting("AzureServiceBus.StagingPromotion.ConnectionString", ""),
                 Setting("AzureServiceBus.StagingPromotion.TopicName", stagingPromotionTopicName),
+                Setting("Gallery.SearchServiceUriPrimary", searchServiceBaseAddress),
                 Setting("Gallery.SiteRoot", "https://localhost"),
                 Setting("Gallery.SupportEmailSiteRoot", "https://localhost"),
                 Setting("Gallery.EnforceDefaultSecurityPolicies", "true"),
