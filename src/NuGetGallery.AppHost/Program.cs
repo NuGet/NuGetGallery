@@ -314,7 +314,7 @@ public class Program
                 .WaitFor(gallery)
                 .WithParentRelationship(pipelineGroup);
 
-            builder.AddProject<Projects.NuGet_Services_Staging_Promotion>("staging-promotion")
+            builder.AddProject<Projects.NuGet_Services_Staging_Promotion>("staging-promotion-worker")
                 .WithArgs("-Configuration", promotionConfigPath)
                 .WaitForCompletion(configureValidation)
                 .WaitForCompletion(dbMigrateGallery)
