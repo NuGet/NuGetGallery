@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -149,7 +149,8 @@ namespace NuGet.Services.Validation.Orchestrator
             INuGetValidationResponse validationResponse,
             DateTime now)
         {
-            if (validationResponse.Status != ValidationStatus.Incomplete)
+            if (validationResponse.Status != ValidationStatus.Incomplete
+                && validationResponse.Status != ValidationStatus.Malicious)
             {
                 AddValidationIssues(packageValidation, validationResponse.Issues);
             }

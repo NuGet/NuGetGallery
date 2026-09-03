@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -27,6 +27,13 @@ namespace NuGet.Services.Validation
         /// A failed validation step with no issues.
         /// </summary>
         public static INuGetValidationResponse Failed { get; } = new NuGetValidationResponse(ValidationStatus.Failed);
+
+        /// <summary>
+        /// Represents a validation step that has identified the package as malicious and is still in
+        /// progress. Treated the same as <see cref="Incomplete"/> for monitoring purposes — the package
+        /// is not counted as stuck in validation.
+        /// </summary>
+        public static INuGetValidationResponse Malicious { get; } = new NuGetValidationResponse(ValidationStatus.Malicious);
 
         /// <summary>
         /// Create a new validation step response with the given status.
