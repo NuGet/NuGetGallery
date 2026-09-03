@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
 using NuGet.Services.ServiceBus;
+using NuGet.Services.Staging;
 using NuGetGallery;
 using NuGetGallery.Packaging;
 

@@ -5,7 +5,8 @@
     <Description>Promotion processing for validated staged packages.</Description>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\NuGet.Services.Staging\NuGet.Services.Staging.csproj" />
     <ProjectReference Include="..\Validation.Common.Job\Validation.Common.Job.csproj" />
-    <ProjectReference Include="..\NuGetGallery.Services\NuGetGallery.Services.csproj" />
+    <ProjectReference Include="..\NuGetGallery.Core\NuGetGallery.Core.csproj" />
   </ItemGroup>
 </Project>

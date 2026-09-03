@@ -10,6 +10,7 @@ using NuGet.Jobs.Configuration;
 using NuGet.Jobs.Validation;
 using NuGet.Services.Entities;
 using NuGet.Services.ServiceBus;
+using NuGet.Services.Staging;
 using NuGetGallery;
 
 namespace NuGet.Services.Staging.Promotion

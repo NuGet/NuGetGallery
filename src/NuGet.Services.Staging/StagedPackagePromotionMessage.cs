@@ -3,7 +3,7 @@
 
 using System;
 
-namespace NuGetGallery
+namespace NuGet.Services.Staging
 {
     /// <summary>
     /// Identifies an accepted staged package promotion.

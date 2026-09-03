@@ -38,6 +38,7 @@ using NuGet.Services.Logging;
 using NuGet.Services.Messaging;
 using NuGet.Services.Messaging.Email;
 using NuGet.Services.ServiceBus;
+using NuGet.Services.Staging;
 using NuGet.Services.Sql;
 using NuGet.Services.Validation;
 using NuGetGallery.Areas.Admin;

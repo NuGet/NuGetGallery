@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using Moq;
 using NuGet.Services.ServiceBus;
+using NuGet.Services.Staging;
 using Xunit;
 
 namespace NuGetGallery

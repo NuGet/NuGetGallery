@@ -4,7 +4,7 @@
 using System;
 using NuGet.Services.ServiceBus;
 
-namespace NuGetGallery
+namespace NuGet.Services.Staging
 {
     /// <summary>
     /// Serializes staged package promotion messages for Service Bus.

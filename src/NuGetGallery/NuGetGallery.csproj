@@ -2309,6 +2309,10 @@
       <Project>{8e69eee6-2bdc-48e5-a4ab-32f44ebb2422}</Project>
       <Name>NuGet.Services.ServiceBus</Name>
     </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.Staging\NuGet.Services.Staging.csproj">
+      <Project>{8a35269d-ea22-4319-a514-e41c62c7b8e8}</Project>
+      <Name>NuGet.Services.Staging</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NuGet.Services.Sql\NuGet.Services.Sql.csproj">
       <Project>{692cdff5-6301-41bd-b06f-89deee43e23e}</Project>
       <Name>NuGet.Services.Sql</Name>

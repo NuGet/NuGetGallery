@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
+using NuGet.Services.Staging;
 using NuGetGallery;
 using Xunit;
 

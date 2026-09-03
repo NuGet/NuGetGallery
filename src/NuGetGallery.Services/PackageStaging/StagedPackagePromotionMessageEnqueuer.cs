@@ -4,6 +4,7 @@
 using System;
 using System.Threading.Tasks;
 using NuGet.Services.ServiceBus;
+using NuGet.Services.Staging;
 
 namespace NuGetGallery
 {
