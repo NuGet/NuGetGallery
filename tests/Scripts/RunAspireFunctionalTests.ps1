@@ -13,83 +13,53 @@ param(
 
 $ErrorActionPreference = "Stop"
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
-$hostPid = $null
-$originalExternalHost = $env:NUGET_PLAYWRIGHT_EXTERNAL_HOST
 
-try
+if ($TrustDevCert)
 {
-    Write-Host "=== Building functional tests ==="
-    & "$PSScriptRoot\BuildGalleryFunctionalTests.ps1" -Configuration $Configuration
-    if ($LASTEXITCODE -ne 0)
-    {
-        throw "Building functional tests failed with exit code $LASTEXITCODE."
-    }
-
-    Write-Host "=== Starting Aspire Host ==="
-    $startArguments = @{
-        Configuration = $Configuration
-    }
-    if ($TrustDevCert)
-    {
-        $startArguments.TrustDevCert = $true
-    }
-    if ($UnsafeAdminApiAuthBypassForTesting)
-    {
-        $startArguments.UnsafeAdminApiAuthBypassForTesting = $true
-    }
-
-    $hostPid = & "$repoRoot\tools\Start-AspireHost.ps1" @startArguments
-    Write-Host "Aspire Host PID: $hostPid"
-
-    Write-Host "=== Seeding functional test data ==="
-    & "$repoRoot\tools\Seed-FunctionalTestData.ps1" -Configuration $Configuration
-    if ($LASTEXITCODE -ne 0)
-    {
-        throw "Seeding functional test data failed with exit code $LASTEXITCODE."
-    }
-
-    $categories = "Category=P0Tests|Category=P1Tests|Category=P2Tests"
-    if ($UnsafeAdminApiAuthBypassForTesting)
-    {
-        $categories += "|Category=AdminApiTests"
-    }
-
-    Write-Host "=== Running non-Playwright functional tests: $categories ==="
-    $testDll = Join-Path $repoRoot "tests\NuGetGallery.FunctionalTests\bin\$Configuration\net10.0\NuGetGallery.FunctionalTests.dll"
-    $resultsDirectory = Join-Path $repoRoot "tests\TestResults"
-    New-Item -ItemType Directory -Path $resultsDirectory -Force | Out-Null
-    $env:NUGET_PLAYWRIGHT_EXTERNAL_HOST = [bool]::TrueString
-
-    dotnet test $testDll `
-        --blame-hang-timeout 600s `
-        --filter "($categories)&Category!=PlaywrightTests" `
-        --logger "trx;LogFileName=FunctionalTests.trx" `
-        --results-directory $resultsDirectory
-
-    $testExitCode = $LASTEXITCODE
-    Write-Host "dotnet test exited with code $testExitCode"
-
-    Get-ChildItem -File -Recurse $resultsDirectory | ForEach-Object {
-        Write-Host "  Result file: $($_.FullName) ($($_.Length) bytes)"
-    }
-
-    if ($testExitCode -ne 0)
-    {
-        throw "Functional tests failed with exit code $testExitCode."
-    }
+    Write-Host "=== Trusting development certificate ==="
+    & "$repoRoot\tools\Trust-DevCertificate.ps1"
 }
-finally
+
+$buildArguments = @{
+    Configuration = $Configuration
+}
+if ($UnsafeAdminApiAuthBypassForTesting)
 {
-    try
-    {
-        if ($null -ne $hostPid)
-        {
-            Write-Host "=== Stopping Aspire Host ==="
-            & "$repoRoot\tools\Stop-AspireHost.ps1" -HostPid $hostPid
-        }
-    }
-    finally
-    {
-        $env:NUGET_PLAYWRIGHT_EXTERNAL_HOST = $originalExternalHost
-    }
+    $buildArguments.UnsafeAdminApiAuthBypassForTesting = $true
+}
+
+Write-Host "=== Building functional tests ==="
+& "$PSScriptRoot\BuildGalleryFunctionalTests.ps1" @buildArguments
+if ($LASTEXITCODE -ne 0)
+{
+    throw "Building functional tests failed with exit code $LASTEXITCODE."
+}
+
+$categories = "Category=P0Tests|Category=P1Tests|Category=P2Tests"
+if ($UnsafeAdminApiAuthBypassForTesting)
+{
+    $categories += "|Category=AdminApiTests"
+}
+
+Write-Host "=== Running Aspire-hosted functional tests: $categories ==="
+$testDll = Join-Path $repoRoot "tests\NuGetGallery.FunctionalTests\bin\$Configuration\net10.0\NuGetGallery.FunctionalTests.dll"
+$resultsDirectory = Join-Path $repoRoot "tests\TestResults"
+New-Item -ItemType Directory -Path $resultsDirectory -Force | Out-Null
+
+dotnet test $testDll `
+    --blame-hang-timeout 600s `
+    --filter "($categories)&Category!=PlaywrightTests" `
+    --logger "trx;LogFileName=FunctionalTests.trx" `
+    --results-directory $resultsDirectory
+
+$testExitCode = $LASTEXITCODE
+Write-Host "dotnet test exited with code $testExitCode"
+
+Get-ChildItem -File -Recurse $resultsDirectory | ForEach-Object {
+    Write-Host "  Result file: $($_.FullName) ($($_.Length) bytes)"
+}
+
+if ($testExitCode -ne 0)
+{
+    throw "Functional tests failed with exit code $testExitCode."
 }

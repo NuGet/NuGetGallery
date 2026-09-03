@@ -7,7 +7,7 @@ using Xunit;
 
 namespace NuGetGallery.FunctionalTests.Playwright.UploadAndDownload
 {
-    [Collection(AspirePlaywrightCollection.Definition)]
+    [Collection(GalleryTestCollection.Definition)]
     public class UploadPackageToSelfFromUI : NuGetPageTest
     {
         [Fact]

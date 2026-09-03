@@ -227,9 +227,7 @@ jobs:
 
       - name: Run Aspire Functional Tests
         shell: pwsh
-        env:
-          ConfigurationFilePath: ${{ github.workspace }}\tests\NuGetGallery.FunctionalTests\settings.CI.json
-        run: .\tests\Scripts\RunAspireFunctionalTests.ps1 -Configuration $env:BuildConfiguration -TrustDevCert -UnsafeAdminApiAuthBypassForTesting
+        run: .\tests\Scripts\RunAspireFunctionalTests.ps1 -Configuration $env:BuildConfiguration -UnsafeAdminApiAuthBypassForTesting
 
       - name: Upload test results
         if: always()

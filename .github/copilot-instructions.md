@@ -54,9 +54,15 @@ Tests use xUnit and Moq. Most unit-test projects target .NET Framework 4.7.2 eve
 
 `src\NuGetGallery.AppHost` orchestrates the Gallery and local V3 pipeline. For the CI-style minimal profile:
 
-Always stop the host in a `finally` block when scripting this flow. `Start-AspireHost.ps1` defaults `APPHOST_PROFILE` to `ci-gallery`; the AppHost itself defaults to `full`. The full profile adds the Azure Search-backed resources.
+`NuGetGallery.FunctionalTests` owns its AppHost lifecycle through an xUnit collection fixture. Direct `dotnet test` runs start the `ci-gallery` profile, seed the test data, initialize `GalleryConfiguration`, and tear the host down after the selected tests. The full profile adds the Azure Search-backed resources.
 
-`BuildGalleryFunctionalTests.ps1` restores/builds the functional-test solution and installs its Playwright browsers. `-UnsafeAdminApiAuthBypassForTesting` compiles an authentication bypass; use it only in the AppHost build for Admin API functional tests, never in artifact, signing, or deployment builds.
+`BuildGalleryFunctionalTests.ps1` restores/builds the functional-test solution and installs its Playwright browsers. `-UnsafeAdminApiAuthBypassForTesting` compiles an authentication bypass; use it only for Admin API functional tests, never in artifact, signing, or deployment builds.
+
+For the supported P0/P1/P2 and Admin API suite, use:
+
+```powershell
+.\tests\Scripts\RunAspireFunctionalTests.ps1 -Configuration Release -UnsafeAdminApiAuthBypassForTesting
+```
 
 For agent-owned browser validation, use the in-test Aspire harness:
 
@@ -64,7 +70,7 @@ For agent-owned browser validation, use the in-test Aspire harness:
 .\tests\Scripts\RunGalleryPlaywrightTests.ps1 -Configuration Release
 ```
 
-This starts the `ci-gallery` AppHost, seeds test data, runs the supported Playwright tests, and tears down once per suite. It is Windows-only and uses fixed Gallery ports 80/443, so do not run it concurrently with `Start-AspireHost.ps1`. Pass `-AppHostProfile full` only when local Azure Search prerequisites are available. Statistics-service and read-only-mode browser tests remain on their separately configured paths.
+Both runners use the same suite fixture. It is Windows-only and uses fixed Gallery ports 80/443, so do not run functional-test processes concurrently or alongside `Start-AspireHost.ps1`. Set `NUGET_PLAYWRIGHT_EXTERNAL_HOST=True` and provide `ConfigurationFilePath` to run against an already hosted Gallery without starting Aspire. Pass `-AppHostProfile full` to the Playwright runner only when local Azure Search prerequisites are available. Statistics-service and read-only-mode browser tests remain on their separately configured paths.
 
 ### Frontend assets
 
