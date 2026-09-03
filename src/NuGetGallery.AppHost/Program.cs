@@ -169,7 +169,7 @@ public class Program
         // Generate appsettings.Aspire.config to switch Gallery to Azurite blob storage
         var galleryAspireConfigPath = GenerateGalleryAspireConfig(
             galleryPath, azuriteConnStr, validationTopicName, stagingPromotionTopicName,
-            config.SearchServiceBaseAddress,
+            profile == "ci-gallery" ? null : config.SearchServiceBaseAddress,
             packages: config.Containers.Packages, auditing: config.Containers.Auditing,
             content: config.Containers.Content, uploads: config.Containers.Uploads);
 
@@ -933,7 +933,7 @@ public class Program
                 Setting("AzureServiceBus.SymbolsValidation.TopicName", validationTopicName),
                 Setting("AzureServiceBus.StagingPromotion.ConnectionString", ""),
                 Setting("AzureServiceBus.StagingPromotion.TopicName", stagingPromotionTopicName),
-                Setting("Gallery.SearchServiceUriPrimary", searchServiceBaseAddress),
+                searchServiceBaseAddress == null ? null : Setting("Gallery.SearchServiceUriPrimary", searchServiceBaseAddress),
                 Setting("Gallery.SiteRoot", "https://localhost"),
                 Setting("Gallery.SupportEmailSiteRoot", "https://localhost"),
                 Setting("Gallery.EnforceDefaultSecurityPolicies", "true"),
