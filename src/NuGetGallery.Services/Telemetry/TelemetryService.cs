@@ -128,6 +128,7 @@ namespace NuGetGallery
 
         // Package event properties
         public const string AuthenticationMethod = "AuthenticationMethod";
+        public const string CredentialType = "CredentialType";
         public const string ClientVersion = "ClientVersion";
         public const string ProtocolVersion = "ProtocolVersion";
         public const string ClientInformation = "ClientInformation";
@@ -803,6 +804,7 @@ namespace NuGetGallery
                 properties.Add(PackageVersion, packageVersion);
                 properties.Add(AccountCreationDate, GetAccountCreationDate(user));
                 properties.Add(AuthenticationMethod, identity.GetAuthenticationType());
+                properties.Add(CredentialType, identity.GetCredentialType());
                 properties.Add(KeyCreationDate, GetApiKeyCreationDate(user, identity));
                 properties.Add(IsScoped, identity.IsScopedAuthentication().ToString());
                 addProperties?.Invoke(properties);
