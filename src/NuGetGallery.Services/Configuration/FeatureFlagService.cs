@@ -75,6 +75,7 @@ namespace NuGetGallery
         private const string AdminApiSoftDeleteFeatureName = GalleryPrefix + "AdminApiSoftDelete";
         private const string AllowInvalidPackageIdForAllPackages = GalleryPrefix + "AllowInvalidPackageIdForAllPackages";
         private const string AllowInvalidPackageIdForExistingPackages = GalleryPrefix + "AllowInvalidPackageIdForExistingPackages";
+        private const string RestrictApiKeyExpirationFeatureName = GalleryPrefix + "RestrictApiKeyExpiration";
 
         private const string ODataV1GetAllNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllNonHijacked";
         private const string ODataV1GetAllCountNonHijackedFeatureName = GalleryPrefix + "ODataV1GetAllCountNonHijacked";
@@ -475,6 +476,11 @@ namespace NuGetGallery
             return _client.IsEnabled(AdminApiSoftDeleteFeatureName, defaultValue: false);
         }
 
+        public bool IsApiKeyReductionDateEnabled()
+        {
+            return _client.IsEnabled(ApiKeyReductionPolicy.FeatureName, defaultValue: false);
+        }
+
         public bool IsInvalidPackageIdAllowedForAllPackages()
         {
             return _client.IsEnabled(AllowInvalidPackageIdForAllPackages, defaultValue: true);
@@ -483,6 +489,11 @@ namespace NuGetGallery
         public bool IsInvalidPackageIdAllowedForExistingPackages()
         {
             return _client.IsEnabled(AllowInvalidPackageIdForExistingPackages, defaultValue: true);
+        }
+
+        public bool IsApiKeyExpirationRestricted()
+        {
+            return _client.IsEnabled(RestrictApiKeyExpirationFeatureName, defaultValue: false);
         }
     }
 }

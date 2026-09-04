@@ -1156,4 +1156,7 @@ The {1} Team</value>
   <data name="OwnershipRequestNotValid" xml:space="preserve">
     <value>Make sure you clicked on the confirmation URL in the email we sent. It's also possible that the existing owner revoked the request to add you as an owner.</value>
   </data>
+  <data name="ApiKeyExpiredUnderReductionPolicy" xml:space="preserve">
+    <value>The specified API key has expired. Please create a new API key at https://www.nuget.org/account/apikeys.</value>
+  </data>
 </root>

@@ -6,6 +6,8 @@
     const EnableErrorMessage = "An error occurred while enabling the Trusted Publisher Policy. Please try again.";
     const ConfirmDeleteMessage = "Are you sure you want to remove the Trusted Publisher Policy?";
     const DeleteErrorMessage = "An error occurred while deleting the Trusted Publisher Policy. Please try again.";
+    const MissingScopesErrorMessage = "At least one scope must be selected.";
+    const MissingSubjectsErrorMessage = "At least one valid glob pattern or package must be specified.";
 
     const GitHubActionsPublisherName = "GitHubActions"; // must match the PublisherType in GitHubPolicyDetailsViewModel.cs
     const GitLabPublisherName = "GitLab"; // must match the PublisherType in GitLabPolicyDetailsViewModel.cs
@@ -425,6 +427,41 @@
             this.Owner = ko.observable();
             this.PublisherName = ko.observable();
 
+            // Policy scopes and subjects
+            this.PolicyScopes = ko.observableArray();
+            this.PushScopeChecked = ko.observable(false);
+            this.PushScope = ko.observable(initialData.PackagePushScope);
+            this.UnlistScopeChecked = ko.observable(false);
+            this.PendingPolicyScopes = ko.pureComputed(function () {
+                let scopes = [];
+                if (self.PushScopeChecked() && self.PushScope()) {
+                    scopes.push(self.PushScope());
+                }
+
+                if (self.UnlistScopeChecked()) {
+                    scopes.push(initialData.PackageUnlistScope);
+                }
+
+                return scopes;
+            }, this);
+
+            this.PolicySubjects = ko.observableArray();
+            this.ScopeSubjectsInput = ko.observable();
+            this.PendingPolicySubjects = ko.pureComputed(function () {
+                let subjects = [];
+                if (self.ScopeSubjectsInput()) {
+                    subjects = self.ScopeSubjectsInput()
+                        .split(/\r?\n/)
+                        .map(s => s.trim())
+                        .filter(s => s.length > 0 && policySubjectRegex.test(s))
+                }
+
+                return subjects;
+            }, this);
+
+            this.PendingPolicyScopesError = ko.observable();
+            this.PendingPolicySubjectsError = ko.observable();
+
             // Provider selection
             this.AvailableProviders = [
                 { label: 'GitHub Actions', value: GitHubActionsPublisherName },
@@ -444,6 +481,8 @@
                 this.PendingPolicyName(data.PolicyName || null);
                 this.Owner(data.Owner || null);
                 this.PublisherName(data.PublisherName || null);
+                this.PolicyScopes(data.PolicyScopes || []);
+                this.PolicySubjects(data.PolicySubjects || []);
 
                 // Set provider from existing data
                 if (data.PublisherName === GitLabPublisherName) {
@@ -456,7 +495,7 @@
                     var existingOwner = ko.utils.arrayFirst(
                         this.PackageOwners,
                         function (owner) {
-                            return owner.toUpperCase() === data.Owner.toUpperCase()
+                            return owner.Owner.toUpperCase() === data.Owner.toUpperCase()
                         });
 
                     if (existingOwner !== null) {
@@ -476,6 +515,69 @@
 
             // Package owner selection
             this.PackageOwner = ko.observable(null);
+            this.PackageOwnerName = ko.pureComputed(function () {
+                return self.PackageOwner() && self.PackageOwner().Owner;
+            }, this);
+            this.PackageOwner.subscribe(function (newPackageOwner) {
+                if (newPackageOwner == null) {
+                    return;
+                }
+
+                // When the package owner scope is changed, update the selected action scopes to those that are allowed on behalf of the new package owner.
+                function isPushNewSelected() {
+                    return self.PushScope() === initialData.PackagePushScope;
+                };
+                function isPushExistingSelected() {
+                    return self.PushScope() === initialData.PackagePushVersionScope;
+                };
+                function isUnlistSelected() {
+                    return self.UnlistScopeChecked();
+                };
+
+                // If either push new or push existing is selected and that action is not allowed on behalf of the new owner,
+                // swap the scope to the other push action if it is allowed or deselect it.
+                if (!newPackageOwner.CanPushNew && isPushNewSelected()) {
+                    self.PushScope(newPackageOwner.CanPushExisting ? initialData.PackagePushVersionScope : null);
+                } else if (!newPackageOwner.CanPushExisting && isPushExistingSelected()) {
+                    self.PushScope(newPackageOwner.CanPushNew ? initialData.PackagePushScope : null);
+                }
+
+                // If unlist is selected and that action is not allowed on behalf of the new owner, deselect it.
+                if (!newPackageOwner.CanUnlist && isUnlistSelected()) {
+                    self.UnlistScopeChecked(false);
+                }
+
+                // If after this process, no actions are selected, select one that is allowed.
+                if (!isPushNewSelected() && !isPushExistingSelected() && !isUnlistSelected()) {
+                    if (newPackageOwner.CanPushNew) {
+                        self.PushScope(initialData.PackagePushScope);
+                    } else if (newPackageOwner.CanPushExisting) {
+                        self.PushScope(initialData.PackagePushVersionScope);
+                    } else if (newPackageOwner.CanUnlist) {
+                        self.UnlistScopeChecked(true);
+                    }
+                }
+
+                // If either push new or push existing are selected, enable the textbox that determines if they are selectable.
+                self.PushScopeChecked(isPushNewSelected() || isPushExistingSelected());
+            });
+
+            this.PushAnyEnabled = ko.pureComputed(function () {
+                return self.PackageOwner() && (self.PackageOwner().CanPushNew || self.PackageOwner().CanPushExisting);
+            }, this);
+
+            this.PushNewEnabled = ko.pureComputed(function () {
+                return self.PackageOwner() && self.PackageOwner().CanPushNew;
+            }, this);
+
+            this.PushExistingEnabled = ko.pureComputed(function () {
+                return self.PackageOwner() && self.PackageOwner().CanPushExisting;
+            }, this);
+
+            this.UnlistEnabled = ko.pureComputed(function () {
+                return self.PackageOwner() && self.PackageOwner().CanUnlist;
+            }, this);
+
             this.IsOwnerValid = ko.observable(null);
             this.PendingCreateOrEdit = ko.observable(false);
             this.JustCreated = ko.observable(false);
@@ -488,6 +590,11 @@
             this.CancelEditUid = computedUid(self, "cancel-edit");
             this.PolicyNameUid = computedUid(self, "policy-name");
             this.PackageOwnerUid = computedUid(self, "package-owner");
+            this.PushScopeCheckedUid = computedUid(self, "push-scope-checked");
+            this.PackagePushScopeUid = computedUid(self, "package-push-scope");
+            this.PackagePushVersionScopeUid = computedUid(self, "package-push-version-scope");
+            this.UnlistScopeCheckedUid = computedUid(self, "unlist-scope-checked");
+            this.ScopeSubjectsInputUid = computedUid(self, "scope-subjects-input");
             this.IconUrl = ko.pureComputed(function () {
                 if (!this.IsOwnerValid() || _getEnabledDaysLeft(this) <= 0) {
                     return initialData.ImageUrls.DisabledTrustedPolicy;
@@ -511,6 +618,22 @@
 
             this._UpdateData(data);
 
+            // Apply validation to policy scopes and subjects
+            this.PendingPolicyScopes.subscribe(function (newPendingPolicyScopes) {
+                if (newPendingPolicyScopes.length === 0) {
+                    self.PendingPolicyScopesError(MissingScopesErrorMessage);
+                } else {
+                    self.PendingPolicyScopesError(null);
+                }
+            });
+            this.PendingPolicySubjects.subscribe(function (newPendingPolicySubjects) {
+                if (newPendingPolicySubjects.length === 0) {
+                    self.PendingPolicySubjectsError(MissingSubjectsErrorMessage);
+                } else {
+                    self.PendingPolicySubjectsError(null);
+                }
+            });
+
             // Methods
             this.StopPropagation = function (_, e) {
                 e.stopPropagation();
@@ -523,8 +646,9 @@
                 $.validator.unobtrusive.parse($form);
                 var $validator = $form.validate();
 
-                // Immediately validate the PolicyName
+                // Immediately validate PolicyName and ScopeSubjectsInput
                 $validator.submitted[self.PolicyNameUid()] = null;
+                $validator.submitted[self.ScopeSubjectsInputUid()] = null;
 
                 // Attach provider-specific validation
                 var provider = _getProviderDetails(self);
@@ -539,11 +663,17 @@
                 // Check if PackageOwner is selected
                 const packageOwnerError = !this.PackageOwner();
 
+                // Execute policy scopes and subjects validation.
+                this.PushScopeChecked.valueHasMutated();
+                this.ScopeSubjectsInput.valueHasMutated();
+
                 // Validate provider-specific fields
                 var provider = _getProviderDetails(this);
                 const providerValid = provider.Valid(this);
 
-                return !formError && !packageOwnerError && providerValid;
+                return !formError && !packageOwnerError && providerValid &&
+                       !self.PendingPolicyScopesError() &&
+                       !self.PendingPolicySubjectsError();
             }
 
             this.CancelEdit = function () {
@@ -553,6 +683,7 @@
 
                 // Reset the field values.
                 self.PendingPolicyName(self.PolicyName());
+
                 _gitHubDetails.CancelEdit(self);
                 _gitLabDetails.CancelEdit(self);
 
@@ -667,9 +798,11 @@
                 var provider = _getProviderDetails(this);
                 var data = {
                     policyName: this.PendingPolicyName(),
-                    owner: this.PackageOwner(),
+                    owner: this.PackageOwnerName(),
                     criteria: provider.CreatePendingCriteria(this),
-                    publisherType: this.SelectedProvider()
+                    publisherType: this.SelectedProvider(),
+                    policyScopes: this.PendingPolicyScopes(),
+                    policySubjects: this.PendingPolicySubjects(),
                 };
                 window.nuget.addAjaxAntiForgeryToken(data);
 
@@ -683,7 +816,7 @@
                         parent.Error(null);
                         self._UpdateData(data);
                         self.JustCreated(true);
-                        parent.Policies.unshift(self);
+                        parent.Policies.push(self);
 
                         var newPolicy = new PolicyViewModel(parent, packageOwners);
                         parent.NewPolicy(newPolicy);
@@ -706,7 +839,9 @@
                 var data = {
                     federatedCredentialKey: this.Key(),
                     criteria: provider.CreatePendingCriteria(this),
-                    policyName: this.PendingPolicyName()
+                    policyName: this.PendingPolicyName(),
+                    policyScopes: this.PendingPolicyScopes(),
+                    policySubjects: this.PendingPolicySubjects(),
                 };
                 window.nuget.addAjaxAntiForgeryToken(data);
 

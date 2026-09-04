@@ -1,7 +1,8 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using NuGet.Services.Entities;
 using NuGetGallery.Authentication;
 using Xunit;
@@ -142,6 +143,64 @@ namespace NuGetGallery.Extensions
                 var scope = new Scope((User)null, "subject", "action");
 
                 Assert.False(scope.HasOwnerScope());
+            }
+        }
+
+        public class TheHaveEqualScopesWithSameAllowedActionAndSubjectMethod
+        {
+            public static IEnumerable<object[]> Scopes_Data
+            {
+                get
+                {
+                    yield return new object[] { null, null, true };
+                    yield return new object[] { null, new List<Scope> { new Scope("subject1", "allowedAction1") }, false };
+                    yield return new object[] { new List<Scope> { new Scope("subject1", "allowedAction1") }, null, false };
+                    yield return new object[] { new List<Scope> { new Scope("subject1", "allowedAction1") },
+                                                new List<Scope> { new Scope("subject1", "allowedAction1"),
+                                                                  new Scope("subject1", "allowedAction2") },
+                                                false };
+                    yield return new object[] { new List<Scope> { new Scope("subject1", "allowedAction1"),
+                                                                  new Scope("subject1", "allowedAction2"),
+                                                                  new Scope("subject2", "allowedAction1") },
+                                                new List<Scope> { new Scope("subject1", "allowedAction1"),
+                                                                  new Scope("subject1", "allowedAction2"),
+                                                                  new Scope("subject2", "allowedAction1") },
+                                                true };
+                    yield return new object[] { new List<Scope> { new Scope("subject1", "allowedAction1"),
+                                                                  new Scope("subject2", "allowedAction1"),
+                                                                  new Scope("subject1", "allowedAction2"), },
+                                                new List<Scope> { new Scope("subject1", "allowedAction2"),
+                                                                  new Scope("subject1", "allowedAction1"),
+                                                                  new Scope("subject2", "allowedAction1") },
+                                                true };
+                    yield return new object[] { new List<Scope> { new Scope("subject1", "allowedAction1"),
+                                                                  new Scope("subject2", "allowedAction1"),
+                                                                  new Scope("subject1", "allowedAction2"), },
+                                                new List<Scope> { new Scope("subject1", "allowedAction2"),
+                                                                  new Scope("subject1", "allowedAction1"),
+                                                                  new Scope("subject3", "allowedAction1") },
+                                                false };
+                    yield return new object[] { new List<Scope> { new Scope("subject1", "allowedAction1"),
+                                                                  new Scope("subject2", "allowedAction1"),
+                                                                  new Scope("subject1", "allowedAction2"), },
+                                                new List<Scope> { new Scope("subject1", "allowedAction3"),
+                                                                  new Scope("subject1", "allowedAction1"),
+                                                                  new Scope("subject3", "allowedAction1") },
+                                                false };
+                    yield return new object[] { new List<Scope> { new Scope("subject1", "allowedAction1") },
+                                                new List<Scope> { new Scope("subject1", "ALLOWEDACTION1") },
+                                                false };
+                    yield return new object[] { new List<Scope> { new Scope("subject1", "allowedAction1") },
+                                                new List<Scope> { new Scope("SUBJECT1", "allowedAction1") },
+                                                false };
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(Scopes_Data))]
+            public void HaveEqualScopesWithSameAllowedActionAndSubject(IEnumerable<Scope> scopes1, IEnumerable<Scope> scopes2, bool expected)
+            {
+                Assert.Equal(expected, scopes1.HaveEqualScopesWithSameAllowedActionAndSubject(scopes2));
             }
         }
     }

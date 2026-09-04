@@ -480,10 +480,6 @@ namespace NuGetGallery
                 credentials = new List<CredentialViewModel>();
             }
 
-            var apiKeys = credentials
-                .Select(c => new ApiKeyViewModel(c))
-                .ToList();
-
             // Get package owners (user's self or organizations)
             var owners = new List<ApiKeyOwnerViewModel>
             {
@@ -493,16 +489,20 @@ namespace NuGetGallery
             owners.AddRange(currentUser.Organizations
                 .Select(o => CreateApiKeyOwnerViewModel(currentUser, o.Organization)));
 
-            var anyWithDeprecationApi =
-                _featureFlagService.IsManageDeprecationApiEnabled(currentUser)
-                || currentUser.Organizations.Any(m => _featureFlagService.IsManageDeprecationApiEnabled(m.Organization));
+            var isApiKeyReductionDateEnabled = _featureFlagService.IsApiKeyReductionDateEnabled();
+
+            var apiKeys = credentials
+                .Select(c => new ApiKeyViewModel(c, isApiKeyReductionDateEnabled))
+                .ToList();
 
             var model = new ApiKeyListViewModel
             {
                 ApiKeys = apiKeys,
                 ExpirationInDaysForApiKeyV1 = _config.ExpirationInDaysForApiKeyV1,
                 PackageOwners = owners.Where(o => o.CanPushNew || o.CanPushExisting || o.CanUnlist).ToList(),
-                IsDeprecationApiEnabled = anyWithDeprecationApi,
+                IsDeprecationApiEnabled = IsDeprecateApiEnabled(currentUser),
+                IsApiKeyExpirationRestricted = _featureFlagService.IsApiKeyExpirationRestricted(),
+                IsApiKeyReductionDateEnabled = isApiKeyReductionDateEnabled,
             };
 
             return View("ApiKeys", model);
@@ -1028,7 +1028,7 @@ namespace NuGetGallery
 
             await AuthenticationService.RemoveCredential(user, cred);
 
-            return Json(new ApiKeyViewModel(newCredentialViewModel));
+            return Json(new ApiKeyViewModel(newCredentialViewModel, _featureFlagService.IsApiKeyReductionDateEnabled()));
         }
 
         private static bool CredentialKeyMatches(int? credentialKey, Credential c)
@@ -1049,10 +1049,10 @@ namespace NuGetGallery
             User currentUser = GetCurrentUser();
             var userPolicies = _federatedCredentialService.GetPoliciesCreatedByUser(currentUser.Key);
 
-            // Show newest policies on the top.
+            // Sort the policy results by creation date, so older policy results are on the top.
             var policies = userPolicies
-                .OrderByDescending(p => p.Created)
-                .Select(CreatePublisherViewModel)
+                .OrderBy(p => p.Created)
+                .Select(p => CreatePublisherViewModel(p, currentUser))
                 .Where(m => m != null)
                 .ToArray();
 
@@ -1068,13 +1068,14 @@ namespace NuGetGallery
             {
                 Username = currentUser.Username,
                 Policies = policies,
-                PackageOwners = owners.Select(o => o.Username).ToArray(),
+                PackageOwners = owners.Select(o => CreateTrustedPublisherPolicyOwnerViewModel(currentUser, o)).ToArray(),
+                IsDeprecateApiEnabled = IsDeprecateApiEnabled(currentUser),
             };
 
             return View("TrustedPublishing", model);
         }
 
-        private TrustedPublisherPolicyViewModel CreatePublisherViewModel(FederatedCredentialPolicy policy)
+        private TrustedPublisherPolicyViewModel CreatePublisherViewModel(FederatedCredentialPolicy policy, User currentUser)
         {
             TrustedPublisherPolicyDetailsViewModel policyDetails;
             switch (policy.Type)
@@ -1101,14 +1102,31 @@ namespace NuGetGallery
                 PolicyName = !string.IsNullOrEmpty(policy.PolicyName) ? policy.PolicyName : $"Policy {policy.Key}",
                 Owner = policy.PackageOwner.Username,
                 IsOwnerValid = isOwnerValid,
-                PolicyDetails = policyDetails
+                PolicyDetails = policyDetails,
+                PolicyScopes = policy.Scopes?.Select(s => NuGetScopes.Describe(s.AllowedAction, isDeprecateApiEnabled: IsDeprecateApiEnabled(currentUser))).Distinct().OrderBy(s => s).ToList(),
+                PolicySubjects = policy.Scopes?.Select(s => s.Subject).Distinct().OrderBy(s => s).ToList(),
             };
+        }
+
+        private TrustedPublisherPolicyOwnerViewModel CreateTrustedPublisherPolicyOwnerViewModel(User currentUser, User packageOwner)
+        {
+            return new TrustedPublisherPolicyOwnerViewModel(
+                packageOwner.Username,
+                ActionsRequiringPermissions.UploadNewPackageId.IsAllowedOnBehalfOfAccount(currentUser, packageOwner),
+                ActionsRequiringPermissions.UploadNewPackageVersion.IsAllowedOnBehalfOfAccount(currentUser, packageOwner),
+                ActionsRequiringPermissions.UnlistOrRelistPackage.IsAllowedOnBehalfOfAccount(currentUser, packageOwner));
+        }
+
+        private bool IsDeprecateApiEnabled(User currentUser)
+        {
+            return _featureFlagService.IsManageDeprecationApiEnabled(currentUser) ||
+                   currentUser.Organizations.Any(m => _featureFlagService.IsManageDeprecationApiEnabled(m.Organization));
         }
 
         [UIAuthorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<JsonResult> GenerateTrustedPublisherPolicy(string policyName, string owner, string criteria, string publisherType)
+        public virtual async Task<JsonResult> GenerateTrustedPublisherPolicy(string policyName, string owner, string criteria, string publisherType, string[] policyScopes, string[] policySubjects)
         {
             User currentUser = GetCurrentUser();
             if (currentUser == null)
@@ -1128,7 +1146,7 @@ namespace NuGetGallery
 
             // Try adding policy
             FederatedCredentialPolicyValidationResult result = await _federatedCredentialService.AddPolicyAsync(
-                currentUser, owner, policyCriteria, policyName, credentialType);
+                currentUser, owner, policyCriteria, policyName, credentialType, policyScopes: policyScopes, policySubjects: policySubjects);
 
             switch (result.Type)
             {
@@ -1141,7 +1159,7 @@ namespace NuGetGallery
                     return Json(result.UserMessage);
 
                 case FederatedCredentialPolicyValidationResultType.Success:
-                    var model = CreatePublisherViewModel(result.Policy);
+                    var model = CreatePublisherViewModel(result.Policy, currentUser);
                     return Json(model);
 
                 default:
@@ -1167,8 +1185,15 @@ namespace NuGetGallery
         [UIAuthorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<JsonResult> EditTrustedPublisherPolicy(int? federatedCredentialKey, string criteria, string policyName)
+        public virtual async Task<JsonResult> EditTrustedPublisherPolicy(int? federatedCredentialKey, string criteria, string policyName, string[] policyScopes, string[] policySubjects)
         {
+            User currentUser = GetCurrentUser();
+            if (currentUser == null)
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.DefaultUserSafeExceptionMessage);
+            }
+
             var result = GetFederatedCredentialPolicy(federatedCredentialKey);
             if (result.policy == null)
             {
@@ -1177,7 +1202,10 @@ namespace NuGetGallery
             }
 
             var policyCriteria = ViewToPolicyCriteria(criteria, result.policy.Type);
-            return await UpdatePolicyAsync(result.policy, policyCriteria, policyName);
+
+            var validationResult = await _federatedCredentialService.UpdatePolicyAsync(result.policy, policyCriteria, policyName, policyScopes: policyScopes, policySubjects: policySubjects);
+
+            return await ProcessUpdatePolicyValidationResultAsync(currentUser, validationResult);
         }
 
         [HttpPost]
@@ -1185,6 +1213,13 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<JsonResult> EnableTrustedPublisherPolicy(int? federatedCredentialKey)
         {
+            User currentUser = GetCurrentUser();
+            if (currentUser == null)
+            {
+                Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Json(Strings.DefaultUserSafeExceptionMessage);
+            }
+
             var result = GetFederatedCredentialPolicy(federatedCredentialKey);
             if (result.policy == null)
             {
@@ -1193,25 +1228,27 @@ namespace NuGetGallery
             }
 
             // Updating temp GitHub Actions policy will reset ValidateBy date.
-            return await UpdatePolicyAsync(result.policy, result.policy.Criteria, result.policy.PolicyName);
+            var validationResult = await _federatedCredentialService.UpdatePolicyAsync(result.policy, result.policy.Criteria, result.policy.PolicyName, result.policy.Scopes);
+
+            return await ProcessUpdatePolicyValidationResultAsync(currentUser, validationResult);
         }
 
-        private async Task<JsonResult> UpdatePolicyAsync(FederatedCredentialPolicy policy, string criteria, string policyName)
+        private async Task<JsonResult> ProcessUpdatePolicyValidationResultAsync(User currentUser, FederatedCredentialPolicyValidationResult validationResult)
         {
-            var validation = await _federatedCredentialService.UpdatePolicyAsync(policy, criteria, policyName);
-            if (validation.Type == FederatedCredentialPolicyValidationResultType.Unauthorized)
+            if (validationResult.Type == FederatedCredentialPolicyValidationResultType.Unauthorized)
             {
                 Response.StatusCode = (int)HttpStatusCode.Unauthorized;
-                return Json(validation.UserMessage);
+                return Json(validationResult.UserMessage);
             }
-            if (validation.Type == FederatedCredentialPolicyValidationResultType.BadRequest)
+
+            if (validationResult.Type == FederatedCredentialPolicyValidationResultType.BadRequest)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Json(validation.UserMessage);
+                return Json(validationResult.UserMessage);
             }
 
             // Get updated policy details
-            if (CreatePublisherViewModel(validation.Policy) is not TrustedPublisherPolicyViewModel model)
+            if (CreatePublisherViewModel(validationResult.Policy, currentUser) is not TrustedPublisherPolicyViewModel model)
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return Json(Strings.TrustedPublisher_Unexpected);
@@ -1219,7 +1256,6 @@ namespace NuGetGallery
 
             return Json(model);
         }
-
 
         private string ViewToPolicyCriteria(string criteria, FederatedCredentialType credentialType)
         {
@@ -1320,6 +1356,16 @@ namespace NuGetGallery
                 }
             }
 
+            if (_featureFlagService.IsApiKeyExpirationRestricted())
+            {
+                var allowedExpirationDays = new[] { 1, 8, 30 };
+                if (!allowedExpirationDays.Contains((int)expiration.TotalDays))
+                {
+                    Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                    return Json(Strings.ApiKeyExpirationNotAllowed);
+                }
+            }
+
             var newCredentialViewModel = await GenerateApiKeyInternal(description, resolvedScopes, expiration);
 
             var emailMessage = new CredentialAddedMessage(
@@ -1328,7 +1374,7 @@ namespace NuGetGallery
                     newCredentialViewModel.GetCredentialTypeInfo());
             await MessageService.SendMessageAsync(emailMessage);
 
-            return Json(new ApiKeyViewModel(newCredentialViewModel));
+            return Json(new ApiKeyViewModel(newCredentialViewModel, _featureFlagService.IsApiKeyReductionDateEnabled()));
         }
 
         [UIAuthorize]
@@ -1361,7 +1407,7 @@ namespace NuGetGallery
 
             var credentialViewModel = AuthenticationService.DescribeCredential(cred);
 
-            return Json(new ApiKeyViewModel(credentialViewModel));
+            return Json(new ApiKeyViewModel(credentialViewModel, _featureFlagService.IsApiKeyReductionDateEnabled()));
         }
 
         protected override RouteUrlTemplate<string> GetDeleteCertificateForAccountTemplate(string accountName)
