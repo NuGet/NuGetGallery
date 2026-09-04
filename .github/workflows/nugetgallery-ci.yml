@@ -197,20 +197,9 @@ jobs:
 
   aspire:
     name: Aspire Functional Tests
-    needs: playwright
-    if: ${{ always() }}
     runs-on: windows-2025-vs2026
     timeout-minutes: 30
     steps:
-      - name: Require Aspire Playwright Tests
-        shell: pwsh
-        env:
-          PLAYWRIGHT_RESULT: ${{ needs.playwright.result }}
-        run: |
-          if ($env:PLAYWRIGHT_RESULT -ne 'success') {
-            throw "Aspire Playwright Tests must pass. Result: $env:PLAYWRIGHT_RESULT"
-          }
-
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
@@ -235,35 +224,6 @@ jobs:
         with:
           name: test-results-aspire
           path: tests/TestResults/*.trx
-
-
-  playwright:
-    name: Aspire Playwright Tests
-    runs-on: windows-2025-vs2026
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-
-      - name: Build AppHost
-        shell: pwsh
-        run: dotnet build src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj -c $env:BuildConfiguration
-
-      - name: Setup Dev Environment
-        shell: pwsh
-        run: .\tools\Setup-DevEnvironment.ps1
-
-      - name: Run Aspire Playwright Tests
-        shell: pwsh
-        run: .\tests\Scripts\RunGalleryPlaywrightTests.ps1 -Configuration $env:BuildConfiguration
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results-playwright
-          path: tests/TestResults/PlaywrightTests.trx
 
 
   artifacts:

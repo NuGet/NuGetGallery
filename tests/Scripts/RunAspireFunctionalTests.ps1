@@ -35,7 +35,7 @@ if ($LASTEXITCODE -ne 0)
     throw "Building functional tests failed with exit code $LASTEXITCODE."
 }
 
-$categories = "Category=P0Tests|Category=P1Tests|Category=P2Tests"
+$categories = "Category=P0Tests|Category=P1Tests|Category=P2Tests|Category=PlaywrightTests"
 if ($UnsafeAdminApiAuthBypassForTesting)
 {
     $categories += "|Category=AdminApiTests"
@@ -48,7 +48,7 @@ New-Item -ItemType Directory -Path $resultsDirectory -Force | Out-Null
 
 dotnet test $testDll `
     --blame-hang-timeout 600s `
-    --filter "($categories)&Category!=PlaywrightTests" `
+    --filter $categories `
     --logger "trx;LogFileName=FunctionalTests.trx" `
     --results-directory $resultsDirectory
 
