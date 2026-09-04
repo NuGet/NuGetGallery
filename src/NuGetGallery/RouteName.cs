@@ -65,6 +65,7 @@ namespace NuGetGallery
         public const string DownloadManagedStagedPackage = "DownloadManagedStagedPackage";
         public const string ReplaceManagedStagedPackage = "ReplaceManagedStagedPackage";
         public const string UpdateManagedStagedPackageListed = "UpdateManagedStagedPackageListed";
+        public const string PromoteManagedStagedPackage = "PromoteManagedStagedPackage";
         public const string DeleteManagedStagedPackage = "DeleteManagedStagedPackage";
         public const string PublishPackageApi = "PublishPackageApi";
         public const string DeprecatePackageApi = "DeprecatePackageApi";

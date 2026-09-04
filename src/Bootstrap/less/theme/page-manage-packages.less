@@ -55,12 +55,22 @@
       color: var(--statusGenericBlueForeground2Rest);
     }
 
+    &.staging-status-promoting {
+      background-color: var(--statusGenericBlueBackground2Rest);
+      color: var(--statusGenericBlueForeground2Rest);
+    }
+
     &.staging-status-ready {
       background-color: var(--statusSuccessBackground1Rest);
       color: var(--statusSuccessForeground1Rest);
     }
 
     &.staging-status-failedvalidation {
+      background-color: var(--statusDangerBackground1Rest);
+      color: var(--statusDangerForeground1Rest);
+    }
+
+    &.staging-status-promotionfailed {
       background-color: var(--statusDangerBackground1Rest);
       color: var(--statusDangerForeground1Rest);
     }

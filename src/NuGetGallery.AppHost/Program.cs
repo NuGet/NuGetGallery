@@ -63,6 +63,8 @@ public class Program
 
         const string validationTopicName = "validation";
         const string validationSubscriptionName = "orchestrator";
+        const string stagingPromotionTopicName = "staging-promotion";
+        const string stagingPromotionSubscriptionName = "package-promotion";
         const string emailTopicName = "email";
         IResourceBuilder<AzureServiceBusResource>? serviceBus = null;
         if (profile != "ci-gallery")
@@ -70,6 +72,8 @@ public class Program
             serviceBus = builder.AddAzureServiceBus("service-bus").WithParentRelationship(infraGroup);
             var validationTopic = serviceBus.AddServiceBusTopic(validationTopicName);
             validationTopic.AddServiceBusSubscription(validationSubscriptionName);
+            var stagingPromotionTopic = serviceBus.AddServiceBusTopic(stagingPromotionTopicName);
+            stagingPromotionTopic.AddServiceBusSubscription(stagingPromotionSubscriptionName);
             serviceBus.AddServiceBusTopic(emailTopicName);
         }
 
@@ -163,7 +167,9 @@ public class Program
         EnsureIISExpressUserHome(iisUserHome);
 
         // Generate appsettings.Aspire.config to switch Gallery to Azurite blob storage
-        var galleryAspireConfigPath = GenerateGalleryAspireConfig(galleryPath, azuriteConnStr, validationTopicName,
+        var galleryAspireConfigPath = GenerateGalleryAspireConfig(
+            galleryPath, azuriteConnStr, validationTopicName, stagingPromotionTopicName,
+            profile == "ci-gallery" ? null : config.SearchServiceBaseAddress,
             packages: config.Containers.Packages, auditing: config.Containers.Auditing,
             content: config.Containers.Content, uploads: config.Containers.Uploads);
 
@@ -266,9 +272,31 @@ public class Program
                     },
                 });
 
+            var promotionConfigPath = GenerateJsonConfig(
+                builder.AppHostDirectory, "staging-promotion-dev.json", new
+                {
+                    GalleryDb = new { ConnectionString = config.GalleryDb.ConnectionString },
+                    ServiceBus = new
+                    {
+                        ConnectionString = "",
+                        TopicPath = stagingPromotionTopicName,
+                        SubscriptionName = stagingPromotionSubscriptionName,
+                    },
+                    Promotion = new
+                    {
+                        PackageStorageConnectionString = azuriteConnStr,
+                        StagingStorageConnectionString = azuriteConnStr,
+                        FlatContainerStorageConnectionString = azuriteConnStr,
+                    },
+                });
+
             var configureValidation = builder
                 .AddProject<Projects.NuGetGallery_AppHost_Tools>("configure-validation")
-                .WithArgs("configure-validation", galleryAspireConfigPath, orchestratorConfigPath)
+                .WithArgs(
+                    "configure-validation",
+                    galleryAspireConfigPath,
+                    orchestratorConfigPath,
+                    promotionConfigPath)
                 .WithEnvironment(
                     "SERVICE_BUS_HOST_NAME",
                     new BicepOutputReference("serviceBusHostName", serviceBus.Resource))
@@ -285,6 +313,14 @@ public class Program
                 .WaitFor(storage)
                 .WaitFor(serviceBus)
                 .WaitFor(gallery)
+                .WithParentRelationship(pipelineGroup);
+
+            builder.AddProject<Projects.NuGet_Services_Staging_Promotion>("staging-promotion-worker")
+                .WithArgs("-Configuration", promotionConfigPath)
+                .WaitForCompletion(configureValidation)
+                .WaitForCompletion(dbMigrateGallery)
+                .WaitFor(storage)
+                .WaitFor(serviceBus)
                 .WithParentRelationship(pipelineGroup);
         }
 
@@ -372,6 +408,7 @@ public class Program
                 "-storageConnectionStringAuditing", azuriteConnStr,
                 "-storageContainerAuditing",   config.Containers.Auditing,
                 "-storagePathAuditing",        "package",
+                "-skipCreatedPackagesProcessing", "true",
                 "-verbose",             "true",
                 "-interval",            config.Settings.PollIntervalSeconds.ToString())
             .WaitForCompletion(dbMigrateGallery)
@@ -592,6 +629,8 @@ public class Program
             .WaitFor(search)
             .WaitFor(storage)
             .WithParentRelationship(pipelineGroup);
+
+        gallery.WaitFor(searchService);
 
         builder.AddProject<Projects.NuGetGallery_AppHost_Tools>("warmup-search")
             .WithArgs("warmup")
@@ -866,6 +905,7 @@ public class Program
     /// </summary>
     static string GenerateGalleryAspireConfig(
         string galleryDir, string connectionString, string validationTopicName,
+        string stagingPromotionTopicName, string searchServiceBaseAddress,
         string packages, string auditing, string content, string uploads)
     {
         var doc = new XDocument(
@@ -891,6 +931,9 @@ public class Program
                 Setting("AzureServiceBus.Validation.TopicName", validationTopicName),
                 Setting("AzureServiceBus.SymbolsValidation.ConnectionString", ""),
                 Setting("AzureServiceBus.SymbolsValidation.TopicName", validationTopicName),
+                Setting("AzureServiceBus.StagingPromotion.ConnectionString", ""),
+                Setting("AzureServiceBus.StagingPromotion.TopicName", stagingPromotionTopicName),
+                searchServiceBaseAddress == null ? null : Setting("Gallery.SearchServiceUriPrimary", searchServiceBaseAddress),
                 Setting("Gallery.SiteRoot", "https://localhost"),
                 Setting("Gallery.SupportEmailSiteRoot", "https://localhost"),
                 Setting("Gallery.EnforceDefaultSecurityPolicies", "true"),

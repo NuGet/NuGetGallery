@@ -15,6 +15,12 @@ namespace NuGetGallery.Configuration
         [DisplayName("AccountDeleter.TopicName")]
         public string AccountDeleter_TopicName { get; set; }
 
+        [DisplayName("StagingPromotion.ConnectionString")]
+        public string StagingPromotion_ConnectionString { get; set; }
+
+        [DisplayName("StagingPromotion.TopicName")]
+        public string StagingPromotion_TopicName { get; set; }
+
         [DisplayName("Validation.ConnectionString")]
         public string Validation_ConnectionString { get; set; }
 
