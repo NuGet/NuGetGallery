@@ -14,7 +14,7 @@ namespace NuGetGallery.FunctionalTests
 {
     public sealed class AspireFunctionalTestFixture : IAsyncLifetime
     {
-        internal const string ExternalHostEnvironmentVariable = "NUGET_PLAYWRIGHT_EXTERNAL_HOST";
+        internal const string CloudTestWorkerEnvironmentVariable = "CloudTestWorkerCustomVstestExe";
         internal const string HarnessEnvironmentVariable = "NUGET_PLAYWRIGHT_ASPIRE_HARNESS";
         private static readonly TimeSpan StartupTimeout = TimeSpan.FromMinutes(10);
         private readonly string _settingsPath = Path.Combine(
@@ -23,7 +23,7 @@ namespace NuGetGallery.FunctionalTests
 
         private DistributedApplication _application;
         private GalleryConfiguration _originalGalleryConfiguration;
-        private bool _externalHost;
+        private bool _cloudTestWorker;
         private bool _galleryConfigurationInitialized;
         private string _originalAppHostProfile;
         private string _originalConfigurationFilePath;
@@ -31,13 +31,10 @@ namespace NuGetGallery.FunctionalTests
 
         public async Task InitializeAsync()
         {
-            // xUnit may initialize collection fixtures even when all tests in the collection are filtered out.
-            if (string.Equals(
-                Environment.GetEnvironmentVariable(ExternalHostEnvironmentVariable),
-                bool.TrueString,
-                StringComparison.OrdinalIgnoreCase))
+            // Cloud test workers provide their own Gallery host and test configuration.
+            if (Environment.GetEnvironmentVariable(CloudTestWorkerEnvironmentVariable) != null)
             {
-                _externalHost = true;
+                _cloudTestWorker = true;
                 _ = new GalleryTestFixture();
                 return;
             }
@@ -87,7 +84,7 @@ namespace NuGetGallery.FunctionalTests
 
         public async Task DisposeAsync()
         {
-            if (_externalHost)
+            if (_cloudTestWorker)
             {
                 return;
             }
