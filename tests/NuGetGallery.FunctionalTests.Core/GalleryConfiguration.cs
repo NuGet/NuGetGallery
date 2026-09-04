@@ -12,7 +12,19 @@ namespace NuGetGallery.FunctionalTests
 {
     public class GalleryConfiguration
     {
-        public static GalleryConfiguration Instance;
+        private static readonly object InitializationLock = new object();
+        private static GalleryConfiguration _instance;
+
+        public static GalleryConfiguration Instance
+        {
+            get
+            {
+                lock (InitializationLock)
+                {
+                    return _instance ?? (_instance = Load(EnvironmentSettings.ConfigurationFilePath));
+                }
+            }
+        }
 
         public string GalleryBaseUrl => "staging".Equals(Slot, StringComparison.OrdinalIgnoreCase) ? StagingBaseUrl : ProductionBaseUrl;
 
@@ -32,7 +44,25 @@ namespace NuGetGallery.FunctionalTests
 
         public AdminApiConfiguration AdminApi { get; set; }
 
-        static GalleryConfiguration()
+        public static GalleryConfiguration Initialize(string configurationFilePath)
+        {
+            lock (InitializationLock)
+            {
+                var previous = _instance;
+                _instance = Load(configurationFilePath);
+                return previous;
+            }
+        }
+
+        public static void Restore(GalleryConfiguration instance)
+        {
+            lock (InitializationLock)
+            {
+                _instance = instance;
+            }
+        }
+
+        private static GalleryConfiguration Load(string configurationFilePath)
         {
             try
             {
@@ -41,7 +71,7 @@ namespace NuGetGallery.FunctionalTests
 
                 // Load the configuration without injection. This allows us to read KeyVault configuration.
                 var uninjectedBuilder = new ConfigurationBuilder()
-                    .AddJsonFile(EnvironmentSettings.ConfigurationFilePath, optional: false);
+                    .AddJsonFile(configurationFilePath, optional: false);
                 var uninjectedConfiguration = uninjectedBuilder.Build();
 
                 // Initialize KeyVault integration.
@@ -52,11 +82,11 @@ namespace NuGetGallery.FunctionalTests
                 // Initialize the configuration with KeyVault secrets injected.
                 var builder = new ConfigurationBuilder()
                     .SetBasePath(Environment.CurrentDirectory)
-                    .AddInjectedJsonFile(EnvironmentSettings.ConfigurationFilePath, secretInjector);
+                    .AddInjectedJsonFile(configurationFilePath, secretInjector);
                 var instance = new GalleryConfiguration();
                 builder.Build().Bind(instance);
 
-                Instance = instance;
+                return instance;
             }
             catch (ArgumentException ae)
             {
