@@ -67,44 +67,57 @@ namespace NuGet.Services.Staging.Promotion
                 throw new ArgumentNullException(nameof(message));
             }
 
-            var stagedPackage = _stagedPackageRepository
-                .GetAll()
-                .Include(candidate => candidate.Package.PackageRegistration.Owners)
-                .SingleOrDefault(candidate => candidate.Key == message.StagedPackageKey);
-            if (!IsActivePromotionAttempt(stagedPackage, message.PromotionId))
+            using (_logger.BeginScope("Staged package {StagedPackageKey}, promotion {PromotionId}",  message.StagedPackageKey, message.PromotionId))
             {
-                return true;
-            }
+                _logger.LogInformation("Processing staged package promotion message.");
 
-            if (!HasValidPromotionState(stagedPackage))
-            {
-                await MarkPromotionFailedAsync(stagedPackage);
-                return true;
-            }
+                var stagedPackage = _stagedPackageRepository
+                    .GetAll()
+                    .Include(candidate => candidate.Package.PackageRegistration.Owners)
+                    .SingleOrDefault(candidate => candidate.Key == message.StagedPackageKey);
+                if (!IsActivePromotionAttempt(stagedPackage, message.PromotionId))
+                {
+                    _logger.LogInformation("Ignoring inactive staged package promotion attempt.");
+                    return true;
+                }
 
-            var package = stagedPackage.Package;
-            var streamMetadata = await GetStreamMetadataAsync(stagedPackage);
-            var packageFileName = await CopyPackageAsync(package, stagedPackage);
-
-            try
-            {
-                await SetPackagePropertiesAsync(packageFileName);
-                await ExtractPackageContentAsync(package, stagedPackage);
-                await CompletePromotionAsync(package, stagedPackage, streamMetadata);
-            }
-            catch (Exception exception)
-            {
-                _logger.LogError(
-                    exception,
-                    "Failed to publish staged package {PackageId} {PackageVersion} for promotion {PromotionId}. Deleting published files.",
+                var package = stagedPackage.Package;
+                using (_logger.BeginScope(
+                    "Package {PackageId} {PackageVersion}",
                     package.PackageRegistration.Id,
-                    package.NormalizedVersion,
-                    message.PromotionId);
-                await DeletePublishedFilesAsync(package, packageFileName);
-                throw;
-            }
+                    package.NormalizedVersion))
+                {
+                    if (!HasValidPromotionState(stagedPackage))
+                    {
+                        _logger.LogWarning("Staged package has invalid promotion state. Marking promotion as failed.");
+                        await MarkPromotionFailedAsync(stagedPackage);
+                        return true;
+                    }
 
-            return true;
+                    var streamMetadata = await GetStreamMetadataAsync(stagedPackage);
+                    var packageFileName = await CopyPackageAsync(package, stagedPackage);
+
+                    try
+                    {
+                        _logger.LogInformation("Updating public package blob properties.");
+                        await SetPackagePropertiesAsync(packageFileName);
+                        await ExtractPackageContentAsync(package, stagedPackage);
+
+                        _logger.LogInformation("Marking package as available and completing promotion in the database.");
+                        await CompletePromotionAsync(package, stagedPackage, streamMetadata);
+                    }
+                    catch (Exception exception)
+                    {
+                        _logger.LogError(exception, "Failed to publish staged package. Deleting published files.");
+                        await DeletePublishedFilesAsync(package, packageFileName);
+                        _logger.LogInformation("Deleted published files after promotion failure.");
+                        throw;
+                    }
+
+                    _logger.LogInformation("Completed staged package promotion.");
+                    return true;
+                }
+            }
         }
 
         private static bool IsActivePromotionAttempt(StagedPackage stagedPackage, Guid promotionId)
@@ -130,6 +143,7 @@ namespace NuGet.Services.Staging.Promotion
 
         private async Task<PackageStreamMetadata> GetStreamMetadataAsync(StagedPackage stagedPackage)
         {
+            _logger.LogInformation("Calculating validated package stream metadata.");
             using (var packageStream = await _stagingBlobService.OpenPackageFileAsync(stagedPackage.ValidatedBlobPath, stagedPackage.ValidatedBlobETag))
             {
                 return new PackageStreamMetadata
@@ -143,6 +157,7 @@ namespace NuGet.Services.Staging.Promotion
 
         private async Task<string> CopyPackageAsync(Package package, StagedPackage stagedPackage)
         {
+            _logger.LogInformation("Copying validated package to public storage.");
             var sourceUri = await _stagingBlobService.GetPackageReadUriAsync(stagedPackage.ValidatedBlobPath, stagedPackage.ValidatedBlobETag);
 
             var packageFileName = FileNameHelper.BuildFileName(
@@ -181,6 +196,7 @@ namespace NuGet.Services.Staging.Promotion
         {
             if (package.EmbeddedLicenseType == EmbeddedLicenseFileType.Absent && !package.HasEmbeddedReadme)
             {
+                _logger.LogInformation("Package has no embedded license or readme to extract.");
                 return;
             }
 
@@ -188,12 +204,16 @@ namespace NuGet.Services.Staging.Promotion
             {
                 if (package.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
                 {
+                    _logger.LogInformation("Extracting embedded license.");
                     await _licenseFileService.ExtractAndSaveLicenseFileAsync(package, packageStream);
+                    _logger.LogInformation("Extracted embedded license.");
                 }
 
                 if (package.HasEmbeddedReadme)
                 {
+                    _logger.LogInformation("Extracting embedded readme.");
                     await _readmeFileService.ExtractAndSaveReadmeFileAsync(package, packageStream);
+                    _logger.LogInformation("Extracted embedded readme.");
                 }
             }
         }
