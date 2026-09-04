@@ -5,6 +5,7 @@ using System;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using NuGet.Services.Entities;
 using NuGet.Services.ServiceBus;
 using NuGet.Services.Staging;
@@ -25,6 +26,7 @@ namespace NuGet.Services.Staging.Promotion
         private readonly IFileMetadataService _packageFileMetadataService;
         private readonly ICoreLicenseFileService _licenseFileService;
         private readonly ICoreReadmeFileService _readmeFileService;
+        private readonly ILogger<StagedPackagePromotionMessageHandler> _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="StagedPackagePromotionMessageHandler"/> class.
@@ -36,6 +38,7 @@ namespace NuGet.Services.Staging.Promotion
         /// <param name="packageFileMetadataService">The public package file naming metadata.</param>
         /// <param name="licenseFileService">The public embedded-license file service.</param>
         /// <param name="readmeFileService">The public embedded-readme file service.</param>
+        /// <param name="logger">The logger.</param>
         public StagedPackagePromotionMessageHandler(
             IEntityRepository<StagedPackage> stagedPackageRepository,
             ICorePackageService packageService,
@@ -43,7 +46,8 @@ namespace NuGet.Services.Staging.Promotion
             ICoreFileStorageService packageFileStorageService,
             IFileMetadataService packageFileMetadataService,
             ICoreLicenseFileService licenseFileService,
-            ICoreReadmeFileService readmeFileService)
+            ICoreReadmeFileService readmeFileService,
+            ILogger<StagedPackagePromotionMessageHandler> logger)
         {
             _stagedPackageRepository = stagedPackageRepository ?? throw new ArgumentNullException(nameof(stagedPackageRepository));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
@@ -52,6 +56,7 @@ namespace NuGet.Services.Staging.Promotion
             _packageFileMetadataService = packageFileMetadataService ?? throw new ArgumentNullException(nameof(packageFileMetadataService));
             _licenseFileService = licenseFileService ?? throw new ArgumentNullException(nameof(licenseFileService));
             _readmeFileService = readmeFileService ?? throw new ArgumentNullException(nameof(readmeFileService));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc />
@@ -87,8 +92,14 @@ namespace NuGet.Services.Staging.Promotion
                 await ExtractPackageContentAsync(package, stagedPackage);
                 await CompletePromotionAsync(package, stagedPackage, streamMetadata);
             }
-            catch
+            catch (Exception exception)
             {
+                _logger.LogError(
+                    exception,
+                    "Failed to publish staged package {PackageId} {PackageVersion} for promotion {PromotionId}. Deleting published files.",
+                    package.PackageRegistration.Id,
+                    package.NormalizedVersion,
+                    message.PromotionId);
                 await DeletePublishedFilesAsync(package, packageFileName);
                 throw;
             }

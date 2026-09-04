@@ -8,6 +8,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Services.Entities;
 using NuGet.Services.Staging;
@@ -380,7 +381,8 @@ namespace NuGet.Services.Staging.Promotion.Tests
                     PackageFileStorageService.Object,
                     new PackageFileMetadataService(),
                     LicenseFileService.Object,
-                    ReadmeFileService.Object);
+                    ReadmeFileService.Object,
+                    Mock.Of<ILogger<StagedPackagePromotionMessageHandler>>());
             }
 
             public void Apply(InvalidState state)
