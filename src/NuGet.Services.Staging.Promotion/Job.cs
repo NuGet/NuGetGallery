@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Autofac;
-using Autofac.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NuGet.Jobs;
@@ -65,22 +64,22 @@ namespace NuGet.Services.Staging.Promotion
 
             containerBuilder
                 .RegisterType<StagingBlobService>()
-                .WithParameter(KeyedParameter<ICoreFileStorageService>(StagingStorageKey))
+                .WithKeyedParameter(typeof(ICoreFileStorageService), StagingStorageKey)
                 .As<IStagingBlobService>();
             containerBuilder
                 .RegisterType<PromotionContentFileMetadataService>()
                 .As<IContentFileMetadataService>();
             containerBuilder
                 .RegisterType<CoreLicenseFileService>()
-                .WithParameter(KeyedParameter<ICoreFileStorageService>(FlatContainerStorageKey))
+                .WithKeyedParameter(typeof(ICoreFileStorageService), FlatContainerStorageKey)
                 .As<ICoreLicenseFileService>();
             containerBuilder
                 .RegisterType<CoreReadmeFileService>()
-                .WithParameter(KeyedParameter<ICoreFileStorageService>(FlatContainerStorageKey))
+                .WithKeyedParameter(typeof(ICoreFileStorageService), FlatContainerStorageKey)
                 .As<ICoreReadmeFileService>();
             containerBuilder
                 .RegisterType<StagedPackagePromotionMessageHandler>()
-                .WithParameter(KeyedParameter<ICoreFileStorageService>(PackageStorageKey))
+                .WithKeyedParameter(typeof(ICoreFileStorageService), PackageStorageKey)
                 .As<IMessageHandler<StagedPackagePromotionMessage>>();
         }
 
@@ -88,15 +87,8 @@ namespace NuGet.Services.Staging.Promotion
         {
             containerBuilder
                 .RegisterType<CloudBlobCoreFileStorageService>()
-                .WithParameter(KeyedParameter<ICloudBlobClient>(storageKey))
+                .WithKeyedParameter(typeof(ICloudBlobClient), storageKey)
                 .Keyed<ICoreFileStorageService>(storageKey);
-        }
-
-        private static ResolvedParameter KeyedParameter<T>(string key)
-        {
-            return new ResolvedParameter(
-                (parameter, context) => parameter.ParameterType == typeof(T),
-                (parameter, context) => context.ResolveKeyed<T>(key));
         }
     }
 }

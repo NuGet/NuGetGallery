@@ -5,7 +5,7 @@ using System;
 using Autofac;
 using Autofac.Builder;
 
-namespace NuGet.Services.Validation.Orchestrator
+namespace NuGet.Jobs.Validation
 {
     public static class ContainerBuilderExtensions
     {
