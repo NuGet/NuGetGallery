@@ -70,7 +70,7 @@ For agent-owned browser validation, use the in-test Aspire harness:
 .\tests\Scripts\RunGalleryPlaywrightTests.ps1 -Configuration Release
 ```
 
-Both runners use the same suite fixture. It is Windows-only and uses fixed Gallery ports 80/443, so do not run functional-test processes concurrently or alongside `Start-AspireHost.ps1`. When `CloudTestWorkerCustomVstestExe` is present, the fixture uses the externally hosted Gallery configured by `ConfigurationFilePath` instead of starting Aspire. Pass `-AppHostProfile full` to the Playwright runner only when local Azure Search prerequisites are available. Statistics-service and read-only-mode browser tests remain on their separately configured paths.
+Both runners use the same suite fixture. It is Windows-only and uses fixed Gallery ports 80/443, so do not run functional-test processes concurrently or alongside `Start-AspireHost.ps1`. When `CloudTestWorkerCustomVstestExe` is present, the fixture uses the externally hosted Gallery configured by `ConfigurationFilePath` instead of starting Aspire. Builds with `ConfigurationFilePath` set omit the Aspire harness dependencies because CloudTest supplies the host. Pass `-AppHostProfile full` to the Playwright runner only when local Azure Search prerequisites are available. Statistics-service and read-only-mode browser tests remain on their separately configured paths.
 
 ### Frontend assets
 
