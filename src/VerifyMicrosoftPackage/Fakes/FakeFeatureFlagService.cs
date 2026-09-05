@@ -36,6 +36,8 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
 
         public bool IsDisplayFuGetLinksEnabled() => throw new NotImplementedException();
 
+        public bool IsRecentDownloadsPerDayEnabled() => throw new NotImplementedException();
+
         public bool AreEmbeddedIconsEnabled(User user) => throw new NotImplementedException();
 
         public bool IsForceFlatContainerIconsEnabled() => throw new NotImplementedException();
