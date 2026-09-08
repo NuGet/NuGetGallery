@@ -31,7 +31,7 @@ function Initialize-EF6Exe() {
 
     Copy-Item `
         -Path `
-            ([System.IO.Path]::Combine($efDirectory, 'tools\net45\win-x86\ef6.exe')), `
+            ([System.IO.Path]::Combine($efDirectory, 'tools\net45\any\ef6.exe')), `
             ([System.IO.Path]::Combine($efDirectory, 'lib\net45\*.dll')) `
         -Destination $migrateDirectory `
         -Force
@@ -79,4 +79,3 @@ finally {
         Remove-Item -Path $ef6ExeDirectory -Recurse -Force
     }
 }
-

@@ -69,23 +69,7 @@ Write-Host "##[endgroup]"
 if ($TrustDevCert)
 {
 	Write-Host "##[group]Trusting dev certificate"
-	$crt = Join-Path $env:TEMP "aspire-dev-cert.crt"
-	dotnet dev-certs https -ep $crt --format Pem --no-password | Out-Host
-	if ($LASTEXITCODE -ne 0)
-	{
-		Write-Error "Failed to export dev cert."
-		exit 1
-	}
-
-	Import-Certificate -FilePath $crt -CertStoreLocation Cert:\LocalMachine\Root | Out-Host
-	if (-not $?)
-	{
-		Write-Error "Failed to import dev cert."
-		exit 1
-	}
-
-	Write-Host "Dev certificate trusted successfully."
-	Remove-Item $crt, ($crt -replace '\.crt$', '.key') -ErrorAction SilentlyContinue
+	& "$PSScriptRoot\Trust-DevCertificate.ps1"
 	Write-Host "##[endgroup]"
 }
 

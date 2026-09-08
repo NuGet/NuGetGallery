@@ -1,6 +1,9 @@
 [CmdletBinding()]
 param(
-    [string]$Configuration = "Release"
+    [string]$Configuration = "Release",
+    # WARNING: This flag compiles in an auth bypass for Admin API functional testing.
+    # It must NEVER be used in release or deployment builds.
+    [switch]$UnsafeAdminApiAuthBypassForTesting
 )
 
 $parentDir = Resolve-Path (Join-Path $PSScriptRoot "..")
@@ -21,7 +24,19 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "Building solution"
-& dotnet build $solutionPath --configuration $Configuration --no-restore
+$buildArguments = @(
+    "build",
+    $solutionPath,
+    "--configuration",
+    $Configuration,
+    "--no-restore"
+)
+if ($UnsafeAdminApiAuthBypassForTesting)
+{
+    $buildArguments += "/p:UnsafeAdminApiAuthBypassForTesting=true"
+}
+
+& dotnet @buildArguments
 if ($LASTEXITCODE -ne 0) {
     throw "Failed to build solution!"
 }

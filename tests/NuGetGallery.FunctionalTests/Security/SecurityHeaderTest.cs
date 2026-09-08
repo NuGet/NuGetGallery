@@ -10,6 +10,7 @@ namespace NuGetGallery.FunctionalTests.Security
 	/// <summary>
 	/// Verify that an expected series of security headers is returned as part of the response.
 	/// </summary>
+	[Collection(GalleryTestCollection.Definition)]
 	public class SecurityHeaderTest
 	{
 		[Fact]
