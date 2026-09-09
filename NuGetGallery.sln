@@ -100,6 +100,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Services.CatalogValid
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Services.Validation.Issues", "src\NuGet.Services.Validation.Issues\NuGet.Services.Validation.Issues.csproj", "{31C526DC-C8BD-4863-B66F-2FB1C4E440D0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.net10", "src\NuGetGallery.net10\NuGetGallery.net10.csproj", "{ACDDFA4B-1991-4662-A969-CFC0B108B1DA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetGallery.net10.Facts", "tests\NuGetGallery.net10.Facts\NuGetGallery.net10.Facts.csproj", "{DFD2696E-50C7-4844-AAC6-BA2F386D8039}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -262,6 +266,14 @@ Global
 		{31C526DC-C8BD-4863-B66F-2FB1C4E440D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{31C526DC-C8BD-4863-B66F-2FB1C4E440D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{31C526DC-C8BD-4863-B66F-2FB1C4E440D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ACDDFA4B-1991-4662-A969-CFC0B108B1DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ACDDFA4B-1991-4662-A969-CFC0B108B1DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ACDDFA4B-1991-4662-A969-CFC0B108B1DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ACDDFA4B-1991-4662-A969-CFC0B108B1DA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DFD2696E-50C7-4844-AAC6-BA2F386D8039}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DFD2696E-50C7-4844-AAC6-BA2F386D8039}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DFD2696E-50C7-4844-AAC6-BA2F386D8039}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DFD2696E-50C7-4844-AAC6-BA2F386D8039}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -306,6 +318,8 @@ Global
 		{14307F06-BDCC-4026-A7F9-09CD032D4B7B} = {285CA6BE-C2EE-4CBE-A647-5EFD45855E17}
 		{A5B7C8F3-2E4A-4F5B-8C1D-9E3F5A6B7C8D} = {285CA6BE-C2EE-4CBE-A647-5EFD45855E17}
 		{31C526DC-C8BD-4863-B66F-2FB1C4E440D0} = {285CA6BE-C2EE-4CBE-A647-5EFD45855E17}
+		{ACDDFA4B-1991-4662-A969-CFC0B108B1DA} = {05998089-58F5-4A84-8C11-C5C6244A6F89}
+		{DFD2696E-50C7-4844-AAC6-BA2F386D8039} = {39E54EC3-CBAA-453A-BE64-748FE1559A58}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {064A3BDE-5203-4AD6-A6C9-5CF08301EC8F}
