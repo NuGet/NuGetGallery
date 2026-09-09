@@ -8,6 +8,7 @@ using Autofac;
 using Moq;
 using NuGet.Services.FeatureFlags;
 using NuGetGallery.Configuration;
+using NuGetGallery.DataProtection;
 using NuGetGallery.Features;
 using NuGetGallery.Login;
 using Xunit;
@@ -45,6 +46,7 @@ namespace NuGetGallery
 
             var expected = new HashSet<Type>(fileStorageDependents
                 .Where(t => fileStorageDependentsInterfacesUsedByGallery.Any(i => i.IsAssignableFrom(t))));
+            expected.Add(typeof(FileStorageXmlRepository));
 
             // Act
             var dependents = StorageDependent.GetAll(config);
@@ -76,7 +78,8 @@ namespace NuGetGallery
             Assert.Contains(typeof(RevalidationStateService), implementationToInterface.Keys);
             Assert.Contains(typeof(EditableFeatureFlagFileStorageService), implementationToInterface.Keys);
             Assert.Contains(typeof(EditableLoginConfigurationFileStorageService), implementationToInterface.Keys);
-            Assert.Equal(10, implementationToInterface.Count);
+            Assert.Contains(typeof(FileStorageXmlRepository), implementationToInterface.Keys);
+            Assert.Equal(11, implementationToInterface.Count);
             Assert.Equal(typeof(ICertificateService), implementationToInterface[typeof(CertificateService)]);
             Assert.Equal(typeof(IContentService), implementationToInterface[typeof(ContentService)]);
             Assert.Equal(typeof(IPackageFileService), implementationToInterface[typeof(PackageFileService)]);
@@ -87,6 +90,9 @@ namespace NuGetGallery
             Assert.Equal(typeof(IRevalidationStateService), implementationToInterface[typeof(RevalidationStateService)]);
             Assert.Equal(typeof(IFeatureFlagStorageService), implementationToInterface[typeof(EditableFeatureFlagFileStorageService)]);
             Assert.Equal(typeof(IEditableLoginConfigurationFileStorageService), implementationToInterface[typeof(EditableLoginConfigurationFileStorageService)]);
+            Assert.Equal(
+                typeof(Microsoft.AspNetCore.DataProtection.Repositories.IXmlRepository),
+                implementationToInterface[typeof(FileStorageXmlRepository)]);
         }
 
         [Fact]
@@ -106,6 +112,9 @@ namespace NuGetGallery
             Assert.Equal(typeToConnectionString[typeof(UploadFileService)], config.AzureStorage_Uploads_ConnectionString);
             Assert.Equal(typeToConnectionString[typeof(CoreLicenseFileService)], config.AzureStorage_FlatContainer_ConnectionString);
             Assert.Equal(typeToConnectionString[typeof(CoreReadmeFileService)], config.AzureStorage_FlatContainer_ConnectionString);
+            Assert.Equal(
+                typeToConnectionString[typeof(FileStorageXmlRepository)],
+                config.AzureStorage_DataProtection_ConnectionString);
         }
 
         [Fact]
@@ -135,6 +144,7 @@ namespace NuGetGallery
             mock.Setup(x => x.AzureStorage_Packages_ConnectionString).Returns("Packages");
             mock.Setup(x => x.AzureStorage_Uploads_ConnectionString).Returns("Uploads");
             mock.Setup(x => x.AzureStorage_FlatContainer_ConnectionString).Returns("FlatContainer");
+            mock.Setup(x => x.AzureStorage_DataProtection_ConnectionString).Returns("DataProtection");
 
             return mock.Object;
         }

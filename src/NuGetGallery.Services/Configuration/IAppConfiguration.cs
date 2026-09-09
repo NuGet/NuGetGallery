@@ -86,6 +86,25 @@ namespace NuGetGallery.Configuration
         string AzureStorage_Revalidation_ConnectionString { get; set; }
 
         /// <summary>
+        /// The Azure storage connection string used for the shared Data Protection key ring.
+        /// </summary>
+        string AzureStorage_DataProtection_ConnectionString { get; set; }
+
+        string DataProtectionApplicationDiscriminator { get; set; }
+
+        TimeSpan DataProtectionKeyLifetime { get; set; }
+
+        bool DataProtectionEncryptKeysAtRest { get; set; }
+
+        string DataProtectionKeyVaultKeyIdentifier { get; set; }
+
+        TimeSpan DataProtectionKeyVaultKeyRotationPeriod { get; set; }
+
+        TimeSpan DataProtectionKeyRingRetentionPeriod { get; set; }
+
+        TimeSpan DataProtectionKeyVaultKeyRetentionPeriod { get; set; }
+
+        /// <summary>
         /// Gets a setting if Read Access Geo Redundant is enabled in azure storage
         /// </summary>
         bool AzureStorageReadAccessGeoRedundant { get; set; }

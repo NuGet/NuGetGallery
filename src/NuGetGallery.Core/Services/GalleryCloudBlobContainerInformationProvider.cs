@@ -25,6 +25,7 @@ namespace NuGetGallery
             CoreConstants.Folders.PackagesContentFolderName,
             CoreConstants.Folders.PackageBackupsFolderName,
             CoreConstants.Folders.SymbolPackageBackupsFolderName,
+            CoreConstants.Folders.DataProtectionFolderName,
         };
 
         public string GetCacheControl(string folderName)
@@ -45,6 +46,7 @@ namespace NuGetGallery
                 case CoreConstants.Folders.UserCertificatesFolderName:
                 case CoreConstants.Folders.PackagesContentFolderName:
                 case CoreConstants.Folders.FlatContainerFolderName:
+                case CoreConstants.Folders.DataProtectionFolderName:
                     return null;
 
                 default:
@@ -78,6 +80,9 @@ namespace NuGetGallery
 
                 case CoreConstants.Folders.PackagesContentFolderName:
                     return CoreConstants.OctetStreamContentType;
+
+                case CoreConstants.Folders.DataProtectionFolderName:
+                    return CoreConstants.XmlContentType;
 
                 default:
                     throw new InvalidOperationException(

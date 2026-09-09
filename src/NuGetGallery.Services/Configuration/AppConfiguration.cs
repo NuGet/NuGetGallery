@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Net.Mail;
 using NuGet.Services.Configuration;
+using NuGetGallery.Authentication;
 
 namespace NuGetGallery.Configuration
 {
@@ -65,6 +66,36 @@ namespace NuGetGallery.Configuration
 
         [DisplayName("AzureStorage.Revalidation.ConnectionString")]
         public string AzureStorage_Revalidation_ConnectionString { get; set; }
+
+        [DisplayName("AzureStorage.DataProtection.ConnectionString")]
+        public string AzureStorage_DataProtection_ConnectionString { get; set; }
+
+        [DisplayName("DataProtection.ApplicationDiscriminator")]
+        [DefaultValue(SharedCookieConstants.DataProtectionApplicationName)]
+        public string DataProtectionApplicationDiscriminator { get; set; }
+
+        [DisplayName("DataProtection.KeyLifetime")]
+        [DefaultValue("90.00:00:00")]
+        public TimeSpan DataProtectionKeyLifetime { get; set; }
+
+        [DisplayName("DataProtection.EncryptKeysAtRest")]
+        [DefaultValue(false)]
+        public bool DataProtectionEncryptKeysAtRest { get; set; }
+
+        [DisplayName("DataProtection.KeyVaultKeyIdentifier")]
+        public string DataProtectionKeyVaultKeyIdentifier { get; set; }
+
+        [DisplayName("DataProtection.KeyVaultKeyRotationPeriod")]
+        [DefaultValue("30.00:00:00")]
+        public TimeSpan DataProtectionKeyVaultKeyRotationPeriod { get; set; }
+
+        [DisplayName("DataProtection.KeyRingRetentionPeriod")]
+        [DefaultValue("365.00:00:00")]
+        public TimeSpan DataProtectionKeyRingRetentionPeriod { get; set; }
+
+        [DisplayName("DataProtection.KeyVaultKeyRetentionPeriod")]
+        [DefaultValue("365.00:00:00")]
+        public TimeSpan DataProtectionKeyVaultKeyRetentionPeriod { get; set; }
 
         /// <summary>
         /// Gets a setting if Read Access Geo Redundant is enabled in azure storage

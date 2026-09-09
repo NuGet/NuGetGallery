@@ -13,7 +13,9 @@ namespace NuGetGallery
             // creation of block blobs so it's good enough for now. If another caller created a non-block blob, this
             // cast will fail at runtime.
             Results = items;
-            ContinuationToken = new BlobListContinuationToken(continuationToken);
+            ContinuationToken = string.IsNullOrEmpty(continuationToken)
+                ? null
+                : new BlobListContinuationToken(continuationToken);
         }
 
         public IReadOnlyList<ISimpleCloudBlob> Results { get; }

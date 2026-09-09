@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using NuGetGallery.Authentication;
+using NuGetGallery.DataProtection;
 
 namespace NuGetGallery.CookieInteropTests
 {
@@ -27,7 +28,7 @@ namespace NuGetGallery.CookieInteropTests
         {
             ClaimsPrincipal authenticatedPrincipal = null;
             WebApplication app = CreateApplication(
-                Path.Combine(artifactDirectory, "keys"),
+                Path.Combine(artifactDirectory, CoreConstants.Folders.DataProtectionFolderName),
                 principal => authenticatedPrincipal = principal);
 
             await app.StartAsync();
@@ -85,10 +86,27 @@ namespace NuGetGallery.CookieInteropTests
         {
             var builder = WebApplication.CreateBuilder();
             builder.WebHost.UseTestServer();
+            string storageRoot = Directory.GetParent(keyRing).FullName;
+            var storage = new FileSystemFileStorageService(storageRoot, new FileSystemService());
+            var repository = new FileStorageXmlRepository(storage);
+            var dataProtectionConfiguration = new SharedDataProtectionConfiguration
+            {
+                StorageType = DataProtectionStorageType.FileSystem,
+                StorageLocation = storageRoot,
+                ApplicationDiscriminator = SharedCookieConstants.DataProtectionApplicationName,
+                KeyLifetime = TimeSpan.FromDays(90),
+                EncryptKeysAtRest = false,
+                KeyVaultKeyRotationPeriod = TimeSpan.FromDays(30),
+                KeyRingRetentionPeriod = TimeSpan.FromDays(365),
+                KeyVaultKeyRetentionPeriod = TimeSpan.FromDays(365),
+            };
             builder.Services
                 .AddDataProtection()
-                .PersistKeysToFileSystem(new DirectoryInfo(keyRing))
-                .SetApplicationName(SharedCookieConstants.DataProtectionApplicationName);
+                .ConfigureSharedDataProtection(
+                    repository,
+                    dataProtectionConfiguration,
+                    keyEncryptionKeyResolver: null,
+                    isProduction: false);
             builder.Services
                 .AddAuthentication(SharedCookieConstants.AuthenticationScheme)
                 .AddCookie(SharedCookieConstants.AuthenticationScheme, options =>

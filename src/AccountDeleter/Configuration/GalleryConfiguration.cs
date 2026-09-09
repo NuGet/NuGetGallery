@@ -34,6 +34,14 @@ namespace NuGetGallery.AccountDeleter
         public string AzureStorage_Statistics_ConnectionString_Alternate { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string AzureStorage_Uploads_ConnectionString { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string AzureStorage_Revalidation_ConnectionString { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string AzureStorage_DataProtection_ConnectionString { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string DataProtectionApplicationDiscriminator { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public TimeSpan DataProtectionKeyLifetime { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public bool DataProtectionEncryptKeysAtRest { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string DataProtectionKeyVaultKeyIdentifier { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public TimeSpan DataProtectionKeyVaultKeyRotationPeriod { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public TimeSpan DataProtectionKeyRingRetentionPeriod { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public TimeSpan DataProtectionKeyVaultKeyRetentionPeriod { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public bool AzureStorageReadAccessGeoRedundant { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public bool AzureStorageUseMsi { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string AzureStorageMsiClientId { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }

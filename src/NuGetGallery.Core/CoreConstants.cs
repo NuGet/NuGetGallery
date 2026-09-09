@@ -24,6 +24,7 @@ namespace NuGetGallery
         public const string JsonContentType = "application/json";
         public const string JpegContentType = "image/jpeg";
         public const string PngContentType = "image/png";
+        public const string XmlContentType = "application/xml";
 
         public const string DefaultCacheControl = "max-age=120";
 
@@ -43,6 +44,7 @@ namespace NuGetGallery
             public const string SymbolPackagesFolderName = "symbol-packages";
             public const string SymbolPackageBackupsFolderName = "symbol-package-backups";
             public const string FlatContainerFolderName = "v3-flatcontainer";
+            public const string DataProtectionFolderName = "data-protection";
         }
 
         public const string NuGetSymbolPackageFileExtension = ".snupkg";

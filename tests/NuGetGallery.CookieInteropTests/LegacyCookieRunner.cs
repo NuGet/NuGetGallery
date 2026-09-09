@@ -26,7 +26,7 @@ namespace NuGetGallery.CookieInteropTests
     {
         internal static async Task IssueAsync(string artifactDirectory)
         {
-            string keyRing = Path.Combine(artifactDirectory, "keys");
+            string keyRing = Path.Combine(artifactDirectory, CoreConstants.Folders.DataProtectionFolderName);
             AspNetTicketDataFormat sharedFormat = CreateSharedFormat(keyRing);
             ClaimsPrincipal authenticatedPrincipal = null;
 
@@ -77,7 +77,8 @@ namespace NuGetGallery.CookieInteropTests
 
         internal static async Task AcceptAsync(string artifactDirectory)
         {
-            AspNetTicketDataFormat sharedFormat = CreateSharedFormat(Path.Combine(artifactDirectory, "keys"));
+            AspNetTicketDataFormat sharedFormat = CreateSharedFormat(
+                Path.Combine(artifactDirectory, CoreConstants.Folders.DataProtectionFolderName));
             ClaimsPrincipal authenticatedPrincipal = null;
 
             using (TestServer server = CreateServer(sharedFormat, principal => authenticatedPrincipal = principal))

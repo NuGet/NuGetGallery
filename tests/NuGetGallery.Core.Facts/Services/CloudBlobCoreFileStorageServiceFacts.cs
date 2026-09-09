@@ -1774,5 +1774,68 @@ namespace NuGetGallery
                 Assert.Null(etagValue);
             }
         }
+
+        public class TheListFilesAsyncMethod
+        {
+            [Fact]
+            public async Task ReadsAllPagesAndReturnsSortedRelativeNames()
+            {
+                var client = new Mock<ICloudBlobClient>();
+                var container = new Mock<ICloudBlobContainer>();
+                container
+                    .Setup(x => x.CreateIfNotExistAsync(enablePublicAccess: false))
+                    .Returns(Task.CompletedTask);
+                container
+                    .SetupSequence(x => x.ListBlobsSegmentedAsync(
+                        null,
+                        true,
+                        ListingDetails.None,
+                        null,
+                        It.IsAny<BlobListContinuationToken>(),
+                        null,
+                        null,
+                        default))
+                    .ReturnsAsync(new BlobResultSegmentWrapper(
+                        new[]
+                        {
+                            CreateBlob("z.xml"),
+                            CreateBlob("nested/b.xml"),
+                        },
+                        "next"))
+                    .ReturnsAsync(new BlobResultSegmentWrapper(
+                        new[]
+                        {
+                            CreateBlob("a.xml"),
+                        },
+                        continuationToken: null));
+                client
+                    .Setup(x => x.GetContainerReference(CoreConstants.Folders.DataProtectionFolderName))
+                    .Returns(container.Object);
+                CloudBlobCoreFileStorageService target = CreateService(client);
+
+                IReadOnlyList<string> result = await target.ListFilesAsync(
+                    CoreConstants.Folders.DataProtectionFolderName);
+
+                Assert.Equal(new[] { "a.xml", "nested/b.xml", "z.xml" }, result);
+                container.Verify(
+                    x => x.ListBlobsSegmentedAsync(
+                        null,
+                        true,
+                        ListingDetails.None,
+                        null,
+                        It.IsAny<BlobListContinuationToken>(),
+                        null,
+                        null,
+                        default),
+                    Times.Exactly(2));
+            }
+
+            private static ISimpleCloudBlob CreateBlob(string name)
+            {
+                var blob = new Mock<ISimpleCloudBlob>();
+                blob.SetupGet(x => x.Name).Returns(name);
+                return blob.Object;
+            }
+        }
     }
 }

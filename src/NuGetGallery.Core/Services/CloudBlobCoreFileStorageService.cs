@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using NuGetGallery.Diagnostics;
@@ -71,6 +72,38 @@ namespace NuGetGallery
         {
             var container = await GetContainerAsync(CoreConstants.Folders.PackagesFolderName);
             return await container.ExistsAsync(cloudBlobLocationMode: null);
+        }
+
+        public async Task<IReadOnlyList<string>> ListFilesAsync(string folderName)
+        {
+            if (string.IsNullOrWhiteSpace(folderName))
+            {
+                throw new ArgumentNullException(nameof(folderName));
+            }
+
+            var container = await GetContainerAsync(folderName);
+            var fileNames = new List<string>();
+            BlobListContinuationToken continuationToken = null;
+
+            do
+            {
+                var segment = await container.ListBlobsSegmentedAsync(
+                    prefix: null,
+                    useFlatBlobListing: true,
+                    blobListingDetails: ListingDetails.None,
+                    maxResults: null,
+                    blobContinuationToken: continuationToken,
+                    requestTimeout: null,
+                    cloudBlobLocationMode: null,
+                    cancellationToken: default);
+
+                fileNames.AddRange(segment.Results.Select(blob => blob.Name));
+                continuationToken = segment.ContinuationToken;
+            }
+            while (continuationToken != null);
+
+            fileNames.Sort(StringComparer.Ordinal);
+            return fileNames;
         }
 
         public async Task<Stream> GetFileAsync(string folderName, string fileName)

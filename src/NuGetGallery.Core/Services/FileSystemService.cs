@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace NuGetGallery
@@ -45,6 +46,11 @@ namespace NuGetGallery
         public DateTimeOffset GetCreationTimeUtc(string path)
         {
             return File.GetCreationTimeUtc(path);
+        }
+
+        public IEnumerable<string> GetFiles(string path, string searchPattern, SearchOption searchOption)
+        {
+            return Directory.EnumerateFiles(path, searchPattern, searchOption);
         }
 
         public IFileReference GetFileReference(string path)

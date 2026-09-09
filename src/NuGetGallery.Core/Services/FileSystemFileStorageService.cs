@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace NuGetGallery
@@ -232,6 +233,28 @@ namespace NuGetGallery
             return Task.FromResult(Directory.Exists(_fileStorageDirectory));
         }
 
+        public Task<IReadOnlyList<string>> ListFilesAsync(string folderName)
+        {
+            if (string.IsNullOrWhiteSpace(folderName))
+            {
+                throw new ArgumentNullException(nameof(folderName));
+            }
+
+            var folderPath = BuildPath(_fileStorageDirectory, folderName, string.Empty);
+            if (!_fileSystemService.DirectoryExists(folderPath))
+            {
+                return Task.FromResult<IReadOnlyList<string>>(Array.Empty<string>());
+            }
+
+            var relativeNames = _fileSystemService
+                .GetFiles(folderPath, "*", SearchOption.AllDirectories)
+                .Select(path => GetRelativeName(folderPath, path))
+                .OrderBy(path => path, StringComparer.Ordinal)
+                .ToList();
+
+            return Task.FromResult<IReadOnlyList<string>>(relativeNames);
+        }
+
         public Task<Uri> GetFileUriAsync(string folderName, string fileName)
         {
             /// Not implemented for the same reason as <see cref="GetFileReadUriAsync(string, string, DateTimeOffset?)"/>.
@@ -280,6 +303,23 @@ namespace NuGetGallery
         private static string BuildPath(string fileStorageDirectory, string folderName, string fileName)
         {
             return Path.Combine(fileStorageDirectory, folderName, fileName);
+        }
+
+        private static string GetRelativeName(string folderPath, string filePath)
+        {
+            var normalizedFolderPath = folderPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                + Path.DirectorySeparatorChar;
+            var fullFolderPath = Path.GetFullPath(normalizedFolderPath);
+            var fullFilePath = Path.GetFullPath(filePath);
+
+            if (!fullFilePath.StartsWith(fullFolderPath, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException("The filesystem returned a file outside the requested folder.");
+            }
+
+            return fullFilePath.Substring(fullFolderPath.Length)
+                .Replace(Path.DirectorySeparatorChar, '/')
+                .Replace(Path.AltDirectorySeparatorChar, '/');
         }
 
         public Task<string> GetETagOrNullAsync(

@@ -26,6 +26,7 @@ namespace NuGetGallery
                 {
                     // Folder name, is public, content type
                     new object[] { CoreConstants.Folders.ContentFolderName, false, CoreConstants.JsonContentType, },
+                    new object[] { CoreConstants.Folders.DataProtectionFolderName, false, CoreConstants.XmlContentType },
                     new object[] { CoreConstants.Folders.PackageBackupsFolderName, false, CoreConstants.PackageContentType },
                     new object[] { CoreConstants.Folders.PackageReadMesFolderName, false, CoreConstants.TextContentType },
                     new object[] { CoreConstants.Folders.PackagesFolderName, true, CoreConstants.PackageContentType },

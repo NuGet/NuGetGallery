@@ -15,6 +15,7 @@
     <PackageVersion Include="Autofac.WebApi2" Version="4.1.0" />
     <PackageVersion Include="Autofac" Version="4.9.1" />
     <PackageVersion Include="Azure.Core" Version="1.50.0" />
+    <PackageVersion Include="Azure.Extensions.AspNetCore.DataProtection.Keys" Version="1.1.0" />
     <PackageVersion Include="Azure.Data.Tables" Version="12.8.3" />
     <PackageVersion Include="Azure.Identity" Version="1.17.1" />
     <PackageVersion Include="Azure.Messaging.ServiceBus" Version="7.16.1" />
@@ -59,6 +60,7 @@
     <PackageVersion Include="Microsoft.AspNet.WebPages" Version="3.2.9" />
     <PackageVersion Include="Microsoft.AspNetCore.Cryptography.Internal" Version="8.0.10" />
     <PackageVersion Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" Version="8.0.10" />
+    <PackageVersion Include="Microsoft.AspNetCore.DataProtection" Version="2.3.10" />
     <PackageVersion Include="Microsoft.AspNetCore.DataProtection.Extensions" Version="2.3.10" />
     <PackageVersion Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
     <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.0" />
@@ -149,7 +151,7 @@
     <PackageVersion Include="System.Data.SqlClient" Version="4.8.6" />
     <PackageVersion Include="System.Diagnostics.Debug" Version="4.3.0" />
     <PackageVersion Include="System.Drawing.Common" Version="9.0.0" />
-    <PackageVersion Include="System.Formats.Asn1" Version="8.0.2" />
+    <PackageVersion Include="System.Formats.Asn1" Version="10.0.11" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.18.0" />
     <PackageVersion Include="System.Linq.Expressions" Version="4.3.0" />
     <PackageVersion Include="System.Net.Http" Version="4.3.4" />

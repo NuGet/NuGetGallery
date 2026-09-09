@@ -751,6 +751,48 @@ namespace NuGetGallery
             }
         }
 
+        public class TheListFilesAsyncMethod
+        {
+            [Fact]
+            public async Task ReturnsSortedNamesRelativeToTheRequestedFolder()
+            {
+                string folderPath = Path.Combine(
+                    FakeConfiguredFileStorageDirectory,
+                    CoreConstants.Folders.DataProtectionFolderName);
+                var fileSystem = new Mock<IFileSystemService>();
+                fileSystem.Setup(x => x.DirectoryExists(folderPath)).Returns(true);
+                fileSystem
+                    .Setup(x => x.GetFiles(folderPath, "*", SearchOption.AllDirectories))
+                    .Returns(new[]
+                    {
+                        Path.Combine(folderPath, "z.xml"),
+                        Path.Combine(folderPath, "nested", "a.xml"),
+                    });
+                FileSystemFileStorageService target = CreateService(fileSystemService: fileSystem);
+
+                IReadOnlyList<string> result = await target.ListFilesAsync(
+                    CoreConstants.Folders.DataProtectionFolderName);
+
+                Assert.Equal(new[] { "nested/a.xml", "z.xml" }, result);
+            }
+
+            [Fact]
+            public async Task ReturnsEmptyWhenTheFolderDoesNotExist()
+            {
+                var fileSystem = new Mock<IFileSystemService>();
+                fileSystem.Setup(x => x.DirectoryExists(It.IsAny<string>())).Returns(false);
+                FileSystemFileStorageService target = CreateService(fileSystemService: fileSystem);
+
+                IReadOnlyList<string> result = await target.ListFilesAsync(
+                    CoreConstants.Folders.DataProtectionFolderName);
+
+                Assert.Empty(result);
+                fileSystem.Verify(
+                    x => x.GetFiles(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<SearchOption>()),
+                    Times.Never);
+            }
+        }
+
         public class TheSetMetadataAsyncMethod
         {
             [Fact]

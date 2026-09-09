@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Azure;
 using Azure.Core.Cryptography;
+using Azure.Security.KeyVault.Keys;
 using Xunit;
 
 namespace NuGet.Services.KeyVault.Tests
@@ -23,6 +24,118 @@ namespace NuGet.Services.KeyVault.Tests
             KeyVaultKeyEncryptionKeyResolver target = CreateResolver();
 
             Assert.IsAssignableFrom<IKeyEncryptionKeyResolver>(target);
+            Assert.IsAssignableFrom<IKeyEncryptionKeyMetadataValidator>(target);
+        }
+
+        [Fact]
+        public void ValidateKeyAcceptsEnabledRsaAndRsaHsmKeys()
+        {
+            foreach (KeyType keyType in new[] { KeyType.Rsa, KeyType.RsaHsm })
+            {
+                var cancellationTokenSource = new CancellationTokenSource();
+                KeyVaultKeyEncryptionKeyResolver target = CreateResolver(
+                    getKey: (name, cancellationToken) =>
+                    {
+                        Assert.Equal("test-key", name);
+                        Assert.Equal(cancellationTokenSource.Token, cancellationToken);
+                        return CreateKey(VersionedKeyUri, keyType);
+                    });
+
+                target.ValidateKey(
+                    "https://test-vault.vault.azure.net/keys/test-key",
+                    cancellationTokenSource.Token);
+            }
+        }
+
+        [Fact]
+        public void ValidateKeyRejectsVersionedOrForeignIdentifiersBeforeMetadataAccess()
+        {
+            int metadataAccessCount = 0;
+            KeyVaultKeyEncryptionKeyResolver target = CreateResolver(
+                getKey: (_, __) =>
+                {
+                    metadataAccessCount++;
+                    return CreateKey(VersionedKeyUri, KeyType.Rsa);
+                });
+
+            Assert.Throws<ArgumentException>(() => target.ValidateKey(VersionedKeyUri.AbsoluteUri));
+            Assert.Throws<ArgumentException>(() => target.ValidateKey(
+                "https://other-vault.vault.azure.net/keys/test-key"));
+            Assert.Equal(0, metadataAccessCount);
+        }
+
+        [Fact]
+        public void ValidateKeyRejectsUnexpectedReturnedIdentity()
+        {
+            KeyVaultKeyEncryptionKeyResolver target = CreateResolver(
+                getKey: (_, __) => CreateKey(
+                    new Uri("https://other-vault.vault.azure.net/keys/test-key/version-1"),
+                    KeyType.Rsa));
+
+            Assert.Throws<ArgumentException>(() => target.ValidateKey(
+                "https://test-vault.vault.azure.net/keys/test-key"));
+        }
+
+        [Fact]
+        public void ValidateKeyRejectsDifferentReturnedKeyName()
+        {
+            KeyVaultKeyEncryptionKeyResolver target = CreateResolver(
+                getKey: (_, __) => CreateKey(
+                    new Uri("https://test-vault.vault.azure.net/keys/other-key/version-1"),
+                    KeyType.Rsa));
+
+            Assert.Throws<InvalidOperationException>(() => target.ValidateKey(
+                "https://test-vault.vault.azure.net/keys/test-key"));
+        }
+
+        [Fact]
+        public void ValidateKeyRejectsDisabledOrUnavailableKeys()
+        {
+            foreach (KeyVaultKey key in new[]
+            {
+                CreateKey(VersionedKeyUri, KeyType.Rsa, enabled: null),
+                CreateKey(VersionedKeyUri, KeyType.Rsa, enabled: false),
+                CreateKey(VersionedKeyUri, KeyType.Rsa, notBefore: DateTimeOffset.UtcNow.AddDays(1)),
+                CreateKey(VersionedKeyUri, KeyType.Rsa, expiresOn: DateTimeOffset.UtcNow.AddDays(-1)),
+            })
+            {
+                KeyVaultKeyEncryptionKeyResolver target = CreateResolver(getKey: (_, __) => key);
+
+                Assert.Throws<InvalidOperationException>(() => target.ValidateKey(
+                    "https://test-vault.vault.azure.net/keys/test-key"));
+            }
+        }
+
+        [Fact]
+        public void ValidateKeyRejectsUnsupportedTypeOrOperations()
+        {
+            foreach (KeyVaultKey key in new[]
+            {
+                CreateKey(VersionedKeyUri, KeyType.Ec),
+                CreateKey(
+                    VersionedKeyUri,
+                    KeyType.Rsa,
+                    operations: new[] { KeyOperation.Encrypt, KeyOperation.Decrypt }),
+            })
+            {
+                KeyVaultKeyEncryptionKeyResolver target = CreateResolver(getKey: (_, __) => key);
+
+                Assert.Throws<InvalidOperationException>(() => target.ValidateKey(
+                    "https://test-vault.vault.azure.net/keys/test-key"));
+            }
+        }
+
+        [Fact]
+        public void ValidateKeyPreservesAzureSdkFailure()
+        {
+            var expected = new RequestFailedException(403, "Forbidden");
+            KeyVaultKeyEncryptionKeyResolver target = CreateResolver(
+                getKey: (_, __) => throw expected);
+
+            RequestFailedException actual = Assert.Throws<RequestFailedException>(
+                () => target.ValidateKey("https://test-vault.vault.azure.net/keys/test-key"));
+
+            Assert.Same(expected, actual);
         }
 
         [Fact]
@@ -218,13 +331,35 @@ namespace NuGet.Services.KeyVault.Tests
         private static KeyVaultKeyEncryptionKeyResolver CreateResolver(
             Func<string, CancellationToken, Uri> resolveVersionedKeyIdentifier = null,
             Func<string, CancellationToken, Task<Uri>> resolveVersionedKeyIdentifierAsync = null,
-            Func<Uri, IKeyEncryptionKey> createKeyEncryptionKey = null)
+            Func<Uri, IKeyEncryptionKey> createKeyEncryptionKey = null,
+            Func<string, CancellationToken, KeyVaultKey> getKey = null)
         {
             return new KeyVaultKeyEncryptionKeyResolver(
                 VaultUri,
                 resolveVersionedKeyIdentifier ?? ((_, __) => VersionedKeyUri),
                 resolveVersionedKeyIdentifierAsync ?? ((_, __) => Task.FromResult(VersionedKeyUri)),
-                createKeyEncryptionKey ?? (id => new TestKeyEncryptionKey(id.AbsoluteUri)));
+                createKeyEncryptionKey ?? (id => new TestKeyEncryptionKey(id.AbsoluteUri)),
+                getKey);
+        }
+
+        private static KeyVaultKey CreateKey(
+            Uri identifier,
+            KeyType keyType,
+            bool? enabled = true,
+            DateTimeOffset? notBefore = null,
+            DateTimeOffset? expiresOn = null,
+            IEnumerable<KeyOperation> operations = null)
+        {
+            KeyProperties properties = KeyModelFactory.KeyProperties(id: identifier);
+            properties.Enabled = enabled;
+            properties.NotBefore = notBefore;
+            properties.ExpiresOn = expiresOn;
+            return KeyModelFactory.KeyVaultKey(
+                properties,
+                KeyModelFactory.JsonWebKey(
+                    keyType,
+                    id: identifier.AbsoluteUri,
+                    keyOps: operations ?? new[] { KeyOperation.WrapKey, KeyOperation.UnwrapKey }));
         }
 
         private sealed class TestKeyEncryptionKey : IKeyEncryptionKey

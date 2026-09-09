@@ -25,6 +25,13 @@ namespace NuGetGallery
         Task<bool> IsAvailableAsync();
 
         /// <summary>
+        /// Lists all files in a folder using names relative to that folder.
+        /// </summary>
+        /// <param name="folderName">The folder to enumerate.</param>
+        /// <returns>All relative file names in ordinal order.</returns>
+        Task<IReadOnlyList<string>> ListFilesAsync(string folderName);
+
+        /// <summary>
         /// Gets a reference to a file in the storage service, which can be used to open the full file data.
         /// </summary>
         /// <param name="folderName">The folder containing the file to open</param>
