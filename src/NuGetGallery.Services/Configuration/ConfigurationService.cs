@@ -42,6 +42,7 @@ namespace NuGetGallery.Configuration
             SettingPrefix + "ValidationSqlServer" };
 
         public ICachingSecretInjector SecretInjector { get; set; }
+        public KeyVaultConfiguration KeyVaultConfiguration { get; private set; }
 
         /// <summary>
         /// Initializes the configuration service and associates a secret injector based on the configured KeyVault
@@ -51,9 +52,11 @@ namespace NuGetGallery.Configuration
         {
             var configuration = new ConfigurationService();
             var secretReaderFactory = new SecretReaderFactory(configuration);
-            var secretReader = secretReaderFactory.CreateSecretReader();
+            var keyVaultConfiguration = secretReaderFactory.CreateKeyVaultConfiguration();
+            var secretReader = secretReaderFactory.CreateSecretReader(keyVaultConfiguration);
             var secretInjector = secretReaderFactory.CreateSecretInjector(secretReader);
 
+            configuration.KeyVaultConfiguration = keyVaultConfiguration;
             configuration.SecretInjector = secretInjector as ICachingSecretInjector ?? throw new InvalidOperationException("Caching secret reader is required to run the service");
 
             return configuration;

@@ -9,9 +9,12 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Sockets;
+using System.Security.Claims;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server;
@@ -23,6 +26,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using NuGetGallery.Authentication;
 using Xunit;
 using HeaderNames = Microsoft.Net.Http.Headers.HeaderNames;
 
@@ -130,6 +134,76 @@ public class LegacyProxyFacts
         Assert.Equal(
             ".AspNet.LocalUser=updated; path=/; secure; httponly",
             response.Headers.GetValues(HeaderNames.SetCookie).Single());
+    }
+
+    [Fact]
+    public async Task ReaderOnlyAuthenticationLeavesTheLegacyHostAsTheSingleCookieRefresher()
+    {
+        string forwardedCookie = null;
+        await using ProxyHarness harness = await ProxyHarness.CreateAsync(context =>
+        {
+            forwardedCookie = context.Request.Headers.Cookie;
+            context.Response.Headers.Append(
+                HeaderNames.SetCookie,
+                SharedCookieConstants.CookieName + "=legacy-renewal; path=/; secure; httponly");
+            return context.Response.WriteAsync("authenticated");
+        });
+
+        CookieAuthenticationOptions options = harness.Services
+            .GetRequiredService<IOptionsMonitor<CookieAuthenticationOptions>>()
+            .Get(SharedCookieConstants.AuthenticationScheme);
+        DateTimeOffset issuedUtc = DateTimeOffset.UtcNow.Subtract(TimeSpan.FromHours(4));
+        var ticket = new AuthenticationTicket(
+            new ClaimsPrincipal(new ClaimsIdentity(
+                new[] { new Claim(ClaimTypes.Name, "proxy-user") },
+                SharedCookieConstants.AuthenticationScheme)),
+            new AuthenticationProperties
+            {
+                IssuedUtc = issuedUtc,
+                ExpiresUtc = issuedUtc.Add(SharedCookieConstants.Expiration),
+            },
+            SharedCookieConstants.AuthenticationScheme);
+        string cookie = options.TicketDataFormat.Protect(ticket);
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/legacy-authenticated");
+        request.Headers.TryAddWithoutValidation(
+            HeaderNames.Cookie,
+            SharedCookieConstants.CookieName + "=" + cookie);
+        using HttpResponseMessage response = await harness.Client.SendAsync(request);
+
+        Assert.Equal("authenticated", await response.Content.ReadAsStringAsync());
+        Assert.Equal(SharedCookieConstants.CookieName + "=" + cookie, forwardedCookie);
+        Assert.Equal(
+            SharedCookieConstants.CookieName + "=legacy-renewal; path=/; secure; httponly",
+            response.Headers.GetValues(HeaderNames.SetCookie).Single());
+    }
+
+    [Fact]
+    public async Task InvalidSharedCookieStillUsesAnonymousLegacyFallback()
+    {
+        int legacyRequests = 0;
+        string forwardedCookie = null;
+        await using ProxyHarness harness = await ProxyHarness.CreateAsync(async context =>
+        {
+            legacyRequests++;
+            forwardedCookie = context.Request.Headers.Cookie;
+            await context.Response.WriteAsync(
+                context.User.Identity?.IsAuthenticated == true ? "authenticated" : "anonymous");
+        });
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/legacy-anonymous");
+        request.Headers.TryAddWithoutValidation(
+            HeaderNames.Cookie,
+            SharedCookieConstants.CookieName + "=not-a-valid-ticket");
+        using HttpResponseMessage response = await harness.Client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("anonymous", await response.Content.ReadAsStringAsync());
+        Assert.Equal(1, legacyRequests);
+        Assert.Equal(
+            SharedCookieConstants.CookieName + "=not-a-valid-ticket",
+            forwardedCookie);
+        Assert.False(response.Headers.TryGetValues(HeaderNames.SetCookie, out _));
     }
 
     [Fact]
@@ -849,6 +923,8 @@ public class LegacyProxyFacts
             await _legacy.DisposeAsync();
             DeleteStoragePath(_storagePath);
         }
+
+        public IServiceProvider Services => _proxy.Services;
 
         public static string CreateStoragePath()
         {

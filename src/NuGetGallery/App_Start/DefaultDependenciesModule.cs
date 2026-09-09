@@ -20,9 +20,12 @@ using AnglicanGeek.MarkdownMailer;
 using Autofac;
 using Autofac.Core;
 using Autofac.Extensions.DependencyInjection;
+using Azure.Core.Cryptography;
 using Ganss.Xss;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.Implementation;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;
@@ -47,6 +50,7 @@ using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Cookies;
+using NuGetGallery.DataProtection;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Features;
 using NuGetGallery.Frameworks;
@@ -147,6 +151,8 @@ namespace NuGetGallery
             builder.Register(c => configuration.Current)
                 .AsSelf()
                 .AsImplementedInterfaces();
+
+            ConfigureSharedDataProtection(builder, configuration);
 
             // Force the read of this configuration, so it will be initialized on startup
             builder.Register(c => configuration.Features)
@@ -566,6 +572,50 @@ namespace NuGetGallery
 
             ConfigureAutocomplete(builder, configuration);
             builder.Populate(services);
+        }
+
+        private static void ConfigureSharedDataProtection(
+            ContainerBuilder builder,
+            ConfigurationService configuration)
+        {
+            var sharedConfiguration = configuration.Current.ToSharedDataProtectionConfiguration();
+            var isProduction = string.Equals(
+                configuration.Current.Environment,
+                ServicesConstants.ProdEnvironment,
+                StringComparison.OrdinalIgnoreCase);
+            sharedConfiguration.Validate(isProduction);
+
+            builder.RegisterInstance(sharedConfiguration)
+                .AsSelf()
+                .SingleInstance();
+
+            if (sharedConfiguration.EncryptKeysAtRest)
+            {
+                if (configuration.KeyVaultConfiguration == null)
+                {
+                    throw new InvalidOperationException("Key Vault configuration is required when Data Protection encryption at rest is enabled.");
+                }
+
+                builder.RegisterInstance(configuration.KeyVaultConfiguration)
+                    .AsSelf()
+                    .SingleInstance();
+                builder.Register(context => new KeyVaultKeyEncryptionKeyResolver(
+                        context.Resolve<KeyVaultConfiguration>()))
+                    .AsSelf()
+                    .As<IKeyEncryptionKeyResolver>()
+                    .As<IKeyEncryptionKeyMetadataValidator>()
+                    .SingleInstance();
+            }
+
+            builder.Register(context => DataProtectionProvider.Create(
+                    new DirectoryInfo(FileStoragePathResolver.Resolve(configuration.Current.FileStorageDirectory)),
+                    dataProtection => dataProtection.ConfigureSharedDataProtection(
+                        context.Resolve<IXmlRepository>(),
+                        context.Resolve<SharedDataProtectionConfiguration>(),
+                        context.ResolveOptional<IKeyEncryptionKeyResolver>(),
+                        isProduction)))
+                .As<IDataProtectionProvider>()
+                .SingleInstance();
         }
 
         private static void ConfigureFederatedCredentials(ContainerBuilder builder, ConfigurationService configuration)

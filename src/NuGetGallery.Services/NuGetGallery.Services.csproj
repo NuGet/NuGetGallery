@@ -55,6 +55,7 @@
     <PackageReference Include="Microsoft.Owin.Host.SystemWeb" />
     <PackageReference Include="Microsoft.Owin.Security" />
     <PackageReference Include="Microsoft.Owin.Security.Cookies" />
+    <PackageReference Include="Microsoft.Owin.Security.Interop" />
     <PackageReference Include="Microsoft.Owin.Security.MicrosoftAccount" />
     <PackageReference Include="Microsoft.Owin.Security.OpenIdConnect" />
     <PackageReference Include="NuGet.Protocol" />

@@ -44,38 +44,38 @@ namespace NuGetGallery.Configuration.SecretReader
 
         public ISecretReader CreateSecretReader()
         {
-            ISecretReader secretReader;
+            return CreateSecretReader(CreateKeyVaultConfiguration());
+        }
 
-            var vaultName = _configurationService.ReadRawSetting(ResolveKeyVaultSettingName(VaultNameConfigurationKey));
-
-            if (!string.IsNullOrEmpty(vaultName))
-            {
-                var useManagedIdentity = GetOptionalKeyVaultBoolSettingValue(UseManagedIdentityConfigurationKey, defaultValue: false);
-                var clientId = _configurationService.ReadRawSetting(ResolveKeyVaultSettingName(ClientIdConfigurationKey));
-
-                KeyVaultConfiguration keyVaultConfiguration;
-                if (useManagedIdentity)
-                {
-                    keyVaultConfiguration = new KeyVaultConfiguration(vaultName, clientId);
-                }
-                else
-                {
-                    var tenantId = _configurationService.ReadRawSetting(ResolveKeyVaultSettingName(TenantIdConfigurationKey));
-                    var certificateThumbprint = _configurationService.ReadRawSetting(ResolveKeyVaultSettingName(CertificateThumbprintConfigurationKey));
-                    var storeName = GetOptionalKeyVaultEnumSettingValue(CertificateStoreName, StoreName.My);
-                    var storeLocation = GetOptionalKeyVaultEnumSettingValue(CertificateStoreLocation, StoreLocation.LocalMachine);
-                    var certificate = CertificateUtility.FindCertificateByThumbprint(storeName, storeLocation, certificateThumbprint, validationRequired: true);
-                    keyVaultConfiguration = new KeyVaultConfiguration(vaultName, tenantId, clientId, certificate);
-                }
-
-                secretReader = new KeyVaultReader(keyVaultConfiguration);
-            }
-            else
-            {
-                secretReader = new EmptySecretReader();
-            }
-
+        internal ISecretReader CreateSecretReader(KeyVaultConfiguration keyVaultConfiguration)
+        {
+            ISecretReader secretReader = keyVaultConfiguration == null
+                ? new EmptySecretReader()
+                : new KeyVaultReader(keyVaultConfiguration);
             return new CachingSecretReader(secretReader, refreshIntervalSec: SecretCachingRefreshInterval);
+        }
+
+        internal KeyVaultConfiguration CreateKeyVaultConfiguration()
+        {
+            var vaultName = _configurationService.ReadRawSetting(ResolveKeyVaultSettingName(VaultNameConfigurationKey));
+            if (string.IsNullOrEmpty(vaultName))
+            {
+                return null;
+            }
+
+            var useManagedIdentity = GetOptionalKeyVaultBoolSettingValue(UseManagedIdentityConfigurationKey, defaultValue: false);
+            var clientId = _configurationService.ReadRawSetting(ResolveKeyVaultSettingName(ClientIdConfigurationKey));
+            if (useManagedIdentity)
+            {
+                return new KeyVaultConfiguration(vaultName, clientId);
+            }
+
+            var tenantId = _configurationService.ReadRawSetting(ResolveKeyVaultSettingName(TenantIdConfigurationKey));
+            var certificateThumbprint = _configurationService.ReadRawSetting(ResolveKeyVaultSettingName(CertificateThumbprintConfigurationKey));
+            var storeName = GetOptionalKeyVaultEnumSettingValue(CertificateStoreName, StoreName.My);
+            var storeLocation = GetOptionalKeyVaultEnumSettingValue(CertificateStoreLocation, StoreLocation.LocalMachine);
+            var certificate = CertificateUtility.FindCertificateByThumbprint(storeName, storeLocation, certificateThumbprint, validationRequired: true);
+            return new KeyVaultConfiguration(vaultName, tenantId, clientId, certificate);
         }
 
         private bool GetOptionalKeyVaultBoolSettingValue(string settingName, bool defaultValue)

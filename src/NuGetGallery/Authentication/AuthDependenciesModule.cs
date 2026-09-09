@@ -2,7 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Autofac;
+using Microsoft.AspNetCore.DataProtection;
 using NuGetGallery.Authentication.Providers;
+using NuGetGallery.Authentication.Providers.Cookie;
 
 namespace NuGetGallery.Authentication
 {
@@ -18,9 +20,19 @@ namespace NuGetGallery.Authentication
 
             foreach (var instance in Authenticator.GetAllAvailable())
             {
-                builder.RegisterInstance(instance)
-                    .As<Authenticator>()
-                    .SingleInstance();
+                if (instance is LocalUserAuthenticator)
+                {
+                    builder.Register(context => new LocalUserAuthenticator(
+                            context.Resolve<IDataProtectionProvider>()))
+                        .As<Authenticator>()
+                        .SingleInstance();
+                }
+                else
+                {
+                    builder.RegisterInstance(instance)
+                        .As<Authenticator>()
+                        .SingleInstance();
+                }
             }
         }
     }
