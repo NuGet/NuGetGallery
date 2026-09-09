@@ -3,8 +3,6 @@
 
 using System;
 using System.Threading.Tasks;
-using Azure.Core;
-using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Microsoft.Extensions.Logging;
 using AzureSecurityKeyVaultSecret = Azure.Security.KeyVault.Secrets.KeyVaultSecret;
@@ -25,10 +23,10 @@ namespace NuGet.Services.KeyVault
 
         internal KeyVaultReader(SecretClient secretClient, KeyVaultConfiguration configuration, bool testMode = false)
         {
-            _configuration = configuration;
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _keyVaultClient = new Lazy<SecretClient>(() => secretClient);
             _testMode = testMode;
-            InitializeClient();
+            _isUsingSendx5c = configuration.SendX5c;
         }
 
         public KeyVaultReader(KeyVaultConfiguration configuration)
@@ -39,7 +37,8 @@ namespace NuGet.Services.KeyVault
             }
 
             _configuration = configuration;
-            _keyVaultClient = new Lazy<SecretClient>(InitializeClient);
+            _keyVaultClient = new Lazy<SecretClient>(
+                () => new KeyVaultClientFactory(_configuration).CreateSecretClient());
         }
 
         public string GetSecret(string secretName)
@@ -91,46 +90,5 @@ namespace NuGet.Services.KeyVault
             return new KeyVaultSecret(secretName, secret.Value, secret.Properties.ExpiresOn);
         }
 
-        private SecretClient InitializeClient()
-        {
-            TokenCredential credential = null;
-
-            if (_configuration.UseManagedIdentity)
-            {
-#if DEBUG
-                credential = new DefaultAzureCredential();
-#else
-                credential = new ManagedIdentityCredential(_configuration.ClientId);
-#endif
-            }
-            else if (_configuration.SendX5c)
-            {
-                var clientCredentialOptions = new ClientCertificateCredentialOptions
-                {
-                    SendCertificateChain = true
-                };
-
-                credential = new ClientCertificateCredential(_configuration.TenantId, _configuration.ClientId, _configuration.Certificate, clientCredentialOptions);
-
-                // If we are in unit testing mode, we dont actually create a SecretClient
-                if (_testMode)
-                {
-                    _isUsingSendx5c = true;
-                    return _keyVaultClient.Value;
-                }
-            }
-            else
-            {
-                credential = new ClientCertificateCredential(_configuration.TenantId, _configuration.ClientId, _configuration.Certificate);
-            }
-
-            return new SecretClient(GetKeyVaultUri(_configuration), credential);
-        }
-
-        private Uri GetKeyVaultUri(KeyVaultConfiguration keyVaultConfiguration)
-        {
-            var uriString = $"https://{keyVaultConfiguration.VaultName}.vault.azure.net/";
-            return new Uri(uriString);
-        }
     }
 }

@@ -16,6 +16,11 @@ namespace NuGet.Services.KeyVault
             _cryptoClient = cryptoClient ?? throw new ArgumentNullException(nameof(cryptoClient));
         }
 
+        public KeyVaultDataSigner(Uri keyIdentifier, KeyVaultConfiguration configuration)
+            : this(new KeyVaultClientFactory(configuration).CreateCryptographyClient(keyIdentifier))
+        {
+        }
+
         public async Task<byte[]> SignDataAsync(byte[] data, KeyVaultSignatureAlgorithm algorithm)
         {
             if (data is null)
