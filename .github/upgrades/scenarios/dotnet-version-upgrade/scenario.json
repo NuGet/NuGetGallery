@@ -1,0 +1,21 @@
+{
+  "scenarioId": "dotnet-version-upgrade",
+  "operationId": "fc78ef35-7e29-47fc-9ecc-22e2c59bf637",
+  "description": "Upgrade .NET projects to newer .NET versions, including guidance on current release status, support lifecycle (LTS/STS), and recommended upgrade targets.",
+  "startTime": "2026-09-08T21:41:53.8473826Z",
+  "lastUpdateTime": "2026-09-09T14:33:21.5280499Z",
+  "properties": {
+    "taskStates": {
+      "01-storage-foundation": "Completed",
+      "02-key-vault-foundation": "Completed",
+      "03-cookie-interoperability": "Completed",
+      "04-shared-data-protection": "Completed",
+      "05-net10-host": "Completed",
+      "06-yarp-fallback": "Completed",
+      "07-legacy-cookie-cutover": "Completed",
+      "08-cross-host-regression-tests": "Completed",
+      "09-build-integration": "Completed"
+    }
+  },
+  "folderPath": ""
+}

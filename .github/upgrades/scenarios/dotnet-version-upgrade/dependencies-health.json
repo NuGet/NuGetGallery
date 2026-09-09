@@ -1,0 +1,2599 @@
+{
+  "packageGovernance": {
+    "totalDistinctPackages": 65,
+    "totalVersionDriftInstances": 0,
+    "targetFramework": "net10.0",
+    "packages": [
+      {
+        "name": "Autofac",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.9.1",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.9.1",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Autofac.Extensions.DependencyInjection",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.4.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.4.0",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Autofac.Mvc5",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.0.2",
+        "isCompatible": false,
+        "description": "NuGet package is incompatible",
+        "versions": [
+          {
+            "version": "4.0.2",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Autofac.Mvc5.Owin",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.0.1",
+        "isCompatible": false,
+        "description": "NuGet package is incompatible",
+        "versions": [
+          {
+            "version": "4.0.1",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Autofac.Owin",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.2.0",
+        "isCompatible": false,
+        "description": "NuGet package is incompatible",
+        "versions": [
+          {
+            "version": "4.2.0",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Autofac.WebApi2",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.1.0",
+        "isCompatible": false,
+        "description": "NuGet package is incompatible",
+        "versions": [
+          {
+            "version": "4.1.0",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "CommonMark.NET",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "0.15.1",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "0.15.1",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "d3",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "5.4.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "5.4.0",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "EntityFramework",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "6.5.2",
+        "isCompatible": true,
+        "description": "NuGet package upgrade is recommended",
+        "versions": [
+          {
+            "version": "6.5.1",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": "6.5.2"
+        }
+      },
+      {
+        "name": "HtmlSanitizer",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "9.0.892",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "9.0.892",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Lucene.Net",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "3.0.3",
+        "isCompatible": false,
+        "description": "NuGet package is incompatible",
+        "versions": [
+          {
+            "version": "3.0.3",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Lucene.Net.Contrib",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "3.0.3",
+        "isCompatible": false,
+        "description": "NuGet package is incompatible",
+        "versions": [
+          {
+            "version": "3.0.3",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "MicroBuild.Core",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "0.3.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "0.3.0",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.ApplicationInsights.TraceListener",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "2.21.0",
+        "isCompatible": false,
+        "description": "NuGet package is deprecated",
+        "versions": [
+          {
+            "version": "2.21.0",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.ApplicationInsights.Web",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "2.21.0",
+        "isCompatible": false,
+        "description": "NuGet package is incompatible",
+        "versions": [
+          {
+            "version": "2.21.0",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.AspNet.DynamicData.EFProvider",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "6.0.0",
+        "isCompatible": false,
+        "description": "NuGet package is incompatible",
+        "versions": [
+          {
+            "version": "6.0.0",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.AspNet.Identity.Core",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "1.0.0",
+        "isCompatible": false,
+        "description": "NuGet package is incompatible",
+        "versions": [
+          {
+            "version": "1.0.0",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.AspNet.Razor",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "3.2.9",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "3.2.9",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.AspNet.Web.Optimization",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "1.1.3",
+        "isCompatible": false,
+        "description": "NuGet package is incompatible",
+        "versions": [
+          {
+            "version": "1.1.3",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.AspNet.WebApi.Client",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "5.2.9",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "5.2.9",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.AspNet.WebApi.Core",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "5.2.9",
+        "isCompatible": false,
+        "description": "NuGet package is incompatible",
+        "versions": [
+          {
+            "version": "5.2.9",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.AspNet.WebApi.MessageHandlers.Compression.StrongName",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "1.3.0",
+        "isCompatible": false,
+        "description": "NuGet package is incompatible",
+        "versions": [
+          {
+            "version": "1.3.0",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.AspNet.WebApi.OData",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "5.7.0",
+        "isCompatible": false,
+        "description": "Replace with Microsoft.AspNetCore.OData: Register OData in Startup; adjust routing and controllers for OData v4",
+        "versions": [
+          {
+            "version": "5.7.0",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.AspNet.WebApi.WebHost",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "5.2.9",
+        "isCompatible": false,
+        "description": "NuGet package is incompatible",
+        "versions": [
+          {
+            "version": "5.2.9",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.AspNet.WebHelpers",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "3.2.9",
+        "isCompatible": false,
+        "description": "NuGet package is incompatible",
+        "versions": [
+          {
+            "version": "3.2.9",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.AspNet.WebPages",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "3.2.9",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "3.2.9",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.AspNet.WebPages.Data",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "3.2.9",
+        "isCompatible": false,
+        "description": "NuGet package is incompatible",
+        "versions": [
+          {
+            "version": "3.2.9",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.AspNet.WebPages.WebData",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "3.2.9",
+        "isCompatible": false,
+        "description": "NuGet package is incompatible",
+        "versions": [
+          {
+            "version": "3.2.9",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.AspNetCore.Cryptography.Internal",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "10.0.11",
+        "isCompatible": true,
+        "description": "NuGet package upgrade is recommended",
+        "versions": [
+          {
+            "version": "8.0.10",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": "10.0.11"
+        }
+      },
+      {
+        "name": "Microsoft.Bcl.Compression",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "3.9.85",
+        "isCompatible": false,
+        "description": "NuGet package is incompatible",
+        "versions": [
+          {
+            "version": "3.9.85",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.CodeAnalysis.NetAnalyzers",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "8.0.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "8.0.0",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.CodeDom.Providers.DotNetCompilerPlatform",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.1.0",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.1.0",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.Data.Services",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "5.8.4",
+        "isCompatible": false,
+        "description": "NuGet package is incompatible",
+        "versions": [
+          {
+            "version": "5.8.4",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.Extensions.DependencyInjection",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "10.0.11",
+        "isCompatible": true,
+        "description": "NuGet package upgrade is recommended",
+        "versions": [
+          {
+            "version": "8.0.1",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": "10.0.11"
+        }
+      },
+      {
+        "name": "Microsoft.Extensions.Http",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "10.0.11",
+        "isCompatible": true,
+        "description": "NuGet package upgrade is recommended",
+        "versions": [
+          {
+            "version": "8.0.0",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": "10.0.11"
+        }
+      },
+      {
+        "name": "Microsoft.Extensions.Http.Polly",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "10.0.11",
+        "isCompatible": true,
+        "description": "NuGet package upgrade is recommended",
+        "versions": [
+          {
+            "version": "8.0.8",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": "10.0.11"
+        }
+      },
+      {
+        "name": "Microsoft.Extensions.Logging",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "10.0.11",
+        "isCompatible": true,
+        "description": "NuGet package upgrade is recommended",
+        "versions": [
+          {
+            "version": "8.0.1",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": "10.0.11"
+        }
+      },
+      {
+        "name": "Microsoft.Extensions.Logging.Abstractions",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "10.0.11",
+        "isCompatible": true,
+        "description": "NuGet package upgrade is recommended",
+        "versions": [
+          {
+            "version": "8.0.3",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": "10.0.11"
+        }
+      },
+      {
+        "name": "Microsoft.Net.Http",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "2.2.29",
+        "isCompatible": true,
+        "description": "Needs to be replaced with Replace with new package System.Net.Http=4.3.4",
+        "versions": [
+          {
+            "version": "2.2.29",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.SourceLink.GitHub",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "8.0.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "8.0.0",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.Web.Infrastructure",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "1.0.0",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "1.0.0",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Microsoft.Web.Xdt",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "3.1.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "3.1.0",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Modernizr",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "2.8.3",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "2.8.3",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Moment.js",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "2.29.4",
+        "isCompatible": false,
+        "description": "NuGet package is deprecated",
+        "versions": [
+          {
+            "version": "2.29.4",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "MvcTreeView",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "1.4.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "1.4.0",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "NuGet.StrongName.AnglicanGeek.MarkdownMailer",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "1.2.0",
+        "isCompatible": false,
+        "description": "NuGet package is incompatible",
+        "versions": [
+          {
+            "version": "1.2.0",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "NuGet.StrongName.DynamicData.EFCodeFirstProvider",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "0.3.0",
+        "isCompatible": false,
+        "description": "NuGet package is incompatible",
+        "versions": [
+          {
+            "version": "0.3.0",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "NuGet.StrongName.elmah",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "1.2.2",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "1.2.2",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "NuGet.StrongName.elmah.sqlserver",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "1.2.2",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "1.2.2",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "NuGet.StrongName.QueryInterceptor",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "0.1.4237.2400",
+        "isCompatible": false,
+        "description": "NuGet package is incompatible",
+        "versions": [
+          {
+            "version": "0.1.4237.2400",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "NuGet.StrongName.WebActivator",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "1.4.4",
+        "isCompatible": false,
+        "description": "NuGet package is incompatible",
+        "versions": [
+          {
+            "version": "1.4.4",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "NuGet.StrongName.WebBackgrounder.EntityFramework",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "0.1.0",
+        "isCompatible": false,
+        "description": "NuGet package is incompatible",
+        "versions": [
+          {
+            "version": "0.1.0",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Owin",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "1.0.0",
+        "isCompatible": false,
+        "description": "NuGet package is incompatible",
+        "versions": [
+          {
+            "version": "1.0.0",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "PolySharp",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "1.15.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "1.15.0",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "RouteMagic",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "0.2.2",
+        "isCompatible": false,
+        "description": "NuGet package is incompatible",
+        "versions": [
+          {
+            "version": "1.1.3",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": "0.2.2"
+        }
+      },
+      {
+        "name": "SharpZipLib",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "1.3.3",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "1.3.3",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "Strathweb.CacheOutput.WebApi2.StrongName",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "0.9.0",
+        "isCompatible": false,
+        "description": "NuGet package is incompatible",
+        "versions": [
+          {
+            "version": "0.9.0",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Data.SqlClient",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.8.6",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.8.6",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Diagnostics.Debug",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Linq.Expressions",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.0",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Net.Http",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "4.3.4",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.4",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "System.Text.Json",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "10.0.11",
+        "isCompatible": true,
+        "description": "NuGet package upgrade is recommended",
+        "versions": [
+          {
+            "version": "8.0.6",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": "10.0.11"
+        }
+      },
+      {
+        "name": "WebActivatorEx",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "2.0.6",
+        "isCompatible": false,
+        "description": "NuGet package is incompatible",
+        "versions": [
+          {
+            "version": "2.0.6",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "WebGrease",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "1.6.0",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "1.6.0",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      },
+      {
+        "name": "WindowsAzure.Caching",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "1.7.0",
+        "isCompatible": false,
+        "description": "NuGet package is incompatible",
+        "versions": [
+          {
+            "version": "1.7.0",
+            "projects": [
+              "NuGetGallery"
+            ],
+            "isRecommended": true
+          }
+        ]
+      }
+    ]
+  },
+  "projects": [
+    {
+      "name": "NuGetGallery",
+      "path": "NuGetGallery.csproj",
+      "isSdk": false,
+      "currentFrameworks": [
+        "net472"
+      ],
+      "targetFramework": "net10.0",
+      "dependencies": {
+        "packages": [
+          {
+            "name": "Autofac.Extensions.DependencyInjection",
+            "version": "4.4.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Microsoft.CodeDom.Providers.DotNetCompilerPlatform",
+            "version": "4.1.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Microsoft.Extensions.DependencyInjection",
+            "version": "8.0.1",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package upgrade is recommended",
+            "compatibility": "valid",
+            "recommendedVersion": "10.0.11",
+            "upgrade": {
+              "newVersion": "10.0.11"
+            }
+          },
+          {
+            "name": "Microsoft.Extensions.Http",
+            "version": "8.0.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package upgrade is recommended",
+            "compatibility": "valid",
+            "recommendedVersion": "10.0.11",
+            "upgrade": {
+              "newVersion": "10.0.11"
+            }
+          },
+          {
+            "name": "Microsoft.Extensions.Http.Polly",
+            "version": "8.0.8",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package upgrade is recommended",
+            "compatibility": "valid",
+            "recommendedVersion": "10.0.11",
+            "upgrade": {
+              "newVersion": "10.0.11"
+            }
+          },
+          {
+            "name": "NuGet.StrongName.AnglicanGeek.MarkdownMailer",
+            "version": "1.2.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package is incompatible",
+            "compatibility": "newVersionNeeded",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Autofac",
+            "version": "4.9.1",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Autofac.Mvc5",
+            "version": "4.0.2",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package is incompatible",
+            "compatibility": "newVersionNeeded",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Autofac.Mvc5.Owin",
+            "version": "4.0.1",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package is incompatible",
+            "compatibility": "newVersionNeeded",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Autofac.Owin",
+            "version": "4.2.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package is incompatible",
+            "compatibility": "newVersionNeeded",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Autofac.WebApi2",
+            "version": "4.1.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package is incompatible",
+            "compatibility": "newVersionNeeded",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "CommonMark.NET",
+            "version": "0.15.1",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "d3",
+            "version": "5.4.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "NuGet.StrongName.DynamicData.EFCodeFirstProvider",
+            "version": "0.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package is incompatible",
+            "compatibility": "newVersionNeeded",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "NuGet.StrongName.elmah.sqlserver",
+            "version": "1.2.2",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "NuGet.StrongName.elmah",
+            "version": "1.2.2",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "EntityFramework",
+            "version": "6.5.1",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package upgrade is recommended",
+            "compatibility": "valid",
+            "recommendedVersion": "6.5.2",
+            "upgrade": {
+              "newVersion": "6.5.2"
+            }
+          },
+          {
+            "name": "HtmlSanitizer",
+            "version": "9.0.892",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Lucene.Net",
+            "version": "3.0.3",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package is incompatible",
+            "compatibility": "newVersionNeeded",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Lucene.Net.Contrib",
+            "version": "3.0.3",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package is incompatible",
+            "compatibility": "newVersionNeeded",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Microsoft.ApplicationInsights.TraceListener",
+            "version": "2.21.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package is deprecated",
+            "compatibility": "newVersionNeeded",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Microsoft.ApplicationInsights.Web",
+            "version": "2.21.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package is incompatible",
+            "compatibility": "newVersionNeeded",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Microsoft.AspNet.DynamicData.EFProvider",
+            "version": "6.0.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package is incompatible",
+            "compatibility": "newVersionNeeded",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Microsoft.AspNet.Identity.Core",
+            "version": "1.0.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package is incompatible",
+            "compatibility": "newVersionNeeded",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Microsoft.AspNet.Razor",
+            "version": "3.2.9",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Microsoft.AspNet.Web.Optimization",
+            "version": "1.1.3",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package is incompatible",
+            "compatibility": "newVersionNeeded",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Microsoft.AspNet.WebApi.Client",
+            "version": "5.2.9",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Microsoft.AspNet.WebApi.Core",
+            "version": "5.2.9",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package is incompatible",
+            "compatibility": "newVersionNeeded",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Microsoft.AspNet.WebApi.MessageHandlers.Compression.StrongName",
+            "version": "1.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package is incompatible",
+            "compatibility": "newVersionNeeded",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Microsoft.AspNet.WebApi.OData",
+            "version": "5.7.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "Replace with Microsoft.AspNetCore.OData: Register OData in Startup; adjust routing and controllers for OData v4",
+            "compatibility": "newVersionNeeded",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Microsoft.AspNet.WebApi.WebHost",
+            "version": "5.2.9",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package is incompatible",
+            "compatibility": "newVersionNeeded",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Microsoft.AspNet.WebHelpers",
+            "version": "3.2.9",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package is incompatible",
+            "compatibility": "newVersionNeeded",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Microsoft.AspNet.WebPages",
+            "version": "3.2.9",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Microsoft.AspNet.WebPages.Data",
+            "version": "3.2.9",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package is incompatible",
+            "compatibility": "newVersionNeeded",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Microsoft.AspNet.WebPages.WebData",
+            "version": "3.2.9",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package is incompatible",
+            "compatibility": "newVersionNeeded",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Microsoft.AspNetCore.Cryptography.Internal",
+            "version": "8.0.10",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package upgrade is recommended",
+            "compatibility": "valid",
+            "recommendedVersion": "10.0.11",
+            "upgrade": {
+              "newVersion": "10.0.11"
+            }
+          },
+          {
+            "name": "Microsoft.Bcl.Compression",
+            "version": "3.9.85",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package is incompatible",
+            "compatibility": "newVersionNeeded",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Microsoft.Data.Services",
+            "version": "5.8.4",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package is incompatible",
+            "compatibility": "newVersionNeeded",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Microsoft.Extensions.Logging",
+            "version": "8.0.1",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package upgrade is recommended",
+            "compatibility": "valid",
+            "recommendedVersion": "10.0.11",
+            "upgrade": {
+              "newVersion": "10.0.11"
+            }
+          },
+          {
+            "name": "Microsoft.Extensions.Logging.Abstractions",
+            "version": "8.0.3",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package upgrade is recommended",
+            "compatibility": "valid",
+            "recommendedVersion": "10.0.11",
+            "upgrade": {
+              "newVersion": "10.0.11"
+            }
+          },
+          {
+            "name": "Microsoft.Net.Http",
+            "version": "2.2.29",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "Needs to be replaced with Replace with new package System.Net.Http=4.3.4",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Microsoft.Web.Infrastructure",
+            "version": "1.0.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Microsoft.Web.Xdt",
+            "version": "3.1.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Modernizr",
+            "version": "2.8.3",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Moment.js",
+            "version": "2.29.4",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package is deprecated",
+            "compatibility": "newVersionNeeded",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "MvcTreeView",
+            "version": "1.4.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Owin",
+            "version": "1.0.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package is incompatible",
+            "compatibility": "newVersionNeeded",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "NuGet.StrongName.QueryInterceptor",
+            "version": "0.1.4237.2400",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package is incompatible",
+            "compatibility": "newVersionNeeded",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "RouteMagic",
+            "version": "1.1.3",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package is incompatible",
+            "compatibility": "newVersionNeeded",
+            "recommendedVersion": "0.2.2",
+            "upgrade": {
+              "newVersion": "0.2.2"
+            }
+          },
+          {
+            "name": "SharpZipLib",
+            "version": "1.3.3",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Strathweb.CacheOutput.WebApi2.StrongName",
+            "version": "0.9.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package is incompatible",
+            "compatibility": "newVersionNeeded",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Data.SqlClient",
+            "version": "4.8.6",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Diagnostics.Debug",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Linq.Expressions",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Net.Http",
+            "version": "4.3.4",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Text.Json",
+            "version": "8.0.6",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package upgrade is recommended",
+            "compatibility": "valid",
+            "recommendedVersion": "10.0.11",
+            "upgrade": {
+              "newVersion": "10.0.11"
+            }
+          },
+          {
+            "name": "NuGet.StrongName.WebActivator",
+            "version": "1.4.4",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package is incompatible",
+            "compatibility": "newVersionNeeded",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "WebActivatorEx",
+            "version": "2.0.6",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package is incompatible",
+            "compatibility": "newVersionNeeded",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "NuGet.StrongName.WebBackgrounder.EntityFramework",
+            "version": "0.1.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package is incompatible",
+            "compatibility": "newVersionNeeded",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "WebGrease",
+            "version": "1.6.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "WindowsAzure.Caching",
+            "version": "1.7.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "description": "NuGet package is incompatible",
+            "compatibility": "newVersionNeeded",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "MicroBuild.Core",
+            "version": "0.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Microsoft.CodeAnalysis.NetAnalyzers",
+            "version": "8.0.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Microsoft.SourceLink.GitHub",
+            "version": "8.0.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "PolySharp",
+            "version": "1.15.0",
+            "isTransitive": false,
+            "isGlobal": true,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "C:\\Users\\angrigor\\source\\repos\\copilot-worktrees\\nugetgallery-core2\\agr-scaling-carnival\\Directory.Packages.props"
+              }
+            ],
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          }
+        ],
+        "assemblies": [
+          {
+            "name": "Microsoft.Build.Framework",
+            "version": "",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "compatibility": "valid"
+          },
+          {
+            "name": "Microsoft.Build.Utilities.v4.0",
+            "version": "",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "compatibility": "valid"
+          },
+          {
+            "name": "MonAgentListener",
+            "version": "",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.ComponentModel.Composition",
+            "version": "",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.IdentityModel",
+            "version": "",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Net",
+            "version": "",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Net.Http.WebRequest",
+            "version": "",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Runtime.Serialization",
+            "version": "",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.ServiceModel",
+            "version": "",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.ServiceModel.Activation",
+            "version": "",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.ServiceModel.Web",
+            "version": "",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Transactions",
+            "version": "",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Web.ApplicationServices",
+            "version": "",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "compatibility": "valid"
+          },
+          {
+            "name": "Microsoft.CSharp",
+            "version": "",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "compatibility": "valid"
+          },
+          {
+            "name": "System",
+            "version": "",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Data",
+            "version": "",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Web.DynamicData",
+            "version": "",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Web.Entity",
+            "version": "",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.ComponentModel.DataAnnotations",
+            "version": "",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Web",
+            "version": "",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Web.Abstractions",
+            "version": "",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Web.Extensions",
+            "version": "",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Web.Routing",
+            "version": "",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Configuration",
+            "version": "",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Xml",
+            "version": "",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "compatibility": "valid"
+          }
+        ],
+        "projectReferences": [
+          {
+            "name": "NuGet.Services.Configuration",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "referencedProjectPath": "C:\\Users\\angrigor\\source\\repos\\copilot-worktrees\\nugetgallery-core2\\agr-scaling-carnival\\src\\NuGet.Services.Configuration\\NuGet.Services.Configuration.csproj",
+            "compatibility": "valid"
+          },
+          {
+            "name": "NuGet.Services.Contracts",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "referencedProjectPath": "C:\\Users\\angrigor\\source\\repos\\copilot-worktrees\\nugetgallery-core2\\agr-scaling-carnival\\src\\NuGet.Services.Contracts\\NuGet.Services.Contracts.csproj",
+            "compatibility": "valid"
+          },
+          {
+            "name": "NuGet.Services.Entities",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "referencedProjectPath": "C:\\Users\\angrigor\\source\\repos\\copilot-worktrees\\nugetgallery-core2\\agr-scaling-carnival\\src\\NuGet.Services.Entities\\NuGet.Services.Entities.csproj",
+            "compatibility": "valid"
+          },
+          {
+            "name": "NuGet.Services.FeatureFlags",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "referencedProjectPath": "C:\\Users\\angrigor\\source\\repos\\copilot-worktrees\\nugetgallery-core2\\agr-scaling-carnival\\src\\NuGet.Services.FeatureFlags\\NuGet.Services.FeatureFlags.csproj",
+            "compatibility": "valid"
+          },
+          {
+            "name": "NuGet.Services.KeyVault",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "referencedProjectPath": "C:\\Users\\angrigor\\source\\repos\\copilot-worktrees\\nugetgallery-core2\\agr-scaling-carnival\\src\\NuGet.Services.KeyVault\\NuGet.Services.KeyVault.csproj",
+            "compatibility": "valid"
+          },
+          {
+            "name": "NuGet.Services.Licenses",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "referencedProjectPath": "C:\\Users\\angrigor\\source\\repos\\copilot-worktrees\\nugetgallery-core2\\agr-scaling-carnival\\src\\NuGet.Services.Licenses\\NuGet.Services.Licenses.csproj",
+            "compatibility": "valid"
+          },
+          {
+            "name": "NuGet.Services.Logging",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "referencedProjectPath": "C:\\Users\\angrigor\\source\\repos\\copilot-worktrees\\nugetgallery-core2\\agr-scaling-carnival\\src\\NuGet.Services.Logging\\NuGet.Services.Logging.csproj",
+            "compatibility": "valid"
+          },
+          {
+            "name": "NuGet.Services.Messaging.Email",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "referencedProjectPath": "C:\\Users\\angrigor\\source\\repos\\copilot-worktrees\\nugetgallery-core2\\agr-scaling-carnival\\src\\NuGet.Services.Messaging.Email\\NuGet.Services.Messaging.Email.csproj",
+            "compatibility": "valid"
+          },
+          {
+            "name": "NuGet.Services.Messaging",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "referencedProjectPath": "C:\\Users\\angrigor\\source\\repos\\copilot-worktrees\\nugetgallery-core2\\agr-scaling-carnival\\src\\NuGet.Services.Messaging\\NuGet.Services.Messaging.csproj",
+            "compatibility": "valid"
+          },
+          {
+            "name": "NuGet.Services.Owin",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "referencedProjectPath": "C:\\Users\\angrigor\\source\\repos\\copilot-worktrees\\nugetgallery-core2\\agr-scaling-carnival\\src\\NuGet.Services.Owin\\NuGet.Services.Owin.csproj",
+            "compatibility": "valid"
+          },
+          {
+            "name": "NuGet.Services.ServiceBus",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "referencedProjectPath": "C:\\Users\\angrigor\\source\\repos\\copilot-worktrees\\nugetgallery-core2\\agr-scaling-carnival\\src\\NuGet.Services.ServiceBus\\NuGet.Services.ServiceBus.csproj",
+            "compatibility": "valid"
+          },
+          {
+            "name": "NuGet.Services.Sql",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "referencedProjectPath": "C:\\Users\\angrigor\\source\\repos\\copilot-worktrees\\nugetgallery-core2\\agr-scaling-carnival\\src\\NuGet.Services.Sql\\NuGet.Services.Sql.csproj",
+            "compatibility": "valid"
+          },
+          {
+            "name": "NuGet.Services.Validation.Issues",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "referencedProjectPath": "C:\\Users\\angrigor\\source\\repos\\copilot-worktrees\\nugetgallery-core2\\agr-scaling-carnival\\src\\NuGet.Services.Validation.Issues\\NuGet.Services.Validation.Issues.csproj",
+            "compatibility": "valid"
+          },
+          {
+            "name": "NuGet.Services.Validation",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "referencedProjectPath": "C:\\Users\\angrigor\\source\\repos\\copilot-worktrees\\nugetgallery-core2\\agr-scaling-carnival\\src\\NuGet.Services.Validation\\NuGet.Services.Validation.csproj",
+            "compatibility": "valid"
+          },
+          {
+            "name": "NuGetGallery.Core",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "referencedProjectPath": ".Core\\NuGetGallery.Core.csproj",
+            "compatibility": "valid"
+          },
+          {
+            "name": "NuGetGallery.Services",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "NuGetGallery.csproj"
+              }
+            ],
+            "referencedProjectPath": ".Services\\NuGetGallery.Services.csproj",
+            "compatibility": "valid"
+          }
+        ],
+        "frameworkReferences": []
+      }
+    }
+  ]
+}
