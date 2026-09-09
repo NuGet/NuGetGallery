@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Options;
 using Yarp.ReverseProxy.Forwarder;
 
@@ -17,6 +18,7 @@ internal sealed class LegacyProxyForwarder
     private readonly LegacyProxyTransformer _transformer;
     private readonly string _destinationPrefix;
     private readonly ForwarderRequestConfig _requestConfig;
+    private readonly long _maximumRequestBodySize;
 
     public LegacyProxyForwarder(
         IHttpForwarder forwarder,
@@ -28,6 +30,7 @@ internal sealed class LegacyProxyForwarder
         _httpClient = httpClient;
         _transformer = transformer;
         _destinationPrefix = options.Value.Origin.TrimEnd('/');
+        _maximumRequestBodySize = options.Value.MaximumRequestBodySize;
         _requestConfig = new ForwarderRequestConfig
         {
             ActivityTimeout = options.Value.ActivityTimeout,
@@ -39,6 +42,16 @@ internal sealed class LegacyProxyForwarder
 
     public async Task ForwardAsync(HttpContext context)
     {
+        long maximumRequestBodySize = context.Features
+            .Get<IHttpMaxRequestBodySizeFeature>()
+            ?.MaxRequestBodySize
+            ?? _maximumRequestBodySize;
+        if (context.Request.ContentLength > maximumRequestBodySize)
+        {
+            context.Response.StatusCode = StatusCodes.Status413PayloadTooLarge;
+            return;
+        }
+
         if (!LegacyProxyTransformer.TryGetSafeRawTarget(context, out _))
         {
             context.Response.StatusCode = StatusCodes.Status400BadRequest;

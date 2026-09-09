@@ -650,6 +650,104 @@ public class LegacyProxyFacts
         Assert.Equal(0, harness.LegacyRequestCount);
     }
 
+    [Fact]
+    public async Task KestrelAcceptsARequestDeclaredAtTheConfiguredLimit()
+    {
+        await using var harness = await RequestBodyLimitHarness.CreateAsync();
+
+        string response = await SendDeclaredBodyRequestAsync(
+            harness.ProxyOrigin,
+            LegacyProxyOptions.LegacyMaximumRequestBodySize);
+
+        Assert.StartsWith("HTTP/1.1 200", response);
+        Assert.Equal(1, harness.OriginRequestCount);
+        Assert.Equal(1, harness.OriginBodyBytesRead);
+    }
+
+    [Fact]
+    public async Task KestrelRejectsARequestOneByteOverTheConfiguredLimitBeforeOriginConsumption()
+    {
+        await using var harness = await RequestBodyLimitHarness.CreateAsync();
+
+        string response = await SendDeclaredBodyRequestAsync(
+            harness.ProxyOrigin,
+            LegacyProxyOptions.LegacyMaximumRequestBodySize + 1);
+
+        Assert.StartsWith("HTTP/1.1 413", response);
+        Assert.Equal(0, harness.OriginRequestCount);
+        Assert.Equal(0, harness.OriginBodyBytesRead);
+    }
+
+    [Theory]
+    [InlineData(false, 32, 32)]
+    [InlineData(true, 43, 32)]
+    public async Task KestrelAcceptsAndStreamsACompleteBodyAtThePerRequestLimit(
+        bool chunked,
+        int requestBodyLimit,
+        int payloadLength)
+    {
+        await using var harness = await RequestBodyLimitHarness.CreateAsync(
+            requestBodyLimit,
+            consumeEntireBody: true);
+
+        string response = await SendCompleteBodyRequestAsync(
+            harness.ProxyOrigin,
+            payloadLength,
+            chunked);
+
+        Assert.Equal(1, harness.OriginRequestCount);
+        Assert.Equal(payloadLength, harness.OriginBodyBytesRead);
+        if (chunked)
+        {
+            Assert.Null(harness.OriginContentLength);
+        }
+        else
+        {
+            Assert.Equal(payloadLength, harness.OriginContentLength);
+        }
+        Assert.StartsWith("HTTP/1.1 200", response);
+    }
+
+    [Fact]
+    public async Task KestrelRejectsACompleteKnownLengthBodyOneByteOverThePerRequestLimit()
+    {
+        const int requestBodyLimit = 32;
+        await using var harness = await RequestBodyLimitHarness.CreateAsync(
+            requestBodyLimit,
+            consumeEntireBody: true);
+
+        string response = await SendCompleteBodyRequestAsync(
+            harness.ProxyOrigin,
+            requestBodyLimit + 1,
+            chunked: false);
+
+        Assert.StartsWith("HTTP/1.1 413", response);
+        Assert.Equal(0, harness.OriginRequestCount);
+        Assert.Equal(0, harness.OriginBodyBytesRead);
+    }
+
+    [Fact]
+    public async Task KestrelRejectsAChunkedBodyOverThePerRequestLimitAfterPermittedPartialConsumption()
+    {
+        // Kestrel counts the chunk framing, so one 32-byte chunk occupies exactly 43 bytes.
+        const int requestBodyLimit = 43;
+        const int payloadLength = 33;
+        await using var harness = await RequestBodyLimitHarness.CreateAsync(
+            requestBodyLimit,
+            consumeEntireBody: true);
+
+        string response = await SendChunkedBodyWithControlledOverflowAsync(
+            harness.ProxyOrigin,
+            payloadLength,
+            payloadBytesBeforeOverflow: 32,
+            harness.FirstOriginBodyRead);
+
+        Assert.StartsWith("HTTP/1.1 413", response);
+        Assert.Equal(1, harness.OriginRequestCount);
+        Assert.InRange(harness.OriginBodyBytesRead, 1, payloadLength);
+        Assert.Null(harness.OriginContentLength);
+    }
+
     private static async Task<string> SendRawHttpRequestAsync(
         Uri origin,
         string rawTarget)
@@ -664,6 +762,120 @@ public class LegacyProxyFacts
 
         using var reader = new StreamReader(stream, Encoding.ASCII);
         return await reader.ReadToEndAsync();
+    }
+
+    private static async Task<string> SendDeclaredBodyRequestAsync(
+        Uri origin,
+        long contentLength)
+    {
+        using var client = new TcpClient();
+        await client.ConnectAsync(origin.Host, origin.Port);
+        await using NetworkStream stream = client.GetStream();
+        byte[] request = Encoding.ASCII.GetBytes(
+            "POST /declared-body HTTP/1.1\r\n"
+            + "Host: public.example.test\r\n"
+            + $"Content-Length: {contentLength}\r\n"
+            + "Connection: close\r\n\r\n"
+            + "x");
+        await stream.WriteAsync(request);
+        await stream.FlushAsync();
+
+        return await ReadResponseHeadersAsync(stream);
+    }
+
+    private static async Task<string> SendCompleteBodyRequestAsync(
+        Uri origin,
+        int bodyLength,
+        bool chunked)
+    {
+        using var client = new TcpClient();
+        await client.ConnectAsync(origin.Host, origin.Port);
+        await using NetworkStream stream = client.GetStream();
+        string framingHeader = chunked
+            ? "Transfer-Encoding: chunked\r\n"
+            : $"Content-Length: {bodyLength}\r\n";
+        byte[] headers = Encoding.ASCII.GetBytes(
+            "POST /complete-body HTTP/1.1\r\n"
+            + "Host: public.example.test\r\n"
+            + framingHeader
+            + "Connection: close\r\n\r\n");
+        await stream.WriteAsync(headers);
+
+        if (chunked)
+        {
+            int firstChunkLength = Math.Min(bodyLength, 32);
+            await WriteChunkAsync(stream, firstChunkLength);
+            if (bodyLength > firstChunkLength)
+            {
+                await WriteChunkAsync(stream, bodyLength - firstChunkLength);
+            }
+
+            await stream.WriteAsync(Encoding.ASCII.GetBytes("0\r\n\r\n"));
+        }
+        else
+        {
+            await stream.WriteAsync(Enumerable.Repeat((byte)'x', bodyLength).ToArray());
+        }
+
+        await stream.FlushAsync();
+        return await ReadResponseHeadersAsync(stream);
+    }
+
+    private static async Task WriteChunkAsync(NetworkStream stream, int length)
+    {
+        await stream.WriteAsync(Encoding.ASCII.GetBytes(length.ToString("X") + "\r\n"));
+        await stream.WriteAsync(Enumerable.Repeat((byte)'x', length).ToArray());
+        await stream.WriteAsync(Encoding.ASCII.GetBytes("\r\n"));
+    }
+
+    private static async Task<string> SendChunkedBodyWithControlledOverflowAsync(
+        Uri origin,
+        int payloadLength,
+        int payloadBytesBeforeOverflow,
+        Task firstOriginBodyRead)
+    {
+        using var client = new TcpClient();
+        await client.ConnectAsync(origin.Host, origin.Port);
+        await using NetworkStream stream = client.GetStream();
+        byte[] headers = Encoding.ASCII.GetBytes(
+            "POST /chunked-overflow HTTP/1.1\r\n"
+            + "Host: public.example.test\r\n"
+            + "Transfer-Encoding: chunked\r\n"
+            + "Connection: close\r\n\r\n"
+            + payloadLength.ToString("X")
+            + "\r\n");
+        await stream.WriteAsync(headers);
+        await stream.WriteAsync(
+            Enumerable.Repeat((byte)'x', payloadBytesBeforeOverflow).ToArray());
+        await stream.FlushAsync();
+
+        await firstOriginBodyRead.WaitAsync(TimeSpan.FromSeconds(5));
+
+        int remaining = payloadLength - payloadBytesBeforeOverflow;
+        await stream.WriteAsync(Enumerable.Repeat((byte)'x', remaining).ToArray());
+        await stream.WriteAsync(Encoding.ASCII.GetBytes("\r\n0\r\n\r\n"));
+        await stream.FlushAsync();
+
+        return await ReadResponseHeadersAsync(stream);
+    }
+
+    private static async Task<string> ReadResponseHeadersAsync(NetworkStream stream)
+    {
+        var response = new StringBuilder();
+        var buffer = new byte[1024];
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        while (response.ToString().IndexOf("\r\n\r\n", StringComparison.Ordinal) < 0)
+        {
+            int read = await stream.ReadAsync(buffer, timeout.Token);
+            if (read == 0)
+            {
+                break;
+            }
+
+            response.Append(Encoding.ASCII.GetString(buffer, 0, read));
+        }
+
+        return response.ToString();
     }
 
     private static Uri GetServerOrigin(WebApplication application)
@@ -943,6 +1155,89 @@ public class LegacyProxyFacts
         }
     }
 
+    private sealed class RequestBodyLimitHarness : IAsyncDisposable
+    {
+        private readonly WebApplication _proxy;
+        private readonly string _storagePath;
+        private readonly BodyReadProbe _probe;
+
+        private RequestBodyLimitHarness(
+            WebApplication proxy,
+            string storagePath,
+            BodyReadProbe probe)
+        {
+            _proxy = proxy;
+            _storagePath = storagePath;
+            _probe = probe;
+            ProxyOrigin = GetServerOrigin(proxy);
+        }
+
+        public int OriginBodyBytesRead => _probe.BodyBytesRead;
+        public long? OriginContentLength => _probe.ContentLength;
+        public int OriginRequestCount => _probe.RequestCount;
+        public Task FirstOriginBodyRead => _probe.FirstBodyRead;
+        public Uri ProxyOrigin { get; }
+
+        public static async Task<RequestBodyLimitHarness> CreateAsync(
+            long? perRequestLimit = null,
+            bool consumeEntireBody = false)
+        {
+            var probe = new BodyReadProbe();
+            HttpMessageHandler handler = consumeEntireBody
+                ? new BodyConsumingHandler(probe)
+                : new FirstByteReadingHandler(probe);
+            string storagePath = ProxyHarness.CreateStoragePath();
+            WebApplication proxy = Program.BuildApplication(
+                new[]
+                {
+                    "--DataProtection:StorageLocation",
+                    storagePath,
+                    "--LegacyProxy:Origin",
+                    "http://legacy.test",
+                    "--LegacyProxy:PublicOrigins:0",
+                    "https://public.example.test",
+                    "--AllowedHosts",
+                    "public.example.test",
+                    "--environment",
+                    Environments.Development,
+                },
+                builder =>
+                {
+                    builder.WebHost.ConfigureKestrel(options =>
+                    {
+                        options.Listen(IPAddress.Loopback, 0);
+                    });
+                    builder.Environment.EnvironmentName = Environments.Development;
+                    if (perRequestLimit.HasValue)
+                    {
+                        builder.Services.AddSingleton<IStartupFilter>(
+                            new RequestBodyLimitStartupFilter(perRequestLimit.Value));
+                    }
+                    builder.Services.AddSingleton<ILegacyProxyHttpClient>(
+                        new TestLegacyProxyHttpClient(handler));
+                });
+
+            try
+            {
+                await proxy.StartAsync();
+                return new RequestBodyLimitHarness(proxy, storagePath, probe);
+            }
+            catch
+            {
+                await proxy.DisposeAsync();
+                ProxyHarness.DeleteStoragePath(storagePath);
+                throw;
+            }
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            await _proxy.StopAsync();
+            await _proxy.DisposeAsync();
+            ProxyHarness.DeleteStoragePath(_storagePath);
+        }
+    }
+
     private sealed class TestLegacyProxyHttpClient : ILegacyProxyHttpClient
     {
         public TestLegacyProxyHttpClient(HttpMessageHandler handler)
@@ -990,6 +1285,37 @@ public class LegacyProxyFacts
                 application.Use(async (context, continuePipeline) =>
                 {
                     _increment();
+                    await continuePipeline();
+                });
+                next(application);
+            };
+        }
+    }
+
+    private sealed class RequestBodyLimitStartupFilter : IStartupFilter
+    {
+        private readonly long _maximumRequestBodySize;
+
+        public RequestBodyLimitStartupFilter(long maximumRequestBodySize)
+        {
+            _maximumRequestBodySize = maximumRequestBodySize;
+        }
+
+        public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next)
+        {
+            return application =>
+            {
+                application.Use(async (context, continuePipeline) =>
+                {
+                    IHttpMaxRequestBodySizeFeature feature = context.Features
+                        .Get<IHttpMaxRequestBodySizeFeature>();
+                    if (feature == null || feature.IsReadOnly)
+                    {
+                        throw new InvalidOperationException(
+                            "Kestrel did not expose a writable request body size feature.");
+                    }
+
+                    feature.MaxRequestBodySize = _maximumRequestBodySize;
                     await continuePipeline();
                 });
                 next(application);
@@ -1137,5 +1463,164 @@ public class LegacyProxyFacts
             RequestCount++;
             throw new HttpRequestException("Synthetic legacy origin failure.");
         }
+    }
+
+    private sealed class BodyReadProbe
+    {
+        private int _bodyBytesRead;
+        private int _requestCount;
+        private long? _contentLength;
+        private readonly TaskCompletionSource<bool> _firstBodyRead =
+            new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public int BodyBytesRead => Volatile.Read(ref _bodyBytesRead);
+        public long? ContentLength => _contentLength;
+        public Task FirstBodyRead => _firstBodyRead.Task;
+        public int RequestCount => Volatile.Read(ref _requestCount);
+
+        public void AddBytes(int count)
+        {
+            Interlocked.Add(ref _bodyBytesRead, count);
+            if (count > 0)
+            {
+                _firstBodyRead.TrySetResult(true);
+            }
+        }
+
+        public void RecordRequest(long? contentLength)
+        {
+            _contentLength = contentLength;
+            Interlocked.Increment(ref _requestCount);
+        }
+    }
+
+    private sealed class BodyConsumingHandler : HttpMessageHandler
+    {
+        private readonly BodyReadProbe _probe;
+
+        public BodyConsumingHandler(BodyReadProbe probe)
+        {
+            _probe = probe;
+        }
+
+        protected override async Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            _probe.RecordRequest(request.Content?.Headers.ContentLength);
+            await request.Content.CopyToAsync(
+                new CountingSinkStream(_probe.AddBytes),
+                cancellationToken);
+
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("legacy"),
+            };
+        }
+    }
+
+    private sealed class FirstByteReadingHandler : HttpMessageHandler
+    {
+        private readonly BodyReadProbe _probe;
+
+        public FirstByteReadingHandler(BodyReadProbe probe)
+        {
+            _probe = probe;
+        }
+
+        protected override async Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            _probe.RecordRequest(request.Content?.Headers.ContentLength);
+            try
+            {
+                await request.Content.CopyToAsync(
+                    new FirstByteSinkStream(
+                        () => _probe.AddBytes(1)),
+                    cancellationToken);
+            }
+            catch (FirstByteReadException)
+            {
+            }
+
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("legacy"),
+            };
+        }
+    }
+
+    private class CountingSinkStream : Stream
+    {
+        private readonly Action<int> _onWrite;
+
+        public CountingSinkStream(Action<int> onWrite)
+        {
+            _onWrite = onWrite;
+        }
+
+        public override bool CanRead => false;
+        public override bool CanSeek => false;
+        public override bool CanWrite => true;
+        public override long Length => throw new NotSupportedException();
+        public override long Position
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
+
+        public override void Flush()
+        {
+        }
+
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override long Seek(long offset, SeekOrigin origin)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override void SetLength(long value)
+        {
+            throw new NotSupportedException();
+        }
+
+        public override void Write(byte[] buffer, int offset, int count)
+        {
+            _onWrite(count);
+        }
+
+        public override ValueTask WriteAsync(
+            ReadOnlyMemory<byte> buffer,
+            CancellationToken cancellationToken = default)
+        {
+            _onWrite(buffer.Length);
+            return ValueTask.CompletedTask;
+        }
+    }
+
+    private sealed class FirstByteSinkStream : CountingSinkStream
+    {
+        public FirstByteSinkStream(Action onFirstByte)
+            : base(count =>
+            {
+                if (count == 0)
+                {
+                    return;
+                }
+
+                onFirstByte();
+                throw new FirstByteReadException();
+            })
+        {
+        }
+    }
+
+    private sealed class FirstByteReadException : Exception
+    {
     }
 }

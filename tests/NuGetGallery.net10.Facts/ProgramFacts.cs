@@ -7,13 +7,16 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Server.IIS;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.AspNetCore.TestHost;
@@ -77,6 +80,9 @@ public class ProgramFacts
                 .Get(SharedCookieConstants.AuthenticationScheme);
             Assert.Equal(SharedCookieConstants.CookieName, cookieOptions.Cookie.Name);
             Assert.Equal(SharedCookieConstants.CookiePath, cookieOptions.Cookie.Path);
+            Assert.True(cookieOptions.Cookie.HttpOnly);
+            Assert.Equal(CookieSecurePolicy.SameAsRequest, cookieOptions.Cookie.SecurePolicy);
+            Assert.Equal(SharedCookieConstants.Expiration, cookieOptions.ExpireTimeSpan);
             Assert.False(cookieOptions.SlidingExpiration);
             Assert.NotNull(application.Services.GetRequiredService<IHttpForwarder>());
 
@@ -95,6 +101,66 @@ public class ProgramFacts
             Assert.Equal(
                 LegacyProxyOptions.LegacyMaximumRequestBodySize,
                 iisOptions.MaxRequestBodySize);
+        }
+        finally
+        {
+            await application.StopAsync();
+            DeleteStoragePath(storagePath);
+        }
+    }
+
+    [Fact]
+    public async Task SharedCookieClaimsEnforceRoleAndClaimAuthorization()
+    {
+        string storagePath = CreateStoragePath();
+        await using WebApplication application = CreateApplication(
+            storagePath,
+            builder => builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy(
+                    "package-owner",
+                    policy => policy
+                        .RequireRole("PackageOwners")
+                        .RequireClaim(
+                            SharedCookieConstants.PasswordLoginClaimType,
+                            bool.TrueString));
+            }));
+        application
+            .MapGet("/_role-only", () => Results.Ok())
+            .RequireAuthorization(new AuthorizeAttribute { Roles = "Administrators" });
+        application
+            .MapGet("/_role-and-claim", () => Results.Ok())
+            .RequireAuthorization("package-owner");
+
+        await application.StartAsync();
+        try
+        {
+            HttpClient client = application.GetTestClient();
+            using HttpResponseMessage unauthenticatedResponse =
+                await client.GetAsync("/_role-only");
+            Assert.Equal(HttpStatusCode.Unauthorized, unauthenticatedResponse.StatusCode);
+
+            string noRoleCookie = CreateCookie(
+                application,
+                new Claim(ClaimTypes.Name, "interop-user"));
+            using HttpResponseMessage forbiddenResponse =
+                await SendWithCookieAsync(client, "/_role-only", noRoleCookie);
+            Assert.Equal(HttpStatusCode.Forbidden, forbiddenResponse.StatusCode);
+
+            string authorizedCookie = CreateCookie(
+                application,
+                new Claim(ClaimTypes.Name, "interop-user"),
+                new Claim(SharedCookieConstants.RoleClaimType, "Administrators"),
+                new Claim(SharedCookieConstants.RoleClaimType, "PackageOwners"),
+                new Claim(
+                    SharedCookieConstants.PasswordLoginClaimType,
+                    bool.TrueString));
+            using HttpResponseMessage roleResponse =
+                await SendWithCookieAsync(client, "/_role-only", authorizedCookie);
+            Assert.Equal(HttpStatusCode.OK, roleResponse.StatusCode);
+            using HttpResponseMessage claimResponse =
+                await SendWithCookieAsync(client, "/_role-and-claim", authorizedCookie);
+            Assert.Equal(HttpStatusCode.OK, claimResponse.StatusCode);
         }
         finally
         {
@@ -169,8 +235,9 @@ public class ProgramFacts
 
     [Theory]
     [InlineData(-1)]
+    [InlineData(LegacyProxyOptions.LegacyMaximumRequestBodySize - 1)]
     [InlineData(4_294_967_296)]
-    public async Task RejectsUnlimitedOrNativeIisOverflowRequestLimits(long configuredLimit)
+    public async Task RejectsUnsupportedRequestLimits(long configuredLimit)
     {
         string storagePath = CreateStoragePath();
         await using WebApplication application = CreateApplication(
@@ -212,8 +279,78 @@ public class ProgramFacts
             GetSystemAssignedManagedIdentityMode(configuration));
     }
 
+    [Theory]
+    [InlineData(
+        "DataProtection:StorageType",
+        "invalid",
+        "Development",
+        "storage type")]
+    [InlineData(
+        "DataProtection:ApplicationDiscriminator",
+        "DifferentApplication",
+        "Development",
+        "application discriminator")]
+    [InlineData(
+        "DataProtection:KeyLifetime",
+        "6.00:00:00",
+        "Development",
+        "key lifetime")]
+    [InlineData(
+        "DataProtection:EncryptKeysAtRest",
+        "false",
+        "Production",
+        "encrypted at rest")]
+    [InlineData(
+        "DataProtection:KeyVaultKeyIdentifier",
+        "https://vault.vault.azure.net/keys/data-protection/version-1",
+        "Development",
+        "versionless")]
+    public void RejectsInvalidSharedCookieProtectionSettingsAtStartup(
+        string setting,
+        string value,
+        string environmentName,
+        string expectedMessage)
+    {
+        string storagePath = CreateStoragePath();
+        var arguments = new List<string>
+        {
+            "--DataProtection:StorageLocation",
+            storagePath,
+            "--DataProtection:EncryptKeysAtRest",
+            setting == "DataProtection:KeyVaultKeyIdentifier" ? "true" : "false",
+            "--" + setting,
+            value,
+        };
+
+        try
+        {
+            InvalidOperationException exception = Assert.Throws<InvalidOperationException>(
+                () => Program.BuildApplication(
+                    arguments.ToArray(),
+                    builder =>
+                    {
+                        builder.WebHost.UseTestServer();
+                        builder.Environment.EnvironmentName = environmentName;
+                    }));
+
+            Assert.Contains(expectedMessage, exception.Message, StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            DeleteStoragePath(storagePath);
+        }
+    }
+
     private static WebApplication CreateApplication(
         string storagePath,
+        params string[] additionalArguments)
+    {
+        return CreateApplication(storagePath, configureBuilder: null, additionalArguments);
+    }
+
+    private static WebApplication CreateApplication(
+        string storagePath,
+        Action<WebApplicationBuilder> configureBuilder,
         params string[] additionalArguments)
     {
         string[] arguments = new[]
@@ -228,7 +365,44 @@ public class ProgramFacts
             {
                 builder.WebHost.UseTestServer();
                 builder.Environment.EnvironmentName = Environments.Development;
+                configureBuilder?.Invoke(builder);
             });
+    }
+
+    private static string CreateCookie(
+        WebApplication application,
+        params Claim[] claims)
+    {
+        CookieAuthenticationOptions options = application.Services
+            .GetRequiredService<IOptionsMonitor<CookieAuthenticationOptions>>()
+            .Get(SharedCookieConstants.AuthenticationScheme);
+        DateTimeOffset issuedUtc = DateTimeOffset.UtcNow;
+        var identity = new ClaimsIdentity(
+            claims,
+            SharedCookieConstants.AuthenticationScheme,
+            ClaimTypes.Name,
+            SharedCookieConstants.RoleClaimType);
+        var ticket = new AuthenticationTicket(
+            new ClaimsPrincipal(identity),
+            new AuthenticationProperties
+            {
+                IssuedUtc = issuedUtc,
+                ExpiresUtc = issuedUtc.Add(SharedCookieConstants.Expiration),
+            },
+            SharedCookieConstants.AuthenticationScheme);
+        return options.TicketDataFormat.Protect(ticket);
+    }
+
+    private static async Task<HttpResponseMessage> SendWithCookieAsync(
+        HttpClient client,
+        string path,
+        string cookie)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, path);
+        request.Headers.TryAddWithoutValidation(
+            "Cookie",
+            SharedCookieConstants.CookieName + "=" + cookie);
+        return await client.SendAsync(request);
     }
 
     private static string CreateStoragePath()

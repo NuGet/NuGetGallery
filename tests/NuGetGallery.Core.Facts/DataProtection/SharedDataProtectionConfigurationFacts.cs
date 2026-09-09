@@ -94,6 +94,15 @@ namespace NuGetGallery
         }
 
         [Fact]
+        public void KeyRingMustRetainKeysForTheirFullLifetime()
+        {
+            SharedDataProtectionConfiguration target = CreateValidConfiguration();
+            target.KeyRingRetentionPeriod = target.KeyLifetime - TimeSpan.FromDays(1);
+
+            Assert.Throws<InvalidOperationException>(() => target.Validate(isProduction: true));
+        }
+
+        [Fact]
         public void KeyVaultVersionsMustOutliveRetainedRingEntries()
         {
             SharedDataProtectionConfiguration target = CreateValidConfiguration();
