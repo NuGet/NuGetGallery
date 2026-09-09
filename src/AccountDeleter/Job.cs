@@ -156,7 +156,6 @@ namespace NuGetGallery.AccountDeleter
                 services.AddScoped<IDateTimeProvider, DateTimeProvider>();
                 services.AddScoped<IContentObjectService, ContentObjectService>();
                 services.AddScoped<IContentService, ContentService>();
-                services.AddScoped<IFileStorageService, CloudBlobFileStorageService>();
                 services.AddScoped<ISourceDestinationRedirectPolicy, NoLessSecureDestinationRedirectPolicy>();
 
                 services.AddScoped<ISupportRequestService, SupportRequestService>();

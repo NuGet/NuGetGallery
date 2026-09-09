@@ -9,9 +9,9 @@ namespace NuGetGallery
 {
     public class UploadFileService : IUploadFileService
     {
-        private readonly IFileStorageService _fileStorageService;
+        private readonly ICoreFileStorageService _fileStorageService;
 
-        public UploadFileService(IFileStorageService fileStorageService)
+        public UploadFileService(ICoreFileStorageService fileStorageService)
         {
             _fileStorageService = fileStorageService;
         }

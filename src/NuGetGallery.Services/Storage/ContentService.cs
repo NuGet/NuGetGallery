@@ -23,7 +23,7 @@ namespace NuGetGallery
 
         private IDiagnosticsSource Trace { get; set; }
 
-        public IFileStorageService FileStorage { get; protected set; }
+        public ICoreFileStorageService FileStorage { get; protected set; }
 
         protected ConcurrentDictionary<string, ContentItem> ContentCache { get { return _contentCache; } }
 
@@ -32,7 +32,7 @@ namespace NuGetGallery
             Trace = NullDiagnosticsSource.Instance;
         }
 
-        public ContentService(IFileStorageService fileStorage, IDiagnosticsService diagnosticsService)
+        public ContentService(ICoreFileStorageService fileStorage, IDiagnosticsService diagnosticsService)
         {
             if (fileStorage == null)
             {

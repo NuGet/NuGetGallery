@@ -10,11 +10,11 @@ namespace NuGetGallery
 {
     public class UploadFileServiceFacts
     {
-        private static UploadFileService CreateService(Mock<IFileStorageService> fakeFileStorageService = null)
+        private static UploadFileService CreateService(Mock<ICoreFileStorageService> fakeFileStorageService = null)
         {
             if (fakeFileStorageService == null)
             {
-                fakeFileStorageService = new Mock<IFileStorageService>();
+                fakeFileStorageService = new Mock<ICoreFileStorageService>();
             }
 
             return new UploadFileService(fakeFileStorageService.Object);
@@ -35,7 +35,7 @@ namespace NuGetGallery
             [Fact]
             public void WillDeleteFromTheUploadToTheUploadsFolder()
             {
-                var fakeFileStorageService = new Mock<IFileStorageService>();
+                var fakeFileStorageService = new Mock<ICoreFileStorageService>();
                 var service = CreateService(fakeFileStorageService: fakeFileStorageService);
 
                 service.DeleteUploadFileAsync(1);
@@ -46,7 +46,7 @@ namespace NuGetGallery
             [Fact]
             public void WillUseTheUserKeyInTheFileName()
             {
-                var fakeFileStorageService = new Mock<IFileStorageService>();
+                var fakeFileStorageService = new Mock<ICoreFileStorageService>();
                 var service = CreateService(fakeFileStorageService: fakeFileStorageService);
                 var expectedFileName = String.Format(GalleryConstants.UploadFileNameTemplate, 1, CoreConstants.NuGetPackageFileExtension);
 
@@ -71,7 +71,7 @@ namespace NuGetGallery
             [Fact]
             public void WillGetTheUploadFileFromTheUploadsFolder()
             {
-                var fakeFileStorageService = new Mock<IFileStorageService>();
+                var fakeFileStorageService = new Mock<ICoreFileStorageService>();
                 var service = CreateService(fakeFileStorageService: fakeFileStorageService);
 
                 service.GetUploadFileAsync(1);
@@ -82,7 +82,7 @@ namespace NuGetGallery
             [Fact]
             public void WillUseTheUserKeyInTheFileName()
             {
-                var fakeFileStorageService = new Mock<IFileStorageService>();
+                var fakeFileStorageService = new Mock<ICoreFileStorageService>();
                 var service = CreateService(fakeFileStorageService: fakeFileStorageService);
                 var expectedFileName = String.Format(GalleryConstants.UploadFileNameTemplate, 1, CoreConstants.NuGetPackageFileExtension);
 
@@ -95,7 +95,7 @@ namespace NuGetGallery
             public async Task WillReturnTheUploadFileStream()
             {
                 var expectedFileName = String.Format(GalleryConstants.UploadFileNameTemplate, 1, CoreConstants.NuGetPackageFileExtension);
-                var fakeFileStorageService = new Mock<IFileStorageService>();
+                var fakeFileStorageService = new Mock<ICoreFileStorageService>();
                 var fakeFileStream = new MemoryStream();
                 fakeFileStorageService.Setup(x => x.GetFileAsync(CoreConstants.Folders.UploadsFolderName, expectedFileName))
                                       .Returns(Task.FromResult<Stream>(fakeFileStream));
@@ -132,7 +132,7 @@ namespace NuGetGallery
             [Fact]
             public void WillSaveTheUploadToTheUploadsFolder()
             {
-                var fakeFileStorageService = new Mock<IFileStorageService>();
+                var fakeFileStorageService = new Mock<ICoreFileStorageService>();
                 var service = CreateService(fakeFileStorageService: fakeFileStorageService);
 
                 service.SaveUploadFileAsync(1, new MemoryStream());
@@ -143,7 +143,7 @@ namespace NuGetGallery
             [Fact]
             public void WillUseTheUserKeyInTheFileName()
             {
-                var fakeFileStorageService = new Mock<IFileStorageService>();
+                var fakeFileStorageService = new Mock<ICoreFileStorageService>();
                 var service = CreateService(fakeFileStorageService: fakeFileStorageService);
                 var expectedFileName = String.Format(GalleryConstants.UploadFileNameTemplate, 1, CoreConstants.NuGetPackageFileExtension);
 
@@ -155,7 +155,7 @@ namespace NuGetGallery
             [Fact]
             public void WillSaveTheUploadFileStream()
             {
-                var fakeFileStorageService = new Mock<IFileStorageService>();
+                var fakeFileStorageService = new Mock<ICoreFileStorageService>();
                 var fakeUploadFileStream = new MemoryStream();
                 var service = CreateService(fakeFileStorageService: fakeFileStorageService);
 

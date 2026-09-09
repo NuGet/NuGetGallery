@@ -13,7 +13,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web.Mvc;
 
 using Xunit;
 
@@ -47,11 +46,11 @@ namespace NuGetGallery
             }
 
             return new FileSystemFileStorageService(
-                configuration.Object,
+                configuration.Object.FileStorageDirectory,
                 fileSystemService.Object);
         }
 
-        public class TheCreateDownloadFileActionResultMethod
+        public class TheCreateDownloadFileResultMethod
         {
             [Theory]
             [InlineData(null)]
@@ -61,7 +60,7 @@ namespace NuGetGallery
                 var service = CreateService();
 
                 var ex = await Assert.ThrowsAsync<ArgumentNullException>(
-                    () => service.CreateDownloadFileActionResultAsync(
+                    () => service.CreateDownloadFileResultAsync(
                         HttpRequestUrl,
                         folderName,
                         "theFileName", "theVersion"));
@@ -77,7 +76,7 @@ namespace NuGetGallery
                 var service = CreateService();
 
                 var ex = await Assert.ThrowsAsync<ArgumentNullException>(
-                    () => service.CreateDownloadFileActionResultAsync(
+                    () => service.CreateDownloadFileResultAsync(
                         HttpRequestUrl,
                         CoreConstants.Folders.PackagesFolderName,
                         fileName, "theVersion"));
@@ -90,12 +89,12 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var result = await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, CoreConstants.Folders.PackagesFolderName, "theFileName", "theVersion") as FilePathResult;
+                var result = await service.CreateDownloadFileResultAsync(HttpRequestUrl, CoreConstants.Folders.PackagesFolderName, "theFileName", "theVersion");
 
-                Assert.NotNull(result);
+                Assert.Equal(DownloadFileResultType.LocalFile, result.Type);
                 Assert.Equal(
                     Path.Combine(FakeConfiguredFileStorageDirectory, CoreConstants.Folders.PackagesFolderName, "theFileName"),
-                    result.FileName);
+                    result.FilePath);
             }
 
             [Fact]
@@ -105,9 +104,9 @@ namespace NuGetGallery
                 fakeFileSystemService.Setup(x => x.FileExists(It.IsAny<string>())).Returns(false);
                 var service = CreateService(fileSystemService: fakeFileSystemService);
 
-                var result = await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, CoreConstants.Folders.PackagesFolderName, "theFileName", "theVersion") as HttpNotFoundResult;
+                var result = await service.CreateDownloadFileResultAsync(HttpRequestUrl, CoreConstants.Folders.PackagesFolderName, "theFileName", "theVersion");
 
-                Assert.NotNull(result);
+                Assert.Equal(DownloadFileResultType.NotFound, result.Type);
             }
 
             [Fact]
@@ -115,9 +114,9 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var result = await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, CoreConstants.Folders.PackagesFolderName, "theFileName", "theVersion") as FilePathResult;
+                var result = await service.CreateDownloadFileResultAsync(HttpRequestUrl, CoreConstants.Folders.PackagesFolderName, "theFileName", "theVersion");
 
-                Assert.NotNull(result);
+                Assert.Equal(DownloadFileResultType.LocalFile, result.Type);
                 Assert.Equal(CoreConstants.PackageContentType, result.ContentType);
             }
 
@@ -126,9 +125,9 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var result = await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, CoreConstants.Folders.SymbolPackagesFolderName, "theFileName", "theVersion") as FilePathResult;
+                var result = await service.CreateDownloadFileResultAsync(HttpRequestUrl, CoreConstants.Folders.SymbolPackagesFolderName, "theFileName", "theVersion");
 
-                Assert.NotNull(result);
+                Assert.Equal(DownloadFileResultType.LocalFile, result.Type);
                 Assert.Equal(CoreConstants.PackageContentType, result.ContentType);
             }
 
@@ -137,9 +136,9 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var result = await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, CoreConstants.Folders.PackagesFolderName, "theFileName", "theVersion") as FilePathResult;
+                var result = await service.CreateDownloadFileResultAsync(HttpRequestUrl, CoreConstants.Folders.PackagesFolderName, "theFileName", "theVersion");
 
-                Assert.NotNull(result);
+                Assert.Equal(DownloadFileResultType.LocalFile, result.Type);
                 Assert.Equal(
                     "theFileName",
                     result.FileDownloadName);
@@ -204,6 +203,32 @@ namespace NuGetGallery
                 service.DeleteFileAsync(CoreConstants.Folders.PackagesFolderName, "theFileName");
 
                 Assert.False(deleteWasInvoked);
+            }
+        }
+
+        public class TheIsAvailableAsyncMethod
+        {
+            [Fact]
+            public async Task ReturnsTrueWhenTheStorageDirectoryExists()
+            {
+                using (var directory = TestDirectory.Create())
+                {
+                    var service = new FileSystemFileStorageService(directory, new FileSystemService());
+
+                    Assert.True(await service.IsAvailableAsync());
+                }
+            }
+
+            [Fact]
+            public async Task ReturnsFalseWhenTheStorageDirectoryDoesNotExist()
+            {
+                using (var directory = TestDirectory.Create())
+                {
+                    var missingDirectory = Path.Combine(directory, "missing");
+                    var service = new FileSystemFileStorageService(missingDirectory, new FileSystemService());
+
+                    Assert.False(await service.IsAvailableAsync());
+                }
             }
         }
 
@@ -332,7 +357,7 @@ namespace NuGetGallery
                 _fileSystemService = new Mock<FileSystemService> { CallBase = true };
 
                 _target = new FileSystemFileStorageService(
-                    _appConfiguration.Object,
+                    _appConfiguration.Object.FileStorageDirectory,
                     _fileSystemService.Object);
             }
 
@@ -610,7 +635,7 @@ namespace NuGetGallery
                         .Returns(testDirectory);
 
                     var service = new FileSystemFileStorageService(
-                        configuration.Object,
+                        configuration.Object.FileStorageDirectory,
                         fileSystemService);
 
                     var directory = Path.Combine(testDirectory, FolderName);
@@ -644,7 +669,7 @@ namespace NuGetGallery
                         .Returns(testDirectory);
 
                     var service = new FileSystemFileStorageService(
-                        configuration.Object,
+                        configuration.Object.FileStorageDirectory,
                         fileSystemService);
 
                     var directory = Path.Combine(testDirectory, FolderName);
@@ -678,7 +703,7 @@ namespace NuGetGallery
                         .Returns(testDirectory);
 
                     var service = new FileSystemFileStorageService(
-                        configuration.Object,
+                        configuration.Object.FileStorageDirectory,
                         fileSystemService);
 
                     for (var i = 0; i < 10; i++)

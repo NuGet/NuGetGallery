@@ -215,9 +215,12 @@ namespace NuGetGallery
             version = NuGetVersionFormatter.Normalize(version);
 
             // There's no guarantee the symbols package exists in the returned path. We just provide the path it should be at.
-            return await SymbolPackageFileService.CreateDownloadSymbolPackageActionResultAsync(
-                    HttpContext.Request.Url,
-                    id, version);
+            var downloadResult = await SymbolPackageFileService.CreateDownloadSymbolPackageResultAsync(
+                HttpContext.Request.Url,
+                id,
+                version);
+
+            return CreateDownloadActionResult(downloadResult);
         }
 
         [HttpGet]
@@ -289,9 +292,37 @@ namespace NuGetGallery
                 await PackageService.IncrementDownloadCountAsync(id, version);
             }
 
-            return await PackageFileService.CreateDownloadPackageActionResultAsync(
+            var downloadResult = await PackageFileService.CreateDownloadPackageResultAsync(
                 HttpContext.Request.Url,
                 id, version);
+
+            return CreateDownloadActionResult(downloadResult);
+        }
+
+        private static ActionResult CreateDownloadActionResult(DownloadFileResult result)
+        {
+            if (result == null)
+            {
+                throw new ArgumentNullException(nameof(result));
+            }
+
+            switch (result.Type)
+            {
+                case DownloadFileResultType.Redirect:
+                    return new RedirectResult(result.RedirectUri.AbsoluteUri, permanent: false);
+
+                case DownloadFileResultType.LocalFile:
+                    return new FilePathResult(result.FilePath, result.ContentType)
+                    {
+                        FileDownloadName = result.FileDownloadName
+                    };
+
+                case DownloadFileResultType.NotFound:
+                    return new HttpNotFoundResult();
+
+                default:
+                    throw new InvalidOperationException($"Unsupported download result type: {result.Type}");
+            }
         }
 
         [HttpGet]

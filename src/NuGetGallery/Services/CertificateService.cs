@@ -18,7 +18,7 @@ namespace NuGetGallery
         private readonly IEntityRepository<Certificate> _certificateRepository;
         private readonly IEntityRepository<User> _userRepository;
         private readonly IEntitiesContext _entitiesContext;
-        private readonly IFileStorageService _fileStorageService;
+        private readonly ICoreFileStorageService _fileStorageService;
         private readonly IAuditingService _auditingService;
         private readonly ITelemetryService _telemetryService;
 
@@ -27,7 +27,7 @@ namespace NuGetGallery
             IEntityRepository<Certificate> certificateRepository,
             IEntityRepository<User> userRepository,
             IEntitiesContext entitiesContext,
-            IFileStorageService fileStorageService,
+            ICoreFileStorageService fileStorageService,
             IAuditingService auditingService,
             ITelemetryService telemetryService)
         {

@@ -26,7 +26,7 @@ namespace NuGetGallery.Services
         private readonly Mock<IEntityRepository<Certificate>> _certificateRepository;
         private readonly Mock<ICertificateValidator> _certificateValidator;
         private readonly Mock<IEntitiesContext> _entitiesContext;
-        private readonly Mock<IFileStorageService> _fileStorageService;
+        private readonly Mock<ICoreFileStorageService> _fileStorageService;
         private readonly Mock<ITelemetryService> _telemetryService;
         private readonly Mock<IEntityRepository<User>> _userRepository;
 
@@ -39,7 +39,7 @@ namespace NuGetGallery.Services
             _certificateRepository = new Mock<IEntityRepository<Certificate>>(MockBehavior.Strict);
             _certificateValidator = new Mock<ICertificateValidator>(MockBehavior.Strict);
             _entitiesContext = new Mock<IEntitiesContext>(MockBehavior.Strict);
-            _fileStorageService = new Mock<IFileStorageService>(MockBehavior.Strict);
+            _fileStorageService = new Mock<ICoreFileStorageService>(MockBehavior.Strict);
             _telemetryService = new Mock<ITelemetryService>(MockBehavior.Strict);
             _userRepository = new Mock<IEntityRepository<User>>(MockBehavior.Strict);
 
@@ -134,7 +134,7 @@ namespace NuGetGallery.Services
         [Fact]
         public void Constructor_WhenFileStorageServiceIsNull_Throws()
         {
-            IFileStorageService fileStorageService = null;
+            ICoreFileStorageService fileStorageService = null;
 
             var exception = Assert.Throws<ArgumentNullException>(
                 () => new CertificateService(

@@ -7,7 +7,7 @@ namespace NuGetGallery
 {
     public class LocalFileReference : IFileReference
     {
-        private FileInfo _file;
+        private readonly FileInfo _file;
 
         public string ContentId
         {

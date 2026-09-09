@@ -89,6 +89,36 @@ namespace NuGetGallery
             }
         }
 
+        public class TheIsAvailableAsyncMethod
+        {
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task ReturnsWhetherThePackagesContainerExists(bool exists)
+            {
+                var container = new Mock<ICloudBlobContainer>();
+                container
+                    .Setup(x => x.CreateIfNotExistAsync(It.IsAny<bool>()))
+                    .Returns(Task.CompletedTask);
+                container
+                    .Setup(x => x.ExistsAsync(null))
+                    .ReturnsAsync(exists)
+                    .Verifiable();
+
+                var client = new Mock<ICloudBlobClient>();
+                client
+                    .Setup(x => x.GetContainerReference(CoreConstants.Folders.PackagesFolderName))
+                    .Returns(container.Object);
+
+                var service = CreateService(client);
+
+                var result = await service.IsAvailableAsync();
+
+                Assert.Equal(exists, result);
+                container.Verify();
+            }
+        }
+
         public class TheDeletePackageFileMethod
         {
             [Theory]

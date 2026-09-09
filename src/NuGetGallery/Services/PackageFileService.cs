@@ -7,7 +7,6 @@ using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using System.Web.Mvc;
 
 namespace NuGetGallery
 {
@@ -18,15 +17,15 @@ namespace NuGetGallery
         /// </summary>
         private const string ReadMeFilePathTemplateActive = "active/{0}/{1}{2}";
 
-        private readonly IFileStorageService _fileStorageService;
+        private readonly ICoreFileStorageService _fileStorageService;
 
-        public PackageFileService(IFileStorageService fileStorageService)
+        public PackageFileService(ICoreFileStorageService fileStorageService)
             : base(fileStorageService, new PackageFileMetadataService())
         {
             _fileStorageService = fileStorageService;
         }
 
-        public Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, Package package)
+        public Task<DownloadFileResult> CreateDownloadPackageResultAsync(Uri requestUrl, Package package)
         {
             if (requestUrl is null)
             {
@@ -42,10 +41,10 @@ namespace NuGetGallery
 
             var packageVersion = NuGetVersionFormatter.GetNormalizedPackageVersion(package);
 
-            return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, CoreConstants.Folders.PackagesFolderName, fileName, packageVersion);
+            return _fileStorageService.CreateDownloadFileResultAsync(requestUrl, CoreConstants.Folders.PackagesFolderName, fileName, packageVersion);
         }
 
-        public Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, string id, string version)
+        public Task<DownloadFileResult> CreateDownloadPackageResultAsync(Uri requestUrl, string id, string version)
         {
             if (requestUrl is null)
             {
@@ -65,7 +64,7 @@ namespace NuGetGallery
             var fileName = FileNameHelper.BuildFileName(id, version, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetPackageFileExtension);
 
             // version cannot be null here as BuildFileName will throw if it is
-            return _fileStorageService.CreateDownloadFileActionResultAsync(requestUrl, CoreConstants.Folders.PackagesFolderName, fileName, NuGetVersionFormatter.Normalize(version));
+            return _fileStorageService.CreateDownloadFileResultAsync(requestUrl, CoreConstants.Folders.PackagesFolderName, fileName, NuGetVersionFormatter.Normalize(version));
         }
 
         /// <summary>

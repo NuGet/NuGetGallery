@@ -3,7 +3,6 @@
 
 using System;
 using System.Threading.Tasks;
-using System.Web.Mvc;
 using NuGet.Services.Entities;
 
 namespace NuGetGallery
@@ -11,14 +10,14 @@ namespace NuGetGallery
     public interface IPackageFileService : ICorePackageFileService
     {
         /// <summary>
-        /// Creates an ActionResult that allows a third-party client to download the nupkg for the package.
+        /// Creates a result that allows a third-party client to download the nupkg for the package.
         /// </summary>
-        Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, Package package);
+        Task<DownloadFileResult> CreateDownloadPackageResultAsync(Uri requestUrl, Package package);
 
         /// <summary>
-        /// Creates an ActionResult that allows a third-party client to download the nupkg for the package.
+        /// Creates a result that allows a third-party client to download the nupkg for the package.
         /// </summary>
-        Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, string unsafeId, string unsafeVersion);
+        Task<DownloadFileResult> CreateDownloadPackageResultAsync(Uri requestUrl, string unsafeId, string unsafeVersion);
 
         /// <summary>
         /// Deletes the package readme.md file from storage.

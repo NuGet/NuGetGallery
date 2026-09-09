@@ -10,11 +10,19 @@ namespace NuGetGallery
 {
     public interface ICoreFileStorageService
     {
+        Task<DownloadFileResult> CreateDownloadFileResultAsync(
+            Uri requestUrl,
+            string folderName,
+            string fileName,
+            string versionParameter);
+
         Task DeleteFileAsync(string folderName, string fileName);
 
         Task<bool> FileExistsAsync(string folderName, string fileName);
 
         Task<Stream> GetFileAsync(string folderName, string fileName);
+
+        Task<bool> IsAvailableAsync();
 
         /// <summary>
         /// Gets a reference to a file in the storage service, which can be used to open the full file data.

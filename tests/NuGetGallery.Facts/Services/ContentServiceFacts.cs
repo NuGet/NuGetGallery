@@ -24,7 +24,7 @@ namespace NuGetGallery.Services
             [Fact]
             public void GivenANullDiagnosticsService_ItShouldThrow()
             {
-                ContractAssert.ThrowsArgNull(() => new ContentService(new Mock<IFileStorageService>().Object, null), "diagnosticsService");
+                ContractAssert.ThrowsArgNull(() => new ContentService(new Mock<ICoreFileStorageService>().Object, null), "diagnosticsService");
             }
         }
 
@@ -165,12 +165,12 @@ namespace NuGetGallery.Services
 
         public class TestableContentService : ContentService
         {
-            public Mock<IFileStorageService> MockFileStorage { get; private set; }
+            public Mock<ICoreFileStorageService> MockFileStorage { get; private set; }
             public Mock<ICacheService> MockCache { get; private set; }
 
             public TestableContentService()
             {
-                FileStorage = (MockFileStorage = new Mock<IFileStorageService>()).Object;
+                FileStorage = (MockFileStorage = new Mock<ICoreFileStorageService>()).Object;
             }
 
             public ContentItem GetCached(string key)

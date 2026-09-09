@@ -12,7 +12,7 @@ using NuGetGallery.Login;
 namespace NuGetGallery
 {
     /// <summary>
-    /// Represents a type that depends on <see cref="IFileStorageService"/>.
+    /// Represents a type that depends on <see cref="ICoreFileStorageService"/>.
     /// </summary>
     internal class StorageDependent
     {
@@ -78,13 +78,13 @@ namespace NuGetGallery
 
         /// <summary>
         /// Group the storage dependents by Azure Storage connection string then generate a binding key so that
-        /// <see cref="IFileStorageService"/> instances are shared.
+        /// <see cref="ICoreFileStorageService"/> instances are shared.
         /// </summary>
         public static IEnumerable<StorageDependent> GetAll(IAppConfiguration configuration)
         {
             const string DefaultBindingKey = "Default";
 
-            /// This array must be added to as we implement more services that use <see cref="IFileStorageService"/>.
+            /// This array must be added to as we implement more services that use <see cref="ICoreFileStorageService"/>.
             var dependents = new[]
             {
                 Create<CertificateService, ICertificateService>(configuration.AzureStorage_UserCertificates_ConnectionString, isSingleInstance: false),

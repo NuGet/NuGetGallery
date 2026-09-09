@@ -2078,14 +2078,14 @@ namespace NuGetGallery
                 const string version = "1.0.1+notnormalized";
                 const string normalizedVersion = "1.0.1";
 
-                var actionResult = new EmptyResult();
+                var downloadResult = DownloadFileResult.Redirect(new Uri("https://example.test/package.snupkg"));
 
                 var controller = new TestableApiController(GetConfigurationService(), MockBehavior.Strict);
 
                 controller
                     .MockSymbolPackageFileService
-                    .Setup(s => s.CreateDownloadSymbolPackageActionResultAsync(HttpRequestUrl, packageId, normalizedVersion))
-                    .Returns(Task.FromResult<ActionResult>(actionResult))
+                    .Setup(s => s.CreateDownloadSymbolPackageResultAsync(HttpRequestUrl, packageId, normalizedVersion))
+                    .ReturnsAsync(downloadResult)
                     .Verifiable();
 
                 var httpRequest = new Mock<HttpRequestBase>(MockBehavior.Strict);
@@ -2101,7 +2101,9 @@ namespace NuGetGallery
                 var result = await controller.GetSymbolPackage(packageId, version);
 
                 // Assert
-                Assert.Same(actionResult, result);
+                var redirectResult = Assert.IsType<RedirectResult>(result);
+                Assert.Equal(downloadResult.RedirectUri.AbsoluteUri, redirectResult.Url);
+                Assert.False(redirectResult.Permanent);
 
                 controller.MockSymbolPackageFileService.Verify();
             }
@@ -2155,7 +2157,10 @@ namespace NuGetGallery
                 // Arrange
                 const string packageId = "Baz";
                 var package = new Package() { Version = "1.0.01", NormalizedVersion = "1.0.1" };
-                var actionResult = new EmptyResult();
+                var downloadResult = DownloadFileResult.LocalFile(
+                    @"C:\packages\baz.1.0.1.nupkg",
+                    CoreConstants.PackageContentType,
+                    "baz.1.0.1.nupkg");
 
                 var controller = new TestableApiController(GetConfigurationService(), MockBehavior.Strict);
                 controller
@@ -2164,8 +2169,8 @@ namespace NuGetGallery
                     .Returns(package);
                 controller
                     .MockPackageFileService
-                    .Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, packageId, package.NormalizedVersion))
-                    .Returns(Task.FromResult<ActionResult>(actionResult))
+                    .Setup(s => s.CreateDownloadPackageResultAsync(HttpRequestUrl, packageId, package.NormalizedVersion))
+                    .ReturnsAsync(downloadResult)
                     .Verifiable();
 
                 NameValueCollection headers = new NameValueCollection();
@@ -2186,7 +2191,10 @@ namespace NuGetGallery
                 var result = await controller.GetPackage(packageId, "1.0.01");
 
                 // Assert
-                Assert.Same(actionResult, result);
+                var fileResult = Assert.IsType<FilePathResult>(result);
+                Assert.Equal(downloadResult.FilePath, fileResult.FileName);
+                Assert.Equal(downloadResult.ContentType, fileResult.ContentType);
+                Assert.Equal(downloadResult.FileDownloadName, fileResult.FileDownloadName);
                 controller.MockPackageFileService.Verify();
 
                 controller.MockPackageService.Verify();
@@ -2197,13 +2205,13 @@ namespace NuGetGallery
             public async Task GetPackageReturnsSpecificPackageEvenIfDatabaseIsOffline()
             {
                 // Arrange
-                var actionResult = new EmptyResult();
+                var downloadResult = DownloadFileResult.NotFound();
 
                 var controller = new TestableApiController(GetConfigurationService(), MockBehavior.Strict);
                 controller
                     .MockPackageFileService
-                    .Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, "Baz", "1.0.0"))
-                    .Returns(Task.FromResult<ActionResult>(actionResult))
+                    .Setup(s => s.CreateDownloadPackageResultAsync(HttpRequestUrl, "Baz", "1.0.0"))
+                    .ReturnsAsync(downloadResult)
                     .Verifiable();
 
                 NameValueCollection headers = new NameValueCollection();
@@ -2224,7 +2232,7 @@ namespace NuGetGallery
                 var result = await controller.GetPackageInternal("Baz", "1.0.0");
 
                 // Assert
-                Assert.Same(actionResult, result);
+                Assert.IsType<HttpNotFoundResult>(result);
                 controller.MockPackageFileService.Verify();
                 controller.MockPackageService.Verify();
             }
@@ -2235,15 +2243,15 @@ namespace NuGetGallery
                 // Arrange
                 const string packageId = "Baz";
                 var package = new Package() { Version = "1.2.0408", NormalizedVersion = "1.2.408" };
-                var actionResult = new EmptyResult();
+                var downloadResult = DownloadFileResult.Redirect(new Uri("https://example.test/package.nupkg"));
                 var controller = new TestableApiController(GetConfigurationService(), MockBehavior.Strict);
                 controller.MockPackageService
                     .Setup(x => x.FindPackageByIdAndVersion(packageId, string.Empty, SemVerLevelKey.SemVer2, false))
                     .Returns(package);
                 //controller.MockPackageService.Setup(x => x.AddDownloadStatistics(It.IsAny<PackageStatistics>())).Verifiable();
 
-                controller.MockPackageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, packageId, package.NormalizedVersion))
-                              .Returns(Task.FromResult<ActionResult>(actionResult))
+                controller.MockPackageFileService.Setup(s => s.CreateDownloadPackageResultAsync(HttpRequestUrl, packageId, package.NormalizedVersion))
+                              .ReturnsAsync(downloadResult)
                               .Verifiable();
 
                 NameValueCollection headers = new NameValueCollection();
@@ -2264,7 +2272,9 @@ namespace NuGetGallery
                 var result = await controller.GetPackageInternal(packageId, "");
 
                 // Assert
-                Assert.Same(actionResult, result);
+                var redirectResult = Assert.IsType<RedirectResult>(result);
+                Assert.Equal(downloadResult.RedirectUri.AbsoluteUri, redirectResult.Url);
+                Assert.False(redirectResult.Permanent);
                 controller.MockPackageFileService.Verify();
                 controller.MockPackageService.Verify();
                 controller.MockUserService.Verify();
@@ -2276,13 +2286,12 @@ namespace NuGetGallery
                 // Arrange
                 const string packageId = "Baz";
                 var package = new Package();
-                var actionResult = new EmptyResult();
                 var controller = new TestableApiController(GetConfigurationService(), MockBehavior.Strict);
                 controller.MockPackageService
                     .Setup(x => x.FindPackageByIdAndVersion("Baz", string.Empty, SemVerLevelKey.SemVer2, false))
                     .Throws(new DataException("Oh noes, database broken!"));
-                controller.MockPackageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, packageId, package.NormalizedVersion))
-                            .Returns(Task.FromResult<ActionResult>(actionResult))
+                controller.MockPackageFileService.Setup(s => s.CreateDownloadPackageResultAsync(HttpRequestUrl, packageId, package.NormalizedVersion))
+                            .ReturnsAsync(DownloadFileResult.NotFound())
                             .Verifiable();
 
                 NameValueCollection headers = new NameValueCollection();

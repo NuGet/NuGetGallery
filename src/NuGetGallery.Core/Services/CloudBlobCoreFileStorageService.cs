@@ -44,6 +44,15 @@ namespace NuGetGallery
             _initializeContainer = initializeContainer;
         }
 
+        public virtual Task<DownloadFileResult> CreateDownloadFileResultAsync(
+            Uri requestUrl,
+            string folderName,
+            string fileName,
+            string versionParameter)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task DeleteFileAsync(string folderName, string fileName)
         {
             ICloudBlobContainer container = await GetContainerAsync(folderName);
@@ -56,6 +65,12 @@ namespace NuGetGallery
             ICloudBlobContainer container = await GetContainerAsync(folderName);
             var blob = container.GetBlobReference(fileName);
             return await blob.ExistsAsync();
+        }
+
+        public async Task<bool> IsAvailableAsync()
+        {
+            var container = await GetContainerAsync(CoreConstants.Folders.PackagesFolderName);
+            return await container.ExistsAsync(cloudBlobLocationMode: null);
         }
 
         public async Task<Stream> GetFileAsync(string folderName, string fileName)
