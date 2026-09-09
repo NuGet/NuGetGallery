@@ -59,7 +59,9 @@
     <PackageVersion Include="Microsoft.AspNet.WebPages" Version="3.2.9" />
     <PackageVersion Include="Microsoft.AspNetCore.Cryptography.Internal" Version="8.0.10" />
     <PackageVersion Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" Version="8.0.10" />
+    <PackageVersion Include="Microsoft.AspNetCore.DataProtection.Extensions" Version="2.3.10" />
     <PackageVersion Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
+    <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.0" />
     <PackageVersion Include="Microsoft.Azure.Kusto.Data" Version="14.0.3" />
     <PackageVersion Include="Microsoft.Azure.Storage.DataMovement" Version="0.9.0" />
     <PackageVersion Include="Microsoft.Bcl.Compression" Version="3.9.85" />
@@ -93,10 +95,12 @@
     <PackageVersion Include="Microsoft.Playwright.Xunit" Version="1.57.0" />
     <PackageVersion Include="Microsoft.Owin.Host.SystemWeb" Version="4.2.2" />
     <PackageVersion Include="Microsoft.Owin.Security.Cookies" Version="4.2.2" />
+    <PackageVersion Include="Microsoft.Owin.Security.Interop" Version="2.3.11" />
     <PackageVersion Include="Microsoft.Owin.Security.MicrosoftAccount" Version="4.2.2" />
     <PackageVersion Include="Microsoft.Owin.Security.OpenIdConnect" Version="4.2.2" />
     <PackageVersion Include="Microsoft.Owin.Security" Version="4.2.2" />
     <PackageVersion Include="Microsoft.Owin" Version="4.2.2" />
+    <PackageVersion Include="Microsoft.Owin.Testing" Version="4.2.2" />
     <PackageVersion Include="Microsoft.Rest.ClientRuntime" Version="2.3.24" />
     <PackageVersion Include="Microsoft.Security.Utilities.Core" Version="1.12.0" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
@@ -152,6 +156,7 @@
     <PackageVersion Include="System.Reflection.Metadata" Version="1.7.0-preview1-26717-04" />
     <PackageVersion Include="System.Runtime" Version="4.3.1" />
     <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="8.0.1" />
+    <PackageVersion Include="System.Security.Cryptography.Xml" Version="10.0.11" />
     <PackageVersion Include="System.Security.Cryptography.X509Certificates" Version="4.3.2" />
     <PackageVersion Include="System.ServiceModel.Syndication" Version="8.0.0" />
     <PackageVersion Include="System.Text.Encodings.Web" Version="8.0.0" />
