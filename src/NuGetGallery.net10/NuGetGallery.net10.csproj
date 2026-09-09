@@ -18,4 +18,11 @@
     <InternalsVisibleTo Include="NuGetGallery.net10.Facts" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="web.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

@@ -9,12 +9,14 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Server.IIS;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
-using Yarp.ReverseProxy.Forwarder;
 
 namespace NuGetGallery;
 
@@ -44,6 +46,14 @@ public static class Program
             .GetRequiredSection(GalleryForwardedHeadersOptions.SectionName)
             .Get<GalleryForwardedHeadersOptions>()
             ?? throw new InvalidOperationException("The forwarded headers configuration is missing.");
+        IConfigurationSection legacyProxySection = builder.Configuration
+            .GetRequiredSection(LegacyProxyOptions.SectionName);
+        long maximumRequestBodySize = legacyProxySection.GetValue<long>(
+            nameof(LegacyProxyOptions.MaximumRequestBodySize));
+        long effectiveMaximumRequestBodySize =
+            LegacyProxyOptions.IsValidMaximumRequestBodySize(maximumRequestBodySize)
+                ? maximumRequestBodySize
+                : LegacyProxyOptions.LegacyMaximumRequestBodySize;
 
         builder.Services
             .AddOptions<GalleryHostOptions>()
@@ -55,7 +65,16 @@ public static class Program
             .Bind(builder.Configuration.GetRequiredSection(GalleryForwardedHeadersOptions.SectionName))
             .Validate(GalleryForwardedHeadersOptions.IsValid, "The forwarded headers configuration is invalid.")
             .ValidateOnStart();
+        builder.Services
+            .AddOptions<LegacyProxyOptions>()
+            .Bind(legacyProxySection)
+            .ValidateOnStart();
+        builder.Services.AddSingleton<IValidateOptions<LegacyProxyOptions>, LegacyProxyOptionsValidator>();
         builder.Services.Configure<ForwardedHeadersOptions>(forwardedHeadersOptions.Apply);
+        builder.Services.Configure<IISServerOptions>(options =>
+        {
+            options.MaxRequestBodySize = effectiveMaximumRequestBodySize;
+        });
 
         builder.WebHost.ConfigureKestrel((context, options) =>
         {
@@ -67,13 +86,7 @@ public static class Program
                     SslProtocols.Tls12 | SslProtocols.Tls13);
             });
 
-            long? maxRequestBodySize = context.Configuration.GetValue<long?>("Kestrel:Limits:MaxRequestBodySize");
-            if (maxRequestBodySize.HasValue)
-            {
-                options.Limits.MaxRequestBodySize = maxRequestBodySize.Value < 0
-                    ? null
-                    : maxRequestBodySize.Value;
-            }
+            options.Limits.MaxRequestBodySize = effectiveMaximumRequestBodySize;
         });
 
         builder.Services.AddGallerySharedAuthentication(
@@ -82,6 +95,9 @@ public static class Program
         builder.Services.AddAuthorization();
         builder.Services.AddHealthChecks();
         builder.Services.AddHttpForwarder();
+        builder.Services.TryAddSingleton<ILegacyProxyHttpClient, LegacyProxyHttpClient>();
+        builder.Services.AddSingleton<LegacyProxyTransformer>();
+        builder.Services.AddSingleton<LegacyProxyForwarder>();
 
         WebApplication application = builder.Build();
 
@@ -109,6 +125,16 @@ public static class Program
             hostOptions.HealthPath,
             new HealthCheckOptions { Predicate = _ => false });
         application.MapHealthChecks(hostOptions.ReadinessPath);
+        application
+            .Map("/{**catch-all}", async context =>
+            {
+                await context.RequestServices
+                    .GetRequiredService<LegacyProxyForwarder>()
+                    .ForwardAsync(context);
+            })
+            .AllowAnonymous()
+            .WithDisplayName("Legacy NuGetGallery fallback")
+            .WithOrder(int.MaxValue);
 
         return application;
     }

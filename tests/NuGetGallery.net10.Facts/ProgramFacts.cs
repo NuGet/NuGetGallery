@@ -4,14 +4,18 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Server.IIS;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -75,10 +79,113 @@ public class ProgramFacts
             Assert.Equal(SharedCookieConstants.CookiePath, cookieOptions.Cookie.Path);
             Assert.False(cookieOptions.SlidingExpiration);
             Assert.NotNull(application.Services.GetRequiredService<IHttpForwarder>());
+
+            LegacyProxyOptions proxyOptions = application.Services
+                .GetRequiredService<IOptions<LegacyProxyOptions>>()
+                .Value;
+            Assert.Equal("https://localhost", proxyOptions.Origin);
+            Assert.True(
+                proxyOptions.ActivityTimeout >= LegacyProxyOptions.LegacyExecutionTimeout);
+            Assert.True(
+                proxyOptions.MaximumRequestBodySize >= LegacyProxyOptions.LegacyMaximumRequestBodySize);
+
+            IISServerOptions iisOptions = application.Services
+                .GetRequiredService<IOptions<IISServerOptions>>()
+                .Value;
+            Assert.Equal(
+                LegacyProxyOptions.LegacyMaximumRequestBodySize,
+                iisOptions.MaxRequestBodySize);
         }
         finally
         {
             await application.StopAsync();
+            DeleteStoragePath(storagePath);
+        }
+    }
+
+    [Fact]
+    public void IisHostingArtifactAppliesTheLegacyNativeRequestLimit()
+    {
+        string repositoryRoot = FindRepositoryRoot();
+        string webConfigPath = Path.Combine(
+            repositoryRoot,
+            "src",
+            "NuGetGallery.net10",
+            "web.config");
+        XDocument webConfig = XDocument.Load(webConfigPath);
+
+        XElement requestLimits = webConfig
+            .Descendants("requestLimits")
+            .Single();
+        XElement aspNetCore = webConfig
+            .Descendants("aspNetCore")
+            .Single();
+
+        Assert.Equal(
+            LegacyProxyOptions.NativeIisMaximumRequestBodySize.ToString(),
+            requestLimits.Attribute("maxAllowedContentLength")?.Value);
+        Assert.Equal("inprocess", aspNetCore.Attribute("hostingModel")?.Value);
+    }
+
+    [Fact]
+    public async Task AppliesAConfiguredLimitAboveTheLegacyDefaultToManagedServers()
+    {
+        const long configuredLimit = 500_000_000;
+        string storagePath = CreateStoragePath();
+        await using WebApplication application = CreateApplication(
+            storagePath,
+            "--LegacyProxy:MaximumRequestBodySize",
+            configuredLimit.ToString());
+
+        await application.StartAsync();
+        try
+        {
+            Assert.Equal(
+                configuredLimit,
+                application.Services
+                    .GetRequiredService<IOptions<LegacyProxyOptions>>()
+                    .Value
+                    .MaximumRequestBodySize);
+            Assert.Equal(
+                configuredLimit,
+                application.Services
+                    .GetRequiredService<IOptions<IISServerOptions>>()
+                    .Value
+                    .MaxRequestBodySize);
+            Assert.Equal(
+                configuredLimit,
+                application.Services
+                    .GetRequiredService<IOptions<KestrelServerOptions>>()
+                    .Value
+                    .Limits
+                    .MaxRequestBodySize);
+        }
+        finally
+        {
+            await application.StopAsync();
+            DeleteStoragePath(storagePath);
+        }
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(4_294_967_296)]
+    public async Task RejectsUnlimitedOrNativeIisOverflowRequestLimits(long configuredLimit)
+    {
+        string storagePath = CreateStoragePath();
+        await using WebApplication application = CreateApplication(
+            storagePath,
+            "--LegacyProxy:MaximumRequestBodySize",
+            configuredLimit.ToString());
+
+        try
+        {
+            OptionsValidationException exception = await Assert.ThrowsAsync<OptionsValidationException>(
+                () => application.StartAsync());
+            Assert.Contains("Unlimited request bodies are not supported", exception.Message);
+        }
+        finally
+        {
             DeleteStoragePath(storagePath);
         }
     }
@@ -105,14 +212,18 @@ public class ProgramFacts
             GetSystemAssignedManagedIdentityMode(configuration));
     }
 
-    private static WebApplication CreateApplication(string storagePath)
+    private static WebApplication CreateApplication(
+        string storagePath,
+        params string[] additionalArguments)
     {
+        string[] arguments = new[]
+        {
+            "--DataProtection:StorageLocation",
+            storagePath,
+        }.Concat(additionalArguments).ToArray();
+
         return Program.BuildApplication(
-            new[]
-            {
-                "--DataProtection:StorageLocation",
-                storagePath,
-            },
+            arguments,
             builder =>
             {
                 builder.WebHost.UseTestServer();
@@ -161,5 +272,18 @@ public class ProgramFacts
         {
             Directory.Delete(storagePath, recursive: true);
         }
+    }
+
+    private static string FindRepositoryRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory != null
+            && !File.Exists(Path.Combine(directory.FullName, "Directory.Packages.props")))
+        {
+            directory = directory.Parent;
+        }
+
+        return directory?.FullName
+            ?? throw new DirectoryNotFoundException("The repository root could not be found.");
     }
 }
