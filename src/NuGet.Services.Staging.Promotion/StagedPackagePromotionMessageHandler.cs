@@ -231,16 +231,22 @@ namespace NuGet.Services.Staging.Promotion
 
         private async Task DeletePublishedFilesAsync(Package package, string packageFileName)
         {
+            _logger.LogInformation("Deleting public package file.");
             await _packageFileStorageService.DeleteFileAsync(_packageFileMetadataService.FileFolderName, packageFileName);
+            _logger.LogInformation("Deleted public package file.");
 
             if (package.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
             {
+                _logger.LogInformation("Deleting embedded license file.");
                 await _licenseFileService.DeleteLicenseFileAsync(package.Id, package.NormalizedVersion);
+                _logger.LogInformation("Deleted embedded license file.");
             }
 
             if (package.HasEmbeddedReadme)
             {
+                _logger.LogInformation("Deleting embedded readme file.");
                 await _readmeFileService.DeleteReadmeFileAsync(package.Id, package.NormalizedVersion);
+                _logger.LogInformation("Deleted embedded readme file.");
             }
         }
     }
