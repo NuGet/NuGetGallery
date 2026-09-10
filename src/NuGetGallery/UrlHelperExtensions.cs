@@ -1237,6 +1237,19 @@ namespace NuGetGallery
                 });
         }
 
+        public static string PromoteStagedPackage(this UrlHelper url, string id, string version, bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.PromoteManagedStagedPackage,
+                relativeUrl,
+                new RouteValueDictionary
+                {
+                    { "id", id },
+                    { "version", version },
+                });
+        }
+
         public static string ManageMyReceivedPackageOwnershipRequests(this UrlHelper url, bool relativeUrl = true)
         {
             return url.ManageMyPackages(relativeUrl) + Fragments.ManagePackagesPage.ShowRequestsReceivedContainer;

@@ -9,9 +9,9 @@ static class ConfigureValidationTool
 {
 	public static int Run(string[] args)
 	{
-		if (args.Length != 2)
+		if (args.Length != 3)
 		{
-			throw new ArgumentException("Expected Gallery and validation orchestrator configuration paths.");
+			throw new ArgumentException("Expected Gallery, validation orchestrator, and staging promotion configuration paths.");
 		}
 
 		var serviceBusHostName = Environment.GetEnvironmentVariable("SERVICE_BUS_HOST_NAME");
@@ -23,6 +23,7 @@ static class ConfigureValidationTool
 		serviceBusHostName = serviceBusHostName.Trim();
 		UpdateGalleryConfiguration(args[0], serviceBusHostName);
 		UpdateOrchestratorConfiguration(args[1], serviceBusHostName);
+		UpdatePromotionConfiguration(args[2], serviceBusHostName);
 		return 0;
 	}
 
@@ -33,6 +34,7 @@ static class ConfigureValidationTool
 		SetAppSetting(document, "Gallery.BlockingAsynchronousPackageValidationEnabled", bool.TrueString);
 		SetAppSetting(document, "AzureServiceBus.Validation.ConnectionString", serviceBusHostName);
 		SetAppSetting(document, "AzureServiceBus.SymbolsValidation.ConnectionString", serviceBusHostName);
+		SetAppSetting(document, "AzureServiceBus.StagingPromotion.ConnectionString", serviceBusHostName);
 		document.Save(path);
 	}
 
@@ -60,17 +62,26 @@ static class ConfigureValidationTool
 		File.WriteAllText(path, root.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
 	}
 
+	private static void UpdatePromotionConfiguration(string path, string serviceBusHostName)
+	{
+		var root = JsonNode.Parse(File.ReadAllText(path))
+			?? throw new InvalidOperationException("The staging promotion configuration is empty.");
+
+		SetJsonValue(root, "ServiceBus", "ConnectionString", serviceBusHostName);
+		File.WriteAllText(path, root.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+	}
+
 	private static void SetJsonValue(JsonNode root, string section, string property, string value)
 	{
 		var sectionNode = root[section]
-			?? throw new InvalidOperationException($"The orchestrator section '{section}' was not found.");
+			?? throw new InvalidOperationException($"The configuration section '{section}' was not found.");
 		sectionNode[property] = value;
 	}
 
 	private static void SetJsonValue(JsonNode root, string section, string subsection, string property, string value)
 	{
 		var subsectionNode = root[section]?[subsection]
-			?? throw new InvalidOperationException($"The orchestrator section '{section}:{subsection}' was not found.");
+			?? throw new InvalidOperationException($"The configuration section '{section}:{subsection}' was not found.");
 		subsectionNode[property] = value;
 	}
 }

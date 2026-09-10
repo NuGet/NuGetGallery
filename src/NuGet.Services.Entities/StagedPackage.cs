@@ -38,6 +38,11 @@ namespace NuGet.Services.Entities
 
         public StagedPackageStatus Status { get; set; }
 
+        /// <summary>
+        /// Identifies the active promotion for message correlation and fencing.
+        /// </summary>
+        public Guid? ActivePromotionId { get; set; }
+
         public DateTime UploadedDate { get; set; }
 
         /// <summary>

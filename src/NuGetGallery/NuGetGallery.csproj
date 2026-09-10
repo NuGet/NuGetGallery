@@ -415,6 +415,10 @@
     <Compile Include="Migrations\202608290458316_AddStagedPackageRowVersion.Designer.cs">
       <DependentUpon>202608290458316_AddStagedPackageRowVersion.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202609020256140_AddStagedPackagePromotionState.cs" />
+    <Compile Include="Migrations\202609020256140_AddStagedPackagePromotionState.Designer.cs">
+      <DependentUpon>202609020256140_AddStagedPackagePromotionState.cs</DependentUpon>
+    </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
     <Compile Include="RequestModels\UpdateListedRequest.cs" />
@@ -622,10 +626,12 @@
     <Compile Include="Services\IStagedPackageValidationMessageEmitter.cs" />
     <Compile Include="Services\IPackageStagingAuthorizationService.cs" />
     <Compile Include="Services\IPackageStagingManagementService.cs" />
+    <Compile Include="Services\IPackageStagingPromotionService.cs" />
     <Compile Include="Services\IPackageStagingUploadService.cs" />
     <Compile Include="Services\PackageStagingResult.cs" />
     <Compile Include="Services\PackageStagingAuthorizationService.cs" />
     <Compile Include="Services\PackageStagingManagementService.cs" />
+    <Compile Include="Services\PackageStagingPromotionService.cs" />
     <Compile Include="Services\PackageStagingStatus.cs" />
     <Compile Include="Services\PackageStagingUploadService.cs" />
     <Compile Include="ViewModels\PackageStagingViewModel.cs" />
@@ -1835,6 +1841,9 @@
     <EmbeddedResource Include="Migrations\202608290458316_AddStagedPackageRowVersion.resx">
       <DependentUpon>202608290458316_AddStagedPackageRowVersion.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609020256140_AddStagedPackagePromotionState.resx">
+      <DependentUpon>202609020256140_AddStagedPackagePromotionState.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
@@ -2299,6 +2308,10 @@
     <ProjectReference Include="..\NuGet.Services.ServiceBus\NuGet.Services.ServiceBus.csproj">
       <Project>{8e69eee6-2bdc-48e5-a4ab-32f44ebb2422}</Project>
       <Name>NuGet.Services.ServiceBus</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.Staging\NuGet.Services.Staging.csproj">
+      <Project>{8a35269d-ea22-4319-a514-e41c62c7b8e8}</Project>
+      <Name>NuGet.Services.Staging</Name>
     </ProjectReference>
     <ProjectReference Include="..\NuGet.Services.Sql\NuGet.Services.Sql.csproj">
       <Project>{692cdff5-6301-41bd-b06f-89deee43e23e}</Project>

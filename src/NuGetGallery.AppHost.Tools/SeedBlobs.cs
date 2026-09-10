@@ -212,8 +212,10 @@ static class SeedBlobsTool
 	{
 		var json = JsonNode.Parse(await File.ReadAllTextAsync(filePath))!;
 		var features = json["Features"]!.AsObject();
+		var flights = json["Flights"]!.AsObject();
 
 		features["NuGetGallery.AdminApiSoftDelete"] = "Enabled";
+		flights["NuGetGallery.PackageStaging"]!["Accounts"]!.AsArray().Add("NugetTestAccount");
 
 		var patched = json.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
 		await SeedAsync(blobService, containerName, "flags.json", patched);

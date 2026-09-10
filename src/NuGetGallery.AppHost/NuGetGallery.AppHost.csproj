@@ -21,6 +21,7 @@
     <ProjectReference Include="..\NuGet.Jobs.Catalog2AzureSearch\NuGet.Jobs.Catalog2AzureSearch.csproj" />
     <ProjectReference Include="..\NuGet.Jobs.Db2AzureSearch\NuGet.Jobs.Db2AzureSearch.csproj" />
     <ProjectReference Include="..\NuGet.Jobs.Auxiliary2AzureSearch\NuGet.Jobs.Auxiliary2AzureSearch.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Staging.Promotion\NuGet.Services.Staging.Promotion.csproj" />
     <ProjectReference Include="..\NuGet.Services.Validation.Orchestrator\NuGet.Services.Validation.Orchestrator.csproj" />
     <ProjectReference Include="..\NuGet.Services.SearchService.Core\NuGet.Services.SearchService.Core.csproj" />
     <ProjectReference Include="..\NuGetGallery.AppHost.Config\NuGetGallery.AppHost.Config.csproj" IsAspireProjectResource="false" />
