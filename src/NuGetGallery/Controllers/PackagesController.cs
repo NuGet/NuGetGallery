@@ -972,7 +972,18 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var readme = await _readMeService.GetReadMeHtmlAsync(package);
+            var readmeRenderFailed = false;
+            RenderedMarkdownResult readme = null;
+            try
+            {
+                readme = await _readMeService.GetReadMeHtmlAsync(package);
+            }
+            catch (Exception ex)
+            {
+                // Any exception thrown while rendering readme should not fail the package details page.
+                _telemetryService.TraceException(ex);
+                readmeRenderFailed = true;
+            }
 
             var isPackageDeprecationEnabled = _featureFlagService.IsManageDeprecationEnabled(currentUser, allVersions);
             var packageKeyToDeprecation = isPackageDeprecationEnabled
@@ -1013,6 +1024,7 @@ namespace NuGetGallery
             model.IsFuGetLinksEnabled = _featureFlagService.IsDisplayFuGetLinksEnabled();
             model.IsNuGetPackageExplorerLinkEnabled = _featureFlagService.IsDisplayNuGetPackageExplorerLinkEnabled();
             model.IsNuGetTrendsLinksEnabled = _featureFlagService.IsDisplayNuGetTrendsLinksEnabled();
+            model.ReadMeFailedToRender = readmeRenderFailed;
             model.IsPackageRenamesEnabled = _featureFlagService.IsPackageRenamesEnabled(currentUser);
             model.IsPackageDependentsEnabled = _featureFlagService.IsPackageDependentsEnabled(currentUser);
             model.IsRecentPackagesNoIndexEnabled = _featureFlagService.IsRecentPackagesNoIndexEnabled();
