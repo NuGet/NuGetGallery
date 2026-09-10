@@ -601,14 +601,14 @@ namespace NuGetGallery
 
                         return new PackageStagingViewModel
                         {
-                            Id = stagedPackage.Package.PackageRegistration.Id,
-                            Version = stagedPackage.Package.NormalizedVersion,
+                            Id = stagedPackage.StagingPackageIdentity.Package.PackageRegistration.Id,
+                            Version = stagedPackage.StagingPackageIdentity.Package.NormalizedVersion,
                             Status = stagedPackage.Status.ToString(),
                             StatusClass = $"staging-status-{stagedPackage.Status.ToString().ToLowerInvariant()}",
-                            Owner = stagedPackage.Owner.Username,
+                            Owner = stagedPackage.StagingPackageIdentity.Owner.Username,
                             UploadedDate = stagedPackage.UploadedDate,
                             ValidationIssues = validationIssues ?? [],
-                            Listed = stagedPackage.Package.Listed,
+                            Listed = stagedPackage.StagingPackageIdentity.Package.Listed,
                             CanManage = true,
                             CanPromote = stagedPackage.Status == StagedPackageStatus.Ready,
                         };

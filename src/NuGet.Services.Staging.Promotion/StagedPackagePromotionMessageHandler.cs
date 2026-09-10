@@ -73,7 +73,8 @@ namespace NuGet.Services.Staging.Promotion
 
                 var stagedPackage = _stagedPackageRepository
                     .GetAll()
-                    .Include(candidate => candidate.Package.PackageRegistration.Owners)
+                    .Include(candidate => candidate.StagingPackageIdentity.Package.PackageRegistration.Owners)
+                    .Include(candidate => candidate.StagingPackageIdentity.Owner)
                     .SingleOrDefault(candidate => candidate.Key == message.StagedPackageKey);
                 if (!IsActivePromotionAttempt(stagedPackage, message.PromotionId))
                 {
@@ -81,7 +82,7 @@ namespace NuGet.Services.Staging.Promotion
                     return true;
                 }
 
-                var package = stagedPackage.Package;
+                var package = stagedPackage.StagingPackageIdentity.Package;
                 using (_logger.BeginScope(
                     "Package {PackageId} {PackageVersion}",
                     package.PackageRegistration.Id,
@@ -125,14 +126,14 @@ namespace NuGet.Services.Staging.Promotion
             return stagedPackage != null
                 && stagedPackage.Status == StagedPackageStatus.Promoting
                 && stagedPackage.ActivePromotionId == promotionId
-                && stagedPackage.Package.PackageStatusKey == PackageStatus.Staged;
+                && stagedPackage.StagingPackageIdentity.Package.PackageStatusKey == PackageStatus.Staged;
         }
 
         private static bool HasValidPromotionState(StagedPackage stagedPackage)
         {
             return !string.IsNullOrWhiteSpace(stagedPackage.ValidatedBlobPath)
                 && !string.IsNullOrWhiteSpace(stagedPackage.ValidatedBlobETag)
-                && stagedPackage.Package.PackageRegistration.Owners.Any(owner => owner.Key == stagedPackage.OwnerKey);
+                && stagedPackage.StagingPackageIdentity.Package.PackageRegistration.Owners.Any(owner => owner.Key == stagedPackage.StagingPackageIdentity.OwnerKey);
         }
 
         private async Task MarkPromotionFailedAsync(StagedPackage stagedPackage)

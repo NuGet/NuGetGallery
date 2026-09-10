@@ -19,7 +19,7 @@ namespace NuGetGallery
         public async Task DownloadsAuthorizedPackage()
         {
             var currentUser = new User("current") { Key = 1 };
-            var stagedPackage = new StagedPackage();
+            var stagedPackage = CreateStagedPackage(currentUser);
             var content = new MemoryStream();
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
@@ -45,7 +45,7 @@ namespace NuGetGallery
         public async Task HidesUnauthorizedPackage()
         {
             var currentUser = new User("current") { Key = 1 };
-            var stagedPackage = new StagedPackage();
+            var stagedPackage = CreateStagedPackage(currentUser);
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
                 .Returns(stagedPackage);
@@ -67,7 +67,7 @@ namespace NuGetGallery
         public async Task HidesPackageWhenContentIsMissing()
         {
             var currentUser = new User("current") { Key = 1 };
-            var stagedPackage = new StagedPackage();
+            var stagedPackage = CreateStagedPackage(currentUser);
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
                 .Returns(stagedPackage);
@@ -89,7 +89,7 @@ namespace NuGetGallery
         public async Task UpdatesListedIntentForAuthorizedPackage()
         {
             var currentUser = new User("current") { Key = 1 };
-            var stagedPackage = new StagedPackage();
+            var stagedPackage = CreateStagedPackage(currentUser);
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
                 .Returns(stagedPackage);
@@ -112,7 +112,7 @@ namespace NuGetGallery
         public async Task DeletesAuthorizedPackage()
         {
             var currentUser = new User("current") { Key = 1 };
-            var stagedPackage = new StagedPackage();
+            var stagedPackage = CreateStagedPackage(currentUser);
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
                 .Returns(stagedPackage);
@@ -137,7 +137,7 @@ namespace NuGetGallery
         public async Task PromotesAuthorizedReadyPackage()
         {
             var currentUser = new User("current") { Key = 1 };
-            var stagedPackage = new StagedPackage();
+            var stagedPackage = CreateStagedPackage(currentUser);
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
                 .Returns(stagedPackage);
@@ -162,7 +162,7 @@ namespace NuGetGallery
         public async Task ReportsWhenPackageIsNotReadyForPromotion()
         {
             var currentUser = new User("current") { Key = 1 };
-            var stagedPackage = new StagedPackage();
+            var stagedPackage = CreateStagedPackage(currentUser);
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
                 .Returns(stagedPackage);
@@ -185,7 +185,7 @@ namespace NuGetGallery
         public async Task ReplacesAuthorizedPackage()
         {
             var currentUser = new User("current") { Key = 1 };
-            var stagedPackage = new StagedPackage();
+            var stagedPackage = CreateStagedPackage(currentUser);
             var packageFile = new Mock<HttpPostedFileBase>();
             using var content = new MemoryStream();
             packageFile.SetupGet(x => x.ContentLength).Returns(1);
@@ -214,7 +214,7 @@ namespace NuGetGallery
         public async Task RequiresAReplacementFile()
         {
             var currentUser = new User("current") { Key = 1 };
-            var stagedPackage = new StagedPackage();
+            var stagedPackage = CreateStagedPackage(currentUser);
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
                 .Returns(stagedPackage);
@@ -235,6 +235,32 @@ namespace NuGetGallery
                     It.IsAny<StagedPackage>(),
                     It.IsAny<Stream>()),
                 Times.Never);
+        }
+
+        private static StagedPackage CreateStagedPackage(User owner)
+        {
+            var package = new Package
+            {
+                Key = 42,
+                NormalizedVersion = "1.0.0",
+                PackageRegistration = new PackageRegistration { Id = "PackageA" },
+            };
+            var identity = new StagingPackageIdentity
+            {
+                Key = package.Key,
+                Package = package,
+                OwnerKey = owner.Key,
+                Owner = owner,
+            };
+            var stagedPackage = new StagedPackage
+            {
+                Key = 43,
+                StagingPackageIdentityKey = identity.Key,
+                StagingPackageIdentity = identity,
+            };
+            identity.CurrentStagedPackageKey = stagedPackage.Key;
+            identity.CurrentStagedPackage = stagedPackage;
+            return stagedPackage;
         }
     }
 }

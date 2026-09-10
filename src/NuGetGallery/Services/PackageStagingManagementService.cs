@@ -78,10 +78,10 @@ namespace NuGetGallery
 
             return new PackageStagingStatus
             {
-                Id = stagedPackage.Package.PackageRegistration.Id,
-                Version = stagedPackage.Package.NormalizedVersion,
+                Id = stagedPackage.StagingPackageIdentity.Package.PackageRegistration.Id,
+                Version = stagedPackage.StagingPackageIdentity.Package.NormalizedVersion,
                 Status = stagedPackage.Status.ToString(),
-                Listed = stagedPackage.Package.Listed,
+                Listed = stagedPackage.StagingPackageIdentity.Package.Listed,
             };
         }
 
@@ -142,7 +142,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(stagedPackage));
             }
 
-            stagedPackage.Package.Listed = listed;
+            stagedPackage.StagingPackageIdentity.Package.Listed = listed;
             await _stagedPackageRepository.CommitChangesAsync();
         }
 
@@ -154,8 +154,8 @@ namespace NuGetGallery
             }
 
             stagedPackage.Status = StagedPackageStatus.Deleted;
-            stagedPackage.Package.Listed = false;
-            await _packageService.UpdatePackageStatusAsync(stagedPackage.Package, PackageStatus.Deleted, commitChanges: false);
+            stagedPackage.StagingPackageIdentity.Package.Listed = false;
+            await _packageService.UpdatePackageStatusAsync(stagedPackage.StagingPackageIdentity.Package, PackageStatus.Deleted, commitChanges: false);
             await _stagedPackageRepository.CommitChangesAsync();
         }
 
@@ -172,7 +172,7 @@ namespace NuGetGallery
 
             return GetCurrentStagedPackages(ownerKeys)
                 .Where(stagedPackage => _packageStagingAuthorizationService.CanManage(currentUser, stagedPackage))
-                .OrderBy(stagedPackage => stagedPackage.Package.PackageRegistration.Id)
+                .OrderBy(stagedPackage => stagedPackage.StagingPackageIdentity.Package.PackageRegistration.Id)
                 .ThenByDescending(stagedPackage => stagedPackage.UploadedDate)
                 .ToList();
         }
@@ -205,23 +205,19 @@ namespace NuGetGallery
         {
             return _stagedPackageRepository
                 .GetAll()
-                .Include(stagedPackage => stagedPackage.Package.PackageRegistration)
-                .Include(stagedPackage => stagedPackage.Owner)
-                .Where(stagedPackage => ownerKeys.Contains(stagedPackage.OwnerKey))
-                .Where(stagedPackage => stagedPackage.Package.PackageStatusKey == PackageStatus.Staged)
-                .AsEnumerable()
-                .GroupBy(stagedPackage => stagedPackage.PackageKey)
-                .Select(attempts => attempts.OrderByDescending(attempt => attempt.Key).First());
+                .Include(stagedPackage => stagedPackage.StagingPackageIdentity.Package.PackageRegistration)
+                .Include(stagedPackage => stagedPackage.StagingPackageIdentity.Owner)
+                .Where(stagedPackage => ownerKeys.Contains(stagedPackage.StagingPackageIdentity.OwnerKey))
+                .Where(stagedPackage => stagedPackage.StagingPackageIdentity.Package.PackageStatusKey == PackageStatus.Staged)
+                .Where(stagedPackage => stagedPackage.StagingPackageIdentity.CurrentStagedPackageKey == stagedPackage.Key);
         }
 
         private StagedPackage GetCurrentAttempt(int packageKey)
         {
             return _stagedPackageRepository
                 .GetAll()
-                .Include(stagedPackage => stagedPackage.Owner)
-                .Where(stagedPackage => stagedPackage.PackageKey == packageKey)
-                .OrderByDescending(stagedPackage => stagedPackage.Key)
-                .FirstOrDefault();
+                .Include(stagedPackage => stagedPackage.StagingPackageIdentity.Owner)
+                .SingleOrDefault(stagedPackage => stagedPackage.StagingPackageIdentityKey == packageKey && stagedPackage.StagingPackageIdentity.CurrentStagedPackageKey == stagedPackage.Key);
         }
 
         private IEnumerable<User> GetEnabledOwners(User currentUser)

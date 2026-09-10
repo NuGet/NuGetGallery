@@ -30,13 +30,22 @@ namespace NuGetGallery
             var stagedPackage = new StagedPackage
             {
                 Key = 43,
-                PackageKey = 42,
-                Package = new Package
+                StagingPackageIdentityKey = 42,
+                StagingPackageIdentity = new StagingPackageIdentity
                 {
-                    PackageRegistration = new PackageRegistration { Id = "PackageA" },
-                    Version = "1.0.0",
+                    Key = 42,
+                    Package = new Package
+                    {
+                        Key = 42,
+                        PackageRegistration = new PackageRegistration { Id = "PackageA" },
+                        Version = "1.0.0",
+                    },
+                    OwnerKey = 1,
+                    Owner = new User("owner") { Key = 1 },
                 },
             };
+            stagedPackage.StagingPackageIdentity.CurrentStagedPackageKey = stagedPackage.Key;
+            stagedPackage.StagingPackageIdentity.CurrentStagedPackage = stagedPackage;
 
             var status = await target.StartValidationAsync(stagedPackage);
 

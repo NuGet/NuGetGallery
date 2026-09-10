@@ -62,11 +62,17 @@ namespace NuGetGallery
 
             return new StagedPackage
             {
-                Owner = stagedOwner,
-                OwnerKey = stagedOwner.Key,
-                Package = new Package
+                StagingPackageIdentityKey = 42,
+                StagingPackageIdentity = new StagingPackageIdentity
                 {
-                    PackageRegistration = registration,
+                    Key = 42,
+                    Package = new Package
+                    {
+                        Key = 42,
+                        PackageRegistration = registration,
+                    },
+                    Owner = stagedOwner,
+                    OwnerKey = stagedOwner.Key,
                 },
             };
         }

@@ -82,6 +82,8 @@ namespace NuGetGallery
         public DbSet<UserCertificate> UserCertificates { get; set; }
         public DbSet<SymbolPackage> SymbolPackages { get; set; }
         public DbSet<StagedPackage> StagedPackages { get; set; }
+        public DbSet<StagingPackageIdentity> StagingPackageIdentities { get; set; }
+        public DbSet<StagingGroup> StagingGroups { get; set; }
         public DbSet<PackageVulnerability> Vulnerabilities { get; set; }
         public DbSet<VulnerablePackageVersionRange> VulnerableRanges { get; set; }
         public DbSet<PackageRename> PackageRenames { get; set; }
@@ -479,16 +481,67 @@ namespace NuGetGallery
                 .HasKey(s => s.Key);
 
             modelBuilder.Entity<StagedPackage>()
-                .HasRequired(s => s.Package)
+                .HasRequired(s => s.StagingPackageIdentity)
                 .WithMany()
-                .HasForeignKey(s => s.PackageKey)
+                .HasForeignKey(s => s.StagingPackageIdentityKey)
                 .WillCascadeOnDelete(true);
 
-            modelBuilder.Entity<StagedPackage>()
-                .HasRequired(s => s.Owner)
+            modelBuilder.Entity<StagingPackageIdentity>()
+                .HasKey(i => i.Key);
+
+            modelBuilder.Entity<StagingPackageIdentity>()
+                .HasRequired(i => i.Package)
+                .WithOptional()
+                .WillCascadeOnDelete(true);
+
+            modelBuilder.Entity<StagingPackageIdentity>()
+                .HasRequired(i => i.Owner)
                 .WithMany()
-                .HasForeignKey(s => s.OwnerKey)
+                .HasForeignKey(i => i.OwnerKey)
                 .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StagingPackageIdentity>()
+                .HasOptional(i => i.StagingGroup)
+                .WithMany()
+                .HasForeignKey(i => i.StagingGroupKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StagingPackageIdentity>()
+                .HasOptional(i => i.CurrentStagedPackage)
+                .WithMany()
+                .HasForeignKey(i => i.CurrentStagedPackageKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StagingGroup>()
+                .HasKey(g => g.Key);
+
+            modelBuilder.Entity<StagingGroup>()
+                .HasRequired(g => g.Owner)
+                .WithMany()
+                .HasForeignKey(g => g.OwnerKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StagingGroup>()
+                .Property(g => g.CreatedDate)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<StagingGroup>()
+                .Property(g => g.OwnerKey)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(new IndexAttribute("IX_StagingGroups_OwnerKey_Id", 0)
+                    {
+                        IsUnique = true
+                    }));
+
+            modelBuilder.Entity<StagingGroup>()
+                .Property(g => g.Id)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(new IndexAttribute("IX_StagingGroups_OwnerKey_Id", 1)
+                    {
+                        IsUnique = true
+                    }));
 
             modelBuilder.Entity<StagedPackage>()
                 .Property(s => s.RowVersion)

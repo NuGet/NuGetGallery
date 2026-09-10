@@ -166,22 +166,24 @@ namespace NuGetGallery
                 }
 
                 Assert.Equal(PackageStatus.Staged, package.PackageStatusKey);
-                Assert.Equal(owner.Key, stagedPackage.OwnerKey);
+                Assert.Equal(owner.Key, stagedPackage.StagingPackageIdentity.OwnerKey);
                 Assert.Equal(file.Path, stagedPackage.UploadedBlobPath);
                 Assert.Equal(file.ETag, stagedPackage.UploadedBlobETag);
                 Assert.Equal(streamMetadata.Hash, stagedPackage.UploadHash);
+                Assert.Equal(stagedPackage.Key, stagedPackage.StagingPackageIdentity.CurrentStagedPackageKey);
+                Assert.Same(stagedPackage, stagedPackage.StagingPackageIdentity.CurrentStagedPackage);
                 Assert.Null(stagedPackage.ValidatedBlobPath);
                 Assert.Null(stagedPackage.ValidatedBlobETag);
                 Assert.Equal(expectedStatus, stagedPackage.Status);
                 var expectedOperations = expectedStatus == StagedPackageStatus.Validating
-                    ? new[] { "begin", "save", "enqueue", "commit" }
-                    : new[] { "begin", "save", "enqueue", "save", "commit" };
+                    ? new[] { "begin", "save", "save", "enqueue", "commit" }
+                    : new[] { "begin", "save", "save", "enqueue", "save", "commit" };
                 Assert.Equal(expectedOperations, operations);
                 stagedValidationMessageEmitter.Verify(x => x.StartValidationAsync(stagedPackage), Times.Once);
                 stagedPackageRepository.Verify(x => x.InsertOnCommit(stagedPackage), Times.Once);
                 stagedPackageRepository.Verify(
                     x => x.CommitChangesAsync(),
-                    expectedStatus == StagedPackageStatus.Validating ? Times.Once() : Times.Exactly(2));
+                    expectedStatus == StagedPackageStatus.Validating ? Times.Exactly(2) : Times.Exactly(3));
                 stagedPackageRepository.Verify(x => x.ExecuteInTransactionAsync(It.IsAny<System.Func<Task>>()), Times.Once);
             }
 
@@ -221,15 +223,21 @@ namespace NuGetGallery
                 var stagedPackage = new StagedPackage
                 {
                     Key = 31,
-                    PackageKey = package.Key,
-                    Package = package,
-                    OwnerKey = owner.Key,
-                    Owner = owner,
+                    StagingPackageIdentityKey = package.Key,
+                    StagingPackageIdentity = new StagingPackageIdentity
+                    {
+                        Key = package.Key,
+                        Package = package,
+                        OwnerKey = owner.Key,
+                        Owner = owner,
+                    },
                     UploadedBlobPath = "old.nupkg",
                     UploadedBlobETag = "old-etag",
                     UploadHash = uploadHash,
                     Status = status,
                 };
+                stagedPackage.StagingPackageIdentity.CurrentStagedPackageKey = stagedPackage.Key;
+                stagedPackage.StagingPackageIdentity.CurrentStagedPackage = stagedPackage;
                 if (!identical)
                 {
                     stagedPackage.UploadHash = "different";
@@ -292,7 +300,16 @@ namespace NuGetGallery
                 stagedPackageRepository
                     .Setup(x => x.InsertOnCommit(It.IsAny<StagedPackage>()))
                     .Callback<StagedPackage>(value => successor = value);
-                stagedPackageRepository.Setup(x => x.CommitChangesAsync()).Returns(Task.CompletedTask);
+                stagedPackageRepository
+                    .Setup(x => x.CommitChangesAsync())
+                    .Callback(() =>
+                    {
+                        if (successor != null && successor.Key == 0)
+                        {
+                            successor.Key = 32;
+                        }
+                    })
+                    .Returns(Task.CompletedTask);
                 stagedPackageRepository
                     .Setup(x => x.ExecuteInTransactionAsync(It.IsAny<System.Func<Task>>()))
                     .Returns<System.Func<Task>>(action => action());
@@ -373,6 +390,8 @@ namespace NuGetGallery
                     Assert.Equal("old-etag", stagedPackage.UploadedBlobETag);
                     Assert.Equal("new.nupkg", successor.UploadedBlobPath);
                     Assert.Equal("etag", successor.UploadedBlobETag);
+                    Assert.Equal(successor.Key, successor.StagingPackageIdentity.CurrentStagedPackageKey);
+                    Assert.Same(successor, successor.StagingPackageIdentity.CurrentStagedPackage);
                 }
                 else
                 {
@@ -435,20 +454,29 @@ namespace NuGetGallery
 
             private static StagedPackage CreateStagedPackage(User owner)
             {
-                return new StagedPackage
+                var package = new Package
                 {
-                    Key = 31,
-                    PackageKey = 29,
+                    Key = 29,
+                    NormalizedVersion = "1.0.0",
+                    PackageRegistration = new PackageRegistration { Id = "PackageA" },
+                    PackageStatusKey = PackageStatus.Staged,
+                };
+                var stagingPackageIdentity = new StagingPackageIdentity
+                {
+                    Key = package.Key,
+                    Package = package,
                     Owner = owner,
                     OwnerKey = owner.Key,
-                    Package = new Package
-                    {
-                        Key = 29,
-                        NormalizedVersion = "1.0.0",
-                        PackageRegistration = new PackageRegistration { Id = "PackageA" },
-                        PackageStatusKey = PackageStatus.Staged,
-                    },
                 };
+                var stagedPackage = new StagedPackage
+                {
+                    Key = 31,
+                    StagingPackageIdentityKey = stagingPackageIdentity.Key,
+                    StagingPackageIdentity = stagingPackageIdentity,
+                };
+                stagingPackageIdentity.CurrentStagedPackageKey = stagedPackage.Key;
+                stagingPackageIdentity.CurrentStagedPackage = stagedPackage;
+                return stagedPackage;
             }
 
             private static PackageStagingUploadService CreateService(

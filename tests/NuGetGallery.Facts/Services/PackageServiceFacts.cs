@@ -3627,7 +3627,7 @@ namespace NuGetGallery
                 var service = CreateService();
                 var stagedPackage = new StagedPackage
                 {
-                    Package = new Package { PackageStatusKey = packageStatus },
+                    StagingPackageIdentity = new StagingPackageIdentity { Package = new Package { PackageStatusKey = packageStatus } },
                     Status = stagedPackageStatus,
                 };
 
@@ -3651,7 +3651,7 @@ namespace NuGetGallery
                 var service = CreateService();
                 var stagedPackage = new StagedPackage
                 {
-                    Package = new Package { PackageStatusKey = packageStatus },
+                    StagingPackageIdentity = new StagingPackageIdentity { Package = new Package { PackageStatusKey = packageStatus } },
                     Status = stagedPackageStatus,
                 };
 

@@ -22,6 +22,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 CreateStagedPackage(43),
                 CreateStagedPackage(42),
             };
+            SetCurrentAttempt(attempts, attempts[1]);
             var target = CreateService(attempts, out _);
 
             var result = target.FindPackageByIdAndVersionStrict("PackageA", "1.0.0");
@@ -72,16 +73,41 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
         private static StagedPackage CreateStagedPackage(int key)
         {
-            return new StagedPackage
+            var package = new Package
+            {
+                Key = 40,
+                NormalizedVersion = "1.0.0",
+                PackageRegistration = new PackageRegistration { Id = "PackageA" },
+            };
+            var stagingPackageIdentity = new StagingPackageIdentity
+            {
+                Key = package.Key,
+                Package = package,
+                OwnerKey = 1,
+                Owner = new User("owner") { Key = 1 },
+            };
+            var stagedPackage = new StagedPackage
             {
                 Key = key,
-                Package = new Package
-                {
-                    NormalizedVersion = "1.0.0",
-                    PackageRegistration = new PackageRegistration { Id = "PackageA" },
-                },
+                StagingPackageIdentityKey = stagingPackageIdentity.Key,
+                StagingPackageIdentity = stagingPackageIdentity,
                 Status = StagedPackageStatus.Validating,
             };
+            stagingPackageIdentity.CurrentStagedPackageKey = stagedPackage.Key;
+            stagingPackageIdentity.CurrentStagedPackage = stagedPackage;
+            return stagedPackage;
+        }
+
+        private static void SetCurrentAttempt(IEnumerable<StagedPackage> attempts, StagedPackage currentAttempt)
+        {
+            foreach (var attempt in attempts)
+            {
+                attempt.StagingPackageIdentity = currentAttempt.StagingPackageIdentity;
+                attempt.StagingPackageIdentityKey = currentAttempt.StagingPackageIdentityKey;
+            }
+
+            currentAttempt.StagingPackageIdentity.CurrentStagedPackageKey = currentAttempt.Key;
+            currentAttempt.StagingPackageIdentity.CurrentStagedPackage = currentAttempt;
         }
     }
 }

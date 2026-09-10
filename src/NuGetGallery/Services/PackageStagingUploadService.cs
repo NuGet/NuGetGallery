@@ -228,8 +228,8 @@ namespace NuGetGallery
             PreparedPackageUpload upload,
             out StagingTarget target)
         {
-            var hasMatchingId = string.Equals(authorizedStagedPackage.Package.PackageRegistration.Id, upload.Id, StringComparison.OrdinalIgnoreCase);
-            var hasMatchingVersion = string.Equals(authorizedStagedPackage.Package.NormalizedVersion, upload.NormalizedVersion, StringComparison.OrdinalIgnoreCase);
+            var hasMatchingId = string.Equals(authorizedStagedPackage.StagingPackageIdentity.Package.PackageRegistration.Id, upload.Id, StringComparison.OrdinalIgnoreCase);
+            var hasMatchingVersion = string.Equals(authorizedStagedPackage.StagingPackageIdentity.Package.NormalizedVersion, upload.NormalizedVersion, StringComparison.OrdinalIgnoreCase);
             if (!hasMatchingId || !hasMatchingVersion)
             {
                 target = null;
@@ -258,7 +258,7 @@ namespace NuGetGallery
                 packageStatus,
                 existingPackage,
                 currentAttempt,
-                authorizedStagedPackage.Owner,
+                authorizedStagedPackage.StagingPackageIdentity.Owner,
                 allowCreate: false,
                 out target);
         }
@@ -310,7 +310,7 @@ namespace NuGetGallery
                 return CreateExistingPackageConflict(upload.Id, upload.PackageMetadata.Version);
             }
 
-            if (currentAttempt.OwnerKey != owner.Key)
+            if (currentAttempt.StagingPackageIdentity.OwnerKey != owner.Key)
             {
                 return CreateExistingPackageConflict(upload.Id, upload.PackageMetadata.Version);
             }
@@ -498,9 +498,7 @@ namespace NuGetGallery
         {
             return _stagedPackageRepository
                 .GetAll()
-                .Where(candidate => candidate.PackageKey == packageKey)
-                .OrderByDescending(candidate => candidate.Key)
-                .FirstOrDefault();
+                .SingleOrDefault(candidate => candidate.StagingPackageIdentityKey == packageKey && candidate.StagingPackageIdentity.CurrentStagedPackageKey == candidate.Key);
         }
 
         private StagedPackage GetCurrentAttempt(Package package)
@@ -586,7 +584,7 @@ namespace NuGetGallery
             PackageStreamMetadata streamMetadata,
             User currentUser)
         {
-            var package = stagedPackage.Package;
+            var package = stagedPackage.StagingPackageIdentity.Package;
             var listed = package.Listed;
             _packageService.ReplacePackageMetadataForStagedPackage(stagedPackage, packageReader, packageMetadata, streamMetadata, currentUser);
             package.PackageRegistration = candidatePackage.PackageRegistration;
@@ -606,16 +604,22 @@ namespace NuGetGallery
             var file = await _stagingBlobService.SavePackageFileAsync(package.PackageRegistration.Id, package.NormalizedVersion, packageFile);
 
             await _packageService.UpdatePackageStatusAsync(package, PackageStatus.Staged, commitChanges: false);
-            var stagedPackage = new StagedPackage
+            var stagingPackageIdentity = previousAttempt?.StagingPackageIdentity ?? new StagingPackageIdentity
             {
                 Package = package,
                 OwnerKey = owner.Key,
+            };
+
+            var stagedPackage = new StagedPackage
+            {
+                StagingPackageIdentity = stagingPackageIdentity,
                 UploadedBlobPath = file.Path,
                 UploadedBlobETag = file.ETag,
                 UploadHash = uploadHash,
                 Status = StagedPackageStatus.Validating,
                 UploadedDate = DateTime.UtcNow,
             };
+
             _stagedPackageRepository.InsertOnCommit(stagedPackage);
 
             if (previousAttempt?.Status == StagedPackageStatus.Validating || previousAttempt?.Status == StagedPackageStatus.Ready)
@@ -628,6 +632,10 @@ namespace NuGetGallery
                 await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
                 {
                     // Save the insert without committing the transaction so SQL assigns the exact attempt key before enqueueing validation.
+                    await _stagedPackageRepository.CommitChangesAsync();
+
+                    stagingPackageIdentity.CurrentStagedPackageKey = stagedPackage.Key;
+                    stagingPackageIdentity.CurrentStagedPackage = stagedPackage;
                     await _stagedPackageRepository.CommitChangesAsync();
 
                     var status = await _stagedValidationMessageEmitter.StartValidationAsync(stagedPackage);

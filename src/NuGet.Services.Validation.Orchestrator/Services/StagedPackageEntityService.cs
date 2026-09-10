@@ -26,9 +26,9 @@ namespace NuGet.Services.Validation.Orchestrator
         {
             var stagedPackage = GetAll()
                 .Where(candidate =>
-                    candidate.Package.PackageRegistration.Id == id &&
-                    candidate.Package.NormalizedVersion == version)
-                .OrderByDescending(candidate => candidate.Key)
+                    candidate.StagingPackageIdentity.Package.PackageRegistration.Id == id &&
+                    candidate.StagingPackageIdentity.Package.NormalizedVersion == version &&
+                    candidate.StagingPackageIdentity.CurrentStagedPackageKey == candidate.Key)
                 .FirstOrDefault();
             if (stagedPackage == null)
             {
@@ -77,13 +77,13 @@ namespace NuGet.Services.Validation.Orchestrator
                 return Task.CompletedTask;
             }
 
-            return _packageService.UpdatePackageStreamMetadataAsync(entity.Package, packageMetadata, commitChanges);
+            return _packageService.UpdatePackageStreamMetadataAsync(entity.StagingPackageIdentity.Package, packageMetadata, commitChanges);
         }
 
         private IQueryable<StagedPackage> GetAll()
         {
             return _entitiesContext.StagedPackages
-                .Include(candidate => candidate.Package.PackageRegistration);
+                .Include(candidate => candidate.StagingPackageIdentity.Package.PackageRegistration);
         }
     }
 }
