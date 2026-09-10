@@ -972,7 +972,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var readmeRenderFailed = false;
+            var readMeFailedToRender = false;
             RenderedMarkdownResult readme = null;
             try
             {
@@ -986,7 +986,7 @@ namespace NuGetGallery
             {
                 // Any exception thrown while rendering readme should not fail the package details page.
                 _telemetryService.TraceException(ex);
-                readmeRenderFailed = true;
+                readMeFailedToRender = true;
             }
 
             var isPackageDeprecationEnabled = _featureFlagService.IsManageDeprecationEnabled(currentUser, allVersions);
@@ -1017,6 +1017,7 @@ namespace NuGetGallery
                 readme);
 
             var canDisplayReadmeWarning = _featureFlagService.IsDisplayPackageReadmeWarningEnabled(currentUser) && !model.HasEmbeddedReadmeFile && model.ReadMeHtml == null;
+            model.ReadMeFailedToRender = readMeFailedToRender;
 
             model.ValidatingTooLong = _validationService.IsValidatingTooLong(package);
             model.PackageValidationIssues = _validationService.GetLatestPackageValidationIssues(package);
@@ -1028,7 +1029,6 @@ namespace NuGetGallery
             model.IsFuGetLinksEnabled = _featureFlagService.IsDisplayFuGetLinksEnabled();
             model.IsNuGetPackageExplorerLinkEnabled = _featureFlagService.IsDisplayNuGetPackageExplorerLinkEnabled();
             model.IsNuGetTrendsLinksEnabled = _featureFlagService.IsDisplayNuGetTrendsLinksEnabled();
-            model.ReadMeFailedToRender = readmeRenderFailed;
             model.IsPackageRenamesEnabled = _featureFlagService.IsPackageRenamesEnabled(currentUser);
             model.IsPackageDependentsEnabled = _featureFlagService.IsPackageDependentsEnabled(currentUser);
             model.IsRecentPackagesNoIndexEnabled = _featureFlagService.IsRecentPackagesNoIndexEnabled();

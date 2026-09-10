@@ -1157,7 +1157,7 @@ namespace NuGetGallery
                 var result = await GetResultWithReadMe(
                     readMeHtml: null,
                     hasReadMe: true,
-                    readMeService: readMeService,
+                    readMeService: readMeService.Object,
                     telemetryService: telemetryService);
 
                 // Assert
@@ -1170,7 +1170,7 @@ namespace NuGetGallery
             private async Task<ActionResult> GetResultWithReadMe(
                 string readMeHtml,
                 bool hasReadMe,
-                Mock<IReadMeService> readMeService = null,
+                IReadMeService readMeService = null,
                 Mock<ITelemetryService> telemetryService = null)
             {
                 var packageService = new Mock<IPackageService>();
@@ -1181,7 +1181,7 @@ namespace NuGetGallery
                     packageService: packageService,
                     indexingService: indexingService,
                     packageFileService: fileService,
-                    readMeService: readMeService?.Object,
+                    readMeService: readMeService,
                     telemetryService: telemetryService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
