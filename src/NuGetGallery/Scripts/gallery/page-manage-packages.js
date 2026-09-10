@@ -114,7 +114,7 @@
             this.Promote = function (model, event) {
                 event.preventDefault();
                 const trigger = $(event.currentTarget);
-                const message = 'Promote staged package ' + self.Id + ' ' + self.Version + '?';
+                const message = `Promote staged package ${self.Id} ${self.Version}?`;
                 if (!self.IsBusy() && window.nuget.confirmEvent(message)) {
                     self.IsBusy(true);
                     trigger.siblings('.staging-promote-form')[0].submit();
@@ -124,7 +124,7 @@
             this.Delete = function (model, event) {
                 event.preventDefault();
                 const trigger = $(event.currentTarget);
-                const message = 'Delete staged package ' + self.Id + ' ' + self.Version + '?';
+                const message = `Delete staged package ${self.Id} ${self.Version}?`;
                 if (!self.IsBusy() && window.nuget.confirmEvent(message)) {
                     self.IsBusy(true);
                     trigger.siblings('.staging-delete-form')[0].submit();
@@ -132,10 +132,10 @@
             };
 
             this.ShowValidationIssues = function () {
-                const validationIssues = $('#' + self.ValidationIssuesId).html();
+                const validationIssues = $(`#${self.ValidationIssuesId}`).html();
 
                 $('html').addClass('staging-validation-modal-open');
-                stagingValidationModalTitle.text('Validation errors for ' + self.Id);
+                stagingValidationModalTitle.text(`Validation errors for ${self.Id}`);
                 stagingValidationModalContent.html(validationIssues);
                 return true;
             };
