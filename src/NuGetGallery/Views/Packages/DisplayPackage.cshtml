@@ -854,7 +854,7 @@
                         }
                         else
                         {
-                            if (Model.ReadMeFailedToRender)
+                            if (Model.ReadMeFailedToRender && Model.HasEmbeddedReadmeFile)
                             {
                                 @ViewHelpers.AlertDanger(@<text>The package README could not be rendered. The package description is shown below.</text>)
                             }

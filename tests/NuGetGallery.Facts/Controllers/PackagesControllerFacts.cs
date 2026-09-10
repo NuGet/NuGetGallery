@@ -1154,7 +1154,11 @@ namespace NuGetGallery
                 var telemetryService = new Mock<ITelemetryService>();
 
                 // Act
-                var result = await GetResultWithReadMe(readMeService.Object, telemetryService, true);
+                var result = await GetResultWithReadMe(
+                    readMeHtml: null,
+                    hasReadMe: true,
+                    readMeService: readMeService.Object,
+                    telemetryService: telemetryService);
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
@@ -1163,7 +1167,11 @@ namespace NuGetGallery
                 telemetryService.Verify(x => x.TraceException(It.IsAny<Exception>()), Times.Once);
             }
 
-            private async Task<ActionResult> GetResultWithReadMe(string readMeHtml, bool hasReadMe)
+            private async Task<ActionResult> GetResultWithReadMe(
+                string readMeHtml,
+                bool hasReadMe,
+                IReadMeService readMeService = null,
+                Mock<ITelemetryService> telemetryService = null)
             {
                 var packageService = new Mock<IPackageService>();
                 var indexingService = new Mock<IIndexingService>();
@@ -1172,7 +1180,9 @@ namespace NuGetGallery
                     GetConfigurationService(),
                     packageService: packageService,
                     indexingService: indexingService,
-                    packageFileService: fileService);
+                    packageFileService: fileService,
+                    readMeService: readMeService,
+                    telemetryService: telemetryService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var id = "Foo";
@@ -1183,28 +1193,6 @@ namespace NuGetGallery
                 {
                     fileService.Setup(f => f.DownloadReadMeMdFileAsync(It.IsAny<Package>())).Returns(Task.FromResult(readMeHtml));
                 }
-
-                return await controller.DisplayPackage(id, /*version*/null);
-            }
-
-            private async Task<ActionResult> GetResultWithReadMe(
-                IReadMeService readMeService,
-                Mock<ITelemetryService> telemetryService,
-                bool hasReadMe)
-            {
-                var packageService = new Mock<IPackageService>();
-                var indexingService = new Mock<IIndexingService>();
-                var controller = CreateController(
-                    GetConfigurationService(),
-                    packageService: packageService,
-                    indexingService: indexingService,
-                    readMeService: readMeService,
-                    telemetryService: telemetryService);
-                controller.SetCurrentUser(TestUtility.FakeUser);
-
-                var id = "Foo";
-                var package = CreateReadMeTestPackage(id, hasReadMe);
-                SetupDisplayPackageDependencies(packageService, indexingService, id, package);
 
                 return await controller.DisplayPackage(id, /*version*/null);
             }
