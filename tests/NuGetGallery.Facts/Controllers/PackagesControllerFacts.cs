@@ -1164,6 +1164,7 @@ namespace NuGetGallery
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Null(model.ReadMeHtml);
                 Assert.True(model.ReadMeFailedToRender);
+                Assert.False(model.CanDisplayReadmeWarning);
                 telemetryService.Verify(x => x.TraceException(It.IsAny<Exception>()), Times.Once);
             }
 

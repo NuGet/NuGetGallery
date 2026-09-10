@@ -1016,7 +1016,10 @@ namespace NuGetGallery
                 packageRenames,
                 readme);
 
-            var canDisplayReadmeWarning = _featureFlagService.IsDisplayPackageReadmeWarningEnabled(currentUser) && !model.HasEmbeddedReadmeFile && model.ReadMeHtml == null;
+            var canDisplayReadmeWarning = _featureFlagService.IsDisplayPackageReadmeWarningEnabled(currentUser)
+                && !model.HasEmbeddedReadmeFile
+                && model.ReadMeHtml == null
+                && !readMeFailedToRender;
             model.ReadMeFailedToRender = readMeFailedToRender;
 
             model.ValidatingTooLong = _validationService.IsValidatingTooLong(package);
