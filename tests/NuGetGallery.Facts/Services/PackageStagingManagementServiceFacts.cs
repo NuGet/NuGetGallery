@@ -39,10 +39,10 @@ namespace NuGetGallery
 
                 Assert.Equal(
                     new[] { "Organization.Package", "Personal.Package" },
-                    result.Select(stagedPackage => stagedPackage.StagingPackageIdentity.Package.PackageRegistration.Id));
+                    result.Select(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageRegistration.Id));
                 Assert.Equal(
                     new[] { "organization", "current" },
-                    result.Select(stagedPackage => stagedPackage.StagingPackageIdentity.Owner.Username));
+                    result.Select(stagedPackage => stagedPackage.StagedPackageIdentity.Owner.Username));
             }
 
             [Fact]
@@ -53,7 +53,7 @@ namespace NuGetGallery
                 previousAttempt.Status = StagedPackageStatus.Superseded;
                 var currentAttempt = CreateStagedPackage(101, 10, "Test.Package", "1.0.0", currentUser);
                 SetCurrentAttempt(previousAttempt, currentAttempt);
-                currentAttempt.StagingPackageIdentity.Package.Listed = true;
+                currentAttempt.StagedPackageIdentity.Package.Listed = true;
 
                 var target = CreateService(new[] { previousAttempt, currentAttempt }, owner => true);
 
@@ -72,7 +72,7 @@ namespace NuGetGallery
                 var currentAttempt = CreateStagedPackage(101, 10, "Test.Package", "1.0.0", currentUser);
                 SetCurrentAttempt(previousAttempt, currentAttempt);
                 currentAttempt.Status = StagedPackageStatus.Ready;
-                currentAttempt.StagingPackageIdentity.Package.Listed = true;
+                currentAttempt.StagedPackageIdentity.Package.Listed = true;
                 var hiddenPackage = CreateStagedPackage(102, 11, "Hidden.Package", "2.0.0", currentUser);
                 var authorizationService = new Mock<IPackageStagingAuthorizationService>();
                 authorizationService
@@ -103,7 +103,7 @@ namespace NuGetGallery
                 var packageService = new Mock<IPackageService>();
                 packageService
                     .Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
-                    .Returns(currentAttempt.StagingPackageIdentity.Package);
+                    .Returns(currentAttempt.StagedPackageIdentity.Package);
                 var authorizationService = new Mock<IPackageStagingAuthorizationService>();
                 authorizationService
                     .Setup(x => x.CanManageWithApiKey(
@@ -129,11 +129,11 @@ namespace NuGetGallery
                 var currentUser = new User("current") { Key = 1 };
                 var stagedPackage = CreateStagedPackage(100, 10, "Test.Package", "1.0.0", currentUser);
                 stagedPackage.Status = StagedPackageStatus.Deleted;
-                stagedPackage.StagingPackageIdentity.Package.PackageStatusKey = PackageStatus.Deleted;
+                stagedPackage.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Deleted;
                 var packageService = new Mock<IPackageService>();
                 packageService
                     .Setup(x => x.FindPackageByIdAndVersionStrict("Test.Package", "1.0.0"))
-                    .Returns(stagedPackage.StagingPackageIdentity.Package);
+                    .Returns(stagedPackage.StagedPackageIdentity.Package);
                 var target = CreateService(
                     new[] { stagedPackage },
                     owner => true,
@@ -181,7 +181,7 @@ namespace NuGetGallery
                 var packageService = new Mock<IPackageService>();
                 packageService
                     .Setup(x => x.FindPackageByIdAndVersionStrict("Test.Package", "1.0.0"))
-                    .Returns(stagedPackage.StagingPackageIdentity.Package);
+                    .Returns(stagedPackage.StagedPackageIdentity.Package);
                 var target = CreateService(
                     new[] { stagedPackage },
                     user => true,
@@ -197,7 +197,7 @@ namespace NuGetGallery
             {
                 var owner = new User("owner") { Key = 1 };
                 var stagedPackage = CreateStagedPackage(10, "Test.Package", "1.0.0", owner);
-                stagedPackage.StagingPackageIdentity.Package.Listed = false;
+                stagedPackage.StagedPackageIdentity.Package.Listed = false;
                 var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
                 var target = CreateService(
                     new[] { stagedPackage },
@@ -206,7 +206,7 @@ namespace NuGetGallery
 
                 await target.UpdateListedAsync(stagedPackage, listed: true);
 
-                Assert.True(stagedPackage.StagingPackageIdentity.Package.Listed);
+                Assert.True(stagedPackage.StagedPackageIdentity.Package.Listed);
                 stagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
             }
 
@@ -215,11 +215,11 @@ namespace NuGetGallery
             {
                 var owner = new User("owner") { Key = 1 };
                 var stagedPackage = CreateStagedPackage(10, "Test.Package", "1.0.0", owner);
-                stagedPackage.StagingPackageIdentity.Package.Listed = true;
+                stagedPackage.StagedPackageIdentity.Package.Listed = true;
                 var packageService = new Mock<IPackageService>();
                 packageService
-                    .Setup(x => x.UpdatePackageStatusAsync(stagedPackage.StagingPackageIdentity.Package, PackageStatus.Deleted, false))
-                    .Callback(() => stagedPackage.StagingPackageIdentity.Package.PackageStatusKey = PackageStatus.Deleted)
+                    .Setup(x => x.UpdatePackageStatusAsync(stagedPackage.StagedPackageIdentity.Package, PackageStatus.Deleted, false))
+                    .Callback(() => stagedPackage.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Deleted)
                     .Returns(Task.CompletedTask);
                 var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
                 var target = CreateService(
@@ -231,8 +231,8 @@ namespace NuGetGallery
                 await target.DeletePackageAsync(stagedPackage);
 
                 Assert.Equal(StagedPackageStatus.Deleted, stagedPackage.Status);
-                Assert.Equal(PackageStatus.Deleted, stagedPackage.StagingPackageIdentity.Package.PackageStatusKey);
-                Assert.False(stagedPackage.StagingPackageIdentity.Package.Listed);
+                Assert.Equal(PackageStatus.Deleted, stagedPackage.StagedPackageIdentity.Package.PackageStatusKey);
+                Assert.False(stagedPackage.StagedPackageIdentity.Package.Listed);
                 stagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
             }
 
@@ -251,8 +251,8 @@ namespace NuGetGallery
                 stagedPackagesSet.As<IQueryable<StagedPackage>>().Setup(x => x.Expression).Returns(stagedPackagesQuery.Expression);
                 stagedPackagesSet.As<IQueryable<StagedPackage>>().Setup(x => x.ElementType).Returns(stagedPackagesQuery.ElementType);
                 stagedPackagesSet.As<IQueryable<StagedPackage>>().Setup(x => x.GetEnumerator()).Returns(() => stagedPackagesQuery.GetEnumerator());
-                stagedPackagesSet.Setup(x => x.Include("StagingPackageIdentity.Package.PackageRegistration")).Returns(stagedPackagesSet.Object);
-                stagedPackagesSet.Setup(x => x.Include("StagingPackageIdentity.Owner")).Returns(stagedPackagesSet.Object);
+                stagedPackagesSet.Setup(x => x.Include("StagedPackageIdentity.Package.PackageRegistration")).Returns(stagedPackagesSet.Object);
+                stagedPackagesSet.Setup(x => x.Include("StagedPackageIdentity.Owner")).Returns(stagedPackagesSet.Object);
                 stagedPackageRepository = stagedPackageRepository ?? new Mock<IEntityRepository<StagedPackage>>();
                 stagedPackageRepository
                     .Setup(x => x.GetAll())
@@ -295,7 +295,7 @@ namespace NuGetGallery
                     PackageStatusKey = PackageStatus.Staged,
                 };
 
-                var stagingPackageIdentity = new StagingPackageIdentity
+                var stagedPackageIdentity = new StagedPackageIdentity
                 {
                     Package = package,
                     OwnerKey = owner.Key,
@@ -305,8 +305,8 @@ namespace NuGetGallery
                 var stagedPackage = new StagedPackage
                 {
                     Key = key,
-                    StagingPackageIdentityKey = stagingPackageIdentity.Key,
-                    StagingPackageIdentity = stagingPackageIdentity,
+                    StagedPackageIdentityKey = stagedPackageIdentity.Key,
+                    StagedPackageIdentity = stagedPackageIdentity,
                     UploadedDate = DateTime.UtcNow,
                 };
                 SetCurrentAttempt(stagedPackage);
@@ -315,14 +315,14 @@ namespace NuGetGallery
 
             private static void SetCurrentAttempt(StagedPackage stagedPackage)
             {
-                stagedPackage.StagingPackageIdentity.CurrentStagedPackageKey = stagedPackage.Key;
-                stagedPackage.StagingPackageIdentity.CurrentStagedPackage = stagedPackage;
+                stagedPackage.StagedPackageIdentity.CurrentStagedPackageKey = stagedPackage.Key;
+                stagedPackage.StagedPackageIdentity.CurrentStagedPackage = stagedPackage;
             }
 
             private static void SetCurrentAttempt(StagedPackage previousAttempt, StagedPackage currentAttempt)
             {
-                previousAttempt.StagingPackageIdentity = currentAttempt.StagingPackageIdentity;
-                previousAttempt.StagingPackageIdentityKey = currentAttempt.StagingPackageIdentityKey;
+                previousAttempt.StagedPackageIdentity = currentAttempt.StagedPackageIdentity;
+                previousAttempt.StagedPackageIdentityKey = currentAttempt.StagedPackageIdentityKey;
                 SetCurrentAttempt(currentAttempt);
             }
         }

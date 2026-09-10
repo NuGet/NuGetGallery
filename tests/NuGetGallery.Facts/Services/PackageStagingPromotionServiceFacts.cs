@@ -127,7 +127,7 @@ namespace NuGetGallery
         {
             var owner = new User("owner") { Key = 1 };
             var package = new Package { Key = 42 };
-            var identity = new StagingPackageIdentity
+            var identity = new StagedPackageIdentity
             {
                 Key = package.Key,
                 Package = package,
@@ -137,8 +137,8 @@ namespace NuGetGallery
             var stagedPackage = new StagedPackage
             {
                 Key = StagedPackageKey,
-                StagingPackageIdentityKey = identity.Key,
-                StagingPackageIdentity = identity,
+                StagedPackageIdentityKey = identity.Key,
+                StagedPackageIdentity = identity,
                 Status = status,
             };
             identity.CurrentStagedPackageKey = stagedPackage.Key;

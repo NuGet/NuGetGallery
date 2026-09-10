@@ -172,8 +172,8 @@ namespace NuGetGallery
 
             return new StagedPackage
             {
-                StagingPackageIdentityKey = 42,
-                StagingPackageIdentity = new StagingPackageIdentity
+                StagedPackageIdentityKey = 42,
+                StagedPackageIdentity = new StagedPackageIdentity
                 {
                     Key = 42,
                     Package = new Package

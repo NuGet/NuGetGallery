@@ -10,9 +10,9 @@ namespace NuGet.Services.Entities
     {
         public int Key { get; set; }
 
-        public int StagingPackageIdentityKey { get; set; }
+        public int StagedPackageIdentityKey { get; set; }
 
-        public virtual StagingPackageIdentity StagingPackageIdentity { get; set; }
+        public virtual StagedPackageIdentity StagedPackageIdentity { get; set; }
 
         [Required]
         [StringLength(256)]

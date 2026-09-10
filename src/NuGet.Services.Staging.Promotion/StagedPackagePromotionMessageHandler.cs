@@ -73,8 +73,8 @@ namespace NuGet.Services.Staging.Promotion
 
                 var stagedPackage = _stagedPackageRepository
                     .GetAll()
-                    .Include(candidate => candidate.StagingPackageIdentity.Package.PackageRegistration.Owners)
-                    .Include(candidate => candidate.StagingPackageIdentity.Owner)
+                    .Include(candidate => candidate.StagedPackageIdentity.Package.PackageRegistration.Owners)
+                    .Include(candidate => candidate.StagedPackageIdentity.Owner)
                     .SingleOrDefault(candidate => candidate.Key == message.StagedPackageKey);
                 if (!IsActivePromotionAttempt(stagedPackage, message.PromotionId))
                 {
@@ -82,7 +82,7 @@ namespace NuGet.Services.Staging.Promotion
                     return true;
                 }
 
-                var package = stagedPackage.StagingPackageIdentity.Package;
+                var package = stagedPackage.StagedPackageIdentity.Package;
                 using (_logger.BeginScope(
                     "Package {PackageId} {PackageVersion}",
                     package.PackageRegistration.Id,
@@ -126,14 +126,14 @@ namespace NuGet.Services.Staging.Promotion
             return stagedPackage != null
                 && stagedPackage.Status == StagedPackageStatus.Promoting
                 && stagedPackage.ActivePromotionId == promotionId
-                && stagedPackage.StagingPackageIdentity.Package.PackageStatusKey == PackageStatus.Staged;
+                && stagedPackage.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Staged;
         }
 
         private static bool HasValidPromotionState(StagedPackage stagedPackage)
         {
             return !string.IsNullOrWhiteSpace(stagedPackage.ValidatedBlobPath)
                 && !string.IsNullOrWhiteSpace(stagedPackage.ValidatedBlobETag)
-                && stagedPackage.StagingPackageIdentity.Package.PackageRegistration.Owners.Any(owner => owner.Key == stagedPackage.StagingPackageIdentity.OwnerKey);
+                && stagedPackage.StagedPackageIdentity.Package.PackageRegistration.Owners.Any(owner => owner.Key == stagedPackage.StagedPackageIdentity.OwnerKey);
         }
 
         private async Task MarkPromotionFailedAsync(StagedPackage stagedPackage)

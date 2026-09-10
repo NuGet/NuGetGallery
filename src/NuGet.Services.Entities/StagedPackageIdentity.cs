@@ -6,7 +6,7 @@ namespace NuGet.Services.Entities
     /// <summary>
     /// Represents the shared staging state for a package identity and its artifact attempts.
     /// </summary>
-    public class StagingPackageIdentity : IEntity
+    public class StagedPackageIdentity : IEntity
     {
         public int Key { get; set; }
 

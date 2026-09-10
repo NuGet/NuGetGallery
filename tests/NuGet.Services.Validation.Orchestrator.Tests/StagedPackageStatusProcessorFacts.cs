@@ -24,14 +24,14 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             var stagedPackage = new StagedPackage
             {
                 Key = 43,
-                StagingPackageIdentityKey = 42,
-                StagingPackageIdentity = CreateStagingPackageIdentity(),
+                StagedPackageIdentityKey = 42,
+                StagedPackageIdentity = CreateStagedPackageIdentity(),
                 UploadedBlobPath = uploadedPath,
                 UploadedBlobETag = uploadedETag,
                 Status = StagedPackageStatus.Validating,
             };
-            stagedPackage.StagingPackageIdentity.CurrentStagedPackageKey = stagedPackage.Key;
-            stagedPackage.StagingPackageIdentity.CurrentStagedPackage = stagedPackage;
+            stagedPackage.StagedPackageIdentity.CurrentStagedPackageKey = stagedPackage.Key;
+            stagedPackage.StagedPackageIdentity.CurrentStagedPackage = stagedPackage;
             var validatingEntity = new StagedPackageValidatingEntity(stagedPackage);
             var validationSet = new PackageValidationSet
             {
@@ -142,20 +142,20 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             var stagedPackage = new StagedPackage
             {
                 Key = 43,
-                StagingPackageIdentityKey = 42,
-                StagingPackageIdentity = CreateStagingPackageIdentity(),
+                StagedPackageIdentityKey = 42,
+                StagedPackageIdentity = CreateStagedPackageIdentity(),
                 UploadedBlobPath = "uploaded",
                 UploadedBlobETag = "uploaded-etag",
                 Status = StagedPackageStatus.Validating,
             };
-            stagedPackage.StagingPackageIdentity.CurrentStagedPackageKey = stagedPackage.Key;
-            stagedPackage.StagingPackageIdentity.CurrentStagedPackage = stagedPackage;
+            stagedPackage.StagedPackageIdentity.CurrentStagedPackageKey = stagedPackage.Key;
+            stagedPackage.StagedPackageIdentity.CurrentStagedPackage = stagedPackage;
             return stagedPackage;
         }
 
-        private static StagingPackageIdentity CreateStagingPackageIdentity()
+        private static StagedPackageIdentity CreateStagedPackageIdentity()
         {
-            return new StagingPackageIdentity
+            return new StagedPackageIdentity
             {
                 Key = 42,
                 Package = new Package { Key = 42 },

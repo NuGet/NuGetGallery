@@ -22,8 +22,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             var stagedPackage = new StagedPackage
             {
                 Key = 43,
-                StagingPackageIdentityKey = 42,
-                StagingPackageIdentity = new StagingPackageIdentity
+                StagedPackageIdentityKey = 42,
+                StagedPackageIdentity = new StagedPackageIdentity
                 {
                     Key = 42,
                     Package = new Package { Key = 42 },
@@ -33,8 +33,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 UploadedBlobPath = "package/path",
                 UploadedBlobETag = "\"etag\"",
             };
-            stagedPackage.StagingPackageIdentity.CurrentStagedPackageKey = stagedPackage.Key;
-            stagedPackage.StagingPackageIdentity.CurrentStagedPackage = stagedPackage;
+            stagedPackage.StagedPackageIdentity.CurrentStagedPackageKey = stagedPackage.Key;
+            stagedPackage.StagedPackageIdentity.CurrentStagedPackage = stagedPackage;
             var validationSet = new PackageValidationSet();
             var packageFileService = new Mock<IValidationFileService>();
             packageFileService

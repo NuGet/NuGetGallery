@@ -82,7 +82,7 @@ namespace NuGetGallery
         public DbSet<UserCertificate> UserCertificates { get; set; }
         public DbSet<SymbolPackage> SymbolPackages { get; set; }
         public DbSet<StagedPackage> StagedPackages { get; set; }
-        public DbSet<StagingPackageIdentity> StagingPackageIdentities { get; set; }
+        public DbSet<StagedPackageIdentity> StagedPackageIdentities { get; set; }
         public DbSet<StagingGroup> StagingGroups { get; set; }
         public DbSet<PackageVulnerability> Vulnerabilities { get; set; }
         public DbSet<VulnerablePackageVersionRange> VulnerableRanges { get; set; }
@@ -481,32 +481,32 @@ namespace NuGetGallery
                 .HasKey(s => s.Key);
 
             modelBuilder.Entity<StagedPackage>()
-                .HasRequired(s => s.StagingPackageIdentity)
+                .HasRequired(s => s.StagedPackageIdentity)
                 .WithMany()
-                .HasForeignKey(s => s.StagingPackageIdentityKey)
+                .HasForeignKey(s => s.StagedPackageIdentityKey)
                 .WillCascadeOnDelete(true);
 
-            modelBuilder.Entity<StagingPackageIdentity>()
+            modelBuilder.Entity<StagedPackageIdentity>()
                 .HasKey(i => i.Key);
 
-            modelBuilder.Entity<StagingPackageIdentity>()
+            modelBuilder.Entity<StagedPackageIdentity>()
                 .HasRequired(i => i.Package)
                 .WithOptional()
                 .WillCascadeOnDelete(true);
 
-            modelBuilder.Entity<StagingPackageIdentity>()
+            modelBuilder.Entity<StagedPackageIdentity>()
                 .HasRequired(i => i.Owner)
                 .WithMany()
                 .HasForeignKey(i => i.OwnerKey)
                 .WillCascadeOnDelete(false);
 
-            modelBuilder.Entity<StagingPackageIdentity>()
+            modelBuilder.Entity<StagedPackageIdentity>()
                 .HasOptional(i => i.StagingGroup)
                 .WithMany()
                 .HasForeignKey(i => i.StagingGroupKey)
                 .WillCascadeOnDelete(false);
 
-            modelBuilder.Entity<StagingPackageIdentity>()
+            modelBuilder.Entity<StagedPackageIdentity>()
                 .HasOptional(i => i.CurrentStagedPackage)
                 .WithMany()
                 .HasForeignKey(i => i.CurrentStagedPackageKey)

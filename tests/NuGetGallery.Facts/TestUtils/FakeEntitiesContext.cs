@@ -48,9 +48,9 @@ namespace NuGetGallery
             set => throw new NotSupportedException();
         }
 
-        public DbSet<StagingPackageIdentity> StagingPackageIdentities
+        public DbSet<StagedPackageIdentity> StagedPackageIdentities
         {
-            get => Set<StagingPackageIdentity>();
+            get => Set<StagedPackageIdentity>();
             set => throw new NotSupportedException();
         }
 

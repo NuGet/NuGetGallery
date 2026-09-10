@@ -222,7 +222,7 @@ namespace NuGetGallery
                 NormalizedVersion = "1.0.0",
                 PackageRegistration = new PackageRegistration { Id = "PackageA" },
             };
-            var identity = new StagingPackageIdentity
+            var identity = new StagedPackageIdentity
             {
                 Key = package.Key,
                 Package = package,
@@ -232,8 +232,8 @@ namespace NuGetGallery
             var stagedPackage = new StagedPackage
             {
                 Key = 43,
-                StagingPackageIdentityKey = identity.Key,
-                StagingPackageIdentity = identity,
+                StagedPackageIdentityKey = identity.Key,
+                StagedPackageIdentity = identity,
             };
             identity.CurrentStagedPackageKey = stagedPackage.Key;
             identity.CurrentStagedPackage = stagedPackage;

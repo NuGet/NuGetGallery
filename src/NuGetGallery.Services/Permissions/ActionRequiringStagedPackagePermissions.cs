@@ -20,7 +20,7 @@ namespace NuGetGallery
 
         protected override PermissionsCheckResult CheckPermissionsForEntity(User account, StagedPackage stagedPackage)
         {
-            if (account.Key != stagedPackage.StagingPackageIdentity.OwnerKey)
+            if (account.Key != stagedPackage.StagedPackageIdentity.OwnerKey)
             {
                 return PermissionsCheckResult.StagedPackageFailure;
             }
@@ -28,15 +28,15 @@ namespace NuGetGallery
             return PermissionsHelpers.IsRequirementSatisfied(
                 PermissionsRequirement.Owner,
                 account,
-                stagedPackage.StagingPackageIdentity.Package.PackageRegistration)
+                stagedPackage.StagedPackageIdentity.Package.PackageRegistration)
                     ? PermissionsCheckResult.Allowed
                     : PermissionsCheckResult.PackageRegistrationFailure;
         }
 
         protected override IEnumerable<User> GetOwners(StagedPackage stagedPackage)
         {
-            return stagedPackage?.StagingPackageIdentity?.Owner != null
-                ? new[] { stagedPackage.StagingPackageIdentity.Owner }
+            return stagedPackage?.StagedPackageIdentity?.Owner != null
+                ? new[] { stagedPackage.StagedPackageIdentity.Owner }
                 : Enumerable.Empty<User>();
         }
     }

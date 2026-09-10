@@ -79,7 +79,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 NormalizedVersion = "1.0.0",
                 PackageRegistration = new PackageRegistration { Id = "PackageA" },
             };
-            var stagingPackageIdentity = new StagingPackageIdentity
+            var stagedPackageIdentity = new StagedPackageIdentity
             {
                 Key = package.Key,
                 Package = package,
@@ -89,12 +89,12 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             var stagedPackage = new StagedPackage
             {
                 Key = key,
-                StagingPackageIdentityKey = stagingPackageIdentity.Key,
-                StagingPackageIdentity = stagingPackageIdentity,
+                StagedPackageIdentityKey = stagedPackageIdentity.Key,
+                StagedPackageIdentity = stagedPackageIdentity,
                 Status = StagedPackageStatus.Validating,
             };
-            stagingPackageIdentity.CurrentStagedPackageKey = stagedPackage.Key;
-            stagingPackageIdentity.CurrentStagedPackage = stagedPackage;
+            stagedPackageIdentity.CurrentStagedPackageKey = stagedPackage.Key;
+            stagedPackageIdentity.CurrentStagedPackage = stagedPackage;
             return stagedPackage;
         }
 
@@ -102,12 +102,12 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         {
             foreach (var attempt in attempts)
             {
-                attempt.StagingPackageIdentity = currentAttempt.StagingPackageIdentity;
-                attempt.StagingPackageIdentityKey = currentAttempt.StagingPackageIdentityKey;
+                attempt.StagedPackageIdentity = currentAttempt.StagedPackageIdentity;
+                attempt.StagedPackageIdentityKey = currentAttempt.StagedPackageIdentityKey;
             }
 
-            currentAttempt.StagingPackageIdentity.CurrentStagedPackageKey = currentAttempt.Key;
-            currentAttempt.StagingPackageIdentity.CurrentStagedPackage = currentAttempt;
+            currentAttempt.StagedPackageIdentity.CurrentStagedPackageKey = currentAttempt.Key;
+            currentAttempt.StagedPackageIdentity.CurrentStagedPackage = currentAttempt;
         }
     }
 }

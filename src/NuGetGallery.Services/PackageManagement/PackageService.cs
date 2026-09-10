@@ -914,12 +914,12 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(stagedPackage));
             }
 
-            if (stagedPackage.StagingPackageIdentity?.Package == null)
+            if (stagedPackage.StagedPackageIdentity?.Package == null)
             {
                 throw new ArgumentException("The staged package must have a populated staging identity and package reference.", nameof(stagedPackage));
             }
 
-            var package = stagedPackage.StagingPackageIdentity.Package;
+            var package = stagedPackage.StagedPackageIdentity.Package;
             var isActiveStagedPackage =
                 package.PackageStatusKey == PackageStatus.Staged &&
                 (stagedPackage.Status == StagedPackageStatus.Validating ||

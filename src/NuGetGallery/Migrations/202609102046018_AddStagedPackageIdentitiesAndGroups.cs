@@ -3,7 +3,7 @@
     using System;
     using System.Data.Entity.Migrations;
     
-    public partial class AddStagingPackageIdentitiesAndGroups : DbMigration
+    public partial class AddStagedPackageIdentitiesAndGroups : DbMigration
     {
         public override void Up()
         {
@@ -12,7 +12,7 @@
             DropIndex("dbo.StagedPackages", new[] { "PackageKey" });
             DropIndex("dbo.StagedPackages", new[] { "OwnerKey" });
             CreateTable(
-                "dbo.StagingPackageIdentities",
+                "dbo.StagedPackageIdentities",
                 c => new
                     {
                         Key = c.Int(nullable: false),
@@ -44,9 +44,9 @@
                 .ForeignKey("dbo.Users", t => t.OwnerKey)
                 .Index(t => new { t.OwnerKey, t.Id }, unique: true, name: "IX_StagingGroups_OwnerKey_Id");
             
-            AddColumn("dbo.StagedPackages", "StagingPackageIdentityKey", c => c.Int(nullable: false));
-            CreateIndex("dbo.StagedPackages", "StagingPackageIdentityKey");
-            AddForeignKey("dbo.StagedPackages", "StagingPackageIdentityKey", "dbo.StagingPackageIdentities", "Key", cascadeDelete: true);
+            AddColumn("dbo.StagedPackages", "StagedPackageIdentityKey", c => c.Int(nullable: false));
+            CreateIndex("dbo.StagedPackages", "StagedPackageIdentityKey");
+            AddForeignKey("dbo.StagedPackages", "StagedPackageIdentityKey", "dbo.StagedPackageIdentities", "Key", cascadeDelete: true);
             DropColumn("dbo.StagedPackages", "PackageKey");
             DropColumn("dbo.StagedPackages", "OwnerKey");
         }
@@ -55,21 +55,21 @@
         {
             AddColumn("dbo.StagedPackages", "OwnerKey", c => c.Int(nullable: false));
             AddColumn("dbo.StagedPackages", "PackageKey", c => c.Int(nullable: false));
-            DropForeignKey("dbo.StagedPackages", "StagingPackageIdentityKey", "dbo.StagingPackageIdentities");
-            DropForeignKey("dbo.StagingPackageIdentities", "StagingGroupKey", "dbo.StagingGroups");
+            DropForeignKey("dbo.StagedPackageIdentities", "StagingGroupKey", "dbo.StagingGroups");
             DropForeignKey("dbo.StagingGroups", "OwnerKey", "dbo.Users");
-            DropForeignKey("dbo.StagingPackageIdentities", "Key", "dbo.Packages");
-            DropForeignKey("dbo.StagingPackageIdentities", "OwnerKey", "dbo.Users");
-            DropForeignKey("dbo.StagingPackageIdentities", "CurrentStagedPackageKey", "dbo.StagedPackages");
+            DropForeignKey("dbo.StagedPackageIdentities", "Key", "dbo.Packages");
+            DropForeignKey("dbo.StagedPackageIdentities", "OwnerKey", "dbo.Users");
+            DropForeignKey("dbo.StagedPackageIdentities", "CurrentStagedPackageKey", "dbo.StagedPackages");
+            DropForeignKey("dbo.StagedPackages", "StagedPackageIdentityKey", "dbo.StagedPackageIdentities");
             DropIndex("dbo.StagingGroups", "IX_StagingGroups_OwnerKey_Id");
-            DropIndex("dbo.StagingPackageIdentities", new[] { "CurrentStagedPackageKey" });
-            DropIndex("dbo.StagingPackageIdentities", new[] { "StagingGroupKey" });
-            DropIndex("dbo.StagingPackageIdentities", new[] { "OwnerKey" });
-            DropIndex("dbo.StagingPackageIdentities", new[] { "Key" });
-            DropIndex("dbo.StagedPackages", new[] { "StagingPackageIdentityKey" });
-            DropColumn("dbo.StagedPackages", "StagingPackageIdentityKey");
+            DropIndex("dbo.StagedPackages", new[] { "StagedPackageIdentityKey" });
+            DropIndex("dbo.StagedPackageIdentities", new[] { "CurrentStagedPackageKey" });
+            DropIndex("dbo.StagedPackageIdentities", new[] { "StagingGroupKey" });
+            DropIndex("dbo.StagedPackageIdentities", new[] { "OwnerKey" });
+            DropIndex("dbo.StagedPackageIdentities", new[] { "Key" });
+            DropColumn("dbo.StagedPackages", "StagedPackageIdentityKey");
             DropTable("dbo.StagingGroups");
-            DropTable("dbo.StagingPackageIdentities");
+            DropTable("dbo.StagedPackageIdentities");
             CreateIndex("dbo.StagedPackages", "OwnerKey");
             CreateIndex("dbo.StagedPackages", "PackageKey");
             AddForeignKey("dbo.StagedPackages", "PackageKey", "dbo.Packages", "Key", cascadeDelete: true);

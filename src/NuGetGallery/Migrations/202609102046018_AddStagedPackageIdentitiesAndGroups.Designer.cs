@@ -7,13 +7,13 @@ namespace NuGetGallery.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.5.1")]
-    public sealed partial class AddStagingPackageIdentitiesAndGroups : IMigrationMetadata
+    public sealed partial class AddStagedPackageIdentitiesAndGroups : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(AddStagingPackageIdentitiesAndGroups));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(AddStagedPackageIdentitiesAndGroups));
         
         string IMigrationMetadata.Id
         {
-            get { return "202609102046018_AddStagingPackageIdentitiesAndGroups"; }
+            get { return "202609102046018_AddStagedPackageIdentitiesAndGroups"; }
         }
         
         string IMigrationMetadata.Source

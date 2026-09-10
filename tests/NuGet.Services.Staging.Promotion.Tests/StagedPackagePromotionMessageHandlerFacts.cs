@@ -306,7 +306,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
                     },
                 };
                 Package.PackageRegistration.Packages.Add(Package);
-                var stagingPackageIdentity = new StagingPackageIdentity
+                var stagedPackageIdentity = new StagedPackageIdentity
                 {
                     Key = Package.Key,
                     Package = Package,
@@ -316,8 +316,8 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 StagedPackage = new StagedPackage
                 {
                     Key = 42,
-                    StagingPackageIdentityKey = stagingPackageIdentity.Key,
-                    StagingPackageIdentity = stagingPackageIdentity,
+                    StagedPackageIdentityKey = stagedPackageIdentity.Key,
+                    StagedPackageIdentity = stagedPackageIdentity,
                     Status = StagedPackageStatus.Promoting,
                     ActivePromotionId = PromotionId,
                     ValidatedBlobPath = "example.package/1.2.3/validated.nupkg",
@@ -326,8 +326,8 @@ namespace NuGet.Services.Staging.Promotion.Tests
                     UploadedBlobETag = "\"uploaded\"",
                     UploadHash = "upload-hash",
                 };
-                stagingPackageIdentity.CurrentStagedPackageKey = StagedPackage.Key;
-                stagingPackageIdentity.CurrentStagedPackage = StagedPackage;
+                stagedPackageIdentity.CurrentStagedPackageKey = StagedPackage.Key;
+                stagedPackageIdentity.CurrentStagedPackage = StagedPackage;
                 Message = new StagedPackagePromotionMessage(PromotionId, StagedPackage.Key);
                 StagedPackages = new List<StagedPackage> { StagedPackage };
 

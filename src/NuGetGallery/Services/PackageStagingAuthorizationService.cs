@@ -38,11 +38,11 @@ namespace NuGetGallery
 
             var permissionsResult = ActionsRequiringPermissions.ManageStagedPackage.CheckPermissions(
                 currentUser,
-                stagedPackage.StagingPackageIdentity.Owner,
+                stagedPackage.StagedPackageIdentity.Owner,
                 stagedPackage);
 
             return permissionsResult == PermissionsCheckResult.Allowed
-                && _featureFlagService.IsPackageStagingEnabled(stagedPackage.StagingPackageIdentity.Owner);
+                && _featureFlagService.IsPackageStagingEnabled(stagedPackage.StagedPackageIdentity.Owner);
         }
 
         public bool CanManageWithApiKey(User currentUser, IEnumerable<Scope> scopes, StagedPackage stagedPackage)

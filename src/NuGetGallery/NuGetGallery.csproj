@@ -419,9 +419,9 @@
     <Compile Include="Migrations\202609020256140_AddStagedPackagePromotionState.Designer.cs">
       <DependentUpon>202609020256140_AddStagedPackagePromotionState.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202609102046018_AddStagingPackageIdentitiesAndGroups.cs" />
-    <Compile Include="Migrations\202609102046018_AddStagingPackageIdentitiesAndGroups.Designer.cs">
-      <DependentUpon>202609102046018_AddStagingPackageIdentitiesAndGroups.cs</DependentUpon>
+    <Compile Include="Migrations\202609102046018_AddStagedPackageIdentitiesAndGroups.cs" />
+    <Compile Include="Migrations\202609102046018_AddStagedPackageIdentitiesAndGroups.Designer.cs">
+      <DependentUpon>202609102046018_AddStagedPackageIdentitiesAndGroups.cs</DependentUpon>
     </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
@@ -1848,8 +1848,8 @@
     <EmbeddedResource Include="Migrations\202609020256140_AddStagedPackagePromotionState.resx">
       <DependentUpon>202609020256140_AddStagedPackagePromotionState.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609102046018_AddStagingPackageIdentitiesAndGroups.resx">
-      <DependentUpon>202609102046018_AddStagingPackageIdentitiesAndGroups.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202609102046018_AddStagedPackageIdentitiesAndGroups.resx">
+      <DependentUpon>202609102046018_AddStagedPackageIdentitiesAndGroups.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

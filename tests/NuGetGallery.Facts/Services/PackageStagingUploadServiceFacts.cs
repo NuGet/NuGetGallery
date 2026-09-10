@@ -166,12 +166,12 @@ namespace NuGetGallery
                 }
 
                 Assert.Equal(PackageStatus.Staged, package.PackageStatusKey);
-                Assert.Equal(owner.Key, stagedPackage.StagingPackageIdentity.OwnerKey);
+                Assert.Equal(owner.Key, stagedPackage.StagedPackageIdentity.OwnerKey);
                 Assert.Equal(file.Path, stagedPackage.UploadedBlobPath);
                 Assert.Equal(file.ETag, stagedPackage.UploadedBlobETag);
                 Assert.Equal(streamMetadata.Hash, stagedPackage.UploadHash);
-                Assert.Equal(stagedPackage.Key, stagedPackage.StagingPackageIdentity.CurrentStagedPackageKey);
-                Assert.Same(stagedPackage, stagedPackage.StagingPackageIdentity.CurrentStagedPackage);
+                Assert.Equal(stagedPackage.Key, stagedPackage.StagedPackageIdentity.CurrentStagedPackageKey);
+                Assert.Same(stagedPackage, stagedPackage.StagedPackageIdentity.CurrentStagedPackage);
                 Assert.Null(stagedPackage.ValidatedBlobPath);
                 Assert.Null(stagedPackage.ValidatedBlobETag);
                 Assert.Equal(expectedStatus, stagedPackage.Status);
@@ -223,8 +223,8 @@ namespace NuGetGallery
                 var stagedPackage = new StagedPackage
                 {
                     Key = 31,
-                    StagingPackageIdentityKey = package.Key,
-                    StagingPackageIdentity = new StagingPackageIdentity
+                    StagedPackageIdentityKey = package.Key,
+                    StagedPackageIdentity = new StagedPackageIdentity
                     {
                         Key = package.Key,
                         Package = package,
@@ -236,8 +236,8 @@ namespace NuGetGallery
                     UploadHash = uploadHash,
                     Status = status,
                 };
-                stagedPackage.StagingPackageIdentity.CurrentStagedPackageKey = stagedPackage.Key;
-                stagedPackage.StagingPackageIdentity.CurrentStagedPackage = stagedPackage;
+                stagedPackage.StagedPackageIdentity.CurrentStagedPackageKey = stagedPackage.Key;
+                stagedPackage.StagedPackageIdentity.CurrentStagedPackage = stagedPackage;
                 if (!identical)
                 {
                     stagedPackage.UploadHash = "different";
@@ -390,8 +390,8 @@ namespace NuGetGallery
                     Assert.Equal("old-etag", stagedPackage.UploadedBlobETag);
                     Assert.Equal("new.nupkg", successor.UploadedBlobPath);
                     Assert.Equal("etag", successor.UploadedBlobETag);
-                    Assert.Equal(successor.Key, successor.StagingPackageIdentity.CurrentStagedPackageKey);
-                    Assert.Same(successor, successor.StagingPackageIdentity.CurrentStagedPackage);
+                    Assert.Equal(successor.Key, successor.StagedPackageIdentity.CurrentStagedPackageKey);
+                    Assert.Same(successor, successor.StagedPackageIdentity.CurrentStagedPackage);
                 }
                 else
                 {
@@ -461,7 +461,7 @@ namespace NuGetGallery
                     PackageRegistration = new PackageRegistration { Id = "PackageA" },
                     PackageStatusKey = PackageStatus.Staged,
                 };
-                var stagingPackageIdentity = new StagingPackageIdentity
+                var stagedPackageIdentity = new StagedPackageIdentity
                 {
                     Key = package.Key,
                     Package = package,
@@ -471,11 +471,11 @@ namespace NuGetGallery
                 var stagedPackage = new StagedPackage
                 {
                     Key = 31,
-                    StagingPackageIdentityKey = stagingPackageIdentity.Key,
-                    StagingPackageIdentity = stagingPackageIdentity,
+                    StagedPackageIdentityKey = stagedPackageIdentity.Key,
+                    StagedPackageIdentity = stagedPackageIdentity,
                 };
-                stagingPackageIdentity.CurrentStagedPackageKey = stagedPackage.Key;
-                stagingPackageIdentity.CurrentStagedPackage = stagedPackage;
+                stagedPackageIdentity.CurrentStagedPackageKey = stagedPackage.Key;
+                stagedPackageIdentity.CurrentStagedPackage = stagedPackage;
                 return stagedPackage;
             }
 

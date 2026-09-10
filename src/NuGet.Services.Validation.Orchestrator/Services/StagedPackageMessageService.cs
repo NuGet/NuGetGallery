@@ -21,7 +21,7 @@ namespace NuGet.Services.Validation.Orchestrator
             stagedPackage = stagedPackage ?? throw new ArgumentNullException(nameof(stagedPackage));
 
             // TODO: Replace this with a staging-specific ready email.
-            return _packageMessageService.SendPublishedMessageAsync(stagedPackage.StagingPackageIdentity.Package);
+            return _packageMessageService.SendPublishedMessageAsync(stagedPackage.StagedPackageIdentity.Package);
         }
 
         public Task SendValidationFailedMessageAsync(StagedPackage stagedPackage, PackageValidationSet validationSet)
@@ -29,7 +29,7 @@ namespace NuGet.Services.Validation.Orchestrator
             stagedPackage = stagedPackage ?? throw new ArgumentNullException(nameof(stagedPackage));
 
             // TODO: Replace this with a staging-specific validation failed email.
-            return _packageMessageService.SendValidationFailedMessageAsync(stagedPackage.StagingPackageIdentity.Package, validationSet);
+            return _packageMessageService.SendValidationFailedMessageAsync(stagedPackage.StagedPackageIdentity.Package, validationSet);
         }
 
         public Task SendValidationTakingTooLongMessageAsync(StagedPackage stagedPackage)
@@ -37,7 +37,7 @@ namespace NuGet.Services.Validation.Orchestrator
             stagedPackage = stagedPackage ?? throw new ArgumentNullException(nameof(stagedPackage));
 
             // TODO: Replace this with a staging-specific validation taking too long email.
-            return _packageMessageService.SendValidationTakingTooLongMessageAsync(stagedPackage.StagingPackageIdentity.Package);
+            return _packageMessageService.SendValidationTakingTooLongMessageAsync(stagedPackage.StagedPackageIdentity.Package);
         }
     }
 }

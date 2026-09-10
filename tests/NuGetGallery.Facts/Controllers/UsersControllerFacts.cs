@@ -4150,7 +4150,7 @@ namespace NuGetGallery
                 };
                 var stagedPackage = new StagedPackage
                 {
-                    StagingPackageIdentity = new StagingPackageIdentity
+                    StagedPackageIdentity = new StagedPackageIdentity
                     {
                         Package = package,
                         Owner = _testUser,
@@ -4162,7 +4162,7 @@ namespace NuGetGallery
 
                 GetMock<IPackageService>()
                     .Setup(stub => stub.FindPackagesByAnyMatchingOwner(_testUser, It.IsAny<bool>(), false))
-                    .Returns(new[] { stagedPackage.StagingPackageIdentity.Package });
+                    .Returns(new[] { stagedPackage.StagedPackageIdentity.Package });
                 GetMock<IPackageStagingManagementService>()
                     .Setup(service => service.IsEnabled(_testUser))
                     .Returns(true);
@@ -4205,7 +4205,7 @@ namespace NuGetGallery
 
                 GetMock<IPackageService>()
                     .Setup(stub => stub.FindPackagesByAnyMatchingOwner(_testUser, It.IsAny<bool>(), false))
-                    .Returns(stagedPackages.Select(stagedPackage => stagedPackage.StagingPackageIdentity.Package));
+                    .Returns(stagedPackages.Select(stagedPackage => stagedPackage.StagedPackageIdentity.Package));
                 GetMock<IPackageStagingManagementService>()
                     .Setup(service => service.IsEnabled(_testUser))
                     .Returns(true);
@@ -4259,7 +4259,7 @@ namespace NuGetGallery
                     PackageStatusKey = PackageStatus.Staged,
                     Listed = false,
                 };
-                var stagingPackageIdentity = new StagingPackageIdentity
+                var stagedPackageIdentity = new StagedPackageIdentity
                 {
                     Key = package.Key,
                     Package = package,
@@ -4269,12 +4269,12 @@ namespace NuGetGallery
                 var stagedPackage = new StagedPackage
                 {
                     Key = key,
-                    StagingPackageIdentityKey = stagingPackageIdentity.Key,
-                    StagingPackageIdentity = stagingPackageIdentity,
+                    StagedPackageIdentityKey = stagedPackageIdentity.Key,
+                    StagedPackageIdentity = stagedPackageIdentity,
                     Status = status,
                 };
-                stagingPackageIdentity.CurrentStagedPackageKey = stagedPackage.Key;
-                stagingPackageIdentity.CurrentStagedPackage = stagedPackage;
+                stagedPackageIdentity.CurrentStagedPackageKey = stagedPackage.Key;
+                stagedPackageIdentity.CurrentStagedPackage = stagedPackage;
                 return stagedPackage;
             }
 

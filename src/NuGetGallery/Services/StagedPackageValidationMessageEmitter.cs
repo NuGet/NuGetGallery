@@ -37,8 +37,8 @@ namespace NuGetGallery
             }
 
             var data = PackageValidationMessageData.NewProcessValidationSet(
-                stagedPackage.StagingPackageIdentity.Package.Id,
-                stagedPackage.StagingPackageIdentity.Package.Version,
+                stagedPackage.StagedPackageIdentity.Package.Id,
+                stagedPackage.StagedPackageIdentity.Package.Version,
                 Guid.NewGuid(),
                 ValidatingType.StagedPackage,
                 entityKey: stagedPackage.Key);
