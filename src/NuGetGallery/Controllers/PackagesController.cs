@@ -978,6 +978,10 @@ namespace NuGetGallery
             {
                 readme = await _readMeService.GetReadMeHtmlAsync(package);
             }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
             catch (Exception ex)
             {
                 // Any exception thrown while rendering readme should not fail the package details page.
