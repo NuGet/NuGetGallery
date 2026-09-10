@@ -1000,7 +1000,8 @@ namespace NuGetGallery
                 .Keyed<ITopicClient>(BindingKeys.StagingPromotionTopic)
                 .OnRelease(x => _ = x.CloseAsync());
 
-            builder.RegisterType<StagedPackagePromotionMessageSerializer>()
+            builder
+                .RegisterType<StagedPackagePromotionMessageSerializer>()
                 .As<IBrokeredMessageSerializer<StagedPackagePromotionMessage>>();
 
             builder
