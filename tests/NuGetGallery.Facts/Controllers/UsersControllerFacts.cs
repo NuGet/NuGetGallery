@@ -4141,23 +4141,28 @@ namespace NuGetGallery
             public void IncludesStagedPackagesWhenStagingIsEnabled()
             {
                 var uploadedDate = DateTime.UtcNow;
+                var package = new Package
+                {
+                    NormalizedVersion = "1.0.0",
+                    PackageRegistration = new PackageRegistration { Id = "Staged.Package" },
+                    PackageStatusKey = PackageStatus.Staged,
+                    Listed = false,
+                };
                 var stagedPackage = new StagedPackage
                 {
-                    Package = new Package
+                    StagedPackageIdentity = new StagedPackageIdentity
                     {
-                        NormalizedVersion = "1.0.0",
-                        PackageRegistration = new PackageRegistration { Id = "Staged.Package" },
-                        PackageStatusKey = PackageStatus.Staged,
-                        Listed = false,
+                        Package = package,
+                        Owner = _testUser,
+                        OwnerKey = _testUser.Key,
                     },
-                    Owner = _testUser,
                     Status = StagedPackageStatus.Ready,
                     UploadedDate = uploadedDate,
                 };
 
                 GetMock<IPackageService>()
                     .Setup(stub => stub.FindPackagesByAnyMatchingOwner(_testUser, It.IsAny<bool>(), false))
-                    .Returns(new[] { stagedPackage.Package });
+                    .Returns(new[] { stagedPackage.StagedPackageIdentity.Package });
                 GetMock<IPackageStagingManagementService>()
                     .Setup(service => service.IsEnabled(_testUser))
                     .Returns(true);
@@ -4200,7 +4205,7 @@ namespace NuGetGallery
 
                 GetMock<IPackageService>()
                     .Setup(stub => stub.FindPackagesByAnyMatchingOwner(_testUser, It.IsAny<bool>(), false))
-                    .Returns(stagedPackages.Select(package => package.Package));
+                    .Returns(stagedPackages.Select(stagedPackage => stagedPackage.StagedPackageIdentity.Package));
                 GetMock<IPackageStagingManagementService>()
                     .Setup(service => service.IsEnabled(_testUser))
                     .Returns(true);
@@ -4246,19 +4251,31 @@ namespace NuGetGallery
 
             private StagedPackage CreateStagedPackage(int key, string id, StagedPackageStatus status)
             {
-                return new StagedPackage
+                var package = new Package
                 {
                     Key = key,
-                    Package = new Package
-                    {
-                        NormalizedVersion = "1.0.0",
-                        PackageRegistration = new PackageRegistration { Id = id },
-                        PackageStatusKey = PackageStatus.Staged,
-                        Listed = false,
-                    },
+                    NormalizedVersion = "1.0.0",
+                    PackageRegistration = new PackageRegistration { Id = id },
+                    PackageStatusKey = PackageStatus.Staged,
+                    Listed = false,
+                };
+                var stagedPackageIdentity = new StagedPackageIdentity
+                {
+                    Key = package.Key,
+                    Package = package,
                     Owner = _testUser,
+                    OwnerKey = _testUser.Key,
+                };
+                var stagedPackage = new StagedPackage
+                {
+                    Key = key,
+                    StagedPackageIdentityKey = stagedPackageIdentity.Key,
+                    StagedPackageIdentity = stagedPackageIdentity,
                     Status = status,
                 };
+                stagedPackageIdentity.CurrentStagedPackageKey = stagedPackage.Key;
+                stagedPackageIdentity.CurrentStagedPackage = stagedPackage;
+                return stagedPackage;
             }
 
             [Fact]

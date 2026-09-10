@@ -49,7 +49,7 @@ namespace NuGetGallery.Authentication
                 scopes,
                 action,
                 stagedPackage,
-                s => s.Package.PackageRegistration.Id,
+                s => s.StagedPackageIdentity.Package.PackageRegistration.Id,
                 requestedActions);
         }
         

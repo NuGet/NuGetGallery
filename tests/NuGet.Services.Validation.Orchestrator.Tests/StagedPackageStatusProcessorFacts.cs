@@ -24,11 +24,14 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             var stagedPackage = new StagedPackage
             {
                 Key = 43,
-                PackageKey = 42,
+                StagedPackageIdentityKey = 42,
+                StagedPackageIdentity = CreateStagedPackageIdentity(),
                 UploadedBlobPath = uploadedPath,
                 UploadedBlobETag = uploadedETag,
                 Status = StagedPackageStatus.Validating,
             };
+            stagedPackage.StagedPackageIdentity.CurrentStagedPackageKey = stagedPackage.Key;
+            stagedPackage.StagedPackageIdentity.CurrentStagedPackage = stagedPackage;
             var validatingEntity = new StagedPackageValidatingEntity(stagedPackage);
             var validationSet = new PackageValidationSet
             {
@@ -136,13 +139,28 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
         private static StagedPackage CreateStagedPackage()
         {
-            return new StagedPackage
+            var stagedPackage = new StagedPackage
             {
                 Key = 43,
-                PackageKey = 42,
+                StagedPackageIdentityKey = 42,
+                StagedPackageIdentity = CreateStagedPackageIdentity(),
                 UploadedBlobPath = "uploaded",
                 UploadedBlobETag = "uploaded-etag",
                 Status = StagedPackageStatus.Validating,
+            };
+            stagedPackage.StagedPackageIdentity.CurrentStagedPackageKey = stagedPackage.Key;
+            stagedPackage.StagedPackageIdentity.CurrentStagedPackage = stagedPackage;
+            return stagedPackage;
+        }
+
+        private static StagedPackageIdentity CreateStagedPackageIdentity()
+        {
+            return new StagedPackageIdentity
+            {
+                Key = 42,
+                Package = new Package { Key = 42 },
+                OwnerKey = 1,
+                Owner = new User("owner") { Key = 1 },
             };
         }
 

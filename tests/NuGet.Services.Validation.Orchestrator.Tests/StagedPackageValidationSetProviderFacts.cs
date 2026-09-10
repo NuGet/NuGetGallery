@@ -22,9 +22,19 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             var stagedPackage = new StagedPackage
             {
                 Key = 43,
+                StagedPackageIdentityKey = 42,
+                StagedPackageIdentity = new StagedPackageIdentity
+                {
+                    Key = 42,
+                    Package = new Package { Key = 42 },
+                    OwnerKey = 1,
+                    Owner = new User("owner") { Key = 1 },
+                },
                 UploadedBlobPath = "package/path",
                 UploadedBlobETag = "\"etag\"",
             };
+            stagedPackage.StagedPackageIdentity.CurrentStagedPackageKey = stagedPackage.Key;
+            stagedPackage.StagedPackageIdentity.CurrentStagedPackage = stagedPackage;
             var validationSet = new PackageValidationSet();
             var packageFileService = new Mock<IValidationFileService>();
             packageFileService

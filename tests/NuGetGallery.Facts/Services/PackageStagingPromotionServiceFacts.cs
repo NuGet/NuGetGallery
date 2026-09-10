@@ -125,11 +125,25 @@ namespace NuGetGallery
 
         private static StagedPackage CreateStagedPackage(StagedPackageStatus status)
         {
-            return new StagedPackage
+            var owner = new User("owner") { Key = 1 };
+            var package = new Package { Key = 42 };
+            var identity = new StagedPackageIdentity
+            {
+                Key = package.Key,
+                Package = package,
+                OwnerKey = owner.Key,
+                Owner = owner,
+            };
+            var stagedPackage = new StagedPackage
             {
                 Key = StagedPackageKey,
+                StagedPackageIdentityKey = identity.Key,
+                StagedPackageIdentity = identity,
                 Status = status,
             };
+            identity.CurrentStagedPackageKey = stagedPackage.Key;
+            identity.CurrentStagedPackage = stagedPackage;
+            return stagedPackage;
         }
 
         private static void SetupTransaction(
