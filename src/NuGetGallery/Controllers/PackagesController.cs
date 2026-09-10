@@ -978,7 +978,7 @@ namespace NuGetGallery
             {
                 readme = await _readMeService.GetReadMeHtmlAsync(package);
             }
-            catch (Exception ex) when (!(ex is OperationCanceledException))
+            catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 // Any exception thrown while rendering readme should not fail the package details page.
                 _telemetryService.TraceException(ex);
