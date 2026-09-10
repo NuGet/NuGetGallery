@@ -1176,32 +1176,8 @@ namespace NuGetGallery
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var id = "Foo";
-                var package = new Package()
-                {
-                    PackageRegistration = new PackageRegistration()
-                    {
-                        Id = id,
-                        Owners = new List<User>()
-                    },
-                    Version = "01.1.01",
-                    NormalizedVersion = "1.1.1",
-                    Title = "A test package!",
-                    HasReadMe = hasReadMe
-                };
-
-                var packages = new[] { package };
-                packageService
-                    .Setup(p => p.FindPackagesById(id,
-                    /*includePackageRegistration:*/ true,
-                    /*includeDeprecations:*/ true,
-                    /*includeSupportedFrameworks:*/ true))
-                    .Returns(packages);
-
-                packageService
-                    .Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
-                    .Returns(package);
-
-                indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
+                var package = CreateReadMeTestPackage(id, hasReadMe);
+                SetupDisplayPackageDependencies(packageService, indexingService, id, package);
 
                 if (hasReadMe)
                 {
@@ -1227,7 +1203,15 @@ namespace NuGetGallery
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var id = "Foo";
-                var package = new Package
+                var package = CreateReadMeTestPackage(id, hasReadMe);
+                SetupDisplayPackageDependencies(packageService, indexingService, id, package);
+
+                return await controller.DisplayPackage(id, /*version*/null);
+            }
+
+            private static Package CreateReadMeTestPackage(string id, bool hasReadMe)
+            {
+                return new Package
                 {
                     PackageRegistration = new PackageRegistration
                     {
@@ -1239,7 +1223,14 @@ namespace NuGetGallery
                     Title = "A test package!",
                     HasReadMe = hasReadMe
                 };
+            }
 
+            private static void SetupDisplayPackageDependencies(
+                Mock<IPackageService> packageService,
+                Mock<IIndexingService> indexingService,
+                string id,
+                Package package)
+            {
                 var packages = new[] { package };
                 packageService
                     .Setup(p => p.FindPackagesById(id,
@@ -1253,8 +1244,6 @@ namespace NuGetGallery
                     .Returns(package);
 
                 indexingService.Setup(i => i.GetLastWriteTime()).Returns(Task.FromResult((DateTime?)DateTime.UtcNow));
-
-                return await controller.DisplayPackage(id, /*version*/null);
             }
 
             [Theory]
