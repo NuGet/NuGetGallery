@@ -972,7 +972,18 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var readme = await _readMeService.GetReadMeHtmlAsync(package);
+            var readMeFailedToRender = false;
+            RenderedMarkdownResult readme = null;
+            try
+            {
+                readme = await _readMeService.GetReadMeHtmlAsync(package);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                // Any exception thrown while rendering readme should not fail the package details page.
+                _telemetryService.TraceException(ex);
+                readMeFailedToRender = true;
+            }
 
             var isPackageDeprecationEnabled = _featureFlagService.IsManageDeprecationEnabled(currentUser, allVersions);
             var packageKeyToDeprecation = isPackageDeprecationEnabled
@@ -1001,7 +1012,11 @@ namespace NuGetGallery
                 packageRenames,
                 readme);
 
-            var canDisplayReadmeWarning = _featureFlagService.IsDisplayPackageReadmeWarningEnabled(currentUser) && !model.HasEmbeddedReadmeFile && model.ReadMeHtml == null;
+            var canDisplayReadmeWarning = _featureFlagService.IsDisplayPackageReadmeWarningEnabled(currentUser)
+                && !model.HasEmbeddedReadmeFile
+                && model.ReadMeHtml == null
+                && !readMeFailedToRender;
+            model.ReadMeFailedToRender = readMeFailedToRender;
 
             model.ValidatingTooLong = _validationService.IsValidatingTooLong(package);
             model.PackageValidationIssues = _validationService.GetLatestPackageValidationIssues(package);
