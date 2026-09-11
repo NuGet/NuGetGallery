@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Formats.Asn1;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography.Pkcs;
@@ -38,6 +39,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
         private readonly ICorePackageService _corePackageService;
         private readonly IOptionsSnapshot<ProcessSignatureConfiguration> _configuration;
         private readonly SasDefinitionConfiguration _sasDefinitionConfiguration;
+        private readonly IFeatureFlagService _featureFlagService;
         private readonly ITelemetryService _telemetryService;
         private readonly ILogger<SignatureValidator> _logger;
 
@@ -49,6 +51,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             ICorePackageService corePackageService,
             IOptionsSnapshot<ProcessSignatureConfiguration> configuration,
             IOptionsSnapshot<SasDefinitionConfiguration> sasDefinitionConfigurationAccessor,
+            IFeatureFlagService featureFlagService,
             ITelemetryService telemetryService,
             ILogger<SignatureValidator> logger)
         {
@@ -59,6 +62,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             _corePackageService = corePackageService ?? throw new ArgumentNullException(nameof(corePackageService));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _sasDefinitionConfiguration = (sasDefinitionConfigurationAccessor == null || sasDefinitionConfigurationAccessor.Value == null) ? new SasDefinitionConfiguration() : sasDefinitionConfigurationAccessor.Value;
+            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -213,6 +217,40 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             // We now know we can safely read the signature.
             context.Signature = await context.PackageReader.GetPrimarySignatureAsync(context.CancellationToken);
 
+            if (_featureFlagService.IsDerOrderingEnforcementEnabled()
+                && !context.Message.RequireRepositorySignature
+                && context.Signature.Type == SignatureType.Author)
+            {
+                Package package = _corePackageService.FindPackageByIdAndVersionStrict(
+                    context.Message.PackageId,
+                    context.Message.PackageVersion);
+
+                if (package == null)
+                {
+                    throw new InvalidOperationException(
+                        $"Package '{context.Message.PackageId} {context.Message.PackageVersion}' could not be found " +
+                        $"for validation '{context.Message.ValidationId}'.");
+                }
+
+                if (package.PackageStatusKey == PackageStatus.Available)
+                {
+                    _logger.LogInformation(
+                        "Package {PackageId} {PackageVersion} for validation {ValidationId} is already available, " +
+                        "skipping author signed attribute ordering validation.",
+                        context.Message.PackageId,
+                        context.Message.PackageVersion,
+                        context.Message.ValidationId);
+                }
+                else
+                {
+                    SignatureValidatorResult signedAttributesResult = await ValidateAuthorSignedAttributesAsync(context);
+                    if (signedAttributesResult != null)
+                    {
+                        return signedAttributesResult;
+                    }
+                }
+            }
+
             // Only reject counter signatures that have the author commitment type. Repository counter signatures
             // are removed and replaced if they are invalid and valid ones are left as-is. Counter signatures
             // without author or repository signature commitment type are not produced by the client but
@@ -239,6 +277,71 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             }
 
             return null;
+        }
+
+        private async Task<SignatureValidatorResult> ValidateAuthorSignedAttributesAsync(Context context)
+        {
+            byte[] signatureBytes;
+
+            using (Stream signatureStream = await context.PackageReader.GetStreamAsync(
+                SigningSpecifications.V1.SignaturePath,
+                context.CancellationToken))
+            using (MemoryStream memoryStream = new())
+            {
+                await signatureStream.CopyToAsync(
+                    memoryStream,
+                    bufferSize: 81920,
+                    cancellationToken: context.CancellationToken);
+                signatureBytes = memoryStream.ToArray();
+            }
+
+            try
+            {
+                if (AuthorSignedAttributesValidator.IsCanonical(signatureBytes))
+                {
+                    return null;
+                }
+            }
+            catch (AsnContentException ex)
+            {
+                return await RejectUnparseableCmsAsync(context, ex, "RawCmsAsn1ParseFailure");
+            }
+            catch (AuthorSignedAttributesValidator.UnexpectedCmsContentTypeException ex)
+            {
+                return await RejectUnparseableCmsAsync(context, ex, "UnexpectedCmsContentType");
+            }
+
+            _logger.LogInformation(
+                "Signed package {PackageId} {PackageVersion} is blocked for validation {ValidationId} because its " +
+                "author signed attributes are not in canonical DER order. Reason = {Reason}",
+                context.Message.PackageId,
+                context.Message.PackageVersion,
+                context.Message.ValidationId,
+                "NonCanonicalSignedAttributes");
+
+            return await RejectAsync(context, ValidationIssue.AuthorSignedAttributesNotCanonical);
+        }
+
+        private async Task<SignatureValidatorResult> RejectUnparseableCmsAsync(
+            Context context,
+            Exception exception,
+            string reason)
+        {
+            _logger.LogInformation(
+                eventId: 0,
+                exception: exception,
+                message: "Signed package {PackageId} {PackageVersion} is blocked for validation {ValidationId} because its " +
+                "signature CMS could not be traversed for signed attribute ordering validation. Reason = {Reason}",
+                context.Message.PackageId,
+                context.Message.PackageVersion,
+                context.Message.ValidationId,
+                reason);
+
+            return await RejectAsync(
+                context,
+                new ClientSigningVerificationFailure(
+                    clientCode: "NU3003",
+                    clientMessage: "The package signature is invalid or cannot be verified on this platform."));
         }
 
         private async Task<SignatureValidatorResult> StripUnacceptableRepositorySignaturesAsync(Context context)
@@ -772,7 +875,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             public Context(
                 int packageKey,
                 Stream packageStream,
-                ISignedPackage packageReader,
+                SignedPackageArchive packageReader,
                 SignatureValidationMessage message,
                 CancellationToken cancellationToken)
             {
@@ -786,7 +889,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             public int PackageKey { get; }
             public bool Changed { get; set; }
             public Stream PackageStream { get; set; }
-            public ISignedPackage PackageReader { get; set; }
+            public SignedPackageArchive PackageReader { get; set; }
             public PrimarySignature Signature { get; set; }
             public SignatureValidationMessage Message { get; }
             public CancellationToken CancellationToken { get; }

@@ -4,12 +4,16 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Internal.NuGet.Testing.SignedPackages;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Common;
+using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.PackageSigning.Configuration;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.ProcessSignature;
@@ -30,6 +34,8 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
     {
         public class ValidateAsync
         {
+            private const string RuntimePackageId = "RuntimeSignaturePackage";
+            private const string RuntimePackageVersion = "1.0.0";
             private MemoryStream _packageStream;
             private readonly int _packageKey;
             private SignatureValidationMessage _message;
@@ -51,10 +57,13 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             private readonly Mock<IOptionsSnapshot<SasDefinitionConfiguration>> _sasDefinitionConfigurationMock;
             private readonly ProcessSignatureConfiguration _configuration;
             private readonly SasDefinitionConfiguration _sasDefinitionConfiguration;
+            private readonly Mock<IFeatureFlagService> _featureFlagService;
             private readonly Mock<ITelemetryService> _telemetryService;
+            private readonly ITestOutputHelper _output;
 
             public ValidateAsync(ITestOutputHelper output)
             {
+                _output = output;
                 _packageStream = TestResources.GetResourceStream(TestResources.UnsignedPackage);
                 _packageKey = 42;
                 _message = new SignatureValidationMessage(
@@ -112,6 +121,10 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 _sasDefinitionConfigurationMock.Setup(x => x.Value).Returns(() => _sasDefinitionConfiguration);
 
 
+                _featureFlagService = new Mock<IFeatureFlagService>();
+                _featureFlagService
+                    .Setup(service => service.IsDerOrderingEnforcementEnabled())
+                    .Returns(true);
                 _telemetryService = new Mock<ITelemetryService>();
 
                 _target = new SignatureValidator(
@@ -122,6 +135,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     _corePackageService.Object,
                     _optionsSnapshot.Object,
                     _sasDefinitionConfigurationMock.Object,
+                    _featureFlagService.Object,
                     _telemetryService.Object,
                     _logger);
             }
@@ -215,6 +229,311 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             }
 
             [Fact]
+            public async Task AcceptsDynamicallyCreatedUnsignedPackage()
+            {
+                // Arrange
+                _packageStream = NonCanonicalSignedAttributesTestUtility.CreatePackage(
+                    RuntimePackageId,
+                    RuntimePackageVersion);
+                TestUtility.RequireUnsignedPackage(
+                    _corePackageService,
+                    RuntimePackageId,
+                    RuntimePackageVersion);
+                _message = CreateRuntimePackageMessage();
+
+                // Act
+                SignatureValidatorResult result = await _target.ValidateAsync(
+                    _packageKey,
+                    _packageStream,
+                    _message,
+                    _cancellationToken);
+
+                // Assert
+                Validate(result, ValidationStatus.Succeeded, PackageSigningStatus.Unsigned);
+                Assert.Empty(result.Issues);
+            }
+
+            [Fact]
+            public async Task AcceptsDynamicallyCreatedAuthorSignatureWithCanonicalSignedAttributes()
+            {
+                // Arrange
+                using (X509Certificate2 certificate = SigningTestUtility.GenerateCertificate(subjectName: null, modifyGenerator: null))
+                using (MemoryStream unsignedPackage = NonCanonicalSignedAttributesTestUtility.CreatePackage(
+                    RuntimePackageId,
+                    RuntimePackageVersion))
+                {
+                    byte[] packageBytes = await NonCanonicalSignedAttributesTestUtility.CreateAuthorSignedPackageAsync(
+                        unsignedPackage,
+                        certificate,
+                        _output);
+                    _packageStream = new MemoryStream(buffer: packageBytes);
+                    TestUtility.RequireSignedPackage(
+                        _corePackageService,
+                        RuntimePackageId,
+                        RuntimePackageVersion,
+                        certificate.ComputeSHA256Thumbprint());
+                    _message = CreateRuntimePackageMessage();
+
+                    // Act
+                    SignatureValidatorResult result = await _target.ValidateAsync(
+                        _packageKey,
+                        _packageStream,
+                        _message,
+                        _cancellationToken);
+
+                    // Assert
+                    Validate(result, ValidationStatus.Succeeded, PackageSigningStatus.Valid);
+                    Assert.Empty(result.Issues);
+                }
+            }
+
+            [Fact]
+            public async Task ThrowsWhenPackageCannotBeFoundForSignedAttributesPolicy()
+            {
+                // Arrange
+                using (X509Certificate2 certificate = SigningTestUtility.GenerateCertificate(subjectName: null, modifyGenerator: null))
+                using (MemoryStream unsignedPackage = NonCanonicalSignedAttributesTestUtility.CreatePackage(
+                    RuntimePackageId,
+                    RuntimePackageVersion))
+                {
+                    byte[] packageBytes = await NonCanonicalSignedAttributesTestUtility.CreateAuthorSignedPackageAsync(
+                        unsignedPackage,
+                        certificate,
+                        _output);
+                    _packageStream = new MemoryStream(buffer: packageBytes);
+                    _message = CreateRuntimePackageMessage();
+
+                    // Act
+                    InvalidOperationException exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                        () => _target.ValidateAsync(
+                            _packageKey,
+                            _packageStream,
+                            _message,
+                            _cancellationToken));
+
+                    // Assert
+                    Assert.Equal(
+                        $"Package '{RuntimePackageId} {RuntimePackageVersion}' could not be found " +
+                        $"for validation '{_message.ValidationId}'.",
+                        exception.Message);
+                }
+            }
+
+            [Fact]
+            public async Task RejectsDynamicallyCreatedAuthorSignatureWithNonCanonicalSignedAttributesBeforeSigning()
+            {
+                // Arrange
+                using (X509Certificate2 certificate = SigningTestUtility.GenerateCertificate(subjectName: null, modifyGenerator: null))
+                using (MemoryStream unsignedPackage = NonCanonicalSignedAttributesTestUtility.CreatePackage(
+                    RuntimePackageId,
+                    RuntimePackageVersion))
+                {
+                    byte[] packageBytes = await NonCanonicalSignedAttributesTestUtility.CreateAuthorSignedPackageAsync(
+                        unsignedPackage,
+                        certificate,
+                        _output);
+                    NonCanonicalSignedAttributesTestUtility.NonCanonicalSignatureResult nonCanonicalSignature =
+                        NonCanonicalSignedAttributesTestUtility.MakeSignedAttributesNonCanonical(
+                        packageBytes,
+                        certificate);
+                    _packageStream = nonCanonicalSignature.PackageStream;
+                    _corePackageService
+                        .Setup(service => service.FindPackageByIdAndVersionStrict(
+                            RuntimePackageId,
+                            RuntimePackageVersion))
+                        .Returns(new Package { PackageStatusKey = PackageStatus.Validating });
+                    _message = CreateRuntimePackageMessage();
+
+                    using (RSA publicKey = certificate.GetRSAPublicKey())
+                    using (SHA256 sha256 = SHA256.Create())
+                    {
+                        Assert.True(publicKey.VerifyData(
+                            nonCanonicalSignature.NonCanonicalSignatureInput,
+                            nonCanonicalSignature.SignatureValue,
+                            System.Security.Cryptography.HashAlgorithmName.SHA256,
+                            RSASignaturePadding.Pkcs1));
+                        Assert.False(
+                            sha256.ComputeHash(nonCanonicalSignature.CanonicalSignatureInput)
+                                .SequenceEqual(sha256.ComputeHash(nonCanonicalSignature.NonCanonicalSignatureInput)));
+                    }
+
+                    // Act
+                    SignatureValidatorResult result = await _target.ValidateAsync(
+                        _packageKey,
+                        _packageStream,
+                        _message,
+                        _cancellationToken);
+
+                    // Assert
+                    Validate(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
+                    IValidationIssue issue = Assert.Single(result.Issues);
+                    Assert.Equal(ValidationIssueCode.AuthorSignedAttributesNotCanonical, issue.IssueCode);
+                    Assert.Null(result.NupkgUri);
+                    _packageFileService.Verify(
+                        x => x.SaveAsync(
+                            It.IsAny<string>(),
+                            It.IsAny<string>(),
+                            It.IsAny<Guid>(),
+                            It.IsAny<Stream>()),
+                        Times.Never);
+                    _formatValidator.Verify(
+                        x => x.ValidateAllSignaturesAsync(
+                            It.IsAny<ISignedPackageReader>(),
+                            It.IsAny<bool>(),
+                            It.IsAny<CancellationToken>()),
+                        Times.Never);
+                }
+            }
+
+            [Fact]
+            public async Task DoesNotApplySignedAttributesPolicyToAvailablePackages()
+            {
+                // Arrange
+                using (X509Certificate2 certificate = SigningTestUtility.GenerateCertificate(subjectName: null, modifyGenerator: null))
+                using (MemoryStream unsignedPackage = NonCanonicalSignedAttributesTestUtility.CreatePackage(
+                    RuntimePackageId,
+                    RuntimePackageVersion))
+                {
+                    byte[] packageBytes = await NonCanonicalSignedAttributesTestUtility.CreateAuthorSignedPackageAsync(
+                        unsignedPackage,
+                        certificate,
+                        _output);
+                    NonCanonicalSignedAttributesTestUtility.NonCanonicalSignatureResult nonCanonicalSignature =
+                        NonCanonicalSignedAttributesTestUtility.MakeSignedAttributesNonCanonical(
+                            packageBytes,
+                            certificate);
+                    _packageStream = nonCanonicalSignature.PackageStream;
+                    TestUtility.RequireSignedPackage(
+                        _corePackageService,
+                        RuntimePackageId,
+                        RuntimePackageVersion,
+                        certificate.ComputeSHA256Thumbprint(),
+                        status: PackageStatus.Available);
+                    _message = CreateRuntimePackageMessage();
+
+                    Assert.False(
+                        AuthorSignedAttributesValidator.IsCanonical(
+                            NonCanonicalSignedAttributesTestUtility.GetSignatureBytes(
+                                _packageStream.ToArray())));
+
+                    // Act
+                    SignatureValidatorResult result = await _target.ValidateAsync(
+                        _packageKey,
+                        _packageStream,
+                        _message,
+                        _cancellationToken);
+
+                    // Assert
+                    Validate(result, ValidationStatus.Succeeded, PackageSigningStatus.Valid);
+                    Assert.Empty(result.Issues);
+                }
+            }
+
+            [Fact]
+            public async Task DoesNotApplySignedAttributesPolicyWhenFeatureIsDisabled()
+            {
+                // Arrange
+                using (X509Certificate2 certificate = SigningTestUtility.GenerateCertificate(subjectName: null, modifyGenerator: null))
+                using (MemoryStream unsignedPackage = NonCanonicalSignedAttributesTestUtility.CreatePackage(
+                    RuntimePackageId,
+                    RuntimePackageVersion))
+                {
+                    byte[] packageBytes = await NonCanonicalSignedAttributesTestUtility.CreateAuthorSignedPackageAsync(
+                        unsignedPackage,
+                        certificate,
+                        _output);
+                    NonCanonicalSignedAttributesTestUtility.NonCanonicalSignatureResult nonCanonicalSignature =
+                        NonCanonicalSignedAttributesTestUtility.MakeSignedAttributesNonCanonical(
+                            packageBytes,
+                            certificate);
+                    _packageStream = nonCanonicalSignature.PackageStream;
+                    TestUtility.RequireSignedPackage(
+                        _corePackageService,
+                        RuntimePackageId,
+                        RuntimePackageVersion,
+                        certificate.ComputeSHA256Thumbprint());
+                    _message = CreateRuntimePackageMessage();
+                    _featureFlagService
+                        .Setup(service => service.IsDerOrderingEnforcementEnabled())
+                        .Returns(false);
+
+                    Assert.False(
+                        AuthorSignedAttributesValidator.IsCanonical(
+                            NonCanonicalSignedAttributesTestUtility.GetSignatureBytes(
+                                _packageStream.ToArray())));
+
+                    // Act
+                    SignatureValidatorResult result = await _target.ValidateAsync(
+                        _packageKey,
+                        _packageStream,
+                        _message,
+                        _cancellationToken);
+
+                    // Assert
+                    Validate(result, ValidationStatus.Succeeded, PackageSigningStatus.Valid);
+                    Assert.Empty(result.Issues);
+                }
+            }
+
+            [Fact]
+            public async Task DoesNotApplySignedAttributesPolicyWhenRepositorySignatureIsRequired()
+            {
+                // Arrange
+                using (X509Certificate2 certificate = SigningTestUtility.GenerateCertificate(subjectName: null, modifyGenerator: null))
+                using (MemoryStream unsignedPackage = NonCanonicalSignedAttributesTestUtility.CreatePackage(
+                    RuntimePackageId,
+                    RuntimePackageVersion))
+                {
+                    byte[] packageBytes = await NonCanonicalSignedAttributesTestUtility.CreateAuthorSignedPackageAsync(
+                        unsignedPackage,
+                        certificate,
+                        _output);
+                    NonCanonicalSignedAttributesTestUtility.NonCanonicalSignatureResult nonCanonicalSignature =
+                        NonCanonicalSignedAttributesTestUtility.MakeSignedAttributesNonCanonical(
+                        packageBytes,
+                        certificate);
+                    _packageStream = nonCanonicalSignature.PackageStream;
+                    TestUtility.RequireSignedPackage(
+                        _corePackageService,
+                        RuntimePackageId,
+                        RuntimePackageVersion,
+                        certificate.ComputeSHA256Thumbprint());
+                    _message = new SignatureValidationMessage(
+                        RuntimePackageId,
+                        RuntimePackageVersion,
+                        new Uri($"https://unit.test/validation/{RuntimePackageId.ToLowerInvariant()}"),
+                        Guid.NewGuid(),
+                        requireRepositorySignature: true);
+
+                    Assert.False(
+                        AuthorSignedAttributesValidator.IsCanonical(
+                            NonCanonicalSignedAttributesTestUtility.GetSignatureBytes(
+                                _packageStream.ToArray())));
+
+                    // Act
+                    SignatureValidatorResult result = await _target.ValidateAsync(
+                        _packageKey,
+                        _packageStream,
+                        _message,
+                        _cancellationToken);
+
+                    // Assert
+                    Validate(
+                        result,
+                        ValidationStatus.Failed,
+                        PackageSigningStatus.Valid,
+                        shouldExtract: true);
+                    Assert.Empty(result.Issues);
+                    _formatValidator.Verify(
+                        x => x.ValidateAllSignaturesAsync(
+                            It.IsAny<ISignedPackageReader>(),
+                            hasRepositorySignature: false,
+                            It.IsAny<CancellationToken>()),
+                        Times.Once);
+                }
+            }
+
+            [Fact]
             public async Task RejectsRepositorySignedPackagesWhenAuthorSigningIsRequired()
             {
                 // Arrange
@@ -237,6 +556,15 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 Validate(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
                 var issue = Assert.Single(result.Issues);
                 Assert.Equal(ValidationIssueCode.PackageIsNotSigned, issue.IssueCode);
+            }
+
+            private SignatureValidationMessage CreateRuntimePackageMessage()
+            {
+                return new SignatureValidationMessage(
+                    RuntimePackageId,
+                    RuntimePackageVersion,
+                    new Uri($"https://unit.test/validation/{RuntimePackageId.ToLowerInvariant()}"),
+                    Guid.NewGuid());
             }
 
             [Fact]
