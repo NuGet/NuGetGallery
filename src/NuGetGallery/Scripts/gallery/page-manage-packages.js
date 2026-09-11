@@ -148,7 +148,9 @@
             this.OwnerUrl = group.OwnerUrl;
             this.Id = group.Id;
             this.Name = group.Name;
+            this.Description = group.Description;
             this.CreatedDate = group.CreatedDate;
+            this.IsUngrouped = group.IsUngrouped;
             this.PackageCount = group.PackageCount;
             this.PackageCountText = group.PackageCount + ' package' + (group.PackageCount === 1 ? '' : 's');
             this.PackageStatusSummary = group.PackageStatusSummary;

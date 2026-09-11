@@ -67,7 +67,7 @@
                                             <td class="align-middle">
                                                 <strong data-bind="text: Name"></strong>
                                                 <br />
-                                                <span class="text-muted ms-font-s" data-bind="text: Id"></span>
+                                                <span class="text-muted ms-font-s" data-bind="text: Description || Id"></span>
                                             </td>
                                             <td class="align-middle">
                                                 <a data-bind="text: Owner, attr: { href: OwnerUrl }"></a>
@@ -80,7 +80,9 @@
                                                 <!-- /ko -->
                                             </td>
                                             <td class="align-middle">
+                                                <!-- ko if: Status -->
                                                 <span class="label staging-status" data-bind="text: Status, css: StatusClass"></span>
+                                                <!-- /ko -->
                                             </td>
                                             <td class="align-middle" data-bind="text: CreatedDate"></td>
                                         </tr>
@@ -656,7 +658,9 @@
             OwnerUrl = Url.User(group.Owner),
             group.Id,
             group.Name,
-            CreatedDate = group.CreatedDate.ToString("MMM d, yyyy"),
+            group.Description,
+            CreatedDate = group.CreatedDate?.ToString("MMM d, yyyy"),
+            group.IsUngrouped,
             group.PackageCount,
             group.PackageStatusSummary,
             group.Status,

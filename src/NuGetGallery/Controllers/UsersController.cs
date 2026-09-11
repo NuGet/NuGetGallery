@@ -624,48 +624,27 @@ namespace NuGetGallery
                     .Select(group =>
                     {
                         stagedPackagesByGroupKey.TryGetValue(group.Key, out var groupPackages);
-                        groupPackages = groupPackages ?? [];
-                        var validatingCount = groupPackages.Count(package => package.Status == StagedPackageStatus.Validating);
-                        var readyCount = groupPackages.Count(package => package.Status == StagedPackageStatus.Ready);
-                        var failedValidationCount = groupPackages.Count(package => package.Status == StagedPackageStatus.FailedValidation);
-                        var status = "Not ready";
-                        var statusClass = "label-warning";
-                        if (failedValidationCount > 0)
-                        {
-                            status = "Validation failed";
-                            statusClass = "staging-status-failedvalidation";
-                        }
-                        else if (validatingCount > 0)
-                        {
-                            status = "Validating";
-                            statusClass = "staging-status-validating";
-                        }
-                        else if (groupPackages.Count == 0)
-                        {
-                            status = "Empty";
-                            statusClass = "label-default";
-                        }
-                        else if (readyCount == groupPackages.Count)
-                        {
-                            status = "Ready";
-                            statusClass = "staging-status-ready";
-                        }
-
-                        return new StagingGroupViewModel
-                        {
-                            Owner = group.Owner.Username,
-                            Id = group.Id,
-                            Name = group.Name,
-                            CreatedDate = group.CreatedDate,
-                            PackageCount = groupPackages.Count,
-                            PackageStatusSummary = GetStagingGroupPackageStatusSummary(
-                                validatingCount,
-                                readyCount,
-                                failedValidationCount),
-                            Status = status,
-                            StatusClass = statusClass,
-                        };
+                        return CreateStagingGroupViewModel(
+                            group.Owner.Username,
+                            group.Id,
+                            group.Name,
+                            group.CreatedDate,
+                            groupPackages ?? [],
+                            isUngrouped: false);
                     })
+                    .Concat(stagedPackageEntities
+                        .Where(stagedPackage => !stagedPackage.StagedPackageIdentity.StagingGroupKey.HasValue)
+                        .GroupBy(stagedPackage => stagedPackage.StagedPackageIdentity.Owner)
+                        .Select(group => CreateStagingGroupViewModel(
+                            group.Key.Username,
+                            id: null,
+                            name: "Ungrouped",
+                            createdDate: null,
+                            packages: group.ToList(),
+                            isUngrouped: true)))
+                    .OrderBy(group => group.Owner)
+                    .ThenByDescending(group => group.IsUngrouped)
+                    .ThenBy(group => group.Name)
                     .ToList();
             }
 
@@ -686,6 +665,58 @@ namespace NuGetGallery
             };
 
             return View(model);
+        }
+
+        private static StagingGroupViewModel CreateStagingGroupViewModel(
+            string owner,
+            string id,
+            string name,
+            DateTime? createdDate,
+            IReadOnlyList<StagedPackage> packages,
+            bool isUngrouped)
+        {
+            var validatingCount = packages.Count(package => package.Status == StagedPackageStatus.Validating);
+            var readyCount = packages.Count(package => package.Status == StagedPackageStatus.Ready);
+            var failedValidationCount = packages.Count(package => package.Status == StagedPackageStatus.FailedValidation);
+            var status = "Not ready";
+            var statusClass = "label-warning";
+            if (failedValidationCount > 0)
+            {
+                status = "Validation failed";
+                statusClass = "staging-status-failedvalidation";
+            }
+            else if (validatingCount > 0)
+            {
+                status = "Validating";
+                statusClass = "staging-status-validating";
+            }
+            else if (packages.Count == 0)
+            {
+                status = "Empty";
+                statusClass = "label-default";
+            }
+            else if (readyCount == packages.Count)
+            {
+                status = "Ready";
+                statusClass = "staging-status-ready";
+            }
+
+            return new StagingGroupViewModel
+            {
+                Owner = owner,
+                Id = id,
+                Name = name,
+                Description = isUngrouped ? "Staged packages not in any group" : null,
+                CreatedDate = createdDate,
+                IsUngrouped = isUngrouped,
+                PackageCount = packages.Count,
+                PackageStatusSummary = GetStagingGroupPackageStatusSummary(
+                    validatingCount,
+                    readyCount,
+                    failedValidationCount),
+                Status = isUngrouped ? null : status,
+                StatusClass = isUngrouped ? null : statusClass,
+            };
         }
 
         private static string GetStagingGroupPackageStatusSummary(int validatingCount, int readyCount, int failedValidationCount)

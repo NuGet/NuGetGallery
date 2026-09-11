@@ -4284,6 +4284,61 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public void IncludesOneUngroupedSummaryPerOwnerWithUngroupedPackages()
+            {
+                var organization = new Organization("ZOrganization") { Key = 2 };
+                var personalPackage = CreateStagedPackage(101, "Personal.Package", StagedPackageStatus.Ready);
+                var secondPersonalPackage = CreateStagedPackage(202, "Second.Personal.Package", StagedPackageStatus.Validating);
+                var organizationPackage = CreateStagedPackage(303, "Organization.Package", StagedPackageStatus.Ready);
+                organizationPackage.StagedPackageIdentity.Owner = organization;
+                organizationPackage.StagedPackageIdentity.OwnerKey = organization.Key;
+
+                GetMock<IPackageService>()
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(_testUser, It.IsAny<bool>(), false))
+                    .Returns(new[]
+                    {
+                        personalPackage.StagedPackageIdentity.Package,
+                        secondPersonalPackage.StagedPackageIdentity.Package,
+                        organizationPackage.StagedPackageIdentity.Package,
+                    });
+                GetMock<IPackageStagingManagementService>()
+                    .Setup(service => service.IsEnabled(_testUser))
+                    .Returns(true);
+                GetMock<IPackageStagingManagementService>()
+                    .Setup(service => service.GetStagedPackages(_testUser))
+                    .Returns(new[] { personalPackage, secondPersonalPackage, organizationPackage });
+                GetMock<IPackageStagingManagementService>()
+                    .Setup(service => service.GetStagingGroups(_testUser))
+                    .Returns(Array.Empty<StagingGroup>());
+
+                var model = ResultAssert.IsView<ManagePackagesViewModel>(_testController.Packages());
+
+                Assert.Collection(
+                    model.StagingGroups,
+                    group =>
+                    {
+                        Assert.Equal(_testUser.Username, group.Owner);
+                        Assert.Equal("Ungrouped", group.Name);
+                        Assert.Null(group.Id);
+                        Assert.Equal("Staged packages not in any group", group.Description);
+                        Assert.Null(group.CreatedDate);
+                        Assert.True(group.IsUngrouped);
+                        Assert.Equal(2, group.PackageCount);
+                        Assert.Equal("1 ready, 1 validating", group.PackageStatusSummary);
+                        Assert.Null(group.Status);
+                        Assert.Null(group.StatusClass);
+                    },
+                    group =>
+                    {
+                        Assert.Equal(organization.Username, group.Owner);
+                        Assert.Equal("Ungrouped", group.Name);
+                        Assert.Equal(1, group.PackageCount);
+                        Assert.Null(group.Status);
+                        Assert.Null(group.StatusClass);
+                    });
+            }
+
+            [Fact]
             public void ExcludesStagedPackagesWhenStagingIsDisabled()
             {
                 GetMock<IPackageService>()
