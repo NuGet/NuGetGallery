@@ -62,6 +62,50 @@ namespace NuGetGallery
             Assert.Equal(1, model.FailedCount);
             Assert.Equal(new[] { "Failed.Package", "Ready.Package" }, model.Packages.Select(package => package.Id));
             Assert.Equal(new[] { validationIssue }, model.Packages.First().ValidationIssues);
+            Assert.All(model.Packages, package => Assert.True(package.CanManage));
+            Assert.False(model.Packages.First().CanPromote);
+            Assert.True(model.Packages.Last().CanPromote);
+        }
+
+        [Fact]
+        public void DisplaysUngroupedPackagesForAnOwner()
+        {
+            var currentUser = new User("Current") { Key = 1 };
+            var ungroupedPackage = CreateStagedPackage(42, "Ungrouped.Package", "1.0.0", currentUser, StagedPackageStatus.Ready);
+            var groupedPackage = CreateStagedPackage(43, "Grouped.Package", "2.0.0", currentUser, StagedPackageStatus.Ready);
+            groupedPackage.StagedPackageIdentity.StagingGroupKey = 10;
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagedPackages(currentUser))
+                .Returns(new[] { groupedPackage, ungroupedPackage });
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(currentUser);
+
+            var result = target.Ungrouped("current");
+
+            var model = ResultAssert.IsView<StagingGroupDetailViewModel>(result, viewName: "Group");
+            Assert.Equal(currentUser.Username, model.Owner);
+            Assert.True(model.IsUngrouped);
+            Assert.Null(model.Id);
+            Assert.Equal("Ungrouped", model.Name);
+            Assert.Equal("Staged packages not in any group", model.Description);
+            Assert.Equal("Ungrouped.Package", Assert.Single(model.Packages).Id);
+        }
+
+        [Fact]
+        public void HidesEmptyOrUnauthorizedUngroupedPackages()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var otherOwner = new User("other") { Key = 2 };
+            var otherPackage = CreateStagedPackage(42, "Other.Package", "1.0.0", otherOwner, StagedPackageStatus.Ready);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagedPackages(currentUser))
+                .Returns(new[] { otherPackage });
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(currentUser);
+
+            var result = target.Ungrouped(currentUser.Username);
+
+            Assert.IsType<HttpNotFoundResult>(result);
         }
 
         [Fact]

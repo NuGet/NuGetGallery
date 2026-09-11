@@ -10,9 +10,15 @@ namespace NuGetGallery
     /// </summary>
     public class StagingGroupDetailViewModel
     {
+        public string Owner { get; set; }
+
         public string Id { get; set; }
 
         public string Name { get; set; }
+
+        public string Description { get; set; }
+
+        public bool IsUngrouped { get; set; }
 
         public int PackageCount { get; set; }
 

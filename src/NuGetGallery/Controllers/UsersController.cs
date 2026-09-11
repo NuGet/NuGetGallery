@@ -41,7 +41,6 @@ namespace NuGetGallery
         private readonly IPackageVulnerabilitiesService _packageVulnerabilitiesService;
         private readonly IFederatedCredentialService _federatedCredentialService;
         private readonly IPackageStagingManagementService _packageStagingManagementService;
-        private readonly IValidationService _validationService;
 
         public UsersController(
             IUserService userService,
@@ -65,8 +64,7 @@ namespace NuGetGallery
             IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory,
             IFederatedCredentialService federatedCredentialService,
             IFederatedCredentialRepository federatedCredentialRepository,
-            IPackageStagingManagementService packageStagingManagementService,
-            IValidationService validationService)
+            IPackageStagingManagementService packageStagingManagementService)
             : base(
                   authService,
                   packageService,
@@ -91,7 +89,6 @@ namespace NuGetGallery
             _packageVulnerabilitiesService = packageVulnerabilitiesService ?? throw new ArgumentNullException(nameof(packageVulnerabilitiesService));
             _federatedCredentialService = federatedCredentialService ?? throw new ArgumentNullException(nameof(federatedCredentialService));
             _packageStagingManagementService = packageStagingManagementService ?? throw new ArgumentNullException(nameof(packageStagingManagementService));
-            _validationService = validationService ?? throw new ArgumentNullException(nameof(validationService));
 
             _listPackageItemRequiredSignerViewModelFactory = new ListPackageItemRequiredSignerViewModelFactory(
                 securityPolicyService, iconUrlProvider, packageVulnerabilitiesService, frameworkCompatibilityFactory, featureFlagService);
@@ -581,7 +578,6 @@ namespace NuGetGallery
             var reservedPrefixes = new ReservedNamespaceListViewModel(userReservedNamespaces.Union(organizationsReservedNamespaces).ToArray());
 
             var isPackageStagingEnabled = _packageStagingManagementService.IsEnabled(currentUser);
-            var stagedPackages = new List<PackageStagingViewModel>();
             var stagingGroups = new List<StagingGroupViewModel>();
             if (isPackageStagingEnabled)
             {
@@ -590,35 +586,6 @@ namespace NuGetGallery
                     .Where(stagedPackage => stagedPackage.StagedPackageIdentity.StagingGroupKey.HasValue)
                     .GroupBy(stagedPackage => stagedPackage.StagedPackageIdentity.StagingGroupKey.Value)
                     .ToDictionary(group => group.Key, group => group.ToList());
-                var failedStagedPackageKeys = stagedPackageEntities
-                    .Where(package => package.Status == StagedPackageStatus.FailedValidation)
-                    .Select(package => package.Key)
-                    .Distinct()
-                    .ToList();
-                var validationIssuesByStagedPackageKey = failedStagedPackageKeys.Count == 0
-                    ? new Dictionary<int, IReadOnlyList<ValidationIssue>>()
-                    : _validationService.GetStagedPackageValidationIssues(failedStagedPackageKeys);
-
-                stagedPackages = stagedPackageEntities
-                    .Select(stagedPackage =>
-                    {
-                        validationIssuesByStagedPackageKey.TryGetValue(stagedPackage.Key, out var validationIssues);
-
-                        return new PackageStagingViewModel
-                        {
-                            Id = stagedPackage.StagedPackageIdentity.Package.PackageRegistration.Id,
-                            Version = stagedPackage.StagedPackageIdentity.Package.NormalizedVersion,
-                            Status = stagedPackage.Status.ToString(),
-                            StatusClass = $"staging-status-{stagedPackage.Status.ToString().ToLowerInvariant()}",
-                            Owner = stagedPackage.StagedPackageIdentity.Owner.Username,
-                            UploadedDate = stagedPackage.UploadedDate,
-                            ValidationIssues = validationIssues ?? [],
-                            Listed = stagedPackage.StagedPackageIdentity.Package.Listed,
-                            CanManage = true,
-                            CanPromote = stagedPackage.Status == StagedPackageStatus.Ready,
-                        };
-                    })
-                    .ToList();
 
                 stagingGroups = _packageStagingManagementService.GetStagingGroups(currentUser)
                     .Select(group =>
@@ -642,7 +609,8 @@ namespace NuGetGallery
                             name: "Ungrouped",
                             createdDate: null,
                             packages: group.ToList(),
-                            isUngrouped: true)))
+                            isUngrouped: true,
+                            url: Url.ManageUngroupedStaging(group.Key.Username))))
                     .OrderBy(group => group.Owner)
                     .ThenByDescending(group => group.IsUngrouped)
                     .ThenBy(group => group.Name)
@@ -661,7 +629,6 @@ namespace NuGetGallery
                 IsCertificatesUIEnabled = ContentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false,
                 IsManagePackagesVulnerabilitiesEnabled = _featureFlagService.IsManagePackagesVulnerabilitiesEnabled(),
                 IsPackageStagingEnabled = isPackageStagingEnabled,
-                StagedPackages = stagedPackages,
                 StagingGroups = stagingGroups,
             };
 

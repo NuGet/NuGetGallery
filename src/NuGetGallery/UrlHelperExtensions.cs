@@ -1198,6 +1198,18 @@ namespace NuGetGallery
                 });
         }
 
+        public static string ManageUngroupedStaging(this UrlHelper url, string owner, bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.ManageUngroupedStaging,
+                relativeUrl,
+                new RouteValueDictionary
+                {
+                    { "owner", owner },
+                });
+        }
+
         public static string DownloadStagedPackage(this UrlHelper url, string id, string version, bool relativeUrl = true)
         {
             return GetRouteLink(

@@ -60,18 +60,55 @@ namespace NuGetGallery
                 .Where(stagedPackage =>
                     stagedPackage.StagedPackageIdentity.OwnerKey == group.OwnerKey &&
                     stagedPackage.StagedPackageIdentity.StagingGroupKey == group.Key)
+                .ToList();
+
+            return View(CreateGroupViewModel(group.Owner.Username, group.Id, group.Name, null, stagedPackages));
+        }
+
+        [HttpGet]
+        public virtual ActionResult Ungrouped(string owner)
+        {
+            if (string.IsNullOrWhiteSpace(owner))
+            {
+                return HttpNotFound();
+            }
+
+            var stagedPackages = _packageStagingManagementService
+                .GetStagedPackages(GetCurrentUser())
+                .Where(package => package.StagedPackageIdentity.StagingGroupKey == null)
+                .Where(package => string.Equals(package.StagedPackageIdentity.Owner.Username, owner, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            if (stagedPackages.Count == 0)
+            {
+                return HttpNotFound();
+            }
+
+            var canonicalOwner = stagedPackages[0].StagedPackageIdentity.Owner.Username;
+            var model = CreateGroupViewModel(canonicalOwner, id: null, "Ungrouped", "Staged packages not in any group", stagedPackages);
+
+            return View("Group", model);
+        }
+
+        private StagingGroupDetailViewModel CreateGroupViewModel(
+            string owner,
+            string id,
+            string name,
+            string description,
+            IReadOnlyCollection<StagedPackage> stagedPackages)
+        {
+            var orderedStagedPackages = stagedPackages
                 .OrderBy(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageRegistration.Id)
                 .ThenBy(stagedPackage => stagedPackage.StagedPackageIdentity.Package.NormalizedVersion)
                 .ThenBy(stagedPackage => stagedPackage.Key)
                 .ToList();
-            var failedPackageKeys = stagedPackages
+            var failedPackageKeys = orderedStagedPackages
                 .Where(stagedPackage => stagedPackage.Status == StagedPackageStatus.FailedValidation)
                 .Select(stagedPackage => stagedPackage.Key)
                 .ToList();
             var validationIssues = failedPackageKeys.Count == 0
                 ? new Dictionary<int, IReadOnlyList<ValidationIssue>>()
                 : _validationService.GetStagedPackageValidationIssues(failedPackageKeys);
-            var packageViewModels = stagedPackages
+            var packageViewModels = orderedStagedPackages
                 .Select(stagedPackage =>
                 {
                     validationIssues.TryGetValue(stagedPackage.Key, out var issues);
@@ -85,22 +122,25 @@ namespace NuGetGallery
                         UploadedDate = stagedPackage.UploadedDate,
                         ValidationIssues = issues ?? [],
                         Listed = stagedPackage.StagedPackageIdentity.Package.Listed,
+                        CanManage = true,
+                        CanPromote = stagedPackage.Status == StagedPackageStatus.Ready,
                     };
                 })
                 .ToList();
 
-            var model = new StagingGroupDetailViewModel
+            return new StagingGroupDetailViewModel
             {
-                Id = group.Id,
-                Name = group.Name,
+                Owner = owner,
+                Id = id,
+                Name = name,
+                Description = description,
+                IsUngrouped = id == null,
                 PackageCount = packageViewModels.Count,
-                ReadyCount = stagedPackages.Count(stagedPackage => stagedPackage.Status == StagedPackageStatus.Ready),
-                ValidatingCount = stagedPackages.Count(stagedPackage => stagedPackage.Status == StagedPackageStatus.Validating),
-                FailedCount = stagedPackages.Count(stagedPackage => stagedPackage.Status == StagedPackageStatus.FailedValidation),
+                ReadyCount = orderedStagedPackages.Count(stagedPackage => stagedPackage.Status == StagedPackageStatus.Ready),
+                ValidatingCount = orderedStagedPackages.Count(stagedPackage => stagedPackage.Status == StagedPackageStatus.Validating),
+                FailedCount = orderedStagedPackages.Count(stagedPackage => stagedPackage.Status == StagedPackageStatus.FailedValidation),
                 Packages = packageViewModels,
             };
-
-            return View(model);
         }
 
         [HttpGet]
