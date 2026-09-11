@@ -86,5 +86,14 @@ namespace NuGetGallery
         /// <param name="currentUser">The user requesting the staging groups.</param>
         /// <returns>The owner-visible staging groups.</returns>
         IReadOnlyList<StagingGroup> GetStagingGroups(User currentUser);
+
+        /// <summary>
+        /// Finds an owner-visible staging group.
+        /// </summary>
+        /// <param name="currentUser">The user requesting the staging group.</param>
+        /// <param name="owner">The group owner's username.</param>
+        /// <param name="groupId">The owner-scoped group ID.</param>
+        /// <returns>The staging group, or <see langword="null"/> when it does not exist or is not visible.</returns>
+        StagingGroup FindStagingGroup(User currentUser, string owner, string groupId);
     }
 }

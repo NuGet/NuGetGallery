@@ -201,6 +201,38 @@ namespace NuGetGallery
                 .ToList();
         }
 
+        public StagingGroup FindStagingGroup(User currentUser, string owner, string groupId)
+        {
+            if (currentUser == null)
+            {
+                throw new ArgumentNullException(nameof(currentUser));
+            }
+
+            if (string.IsNullOrWhiteSpace(owner))
+            {
+                throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(owner));
+            }
+
+            if (string.IsNullOrWhiteSpace(groupId))
+            {
+                throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(groupId));
+            }
+
+            var enabledOwner = GetEnabledOwners(currentUser)
+                .SingleOrDefault(candidate => string.Equals(candidate.Username, owner, StringComparison.OrdinalIgnoreCase));
+            if (enabledOwner == null)
+            {
+                return null;
+            }
+
+            return _stagingGroupRepository
+                .GetAll()
+                .Include(group => group.Owner)
+                .Where(group => group.OwnerKey == enabledOwner.Key)
+                .ToList()
+                .SingleOrDefault(group => string.Equals(group.Id, groupId, StringComparison.OrdinalIgnoreCase));
+        }
+
         public IReadOnlyList<PackageStagingStatus> GetPackages(User currentUser, IEnumerable<Scope> scopes)
         {
             if (currentUser == null)

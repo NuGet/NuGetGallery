@@ -88,6 +88,37 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public void FindsAnOwnerVisibleGroupCaseInsensitively()
+            {
+                var currentUser = new User("Current") { Key = 1 };
+                var group = CreateStagingGroup(10, "Test-Group", "Test group", currentUser);
+                var target = CreateService(
+                    Array.Empty<StagedPackage>(),
+                    owner => true,
+                    stagingGroups: new[] { group });
+
+                var result = target.FindStagingGroup(currentUser, "current", "test-group");
+
+                Assert.Same(group, result);
+            }
+
+            [Fact]
+            public void DoesNotFindAGroupForAnotherOwner()
+            {
+                var currentUser = new User("current") { Key = 1 };
+                var otherOwner = new User("other") { Key = 2 };
+                var group = CreateStagingGroup(10, "test-group", "Test group", otherOwner);
+                var target = CreateService(
+                    Array.Empty<StagedPackage>(),
+                    owner => true,
+                    stagingGroups: new[] { group });
+
+                var result = target.FindStagingGroup(currentUser, otherOwner.Username, group.Id);
+
+                Assert.Null(result);
+            }
+
+            [Fact]
             public void ListsOnlyNewestApiKeyAuthorizedAttempts()
             {
                 var currentUser = new User("current") { Key = 1 };

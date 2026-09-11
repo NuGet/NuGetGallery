@@ -149,6 +149,7 @@
             this.Id = group.Id;
             this.Name = group.Name;
             this.Description = group.Description;
+            this.Url = group.Url;
             this.CreatedDate = group.CreatedDate;
             this.IsUngrouped = group.IsUngrouped;
             this.PackageCount = group.PackageCount;

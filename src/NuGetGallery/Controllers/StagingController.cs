@@ -2,11 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using NuGet.Services.Entities;
+using NuGet.Services.Validation.Issues;
 using NuGetGallery.Filters;
 
 namespace NuGetGallery
@@ -21,17 +24,83 @@ namespace NuGetGallery
         private readonly IPackageStagingManagementService _packageStagingManagementService;
         private readonly IPackageStagingPromotionService _packageStagingPromotionService;
         private readonly IPackageStagingUploadService _packageStagingUploadService;
+        private readonly IValidationService _validationService;
 
         public StagingController(
             IPackageStagingAuthorizationService packageStagingAuthorizationService,
             IPackageStagingManagementService packageStagingManagementService,
             IPackageStagingPromotionService packageStagingPromotionService,
-            IPackageStagingUploadService packageStagingUploadService)
+            IPackageStagingUploadService packageStagingUploadService,
+            IValidationService validationService)
         {
             _packageStagingAuthorizationService = packageStagingAuthorizationService ?? throw new ArgumentNullException(nameof(packageStagingAuthorizationService));
             _packageStagingManagementService = packageStagingManagementService ?? throw new ArgumentNullException(nameof(packageStagingManagementService));
             _packageStagingPromotionService = packageStagingPromotionService ?? throw new ArgumentNullException(nameof(packageStagingPromotionService));
             _packageStagingUploadService = packageStagingUploadService ?? throw new ArgumentNullException(nameof(packageStagingUploadService));
+            _validationService = validationService ?? throw new ArgumentNullException(nameof(validationService));
+        }
+
+        [HttpGet]
+        public virtual ActionResult Group(string owner, string groupId)
+        {
+            if (string.IsNullOrWhiteSpace(owner) || string.IsNullOrWhiteSpace(groupId))
+            {
+                return HttpNotFound();
+            }
+
+            var currentUser = GetCurrentUser();
+            var group = _packageStagingManagementService.FindStagingGroup(currentUser, owner, groupId);
+            if (group == null)
+            {
+                return HttpNotFound();
+            }
+
+            var stagedPackages = _packageStagingManagementService
+                .GetStagedPackages(currentUser)
+                .Where(stagedPackage =>
+                    stagedPackage.StagedPackageIdentity.OwnerKey == group.OwnerKey &&
+                    stagedPackage.StagedPackageIdentity.StagingGroupKey == group.Key)
+                .OrderBy(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageRegistration.Id)
+                .ThenBy(stagedPackage => stagedPackage.StagedPackageIdentity.Package.NormalizedVersion)
+                .ThenBy(stagedPackage => stagedPackage.Key)
+                .ToList();
+            var failedPackageKeys = stagedPackages
+                .Where(stagedPackage => stagedPackage.Status == StagedPackageStatus.FailedValidation)
+                .Select(stagedPackage => stagedPackage.Key)
+                .ToList();
+            var validationIssues = failedPackageKeys.Count == 0
+                ? new Dictionary<int, IReadOnlyList<ValidationIssue>>()
+                : _validationService.GetStagedPackageValidationIssues(failedPackageKeys);
+            var packageViewModels = stagedPackages
+                .Select(stagedPackage =>
+                {
+                    validationIssues.TryGetValue(stagedPackage.Key, out var issues);
+                    return new PackageStagingViewModel
+                    {
+                        Id = stagedPackage.StagedPackageIdentity.Package.PackageRegistration.Id,
+                        Version = stagedPackage.StagedPackageIdentity.Package.NormalizedVersion,
+                        Owner = stagedPackage.StagedPackageIdentity.Owner.Username,
+                        Status = stagedPackage.Status.ToString(),
+                        StatusClass = $"staging-status-{stagedPackage.Status.ToString().ToLowerInvariant()}",
+                        UploadedDate = stagedPackage.UploadedDate,
+                        ValidationIssues = issues ?? [],
+                        Listed = stagedPackage.StagedPackageIdentity.Package.Listed,
+                    };
+                })
+                .ToList();
+
+            var model = new StagingGroupDetailViewModel
+            {
+                Id = group.Id,
+                Name = group.Name,
+                PackageCount = packageViewModels.Count,
+                ReadyCount = stagedPackages.Count(stagedPackage => stagedPackage.Status == StagedPackageStatus.Ready),
+                ValidatingCount = stagedPackages.Count(stagedPackage => stagedPackage.Status == StagedPackageStatus.Validating),
+                FailedCount = stagedPackages.Count(stagedPackage => stagedPackage.Status == StagedPackageStatus.FailedValidation),
+                Packages = packageViewModels,
+            };
+
+            return View(model);
         }
 
         [HttpGet]

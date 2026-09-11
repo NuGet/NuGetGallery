@@ -18,6 +18,8 @@ namespace NuGetGallery
 
         public string Description { get; set; }
 
+        public string Url { get; set; }
+
         public DateTime? CreatedDate { get; set; }
 
         public bool IsUngrouped { get; set; }

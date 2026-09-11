@@ -1,13 +1,16 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using Moq;
 using NuGet.Services.Entities;
+using NuGet.Services.Validation.Issues;
 using NuGetGallery.Framework;
 using Xunit;
 
@@ -15,6 +18,109 @@ namespace NuGetGallery
 {
     public class StagingControllerFacts : TestContainer
     {
+        [Fact]
+        public void DisplaysAnOwnerVisibleGroupAndItsCurrentMembers()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var group = new StagingGroup
+            {
+                Key = 10,
+                OwnerKey = currentUser.Key,
+                Owner = currentUser,
+                Id = "test-group",
+                Name = "Test group",
+                CreatedDate = new System.DateTime(2026, 9, 10),
+            };
+            var failedPackage = CreateStagedPackage(42, "Failed.Package", "1.0.0", currentUser, StagedPackageStatus.FailedValidation);
+            failedPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
+            var readyPackage = CreateStagedPackage(43, "Ready.Package", "2.0.0", currentUser, StagedPackageStatus.Ready);
+            readyPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
+            var ungroupedPackage = CreateStagedPackage(44, "Ungrouped.Package", "3.0.0", currentUser, StagedPackageStatus.Ready);
+            var validationIssue = ValidationIssue.PackageIsZip64;
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.FindStagingGroup(currentUser, "current", "test-group"))
+                .Returns(group);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagedPackages(currentUser))
+                .Returns(new[] { readyPackage, ungroupedPackage, failedPackage });
+            GetMock<IValidationService>()
+                .Setup(x => x.GetStagedPackageValidationIssues(
+                    It.Is<IReadOnlyCollection<int>>(keys => keys.SequenceEqual(new[] { failedPackage.Key }))))
+                .Returns(new Dictionary<int, IReadOnlyList<ValidationIssue>>
+                {
+                    { failedPackage.Key, new[] { validationIssue } },
+                });
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(currentUser);
+
+            var result = target.Group("current", "test-group");
+
+            var model = ResultAssert.IsView<StagingGroupDetailViewModel>(result);
+            Assert.Equal("Test group", model.Name);
+            Assert.Equal(2, model.PackageCount);
+            Assert.Equal(1, model.ReadyCount);
+            Assert.Equal(1, model.FailedCount);
+            Assert.Equal(new[] { "Failed.Package", "Ready.Package" }, model.Packages.Select(package => package.Id));
+            Assert.Equal(new[] { validationIssue }, model.Packages.First().ValidationIssues);
+        }
+
+        [Fact]
+        public void ListsAllGroupMembersDeterministically()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var group = new StagingGroup
+            {
+                Key = 10,
+                OwnerKey = currentUser.Key,
+                Owner = currentUser,
+                Id = "test-group",
+                Name = "Test group",
+            };
+            var stagedPackages = Enumerable
+                .Range(1, GalleryConstants.DefaultPackageListPageSize + 1)
+                .Select(index =>
+                {
+                    var package = CreateStagedPackage(index, $"Package.{index:D2}", "1.0.0", currentUser, StagedPackageStatus.Ready);
+                    package.StagedPackageIdentity.StagingGroupKey = group.Key;
+                    return package;
+                })
+                .Reverse()
+                .ToList();
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.FindStagingGroup(currentUser, currentUser.Username, group.Id))
+                .Returns(group);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagedPackages(currentUser))
+                .Returns(stagedPackages);
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(currentUser);
+
+            var result = target.Group(currentUser.Username, group.Id);
+
+            var model = ResultAssert.IsView<StagingGroupDetailViewModel>(result);
+            Assert.Equal(
+                Enumerable.Range(1, GalleryConstants.DefaultPackageListPageSize + 1).Select(index => $"Package.{index:D2}"),
+                model.Packages.Select(package => package.Id));
+        }
+
+        [Fact]
+        public void HidesMissingOrUnauthorizedGroups()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.FindStagingGroup(currentUser, "other", "test-group"))
+                .Returns((StagingGroup)null);
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(currentUser);
+
+            var result = target.Group("other", "test-group");
+
+            Assert.IsType<HttpNotFoundResult>(result);
+            GetMock<IPackageStagingManagementService>().Verify(
+                x => x.GetStagedPackages(It.IsAny<User>()),
+                Times.Never);
+        }
+
         [Fact]
         public async Task DownloadsAuthorizedPackage()
         {
@@ -239,11 +345,21 @@ namespace NuGetGallery
 
         private static StagedPackage CreateStagedPackage(User owner)
         {
+            return CreateStagedPackage(43, "PackageA", "1.0.0", owner, StagedPackageStatus.Validating);
+        }
+
+        private static StagedPackage CreateStagedPackage(
+            int key,
+            string id,
+            string version,
+            User owner,
+            StagedPackageStatus status)
+        {
             var package = new Package
             {
-                Key = 42,
-                NormalizedVersion = "1.0.0",
-                PackageRegistration = new PackageRegistration { Id = "PackageA" },
+                Key = key,
+                NormalizedVersion = version,
+                PackageRegistration = new PackageRegistration { Id = id },
             };
             var identity = new StagedPackageIdentity
             {
@@ -254,9 +370,10 @@ namespace NuGetGallery
             };
             var stagedPackage = new StagedPackage
             {
-                Key = 43,
+                Key = key,
                 StagedPackageIdentityKey = identity.Key,
                 StagedPackageIdentity = identity,
+                Status = status,
             };
             identity.CurrentStagedPackageKey = stagedPackage.Key;
             identity.CurrentStagedPackage = stagedPackage;

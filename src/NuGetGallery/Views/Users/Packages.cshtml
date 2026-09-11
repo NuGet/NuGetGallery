@@ -65,7 +65,12 @@
                                     <tbody data-bind="foreach: StagingGroups.Groups">
                                         <tr class="manage-package-listing" data-bind="visible: Visible">
                                             <td class="align-middle">
+                                                <!-- ko if: Url -->
+                                                <strong><a data-bind="text: Name, attr: { href: Url }"></a></strong>
+                                                <!-- /ko -->
+                                                <!-- ko ifnot: Url -->
                                                 <strong data-bind="text: Name"></strong>
+                                                <!-- /ko -->
                                                 <br />
                                                 <span class="text-muted ms-font-s" data-bind="text: Description || Id"></span>
                                             </td>
@@ -659,6 +664,7 @@
             group.Id,
             group.Name,
             group.Description,
+            group.Url,
             CreatedDate = group.CreatedDate?.ToString("MMM d, yyyy"),
             group.IsUngrouped,
             group.PackageCount,

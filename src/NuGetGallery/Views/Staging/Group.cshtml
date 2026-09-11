@@ -1,0 +1,125 @@
+@model StagingGroupDetailViewModel
+@{
+    ViewBag.Title = Model.Name;
+    ViewBag.Tab = "Packages";
+}
+
+<section id="staging-group" role="main" class="container main-container page-manage-packages">
+    <div class="row">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+            <div class="breadcrumb-menu">
+                <div>
+                    <a class="staging-group-back-link" href="@Url.ManageMyPackages()">
+                        <span aria-hidden="true" class="ms-Icon ms-Icon--ChevronLeft"></span>
+                        <span>Back to Manage Packages</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="staging-group-heading">
+                <h1>@Model.Name</h1>
+                <span class="text-muted">@Model.Id</span>
+            </div>
+
+            <div class="staging-group-summary">
+                @if (Model.ReadyCount > 0)
+                {
+                    <span class="label staging-status staging-status-ready">@Model.ReadyCount ready</span>
+                }
+                @if (Model.ValidatingCount > 0)
+                {
+                    <span class="label staging-status staging-status-validating">@Model.ValidatingCount validating</span>
+                }
+                @if (Model.FailedCount > 0)
+                {
+                    <span class="label staging-status staging-status-failedvalidation">@Model.FailedCount failed</span>
+                }
+            </div>
+
+            <hr class="breadcrumb-divider" />
+
+            @if (Model.PackageCount == 0)
+            {
+                <p>This staging group has no packages.</p>
+            }
+            else
+            {
+                <form class="staging-group-search" role="search" data-bind="submit: Search">
+                    <label class="sr-only" for="staging-group-search">Filter staged packages</label>
+                    <div class="input-group">
+                        <input id="staging-group-search"
+                               type="search"
+                               class="form-control input-brand"
+                               placeholder="Filter staged packages..."
+                               data-bind="textInput: SearchQuery" />
+                        <span class="input-group-btn">
+                            <button class="btn btn-brand" type="submit" aria-label="Filter staged packages">
+                                <i class="ms-Icon ms-Icon--Search" aria-hidden="true"></i>
+                            </button>
+                        </span>
+                    </div>
+                </form>
+
+                <p class="text-muted" aria-live="polite" data-bind="text: VisiblePackageSummary"></p>
+                <p class="hidden"
+                   data-bind="css: { hidden: SearchQuery().trim().length === 0 || VisiblePackageCount() !== 0 }">
+                    No packages match your filter.
+                </p>
+
+                <div class="row user-package-list staging-group-package-list">
+                    <div class="col-md-12">
+                        <table class="table inner-table">
+                            <thead>
+                                <tr class="manage-package-headings">
+                                    <th>Package ID</th>
+                                    <th>Version</th>
+                                    <th>Status</th>
+                                    <th>Listed</th>
+                                    <th>Staged On</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (var index = 0; index < Model.Packages.Count; index++)
+                                {
+                                    var package = Model.Packages[index];
+                                    <tr class="manage-package-listing" data-bind="visible: Packages[@index].Visible">
+                                        <td class="align-middle package-id">@package.Id</td>
+                                        <td class="align-middle staging-package-version">@package.Version</td>
+                                        <td class="align-middle">
+                                            <span class="label staging-status @package.StatusClass">@package.Status</span>
+                                            @if (package.ValidationIssues.Count > 0)
+                                            {
+                                                <ul class="text-danger">
+                                                    @foreach (var issue in package.ValidationIssues)
+                                                    {
+                                                        <li>@Html.Partial("~/Views/Packages/_ValidationIssue.cshtml", issue)</li>
+                                                    }
+                                                </ul>
+                                            }
+                                        </td>
+                                        <td class="align-middle staging-package-listed">@(package.Listed ? "Yes" : "No")</td>
+                                        <td class="align-middle">@package.UploadedDate.ToNuGetShortDateString()</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+@section BottomScripts {
+    <script nonce="@Html.GetCSPNonce()">
+        window.stagingGroupData = @Html.ToJson(new
+                                  {
+                                      Packages = Model.Packages.Select(package => new
+                                      {
+                                          package.Id,
+                                          package.Version,
+                                      }),
+                                  });
+    </script>
+    @Scripts.Render("~/Scripts/gallery/page-staging-group.min.js")
+}

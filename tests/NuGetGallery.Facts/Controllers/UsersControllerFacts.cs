@@ -4276,6 +4276,7 @@ namespace NuGetGallery
                 Assert.Equal(_testUser.Username, result.Owner);
                 Assert.Equal("test-group", result.Id);
                 Assert.Equal("Test group", result.Name);
+                Assert.Contains($"/account/staging/{_testUser.Username}/groups/test-group", result.Url);
                 Assert.Equal(group.CreatedDate, result.CreatedDate);
                 Assert.Equal(2, result.PackageCount);
                 Assert.Equal("1 ready, 1 failed", result.PackageStatusSummary);

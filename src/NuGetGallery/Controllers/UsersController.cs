@@ -630,7 +630,8 @@ namespace NuGetGallery
                             group.Name,
                             group.CreatedDate,
                             groupPackages ?? [],
-                            isUngrouped: false);
+                            isUngrouped: false,
+                            url: Url.ManageStagingGroup(group.Owner.Username, group.Id));
                     })
                     .Concat(stagedPackageEntities
                         .Where(stagedPackage => !stagedPackage.StagedPackageIdentity.StagingGroupKey.HasValue)
@@ -673,7 +674,8 @@ namespace NuGetGallery
             string name,
             DateTime? createdDate,
             IReadOnlyList<StagedPackage> packages,
-            bool isUngrouped)
+            bool isUngrouped,
+            string url = null)
         {
             var validatingCount = packages.Count(package => package.Status == StagedPackageStatus.Validating);
             var readyCount = packages.Count(package => package.Status == StagedPackageStatus.Ready);
@@ -707,6 +709,7 @@ namespace NuGetGallery
                 Id = id,
                 Name = name,
                 Description = isUngrouped ? "Staged packages not in any group" : null,
+                Url = url,
                 CreatedDate = createdDate,
                 IsUngrouped = isUngrouped,
                 PackageCount = packages.Count,

@@ -1185,6 +1185,19 @@ namespace NuGetGallery
             return GetActionLink(url, "Packages", "Users", relativeUrl);
         }
 
+        public static string ManageStagingGroup(this UrlHelper url, string owner, string groupId, bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.ManageStagingGroup,
+                relativeUrl,
+                new RouteValueDictionary
+                {
+                    { "owner", owner },
+                    { "groupId", groupId },
+                });
+        }
+
         public static string DownloadStagedPackage(this UrlHelper url, string id, string version, bool relativeUrl = true)
         {
             return GetRouteLink(

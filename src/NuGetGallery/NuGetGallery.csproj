@@ -639,6 +639,7 @@
     <Compile Include="Services\PackageStagingStatus.cs" />
     <Compile Include="Services\PackageStagingUploadService.cs" />
     <Compile Include="ViewModels\PackageStagingViewModel.cs" />
+    <Compile Include="ViewModels\StagingGroupDetailViewModel.cs" />
     <Compile Include="ViewModels\StagingGroupViewModel.cs" />
     <Compile Include="Infrastructure\Mail\BackgroundMarkdownMessageService.cs" />
     <Compile Include="Services\GalleryContentFileMetadataService.cs" />
@@ -2052,6 +2053,7 @@
     <Content Include="Scripts\gallery\page-manage-organization.js" />
     <Content Include="Scripts\gallery\page-manage-owners.js" />
     <Content Include="Scripts\gallery\page-manage-packages.js" />
+    <Content Include="Scripts\gallery\page-staging-group.js" />
     <Content Include="Scripts\gallery\page-manage-sponsorship-links.js" />
     <Content Include="Scripts\gallery\page-signin.js" />
     <Content Include="Scripts\gallery\page-support-requests.js" />
@@ -2079,6 +2081,7 @@
     <Content Include="Views\Packages\ReportAbuse.cshtml" />
     <Content Include="Views\Packages\UploadPackage.cshtml" />
     <Content Include="Views\Shared\_ListPackage.cshtml" />
+    <Content Include="Views\Staging\Group.cshtml" />
     <Content Include="Views\Users\Packages.cshtml" />
     <Content Include="App_Code\ViewHelpers.cshtml" />
     <Content Include="Views\Users\PasswordChanged.cshtml" />
