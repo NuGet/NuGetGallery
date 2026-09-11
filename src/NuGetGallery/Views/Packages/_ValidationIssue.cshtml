@@ -58,6 +58,11 @@
             </text>
             break;
         }
+    case ValidationIssueCode.AuthorSignedAttributesNotCanonical:
+        <text>
+            The author signature's signed attributes are not in canonical DER order. The package must be signed again with a compliant signing tool.
+        </text>
+        break;
     case ValidationIssueCode.SymbolErrorCode_ChecksumDoesNotMatch:
         <text>
             The checksum does not match for the dll(s) and corresponding pdb(s).
