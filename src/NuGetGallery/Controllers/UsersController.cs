@@ -582,9 +582,14 @@ namespace NuGetGallery
 
             var isPackageStagingEnabled = _packageStagingManagementService.IsEnabled(currentUser);
             var stagedPackages = new List<PackageStagingViewModel>();
+            var stagingGroups = new List<StagingGroupViewModel>();
             if (isPackageStagingEnabled)
             {
                 var stagedPackageEntities = _packageStagingManagementService.GetStagedPackages(currentUser).ToList();
+                var stagedPackagesByGroupKey = stagedPackageEntities
+                    .Where(stagedPackage => stagedPackage.StagedPackageIdentity.StagingGroupKey.HasValue)
+                    .GroupBy(stagedPackage => stagedPackage.StagedPackageIdentity.StagingGroupKey.Value)
+                    .ToDictionary(group => group.Key, group => group.ToList());
                 var failedStagedPackageKeys = stagedPackageEntities
                     .Where(package => package.Status == StagedPackageStatus.FailedValidation)
                     .Select(package => package.Key)
@@ -614,6 +619,54 @@ namespace NuGetGallery
                         };
                     })
                     .ToList();
+
+                stagingGroups = _packageStagingManagementService.GetStagingGroups(currentUser)
+                    .Select(group =>
+                    {
+                        stagedPackagesByGroupKey.TryGetValue(group.Key, out var groupPackages);
+                        groupPackages = groupPackages ?? [];
+                        var validatingCount = groupPackages.Count(package => package.Status == StagedPackageStatus.Validating);
+                        var readyCount = groupPackages.Count(package => package.Status == StagedPackageStatus.Ready);
+                        var failedValidationCount = groupPackages.Count(package => package.Status == StagedPackageStatus.FailedValidation);
+                        var status = "Not ready";
+                        var statusClass = "label-warning";
+                        if (failedValidationCount > 0)
+                        {
+                            status = "Validation failed";
+                            statusClass = "staging-status-failedvalidation";
+                        }
+                        else if (validatingCount > 0)
+                        {
+                            status = "Validating";
+                            statusClass = "staging-status-validating";
+                        }
+                        else if (groupPackages.Count == 0)
+                        {
+                            status = "Empty";
+                            statusClass = "label-default";
+                        }
+                        else if (readyCount == groupPackages.Count)
+                        {
+                            status = "Ready";
+                            statusClass = "staging-status-ready";
+                        }
+
+                        return new StagingGroupViewModel
+                        {
+                            Owner = group.Owner.Username,
+                            Id = group.Id,
+                            Name = group.Name,
+                            CreatedDate = group.CreatedDate,
+                            PackageCount = groupPackages.Count,
+                            PackageStatusSummary = GetStagingGroupPackageStatusSummary(
+                                validatingCount,
+                                readyCount,
+                                failedValidationCount),
+                            Status = status,
+                            StatusClass = statusClass,
+                        };
+                    })
+                    .ToList();
             }
 
             var model = new ManagePackagesViewModel
@@ -628,10 +681,28 @@ namespace NuGetGallery
                 IsCertificatesUIEnabled = ContentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false,
                 IsManagePackagesVulnerabilitiesEnabled = _featureFlagService.IsManagePackagesVulnerabilitiesEnabled(),
                 IsPackageStagingEnabled = isPackageStagingEnabled,
-                StagedPackages = stagedPackages
+                StagedPackages = stagedPackages,
+                StagingGroups = stagingGroups,
             };
 
             return View(model);
+        }
+
+        private static string GetStagingGroupPackageStatusSummary(int validatingCount, int readyCount, int failedValidationCount)
+        {
+            var statuses = new[]
+            {
+                FormatStagingGroupPackageStatus(readyCount, "ready"),
+                FormatStagingGroupPackageStatus(validatingCount, "validating"),
+                FormatStagingGroupPackageStatus(failedValidationCount, "failed"),
+            };
+
+            return string.Join(", ", statuses.Where(status => status != null));
+        }
+
+        private static string FormatStagingGroupPackageStatus(int count, string status)
+        {
+            return count == 0 ? null : $"{count} {status}";
         }
 
         /// <summary>

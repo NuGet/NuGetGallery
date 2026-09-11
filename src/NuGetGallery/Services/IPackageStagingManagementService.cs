@@ -79,5 +79,12 @@ namespace NuGetGallery
         /// <param name="currentUser">The user requesting the staged packages.</param>
         /// <returns>The owner-visible staged packages.</returns>
         IReadOnlyList<StagedPackage> GetStagedPackages(User currentUser);
+
+        /// <summary>
+        /// Gets staging groups owned by the user or an enabled organization the user belongs to.
+        /// </summary>
+        /// <param name="currentUser">The user requesting the staging groups.</param>
+        /// <returns>The owner-visible staging groups.</returns>
+        IReadOnlyList<StagingGroup> GetStagingGroups(User currentUser);
     }
 }

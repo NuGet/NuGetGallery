@@ -41,6 +41,56 @@
 
             @if (Model.IsPackageStagingEnabled)
             {
+                @ViewHelpers.Section(this, "staging-groups", @<text>Staging Groups</text>,
+                    @<text>
+                        <span data-bind="text: StagingGroups.VisibleGroupsHeading"></span>
+                    </text>,
+                    @<text>
+                        <div class="row user-package-list">
+                            <div class="col-md-12">
+                                <!-- ko if: StagingGroups.Groups.length === 0 -->
+                                <span>There are no staging groups.</span>
+                                <!-- /ko -->
+                                <!-- ko if: StagingGroups.Groups.length > 0 -->
+                                <table class="table inner-table">
+                                    <thead>
+                                        <tr class="manage-package-headings">
+                                            <th>Group</th>
+                                            <th>Owner</th>
+                                            <th>Packages</th>
+                                            <th>Status</th>
+                                            <th>Created</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody data-bind="foreach: StagingGroups.Groups">
+                                        <tr class="manage-package-listing" data-bind="visible: Visible">
+                                            <td class="align-middle">
+                                                <strong data-bind="text: Name"></strong>
+                                                <br />
+                                                <span class="text-muted ms-font-s" data-bind="text: Id"></span>
+                                            </td>
+                                            <td class="align-middle">
+                                                <a data-bind="text: Owner, attr: { href: OwnerUrl }"></a>
+                                            </td>
+                                            <td class="align-middle">
+                                                <span data-bind="text: PackageCountText"></span>
+                                                <!-- ko if: PackageStatusSummary -->
+                                                <br />
+                                                <span class="text-muted ms-font-s" data-bind="text: PackageStatusSummary"></span>
+                                                <!-- /ko -->
+                                            </td>
+                                            <td class="align-middle">
+                                                <span class="label staging-status" data-bind="text: Status, css: StatusClass"></span>
+                                            </td>
+                                            <td class="align-middle" data-bind="text: CreatedDate"></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <!-- /ko -->
+                            </div>
+                        </div>
+                    </text>, expanded: true)
+
                 @ViewHelpers.Section(this, "staged", @<text>Staged Packages</text>,
                     @<text>
                         <span>@Model.StagedPackages.Count package@(Model.StagedPackages.Count == 1 ? string.Empty : "s")</span>
@@ -598,6 +648,22 @@
         };
     }
 
+    dynamic GetSerializableStagingGroup(StagingGroupViewModel group)
+    {
+        return new
+        {
+            group.Owner,
+            OwnerUrl = Url.User(group.Owner),
+            group.Id,
+            group.Name,
+            CreatedDate = group.CreatedDate.ToString("MMM d, yyyy"),
+            group.PackageCount,
+            group.PackageStatusSummary,
+            group.Status,
+            group.StatusClass,
+        };
+    }
+
     dynamic GetSerializableNamespace(ReservedNamespaceListItemViewModel n)
     {
         if (searchUrlTemplate == null)
@@ -734,6 +800,8 @@
                             .Select(p => GetSerializablePackage(p)),
                          StagedPackages = Model.StagedPackages
                             .Select((p, index) => GetSerializableStagedPackage(p, index)),
+                         StagingGroups = Model.StagingGroups
+                            .Select(g => GetSerializableStagingGroup(g)),
                          ReservedNamespaces = Model.ReservedNamespaces.ReservedNamespaces
                             .Select(n => GetSerializableNamespace(n)),
                          RequestsReceived = Model.OwnerRequests.Received.Requests

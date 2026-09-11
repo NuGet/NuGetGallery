@@ -17,6 +17,7 @@ namespace NuGetGallery
         private readonly IFeatureFlagService _featureFlagService;
         private readonly IPackageService _packageService;
         private readonly IEntityRepository<StagedPackage> _stagedPackageRepository;
+        private readonly IEntityRepository<StagingGroup> _stagingGroupRepository;
         private readonly IStagingBlobService _stagingBlobService;
 
         public PackageStagingManagementService(
@@ -24,12 +25,14 @@ namespace NuGetGallery
             IFeatureFlagService featureFlagService,
             IPackageService packageService,
             IEntityRepository<StagedPackage> stagedPackageRepository,
+            IEntityRepository<StagingGroup> stagingGroupRepository,
             IStagingBlobService stagingBlobService)
         {
             _packageStagingAuthorizationService = packageStagingAuthorizationService ?? throw new ArgumentNullException(nameof(packageStagingAuthorizationService));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _stagedPackageRepository = stagedPackageRepository ?? throw new ArgumentNullException(nameof(stagedPackageRepository));
+            _stagingGroupRepository = stagingGroupRepository ?? throw new ArgumentNullException(nameof(stagingGroupRepository));
             _stagingBlobService = stagingBlobService ?? throw new ArgumentNullException(nameof(stagingBlobService));
         }
 
@@ -174,6 +177,27 @@ namespace NuGetGallery
                 .Where(stagedPackage => _packageStagingAuthorizationService.CanManage(currentUser, stagedPackage))
                 .OrderBy(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageRegistration.Id)
                 .ThenByDescending(stagedPackage => stagedPackage.UploadedDate)
+                .ToList();
+        }
+
+        public IReadOnlyList<StagingGroup> GetStagingGroups(User currentUser)
+        {
+            if (currentUser == null)
+            {
+                throw new ArgumentNullException(nameof(currentUser));
+            }
+
+            var ownerKeys = GetEnabledOwners(currentUser)
+                .Select(owner => owner.Key)
+                .ToArray();
+
+            return _stagingGroupRepository
+                .GetAll()
+                .Include(group => group.Owner)
+                .Where(group => ownerKeys.Contains(group.OwnerKey))
+                .OrderBy(group => group.Owner.Username)
+                .ThenBy(group => group.Name)
+                .ThenBy(group => group.Id)
                 .ToList();
         }
 

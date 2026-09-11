@@ -63,6 +63,31 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public void ListsGroupsForEnabledPersonalAndOrganizationOwners()
+            {
+                var currentUser = new User("current") { Key = 1 };
+                var organization = new Organization("organization") { Key = 2 };
+                var disabledOrganization = new Organization("disabled") { Key = 3 };
+                currentUser.Organizations.Add(new Membership { Member = currentUser, Organization = organization });
+                currentUser.Organizations.Add(new Membership { Member = currentUser, Organization = disabledOrganization });
+                var groups = new[]
+                {
+                    CreateStagingGroup(10, "z-group", "Z group", currentUser),
+                    CreateStagingGroup(11, "a-group", "A group", currentUser),
+                    CreateStagingGroup(12, "org-group", "Organization group", organization),
+                    CreateStagingGroup(13, "disabled-group", "Disabled group", disabledOrganization),
+                };
+                var target = CreateService(
+                    Array.Empty<StagedPackage>(),
+                    owner => owner != disabledOrganization,
+                    stagingGroups: groups);
+
+                var result = target.GetStagingGroups(currentUser);
+
+                Assert.Equal(new[] { "a-group", "z-group", "org-group" }, result.Select(group => group.Id));
+            }
+
+            [Fact]
             public void ListsOnlyNewestApiKeyAuthorizedAttempts()
             {
                 var currentUser = new User("current") { Key = 1 };
@@ -242,7 +267,8 @@ namespace NuGetGallery
                 IPackageStagingAuthorizationService authorizationService = null,
                 IPackageService packageService = null,
                 IStagingBlobService stagingBlobService = null,
-                Mock<IEntityRepository<StagedPackage>> stagedPackageRepository = null)
+                Mock<IEntityRepository<StagedPackage>> stagedPackageRepository = null,
+                IEnumerable<StagingGroup> stagingGroups = null)
             {
                 var stagedPackagesList = stagedPackages.ToList();
                 var stagedPackagesQuery = stagedPackagesList.AsQueryable();
@@ -260,6 +286,18 @@ namespace NuGetGallery
                 stagedPackageRepository
                     .Setup(x => x.CommitChangesAsync())
                     .Returns(Task.CompletedTask);
+                var stagingGroupsList = (stagingGroups ?? Array.Empty<StagingGroup>()).ToList();
+                var stagingGroupsQuery = stagingGroupsList.AsQueryable();
+                var stagingGroupsSet = new Mock<DbSet<StagingGroup>>();
+                stagingGroupsSet.As<IQueryable<StagingGroup>>().Setup(x => x.Provider).Returns(stagingGroupsQuery.Provider);
+                stagingGroupsSet.As<IQueryable<StagingGroup>>().Setup(x => x.Expression).Returns(stagingGroupsQuery.Expression);
+                stagingGroupsSet.As<IQueryable<StagingGroup>>().Setup(x => x.ElementType).Returns(stagingGroupsQuery.ElementType);
+                stagingGroupsSet.As<IQueryable<StagingGroup>>().Setup(x => x.GetEnumerator()).Returns(() => stagingGroupsQuery.GetEnumerator());
+                stagingGroupsSet.Setup(x => x.Include("Owner")).Returns(stagingGroupsSet.Object);
+                var stagingGroupRepository = new Mock<IEntityRepository<StagingGroup>>();
+                stagingGroupRepository
+                    .Setup(x => x.GetAll())
+                    .Returns(stagingGroupsSet.Object);
 
                 var featureFlagService = new Mock<IFeatureFlagService>();
                 featureFlagService
@@ -275,7 +313,20 @@ namespace NuGetGallery
                     featureFlagService.Object,
                     packageService ?? Mock.Of<IPackageService>(),
                     stagedPackageRepository.Object,
+                    stagingGroupRepository.Object,
                     stagingBlobService ?? Mock.Of<IStagingBlobService>());
+            }
+
+            private static StagingGroup CreateStagingGroup(int key, string id, string name, User owner)
+            {
+                return new StagingGroup
+                {
+                    Key = key,
+                    Id = id,
+                    Name = name,
+                    OwnerKey = owner.Key,
+                    Owner = owner,
+                };
             }
 
             private static StagedPackage CreateStagedPackage(int packageKey, string id, string version, User owner)

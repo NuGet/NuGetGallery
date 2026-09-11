@@ -4169,6 +4169,9 @@ namespace NuGetGallery
                 GetMock<IPackageStagingManagementService>()
                     .Setup(service => service.GetStagedPackages(_testUser))
                     .Returns(new[] { stagedPackage });
+                GetMock<IPackageStagingManagementService>()
+                    .Setup(service => service.GetStagingGroups(_testUser))
+                    .Returns(Array.Empty<StagingGroup>());
 
                 var model = ResultAssert.IsView<ManagePackagesViewModel>(_testController.Packages());
 
@@ -4212,6 +4215,9 @@ namespace NuGetGallery
                 GetMock<IPackageStagingManagementService>()
                     .Setup(service => service.GetStagedPackages(_testUser))
                     .Returns(stagedPackages);
+                GetMock<IPackageStagingManagementService>()
+                    .Setup(service => service.GetStagingGroups(_testUser))
+                    .Returns(Array.Empty<StagingGroup>());
                 GetMock<IValidationService>()
                     .Setup(service => service.GetStagedPackageValidationIssues(
                         It.Is<IReadOnlyCollection<int>>(keys => keys.OrderBy(key => key).SequenceEqual(new[] { 101, 202 }))))
@@ -4230,6 +4236,54 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public void IncludesRealStagingGroupSummaries()
+            {
+                var group = new StagingGroup
+                {
+                    Key = 10,
+                    Id = "test-group",
+                    Name = "Test group",
+                    CreatedDate = new DateTime(2026, 9, 10),
+                    Owner = _testUser,
+                    OwnerKey = _testUser.Key,
+                };
+                var readyPackage = CreateStagedPackage(101, "Ready.Package", StagedPackageStatus.Ready);
+                readyPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
+                readyPackage.StagedPackageIdentity.StagingGroup = group;
+                var failedPackage = CreateStagedPackage(202, "Failed.Package", StagedPackageStatus.FailedValidation);
+                failedPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
+                failedPackage.StagedPackageIdentity.StagingGroup = group;
+
+                GetMock<IPackageService>()
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(_testUser, It.IsAny<bool>(), false))
+                    .Returns(new[] { readyPackage.StagedPackageIdentity.Package, failedPackage.StagedPackageIdentity.Package });
+                GetMock<IPackageStagingManagementService>()
+                    .Setup(service => service.IsEnabled(_testUser))
+                    .Returns(true);
+                GetMock<IPackageStagingManagementService>()
+                    .Setup(service => service.GetStagedPackages(_testUser))
+                    .Returns(new[] { readyPackage, failedPackage });
+                GetMock<IPackageStagingManagementService>()
+                    .Setup(service => service.GetStagingGroups(_testUser))
+                    .Returns(new[] { group });
+                GetMock<IValidationService>()
+                    .Setup(service => service.GetStagedPackageValidationIssues(It.IsAny<IReadOnlyCollection<int>>()))
+                    .Returns(new Dictionary<int, IReadOnlyList<ValidationIssue>>());
+
+                var model = ResultAssert.IsView<ManagePackagesViewModel>(_testController.Packages());
+
+                var result = Assert.Single(model.StagingGroups);
+                Assert.Equal(_testUser.Username, result.Owner);
+                Assert.Equal("test-group", result.Id);
+                Assert.Equal("Test group", result.Name);
+                Assert.Equal(group.CreatedDate, result.CreatedDate);
+                Assert.Equal(2, result.PackageCount);
+                Assert.Equal("1 ready, 1 failed", result.PackageStatusSummary);
+                Assert.Equal("Validation failed", result.Status);
+                Assert.Equal("staging-status-failedvalidation", result.StatusClass);
+            }
+
+            [Fact]
             public void ExcludesStagedPackagesWhenStagingIsDisabled()
             {
                 GetMock<IPackageService>()
@@ -4243,10 +4297,13 @@ namespace NuGetGallery
 
                 Assert.False(model.IsPackageStagingEnabled);
                 Assert.Empty(model.StagedPackages);
+                Assert.Empty(model.StagingGroups);
                 GetMock<IPackageStagingManagementService>()
                     .Verify(service => service.IsEnabled(_testUser), Times.Once);
                 GetMock<IPackageStagingManagementService>()
                     .Verify(service => service.GetStagedPackages(It.IsAny<User>()), Times.Never);
+                GetMock<IPackageStagingManagementService>()
+                    .Verify(service => service.GetStagingGroups(It.IsAny<User>()), Times.Never);
             }
 
             private StagedPackage CreateStagedPackage(int key, string id, StagedPackageStatus status)

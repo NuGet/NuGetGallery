@@ -639,6 +639,7 @@
     <Compile Include="Services\PackageStagingStatus.cs" />
     <Compile Include="Services\PackageStagingUploadService.cs" />
     <Compile Include="ViewModels\PackageStagingViewModel.cs" />
+    <Compile Include="ViewModels\StagingGroupViewModel.cs" />
     <Compile Include="Infrastructure\Mail\BackgroundMarkdownMessageService.cs" />
     <Compile Include="Services\GalleryContentFileMetadataService.cs" />
     <Compile Include="Services\InvalidLicenseUrlValidationMessage.cs" />

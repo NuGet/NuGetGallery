@@ -141,6 +141,47 @@
             };
         }
 
+        function StagingGroupViewModel(group) {
+            const self = this;
+
+            this.Owner = group.Owner;
+            this.OwnerUrl = group.OwnerUrl;
+            this.Id = group.Id;
+            this.Name = group.Name;
+            this.CreatedDate = group.CreatedDate;
+            this.PackageCount = group.PackageCount;
+            this.PackageCountText = group.PackageCount + ' package' + (group.PackageCount === 1 ? '' : 's');
+            this.PackageStatusSummary = group.PackageStatusSummary;
+            this.Status = group.Status;
+            this.StatusClass = group.StatusClass;
+            this.Visible = ko.observable(true);
+
+            this.UpdateVisibility = function (ownerFilter) {
+                self.Visible(ownerFilter === 'All packages' || ownerFilter === self.Owner);
+            };
+        }
+
+        function StagingGroupsListViewModel(managePackagesViewModel, groups) {
+            const self = this;
+
+            this.Groups = $.map(groups, function (group) {
+                return new StagingGroupViewModel(group);
+            });
+            this.VisibleGroupsHeading = ko.pureComputed(function () {
+                const visibleCount = self.Groups.filter(function (group) {
+                    return group.Visible();
+                }).length;
+
+                return visibleCount + ' group' + (visibleCount === 1 ? '' : 's');
+            });
+
+            managePackagesViewModel.OwnerFilter.subscribe(function (newOwner) {
+                for (let index = 0; index < self.Groups.length; index++) {
+                    self.Groups[index].UpdateVisibility(newOwner.Username);
+                }
+            });
+        }
+
         function PackageListItemViewModel(packagesListViewModel, packageItem) {
             var self = this;
 
@@ -480,6 +521,7 @@
             this.StagedPackages = $.map(initialData.StagedPackages, function (packageItem) {
                 return new StagedPackageViewModel(packageItem);
             });
+            this.StagingGroups = new StagingGroupsListViewModel(this, initialData.StagingGroups);
             this.ReservedNamespaces = new ReservedNamespaceListViewModel(this, initialData.ReservedNamespaces);
             this.RequestsReceived = new OwnerRequestsListViewModel(this, initialData.RequestsReceived, true, false);
             this.RequestsSent = new OwnerRequestsListViewModel(this, initialData.RequestsSent, false, true);
