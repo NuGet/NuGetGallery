@@ -16,6 +16,15 @@
     }
 
     $(function () {
+        function showStagingGroupsFromHash() {
+            if (window.location.hash === '#show-staging-groups-container') {
+                $('#staging-groups-container').collapse('show');
+            }
+        }
+
+        $(window).on('hashchange', showStagingGroupsFromHash);
+        showStagingGroupsFromHash();
+
         function StagingGroupViewModel(group) {
             const self = this;
 

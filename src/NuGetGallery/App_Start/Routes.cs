@@ -149,6 +149,12 @@ namespace NuGetGallery
                 new { controller = "Packages", action = "UploadPackageProgress" });
 
             routes.MapRoute(
+                RouteName.CreateStagingGroup,
+                "account/staging/groups/new",
+                new { controller = "Staging", action = nameof(StagingController.CreateGroup) },
+                new { httpMethod = new HttpMethodConstraint("GET", "POST") });
+
+            routes.MapRoute(
                 RouteName.ManageUngroupedStaging,
                 "account/staging/{owner}/ungrouped",
                 new { controller = "Staging", action = nameof(StagingController.Ungrouped) },

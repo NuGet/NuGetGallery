@@ -46,6 +46,13 @@ namespace NuGetGallery
         bool IsEnabled(User currentUser);
 
         /// <summary>
+        /// Gets the enabled staging owners manageable by the user.
+        /// </summary>
+        /// <param name="currentUser">The user requesting the staging owners.</param>
+        /// <returns>The enabled staging owners.</returns>
+        IReadOnlyList<User> GetStagingOwners(User currentUser);
+
+        /// <summary>
         /// Finds the current attempt for a staged package.
         /// </summary>
         /// <param name="id">The package ID.</param>
@@ -95,5 +102,15 @@ namespace NuGetGallery
         /// <param name="groupId">The owner-scoped group ID.</param>
         /// <returns>The staging group, or <see langword="null"/> when it does not exist or is not visible.</returns>
         StagingGroup FindStagingGroup(User currentUser, string owner, string groupId);
+
+        /// <summary>
+        /// Creates an owner-scoped staging group.
+        /// </summary>
+        /// <param name="currentUser">The user creating the staging group.</param>
+        /// <param name="owner">The staging owner's username.</param>
+        /// <param name="groupId">The immutable owner-scoped group ID.</param>
+        /// <param name="name">The optional group display name. The group ID is used when omitted.</param>
+        /// <returns>The staging group creation result.</returns>
+        Task<CreateStagingGroupResult> CreateStagingGroupAsync(User currentUser, string owner, string groupId, string name);
     }
 }

@@ -41,6 +41,57 @@ namespace NuGetGallery
         }
 
         [HttpGet]
+        public virtual ActionResult CreateGroup()
+        {
+            var owners = GetStagingOwnerNames();
+            if (owners.Count == 0)
+            {
+                return HttpNotFound();
+            }
+
+            return View(new CreateStagingGroupViewModel
+            {
+                Owner = owners.SingleOrDefault(owner => string.Equals(owner, GetCurrentUser().Username, StringComparison.OrdinalIgnoreCase)) ?? owners[0],
+                Owners = owners,
+            });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> CreateGroup(CreateStagingGroupViewModel model)
+        {
+            var owners = GetStagingOwnerNames();
+            model.Owners = owners;
+
+            if (!string.IsNullOrWhiteSpace(model.Owner) && !owners.Contains(model.Owner, StringComparer.OrdinalIgnoreCase))
+            {
+                return HttpNotFound();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var result = await _packageStagingManagementService.CreateStagingGroupAsync(GetCurrentUser(), model.Owner, model.Id, model.Name);
+            switch (result.Type)
+            {
+                case CreateStagingGroupResultType.Created:
+                    return Redirect(Url.ManageMyStagingGroups());
+
+                case CreateStagingGroupResultType.OwnerNotFound:
+                    return HttpNotFound();
+
+                case CreateStagingGroupResultType.GroupAlreadyExists:
+                    ModelState.AddModelError(nameof(model.Id), "A staging group with this ID already exists.");
+                    return View(model);
+
+                default:
+                    throw new InvalidOperationException($"Unknown staging group creation result: {result.Type}.");
+            }
+        }
+
+        [HttpGet]
         public virtual ActionResult Group(string owner, string groupId)
         {
             if (string.IsNullOrWhiteSpace(owner) || string.IsNullOrWhiteSpace(groupId))
@@ -87,6 +138,14 @@ namespace NuGetGallery
             var model = CreateGroupViewModel(canonicalOwner, id: null, "Ungrouped", "Staged packages not in any group", stagedPackages);
 
             return View("Group", model);
+        }
+
+        private IReadOnlyList<string> GetStagingOwnerNames()
+        {
+            return _packageStagingManagementService
+                .GetStagingOwners(GetCurrentUser())
+                .Select(owner => owner.Username)
+                .ToList();
         }
 
         private StagingGroupDetailViewModel CreateGroupViewModel(

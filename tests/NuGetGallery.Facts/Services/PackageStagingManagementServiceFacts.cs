@@ -119,6 +119,92 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task CreatesAGroupForAnEnabledOwner()
+            {
+                var before = DateTime.UtcNow;
+                var currentUser = new User("current") { Key = 1 };
+                var organization = new Organization("organization") { Key = 2 };
+                currentUser.Organizations.Add(new Membership { Member = currentUser, Organization = organization });
+                var stagingGroupRepository = new Mock<IEntityRepository<StagingGroup>>();
+                StagingGroup insertedGroup = null;
+                stagingGroupRepository
+                    .Setup(x => x.InsertOnCommit(It.IsAny<StagingGroup>()))
+                    .Callback<StagingGroup>(group => insertedGroup = group);
+                var target = CreateService(
+                    Array.Empty<StagedPackage>(),
+                    owner => true,
+                    stagingGroupRepository: stagingGroupRepository);
+
+                var result = await target.CreateStagingGroupAsync(currentUser, "ORGANIZATION", "release.1", " Release 1 ");
+
+                Assert.Equal(CreateStagingGroupResultType.Created, result.Type);
+                Assert.Same(insertedGroup, result.Group);
+                Assert.Same(organization, result.Group.Owner);
+                Assert.Equal(organization.Key, result.Group.OwnerKey);
+                Assert.Equal("release.1", result.Group.Id);
+                Assert.Equal("Release 1", result.Group.Name);
+                Assert.InRange(result.Group.CreatedDate, before, DateTime.UtcNow);
+                stagingGroupRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
+            }
+
+            [Fact]
+            public async Task UsesTheGroupIdWhenTheNameIsNotProvided()
+            {
+                var currentUser = new User("current") { Key = 1 };
+                var stagingGroupRepository = new Mock<IEntityRepository<StagingGroup>>();
+                var target = CreateService(
+                    Array.Empty<StagedPackage>(),
+                    owner => true,
+                    stagingGroupRepository: stagingGroupRepository);
+
+                var result = await target.CreateStagingGroupAsync(currentUser, "current", "release.1", null);
+
+                Assert.Equal(CreateStagingGroupResultType.Created, result.Type);
+                Assert.Equal("release.1", result.Group.Name);
+                stagingGroupRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
+            }
+
+            [Fact]
+            public async Task DoesNotCreateADuplicateGroup()
+            {
+                var currentUser = new User("current") { Key = 1 };
+                var existingGroup = CreateStagingGroup(10, "Release.1", "Release 1", currentUser);
+                var stagingGroupRepository = new Mock<IEntityRepository<StagingGroup>>();
+                var target = CreateService(
+                    Array.Empty<StagedPackage>(),
+                    owner => true,
+                    stagingGroups: new[] { existingGroup },
+                    stagingGroupRepository: stagingGroupRepository);
+
+                var result = await target.CreateStagingGroupAsync(currentUser, "current", "release.1", "Another name");
+
+                Assert.Equal(CreateStagingGroupResultType.GroupAlreadyExists, result.Type);
+                Assert.Null(result.Group);
+                stagingGroupRepository.Verify(x => x.InsertOnCommit(It.IsAny<StagingGroup>()), Times.Never);
+                stagingGroupRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
+            }
+
+            [Fact]
+            public async Task DoesNotCreateAGroupForAnUnavailableOwner()
+            {
+                var currentUser = new User("current") { Key = 1 };
+                var disabledOrganization = new Organization("disabled") { Key = 2 };
+                currentUser.Organizations.Add(new Membership { Member = currentUser, Organization = disabledOrganization });
+                var stagingGroupRepository = new Mock<IEntityRepository<StagingGroup>>();
+                var target = CreateService(
+                    Array.Empty<StagedPackage>(),
+                    owner => owner != disabledOrganization,
+                    stagingGroupRepository: stagingGroupRepository);
+
+                var result = await target.CreateStagingGroupAsync(currentUser, "disabled", "release.1", "Release 1");
+
+                Assert.Equal(CreateStagingGroupResultType.OwnerNotFound, result.Type);
+                Assert.Null(result.Group);
+                stagingGroupRepository.Verify(x => x.InsertOnCommit(It.IsAny<StagingGroup>()), Times.Never);
+                stagingGroupRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
+            }
+
+            [Fact]
             public void ListsOnlyNewestApiKeyAuthorizedAttempts()
             {
                 var currentUser = new User("current") { Key = 1 };
@@ -299,7 +385,8 @@ namespace NuGetGallery
                 IPackageService packageService = null,
                 IStagingBlobService stagingBlobService = null,
                 Mock<IEntityRepository<StagedPackage>> stagedPackageRepository = null,
-                IEnumerable<StagingGroup> stagingGroups = null)
+                IEnumerable<StagingGroup> stagingGroups = null,
+                Mock<IEntityRepository<StagingGroup>> stagingGroupRepository = null)
             {
                 var stagedPackagesList = stagedPackages.ToList();
                 var stagedPackagesQuery = stagedPackagesList.AsQueryable();
@@ -325,7 +412,7 @@ namespace NuGetGallery
                 stagingGroupsSet.As<IQueryable<StagingGroup>>().Setup(x => x.ElementType).Returns(stagingGroupsQuery.ElementType);
                 stagingGroupsSet.As<IQueryable<StagingGroup>>().Setup(x => x.GetEnumerator()).Returns(() => stagingGroupsQuery.GetEnumerator());
                 stagingGroupsSet.Setup(x => x.Include("Owner")).Returns(stagingGroupsSet.Object);
-                var stagingGroupRepository = new Mock<IEntityRepository<StagingGroup>>();
+                stagingGroupRepository = stagingGroupRepository ?? new Mock<IEntityRepository<StagingGroup>>();
                 stagingGroupRepository
                     .Setup(x => x.GetAll())
                     .Returns(stagingGroupsSet.Object);

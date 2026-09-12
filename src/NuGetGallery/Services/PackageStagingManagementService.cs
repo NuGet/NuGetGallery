@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -96,6 +97,18 @@ namespace NuGetGallery
             }
 
             return GetEnabledOwners(currentUser).Any();
+        }
+
+        public IReadOnlyList<User> GetStagingOwners(User currentUser)
+        {
+            if (currentUser == null)
+            {
+                throw new ArgumentNullException(nameof(currentUser));
+            }
+
+            return GetEnabledOwners(currentUser)
+                .OrderBy(owner => owner.Username)
+                .ToList();
         }
 
         public StagedPackage FindCurrentStagedPackage(string id, string version)
@@ -231,6 +244,63 @@ namespace NuGetGallery
                 .Where(group => group.OwnerKey == enabledOwner.Key)
                 .ToList()
                 .SingleOrDefault(group => string.Equals(group.Id, groupId, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public async Task<CreateStagingGroupResult> CreateStagingGroupAsync(User currentUser, string owner, string groupId, string name)
+        {
+            if (currentUser == null)
+            {
+                throw new ArgumentNullException(nameof(currentUser));
+            }
+
+            if (string.IsNullOrWhiteSpace(owner))
+            {
+                throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(owner));
+            }
+
+            if (string.IsNullOrWhiteSpace(groupId))
+            {
+                throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(groupId));
+            }
+
+            var stagingOwner = GetEnabledOwners(currentUser)
+                .SingleOrDefault(candidate => string.Equals(candidate.Username, owner, StringComparison.OrdinalIgnoreCase));
+            if (stagingOwner == null)
+            {
+                return CreateStagingGroupResult.OwnerNotFound();
+            }
+
+            var groupExists = _stagingGroupRepository
+                .GetAll()
+                .Where(group => group.OwnerKey == stagingOwner.Key)
+                .Select(group => group.Id)
+                .ToList()
+                .Any(id => string.Equals(id, groupId, StringComparison.OrdinalIgnoreCase));
+            if (groupExists)
+            {
+                return CreateStagingGroupResult.GroupAlreadyExists();
+            }
+
+            var group = new StagingGroup
+            {
+                OwnerKey = stagingOwner.Key,
+                Owner = stagingOwner,
+                Id = groupId,
+                Name = string.IsNullOrWhiteSpace(name) ? groupId : name.Trim(),
+                CreatedDate = DateTime.UtcNow,
+            };
+
+            _stagingGroupRepository.InsertOnCommit(group);
+            try
+            {
+                await _stagingGroupRepository.CommitChangesAsync();
+            }
+            catch (DbUpdateException exception) when (exception.IsSqlUniqueConstraintViolation())
+            {
+                return CreateStagingGroupResult.GroupAlreadyExists();
+            }
+
+            return CreateStagingGroupResult.Created(group);
         }
 
         public IReadOnlyList<PackageStagingStatus> GetPackages(User currentUser, IEnumerable<Scope> scopes)

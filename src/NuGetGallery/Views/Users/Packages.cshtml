@@ -48,6 +48,13 @@
                     @<text>
                         <div class="row user-package-list">
                             <div class="col-md-12">
+                                <div class="staging-groups-actions">
+                                    <a class="btn btn-brand" href="@Url.CreateStagingGroup()">
+                                        <i class="ms-Icon ms-Icon--Add" aria-hidden="true"></i>
+                                        Create Staging Group
+                                    </a>
+                                </div>
+
                                 <!-- ko if: StagingGroups.Groups.length === 0 -->
                                 <span>There are no staging groups.</span>
                                 <!-- /ko -->
@@ -96,7 +103,7 @@
                                 <!-- /ko -->
                             </div>
                         </div>
-                    </text>, expanded: true)
+                    </text>, expanded: false)
             }
 
             @ViewHelpers.Section(this, "unlisted", @<text>Unlisted Packages</text>,

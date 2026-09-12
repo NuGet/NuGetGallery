@@ -627,6 +627,7 @@
     <Compile Include="RequestModels\SimulatedErrorType.cs" />
     <Compile Include="RequestModels\UpdateStagedPackageRequest.cs" />
     <Compile Include="Services\AsynchronousValidationMessageEmitter.cs" />
+    <Compile Include="Services\CreateStagingGroupResult.cs" />
     <Compile Include="Services\IStagedPackageValidationMessageEmitter.cs" />
     <Compile Include="Services\IPackageStagingAuthorizationService.cs" />
     <Compile Include="Services\IPackageStagingManagementService.cs" />
@@ -638,6 +639,7 @@
     <Compile Include="Services\PackageStagingPromotionService.cs" />
     <Compile Include="Services\PackageStagingStatus.cs" />
     <Compile Include="Services\PackageStagingUploadService.cs" />
+    <Compile Include="ViewModels\CreateStagingGroupViewModel.cs" />
     <Compile Include="ViewModels\PackageStagingViewModel.cs" />
     <Compile Include="ViewModels\StagingGroupDetailViewModel.cs" />
     <Compile Include="ViewModels\StagingGroupViewModel.cs" />
@@ -2081,6 +2083,7 @@
     <Content Include="Views\Packages\ReportAbuse.cshtml" />
     <Content Include="Views\Packages\UploadPackage.cshtml" />
     <Content Include="Views\Shared\_ListPackage.cshtml" />
+    <Content Include="Views\Staging\CreateGroup.cshtml" />
     <Content Include="Views\Staging\Group.cshtml" />
     <Content Include="Views\Users\Packages.cshtml" />
     <Content Include="App_Code\ViewHelpers.cshtml" />

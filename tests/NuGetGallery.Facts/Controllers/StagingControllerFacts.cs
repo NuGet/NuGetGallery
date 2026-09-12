@@ -19,6 +19,133 @@ namespace NuGetGallery
     public class StagingControllerFacts : TestContainer
     {
         [Fact]
+        public void DisplaysCreateGroupFormForEnabledOwners()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var organization = new Organization("organization") { Key = 2 };
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagingOwners(currentUser))
+                .Returns(new User[] { organization, currentUser });
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(currentUser);
+
+            var model = ResultAssert.IsView<CreateStagingGroupViewModel>(target.CreateGroup());
+
+            Assert.Equal(currentUser.Username, model.Owner);
+            Assert.Equal(new[] { organization.Username, currentUser.Username }, model.Owners);
+        }
+
+        [Fact]
+        public async Task CreatesAGroupAndRedirectsToTheExpandedGroupList()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var group = new StagingGroup
+            {
+                Owner = currentUser,
+                OwnerKey = currentUser.Key,
+                Id = "release.1",
+                Name = "Release 1",
+            };
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagingOwners(currentUser))
+                .Returns(new[] { currentUser });
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.CreateStagingGroupAsync(currentUser, currentUser.Username, group.Id, group.Name))
+                .ReturnsAsync(CreateStagingGroupResult.Created(group));
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(currentUser);
+            var model = new CreateStagingGroupViewModel
+            {
+                Owner = currentUser.Username,
+                Id = group.Id,
+                Name = group.Name,
+            };
+
+            var result = await target.CreateGroup(model);
+
+            ResultAssert.IsRedirectTo(result, "/account/Packages#show-staging-groups-container");
+            GetMock<IPackageStagingManagementService>().Verify(
+                x => x.CreateStagingGroupAsync(currentUser, currentUser.Username, group.Id, group.Name),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task RejectsDuplicateGroupId()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagingOwners(currentUser))
+                .Returns(new[] { currentUser });
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.CreateStagingGroupAsync(currentUser, currentUser.Username, "release.1", "Release 1"))
+                .ReturnsAsync(CreateStagingGroupResult.GroupAlreadyExists());
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(currentUser);
+            var model = new CreateStagingGroupViewModel
+            {
+                Owner = currentUser.Username,
+                Id = "release.1",
+                Name = "Release 1",
+            };
+
+            var result = await target.CreateGroup(model);
+
+            var returnedModel = ResultAssert.IsView<CreateStagingGroupViewModel>(result);
+            Assert.Same(model, returnedModel);
+            Assert.Equal(new[] { currentUser.Username }, returnedModel.Owners);
+            Assert.Contains(
+                target.ModelState[nameof(model.Id)].Errors,
+                error => error.ErrorMessage == "A staging group with this ID already exists.");
+        }
+
+        [Fact]
+        public async Task RedisplaysInvalidCreateGroupForm()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagingOwners(currentUser))
+                .Returns(new[] { currentUser });
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(currentUser);
+            target.ModelState.AddModelError("Id", "The Group ID field is required.");
+            var model = new CreateStagingGroupViewModel
+            {
+                Owner = currentUser.Username,
+            };
+
+            var result = await target.CreateGroup(model);
+
+            Assert.Same(model, ResultAssert.IsView<CreateStagingGroupViewModel>(result));
+            Assert.Equal(new[] { currentUser.Username }, model.Owners);
+            GetMock<IPackageStagingManagementService>().Verify(
+                x => x.CreateStagingGroupAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
+                Times.Never);
+        }
+
+        [Fact]
+        public async Task HidesCreateGroupForAnUnavailableOwner()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagingOwners(currentUser))
+                .Returns(new[] { currentUser });
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(currentUser);
+
+            var result = await target.CreateGroup(new CreateStagingGroupViewModel
+            {
+                Owner = "other",
+                Id = "release.1",
+                Name = "Release 1",
+            });
+
+            Assert.IsType<HttpNotFoundResult>(result);
+            GetMock<IPackageStagingManagementService>().Verify(
+                x => x.CreateStagingGroupAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
+                Times.Never);
+        }
+
+        [Fact]
         public void DisplaysAnOwnerVisibleGroupAndItsCurrentMembers()
         {
             var currentUser = new User("current") { Key = 1 };
