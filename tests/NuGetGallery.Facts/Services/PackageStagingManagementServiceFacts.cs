@@ -148,6 +148,45 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task CreatesAGroupForTheEnabledApiKeyOwner()
+            {
+                var currentUser = new User("current") { Key = 1 };
+                var organization = new Organization("organization") { Key = 2 };
+                currentUser.Organizations.Add(new Membership { Member = currentUser, Organization = organization });
+                var scopes = new[] { new Scope(organization.Key, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.PackagePush) };
+                var stagingGroupRepository = new Mock<IEntityRepository<StagingGroup>>();
+                var target = CreateService(
+                    Array.Empty<StagedPackage>(),
+                    owner => true,
+                    stagingGroupRepository: stagingGroupRepository);
+
+                var result = await target.CreateStagingGroupWithApiKeyAsync(currentUser, scopes, "release.1", "Release 1");
+
+                Assert.Equal(CreateStagingGroupResultType.Created, result.Type);
+                Assert.Same(organization, result.Group.Owner);
+                Assert.Equal(organization.Key, result.Group.OwnerKey);
+                stagingGroupRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
+            }
+
+            [Fact]
+            public async Task DoesNotCreateAGroupWithoutOneEnabledApiKeyOwner()
+            {
+                var currentUser = new User("current") { Key = 1 };
+                var scopes = Array.Empty<Scope>();
+                var stagingGroupRepository = new Mock<IEntityRepository<StagingGroup>>();
+                var target = CreateService(
+                    Array.Empty<StagedPackage>(),
+                    owner => true,
+                    stagingGroupRepository: stagingGroupRepository);
+
+                var result = await target.CreateStagingGroupWithApiKeyAsync(currentUser, scopes, "release.1", "Release 1");
+
+                Assert.Equal(CreateStagingGroupResultType.OwnerNotFound, result.Type);
+                Assert.Null(result.Group);
+                stagingGroupRepository.Verify(x => x.InsertOnCommit(It.IsAny<StagingGroup>()), Times.Never);
+            }
+
+            [Fact]
             public async Task UsesTheGroupIdWhenTheNameIsNotProvided()
             {
                 var currentUser = new User("current") { Key = 1 };

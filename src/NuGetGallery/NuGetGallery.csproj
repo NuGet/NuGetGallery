@@ -624,8 +624,10 @@
     <Compile Include="Migrations\201711021733062_ApiKeyOwnerScope.Designer.cs">
       <DependentUpon>201711021733062_ApiKeyOwnerScope.cs</DependentUpon>
     </Compile>
+    <Compile Include="RequestModels\CreateStagingGroupRequest.cs" />
     <Compile Include="RequestModels\SimulatedErrorType.cs" />
     <Compile Include="RequestModels\UpdateStagedPackageRequest.cs" />
+    <Compile Include="ResponseModels\StagingGroupResponse.cs" />
     <Compile Include="Services\AsynchronousValidationMessageEmitter.cs" />
     <Compile Include="Services\CreateStagingGroupResult.cs" />
     <Compile Include="Services\IStagedPackageValidationMessageEmitter.cs" />

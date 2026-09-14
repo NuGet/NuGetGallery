@@ -246,7 +246,7 @@ namespace NuGetGallery
                 .SingleOrDefault(group => string.Equals(group.Id, groupId, StringComparison.OrdinalIgnoreCase));
         }
 
-        public async Task<CreateStagingGroupResult> CreateStagingGroupAsync(User currentUser, string owner, string groupId, string name)
+        public Task<CreateStagingGroupResult> CreateStagingGroupAsync(User currentUser, string owner, string groupId, string name)
         {
             if (currentUser == null)
             {
@@ -267,9 +267,51 @@ namespace NuGetGallery
                 .SingleOrDefault(candidate => string.Equals(candidate.Username, owner, StringComparison.OrdinalIgnoreCase));
             if (stagingOwner == null)
             {
-                return CreateStagingGroupResult.OwnerNotFound();
+                return Task.FromResult(CreateStagingGroupResult.OwnerNotFound());
             }
 
+            return CreateStagingGroupAsync(stagingOwner, groupId, name);
+        }
+
+        public Task<CreateStagingGroupResult> CreateStagingGroupWithApiKeyAsync(User currentUser, IEnumerable<Scope> scopes, string groupId, string name)
+        {
+            if (currentUser == null)
+            {
+                throw new ArgumentNullException(nameof(currentUser));
+            }
+
+            if (scopes == null)
+            {
+                throw new ArgumentNullException(nameof(scopes));
+            }
+
+            if (string.IsNullOrWhiteSpace(groupId))
+            {
+                throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(groupId));
+            }
+
+            var ownerKeys = scopes
+                .Where(scope => scope.OwnerKey.HasValue)
+                .Select(scope => scope.OwnerKey.Value)
+                .Distinct()
+                .ToList();
+            if (ownerKeys.Count != 1)
+            {
+                return Task.FromResult(CreateStagingGroupResult.OwnerNotFound());
+            }
+
+            var stagingOwner = GetEnabledOwners(currentUser)
+                .SingleOrDefault(owner => owner.Key == ownerKeys[0]);
+            if (stagingOwner == null)
+            {
+                return Task.FromResult(CreateStagingGroupResult.OwnerNotFound());
+            }
+
+            return CreateStagingGroupAsync(stagingOwner, groupId, name);
+        }
+
+        private async Task<CreateStagingGroupResult> CreateStagingGroupAsync(User stagingOwner, string groupId, string name)
+        {
             var groupExists = _stagingGroupRepository
                 .GetAll()
                 .Where(group => group.OwnerKey == stagingOwner.Key)

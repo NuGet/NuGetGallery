@@ -112,5 +112,15 @@ namespace NuGetGallery
         /// <param name="name">The optional group display name. The group ID is used when omitted.</param>
         /// <returns>The staging group creation result.</returns>
         Task<CreateStagingGroupResult> CreateStagingGroupAsync(User currentUser, string owner, string groupId, string name);
+
+        /// <summary>
+        /// Creates a staging group for the owner scoped to an API credential.
+        /// </summary>
+        /// <param name="currentUser">The user associated with the staging credential.</param>
+        /// <param name="scopes">The scopes granted to the staging credential.</param>
+        /// <param name="groupId">The immutable owner-scoped group ID.</param>
+        /// <param name="name">The group display name.</param>
+        /// <returns>The staging group creation result.</returns>
+        Task<CreateStagingGroupResult> CreateStagingGroupWithApiKeyAsync(User currentUser, IEnumerable<Scope> scopes, string groupId, string name);
     }
 }

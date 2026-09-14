@@ -946,6 +946,12 @@ namespace NuGetGallery
         public static void RegisterStagingApiRoutes(RouteCollection routes)
         {
             routes.MapRoute(
+                RouteName.CreateStagingGroupApi,
+                "api/v3/staging/groups",
+                new { controller = "StagingApi", action = nameof(StagingApiController.CreateStagingGroup) },
+                new { httpMethod = new HttpMethodConstraint("POST") });
+
+            routes.MapRoute(
                 RouteName.DownloadStagedPackage,
                 "api/v3/staging/package/{id}/{version}",
                 new { controller = "StagingApi", action = nameof(StagingApiController.DownloadStagedPackage) },

@@ -4,10 +4,13 @@
 #pragma warning disable CA3147 // API-key-authenticated requests do not use antiforgery tokens.
 
 using System;
+using System.Linq;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using Newtonsoft.Json;
 using NuGet.Services.Entities;
 using NuGetGallery.Authentication;
 using NuGetGallery.Filters;
@@ -18,6 +21,9 @@ namespace NuGetGallery
     [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
     public class StagingApiController : AppController
     {
+        private const string JsonContentType = "application/json";
+        private static readonly TimeSpan InitialGroupExpiration = TimeSpan.FromDays(30);
+
         private readonly IPackageStagingAuthorizationService _packageStagingAuthorizationService;
         private readonly IPackageStagingManagementService _packageStagingManagementService;
         private readonly IPackageStagingUploadService _packageStagingUploadService;
@@ -30,6 +36,49 @@ namespace NuGetGallery
             _packageStagingAuthorizationService = packageStagingAuthorizationService ?? throw new ArgumentNullException(nameof(packageStagingAuthorizationService));
             _packageStagingManagementService = packageStagingManagementService ?? throw new ArgumentNullException(nameof(packageStagingManagementService));
             _packageStagingUploadService = packageStagingUploadService ?? throw new ArgumentNullException(nameof(packageStagingUploadService));
+        }
+
+        [HttpPost]
+        public virtual async Task<ActionResult> CreateStagingGroup(CreateStagingGroupRequest request)
+        {
+            if (!MediaTypeWithQualityHeaderValue.TryParse(Request.ContentType, out var contentType)
+                || !string.Equals(contentType.MediaType, JsonContentType, StringComparison.OrdinalIgnoreCase))
+            {
+                return Error(HttpStatusCode.UnsupportedMediaType, "UnsupportedMediaType", $"The request must have a Content-Type of '{JsonContentType}'.");
+            }
+
+            if (request == null)
+            {
+                return Error(HttpStatusCode.BadRequest, "InvalidJson", "The request body must be a valid JSON object.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                var target = ModelState.First(entry => entry.Value.Errors.Count > 0).Key;
+                return Error(HttpStatusCode.BadRequest, "InvalidRequest", "The request is invalid.", target.ToLowerInvariant());
+            }
+
+            var currentUser = GetCurrentUser();
+            var scopes = User.Identity.GetScopesFromClaim();
+
+            var result = await _packageStagingManagementService.CreateStagingGroupWithApiKeyAsync(currentUser, scopes, request.Id, request.Name);
+            switch (result.Type)
+            {
+                case CreateStagingGroupResultType.Created:
+                    var group = result.Group;
+                    var response = StagingGroupResponse.FromNewGroup(
+                        group,
+                        group.CreatedDate.Add(InitialGroupExpiration),
+                        Url.ManageStagingGroup(group.Owner.Username, group.Id, relativeUrl: false));
+                    Response.StatusCode = (int)HttpStatusCode.Created;
+                    return Content(JsonConvert.SerializeObject(response), JsonContentType);
+                case CreateStagingGroupResultType.OwnerNotFound:
+                    return Error(HttpStatusCode.Forbidden, "StagingOwnerUnavailable", "Staging is not available for the API key owner.");
+                case CreateStagingGroupResultType.GroupAlreadyExists:
+                    return Error(HttpStatusCode.Conflict, "GroupAlreadyExists", $"A staging group with the ID '{request.Id}' already exists.", "id");
+                default:
+                    throw new NotImplementedException($"Unexpected staging group creation result: {result.Type}");
+            }
         }
 
         [HttpPut]
@@ -145,6 +194,24 @@ namespace NuGetGallery
             }
 
             return stagedPackage;
+        }
+
+        private JsonResult Error(HttpStatusCode statusCode, string code, string message, string target = null)
+        {
+            var error = target == null ? (object)new { code, message } : new { code, message, target };
+            return Json(statusCode, new { error });
+        }
+
+        protected override void OnException(ExceptionContext filterContext)
+        {
+            if (filterContext.Exception.StackTrace?.Contains("JsonValueProviderFactory") == true)
+            {
+                filterContext.ExceptionHandled = true;
+                filterContext.Result = Error(HttpStatusCode.BadRequest, "InvalidJson", "The request body must be valid JSON.");
+                return;
+            }
+
+            base.OnException(filterContext);
         }
     }
 }
