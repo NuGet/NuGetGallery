@@ -159,6 +159,133 @@ namespace NuGetGallery
         }
 
         [Fact]
+        public void GetsPagedStagingGroups()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var owner = new User("example-org") { Key = 2 };
+            var olderGroup = CreateStagingGroup(10, "older", "Older", owner, new DateTime(2026, 9, 1));
+            var newerGroup = CreateStagingGroup(11, "newer", "Newer", owner, new DateTime(2026, 9, 2));
+            var target = GetController<StagingApiController>();
+            ConfigureCreateGroupRequest(target, currentUser, owner);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagingGroupSummariesWithApiKey(currentUser, It.IsAny<IEnumerable<Scope>>()))
+                .Returns(new[]
+                {
+                    new StagingGroupSummary(olderGroup, Array.Empty<StagedPackage>()),
+                    new StagingGroupSummary(newerGroup, Array.Empty<StagedPackage>()),
+                });
+
+            var result = target.GetStagingGroups(page: 1, pageSize: 1);
+
+            var body = ParseJsonContent(result);
+            Assert.Equal(1, (int)body["page"]);
+            Assert.Equal(1, (int)body["pageSize"]);
+            Assert.Equal(2, (int)body["totalCount"]);
+            Assert.Equal("newer", (string)body["items"][0]["id"]);
+            Assert.EndsWith("Z", (string)body["items"][0]["created"]);
+            Assert.EndsWith("Z", (string)body["items"][0]["expires"]);
+        }
+
+        [Fact]
+        public void GetsEmptyStagingGroupPageBeyondTheEnd()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var owner = new User("example-org") { Key = 2 };
+            var group = CreateStagingGroup(10, "release", "Release", owner, new DateTime(2026, 9, 1));
+            var target = GetController<StagingApiController>();
+            ConfigureCreateGroupRequest(target, currentUser, owner);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagingGroupSummariesWithApiKey(currentUser, It.IsAny<IEnumerable<Scope>>()))
+                .Returns(new[] { new StagingGroupSummary(group, Array.Empty<StagedPackage>()) });
+
+            var result = target.GetStagingGroups(page: 2, pageSize: 100);
+
+            var body = ParseJsonContent(result);
+            Assert.Empty(body["items"]);
+            Assert.Equal(1, (int)body["totalCount"]);
+        }
+
+        [Fact]
+        public void RejectsGroupListWithoutApiKeyOwner()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var target = GetController<StagingApiController>();
+            ConfigureCreateGroupRequest(target, currentUser, owner: null);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagingGroupSummariesWithApiKey(currentUser, It.IsAny<IEnumerable<Scope>>()))
+                .Returns((IReadOnlyList<StagingGroupSummary>)null);
+
+            var result = target.GetStagingGroups();
+
+            AssertError(target, result, HttpStatusCode.Forbidden, "StagingOwnerUnavailable");
+        }
+
+        [Fact]
+        public void GetsStagingGroupWithPagedMembers()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var owner = new User("example-org") { Key = 2 };
+            var group = CreateStagingGroup(10, "release", "Release", owner, new DateTime(2026, 9, 1));
+            var package = CreateStagedPackage(owner);
+            package.Status = StagedPackageStatus.Ready;
+            package.UploadedDate = new DateTime(2026, 9, 2, 12, 0, 0, DateTimeKind.Utc);
+            package.StagedPackageIdentity.StagingGroupKey = group.Key;
+            package.StagedPackageIdentity.StagingGroup = group;
+            var target = GetController<StagingApiController>();
+            ConfigureCreateGroupRequest(target, currentUser, owner);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagingGroupSummariesWithApiKey(currentUser, It.IsAny<IEnumerable<Scope>>()))
+                .Returns(new[] { new StagingGroupSummary(group, new[] { package }) });
+
+            var result = target.GetStagingGroup("RELEASE");
+
+            var body = ParseJsonContent(result);
+            Assert.Equal("release", (string)body["group"]["id"]);
+            Assert.Equal(1, (int)body["group"]["itemCount"]);
+            Assert.True((bool)body["group"]["canPromote"]);
+            Assert.Empty(body["group"]["blockers"]);
+            Assert.Equal(1, (int)body["totalCount"]);
+            Assert.Equal("PackageA", (string)body["items"][0]["id"]);
+            Assert.Equal("package", (string)body["items"][0]["kind"]);
+            Assert.Equal("ready", (string)body["items"][0]["status"]);
+            Assert.Equal("release", (string)body["items"][0]["group"]["id"]);
+            Assert.Null(body["items"][0]["validated"].Value<string>());
+            Assert.Equal((string)body["group"]["expires"], (string)body["items"][0]["expires"]);
+        }
+
+        [Fact]
+        public void HidesUnavailableStagingGroup()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var owner = new User("example-org") { Key = 2 };
+            var target = GetController<StagingApiController>();
+            ConfigureCreateGroupRequest(target, currentUser, owner);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagingGroupSummariesWithApiKey(currentUser, It.IsAny<IEnumerable<Scope>>()))
+                .Returns(Array.Empty<StagingGroupSummary>());
+
+            var result = target.GetStagingGroup("missing");
+
+            AssertError(target, result, HttpStatusCode.NotFound, "GroupNotFound");
+        }
+
+        [Theory]
+        [InlineData(0, 100, "page")]
+        [InlineData(1, 0, "pageSize")]
+        [InlineData(1, 501, "pageSize")]
+        public void RejectsInvalidGroupPaging(int page, int pageSize, string errorTarget)
+        {
+            var target = GetController<StagingApiController>();
+
+            var result = target.GetStagingGroups(page, pageSize);
+
+            AssertError(target, result, HttpStatusCode.BadRequest, "InvalidPaging", errorTarget);
+            GetMock<IPackageStagingManagementService>().Verify(
+                x => x.GetStagingGroupSummariesWithApiKey(It.IsAny<User>(), It.IsAny<IEnumerable<Scope>>()),
+                Times.Never);
+        }
+
+        [Fact]
         public void GetsStagedPackages()
         {
             var currentUser = new User("current") { Key = 1 };
@@ -399,6 +526,29 @@ namespace NuGetGallery
             {
                 Assert.Equal(target, (string)body["error"]["target"]);
             }
+        }
+
+        private static JObject ParseJsonContent(ActionResult result)
+        {
+            var content = Assert.IsType<ContentResult>(result);
+            Assert.Equal("application/json", content.ContentType);
+            using (var reader = new JsonTextReader(new StringReader(content.Content)) { DateParseHandling = DateParseHandling.None })
+            {
+                return JObject.Load(reader);
+            }
+        }
+
+        private static StagingGroup CreateStagingGroup(int key, string id, string name, User owner, DateTime createdDate)
+        {
+            return new StagingGroup
+            {
+                Key = key,
+                Id = id,
+                Name = name,
+                Owner = owner,
+                OwnerKey = owner.Key,
+                CreatedDate = createdDate,
+            };
         }
 
         private static StagedPackage CreateStagedPackage(User owner)

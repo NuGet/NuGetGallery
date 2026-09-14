@@ -187,6 +187,56 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public void ListsGroupsOnlyForTheEnabledApiKeyOwner()
+            {
+                var currentUser = new User("current") { Key = 1 };
+                var organization = new Organization("organization") { Key = 2 };
+                currentUser.Organizations.Add(new Membership { Member = currentUser, Organization = organization });
+                var scopes = new[] { new Scope(organization.Key, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.PackagePush) };
+                var personalGroup = CreateStagingGroup(10, "personal", "Personal", currentUser);
+                var organizationGroup = CreateStagingGroup(11, "organization", "Organization", organization);
+                var target = CreateService(
+                    Array.Empty<StagedPackage>(),
+                    owner => true,
+                    stagingGroups: new[] { personalGroup, organizationGroup });
+
+                var result = target.GetStagingGroupSummariesWithApiKey(currentUser, scopes);
+
+                Assert.Same(organizationGroup, Assert.Single(result).Group);
+            }
+
+            [Fact]
+            public void GetsAllCurrentPackagesOwnedByTheApiKeyGroupOwner()
+            {
+                var currentUser = new User("current") { Key = 1 };
+                var group = CreateStagingGroup(10, "release", "Release", currentUser);
+                var scopes = new[] { new Scope(currentUser.Key, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.PackagePush) };
+                var firstPackage = CreateStagedPackage(100, "First.Package", "1.0.0", currentUser);
+                firstPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
+                var secondPackage = CreateStagedPackage(101, "Second.Package", "1.0.0", currentUser);
+                secondPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
+                var otherPackage = CreateStagedPackage(102, "Other.Package", "1.0.0", currentUser);
+                var authorizationService = new Mock<IPackageStagingAuthorizationService>();
+                authorizationService
+                    .Setup(x => x.GetEnabledApiKeyOwner(currentUser, scopes))
+                    .Returns(currentUser);
+                var target = CreateService(
+                    new[] { firstPackage, secondPackage, otherPackage },
+                    owner => true,
+                    authorizationService.Object,
+                    stagingGroups: new[] { group });
+
+                var result = target.GetStagingGroupSummariesWithApiKey(currentUser, scopes);
+
+                var summary = Assert.Single(result);
+                Assert.Same(group, summary.Group);
+                Assert.Equal(new[] { firstPackage, secondPackage }, summary.Packages);
+                authorizationService.Verify(
+                    x => x.CanManageWithApiKey(It.IsAny<User>(), It.IsAny<IEnumerable<Scope>>(), It.IsAny<StagedPackage>()),
+                    Times.Never);
+            }
+
+            [Fact]
             public async Task UsesTheGroupIdWhenTheNameIsNotProvided()
             {
                 var currentUser = new User("current") { Key = 1 };
@@ -436,6 +486,7 @@ namespace NuGetGallery
                 stagedPackagesSet.As<IQueryable<StagedPackage>>().Setup(x => x.GetEnumerator()).Returns(() => stagedPackagesQuery.GetEnumerator());
                 stagedPackagesSet.Setup(x => x.Include("StagedPackageIdentity.Package.PackageRegistration")).Returns(stagedPackagesSet.Object);
                 stagedPackagesSet.Setup(x => x.Include("StagedPackageIdentity.Owner")).Returns(stagedPackagesSet.Object);
+                stagedPackagesSet.Setup(x => x.Include("StagedPackageIdentity.StagingGroup")).Returns(stagedPackagesSet.Object);
                 stagedPackageRepository = stagedPackageRepository ?? new Mock<IEntityRepository<StagedPackage>>();
                 stagedPackageRepository
                     .Setup(x => x.GetAll())
@@ -464,6 +515,24 @@ namespace NuGetGallery
                 defaultAuthorizationService
                     .Setup(x => x.CanManage(It.IsAny<User>(), It.IsAny<StagedPackage>()))
                     .Returns(true);
+                defaultAuthorizationService
+                    .Setup(x => x.GetEnabledApiKeyOwner(It.IsAny<User>(), It.IsAny<IEnumerable<Scope>>()))
+                    .Returns((User currentUser, IEnumerable<Scope> scopes) =>
+                    {
+                        var ownerKeys = scopes
+                            .Where(scope => scope.OwnerKey.HasValue)
+                            .Select(scope => scope.OwnerKey.Value)
+                            .Distinct()
+                            .ToList();
+                        if (ownerKeys.Count != 1)
+                        {
+                            return null;
+                        }
+
+                        return new[] { currentUser }
+                            .Concat(currentUser.Organizations.Select(membership => membership.Organization))
+                            .SingleOrDefault(owner => owner.Key == ownerKeys[0] && isEnabled(owner));
+                    });
 
                 return new PackageStagingManagementService(
                     authorizationService ?? defaultAuthorizationService.Object,

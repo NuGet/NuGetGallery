@@ -275,39 +275,40 @@ namespace NuGetGallery
 
         public Task<CreateStagingGroupResult> CreateStagingGroupWithApiKeyAsync(User currentUser, IEnumerable<Scope> scopes, string groupId, string name)
         {
-            if (currentUser == null)
-            {
-                throw new ArgumentNullException(nameof(currentUser));
-            }
-
-            if (scopes == null)
-            {
-                throw new ArgumentNullException(nameof(scopes));
-            }
-
             if (string.IsNullOrWhiteSpace(groupId))
             {
                 throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(groupId));
             }
 
-            var ownerKeys = scopes
-                .Where(scope => scope.OwnerKey.HasValue)
-                .Select(scope => scope.OwnerKey.Value)
-                .Distinct()
-                .ToList();
-            if (ownerKeys.Count != 1)
-            {
-                return Task.FromResult(CreateStagingGroupResult.OwnerNotFound());
-            }
-
-            var stagingOwner = GetEnabledOwners(currentUser)
-                .SingleOrDefault(owner => owner.Key == ownerKeys[0]);
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledApiKeyOwner(currentUser, scopes);
             if (stagingOwner == null)
             {
                 return Task.FromResult(CreateStagingGroupResult.OwnerNotFound());
             }
 
             return CreateStagingGroupAsync(stagingOwner, groupId, name);
+        }
+
+        public IReadOnlyList<StagingGroupSummary> GetStagingGroupSummariesWithApiKey(User currentUser, IEnumerable<Scope> scopes)
+        {
+            var owner = _packageStagingAuthorizationService.GetEnabledApiKeyOwner(currentUser, scopes);
+            if (owner == null)
+            {
+                return null;
+            }
+
+            var groups = _stagingGroupRepository
+                .GetAll()
+                .Include(group => group.Owner)
+                .Where(group => group.OwnerKey == owner.Key)
+                .ToList();
+            var packagesByGroup = GetCurrentStagedPackages(new[] { owner.Key })
+                .Where(package => package.StagedPackageIdentity.StagingGroupKey.HasValue)
+                .ToLookup(package => package.StagedPackageIdentity.StagingGroupKey.Value);
+
+            return groups
+                .Select(group => new StagingGroupSummary(group, packagesByGroup[group.Key].ToList()))
+                .ToList();
         }
 
         private async Task<CreateStagingGroupResult> CreateStagingGroupAsync(User stagingOwner, string groupId, string name)
@@ -375,8 +376,10 @@ namespace NuGetGallery
                 .GetAll()
                 .Include(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageRegistration)
                 .Include(stagedPackage => stagedPackage.StagedPackageIdentity.Owner)
+                .Include(stagedPackage => stagedPackage.StagedPackageIdentity.StagingGroup)
                 .Where(stagedPackage => ownerKeys.Contains(stagedPackage.StagedPackageIdentity.OwnerKey))
                 .Where(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Staged)
+                .Where(stagedPackage => stagedPackage.Status != StagedPackageStatus.Superseded && stagedPackage.Status != StagedPackageStatus.Deleted)
                 .Where(stagedPackage => stagedPackage.StagedPackageIdentity.CurrentStagedPackageKey == stagedPackage.Key);
         }
 

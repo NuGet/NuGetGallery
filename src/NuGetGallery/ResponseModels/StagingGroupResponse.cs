@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 using NuGet.Services.Entities;
 
@@ -46,9 +47,40 @@ namespace NuGetGallery
 
         public static StagingGroupResponse FromNewGroup(StagingGroup group, DateTime expirationDate, string managementUrl)
         {
+            return FromGroup(group, Array.Empty<StagedPackage>(), expirationDate, managementUrl);
+        }
+
+        public static StagingGroupResponse FromGroup(
+            StagingGroup group,
+            IReadOnlyCollection<StagedPackage> packages,
+            DateTime expirationDate,
+            string managementUrl)
+        {
             if (group == null)
             {
                 throw new ArgumentNullException(nameof(group));
+            }
+
+            if (packages == null)
+            {
+                throw new ArgumentNullException(nameof(packages));
+            }
+
+            var canPromote = packages.Count > 0 && packages.All(package => package.Status == StagedPackageStatus.Ready);
+            IReadOnlyList<StagingBlockerResponse> blockers = Array.Empty<StagingBlockerResponse>();
+            if (packages.Count == 0)
+            {
+                blockers = new[]
+                {
+                    new StagingBlockerResponse("GroupEmpty", "The staging group does not contain any packages."),
+                };
+            }
+            else if (!canPromote)
+            {
+                blockers = new[]
+                {
+                    new StagingBlockerResponse("GroupNotReady", "One or more packages in the staging group are not ready."),
+                };
             }
 
             return new StagingGroupResponse
@@ -56,17 +88,15 @@ namespace NuGetGallery
                 Id = group.Id,
                 Name = group.Name,
                 Owner = group.Owner.Username,
-                Created = group.CreatedDate.ToString("O"),
-                Expires = expirationDate.ToString("O"),
-                ItemCount = 0,
-                CanPromote = false,
-                Blockers = new[]
-                {
-                    new StagingBlockerResponse("GroupEmpty", "The staging group does not contain any packages."),
-                },
+                Created = group.CreatedDate.ToUtcIso8601String(),
+                Expires = expirationDate.ToUtcIso8601String(),
+                ItemCount = packages.Count,
+                CanPromote = canPromote,
+                Blockers = blockers,
                 ManagementUrl = managementUrl,
             };
         }
+
     }
 
     /// <summary>

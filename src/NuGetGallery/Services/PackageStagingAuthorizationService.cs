@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NuGet.Services.Entities;
 using NuGetGallery.Authentication;
 
@@ -67,6 +68,34 @@ namespace NuGetGallery
 
             return authorizationResult.IsSuccessful()
                 && _featureFlagService.IsPackageStagingEnabled(authorizationResult.Owner);
+        }
+
+        public User GetEnabledApiKeyOwner(User currentUser, IEnumerable<Scope> scopes)
+        {
+            if (currentUser == null)
+            {
+                throw new ArgumentNullException(nameof(currentUser));
+            }
+
+            if (scopes == null)
+            {
+                throw new ArgumentNullException(nameof(scopes));
+            }
+
+            var ownerKeys = scopes
+                .Where(scope => scope.OwnerKey.HasValue)
+                .Select(scope => scope.OwnerKey.Value)
+                .Distinct()
+                .ToList();
+            if (ownerKeys.Count != 1)
+            {
+                return null;
+            }
+
+            return new[] { currentUser }
+                .Concat(currentUser.Organizations.Select(membership => membership.Organization))
+                .Where(owner => _featureFlagService.IsPackageStagingEnabled(owner))
+                .SingleOrDefault(owner => owner.Key == ownerKeys[0]);
         }
     }
 }

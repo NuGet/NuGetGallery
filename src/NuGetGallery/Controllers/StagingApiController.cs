@@ -4,6 +4,7 @@
 #pragma warning disable CA3147 // API-key-authenticated requests do not use antiforgery tokens.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http.Headers;
@@ -12,6 +13,7 @@ using System.Web;
 using System.Web.Mvc;
 using Newtonsoft.Json;
 using NuGet.Services.Entities;
+using NuGet.Versioning;
 using NuGetGallery.Authentication;
 using NuGetGallery.Filters;
 
@@ -22,8 +24,9 @@ namespace NuGetGallery
     public class StagingApiController : AppController
     {
         private const string JsonContentType = "application/json";
+        private const int DefaultPageSize = 100;
+        private const int MaximumPageSize = 500;
         private static readonly TimeSpan InitialGroupExpiration = TimeSpan.FromDays(30);
-
         private readonly IPackageStagingAuthorizationService _packageStagingAuthorizationService;
         private readonly IPackageStagingManagementService _packageStagingManagementService;
         private readonly IPackageStagingUploadService _packageStagingUploadService;
@@ -106,6 +109,88 @@ namespace NuGetGallery
                 QuietLog.LogHandledException(exception);
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, Strings.PackageUploadCancelled);
             }
+        }
+
+        [HttpGet]
+        public virtual ActionResult GetStagingGroups(int page = 1, int pageSize = DefaultPageSize)
+        {
+            var pagingError = ValidatePaging(page, pageSize);
+            if (pagingError != null)
+            {
+                return pagingError;
+            }
+
+            var currentUser = GetCurrentUser();
+            var scopes = User.Identity.GetScopesFromClaim();
+            var summaries = _packageStagingManagementService.GetStagingGroupSummariesWithApiKey(currentUser, scopes);
+            if (summaries == null)
+            {
+                return Error(HttpStatusCode.Forbidden, "StagingOwnerUnavailable", "Staging is not available for the API key owner.");
+            }
+
+            var orderedSummaries = summaries
+                .OrderByDescending(summary => summary.Group.CreatedDate)
+                .ThenBy(summary => summary.Group.Id, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+            var responses = GetPage(orderedSummaries, page, pageSize)
+                .Select(summary =>
+                {
+                    return StagingGroupResponse.FromGroup(
+                        summary.Group,
+                        summary.Packages,
+                        summary.Group.CreatedDate.Add(InitialGroupExpiration),
+                        Url.ManageStagingGroup(summary.Group.Owner.Username, summary.Group.Id, relativeUrl: false));
+                })
+                .ToList();
+
+            return JsonContent(new StagingPagedResponse<StagingGroupResponse>(
+                responses,
+                page,
+                pageSize,
+                orderedSummaries.Count));
+        }
+
+        [HttpGet]
+        public virtual ActionResult GetStagingGroup(string groupId, int page = 1, int pageSize = DefaultPageSize)
+        {
+            var pagingError = ValidatePaging(page, pageSize);
+            if (pagingError != null)
+            {
+                return pagingError;
+            }
+
+            var currentUser = GetCurrentUser();
+            var scopes = User.Identity.GetScopesFromClaim();
+            var summaries = _packageStagingManagementService.GetStagingGroupSummariesWithApiKey(currentUser, scopes);
+            if (summaries == null)
+            {
+                return Error(HttpStatusCode.Forbidden, "StagingOwnerUnavailable", "Staging is not available for the API key owner.");
+            }
+
+            var summary = summaries.SingleOrDefault(candidate => string.Equals(candidate.Group.Id, groupId, StringComparison.OrdinalIgnoreCase));
+            if (summary == null)
+            {
+                return Error(HttpStatusCode.NotFound, "GroupNotFound", "The staging group was not found.");
+            }
+
+            var group = summary.Group;
+            var packages = summary.Packages
+                .OrderBy(package => package.StagedPackageIdentity.Package.PackageRegistration.Id, StringComparer.OrdinalIgnoreCase)
+                .ThenByDescending(package => NuGetVersion.Parse(package.StagedPackageIdentity.Package.NormalizedVersion))
+                .ToList();
+            var managementUrl = Url.ManageStagingGroup(group.Owner.Username, group.Id, relativeUrl: false);
+            var expirationDate = group.CreatedDate.Add(InitialGroupExpiration);
+            var artifacts = packages
+                .Select(package => StagingArtifactResponse.FromPackage(package, expirationDate, managementUrl))
+                .ToList();
+            var response = new StagingGroupDetailResponse(
+                StagingGroupResponse.FromGroup(group, packages, expirationDate, managementUrl),
+                GetPage(artifacts, page, pageSize),
+                page,
+                pageSize,
+                artifacts.Count);
+
+            return JsonContent(response);
         }
 
         [HttpGet]
@@ -200,6 +285,48 @@ namespace NuGetGallery
         {
             var error = target == null ? (object)new { code, message } : new { code, message, target };
             return Json(statusCode, new { error });
+        }
+
+        private ActionResult ValidatePaging(int page, int pageSize)
+        {
+            var invalidParameter = ModelState
+                .Where(entry => entry.Value.Errors.Count > 0)
+                .Select(entry => entry.Key)
+                .FirstOrDefault(key =>
+                    string.Equals(key, "page", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(key, "pageSize", StringComparison.OrdinalIgnoreCase));
+            if (invalidParameter != null)
+            {
+                return Error(HttpStatusCode.BadRequest, "InvalidPaging", "The paging parameter must be a positive integer.", invalidParameter);
+            }
+
+            if (page < 1)
+            {
+                return Error(HttpStatusCode.BadRequest, "InvalidPaging", "The page parameter must be a positive integer.", "page");
+            }
+
+            if (pageSize < 1 || pageSize > MaximumPageSize)
+            {
+                return Error(HttpStatusCode.BadRequest, "InvalidPaging", $"The pageSize parameter must be between 1 and {MaximumPageSize}.", "pageSize");
+            }
+
+            return null;
+        }
+
+        private ContentResult JsonContent(object response)
+        {
+            return Content(JsonConvert.SerializeObject(response), JsonContentType);
+        }
+
+        private static IReadOnlyList<T> GetPage<T>(IReadOnlyList<T> items, int page, int pageSize)
+        {
+            var skip = (long)(page - 1) * pageSize;
+            if (skip >= items.Count)
+            {
+                return Array.Empty<T>();
+            }
+
+            return items.Skip((int)skip).Take(pageSize).ToList();
         }
 
         protected override void OnException(ExceptionContext filterContext)
