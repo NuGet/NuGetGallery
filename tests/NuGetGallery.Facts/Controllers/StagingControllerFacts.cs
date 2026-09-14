@@ -204,6 +204,83 @@ namespace NuGetGallery
         }
 
         [Fact]
+        public async Task RenamesAnOwnerVisibleGroup()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var group = new StagingGroup
+            {
+                Key = 10,
+                OwnerKey = currentUser.Key,
+                Owner = currentUser,
+                Id = "release",
+                Name = "Release",
+            };
+            GetMock<IPackageStagingAuthorizationService>()
+                .Setup(x => x.GetEnabledOwner(currentUser, currentUser.Username))
+                .Returns(currentUser);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.FindStagingGroup(currentUser, group.Id))
+                .Returns(group);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.RenameStagingGroupAsync(currentUser, group.Id, "Release 2"))
+                .ReturnsAsync(() =>
+                {
+                    group.Name = "Release 2";
+                    return group;
+                });
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(currentUser);
+
+            var result = await target.RenameGroup(
+                currentUser.Username,
+                group.Id,
+                new RenameStagingGroupViewModel { Name = " Release 2 " });
+
+            ResultAssert.IsRedirectTo(result, "/account/staging/current/groups/release");
+            GetMock<IPackageStagingManagementService>().Verify(
+                x => x.RenameStagingGroupAsync(currentUser, group.Id, "Release 2"),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task RedisplaysTheGroupForAnInvalidRename()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var group = new StagingGroup
+            {
+                Key = 10,
+                OwnerKey = currentUser.Key,
+                Owner = currentUser,
+                Id = "release",
+                Name = "Release",
+            };
+            GetMock<IPackageStagingAuthorizationService>()
+                .Setup(x => x.GetEnabledOwner(currentUser, currentUser.Username))
+                .Returns(currentUser);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.FindStagingGroup(currentUser, group.Id))
+                .Returns(group);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagedPackages(currentUser))
+                .Returns(Enumerable.Empty<StagedPackage>().ToList());
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(currentUser);
+            target.ModelState.AddModelError("Name", "The Display name field is required.");
+
+            var result = await target.RenameGroup(
+                currentUser.Username,
+                group.Id,
+                new RenameStagingGroupViewModel { Name = " " });
+
+            var model = ResultAssert.IsView<StagingGroupDetailViewModel>(result);
+            Assert.Equal(group.Name, model.Name);
+            Assert.True(target.ModelState.ContainsKey("Name"));
+            GetMock<IPackageStagingManagementService>().Verify(
+                x => x.RenameStagingGroupAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<string>()),
+                Times.Never);
+        }
+
+        [Fact]
         public void DisplaysUngroupedPackagesForAnOwner()
         {
             var currentUser = new User("Current") { Key = 1 };

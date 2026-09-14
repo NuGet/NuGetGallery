@@ -646,6 +646,7 @@
     <Compile Include="Services\StagingGroupSummary.cs" />
     <Compile Include="ViewModels\CreateStagingGroupViewModel.cs" />
     <Compile Include="ViewModels\PackageStagingViewModel.cs" />
+    <Compile Include="ViewModels\RenameStagingGroupViewModel.cs" />
     <Compile Include="ViewModels\StagingGroupDetailViewModel.cs" />
     <Compile Include="ViewModels\StagingGroupViewModel.cs" />
     <Compile Include="Infrastructure\Mail\BackgroundMarkdownMessageService.cs" />

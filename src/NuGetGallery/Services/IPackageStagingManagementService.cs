@@ -105,6 +105,15 @@ namespace NuGetGallery
         Task<CreateStagingGroupResult> CreateStagingGroupAsync(User stagingOwner, string groupId, string name);
 
         /// <summary>
+        /// Renames an owner-scoped staging group.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="groupId">The immutable owner-scoped group ID.</param>
+        /// <param name="name">The new group display name.</param>
+        /// <returns>The renamed group, or <see langword="null"/> when it does not exist.</returns>
+        Task<StagingGroup> RenameStagingGroupAsync(User stagingOwner, string groupId, string name);
+
+        /// <summary>
         /// Gets staging group summaries for an authorized owner.
         /// </summary>
         /// <param name="stagingOwner">The authorized staging owner.</param>

@@ -2,6 +2,7 @@
 @{
     ViewBag.Title = Model.Name;
     ViewBag.Tab = "Packages";
+    var showRenameForm = !ViewData.ModelState.IsValid;
 }
 
 <section id="staging-group" role="main" class="container main-container page-manage-packages">
@@ -16,10 +17,41 @@
                 </div>
             </div>
 
-            <div class="staging-group-heading">
-                <h1>@Model.Name</h1>
-                <span class="text-muted">@(Model.IsUngrouped ? Model.Description : Model.Id)</span>
-            </div>
+            @if (Model.IsUngrouped)
+            {
+                <div class="staging-group-heading">
+                    <h1>@Model.Name</h1>
+                    <span class="text-muted">@Model.Description</span>
+                </div>
+            }
+            else
+            {
+                using (Html.BeginForm("RenameGroup", "Staging", new { owner = Model.Owner, groupId = Model.Id }, FormMethod.Post, new { @class = "form-inline staging-group-rename" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <div class="staging-group-heading">
+                        <h1>
+                            <span class="staging-group-name@(showRenameForm ? " hidden" : string.Empty)">@Model.Name</span>
+                            @Html.Label("Name", "Display name", new { @class = "sr-only" })
+                            @Html.TextBox("Name", Model.Name, new { @class = "form-control input-brand staging-group-name-input" + (showRenameForm ? string.Empty : " hidden"), maxlength = 128, required = "required", aria_label = "Display name" })
+                            <button type="button"
+                                    class="btn btn-brand-icon staging-group-rename-trigger@(showRenameForm ? " hidden" : string.Empty)"
+                                    aria-label="Rename group"
+                                    title="Rename group">
+                                <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
+                            </button>
+                            <button type="submit"
+                                    class="btn btn-brand-icon staging-group-rename-confirm@(showRenameForm ? string.Empty : " hidden")"
+                                    aria-label="Confirm group name"
+                                    title="Confirm group name">
+                                <i class="ms-Icon ms-Icon--CheckMark" aria-hidden="true"></i>
+                            </button>
+                        </h1>
+                        @Html.ValidationMessage("Name", new { @class = "text-danger" })
+                        <span class="text-muted">@Model.Id</span>
+                    </div>
+                }
+            }
 
             <div class="staging-group-summary">
                 @if (Model.ReadyCount > 0)
@@ -280,6 +312,22 @@
                                   {
                                       Packages = Model.Packages.Select((package, index) => GetSerializableStagedPackage(package, index)),
                                   });
+
+        var renameTrigger = document.querySelector('.staging-group-rename-trigger');
+        if (renameTrigger) {
+            renameTrigger.addEventListener('click', function () {
+                var name = document.querySelector('.staging-group-name');
+                var input = document.querySelector('.staging-group-name-input');
+                var confirm = document.querySelector('.staging-group-rename-confirm');
+
+                name.classList.add('hidden');
+                renameTrigger.classList.add('hidden');
+                input.classList.remove('hidden');
+                confirm.classList.remove('hidden');
+                input.focus();
+                input.select();
+            });
+        }
     </script>
     @Scripts.Render("~/Scripts/gallery/page-staging-group.min.js")
 }

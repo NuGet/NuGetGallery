@@ -225,6 +225,30 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task RenamesAnOwnerGroupWithoutChangingItsIdentity()
+            {
+                var currentUser = new User("current") { Key = 1 };
+                var createdDate = new DateTime(2026, 9, 1);
+                var group = CreateStagingGroup(10, "release.1", "Release 1", currentUser);
+                group.CreatedDate = createdDate;
+                var stagingGroupRepository = new Mock<IEntityRepository<StagingGroup>>();
+                var target = CreateService(
+                    Array.Empty<StagedPackage>(),
+                    owner => true,
+                    stagingGroups: new[] { group },
+                    stagingGroupRepository: stagingGroupRepository);
+
+                var result = await target.RenameStagingGroupAsync(currentUser, "RELEASE.1", " Release 2 ");
+
+                Assert.Same(group, result);
+                Assert.Equal("Release 2", group.Name);
+                Assert.Equal("release.1", group.Id);
+                Assert.Same(currentUser, group.Owner);
+                Assert.Equal(createdDate, group.CreatedDate);
+                stagingGroupRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
+            }
+
+            [Fact]
             public void ListsOnlyNewestApiKeyAuthorizedAttempts()
             {
                 var currentUser = new User("current") { Key = 1 };

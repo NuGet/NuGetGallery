@@ -115,6 +115,52 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
+            return GroupView(currentUser, group);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> RenameGroup(string owner, string groupId, RenameStagingGroupViewModel model)
+        {
+            if (string.IsNullOrWhiteSpace(owner) || string.IsNullOrWhiteSpace(groupId))
+            {
+                return HttpNotFound();
+            }
+
+            var currentUser = GetCurrentUser();
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledOwner(currentUser, owner);
+            if (stagingOwner == null)
+            {
+                return HttpNotFound();
+            }
+
+            var group = _packageStagingManagementService.FindStagingGroup(stagingOwner, groupId);
+            if (group == null)
+            {
+                return HttpNotFound();
+            }
+
+            if (model == null)
+            {
+                ModelState.AddModelError(nameof(RenameStagingGroupViewModel.Name), "The Display name field is required.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return GroupView(currentUser, group);
+            }
+
+            group = await _packageStagingManagementService.RenameStagingGroupAsync(stagingOwner, groupId, model.Name);
+            if (group == null)
+            {
+                return HttpNotFound();
+            }
+
+            return Redirect(Url.ManageStagingGroup(group.Owner.Username, group.Id));
+        }
+
+        private ActionResult GroupView(User currentUser, StagingGroup group)
+        {
             var stagedPackages = _packageStagingManagementService
                 .GetStagedPackages(currentUser)
                 .Where(stagedPackage =>

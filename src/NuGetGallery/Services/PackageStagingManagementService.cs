@@ -264,6 +264,34 @@ namespace NuGetGallery
             return CreateStagingGroupResult.Created(group);
         }
 
+        public async Task<StagingGroup> RenameStagingGroupAsync(User stagingOwner, string groupId, string name)
+        {
+            if (stagingOwner == null)
+            {
+                throw new ArgumentNullException(nameof(stagingOwner));
+            }
+
+            if (string.IsNullOrWhiteSpace(groupId))
+            {
+                throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(groupId));
+            }
+
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(name));
+            }
+
+            var group = FindStagingGroup(stagingOwner, groupId);
+            if (group == null)
+            {
+                return null;
+            }
+
+            group.Name = name.Trim();
+            await _stagingGroupRepository.CommitChangesAsync();
+            return group;
+        }
+
         public IReadOnlyList<StagingGroupSummary> GetStagingGroupSummaries(User stagingOwner)
         {
             if (stagingOwner == null)
