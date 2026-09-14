@@ -383,7 +383,7 @@
                                 <div class="row-checkbox-label">
                                     <div class="label-sibling">
                                     </div>
-                                    <label id="select-scopes-push-package-version" class="brand-radio" data-bind="attr: { for: PackagePushVersionId }" 
+                                    <label id="select-scopes-push-package-version" class="brand-radio" data-bind="attr: { for: PackagePushVersionId }"
                                            aria-labelledby="select-scopes-push-package-version select-scopes">
                                         <input name="PushScope" type="radio" value="@NuGetScopes.PackagePushVersion"
                                                data-bind="checked: PushScope, enable: PushExistingEnabled,
@@ -401,6 +401,16 @@
                                        aria-labelledby="select-scopes-unlist select-scopes"
                                        data-bind="checked: UnlistScopeChecked, enable: UnlistEnabled" />
                                 <span>@NuGetScopes.Describe(NuGetScopes.PackageUnlist, Model.IsDeprecationApiEnabled)</span>
+                            </label>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="row-checkbox-label">
+                            <label id="select-scopes-stage" class="brand-checkbox">
+                                <input type="checkbox" value="@NuGetScopes.PackageStage"
+                                       aria-labelledby="select-scopes-stage select-scopes"
+                                       data-bind="checked: StageScopeChecked, enable: StageEnabled" />
+                                <span>@NuGetScopes.Describe(NuGetScopes.PackageStage, Model.IsDeprecationApiEnabled)</span>
                             </label>
                         </div>
                     </li>
@@ -534,6 +544,7 @@
                          PackagePushScope = NuGetScopes.PackagePush,
                          PackagePushVersionScope = NuGetScopes.PackagePushVersion,
                          PackageUnlistScope = NuGetScopes.PackageUnlist,
+                         PackageStageScope = NuGetScopes.PackageStage,
                          RemoveUrl = Url.RemoveCredential(),
                          RevokeUrl = Url.RevokeApiKeyCredential(),
                          RegenerateUrl = Url.RegenerateCredential(),
