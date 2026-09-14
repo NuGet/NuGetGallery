@@ -43,15 +43,6 @@ namespace NuGetGallery
         }
 
         /// <summary>
-        /// Creates a result indicating that the requested owner is unavailable.
-        /// </summary>
-        /// <returns>The unavailable-owner result.</returns>
-        public static CreateStagingGroupResult OwnerNotFound()
-        {
-            return new CreateStagingGroupResult(CreateStagingGroupResultType.OwnerNotFound, group: null);
-        }
-
-        /// <summary>
         /// Creates a result indicating that the group ID already exists for the owner.
         /// </summary>
         /// <returns>The duplicate-ID result.</returns>
@@ -70,11 +61,6 @@ namespace NuGetGallery
         /// The staging group was created.
         /// </summary>
         Created,
-
-        /// <summary>
-        /// The requested owner is unavailable to the user.
-        /// </summary>
-        OwnerNotFound,
 
         /// <summary>
         /// The group ID already exists for the owner.
