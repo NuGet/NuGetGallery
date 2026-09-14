@@ -17,6 +17,7 @@ namespace NuGet.Services.Validation.Issues
         public static ValidationIssue OnlySignatureFormatVersion1Supported { get; } = new NoDataValidationIssue(ValidationIssueCode.OnlySignatureFormatVersion1Supported);
         public static ValidationIssue AuthorCounterSignaturesNotSupported { get; } = new NoDataValidationIssue(ValidationIssueCode.AuthorCounterSignaturesNotSupported);
         public static ValidationIssue PackageIsNotSigned { get; } = new NoDataValidationIssue(ValidationIssueCode.PackageIsNotSigned);
+        public static ValidationIssue AuthorSignedAttributesNotCanonical { get; } = new NoDataValidationIssue(ValidationIssueCode.AuthorSignedAttributesNotCanonical);
         public static ValidationIssue SymbolErrorCode_ChecksumDoesNotMatch { get; } = new NoDataValidationIssue(ValidationIssueCode.SymbolErrorCode_ChecksumDoesNotMatch);
         public static ValidationIssue SymbolErrorCode_MatchingAssemblyNotFound { get; } = new NoDataValidationIssue(ValidationIssueCode.SymbolErrorCode_MatchingAssemblyNotFound);
         public static ValidationIssue SymbolErrorCode_PdbIsNotPortable { get; } = new NoDataValidationIssue(ValidationIssueCode.SymbolErrorCode_PdbIsNotPortable);
@@ -48,6 +49,7 @@ namespace NuGet.Services.Validation.Issues
             ValidationIssueCode.OnlySignatureFormatVersion1Supported,
             ValidationIssueCode.AuthorCounterSignaturesNotSupported,
             ValidationIssueCode.PackageIsNotSigned,
+            ValidationIssueCode.AuthorSignedAttributesNotCanonical,
             ValidationIssueCode.SymbolErrorCode_ChecksumDoesNotMatch,
             ValidationIssueCode.SymbolErrorCode_MatchingAssemblyNotFound,
             ValidationIssueCode.SymbolErrorCode_PdbIsNotPortable,

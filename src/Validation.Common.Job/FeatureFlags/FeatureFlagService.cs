@@ -31,5 +31,12 @@ namespace NuGet.Jobs.Validation
         {
             return _featureFlagClient.IsEnabled(ValidationPrefix + "ExtraValidation", defaultValue: false);
         }
+
+        public bool IsDerOrderingEnforcementEnabled()
+        {
+            return _featureFlagClient.IsEnabled(
+                ValidationPrefix + "DerOrderingEnforcement",
+                defaultValue: false);
+        }
     }
 }
