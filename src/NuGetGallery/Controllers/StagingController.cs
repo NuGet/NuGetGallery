@@ -73,14 +73,17 @@ namespace NuGetGallery
                 return View(model);
             }
 
-            var result = await _packageStagingManagementService.CreateStagingGroupAsync(GetCurrentUser(), model.Owner, model.Id, model.Name);
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledOwner(GetCurrentUser(), model.Owner);
+            if (stagingOwner == null)
+            {
+                return HttpNotFound();
+            }
+
+            var result = await _packageStagingManagementService.CreateStagingGroupAsync(stagingOwner, model.Id, model.Name);
             switch (result.Type)
             {
                 case CreateStagingGroupResultType.Created:
                     return Redirect(Url.ManageMyStagingGroups());
-
-                case CreateStagingGroupResultType.OwnerNotFound:
-                    return HttpNotFound();
 
                 case CreateStagingGroupResultType.GroupAlreadyExists:
                     ModelState.AddModelError(nameof(model.Id), "A staging group with this ID already exists.");
@@ -100,7 +103,13 @@ namespace NuGetGallery
             }
 
             var currentUser = GetCurrentUser();
-            var group = _packageStagingManagementService.FindStagingGroup(currentUser, owner, groupId);
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledOwner(currentUser, owner);
+            if (stagingOwner == null)
+            {
+                return HttpNotFound();
+            }
+
+            var group = _packageStagingManagementService.FindStagingGroup(stagingOwner, groupId);
             if (group == null)
             {
                 return HttpNotFound();
@@ -142,8 +151,8 @@ namespace NuGetGallery
 
         private IReadOnlyList<string> GetStagingOwnerNames()
         {
-            return _packageStagingManagementService
-                .GetStagingOwners(GetCurrentUser())
+            return _packageStagingAuthorizationService
+                .GetEnabledOwners(GetCurrentUser())
                 .Select(owner => owner.Username)
                 .ToList();
         }

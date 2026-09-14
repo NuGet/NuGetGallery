@@ -47,11 +47,7 @@ namespace NuGetGallery
             var target = GetController<StagingApiController>();
             ConfigureCreateGroupRequest(target, currentUser, owner);
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.CreateStagingGroupWithApiKeyAsync(
-                    currentUser,
-                    It.Is<IEnumerable<Scope>>(scopes => scopes.Single().OwnerKey == owner.Key),
-                    "net10-preview",
-                    ".NET 10 Preview"))
+                .Setup(x => x.CreateStagingGroupAsync(owner, "net10-preview", ".NET 10 Preview"))
                 .ReturnsAsync(CreateStagingGroupResult.Created(group));
 
             var result = await target.CreateStagingGroup(new CreateStagingGroupRequest
@@ -95,7 +91,7 @@ namespace NuGetGallery
 
             AssertError(target, result, HttpStatusCode.UnsupportedMediaType, "UnsupportedMediaType");
             GetMock<IPackageStagingManagementService>().Verify(
-                x => x.CreateStagingGroupWithApiKeyAsync(It.IsAny<User>(), It.IsAny<IEnumerable<Scope>>(), It.IsAny<string>(), It.IsAny<string>()),
+                x => x.CreateStagingGroupAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<string>()),
                 Times.Never);
         }
 
@@ -123,7 +119,7 @@ namespace NuGetGallery
 
             AssertError(target, result, HttpStatusCode.BadRequest, errorCode, errorTarget);
             GetMock<IPackageStagingManagementService>().Verify(
-                x => x.CreateStagingGroupWithApiKeyAsync(It.IsAny<User>(), It.IsAny<IEnumerable<Scope>>(), It.IsAny<string>(), It.IsAny<string>()),
+                x => x.CreateStagingGroupAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<string>()),
                 Times.Never);
         }
 
@@ -133,13 +129,13 @@ namespace NuGetGallery
             var currentUser = new User("current") { Key = 1 };
             var target = GetController<StagingApiController>();
             ConfigureCreateGroupRequest(target, currentUser, owner: null);
-            GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.CreateStagingGroupWithApiKeyAsync(currentUser, It.IsAny<IEnumerable<Scope>>(), "release", "Release"))
-                .ReturnsAsync(CreateStagingGroupResult.OwnerNotFound());
 
             var result = await target.CreateStagingGroup(new CreateStagingGroupRequest { Id = "release", Name = "Release" });
 
             AssertError(target, result, HttpStatusCode.Forbidden, "StagingOwnerUnavailable");
+            GetMock<IPackageStagingManagementService>().Verify(
+                x => x.CreateStagingGroupAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<string>()),
+                Times.Never);
         }
 
         [Fact]
@@ -150,7 +146,7 @@ namespace NuGetGallery
             var target = GetController<StagingApiController>();
             ConfigureCreateGroupRequest(target, currentUser, owner);
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.CreateStagingGroupWithApiKeyAsync(currentUser, It.IsAny<IEnumerable<Scope>>(), "release", "Release"))
+                .Setup(x => x.CreateStagingGroupAsync(owner, "release", "Release"))
                 .ReturnsAsync(CreateStagingGroupResult.GroupAlreadyExists());
 
             var result = await target.CreateStagingGroup(new CreateStagingGroupRequest { Id = "release", Name = "Release" });
@@ -168,7 +164,7 @@ namespace NuGetGallery
             var target = GetController<StagingApiController>();
             ConfigureCreateGroupRequest(target, currentUser, owner);
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagingGroupSummariesWithApiKey(currentUser, It.IsAny<IEnumerable<Scope>>()))
+                .Setup(x => x.GetStagingGroupSummaries(owner))
                 .Returns(new[]
                 {
                     new StagingGroupSummary(olderGroup, Array.Empty<StagedPackage>()),
@@ -195,7 +191,7 @@ namespace NuGetGallery
             var target = GetController<StagingApiController>();
             ConfigureCreateGroupRequest(target, currentUser, owner);
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagingGroupSummariesWithApiKey(currentUser, It.IsAny<IEnumerable<Scope>>()))
+                .Setup(x => x.GetStagingGroupSummaries(owner))
                 .Returns(new[] { new StagingGroupSummary(group, Array.Empty<StagedPackage>()) });
 
             var result = target.GetStagingGroups(page: 2, pageSize: 100);
@@ -211,9 +207,6 @@ namespace NuGetGallery
             var currentUser = new User("current") { Key = 1 };
             var target = GetController<StagingApiController>();
             ConfigureCreateGroupRequest(target, currentUser, owner: null);
-            GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagingGroupSummariesWithApiKey(currentUser, It.IsAny<IEnumerable<Scope>>()))
-                .Returns((IReadOnlyList<StagingGroupSummary>)null);
 
             var result = target.GetStagingGroups();
 
@@ -234,7 +227,7 @@ namespace NuGetGallery
             var target = GetController<StagingApiController>();
             ConfigureCreateGroupRequest(target, currentUser, owner);
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagingGroupSummariesWithApiKey(currentUser, It.IsAny<IEnumerable<Scope>>()))
+                .Setup(x => x.GetStagingGroupSummaries(owner))
                 .Returns(new[] { new StagingGroupSummary(group, new[] { package }) });
 
             var result = target.GetStagingGroup("RELEASE");
@@ -261,7 +254,7 @@ namespace NuGetGallery
             var target = GetController<StagingApiController>();
             ConfigureCreateGroupRequest(target, currentUser, owner);
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagingGroupSummariesWithApiKey(currentUser, It.IsAny<IEnumerable<Scope>>()))
+                .Setup(x => x.GetStagingGroupSummaries(owner))
                 .Returns(Array.Empty<StagingGroupSummary>());
 
             var result = target.GetStagingGroup("missing");
@@ -281,7 +274,7 @@ namespace NuGetGallery
 
             AssertError(target, result, HttpStatusCode.BadRequest, "InvalidPaging", errorTarget);
             GetMock<IPackageStagingManagementService>().Verify(
-                x => x.GetStagingGroupSummariesWithApiKey(It.IsAny<User>(), It.IsAny<IEnumerable<Scope>>()),
+                x => x.GetStagingGroupSummaries(It.IsAny<User>()),
                 Times.Never);
         }
 
@@ -474,7 +467,7 @@ namespace NuGetGallery
             Assert.Equal(204, status.StatusCode);
         }
 
-        private static void ConfigureCreateGroupRequest(StagingApiController target, User currentUser, User owner)
+        private void ConfigureCreateGroupRequest(StagingApiController target, User currentUser, User owner)
         {
             var httpContext = TestUtility.SetupHttpContextMockForUrlGeneration(new Mock<HttpContextBase>(), target);
             if (owner == null)
@@ -492,6 +485,9 @@ namespace NuGetGallery
                             OwnerKey = owner.Key,
                         },
                     });
+                GetMock<IPackageStagingAuthorizationService>()
+                    .Setup(x => x.GetEnabledApiKeyOwner(currentUser, It.IsAny<IEnumerable<Scope>>()))
+                    .Returns(owner);
             }
 
             var request = Mock.Get(httpContext.Object.Request);

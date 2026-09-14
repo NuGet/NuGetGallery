@@ -23,8 +23,8 @@ namespace NuGetGallery
         {
             var currentUser = new User("current") { Key = 1 };
             var organization = new Organization("organization") { Key = 2 };
-            GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagingOwners(currentUser))
+            GetMock<IPackageStagingAuthorizationService>()
+                .Setup(x => x.GetEnabledOwners(currentUser))
                 .Returns(new User[] { organization, currentUser });
             var target = GetController<StagingController>();
             target.SetCurrentUser(currentUser);
@@ -46,11 +46,14 @@ namespace NuGetGallery
                 Id = "release.1",
                 Name = "Release 1",
             };
-            GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagingOwners(currentUser))
+            GetMock<IPackageStagingAuthorizationService>()
+                .Setup(x => x.GetEnabledOwners(currentUser))
                 .Returns(new[] { currentUser });
+            GetMock<IPackageStagingAuthorizationService>()
+                .Setup(x => x.GetEnabledOwner(currentUser, currentUser.Username))
+                .Returns(currentUser);
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.CreateStagingGroupAsync(currentUser, currentUser.Username, group.Id, group.Name))
+                .Setup(x => x.CreateStagingGroupAsync(currentUser, group.Id, group.Name))
                 .ReturnsAsync(CreateStagingGroupResult.Created(group));
             var target = GetController<StagingController>();
             target.SetCurrentUser(currentUser);
@@ -65,7 +68,7 @@ namespace NuGetGallery
 
             ResultAssert.IsRedirectTo(result, "/account/Packages#show-staging-groups-container");
             GetMock<IPackageStagingManagementService>().Verify(
-                x => x.CreateStagingGroupAsync(currentUser, currentUser.Username, group.Id, group.Name),
+                x => x.CreateStagingGroupAsync(currentUser, group.Id, group.Name),
                 Times.Once);
         }
 
@@ -73,11 +76,14 @@ namespace NuGetGallery
         public async Task RejectsDuplicateGroupId()
         {
             var currentUser = new User("current") { Key = 1 };
-            GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagingOwners(currentUser))
+            GetMock<IPackageStagingAuthorizationService>()
+                .Setup(x => x.GetEnabledOwners(currentUser))
                 .Returns(new[] { currentUser });
+            GetMock<IPackageStagingAuthorizationService>()
+                .Setup(x => x.GetEnabledOwner(currentUser, currentUser.Username))
+                .Returns(currentUser);
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.CreateStagingGroupAsync(currentUser, currentUser.Username, "release.1", "Release 1"))
+                .Setup(x => x.CreateStagingGroupAsync(currentUser, "release.1", "Release 1"))
                 .ReturnsAsync(CreateStagingGroupResult.GroupAlreadyExists());
             var target = GetController<StagingController>();
             target.SetCurrentUser(currentUser);
@@ -102,8 +108,8 @@ namespace NuGetGallery
         public async Task RedisplaysInvalidCreateGroupForm()
         {
             var currentUser = new User("current") { Key = 1 };
-            GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagingOwners(currentUser))
+            GetMock<IPackageStagingAuthorizationService>()
+                .Setup(x => x.GetEnabledOwners(currentUser))
                 .Returns(new[] { currentUser });
             var target = GetController<StagingController>();
             target.SetCurrentUser(currentUser);
@@ -118,7 +124,7 @@ namespace NuGetGallery
             Assert.Same(model, ResultAssert.IsView<CreateStagingGroupViewModel>(result));
             Assert.Equal(new[] { currentUser.Username }, model.Owners);
             GetMock<IPackageStagingManagementService>().Verify(
-                x => x.CreateStagingGroupAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
+                x => x.CreateStagingGroupAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<string>()),
                 Times.Never);
         }
 
@@ -126,8 +132,8 @@ namespace NuGetGallery
         public async Task HidesCreateGroupForAnUnavailableOwner()
         {
             var currentUser = new User("current") { Key = 1 };
-            GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagingOwners(currentUser))
+            GetMock<IPackageStagingAuthorizationService>()
+                .Setup(x => x.GetEnabledOwners(currentUser))
                 .Returns(new[] { currentUser });
             var target = GetController<StagingController>();
             target.SetCurrentUser(currentUser);
@@ -141,7 +147,7 @@ namespace NuGetGallery
 
             Assert.IsType<HttpNotFoundResult>(result);
             GetMock<IPackageStagingManagementService>().Verify(
-                x => x.CreateStagingGroupAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
+                x => x.CreateStagingGroupAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<string>()),
                 Times.Never);
         }
 
@@ -164,8 +170,11 @@ namespace NuGetGallery
             readyPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
             var ungroupedPackage = CreateStagedPackage(44, "Ungrouped.Package", "3.0.0", currentUser, StagedPackageStatus.Ready);
             var validationIssue = ValidationIssue.PackageIsZip64;
+            GetMock<IPackageStagingAuthorizationService>()
+                .Setup(x => x.GetEnabledOwner(currentUser, "current"))
+                .Returns(currentUser);
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.FindStagingGroup(currentUser, "current", "test-group"))
+                .Setup(x => x.FindStagingGroup(currentUser, "test-group"))
                 .Returns(group);
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.GetStagedPackages(currentUser))
@@ -257,8 +266,11 @@ namespace NuGetGallery
                 })
                 .Reverse()
                 .ToList();
+            GetMock<IPackageStagingAuthorizationService>()
+                .Setup(x => x.GetEnabledOwner(currentUser, currentUser.Username))
+                .Returns(currentUser);
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.FindStagingGroup(currentUser, currentUser.Username, group.Id))
+                .Setup(x => x.FindStagingGroup(currentUser, group.Id))
                 .Returns(group);
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.GetStagedPackages(currentUser))
@@ -278,9 +290,6 @@ namespace NuGetGallery
         public void HidesMissingOrUnauthorizedGroups()
         {
             var currentUser = new User("current") { Key = 1 };
-            GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.FindStagingGroup(currentUser, "other", "test-group"))
-                .Returns((StagingGroup)null);
             var target = GetController<StagingController>();
             target.SetCurrentUser(currentUser);
 

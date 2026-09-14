@@ -97,7 +97,7 @@ namespace NuGetGallery
                     owner => true,
                     stagingGroups: new[] { group });
 
-                var result = target.FindStagingGroup(currentUser, "current", "test-group");
+                var result = target.FindStagingGroup(currentUser, "test-group");
 
                 Assert.Same(group, result);
             }
@@ -113,7 +113,7 @@ namespace NuGetGallery
                     owner => true,
                     stagingGroups: new[] { group });
 
-                var result = target.FindStagingGroup(currentUser, otherOwner.Username, group.Id);
+                var result = target.FindStagingGroup(currentUser, group.Id);
 
                 Assert.Null(result);
             }
@@ -135,7 +135,7 @@ namespace NuGetGallery
                     owner => true,
                     stagingGroupRepository: stagingGroupRepository);
 
-                var result = await target.CreateStagingGroupAsync(currentUser, "ORGANIZATION", "release.1", " Release 1 ");
+                var result = await target.CreateStagingGroupAsync(organization, "release.1", " Release 1 ");
 
                 Assert.Equal(CreateStagingGroupResultType.Created, result.Type);
                 Assert.Same(insertedGroup, result.Group);
@@ -148,51 +148,11 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task CreatesAGroupForTheEnabledApiKeyOwner()
+            public void ListsGroupsOnlyForTheOwner()
             {
                 var currentUser = new User("current") { Key = 1 };
                 var organization = new Organization("organization") { Key = 2 };
                 currentUser.Organizations.Add(new Membership { Member = currentUser, Organization = organization });
-                var scopes = new[] { new Scope(organization.Key, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.PackagePush) };
-                var stagingGroupRepository = new Mock<IEntityRepository<StagingGroup>>();
-                var target = CreateService(
-                    Array.Empty<StagedPackage>(),
-                    owner => true,
-                    stagingGroupRepository: stagingGroupRepository);
-
-                var result = await target.CreateStagingGroupWithApiKeyAsync(currentUser, scopes, "release.1", "Release 1");
-
-                Assert.Equal(CreateStagingGroupResultType.Created, result.Type);
-                Assert.Same(organization, result.Group.Owner);
-                Assert.Equal(organization.Key, result.Group.OwnerKey);
-                stagingGroupRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
-            }
-
-            [Fact]
-            public async Task DoesNotCreateAGroupWithoutOneEnabledApiKeyOwner()
-            {
-                var currentUser = new User("current") { Key = 1 };
-                var scopes = Array.Empty<Scope>();
-                var stagingGroupRepository = new Mock<IEntityRepository<StagingGroup>>();
-                var target = CreateService(
-                    Array.Empty<StagedPackage>(),
-                    owner => true,
-                    stagingGroupRepository: stagingGroupRepository);
-
-                var result = await target.CreateStagingGroupWithApiKeyAsync(currentUser, scopes, "release.1", "Release 1");
-
-                Assert.Equal(CreateStagingGroupResultType.OwnerNotFound, result.Type);
-                Assert.Null(result.Group);
-                stagingGroupRepository.Verify(x => x.InsertOnCommit(It.IsAny<StagingGroup>()), Times.Never);
-            }
-
-            [Fact]
-            public void ListsGroupsOnlyForTheEnabledApiKeyOwner()
-            {
-                var currentUser = new User("current") { Key = 1 };
-                var organization = new Organization("organization") { Key = 2 };
-                currentUser.Organizations.Add(new Membership { Member = currentUser, Organization = organization });
-                var scopes = new[] { new Scope(organization.Key, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.PackagePush) };
                 var personalGroup = CreateStagingGroup(10, "personal", "Personal", currentUser);
                 var organizationGroup = CreateStagingGroup(11, "organization", "Organization", organization);
                 var target = CreateService(
@@ -200,40 +160,31 @@ namespace NuGetGallery
                     owner => true,
                     stagingGroups: new[] { personalGroup, organizationGroup });
 
-                var result = target.GetStagingGroupSummariesWithApiKey(currentUser, scopes);
+                var result = target.GetStagingGroupSummaries(organization);
 
                 Assert.Same(organizationGroup, Assert.Single(result).Group);
             }
 
             [Fact]
-            public void GetsAllCurrentPackagesOwnedByTheApiKeyGroupOwner()
+            public void GetsAllCurrentPackagesInTheOwnersGroups()
             {
                 var currentUser = new User("current") { Key = 1 };
                 var group = CreateStagingGroup(10, "release", "Release", currentUser);
-                var scopes = new[] { new Scope(currentUser.Key, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.PackagePush) };
                 var firstPackage = CreateStagedPackage(100, "First.Package", "1.0.0", currentUser);
                 firstPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
                 var secondPackage = CreateStagedPackage(101, "Second.Package", "1.0.0", currentUser);
                 secondPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
                 var otherPackage = CreateStagedPackage(102, "Other.Package", "1.0.0", currentUser);
-                var authorizationService = new Mock<IPackageStagingAuthorizationService>();
-                authorizationService
-                    .Setup(x => x.GetEnabledApiKeyOwner(currentUser, scopes))
-                    .Returns(currentUser);
                 var target = CreateService(
                     new[] { firstPackage, secondPackage, otherPackage },
                     owner => true,
-                    authorizationService.Object,
                     stagingGroups: new[] { group });
 
-                var result = target.GetStagingGroupSummariesWithApiKey(currentUser, scopes);
+                var result = target.GetStagingGroupSummaries(currentUser);
 
                 var summary = Assert.Single(result);
                 Assert.Same(group, summary.Group);
                 Assert.Equal(new[] { firstPackage, secondPackage }, summary.Packages);
-                authorizationService.Verify(
-                    x => x.CanManageWithApiKey(It.IsAny<User>(), It.IsAny<IEnumerable<Scope>>(), It.IsAny<StagedPackage>()),
-                    Times.Never);
             }
 
             [Fact]
@@ -246,7 +197,7 @@ namespace NuGetGallery
                     owner => true,
                     stagingGroupRepository: stagingGroupRepository);
 
-                var result = await target.CreateStagingGroupAsync(currentUser, "current", "release.1", null);
+                var result = await target.CreateStagingGroupAsync(currentUser, "release.1", null);
 
                 Assert.Equal(CreateStagingGroupResultType.Created, result.Type);
                 Assert.Equal("release.1", result.Group.Name);
@@ -265,29 +216,9 @@ namespace NuGetGallery
                     stagingGroups: new[] { existingGroup },
                     stagingGroupRepository: stagingGroupRepository);
 
-                var result = await target.CreateStagingGroupAsync(currentUser, "current", "release.1", "Another name");
+                var result = await target.CreateStagingGroupAsync(currentUser, "release.1", "Another name");
 
                 Assert.Equal(CreateStagingGroupResultType.GroupAlreadyExists, result.Type);
-                Assert.Null(result.Group);
-                stagingGroupRepository.Verify(x => x.InsertOnCommit(It.IsAny<StagingGroup>()), Times.Never);
-                stagingGroupRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
-            }
-
-            [Fact]
-            public async Task DoesNotCreateAGroupForAnUnavailableOwner()
-            {
-                var currentUser = new User("current") { Key = 1 };
-                var disabledOrganization = new Organization("disabled") { Key = 2 };
-                currentUser.Organizations.Add(new Membership { Member = currentUser, Organization = disabledOrganization });
-                var stagingGroupRepository = new Mock<IEntityRepository<StagingGroup>>();
-                var target = CreateService(
-                    Array.Empty<StagedPackage>(),
-                    owner => owner != disabledOrganization,
-                    stagingGroupRepository: stagingGroupRepository);
-
-                var result = await target.CreateStagingGroupAsync(currentUser, "disabled", "release.1", "Release 1");
-
-                Assert.Equal(CreateStagingGroupResultType.OwnerNotFound, result.Type);
                 Assert.Null(result.Group);
                 stagingGroupRepository.Verify(x => x.InsertOnCommit(It.IsAny<StagingGroup>()), Times.Never);
                 stagingGroupRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
@@ -306,6 +237,9 @@ namespace NuGetGallery
                 currentAttempt.StagedPackageIdentity.Package.Listed = true;
                 var hiddenPackage = CreateStagedPackage(102, 11, "Hidden.Package", "2.0.0", currentUser);
                 var authorizationService = new Mock<IPackageStagingAuthorizationService>();
+                authorizationService
+                    .Setup(x => x.GetEnabledOwners(currentUser))
+                    .Returns(new[] { currentUser });
                 authorizationService
                     .Setup(x => x.CanManageWithApiKey(currentUser, scopes, currentAttempt))
                     .Returns(true);
@@ -507,36 +441,21 @@ namespace NuGetGallery
                     .Setup(x => x.GetAll())
                     .Returns(stagingGroupsSet.Object);
 
-                var featureFlagService = new Mock<IFeatureFlagService>();
-                featureFlagService
-                    .Setup(x => x.IsPackageStagingEnabled(It.IsAny<User>()))
-                    .Returns((User owner) => isEnabled(owner));
                 var defaultAuthorizationService = new Mock<IPackageStagingAuthorizationService>();
                 defaultAuthorizationService
                     .Setup(x => x.CanManage(It.IsAny<User>(), It.IsAny<StagedPackage>()))
                     .Returns(true);
                 defaultAuthorizationService
-                    .Setup(x => x.GetEnabledApiKeyOwner(It.IsAny<User>(), It.IsAny<IEnumerable<Scope>>()))
-                    .Returns((User currentUser, IEnumerable<Scope> scopes) =>
-                    {
-                        var ownerKeys = scopes
-                            .Where(scope => scope.OwnerKey.HasValue)
-                            .Select(scope => scope.OwnerKey.Value)
-                            .Distinct()
-                            .ToList();
-                        if (ownerKeys.Count != 1)
-                        {
-                            return null;
-                        }
-
-                        return new[] { currentUser }
+                    .Setup(x => x.GetEnabledOwners(It.IsAny<User>()))
+                    .Returns((User currentUser) =>
+                        new[] { currentUser }
                             .Concat(currentUser.Organizations.Select(membership => membership.Organization))
-                            .SingleOrDefault(owner => owner.Key == ownerKeys[0] && isEnabled(owner));
-                    });
+                            .Where(isEnabled)
+                            .OrderBy(owner => owner.Username)
+                            .ToList());
 
                 return new PackageStagingManagementService(
                     authorizationService ?? defaultAuthorizationService.Object,
-                    featureFlagService.Object,
                     packageService ?? Mock.Of<IPackageService>(),
                     stagedPackageRepository.Object,
                     stagingGroupRepository.Object,

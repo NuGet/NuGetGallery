@@ -15,7 +15,6 @@ namespace NuGetGallery
     public class PackageStagingManagementService : IPackageStagingManagementService
     {
         private readonly IPackageStagingAuthorizationService _packageStagingAuthorizationService;
-        private readonly IFeatureFlagService _featureFlagService;
         private readonly IPackageService _packageService;
         private readonly IEntityRepository<StagedPackage> _stagedPackageRepository;
         private readonly IEntityRepository<StagingGroup> _stagingGroupRepository;
@@ -23,14 +22,12 @@ namespace NuGetGallery
 
         public PackageStagingManagementService(
             IPackageStagingAuthorizationService packageStagingAuthorizationService,
-            IFeatureFlagService featureFlagService,
             IPackageService packageService,
             IEntityRepository<StagedPackage> stagedPackageRepository,
             IEntityRepository<StagingGroup> stagingGroupRepository,
             IStagingBlobService stagingBlobService)
         {
             _packageStagingAuthorizationService = packageStagingAuthorizationService ?? throw new ArgumentNullException(nameof(packageStagingAuthorizationService));
-            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _stagedPackageRepository = stagedPackageRepository ?? throw new ArgumentNullException(nameof(stagedPackageRepository));
             _stagingGroupRepository = stagingGroupRepository ?? throw new ArgumentNullException(nameof(stagingGroupRepository));
@@ -96,19 +93,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(currentUser));
             }
 
-            return GetEnabledOwners(currentUser).Any();
-        }
-
-        public IReadOnlyList<User> GetStagingOwners(User currentUser)
-        {
-            if (currentUser == null)
-            {
-                throw new ArgumentNullException(nameof(currentUser));
-            }
-
-            return GetEnabledOwners(currentUser)
-                .OrderBy(owner => owner.Username)
-                .ToList();
+            return _packageStagingAuthorizationService.GetEnabledOwners(currentUser).Count > 0;
         }
 
         public StagedPackage FindCurrentStagedPackage(string id, string version)
@@ -182,7 +167,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(currentUser));
             }
 
-            var ownerKeys = GetEnabledOwners(currentUser)
+            var ownerKeys = _packageStagingAuthorizationService.GetEnabledOwners(currentUser)
                 .Select(owner => owner.Key)
                 .ToArray();
 
@@ -200,7 +185,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(currentUser));
             }
 
-            var ownerKeys = GetEnabledOwners(currentUser)
+            var ownerKeys = _packageStagingAuthorizationService.GetEnabledOwners(currentUser)
                 .Select(owner => owner.Key)
                 .ToArray();
 
@@ -214,48 +199,31 @@ namespace NuGetGallery
                 .ToList();
         }
 
-        public StagingGroup FindStagingGroup(User currentUser, string owner, string groupId)
+        public StagingGroup FindStagingGroup(User stagingOwner, string groupId)
         {
-            if (currentUser == null)
+            if (stagingOwner == null)
             {
-                throw new ArgumentNullException(nameof(currentUser));
-            }
-
-            if (string.IsNullOrWhiteSpace(owner))
-            {
-                throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(owner));
+                throw new ArgumentNullException(nameof(stagingOwner));
             }
 
             if (string.IsNullOrWhiteSpace(groupId))
             {
                 throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(groupId));
-            }
-
-            var enabledOwner = GetEnabledOwners(currentUser)
-                .SingleOrDefault(candidate => string.Equals(candidate.Username, owner, StringComparison.OrdinalIgnoreCase));
-            if (enabledOwner == null)
-            {
-                return null;
             }
 
             return _stagingGroupRepository
                 .GetAll()
                 .Include(group => group.Owner)
-                .Where(group => group.OwnerKey == enabledOwner.Key)
+                .Where(group => group.OwnerKey == stagingOwner.Key)
                 .ToList()
                 .SingleOrDefault(group => string.Equals(group.Id, groupId, StringComparison.OrdinalIgnoreCase));
         }
 
-        public Task<CreateStagingGroupResult> CreateStagingGroupAsync(User currentUser, string owner, string groupId, string name)
+        public async Task<CreateStagingGroupResult> CreateStagingGroupAsync(User stagingOwner, string groupId, string name)
         {
-            if (currentUser == null)
+            if (stagingOwner == null)
             {
-                throw new ArgumentNullException(nameof(currentUser));
-            }
-
-            if (string.IsNullOrWhiteSpace(owner))
-            {
-                throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(owner));
+                throw new ArgumentNullException(nameof(stagingOwner));
             }
 
             if (string.IsNullOrWhiteSpace(groupId))
@@ -263,56 +231,6 @@ namespace NuGetGallery
                 throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(groupId));
             }
 
-            var stagingOwner = GetEnabledOwners(currentUser)
-                .SingleOrDefault(candidate => string.Equals(candidate.Username, owner, StringComparison.OrdinalIgnoreCase));
-            if (stagingOwner == null)
-            {
-                return Task.FromResult(CreateStagingGroupResult.OwnerNotFound());
-            }
-
-            return CreateStagingGroupAsync(stagingOwner, groupId, name);
-        }
-
-        public Task<CreateStagingGroupResult> CreateStagingGroupWithApiKeyAsync(User currentUser, IEnumerable<Scope> scopes, string groupId, string name)
-        {
-            if (string.IsNullOrWhiteSpace(groupId))
-            {
-                throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(groupId));
-            }
-
-            var stagingOwner = _packageStagingAuthorizationService.GetEnabledApiKeyOwner(currentUser, scopes);
-            if (stagingOwner == null)
-            {
-                return Task.FromResult(CreateStagingGroupResult.OwnerNotFound());
-            }
-
-            return CreateStagingGroupAsync(stagingOwner, groupId, name);
-        }
-
-        public IReadOnlyList<StagingGroupSummary> GetStagingGroupSummariesWithApiKey(User currentUser, IEnumerable<Scope> scopes)
-        {
-            var owner = _packageStagingAuthorizationService.GetEnabledApiKeyOwner(currentUser, scopes);
-            if (owner == null)
-            {
-                return null;
-            }
-
-            var groups = _stagingGroupRepository
-                .GetAll()
-                .Include(group => group.Owner)
-                .Where(group => group.OwnerKey == owner.Key)
-                .ToList();
-            var packagesByGroup = GetCurrentStagedPackages(new[] { owner.Key })
-                .Where(package => package.StagedPackageIdentity.StagingGroupKey.HasValue)
-                .ToLookup(package => package.StagedPackageIdentity.StagingGroupKey.Value);
-
-            return groups
-                .Select(group => new StagingGroupSummary(group, packagesByGroup[group.Key].ToList()))
-                .ToList();
-        }
-
-        private async Task<CreateStagingGroupResult> CreateStagingGroupAsync(User stagingOwner, string groupId, string name)
-        {
             var groupExists = _stagingGroupRepository
                 .GetAll()
                 .Where(group => group.OwnerKey == stagingOwner.Key)
@@ -346,6 +264,27 @@ namespace NuGetGallery
             return CreateStagingGroupResult.Created(group);
         }
 
+        public IReadOnlyList<StagingGroupSummary> GetStagingGroupSummaries(User stagingOwner)
+        {
+            if (stagingOwner == null)
+            {
+                throw new ArgumentNullException(nameof(stagingOwner));
+            }
+
+            var groups = _stagingGroupRepository
+                .GetAll()
+                .Include(group => group.Owner)
+                .Where(group => group.OwnerKey == stagingOwner.Key)
+                .ToList();
+            var packagesByGroup = GetCurrentStagedPackages(new[] { stagingOwner.Key })
+                .Where(package => package.StagedPackageIdentity.StagingGroupKey.HasValue)
+                .ToLookup(package => package.StagedPackageIdentity.StagingGroupKey.Value);
+
+            return groups
+                .Select(group => new StagingGroupSummary(group, packagesByGroup[group.Key].ToList()))
+                .ToList();
+        }
+
         public IReadOnlyList<PackageStagingStatus> GetPackages(User currentUser, IEnumerable<Scope> scopes)
         {
             if (currentUser == null)
@@ -358,7 +297,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(scopes));
             }
 
-            var ownerKeys = GetEnabledOwners(currentUser)
+            var ownerKeys = _packageStagingAuthorizationService.GetEnabledOwners(currentUser)
                 .Select(owner => owner.Key)
                 .ToArray();
 
@@ -391,11 +330,5 @@ namespace NuGetGallery
                 .SingleOrDefault(stagedPackage => stagedPackage.StagedPackageIdentityKey == packageKey && stagedPackage.StagedPackageIdentity.CurrentStagedPackageKey == stagedPackage.Key);
         }
 
-        private IEnumerable<User> GetEnabledOwners(User currentUser)
-        {
-            return new[] { currentUser }
-                .Concat(currentUser.Organizations.Select(membership => membership.Organization))
-                .Where(owner => _featureFlagService.IsPackageStagingEnabled(owner));
-        }
     }
 }

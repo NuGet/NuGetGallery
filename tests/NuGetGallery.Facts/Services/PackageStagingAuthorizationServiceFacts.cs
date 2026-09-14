@@ -182,6 +182,25 @@ namespace NuGetGallery
         }
 
         [Fact]
+        public void GetsEnabledOwnerByUsername()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var organization = new Organization("organization") { Key = 2 };
+            currentUser.Organizations.Add(new Membership { Member = currentUser, Organization = organization });
+            var featureFlagService = new Mock<IFeatureFlagService>();
+            featureFlagService
+                .Setup(x => x.IsPackageStagingEnabled(organization))
+                .Returns(true);
+            var target = new PackageStagingAuthorizationService(
+                Mock.Of<IApiScopeEvaluator>(),
+                featureFlagService.Object);
+
+            var result = target.GetEnabledOwner(currentUser, "ORGANIZATION");
+
+            Assert.Same(organization, result);
+        }
+
+        [Fact]
         public void DoesNotGetApiKeyOwnerWhenScopesIdentifyMultipleOwners()
         {
             var currentUser = new User("current") { Key = 1 };

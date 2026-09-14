@@ -25,6 +25,31 @@ namespace NuGetGallery
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
         }
 
+        public IReadOnlyList<User> GetEnabledOwners(User currentUser)
+        {
+            if (currentUser == null)
+            {
+                throw new ArgumentNullException(nameof(currentUser));
+            }
+
+            return new[] { currentUser }
+                .Concat(currentUser.Organizations.Select(membership => membership.Organization))
+                .Where(owner => _featureFlagService.IsPackageStagingEnabled(owner))
+                .OrderBy(owner => owner.Username)
+                .ToList();
+        }
+
+        public User GetEnabledOwner(User currentUser, string owner)
+        {
+            if (string.IsNullOrWhiteSpace(owner))
+            {
+                throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(owner));
+            }
+
+            return GetEnabledOwners(currentUser)
+                .SingleOrDefault(candidate => string.Equals(candidate.Username, owner, StringComparison.OrdinalIgnoreCase));
+        }
+
         public bool CanManage(User currentUser, StagedPackage stagedPackage)
         {
             if (currentUser == null)
@@ -92,9 +117,7 @@ namespace NuGetGallery
                 return null;
             }
 
-            return new[] { currentUser }
-                .Concat(currentUser.Organizations.Select(membership => membership.Organization))
-                .Where(owner => _featureFlagService.IsPackageStagingEnabled(owner))
+            return GetEnabledOwners(currentUser)
                 .SingleOrDefault(owner => owner.Key == ownerKeys[0]);
         }
     }

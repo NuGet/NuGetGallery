@@ -13,6 +13,21 @@ namespace NuGetGallery
     public interface IPackageStagingAuthorizationService
     {
         /// <summary>
+        /// Gets the enabled staging owners manageable by a signed-in user.
+        /// </summary>
+        /// <param name="currentUser">The user requesting access.</param>
+        /// <returns>The enabled staging owners.</returns>
+        IReadOnlyList<User> GetEnabledOwners(User currentUser);
+
+        /// <summary>
+        /// Gets an enabled staging owner manageable by a signed-in user.
+        /// </summary>
+        /// <param name="currentUser">The user requesting access.</param>
+        /// <param name="owner">The staging owner's username.</param>
+        /// <returns>The enabled staging owner, or <see langword="null"/> when it is unavailable.</returns>
+        User GetEnabledOwner(User currentUser, string owner);
+
+        /// <summary>
         /// Determines whether a signed-in user can manage a staged package.
         /// </summary>
         /// <param name="currentUser">The user requesting access.</param>

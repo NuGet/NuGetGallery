@@ -63,8 +63,13 @@ namespace NuGetGallery
 
             var currentUser = GetCurrentUser();
             var scopes = User.Identity.GetScopesFromClaim();
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledApiKeyOwner(currentUser, scopes);
+            if (stagingOwner == null)
+            {
+                return Error(HttpStatusCode.Forbidden, "StagingOwnerUnavailable", "Staging is not available for the API key owner.");
+            }
 
-            var result = await _packageStagingManagementService.CreateStagingGroupWithApiKeyAsync(currentUser, scopes, request.Id, request.Name);
+            var result = await _packageStagingManagementService.CreateStagingGroupAsync(stagingOwner, request.Id, request.Name);
             switch (result.Type)
             {
                 case CreateStagingGroupResultType.Created:
@@ -75,8 +80,6 @@ namespace NuGetGallery
                         Url.ManageStagingGroup(group.Owner.Username, group.Id, relativeUrl: false));
                     Response.StatusCode = (int)HttpStatusCode.Created;
                     return Content(JsonConvert.SerializeObject(response), JsonContentType);
-                case CreateStagingGroupResultType.OwnerNotFound:
-                    return Error(HttpStatusCode.Forbidden, "StagingOwnerUnavailable", "Staging is not available for the API key owner.");
                 case CreateStagingGroupResultType.GroupAlreadyExists:
                     return Error(HttpStatusCode.Conflict, "GroupAlreadyExists", $"A staging group with the ID '{request.Id}' already exists.", "id");
                 default:
@@ -122,12 +125,13 @@ namespace NuGetGallery
 
             var currentUser = GetCurrentUser();
             var scopes = User.Identity.GetScopesFromClaim();
-            var summaries = _packageStagingManagementService.GetStagingGroupSummariesWithApiKey(currentUser, scopes);
-            if (summaries == null)
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledApiKeyOwner(currentUser, scopes);
+            if (stagingOwner == null)
             {
                 return Error(HttpStatusCode.Forbidden, "StagingOwnerUnavailable", "Staging is not available for the API key owner.");
             }
 
+            var summaries = _packageStagingManagementService.GetStagingGroupSummaries(stagingOwner);
             var orderedSummaries = summaries
                 .OrderByDescending(summary => summary.Group.CreatedDate)
                 .ThenBy(summary => summary.Group.Id, StringComparer.OrdinalIgnoreCase)
@@ -161,12 +165,13 @@ namespace NuGetGallery
 
             var currentUser = GetCurrentUser();
             var scopes = User.Identity.GetScopesFromClaim();
-            var summaries = _packageStagingManagementService.GetStagingGroupSummariesWithApiKey(currentUser, scopes);
-            if (summaries == null)
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledApiKeyOwner(currentUser, scopes);
+            if (stagingOwner == null)
             {
                 return Error(HttpStatusCode.Forbidden, "StagingOwnerUnavailable", "Staging is not available for the API key owner.");
             }
 
+            var summaries = _packageStagingManagementService.GetStagingGroupSummaries(stagingOwner);
             var summary = summaries.SingleOrDefault(candidate => string.Equals(candidate.Group.Id, groupId, StringComparison.OrdinalIgnoreCase));
             if (summary == null)
             {
