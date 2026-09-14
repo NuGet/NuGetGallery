@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -247,6 +247,22 @@ namespace NuGetGallery
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Get the specific credential type (e.g. apikey.v2, apikey.v4) used to authenticate.
+        /// </summary>
+        /// <param name="self">Current user principal identity.</param>
+        /// <returns>The credential type, or null if not present.</returns>
+        public static string GetCredentialType(this IIdentity self)
+        {
+            if (self == null)
+            {
+                throw new ArgumentNullException(nameof(self));
+            }
+
+            var identity = self as ClaimsIdentity;
+            return identity?.GetClaimOrDefault(NuGetClaims.CredentialType);
         }
 
         private static string GetScopeClaim(IIdentity self)

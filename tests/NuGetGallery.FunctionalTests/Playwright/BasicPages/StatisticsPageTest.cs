@@ -8,6 +8,7 @@ using Xunit;
 
 namespace NuGetGallery.FunctionalTests.Playwright.BasicPages
 {
+    [Collection(GalleryTestCollection.Definition)]
     public class StatisticsPageTest : NuGetPageTest
     {
         [NeedsStatisticsServiceFact]
