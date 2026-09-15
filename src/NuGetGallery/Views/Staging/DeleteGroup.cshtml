@@ -1,0 +1,43 @@
+@model DeleteStagingGroupViewModel
+@{
+    ViewBag.Title = "Delete Staging Group";
+    ViewBag.Tab = "Packages";
+    ViewBag.MdPageColumns = GalleryConstants.ColumnsFormMd;
+}
+
+<section role="main" class="container main-container page-manage-packages">
+    <div class="row">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+            <div class="breadcrumb-menu">
+                <div>
+                    <a class="staging-group-back-link" href="@Url.ManageStagingGroup(Model.Owner, Model.Id)">
+                        <span aria-hidden="true" class="ms-Icon ms-Icon--ChevronLeft"></span>
+                        <span>Back to Staging Group</span>
+                    </a>
+                </div>
+            </div>
+
+            <h1>Delete Staging Group</h1>
+            <p>
+                Delete <strong>@Model.Name</strong> (<code>@Model.Id</code>) and
+                <strong>@Model.PackageCount current staged @(Model.PackageCount == 1 ? "package" : "packages")</strong>?
+            </p>
+            <p>This action cannot be undone.</p>
+
+            @using (Html.BeginForm("DeleteGroup", "Staging", new { owner = Model.Owner, groupId = Model.Id }, FormMethod.Post, null))
+            {
+                @Html.AntiForgeryToken()
+                @Html.ValidationSummary(excludePropertyErrors: true)
+
+                <div class="form-group row">
+                    <div class="col-xs-6">
+                        <button type="submit" class="btn btn-brand-danger form-control">Delete</button>
+                    </div>
+                    <div class="col-xs-6">
+                        <a class="btn btn-brand-secondary form-control" href="@Url.ManageStagingGroup(Model.Owner, Model.Id)">Cancel</a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>

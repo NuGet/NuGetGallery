@@ -114,6 +114,14 @@ namespace NuGetGallery
         Task<StagingGroup> RenameStagingGroupAsync(User stagingOwner, string groupId, string name);
 
         /// <summary>
+        /// Deletes an owner-scoped staging group and its current staged package members.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="group">The staging group to delete.</param>
+        /// <returns>The group deletion result.</returns>
+        Task<StagingGroupDeletionResult> DeleteStagingGroupAsync(User stagingOwner, StagingGroup group);
+
+        /// <summary>
         /// Adds or moves a staged package identity to an owner-scoped group.
         /// </summary>
         /// <param name="stagingOwner">The authorized staging owner.</param>
@@ -143,5 +151,34 @@ namespace NuGetGallery
         Updated,
         Unchanged,
         Conflict,
+    }
+
+    public enum StagingGroupDeletionResultType
+    {
+        Deleted,
+        Conflict,
+    }
+
+    public sealed class StagingGroupDeletionResult
+    {
+        private StagingGroupDeletionResult(StagingGroupDeletionResultType type, int affectedPackageCount)
+        {
+            Type = type;
+            AffectedPackageCount = affectedPackageCount;
+        }
+
+        public StagingGroupDeletionResultType Type { get; }
+
+        public int AffectedPackageCount { get; }
+
+        public static StagingGroupDeletionResult Deleted(int affectedPackageCount)
+        {
+            return new StagingGroupDeletionResult(StagingGroupDeletionResultType.Deleted, affectedPackageCount);
+        }
+
+        public static StagingGroupDeletionResult Conflict(int affectedPackageCount)
+        {
+            return new StagingGroupDeletionResult(StagingGroupDeletionResultType.Conflict, affectedPackageCount);
+        }
     }
 }

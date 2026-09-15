@@ -167,6 +167,12 @@ namespace NuGetGallery
                 new { httpMethod = new HttpMethodConstraint("POST") });
 
             routes.MapRoute(
+                RouteName.DeleteStagingGroup,
+                "account/staging/{owner}/groups/{groupId}/delete",
+                new { controller = "Staging", action = nameof(StagingController.DeleteGroup) },
+                new { httpMethod = new HttpMethodConstraint("GET", "POST") });
+
+            routes.MapRoute(
                 RouteName.MoveStagedPackage,
                 "account/staging/{owner}/package/{id}/{version}/move",
                 new { controller = "Staging", action = nameof(StagingController.MovePackage) },
@@ -957,6 +963,12 @@ namespace NuGetGallery
 
         public static void RegisterStagingApiRoutes(RouteCollection routes)
         {
+            routes.MapRoute(
+                RouteName.DeleteStagingGroupApi,
+                "api/v3/staging/groups/{groupId}",
+                new { controller = "StagingApi", action = nameof(StagingApiController.DeleteStagingGroup) },
+                new { httpMethod = new HttpMethodConstraint("DELETE") });
+
             routes.MapRoute(
                 RouteName.GetStagingGroupApi,
                 "api/v3/staging/groups/{groupId}",

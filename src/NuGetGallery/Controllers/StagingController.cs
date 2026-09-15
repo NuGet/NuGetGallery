@@ -159,6 +159,72 @@ namespace NuGetGallery
             return Redirect(Url.ManageStagingGroup(group.Owner.Username, group.Id));
         }
 
+        [HttpGet]
+        public virtual ActionResult DeleteGroup(string owner, string groupId)
+        {
+            var result = FindStagingGroupSummary(owner, groupId);
+            if (result == null)
+            {
+                return HttpNotFound();
+            }
+
+            return View(CreateDeleteGroupViewModel(result));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> DeleteGroup(string owner, string groupId, DeleteStagingGroupViewModel model)
+        {
+            var summary = FindStagingGroupSummary(owner, groupId);
+            if (summary == null)
+            {
+                return HttpNotFound();
+            }
+
+            var result = await _packageStagingManagementService.DeleteStagingGroupAsync(summary.Group.Owner, summary.Group);
+            switch (result.Type)
+            {
+                case StagingGroupDeletionResultType.Deleted:
+                    return Redirect(Url.ManageMyPackages());
+                case StagingGroupDeletionResultType.Conflict:
+                    ModelState.AddModelError(string.Empty, "The staging group cannot be deleted while package promotion is active.");
+                    var viewModel = CreateDeleteGroupViewModel(summary);
+                    viewModel.PackageCount = result.AffectedPackageCount;
+                    return View(viewModel);
+                default:
+                    throw new InvalidOperationException($"Unknown staging group deletion result '{result.Type}'.");
+            }
+        }
+
+        private StagingGroupSummary FindStagingGroupSummary(string owner, string groupId)
+        {
+            if (string.IsNullOrWhiteSpace(owner) || string.IsNullOrWhiteSpace(groupId))
+            {
+                return null;
+            }
+
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledOwner(GetCurrentUser(), owner);
+            if (stagingOwner == null)
+            {
+                return null;
+            }
+
+            return _packageStagingManagementService
+                .GetStagingGroupSummaries(stagingOwner)
+                .SingleOrDefault(summary => string.Equals(summary.Group.Id, groupId, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static DeleteStagingGroupViewModel CreateDeleteGroupViewModel(StagingGroupSummary summary)
+        {
+            return new DeleteStagingGroupViewModel
+            {
+                Owner = summary.Group.Owner.Username,
+                Id = summary.Group.Id,
+                Name = summary.Group.Name,
+                PackageCount = summary.Packages.Count,
+            };
+        }
+
         private ActionResult GroupView(User currentUser, StagingGroup group)
         {
             var stagedPackages = _packageStagingManagementService

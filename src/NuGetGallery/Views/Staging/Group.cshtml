@@ -68,6 +68,13 @@
                 }
             </div>
 
+            @if (!Model.IsUngrouped)
+            {
+                <p>
+                    <a class="btn btn-brand-danger" href="@Url.DeleteStagingGroup(Model.Owner, Model.Id)">Delete group</a>
+                </p>
+            }
+
             <hr class="breadcrumb-divider" />
 
             @if (Model.PackageCount == 0)

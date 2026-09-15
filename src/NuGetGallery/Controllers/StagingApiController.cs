@@ -198,6 +198,35 @@ namespace NuGetGallery
             return JsonContent(response);
         }
 
+        [HttpDelete]
+        public virtual async Task<ActionResult> DeleteStagingGroup(string groupId)
+        {
+            var currentUser = GetCurrentUser();
+            var scopes = User.Identity.GetScopesFromClaim();
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledApiKeyOwner(currentUser, scopes);
+            if (stagingOwner == null)
+            {
+                return Error(HttpStatusCode.Forbidden, "StagingOwnerUnavailable", "Staging is not available for the API key owner.");
+            }
+
+            var group = _packageStagingManagementService.FindStagingGroup(stagingOwner, groupId);
+            if (group == null)
+            {
+                return Error(HttpStatusCode.NotFound, "GroupNotFound", "The staging group was not found.");
+            }
+
+            var result = await _packageStagingManagementService.DeleteStagingGroupAsync(stagingOwner, group);
+            switch (result.Type)
+            {
+                case StagingGroupDeletionResultType.Deleted:
+                    return new HttpStatusCodeResult(HttpStatusCode.NoContent);
+                case StagingGroupDeletionResultType.Conflict:
+                    return Error(HttpStatusCode.Conflict, "GroupPromotionInProgress", "The staging group cannot be deleted while package promotion is active.");
+                default:
+                    throw new InvalidOperationException($"Unexpected staging group deletion result: {result.Type}");
+            }
+        }
+
         [HttpGet]
         public virtual ActionResult GetStagedPackages()
         {

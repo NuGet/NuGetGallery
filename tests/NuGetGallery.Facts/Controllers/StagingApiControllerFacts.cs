@@ -467,6 +467,47 @@ namespace NuGetGallery
             Assert.Equal(204, status.StatusCode);
         }
 
+        [Fact]
+        public async Task DeletesAnOwnerVisibleStagingGroup()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var owner = new User("example-org") { Key = 2 };
+            var group = CreateStagingGroup(10, "release", "Release", owner, new DateTime(2026, 9, 1));
+            var target = GetController<StagingApiController>();
+            ConfigureCreateGroupRequest(target, currentUser, owner);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.FindStagingGroup(owner, group.Id))
+                .Returns(group);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.DeleteStagingGroupAsync(owner, group))
+                .ReturnsAsync(StagingGroupDeletionResult.Deleted(2));
+
+            var result = await target.DeleteStagingGroup(group.Id);
+
+            var status = Assert.IsType<HttpStatusCodeResult>(result);
+            Assert.Equal(204, status.StatusCode);
+        }
+
+        [Fact]
+        public async Task RejectsDeletingAStagingGroupWhilePromotionIsActive()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var owner = new User("example-org") { Key = 2 };
+            var group = CreateStagingGroup(10, "release", "Release", owner, new DateTime(2026, 9, 1));
+            var target = GetController<StagingApiController>();
+            ConfigureCreateGroupRequest(target, currentUser, owner);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.FindStagingGroup(owner, group.Id))
+                .Returns(group);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.DeleteStagingGroupAsync(owner, group))
+                .ReturnsAsync(StagingGroupDeletionResult.Conflict(1));
+
+            var result = await target.DeleteStagingGroup(group.Id);
+
+            AssertError(target, result, HttpStatusCode.Conflict, "GroupPromotionInProgress");
+        }
+
         private void ConfigureCreateGroupRequest(StagingApiController target, User currentUser, User owner)
         {
             var httpContext = TestUtility.SetupHttpContextMockForUrlGeneration(new Mock<HttpContextBase>(), target);

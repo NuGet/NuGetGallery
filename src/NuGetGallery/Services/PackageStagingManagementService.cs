@@ -292,6 +292,54 @@ namespace NuGetGallery
             return group;
         }
 
+        public async Task<StagingGroupDeletionResult> DeleteStagingGroupAsync(User stagingOwner, StagingGroup group)
+        {
+            if (stagingOwner == null)
+            {
+                throw new ArgumentNullException(nameof(stagingOwner));
+            }
+
+            if (group == null)
+            {
+                throw new ArgumentNullException(nameof(group));
+            }
+
+            if (group.OwnerKey != stagingOwner.Key)
+            {
+                throw new ArgumentException("The staging group must belong to the authorized owner.");
+            }
+
+            StagingGroupDeletionResult result = null;
+            await _stagingGroupRepository.ExecuteInTransactionAsync(async () =>
+            {
+                var stagedPackages = GetCurrentStagedPackages(new[] { stagingOwner.Key })
+                    .Where(package => package.StagedPackageIdentity.StagingGroupKey == group.Key)
+                    .ToList();
+                if (stagedPackages.Any(package => package.Status == StagedPackageStatus.Promoting))
+                {
+                    result = StagingGroupDeletionResult.Conflict(stagedPackages.Count);
+                    return;
+                }
+
+                foreach (var stagedPackage in stagedPackages)
+                {
+                    var identity = stagedPackage.StagedPackageIdentity;
+                    var package = identity.Package;
+                    stagedPackage.Status = StagedPackageStatus.Deleted;
+                    package.Listed = false;
+                    identity.StagingGroupKey = null;
+                    identity.StagingGroup = null;
+                    await _packageService.UpdatePackageStatusAsync(package, PackageStatus.Deleted, commitChanges: false);
+                }
+
+                _stagingGroupRepository.DeleteOnCommit(group);
+                await _stagingGroupRepository.CommitChangesAsync();
+                result = StagingGroupDeletionResult.Deleted(stagedPackages.Count);
+            });
+
+            return result;
+        }
+
         public async Task<StagingGroupMembershipResult> AddPackageToStagingGroupAsync(User stagingOwner, StagingGroup group, StagedPackage stagedPackage)
         {
             if (stagingOwner == null)

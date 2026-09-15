@@ -645,6 +645,7 @@
     <Compile Include="Services\PackageStagingUploadService.cs" />
     <Compile Include="Services\StagingGroupSummary.cs" />
     <Compile Include="ViewModels\CreateStagingGroupViewModel.cs" />
+    <Compile Include="ViewModels\DeleteStagingGroupViewModel.cs" />
     <Compile Include="ViewModels\MoveStagedPackageViewModel.cs" />
     <Compile Include="ViewModels\PackageStagingViewModel.cs" />
     <Compile Include="ViewModels\RenameStagingGroupViewModel.cs" />
@@ -2091,6 +2092,7 @@
     <Content Include="Views\Packages\UploadPackage.cshtml" />
     <Content Include="Views\Shared\_ListPackage.cshtml" />
     <Content Include="Views\Staging\CreateGroup.cshtml" />
+    <Content Include="Views\Staging\DeleteGroup.cshtml" />
     <Content Include="Views\Staging\Group.cshtml" />
     <Content Include="Views\Users\Packages.cshtml" />
     <Content Include="App_Code\ViewHelpers.cshtml" />

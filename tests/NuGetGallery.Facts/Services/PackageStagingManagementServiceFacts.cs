@@ -249,6 +249,91 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task DeletesAGroupAndItsCurrentStagedPackagesInOneTransaction()
+            {
+                var currentUser = new User("current") { Key = 1 };
+                var group = CreateStagingGroup(10, "release", "Release", currentUser);
+                var firstPackage = CreateStagedPackage(100, "First.Package", "1.0.0", currentUser);
+                firstPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
+                firstPackage.StagedPackageIdentity.StagingGroup = group;
+                firstPackage.StagedPackageIdentity.Package.Listed = true;
+                var secondPackage = CreateStagedPackage(101, "Second.Package", "2.0.0", currentUser);
+                secondPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
+                secondPackage.StagedPackageIdentity.StagingGroup = group;
+                secondPackage.StagedPackageIdentity.Package.Listed = true;
+                var unrelatedPackage = CreateStagedPackage(102, "Other.Package", "3.0.0", currentUser);
+                var packageService = new Mock<IPackageService>();
+                packageService
+                    .Setup(x => x.UpdatePackageStatusAsync(It.IsAny<Package>(), PackageStatus.Deleted, false))
+                    .Callback<Package, PackageStatus, bool>((package, status, commitChanges) => package.PackageStatusKey = status)
+                    .Returns(Task.CompletedTask);
+                var stagingGroupRepository = new Mock<IEntityRepository<StagingGroup>>();
+                var target = CreateService(
+                    new[] { firstPackage, secondPackage, unrelatedPackage },
+                    owner => true,
+                    packageService: packageService.Object,
+                    stagingGroups: new[] { group },
+                    stagingGroupRepository: stagingGroupRepository);
+
+                var result = await target.DeleteStagingGroupAsync(currentUser, group);
+
+                Assert.Equal(StagingGroupDeletionResultType.Deleted, result.Type);
+                Assert.Equal(2, result.AffectedPackageCount);
+                Assert.All(new[] { firstPackage, secondPackage }, stagedPackage =>
+                {
+                    Assert.Equal(StagedPackageStatus.Deleted, stagedPackage.Status);
+                    Assert.Equal(PackageStatus.Deleted, stagedPackage.StagedPackageIdentity.Package.PackageStatusKey);
+                    Assert.False(stagedPackage.StagedPackageIdentity.Package.Listed);
+                    Assert.Null(stagedPackage.StagedPackageIdentity.StagingGroupKey);
+                    Assert.Null(stagedPackage.StagedPackageIdentity.StagingGroup);
+                });
+                Assert.Equal(StagedPackageStatus.Validating, unrelatedPackage.Status);
+                packageService.Verify(
+                    x => x.UpdatePackageStatusAsync(It.IsAny<Package>(), PackageStatus.Deleted, false),
+                    Times.Exactly(2));
+                stagingGroupRepository.Verify(x => x.DeleteOnCommit(group), Times.Once);
+                stagingGroupRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
+                stagingGroupRepository.Verify(x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()), Times.Once);
+            }
+
+            [Fact]
+            public async Task RejectsDeletingAGroupBeforeMutatingAnyPackageWhenPromotionIsActive()
+            {
+                var currentUser = new User("current") { Key = 1 };
+                var group = CreateStagingGroup(10, "release", "Release", currentUser);
+                var readyPackage = CreateStagedPackage(100, "Ready.Package", "1.0.0", currentUser);
+                readyPackage.Status = StagedPackageStatus.Ready;
+                readyPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
+                readyPackage.StagedPackageIdentity.StagingGroup = group;
+                var promotingPackage = CreateStagedPackage(101, "Promoting.Package", "2.0.0", currentUser);
+                promotingPackage.Status = StagedPackageStatus.Promoting;
+                promotingPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
+                promotingPackage.StagedPackageIdentity.StagingGroup = group;
+                var packageService = new Mock<IPackageService>();
+                var stagingGroupRepository = new Mock<IEntityRepository<StagingGroup>>();
+                var target = CreateService(
+                    new[] { readyPackage, promotingPackage },
+                    owner => true,
+                    packageService: packageService.Object,
+                    stagingGroups: new[] { group },
+                    stagingGroupRepository: stagingGroupRepository);
+
+                var result = await target.DeleteStagingGroupAsync(currentUser, group);
+
+                Assert.Equal(StagingGroupDeletionResultType.Conflict, result.Type);
+                Assert.Equal(2, result.AffectedPackageCount);
+                Assert.Equal(StagedPackageStatus.Ready, readyPackage.Status);
+                Assert.Equal(group.Key, readyPackage.StagedPackageIdentity.StagingGroupKey);
+                Assert.Equal(StagedPackageStatus.Promoting, promotingPackage.Status);
+                Assert.Equal(group.Key, promotingPackage.StagedPackageIdentity.StagingGroupKey);
+                packageService.Verify(
+                    x => x.UpdatePackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), It.IsAny<bool>()),
+                    Times.Never);
+                stagingGroupRepository.Verify(x => x.DeleteOnCommit(It.IsAny<StagingGroup>()), Times.Never);
+                stagingGroupRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
+            }
+
+            [Fact]
             public async Task MovesAStagedPackageIdentityToAGroup()
             {
                 var currentUser = new User("current") { Key = 1 };
@@ -571,6 +656,12 @@ namespace NuGetGallery
                 stagingGroupRepository
                     .Setup(x => x.GetAll())
                     .Returns(stagingGroupsSet.Object);
+                stagingGroupRepository
+                    .Setup(x => x.CommitChangesAsync())
+                    .Returns(Task.CompletedTask);
+                stagingGroupRepository
+                    .Setup(x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()))
+                    .Returns((Func<Task> action) => action());
 
                 var defaultAuthorizationService = new Mock<IPackageStagingAuthorizationService>();
                 defaultAuthorizationService

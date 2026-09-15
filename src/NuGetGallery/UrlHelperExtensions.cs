@@ -1207,6 +1207,19 @@ namespace NuGetGallery
                 });
         }
 
+        public static string DeleteStagingGroup(this UrlHelper url, string owner, string groupId, bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.DeleteStagingGroup,
+                relativeUrl,
+                new RouteValueDictionary
+                {
+                    { "owner", owner },
+                    { "groupId", groupId },
+                });
+        }
+
         public static string MoveStagedPackage(this UrlHelper url, string owner, string id, string version, bool relativeUrl = true)
         {
             return GetRouteLink(

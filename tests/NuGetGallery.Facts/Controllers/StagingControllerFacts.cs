@@ -301,6 +301,103 @@ namespace NuGetGallery
         }
 
         [Fact]
+        public void DisplaysDeleteGroupConfirmationWithCurrentPackageCount()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var group = new StagingGroup
+            {
+                Key = 10,
+                OwnerKey = currentUser.Key,
+                Owner = currentUser,
+                Id = "release",
+                Name = "Release",
+            };
+            var packages = new[]
+            {
+                CreateStagedPackage(42, "First.Package", "1.0.0", currentUser, StagedPackageStatus.Ready),
+                CreateStagedPackage(43, "Second.Package", "2.0.0", currentUser, StagedPackageStatus.FailedValidation),
+            };
+            GetMock<IPackageStagingAuthorizationService>()
+                .Setup(x => x.GetEnabledOwner(currentUser, currentUser.Username))
+                .Returns(currentUser);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagingGroupSummaries(currentUser))
+                .Returns(new[] { new StagingGroupSummary(group, packages) });
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(currentUser);
+
+            var result = target.DeleteGroup(currentUser.Username, group.Id);
+
+            var model = ResultAssert.IsView<DeleteStagingGroupViewModel>(result);
+            Assert.Equal(group.Name, model.Name);
+            Assert.Equal(group.Id, model.Id);
+            Assert.Equal(2, model.PackageCount);
+        }
+
+        [Fact]
+        public async Task DeletesAGroupAndRedirectsToManagePackages()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var group = new StagingGroup
+            {
+                Key = 10,
+                OwnerKey = currentUser.Key,
+                Owner = currentUser,
+                Id = "release",
+                Name = "Release",
+            };
+            GetMock<IPackageStagingAuthorizationService>()
+                .Setup(x => x.GetEnabledOwner(currentUser, currentUser.Username))
+                .Returns(currentUser);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagingGroupSummaries(currentUser))
+                .Returns(new[] { new StagingGroupSummary(group, Enumerable.Empty<StagedPackage>().ToList()) });
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.DeleteStagingGroupAsync(currentUser, group))
+                .ReturnsAsync(StagingGroupDeletionResult.Deleted(0));
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(currentUser);
+
+            var result = await target.DeleteGroup(currentUser.Username, group.Id, new DeleteStagingGroupViewModel());
+
+            ResultAssert.IsRedirectTo(result, "/account/Packages");
+        }
+
+        [Fact]
+        public async Task RedisplaysDeleteGroupConfirmationWhenPromotionIsActive()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var group = new StagingGroup
+            {
+                Key = 10,
+                OwnerKey = currentUser.Key,
+                Owner = currentUser,
+                Id = "release",
+                Name = "Release",
+            };
+            var package = CreateStagedPackage(42, "Test.Package", "1.0.0", currentUser, StagedPackageStatus.Promoting);
+            GetMock<IPackageStagingAuthorizationService>()
+                .Setup(x => x.GetEnabledOwner(currentUser, currentUser.Username))
+                .Returns(currentUser);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagingGroupSummaries(currentUser))
+                .Returns(new[] { new StagingGroupSummary(group, new[] { package }) });
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.DeleteStagingGroupAsync(currentUser, group))
+                .ReturnsAsync(StagingGroupDeletionResult.Conflict(1));
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(currentUser);
+
+            var result = await target.DeleteGroup(currentUser.Username, group.Id, new DeleteStagingGroupViewModel());
+
+            var model = ResultAssert.IsView<DeleteStagingGroupViewModel>(result);
+            Assert.Equal(1, model.PackageCount);
+            Assert.Contains(
+                target.ModelState[string.Empty].Errors,
+                error => error.ErrorMessage == "The staging group cannot be deleted while package promotion is active.");
+        }
+
+        [Fact]
         public void DisplaysUngroupedPackagesForAnOwner()
         {
             var currentUser = new User("Current") { Key = 1 };
