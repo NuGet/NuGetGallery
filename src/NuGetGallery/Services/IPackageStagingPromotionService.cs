@@ -39,5 +39,15 @@ namespace NuGetGallery
         /// The staged package is not ready for promotion.
         /// </summary>
         NotReady,
+
+        /// <summary>
+        /// The staged package belongs to a group and must be promoted with that group.
+        /// </summary>
+        Grouped,
+
+        /// <summary>
+        /// The staged package changed while promotion was being accepted.
+        /// </summary>
+        Conflict,
     }
 }

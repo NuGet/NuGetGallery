@@ -41,7 +41,6 @@ namespace NuGetGallery
         private readonly IPackageVulnerabilitiesService _packageVulnerabilitiesService;
         private readonly IFederatedCredentialService _federatedCredentialService;
         private readonly IPackageStagingManagementService _packageStagingManagementService;
-        private readonly IValidationService _validationService;
 
         public UsersController(
             IUserService userService,
@@ -65,8 +64,7 @@ namespace NuGetGallery
             IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory,
             IFederatedCredentialService federatedCredentialService,
             IFederatedCredentialRepository federatedCredentialRepository,
-            IPackageStagingManagementService packageStagingManagementService,
-            IValidationService validationService)
+            IPackageStagingManagementService packageStagingManagementService)
             : base(
                   authService,
                   packageService,
@@ -91,7 +89,6 @@ namespace NuGetGallery
             _packageVulnerabilitiesService = packageVulnerabilitiesService ?? throw new ArgumentNullException(nameof(packageVulnerabilitiesService));
             _federatedCredentialService = federatedCredentialService ?? throw new ArgumentNullException(nameof(federatedCredentialService));
             _packageStagingManagementService = packageStagingManagementService ?? throw new ArgumentNullException(nameof(packageStagingManagementService));
-            _validationService = validationService ?? throw new ArgumentNullException(nameof(validationService));
 
             _listPackageItemRequiredSignerViewModelFactory = new ListPackageItemRequiredSignerViewModelFactory(
                 securityPolicyService, iconUrlProvider, packageVulnerabilitiesService, frameworkCompatibilityFactory, featureFlagService);
@@ -581,38 +578,42 @@ namespace NuGetGallery
             var reservedPrefixes = new ReservedNamespaceListViewModel(userReservedNamespaces.Union(organizationsReservedNamespaces).ToArray());
 
             var isPackageStagingEnabled = _packageStagingManagementService.IsEnabled(currentUser);
-            var stagedPackages = new List<PackageStagingViewModel>();
+            var stagingGroups = new List<StagingGroupViewModel>();
             if (isPackageStagingEnabled)
             {
                 var stagedPackageEntities = _packageStagingManagementService.GetStagedPackages(currentUser).ToList();
-                var failedStagedPackageKeys = stagedPackageEntities
-                    .Where(package => package.Status == StagedPackageStatus.FailedValidation)
-                    .Select(package => package.Key)
-                    .Distinct()
-                    .ToList();
-                var validationIssuesByStagedPackageKey = failedStagedPackageKeys.Count == 0
-                    ? new Dictionary<int, IReadOnlyList<ValidationIssue>>()
-                    : _validationService.GetStagedPackageValidationIssues(failedStagedPackageKeys);
+                var stagedPackagesByGroupKey = stagedPackageEntities
+                    .Where(stagedPackage => stagedPackage.StagedPackageIdentity.StagingGroupKey.HasValue)
+                    .GroupBy(stagedPackage => stagedPackage.StagedPackageIdentity.StagingGroupKey.Value)
+                    .ToDictionary(group => group.Key, group => group.ToList());
 
-                stagedPackages = stagedPackageEntities
-                    .Select(stagedPackage =>
+                stagingGroups = _packageStagingManagementService.GetStagingGroups(currentUser)
+                    .Select(group =>
                     {
-                        validationIssuesByStagedPackageKey.TryGetValue(stagedPackage.Key, out var validationIssues);
-
-                        return new PackageStagingViewModel
-                        {
-                            Id = stagedPackage.StagedPackageIdentity.Package.PackageRegistration.Id,
-                            Version = stagedPackage.StagedPackageIdentity.Package.NormalizedVersion,
-                            Status = stagedPackage.Status.ToString(),
-                            StatusClass = $"staging-status-{stagedPackage.Status.ToString().ToLowerInvariant()}",
-                            Owner = stagedPackage.StagedPackageIdentity.Owner.Username,
-                            UploadedDate = stagedPackage.UploadedDate,
-                            ValidationIssues = validationIssues ?? [],
-                            Listed = stagedPackage.StagedPackageIdentity.Package.Listed,
-                            CanManage = true,
-                            CanPromote = stagedPackage.Status == StagedPackageStatus.Ready,
-                        };
+                        stagedPackagesByGroupKey.TryGetValue(group.Key, out var groupPackages);
+                        return CreateStagingGroupViewModel(
+                            group.Owner.Username,
+                            group.Id,
+                            group.Name,
+                            group.CreatedDate,
+                            groupPackages ?? [],
+                            isUngrouped: false,
+                            url: Url.ManageStagingGroup(group.Owner.Username, group.Id));
                     })
+                    .Concat(stagedPackageEntities
+                        .Where(stagedPackage => !stagedPackage.StagedPackageIdentity.StagingGroupKey.HasValue)
+                        .GroupBy(stagedPackage => stagedPackage.StagedPackageIdentity.Owner)
+                        .Select(group => CreateStagingGroupViewModel(
+                            group.Key.Username,
+                            id: null,
+                            name: "Ungrouped",
+                            createdDate: null,
+                            packages: group.ToList(),
+                            isUngrouped: true,
+                            url: Url.ManageUngroupedStaging(group.Key.Username))))
+                    .OrderBy(group => group.Owner)
+                    .ThenByDescending(group => group.IsUngrouped)
+                    .ThenBy(group => group.Name)
                     .ToList();
             }
 
@@ -628,10 +629,81 @@ namespace NuGetGallery
                 IsCertificatesUIEnabled = ContentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false,
                 IsManagePackagesVulnerabilitiesEnabled = _featureFlagService.IsManagePackagesVulnerabilitiesEnabled(),
                 IsPackageStagingEnabled = isPackageStagingEnabled,
-                StagedPackages = stagedPackages
+                StagingGroups = stagingGroups,
             };
 
             return View(model);
+        }
+
+        private static StagingGroupViewModel CreateStagingGroupViewModel(
+            string owner,
+            string id,
+            string name,
+            DateTime? createdDate,
+            IReadOnlyList<StagedPackage> packages,
+            bool isUngrouped,
+            string url = null)
+        {
+            var validatingCount = packages.Count(package => package.Status == StagedPackageStatus.Validating);
+            var readyCount = packages.Count(package => package.Status == StagedPackageStatus.Ready);
+            var failedValidationCount = packages.Count(package => package.Status == StagedPackageStatus.FailedValidation);
+            var status = "Not ready";
+            var statusClass = "label-warning";
+            if (failedValidationCount > 0)
+            {
+                status = "Validation failed";
+                statusClass = "staging-status-failedvalidation";
+            }
+            else if (validatingCount > 0)
+            {
+                status = "Validating";
+                statusClass = "staging-status-validating";
+            }
+            else if (packages.Count == 0)
+            {
+                status = "Empty";
+                statusClass = "label-default";
+            }
+            else if (readyCount == packages.Count)
+            {
+                status = "Ready";
+                statusClass = "staging-status-ready";
+            }
+
+            return new StagingGroupViewModel
+            {
+                Owner = owner,
+                Id = id,
+                Name = name,
+                Description = isUngrouped ? "Staged packages not in any group" : null,
+                Url = url,
+                CreatedDate = createdDate,
+                IsUngrouped = isUngrouped,
+                PackageCount = packages.Count,
+                PackageStatusSummary = GetStagingGroupPackageStatusSummary(
+                    validatingCount,
+                    readyCount,
+                    failedValidationCount),
+                Status = isUngrouped ? null : status,
+                StatusClass = isUngrouped ? null : statusClass,
+            };
+        }
+
+        private static string GetStagingGroupPackageStatusSummary(int validatingCount, int readyCount, int failedValidationCount)
+        {
+            var statuses = new[]
+            {
+                FormatStagingGroupPackageStatus(readyCount, "ready"),
+                FormatStagingGroupPackageStatus(validatingCount, "validating"),
+                FormatStagingGroupPackageStatus(failedValidationCount, "failed"),
+            };
+
+            return string.Join(", ", statuses.Where(status => status != null));
+        }
+
+        private static string FormatStagingGroupPackageStatus(int count, string status)
+        {
+            return count == 0 ? null : $"{count} {status}";
         }
 
         /// <summary>

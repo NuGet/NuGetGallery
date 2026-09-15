@@ -1,0 +1,48 @@
+@model MoveStagedPackageViewModel
+@{
+    ViewBag.Title = "Move Staged Package";
+    ViewBag.Tab = "Packages";
+    ViewBag.MdPageColumns = GalleryConstants.ColumnsFormMd;
+}
+
+<section role="main" class="container main-container page-manage-packages">
+    <div class="row">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+            <div class="breadcrumb-menu">
+                <div>
+                    <a class="staging-group-back-link" href="@Url.ManageMyPackages()">
+                        <span aria-hidden="true" class="ms-Icon ms-Icon--ChevronLeft"></span>
+                        <span>Back to Staging Groups</span>
+                    </a>
+                </div>
+            </div>
+
+            <h1>Move Staged Package</h1>
+            <p>Move <strong>@Model.Id @Model.Version</strong> to another staging group or to Ungrouped.</p>
+
+            @using (Html.BeginForm("MovePackage", "Staging", new { owner = Model.Owner, id = Model.Id, version = Model.Version }, FormMethod.Post, null))
+            {
+                @Html.AntiForgeryToken()
+                @Html.ValidationSummary(excludePropertyErrors: true)
+
+                <div class="form-group @Html.HasErrorFor(model => model.GroupId)">
+                    <label for="@Html.IdFor(model => model.GroupId)">Group</label>
+                    @Html.DropDownListFor(
+                        model => model.GroupId,
+                        new SelectList(Model.Groups, "Id", "Name", Model.GroupId),
+                        new { @class = "form-control select-brand staging-move-group-select" })
+                    @Html.ShowValidationMessagesFor(model => model.GroupId)
+                </div>
+
+                <div class="form-group row">
+                    <div class="col-xs-6">
+                        <button type="submit" class="btn btn-brand form-control">Move</button>
+                    </div>
+                    <div class="col-xs-6">
+                        <a class="btn btn-brand-secondary form-control" href="@Url.ManageMyPackages()">Cancel</a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>

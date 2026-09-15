@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,22 +15,25 @@ namespace NuGetGallery
     public class PackageStagingManagementService : IPackageStagingManagementService
     {
         private readonly IPackageStagingAuthorizationService _packageStagingAuthorizationService;
-        private readonly IFeatureFlagService _featureFlagService;
         private readonly IPackageService _packageService;
+        private readonly IEntitiesContext _entitiesContext;
         private readonly IEntityRepository<StagedPackage> _stagedPackageRepository;
+        private readonly IEntityRepository<StagingGroup> _stagingGroupRepository;
         private readonly IStagingBlobService _stagingBlobService;
 
         public PackageStagingManagementService(
             IPackageStagingAuthorizationService packageStagingAuthorizationService,
-            IFeatureFlagService featureFlagService,
             IPackageService packageService,
+            IEntitiesContext entitiesContext,
             IEntityRepository<StagedPackage> stagedPackageRepository,
+            IEntityRepository<StagingGroup> stagingGroupRepository,
             IStagingBlobService stagingBlobService)
         {
             _packageStagingAuthorizationService = packageStagingAuthorizationService ?? throw new ArgumentNullException(nameof(packageStagingAuthorizationService));
-            _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
+            _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _stagedPackageRepository = stagedPackageRepository ?? throw new ArgumentNullException(nameof(stagedPackageRepository));
+            _stagingGroupRepository = stagingGroupRepository ?? throw new ArgumentNullException(nameof(stagingGroupRepository));
             _stagingBlobService = stagingBlobService ?? throw new ArgumentNullException(nameof(stagingBlobService));
         }
 
@@ -92,7 +96,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(currentUser));
             }
 
-            return GetEnabledOwners(currentUser).Any();
+            return _packageStagingAuthorizationService.GetEnabledOwners(currentUser).Count > 0;
         }
 
         public StagedPackage FindCurrentStagedPackage(string id, string version)
@@ -166,7 +170,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(currentUser));
             }
 
-            var ownerKeys = GetEnabledOwners(currentUser)
+            var ownerKeys = _packageStagingAuthorizationService.GetEnabledOwners(currentUser)
                 .Select(owner => owner.Key)
                 .ToArray();
 
@@ -174,6 +178,304 @@ namespace NuGetGallery
                 .Where(stagedPackage => _packageStagingAuthorizationService.CanManage(currentUser, stagedPackage))
                 .OrderBy(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageRegistration.Id)
                 .ThenByDescending(stagedPackage => stagedPackage.UploadedDate)
+                .ToList();
+        }
+
+        public IReadOnlyList<StagingGroup> GetStagingGroups(User currentUser)
+        {
+            if (currentUser == null)
+            {
+                throw new ArgumentNullException(nameof(currentUser));
+            }
+
+            var ownerKeys = _packageStagingAuthorizationService.GetEnabledOwners(currentUser)
+                .Select(owner => owner.Key)
+                .ToArray();
+
+            return _stagingGroupRepository
+                .GetAll()
+                .Include(group => group.Owner)
+                .Where(group => ownerKeys.Contains(group.OwnerKey))
+                .OrderBy(group => group.Owner.Username)
+                .ThenBy(group => group.Name)
+                .ThenBy(group => group.Id)
+                .ToList();
+        }
+
+        public StagingGroup FindStagingGroup(User stagingOwner, string groupId)
+        {
+            if (stagingOwner == null)
+            {
+                throw new ArgumentNullException(nameof(stagingOwner));
+            }
+
+            if (string.IsNullOrWhiteSpace(groupId))
+            {
+                throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(groupId));
+            }
+
+            return _stagingGroupRepository
+                .GetAll()
+                .Include(group => group.Owner)
+                .Where(group => group.OwnerKey == stagingOwner.Key)
+                .ToList()
+                .SingleOrDefault(group => string.Equals(group.Id, groupId, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public async Task<CreateStagingGroupResult> CreateStagingGroupAsync(User stagingOwner, string groupId, string name)
+        {
+            if (stagingOwner == null)
+            {
+                throw new ArgumentNullException(nameof(stagingOwner));
+            }
+
+            if (string.IsNullOrWhiteSpace(groupId))
+            {
+                throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(groupId));
+            }
+
+            var groupExists = _stagingGroupRepository
+                .GetAll()
+                .Where(group => group.OwnerKey == stagingOwner.Key)
+                .Select(group => group.Id)
+                .ToList()
+                .Any(id => string.Equals(id, groupId, StringComparison.OrdinalIgnoreCase));
+            if (groupExists)
+            {
+                return CreateStagingGroupResult.GroupAlreadyExists();
+            }
+
+            var group = new StagingGroup
+            {
+                OwnerKey = stagingOwner.Key,
+                Owner = stagingOwner,
+                Id = groupId,
+                Name = string.IsNullOrWhiteSpace(name) ? groupId : name.Trim(),
+                CreatedDate = DateTime.UtcNow,
+            };
+
+            _stagingGroupRepository.InsertOnCommit(group);
+            try
+            {
+                await _stagingGroupRepository.CommitChangesAsync();
+            }
+            catch (DbUpdateException exception) when (exception.IsSqlUniqueConstraintViolation())
+            {
+                return CreateStagingGroupResult.GroupAlreadyExists();
+            }
+
+            return CreateStagingGroupResult.Created(group);
+        }
+
+        public async Task<StagingGroup> RenameStagingGroupAsync(User stagingOwner, string groupId, string name)
+        {
+            if (stagingOwner == null)
+            {
+                throw new ArgumentNullException(nameof(stagingOwner));
+            }
+
+            if (string.IsNullOrWhiteSpace(groupId))
+            {
+                throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(groupId));
+            }
+
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(name));
+            }
+
+            var group = FindStagingGroup(stagingOwner, groupId);
+            if (group == null)
+            {
+                return null;
+            }
+
+            group.Name = name.Trim();
+            await _stagingGroupRepository.CommitChangesAsync();
+            return group;
+        }
+
+        public async Task<StagingGroupDeletionResult> DeleteStagingGroupAsync(User stagingOwner, StagingGroup group)
+        {
+            if (stagingOwner == null)
+            {
+                throw new ArgumentNullException(nameof(stagingOwner));
+            }
+
+            if (group == null)
+            {
+                throw new ArgumentNullException(nameof(group));
+            }
+
+            if (group.OwnerKey != stagingOwner.Key)
+            {
+                throw new ArgumentException("The staging group must belong to the authorized owner.");
+            }
+
+            StagingGroupDeletionResult result = null;
+            await _stagingGroupRepository.ExecuteInTransactionAsync(async () =>
+            {
+                var stagedPackages = GetCurrentStagedPackages(new[] { stagingOwner.Key })
+                    .Where(package => package.StagedPackageIdentity.StagingGroupKey == group.Key)
+                    .ToList();
+                if (stagedPackages.Any(package => package.Status == StagedPackageStatus.Promoting))
+                {
+                    result = StagingGroupDeletionResult.Conflict(stagedPackages.Count);
+                    return;
+                }
+
+                foreach (var stagedPackage in stagedPackages)
+                {
+                    var identity = stagedPackage.StagedPackageIdentity;
+                    var package = identity.Package;
+                    stagedPackage.Status = StagedPackageStatus.Deleted;
+                    package.Listed = false;
+                    identity.StagingGroupKey = null;
+                    identity.StagingGroup = null;
+                    await _packageService.UpdatePackageStatusAsync(package, PackageStatus.Deleted, commitChanges: false);
+                }
+
+                _stagingGroupRepository.DeleteOnCommit(group);
+                await _stagingGroupRepository.CommitChangesAsync();
+                result = StagingGroupDeletionResult.Deleted(stagedPackages.Count);
+            });
+
+            return result;
+        }
+
+        public async Task<StagingGroupMembershipResult> AddPackageToStagingGroupAsync(User stagingOwner, StagingGroup group, StagedPackage stagedPackage)
+        {
+            if (stagingOwner == null)
+            {
+                throw new ArgumentNullException(nameof(stagingOwner));
+            }
+
+            if (group == null)
+            {
+                throw new ArgumentNullException(nameof(group));
+            }
+
+            if (stagedPackage == null)
+            {
+                throw new ArgumentNullException(nameof(stagedPackage));
+            }
+
+            var identity = stagedPackage.StagedPackageIdentity;
+            if (group.OwnerKey != stagingOwner.Key || identity.OwnerKey != stagingOwner.Key)
+            {
+                throw new ArgumentException("The staging group and package must belong to the authorized owner.");
+            }
+
+            if (identity.StagingGroupKey == group.Key)
+            {
+                return StagingGroupMembershipResult.Unchanged;
+            }
+
+            if (stagedPackage.Status == StagedPackageStatus.Promoting)
+            {
+                return StagingGroupMembershipResult.Conflict;
+            }
+
+            var result = StagingGroupMembershipResult.Conflict;
+            await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
+            {
+                if (!await TryReserveStagedPackageForMembershipChangeAsync(stagedPackage))
+                {
+                    return;
+                }
+
+                identity.StagingGroupKey = group.Key;
+                identity.StagingGroup = group;
+                await _stagedPackageRepository.CommitChangesAsync();
+                result = StagingGroupMembershipResult.Updated;
+            });
+
+            return result;
+        }
+
+        public async Task<StagingGroupMembershipResult> RemovePackageFromStagingGroupAsync(User stagingOwner, StagedPackage stagedPackage)
+        {
+            if (stagingOwner == null)
+            {
+                throw new ArgumentNullException(nameof(stagingOwner));
+            }
+
+            if (stagedPackage == null)
+            {
+                throw new ArgumentNullException(nameof(stagedPackage));
+            }
+
+            var identity = stagedPackage.StagedPackageIdentity;
+            if (identity.OwnerKey != stagingOwner.Key)
+            {
+                throw new ArgumentException("The staged package must belong to the authorized owner.");
+            }
+
+            if (!identity.StagingGroupKey.HasValue)
+            {
+                return StagingGroupMembershipResult.Unchanged;
+            }
+
+            if (stagedPackage.Status == StagedPackageStatus.Promoting)
+            {
+                return StagingGroupMembershipResult.Conflict;
+            }
+
+            var result = StagingGroupMembershipResult.Conflict;
+            await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
+            {
+                if (!await TryReserveStagedPackageForMembershipChangeAsync(stagedPackage))
+                {
+                    return;
+                }
+
+                identity.StagingGroupKey = null;
+                identity.StagingGroup = null;
+                await _stagedPackageRepository.CommitChangesAsync();
+                result = StagingGroupMembershipResult.Updated;
+            });
+
+            return result;
+        }
+
+        private async Task<bool> TryReserveStagedPackageForMembershipChangeAsync(StagedPackage stagedPackage)
+        {
+            // The self-assignment intentionally advances RowVersion and holds the update lock until the
+            // surrounding membership transaction commits. A concurrent promotion using the old RowVersion fails.
+            const string query = @"
+                UPDATE [dbo].[StagedPackages]
+                SET [Status] = [Status]
+                WHERE [Key] = @p0
+                    AND [RowVersion] = @p1
+                    AND [Status] <> @p2";
+
+            var affectedRows = await _entitiesContext.GetDatabase().ExecuteSqlCommandAsync(
+                query,
+                stagedPackage.Key,
+                stagedPackage.RowVersion,
+                (int)StagedPackageStatus.Promoting);
+
+            return affectedRows == 1;
+        }
+
+        public IReadOnlyList<StagingGroupSummary> GetStagingGroupSummaries(User stagingOwner)
+        {
+            if (stagingOwner == null)
+            {
+                throw new ArgumentNullException(nameof(stagingOwner));
+            }
+
+            var groups = _stagingGroupRepository
+                .GetAll()
+                .Include(group => group.Owner)
+                .Where(group => group.OwnerKey == stagingOwner.Key)
+                .ToList();
+            var packagesByGroup = GetCurrentStagedPackages(new[] { stagingOwner.Key })
+                .Where(package => package.StagedPackageIdentity.StagingGroupKey.HasValue)
+                .ToLookup(package => package.StagedPackageIdentity.StagingGroupKey.Value);
+
+            return groups
+                .Select(group => new StagingGroupSummary(group, packagesByGroup[group.Key].ToList()))
                 .ToList();
         }
 
@@ -189,7 +491,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(scopes));
             }
 
-            var ownerKeys = GetEnabledOwners(currentUser)
+            var ownerKeys = _packageStagingAuthorizationService.GetEnabledOwners(currentUser)
                 .Select(owner => owner.Key)
                 .ToArray();
 
@@ -207,8 +509,10 @@ namespace NuGetGallery
                 .GetAll()
                 .Include(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageRegistration)
                 .Include(stagedPackage => stagedPackage.StagedPackageIdentity.Owner)
+                .Include(stagedPackage => stagedPackage.StagedPackageIdentity.StagingGroup)
                 .Where(stagedPackage => ownerKeys.Contains(stagedPackage.StagedPackageIdentity.OwnerKey))
                 .Where(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Staged)
+                .Where(stagedPackage => stagedPackage.Status != StagedPackageStatus.Superseded && stagedPackage.Status != StagedPackageStatus.Deleted)
                 .Where(stagedPackage => stagedPackage.StagedPackageIdentity.CurrentStagedPackageKey == stagedPackage.Key);
         }
 
@@ -220,11 +524,5 @@ namespace NuGetGallery
                 .SingleOrDefault(stagedPackage => stagedPackage.StagedPackageIdentityKey == packageKey && stagedPackage.StagedPackageIdentity.CurrentStagedPackageKey == stagedPackage.Key);
         }
 
-        private IEnumerable<User> GetEnabledOwners(User currentUser)
-        {
-            return new[] { currentUser }
-                .Concat(currentUser.Organizations.Select(membership => membership.Organization))
-                .Where(owner => _featureFlagService.IsPackageStagingEnabled(owner));
-        }
     }
 }

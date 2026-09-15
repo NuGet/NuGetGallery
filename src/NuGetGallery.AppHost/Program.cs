@@ -366,7 +366,7 @@ public class Program
             .WithParentRelationship(pipelineGroup);
         WithAppHostEnv(catalogIndexReady, config, azuriteConnStr, azuriteBase, searchServiceName);
 
-        builder.AddProject<Projects.NuGetGallery_AppHost_Tools>("warmup-gallery")
+        var warmupGallery = builder.AddProject<Projects.NuGetGallery_AppHost_Tools>("warmup-gallery")
             .WithArgs("warmup")
             .WithEnvironment("WarmupBaseUrl", config.GalleryBaseAddress)
             .WithEnvironment("WarmupPaths", "/,/packages,/api/v2")
@@ -630,7 +630,7 @@ public class Program
             .WaitFor(storage)
             .WithParentRelationship(pipelineGroup);
 
-        gallery.WaitFor(searchService);
+        warmupGallery.WaitFor(searchService);
 
         builder.AddProject<Projects.NuGetGallery_AppHost_Tools>("warmup-search")
             .WithArgs("warmup")

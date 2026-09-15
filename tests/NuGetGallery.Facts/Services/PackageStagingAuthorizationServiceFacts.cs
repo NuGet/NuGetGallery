@@ -161,6 +161,77 @@ namespace NuGetGallery
             Assert.False(result);
         }
 
+        [Fact]
+        public void GetsEnabledOrganizationFromApiKeyOwnerScope()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var organization = new Organization("organization") { Key = 2 };
+            currentUser.Organizations.Add(new Membership { Member = currentUser, Organization = organization });
+            var scopes = new[] { new Scope(organization.Key, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.PackagePush) };
+            var featureFlagService = new Mock<IFeatureFlagService>();
+            featureFlagService
+                .Setup(x => x.IsPackageStagingEnabled(organization))
+                .Returns(true);
+            var target = new PackageStagingAuthorizationService(
+                Mock.Of<IApiScopeEvaluator>(),
+                featureFlagService.Object);
+
+            var result = target.GetEnabledApiKeyOwner(currentUser, scopes);
+
+            Assert.Same(organization, result);
+        }
+
+        [Fact]
+        public void GetsEnabledOwnerByUsername()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var organization = new Organization("organization") { Key = 2 };
+            currentUser.Organizations.Add(new Membership { Member = currentUser, Organization = organization });
+            var featureFlagService = new Mock<IFeatureFlagService>();
+            featureFlagService
+                .Setup(x => x.IsPackageStagingEnabled(organization))
+                .Returns(true);
+            var target = new PackageStagingAuthorizationService(
+                Mock.Of<IApiScopeEvaluator>(),
+                featureFlagService.Object);
+
+            var result = target.GetEnabledOwner(currentUser, "ORGANIZATION");
+
+            Assert.Same(organization, result);
+        }
+
+        [Fact]
+        public void DoesNotGetApiKeyOwnerWhenScopesIdentifyMultipleOwners()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var scopes = new[]
+            {
+                new Scope(currentUser.Key, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.PackagePush),
+                new Scope(2, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.PackagePush),
+            };
+            var target = new PackageStagingAuthorizationService(
+                Mock.Of<IApiScopeEvaluator>(),
+                Mock.Of<IFeatureFlagService>());
+
+            var result = target.GetEnabledApiKeyOwner(currentUser, scopes);
+
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public void DoesNotGetDisabledApiKeyOwner()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var scopes = new[] { new Scope(currentUser.Key, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.PackagePush) };
+            var target = new PackageStagingAuthorizationService(
+                Mock.Of<IApiScopeEvaluator>(),
+                Mock.Of<IFeatureFlagService>());
+
+            var result = target.GetEnabledApiKeyOwner(currentUser, scopes);
+
+            Assert.Null(result);
+        }
+
         private static StagedPackage CreateStagedPackage(User owner, params User[] additionalPackageOwners)
         {
             var registration = new PackageRegistration { Id = "PackageA" };

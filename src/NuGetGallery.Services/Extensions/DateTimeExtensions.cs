@@ -22,5 +22,15 @@ namespace NuGetGallery
         {
             return self.ToString("d", CultureInfo.CurrentCulture);
         }
+
+        /// <summary>
+        /// Formats a UTC database timestamp using the round-trip ISO 8601 format.
+        /// </summary>
+        /// <param name="self">The timestamp whose ticks represent UTC.</param>
+        /// <returns>The UTC timestamp in round-trip ISO 8601 format.</returns>
+        public static string ToUtcIso8601String(this DateTime self)
+        {
+            return DateTime.SpecifyKind(self, DateTimeKind.Utc).ToString("O");
+        }
     }
 }
