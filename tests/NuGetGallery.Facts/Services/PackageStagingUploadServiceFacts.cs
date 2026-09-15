@@ -170,6 +170,7 @@ namespace NuGetGallery
 
                     Assert.True(result.Success, result.ErrorMessage);
                     Assert.Equal(HttpStatusCode.Created, result.StatusCode);
+                    Assert.Same(stagedPackage, result.StagedPackage);
                 }
 
                 Assert.Equal(PackageStatus.Staged, package.PackageStatusKey);
@@ -194,6 +195,72 @@ namespace NuGetGallery
                     x => x.CommitChangesAsync(),
                     expectedStatus == StagedPackageStatus.Validating ? Times.Exactly(2) : Times.Exactly(3));
                 stagedPackageRepository.Verify(x => x.ExecuteInTransactionAsync(It.IsAny<System.Func<Task>>()), Times.Once);
+            }
+
+            [Fact]
+            public async Task RejectsUnavailableGroupBeforeChangingPackageState()
+            {
+                var currentUser = new User { Key = 17 };
+                var owner = new User { Key = 23, EmailAddress = "owner@example.com" };
+                var scopes = new List<Scope>();
+                var apiScopeEvaluator = new Mock<IApiScopeEvaluator>();
+                apiScopeEvaluator
+                    .Setup(x => x.Evaluate(
+                        It.IsAny<User>(),
+                        It.IsAny<IEnumerable<Scope>>(),
+                        It.IsAny<IActionRequiringEntityPermissions<ActionOnNewPackageContext>>(),
+                        It.IsAny<ActionOnNewPackageContext>(),
+                        It.IsAny<string[]>()))
+                    .Returns(new ApiScopeEvaluationResult(owner, PermissionsCheckResult.Allowed, scopesAreValid: true));
+                var featureFlagService = new Mock<IFeatureFlagService>();
+                featureFlagService
+                    .Setup(x => x.IsPackageStagingEnabled(owner))
+                    .Returns(true);
+                var packageStagingManagementService = new Mock<IPackageStagingManagementService>();
+                packageStagingManagementService
+                    .Setup(x => x.FindStagingGroup(owner, "unavailable"))
+                    .Returns((StagingGroup)null);
+                var packageService = new Mock<IPackageService>();
+                packageService
+                    .Setup(x => x.EnsureValid(It.IsAny<PackageArchiveReader>()))
+                    .Returns(Task.CompletedTask);
+                var packageUploadService = new Mock<IPackageUploadService>();
+                var securityPolicyService = new Mock<ISecurityPolicyService>();
+                securityPolicyService
+                    .Setup(x => x.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackagePush, currentUser, It.IsAny<HttpContextBase>()))
+                    .ReturnsAsync(SecurityPolicyResult.SuccessResult);
+                var stagingBlobService = new Mock<IStagingBlobService>();
+                var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
+                var target = new PackageStagingUploadService(
+                    apiScopeEvaluator.Object,
+                    featureFlagService.Object,
+                    packageStagingManagementService.Object,
+                    packageService.Object,
+                    packageUploadService.Object,
+                    Mock.Of<IReservedNamespaceService>(),
+                    securityPolicyService.Object,
+                    stagingBlobService.Object,
+                    stagedPackageRepository.Object,
+                    Mock.Of<IStagedPackageValidationMessageEmitter>());
+                using var packageFile = TestPackage.CreateTestPackageStream("PackageA", "1.0.0");
+
+                var result = await target.StagePackageAsync(
+                    currentUser,
+                    scopes,
+                    Mock.Of<HttpContextBase>(),
+                    packageFile,
+                    "unavailable");
+
+                Assert.Equal(HttpStatusCode.NotFound, result.StatusCode);
+                Assert.Equal(StagingApiErrorCodes.GroupNotFound, result.ErrorCode);
+                Assert.Equal("groupId", result.ErrorTarget);
+                packageUploadService.Verify(
+                    x => x.ValidateBeforeGeneratePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageMetadata>(), It.IsAny<User>()),
+                    Times.Never);
+                stagingBlobService.Verify(
+                    x => x.SavePackageFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Stream>()),
+                    Times.Never);
+                stagedPackageRepository.Verify(x => x.InsertOnCommit(It.IsAny<StagedPackage>()), Times.Never);
             }
 
             [Theory]
@@ -385,6 +452,7 @@ namespace NuGetGallery
                     groupId: null);
 
                 Assert.Equal(expectedStatusCode, result.StatusCode);
+                Assert.Equal(expectedStatusCode == HttpStatusCode.OK, result.StagedPackage != null);
                 Assert.Equal(group.Key, stagedPackage.StagedPackageIdentity.StagingGroupKey);
                 Assert.Same(group, stagedPackage.StagedPackageIdentity.StagingGroup);
                 var isActiveNoOp = identical && (status == StagedPackageStatus.Validating || status == StagedPackageStatus.Ready);

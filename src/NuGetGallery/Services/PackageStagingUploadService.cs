@@ -76,7 +76,7 @@ namespace NuGetGallery
             ValidateRequest(currentUser, httpContext, packageFile);
             if (groupId != null && !StagingGroupIdValidation.IsValid(groupId))
             {
-                return PackageStagingResult.Error(HttpStatusCode.BadRequest, "The group ID is invalid.");
+                return PackageStagingResult.Error(HttpStatusCode.BadRequest, "The group ID is invalid.", errorCode: StagingApiErrorCodes.InvalidGroupId, errorTarget: "groupId");
             }
 
             var requestError = await ValidateUserPolicyAsync(currentUser, httpContext);
@@ -100,7 +100,7 @@ namespace NuGetGallery
                     group = _packageStagingManagementService.FindStagingGroup(target.Owner, groupId);
                     if (group == null)
                     {
-                        return PackageStagingResult.Error(HttpStatusCode.NotFound, "The staging group was not found.");
+                        return PackageStagingResult.Error(HttpStatusCode.NotFound, "The staging group was not found.", errorCode: StagingApiErrorCodes.GroupNotFound, errorTarget: "groupId");
                     }
                 }
 
@@ -375,7 +375,7 @@ namespace NuGetGallery
             var hasGroupChange = group != null && target.CurrentAttempt?.StagedPackageIdentity.StagingGroupKey != group.Key;
             if ((isValidating || isReady) && isIdentical && !hasGroupChange)
             {
-                return PackageStagingResult.Ok();
+                return PackageStagingResult.Ok(target.CurrentAttempt);
             }
 
             var beforeValidation = await _packageUploadService.ValidateBeforeGeneratePackageAsync(
@@ -445,14 +445,14 @@ namespace NuGetGallery
             }
 
             upload.PackageFile.Position = 0;
-            var commitResult = await CommitPackageAsync(
+            var stagedPackage = await CommitPackageAsync(
                 package,
                 target.Owner,
                 upload.PackageFile,
                 streamMetadata.Hash,
                 target.CurrentAttempt,
                 group);
-            if (commitResult == PackageCommitResult.Conflict)
+            if (stagedPackage == null)
             {
                 return PackageStagingResult.Error(HttpStatusCode.Conflict, Strings.UploadPackage_IdVersionConflict);
             }
@@ -460,10 +460,10 @@ namespace NuGetGallery
             var warnings = CreateWarnings(beforeValidation, afterValidation, packagePolicyResult);
             if (target.ExistingPackage == null)
             {
-                return PackageStagingResult.Created(warnings);
+                return PackageStagingResult.Created(stagedPackage, warnings);
             }
 
-            return PackageStagingResult.Ok(warnings);
+            return PackageStagingResult.Ok(stagedPackage, warnings);
         }
 
         private async Task<PackageArchiveReader> ValidatePackageAsync(Stream packageFile)
@@ -616,7 +616,7 @@ namespace NuGetGallery
             }
         }
 
-        private async Task<PackageCommitResult> CommitPackageAsync(
+        private async Task<StagedPackage> CommitPackageAsync(
             Package package,
             User owner,
             Stream packageFile,
@@ -630,6 +630,7 @@ namespace NuGetGallery
             var stagedPackageIdentity = previousAttempt?.StagedPackageIdentity ?? new StagedPackageIdentity
             {
                 Package = package,
+                Owner = owner,
                 OwnerKey = owner.Key,
             };
 
@@ -678,10 +679,10 @@ namespace NuGetGallery
             }
             catch (Exception exception) when (IsConflict(exception))
             {
-                return PackageCommitResult.Conflict;
+                return null;
             }
 
-            return PackageCommitResult.Success;
+            return stagedPackage;
         }
 
         private static bool IsConflict(Exception exception)

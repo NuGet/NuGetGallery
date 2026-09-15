@@ -64,6 +64,12 @@ namespace NuGetGallery
             }
 
             var isGrouped = package.StagedPackageIdentity.StagingGroupKey.HasValue;
+            StagingGroupReferenceResponse group = null;
+            if (isGrouped)
+            {
+                group = new StagingGroupReferenceResponse(package.StagedPackageIdentity.StagingGroup.Id, package.StagedPackageIdentity.StagingGroup.Name);
+            }
+
             var canPromote = package.Status == StagedPackageStatus.Ready && !isGrouped;
             var blockers = new List<StagingBlockerResponse>();
             if (isGrouped)
@@ -81,9 +87,7 @@ namespace NuGetGallery
                 Version = package.StagedPackageIdentity.Package.NormalizedVersion,
                 Kind = "package",
                 Owner = package.StagedPackageIdentity.Owner.Username,
-                Group = new StagingGroupReferenceResponse(
-                    package.StagedPackageIdentity.StagingGroup.Id,
-                    package.StagedPackageIdentity.StagingGroup.Name),
+                Group = group,
                 Status = GetStatus(package.Status),
                 Uploaded = package.UploadedDate.ToUtcIso8601String(),
                 // The authoritative validation completion timestamp will be persisted in a later unit.

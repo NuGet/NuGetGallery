@@ -27,7 +27,7 @@ namespace NuGetGallery
         private const string MultipartContentType = "multipart/form-data";
         private const int DefaultPageSize = 100;
         private const int MaximumPageSize = 500;
-        private static readonly TimeSpan InitialGroupExpiration = TimeSpan.FromDays(30);
+        private static readonly TimeSpan InitialStagingExpiration = TimeSpan.FromDays(30);
         private readonly IPackageStagingAuthorizationService _packageStagingAuthorizationService;
         private readonly IPackageStagingManagementService _packageStagingManagementService;
         private readonly IPackageStagingUploadService _packageStagingUploadService;
@@ -77,7 +77,7 @@ namespace NuGetGallery
                     var group = result.Group;
                     var response = StagingGroupResponse.FromNewGroup(
                         group,
-                        group.CreatedDate.Add(InitialGroupExpiration),
+                        group.CreatedDate.Add(InitialStagingExpiration),
                         Url.ManageStagingGroup(group.Owner.Username, group.Id, relativeUrl: false));
                     Response.StatusCode = (int)HttpStatusCode.Created;
                     return Content(JsonConvert.SerializeObject(response), JsonContentType);
@@ -127,19 +127,40 @@ namespace NuGetGallery
                 var result = await _packageStagingUploadService.StagePackageAsync(currentUser, scopes, HttpContext, Request.Files[0].InputStream, groupId);
                 if (!result.Success)
                 {
-                    return new HttpStatusCodeWithBodyResult(result.StatusCode, result.ErrorMessage);
+                    return Error(result.StatusCode, result.ErrorCode, result.ErrorMessage, result.ErrorTarget);
                 }
 
-                return new HttpStatusCodeWithServerWarningResult(result.StatusCode, result.Warnings);
+                if (result.StagedPackage == null)
+                {
+                    throw new InvalidOperationException("A successful package staging result must include the staged package.");
+                }
+
+                if (result.StatusCode == HttpStatusCode.Created)
+                {
+                    var identity = result.StagedPackage.StagedPackageIdentity;
+                    var location = Url.RouteUrl(
+                        RouteName.GetStagedPackageStatus,
+                        new { id = identity.Package.PackageRegistration.Id, version = identity.Package.NormalizedVersion },
+                        Request.Url.Scheme);
+                    Response.AddHeader("Location", location);
+                }
+
+                foreach (var warning in result.Warnings.Select(value => value.PlainTextMessage).Where(value => !string.IsNullOrWhiteSpace(value)))
+                {
+                    Response.AppendHeader(GalleryConstants.WarningHeaderName, warning);
+                }
+
+                Response.StatusCode = (int)result.StatusCode;
+                return JsonContent(CreateArtifactResponse(result.StagedPackage));
             }
             catch (HttpException exception) when (exception.IsMaxRequestLengthExceeded())
             {
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.RequestEntityTooLarge, Strings.PackageFileTooLarge);
+                return Error(HttpStatusCode.RequestEntityTooLarge, "PackageTooLarge", Strings.PackageFileTooLarge, "package");
             }
             catch (HttpException exception) when (!Response.IsClientConnected)
             {
                 QuietLog.LogHandledException(exception);
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, Strings.PackageUploadCancelled);
+                return Error(HttpStatusCode.BadRequest, "PackageUploadCancelled", Strings.PackageUploadCancelled, "package");
             }
         }
 
@@ -171,7 +192,7 @@ namespace NuGetGallery
                     return StagingGroupResponse.FromGroup(
                         summary.Group,
                         summary.Packages,
-                        summary.Group.CreatedDate.Add(InitialGroupExpiration),
+                        summary.Group.CreatedDate.Add(InitialStagingExpiration),
                         Url.ManageStagingGroup(summary.Group.Owner.Username, summary.Group.Id, relativeUrl: false));
                 })
                 .ToList();
@@ -213,7 +234,7 @@ namespace NuGetGallery
                 .ThenByDescending(package => NuGetVersion.Parse(package.StagedPackageIdentity.Package.NormalizedVersion))
                 .ToList();
             var managementUrl = Url.ManageStagingGroup(group.Owner.Username, group.Id, relativeUrl: false);
-            var expirationDate = group.CreatedDate.Add(InitialGroupExpiration);
+            var expirationDate = group.CreatedDate.Add(InitialStagingExpiration);
             var artifacts = packages
                 .Select(package => StagingArtifactResponse.FromPackage(package, expirationDate, managementUrl))
                 .ToList();
@@ -282,16 +303,13 @@ namespace NuGetGallery
         [HttpGet]
         public virtual ActionResult GetStagedPackageStatus(string id, string version)
         {
-            var currentUser = GetCurrentUser();
-            var scopes = User.Identity.GetScopesFromClaim();
-
-            var package = _packageStagingManagementService.GetPackageStatus(currentUser, scopes, id, version);
-            if (package == null)
+            var stagedPackage = FindAuthorizedStagedPackage(id, version);
+            if (stagedPackage == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+                return Error(HttpStatusCode.NotFound, "PackageNotFound", "The staged package was not found.");
             }
 
-            return Json(package, JsonRequestBehavior.AllowGet);
+            return JsonContent(CreateArtifactResponse(stagedPackage));
         }
 
         [AcceptVerbs(HttpVerbs.Patch)]
@@ -342,6 +360,18 @@ namespace NuGetGallery
             }
 
             return stagedPackage;
+        }
+
+        private StagingArtifactResponse CreateArtifactResponse(StagedPackage stagedPackage)
+        {
+            var identity = stagedPackage.StagedPackageIdentity;
+            var group = identity.StagingGroup;
+            var expirationDate = (group?.CreatedDate ?? stagedPackage.UploadedDate).Add(InitialStagingExpiration);
+            var managementUrl = group == null
+                ? Url.ManageUngroupedStaging(identity.Owner.Username, relativeUrl: false)
+                : Url.ManageStagingGroup(identity.Owner.Username, group.Id, relativeUrl: false);
+
+            return StagingArtifactResponse.FromPackage(stagedPackage, expirationDate, managementUrl);
         }
 
         private JsonResult Error(HttpStatusCode statusCode, string code, string message, string target = null)

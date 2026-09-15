@@ -31,12 +31,25 @@ namespace NuGetGallery
             Assert.NotEmpty(typeof(StagingApiController).GetCustomAttributes(typeof(ApiScopeRequiredAttribute), inherit: true));
         }
 
-        [Fact]
-        public async Task StagesMultipartPackageInGroup()
+        [Theory]
+        [InlineData(null)]
+        [InlineData("release")]
+        public async Task ReturnsCreatedArtifactForMultipartPackage(string groupId)
         {
             var currentUser = new User("current") { Key = 1 };
             var owner = new User("example-org") { Key = 2 };
             var scopes = new[] { new Scope(owner, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.PackagePush) };
+            var stagedPackage = CreateStagedPackage(owner);
+            stagedPackage.Status = StagedPackageStatus.Validating;
+            stagedPackage.UploadedDate = new DateTime(2026, 9, 15, 20, 0, 0, DateTimeKind.Utc);
+            stagedPackage.StagedPackageIdentity.Package.Listed = true;
+            if (groupId != null)
+            {
+                var group = CreateStagingGroup(44, groupId, "Release", owner, new DateTime(2026, 9, 1, 20, 0, 0, DateTimeKind.Utc));
+                stagedPackage.StagedPackageIdentity.StagingGroup = group;
+                stagedPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
+            }
+
             using var packageStream = new MemoryStream(new byte[] { 1, 2, 3 });
             var packageFile = new Mock<HttpPostedFileBase>();
             packageFile.SetupGet(x => x.InputStream).Returns(packageStream);
@@ -44,7 +57,12 @@ namespace NuGetGallery
             files.SetupGet(x => x.Count).Returns(1);
             files.Setup(x => x.GetKey(0)).Returns("package");
             files.Setup(x => x[0]).Returns(packageFile.Object);
-            var form = new NameValueCollection { { "groupId", "release" } };
+            var form = new NameValueCollection();
+            if (groupId != null)
+            {
+                form.Add("groupId", groupId);
+            }
+
             var target = GetController<StagingApiController>();
             var httpContext = TestUtility.SetupHttpContextMockForUrlGeneration(new Mock<HttpContextBase>(), target);
             var request = Mock.Get(httpContext.Object.Request);
@@ -53,13 +71,27 @@ namespace NuGetGallery
             request.SetupGet(x => x.Form).Returns(form);
             target.SetCurrentUser(currentUser, scopes);
             GetMock<IPackageStagingUploadService>()
-                .Setup(x => x.StagePackageAsync(currentUser, It.IsAny<IReadOnlyCollection<Scope>>(), httpContext.Object, packageStream, "release"))
-                .ReturnsAsync(PackageStagingResult.Ok());
+                .Setup(x => x.StagePackageAsync(currentUser, It.IsAny<IReadOnlyCollection<Scope>>(), httpContext.Object, packageStream, groupId))
+                .ReturnsAsync(PackageStagingResult.Created(stagedPackage, Array.Empty<IValidationMessage>()));
 
             var result = await target.StagePackage();
 
-            var response = Assert.IsType<HttpStatusCodeWithServerWarningResult>(result);
-            Assert.Equal((int)HttpStatusCode.OK, response.StatusCode);
+            var body = ParseJsonContent(result);
+            Mock.Get(target.Response).VerifySet(x => x.StatusCode = (int)HttpStatusCode.Created);
+            Mock.Get(target.Response).Verify(x => x.AddHeader(
+                "Location",
+                It.Is<string>(value => value.EndsWith("/api/v3/staging/package/PackageA/1.0.0/status"))));
+            Assert.Equal("PackageA", (string)body["id"]);
+            Assert.Equal("1.0.0", (string)body["version"]);
+            Assert.Equal("package", (string)body["kind"]);
+            Assert.Equal("example-org", (string)body["owner"]);
+            Assert.Equal(groupId, groupId == null ? null : (string)body["group"]["id"]);
+            Assert.Equal("validating", (string)body["status"]);
+            Assert.Equal("2026-09-15T20:00:00.0000000Z", (string)body["uploaded"]);
+            Assert.Equal(groupId == null ? "2026-10-15T20:00:00.0000000Z" : "2026-10-01T20:00:00.0000000Z", (string)body["expires"]);
+            Assert.True((bool)body["listed"]);
+            Assert.False((bool)body["canPromote"]);
+            Assert.NotEmpty((string)body["managementUrl"]);
         }
 
         [Fact]
@@ -78,24 +110,32 @@ namespace NuGetGallery
         }
 
         [Fact]
-        public async Task RejectsInvalidUploadGroupId()
+        public async Task ReturnsPackageUploadErrorAsJson()
         {
+            var currentUser = new User("current") { Key = 1 };
+            var owner = new User("example-org") { Key = 2 };
+            var scopes = new[] { new Scope(owner, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.PackagePush) };
+            using var packageStream = new MemoryStream(new byte[] { 1, 2, 3 });
+            var packageFile = new Mock<HttpPostedFileBase>();
+            packageFile.SetupGet(x => x.InputStream).Returns(packageStream);
             var files = new Mock<HttpFileCollectionBase>();
             files.SetupGet(x => x.Count).Returns(1);
             files.Setup(x => x.GetKey(0)).Returns("package");
+            files.Setup(x => x[0]).Returns(packageFile.Object);
             var target = GetController<StagingApiController>();
             var httpContext = TestUtility.SetupHttpContextMockForUrlGeneration(new Mock<HttpContextBase>(), target);
             var request = Mock.Get(httpContext.Object.Request);
             request.SetupGet(x => x.ContentType).Returns("multipart/form-data; boundary=test");
             request.SetupGet(x => x.Files).Returns(files.Object);
-            request.SetupGet(x => x.Form).Returns(new NameValueCollection { { "groupId", ".." } });
+            request.SetupGet(x => x.Form).Returns(new NameValueCollection());
+            target.SetCurrentUser(currentUser, scopes);
+            GetMock<IPackageStagingUploadService>()
+                .Setup(x => x.StagePackageAsync(currentUser, It.IsAny<IReadOnlyCollection<Scope>>(), httpContext.Object, packageStream, null))
+                .ReturnsAsync(PackageStagingResult.Error(HttpStatusCode.Conflict, "The version already exists.", errorTarget: "package"));
 
             var result = await target.StagePackage();
 
-            AssertError(target, result, HttpStatusCode.BadRequest, "InvalidRequest", "groupId");
-            GetMock<IPackageStagingUploadService>().Verify(
-                x => x.StagePackageAsync(It.IsAny<User>(), It.IsAny<IReadOnlyCollection<Scope>>(), It.IsAny<HttpContextBase>(), It.IsAny<Stream>(), It.IsAny<string>()),
-                Times.Never);
+            AssertError(target, result, HttpStatusCode.Conflict, StagingApiErrorCodes.PackageUploadFailed, "package");
         }
 
         [Fact]
@@ -368,6 +408,33 @@ namespace NuGetGallery
 
             var json = Assert.IsType<JsonResult>(result);
             Assert.Same(packages, json.Data);
+        }
+
+        [Fact]
+        public void GetsAuthorizedStagedPackageResource()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var stagedPackage = CreateStagedPackage(currentUser);
+            stagedPackage.Status = StagedPackageStatus.Ready;
+            stagedPackage.UploadedDate = new DateTime(2026, 9, 15, 20, 0, 0, DateTimeKind.Utc);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
+                .Returns(stagedPackage);
+            GetMock<IPackageStagingAuthorizationService>()
+                .Setup(x => x.CanManageWithApiKey(currentUser, It.IsAny<IEnumerable<Scope>>(), stagedPackage))
+                .Returns(true);
+            var httpContext = GetMock<HttpContextBase>();
+            httpContext.SetupGet(x => x.User).Returns(Fakes.ToPrincipal(currentUser));
+            var target = GetController<StagingApiController>();
+            TestUtility.SetupHttpContextMockForUrlGeneration(httpContext, target);
+            target.SetCurrentUser(currentUser);
+
+            var result = target.GetStagedPackageStatus("PackageA", "1.0.0");
+
+            var body = ParseJsonContent(result);
+            Assert.Equal("PackageA", (string)body["id"]);
+            Assert.Equal("ready", (string)body["status"]);
+            Assert.Equal(JTokenType.Null, body["group"].Type);
         }
 
         [Fact]
