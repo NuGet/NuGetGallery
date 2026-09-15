@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
@@ -28,6 +29,73 @@ namespace NuGetGallery
         {
             Assert.NotEmpty(typeof(StagingApiController).GetCustomAttributes(typeof(ApiAuthorizeAttribute), inherit: true));
             Assert.NotEmpty(typeof(StagingApiController).GetCustomAttributes(typeof(ApiScopeRequiredAttribute), inherit: true));
+        }
+
+        [Fact]
+        public async Task StagesMultipartPackageInGroup()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var owner = new User("example-org") { Key = 2 };
+            var scopes = new[] { new Scope(owner, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.PackagePush) };
+            using var packageStream = new MemoryStream(new byte[] { 1, 2, 3 });
+            var packageFile = new Mock<HttpPostedFileBase>();
+            packageFile.SetupGet(x => x.InputStream).Returns(packageStream);
+            var files = new Mock<HttpFileCollectionBase>();
+            files.SetupGet(x => x.Count).Returns(1);
+            files.Setup(x => x.GetKey(0)).Returns("package");
+            files.Setup(x => x[0]).Returns(packageFile.Object);
+            var form = new NameValueCollection { { "groupId", "release" } };
+            var target = GetController<StagingApiController>();
+            var httpContext = TestUtility.SetupHttpContextMockForUrlGeneration(new Mock<HttpContextBase>(), target);
+            var request = Mock.Get(httpContext.Object.Request);
+            request.SetupGet(x => x.ContentType).Returns("multipart/form-data; boundary=test");
+            request.SetupGet(x => x.Files).Returns(files.Object);
+            request.SetupGet(x => x.Form).Returns(form);
+            target.SetCurrentUser(currentUser, scopes);
+            GetMock<IPackageStagingUploadService>()
+                .Setup(x => x.StagePackageAsync(currentUser, It.IsAny<IReadOnlyCollection<Scope>>(), httpContext.Object, packageStream, "release"))
+                .ReturnsAsync(PackageStagingResult.Ok());
+
+            var result = await target.StagePackage();
+
+            var response = Assert.IsType<HttpStatusCodeWithServerWarningResult>(result);
+            Assert.Equal((int)HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task RejectsNonMultipartPackageUpload()
+        {
+            var target = GetController<StagingApiController>();
+            var httpContext = TestUtility.SetupHttpContextMockForUrlGeneration(new Mock<HttpContextBase>(), target);
+            Mock.Get(httpContext.Object.Request).SetupGet(x => x.ContentType).Returns("application/octet-stream");
+
+            var result = await target.StagePackage();
+
+            AssertError(target, result, HttpStatusCode.UnsupportedMediaType, "UnsupportedMediaType");
+            GetMock<IPackageStagingUploadService>().Verify(
+                x => x.StagePackageAsync(It.IsAny<User>(), It.IsAny<IReadOnlyCollection<Scope>>(), It.IsAny<HttpContextBase>(), It.IsAny<Stream>(), It.IsAny<string>()),
+                Times.Never);
+        }
+
+        [Fact]
+        public async Task RejectsInvalidUploadGroupId()
+        {
+            var files = new Mock<HttpFileCollectionBase>();
+            files.SetupGet(x => x.Count).Returns(1);
+            files.Setup(x => x.GetKey(0)).Returns("package");
+            var target = GetController<StagingApiController>();
+            var httpContext = TestUtility.SetupHttpContextMockForUrlGeneration(new Mock<HttpContextBase>(), target);
+            var request = Mock.Get(httpContext.Object.Request);
+            request.SetupGet(x => x.ContentType).Returns("multipart/form-data; boundary=test");
+            request.SetupGet(x => x.Files).Returns(files.Object);
+            request.SetupGet(x => x.Form).Returns(new NameValueCollection { { "groupId", ".." } });
+
+            var result = await target.StagePackage();
+
+            AssertError(target, result, HttpStatusCode.BadRequest, "InvalidRequest", "groupId");
+            GetMock<IPackageStagingUploadService>().Verify(
+                x => x.StagePackageAsync(It.IsAny<User>(), It.IsAny<IReadOnlyCollection<Scope>>(), It.IsAny<HttpContextBase>(), It.IsAny<Stream>(), It.IsAny<string>()),
+                Times.Never);
         }
 
         [Fact]

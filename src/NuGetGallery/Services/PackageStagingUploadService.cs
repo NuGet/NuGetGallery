@@ -26,6 +26,8 @@ namespace NuGetGallery
 
         private readonly IFeatureFlagService _featureFlagService;
 
+        private readonly IPackageStagingManagementService _packageStagingManagementService;
+
         private readonly IPackageService _packageService;
 
         private readonly IPackageUploadService _packageUploadService;
@@ -43,6 +45,7 @@ namespace NuGetGallery
         public PackageStagingUploadService(
             IApiScopeEvaluator apiScopeEvaluator,
             IFeatureFlagService featureFlagService,
+            IPackageStagingManagementService packageStagingManagementService,
             IPackageService packageService,
             IPackageUploadService packageUploadService,
             IReservedNamespaceService reservedNamespaceService,
@@ -53,6 +56,7 @@ namespace NuGetGallery
         {
             _apiScopeEvaluator = apiScopeEvaluator ?? throw new ArgumentNullException(nameof(apiScopeEvaluator));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
+            _packageStagingManagementService = packageStagingManagementService ?? throw new ArgumentNullException(nameof(packageStagingManagementService));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _packageUploadService = packageUploadService ?? throw new ArgumentNullException(nameof(packageUploadService));
             _reservedNamespaceService = reservedNamespaceService ?? throw new ArgumentNullException(nameof(reservedNamespaceService));
@@ -66,9 +70,14 @@ namespace NuGetGallery
             User currentUser,
             IReadOnlyCollection<Scope> scopes,
             HttpContextBase httpContext,
-            Stream packageFile)
+            Stream packageFile,
+            string groupId)
         {
             ValidateRequest(currentUser, httpContext, packageFile);
+            if (groupId != null && !StagingGroupIdValidation.IsValid(groupId))
+            {
+                return PackageStagingResult.Error(HttpStatusCode.BadRequest, "The group ID is invalid.");
+            }
 
             var requestError = await ValidateUserPolicyAsync(currentUser, httpContext);
             if (requestError != null)
@@ -85,7 +94,17 @@ namespace NuGetGallery
                     return targetError;
                 }
 
-                return await ProcessUploadAsync(currentUser, httpContext, upload, target);
+                StagingGroup group = null;
+                if (groupId != null)
+                {
+                    group = _packageStagingManagementService.FindStagingGroup(target.Owner, groupId);
+                    if (group == null)
+                    {
+                        return PackageStagingResult.Error(HttpStatusCode.NotFound, "The staging group was not found.");
+                    }
+                }
+
+                return await ProcessUploadAsync(currentUser, httpContext, upload, target, group);
             }
             catch (Exception exception) when (IsInvalidPackage(exception))
             {
@@ -116,7 +135,7 @@ namespace NuGetGallery
                     return targetError;
                 }
 
-                return await ProcessUploadAsync(currentUser, httpContext, upload, target);
+                return await ProcessUploadAsync(currentUser, httpContext, upload, target, group: null);
             }
             catch (Exception exception) when (IsInvalidPackage(exception))
             {
@@ -340,7 +359,8 @@ namespace NuGetGallery
             User currentUser,
             HttpContextBase httpContext,
             PreparedPackageUpload upload,
-            StagingTarget target)
+            StagingTarget target,
+            StagingGroup group)
         {
             var streamMetadata = new PackageStreamMetadata
             {
@@ -352,7 +372,8 @@ namespace NuGetGallery
             var isValidating = target.CurrentAttempt?.Status == StagedPackageStatus.Validating;
             var isReady = target.CurrentAttempt?.Status == StagedPackageStatus.Ready;
             var isIdentical = string.Equals(target.CurrentAttempt?.UploadHash, streamMetadata.Hash, StringComparison.Ordinal);
-            if ((isValidating || isReady) && isIdentical)
+            var hasGroupChange = group != null && target.CurrentAttempt?.StagedPackageIdentity.StagingGroupKey != group.Key;
+            if ((isValidating || isReady) && isIdentical && !hasGroupChange)
             {
                 return PackageStagingResult.Ok();
             }
@@ -429,7 +450,8 @@ namespace NuGetGallery
                 target.Owner,
                 upload.PackageFile,
                 streamMetadata.Hash,
-                target.CurrentAttempt);
+                target.CurrentAttempt,
+                group);
             if (commitResult == PackageCommitResult.Conflict)
             {
                 return PackageStagingResult.Error(HttpStatusCode.Conflict, Strings.UploadPackage_IdVersionConflict);
@@ -599,7 +621,8 @@ namespace NuGetGallery
             User owner,
             Stream packageFile,
             string uploadHash,
-            StagedPackage previousAttempt)
+            StagedPackage previousAttempt,
+            StagingGroup group)
         {
             var file = await _stagingBlobService.SavePackageFileAsync(package.PackageRegistration.Id, package.NormalizedVersion, packageFile);
 
@@ -609,6 +632,12 @@ namespace NuGetGallery
                 Package = package,
                 OwnerKey = owner.Key,
             };
+
+            if (group != null)
+            {
+                stagedPackageIdentity.StagingGroup = group;
+                stagedPackageIdentity.StagingGroupKey = group.Key;
+            }
 
             var stagedPackage = new StagedPackage
             {

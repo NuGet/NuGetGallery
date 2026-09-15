@@ -16,8 +16,8 @@ namespace NuGetGallery
         public string Owner { get; set; }
 
         [Required]
-        [StringLength(64)]
-        [RegularExpression(@"^[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?$", ErrorMessage = "Group IDs must start and end with a letter or number and may contain periods, underscores, and hyphens.")]
+        [StringLength(StagingGroupIdValidation.MaximumLength)]
+        [RegularExpression(StagingGroupIdValidation.Pattern, ErrorMessage = "Group IDs must start and end with a letter or number and may contain periods, underscores, and hyphens.")]
         [Display(Name = "Group ID")]
         public string Id { get; set; }
 

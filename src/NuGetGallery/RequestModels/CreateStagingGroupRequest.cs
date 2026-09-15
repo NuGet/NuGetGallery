@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
 
 namespace NuGetGallery
 {
@@ -16,8 +17,8 @@ namespace NuGetGallery
         /// Gets or sets the immutable owner-scoped group ID.
         /// </summary>
         [Required]
-        [StringLength(64)]
-        [RegularExpression(@"^[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?$")]
+        [StringLength(StagingGroupIdValidation.MaximumLength)]
+        [RegularExpression(StagingGroupIdValidation.Pattern)]
         public string Id { get; set; }
 
         /// <summary>
@@ -29,6 +30,17 @@ namespace NuGetGallery
         {
             get => _name;
             set => _name = value?.Trim();
+        }
+    }
+
+    internal static class StagingGroupIdValidation
+    {
+        public const int MaximumLength = 64;
+        public const string Pattern = @"^[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?$";
+
+        public static bool IsValid(string groupId)
+        {
+            return groupId != null && groupId.Length <= MaximumLength && Regex.IsMatch(groupId, Pattern);
         }
     }
 }

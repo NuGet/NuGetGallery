@@ -24,6 +24,7 @@ namespace NuGetGallery
     public class StagingApiController : AppController
     {
         private const string JsonContentType = "application/json";
+        private const string MultipartContentType = "multipart/form-data";
         private const int DefaultPageSize = 100;
         private const int MaximumPageSize = 500;
         private static readonly TimeSpan InitialGroupExpiration = TimeSpan.FromDays(30);
@@ -90,12 +91,40 @@ namespace NuGetGallery
         [HttpPut]
         public virtual async Task<ActionResult> StagePackage()
         {
-            var currentUser = GetCurrentUser();
-            var scopes = User.Identity.GetScopesFromClaim();
+            if (!MediaTypeWithQualityHeaderValue.TryParse(Request.ContentType, out var contentType)
+                || !string.Equals(contentType.MediaType, MultipartContentType, StringComparison.OrdinalIgnoreCase))
+            {
+                return Error(HttpStatusCode.UnsupportedMediaType, "UnsupportedMediaType", $"The request must have a Content-Type of '{MultipartContentType}'.");
+            }
 
             try
             {
-                var result = await _packageStagingUploadService.StagePackageAsync(currentUser, scopes, HttpContext, Request.InputStream);
+                if (Request.Files.Count != 1 || !string.Equals(Request.Files.GetKey(0), "package", StringComparison.OrdinalIgnoreCase))
+                {
+                    return Error(HttpStatusCode.BadRequest, "InvalidRequest", "The request must contain exactly one package file.", "package");
+                }
+
+                var formKeys = Request.Form.AllKeys.Where(key => key != null).ToList();
+                if (formKeys.Any(key => !string.Equals(key, "groupId", StringComparison.OrdinalIgnoreCase)))
+                {
+                    return Error(HttpStatusCode.BadRequest, "InvalidRequest", "The request contains an unknown field.");
+                }
+
+                var groupIdValues = Request.Form.GetValues("groupId");
+                if (groupIdValues?.Length > 1)
+                {
+                    return Error(HttpStatusCode.BadRequest, "InvalidRequest", "The request must contain at most one group ID.", "groupId");
+                }
+
+                var groupId = groupIdValues?.Single();
+                if (groupIdValues != null && !StagingGroupIdValidation.IsValid(groupId))
+                {
+                    return Error(HttpStatusCode.BadRequest, "InvalidRequest", "The group ID is invalid.", "groupId");
+                }
+
+                var currentUser = GetCurrentUser();
+                var scopes = User.Identity.GetScopesFromClaim();
+                var result = await _packageStagingUploadService.StagePackageAsync(currentUser, scopes, HttpContext, Request.Files[0].InputStream, groupId);
                 if (!result.Success)
                 {
                     return new HttpStatusCodeWithBodyResult(result.StatusCode, result.ErrorMessage);

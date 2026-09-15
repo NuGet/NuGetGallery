@@ -28,6 +28,7 @@ namespace NuGetGallery
             {
                 var currentUser = new User { Key = 17 };
                 var owner = new User { Key = 23, EmailAddress = "owner@example.com" };
+                var group = new StagingGroup { Key = 29, Id = "release", Owner = owner, OwnerKey = owner.Key };
                 var scopes = new List<Scope>();
                 var package = new Package
                 {
@@ -141,10 +142,15 @@ namespace NuGetGallery
                 featureFlagService
                     .Setup(x => x.IsPackageStagingEnabled(owner))
                     .Returns(true);
+                var packageStagingManagementService = new Mock<IPackageStagingManagementService>();
+                packageStagingManagementService
+                    .Setup(x => x.FindStagingGroup(owner, group.Id))
+                    .Returns(group);
 
                 var target = new PackageStagingUploadService(
                     apiScopeEvaluator.Object,
                     featureFlagService.Object,
+                    packageStagingManagementService.Object,
                     packageService.Object,
                     packageUploadService.Object,
                     Mock.Of<IReservedNamespaceService>(),
@@ -159,7 +165,8 @@ namespace NuGetGallery
                         currentUser,
                         scopes,
                         Mock.Of<HttpContextBase>(),
-                        packageFile);
+                        packageFile,
+                        group.Id);
 
                     Assert.True(result.Success, result.ErrorMessage);
                     Assert.Equal(HttpStatusCode.Created, result.StatusCode);
@@ -167,6 +174,8 @@ namespace NuGetGallery
 
                 Assert.Equal(PackageStatus.Staged, package.PackageStatusKey);
                 Assert.Equal(owner.Key, stagedPackage.StagedPackageIdentity.OwnerKey);
+                Assert.Equal(group.Key, stagedPackage.StagedPackageIdentity.StagingGroupKey);
+                Assert.Same(group, stagedPackage.StagedPackageIdentity.StagingGroup);
                 Assert.Equal(file.Path, stagedPackage.UploadedBlobPath);
                 Assert.Equal(file.ETag, stagedPackage.UploadedBlobETag);
                 Assert.Equal(streamMetadata.Hash, stagedPackage.UploadHash);
@@ -204,6 +213,7 @@ namespace NuGetGallery
                 var owner = new User { Key = 23, EmailAddress = "owner@example.com" };
                 var scopes = new List<Scope>();
                 var registration = new PackageRegistration { Id = "PackageA" };
+                var group = new StagingGroup { Key = 37, Id = "existing-group", Owner = owner, OwnerKey = owner.Key };
                 var package = new Package
                 {
                     Key = 29,
@@ -230,6 +240,8 @@ namespace NuGetGallery
                         Package = package,
                         OwnerKey = owner.Key,
                         Owner = owner,
+                        StagingGroupKey = group.Key,
+                        StagingGroup = group,
                     },
                     UploadedBlobPath = "old.nupkg",
                     UploadedBlobETag = "old-etag",
@@ -356,6 +368,7 @@ namespace NuGetGallery
                 var target = new PackageStagingUploadService(
                     apiScopeEvaluator.Object,
                     featureFlagService.Object,
+                    Mock.Of<IPackageStagingManagementService>(),
                     packageService.Object,
                     packageUploadService.Object,
                     Mock.Of<IReservedNamespaceService>(),
@@ -368,9 +381,12 @@ namespace NuGetGallery
                     currentUser,
                     scopes,
                     Mock.Of<HttpContextBase>(),
-                    packageFile);
+                    packageFile,
+                    groupId: null);
 
                 Assert.Equal(expectedStatusCode, result.StatusCode);
+                Assert.Equal(group.Key, stagedPackage.StagedPackageIdentity.StagingGroupKey);
+                Assert.Same(group, stagedPackage.StagedPackageIdentity.StagingGroup);
                 var isActiveNoOp = identical && (status == StagedPackageStatus.Validating || status == StagedPackageStatus.Ready);
                 var createsSuccessor = expectedStatusCode == HttpStatusCode.OK && !isActiveNoOp;
                 if (createsSuccessor && (status == StagedPackageStatus.Validating || status == StagedPackageStatus.Ready))
@@ -495,6 +511,7 @@ namespace NuGetGallery
                 return new PackageStagingUploadService(
                     Mock.Of<IApiScopeEvaluator>(),
                     Mock.Of<IFeatureFlagService>(),
+                    Mock.Of<IPackageStagingManagementService>(),
                     packageService,
                     Mock.Of<IPackageUploadService>(),
                     Mock.Of<IReservedNamespaceService>(),
