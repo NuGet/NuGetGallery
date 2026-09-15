@@ -2094,6 +2094,7 @@
     <Content Include="Views\Staging\CreateGroup.cshtml" />
     <Content Include="Views\Staging\DeleteGroup.cshtml" />
     <Content Include="Views\Staging\Group.cshtml" />
+    <Content Include="Views\Staging\MovePackage.cshtml" />
     <Content Include="Views\Users\Packages.cshtml" />
     <Content Include="App_Code\ViewHelpers.cshtml" />
     <Content Include="Views\Users\PasswordChanged.cshtml" />
