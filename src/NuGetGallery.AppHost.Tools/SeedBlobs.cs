@@ -144,6 +144,10 @@ static class SeedBlobsTool
       "@type": "PackagePublish/2.0.0"
     },
     {
+      "@id": "{{cfg.GalleryBaseAddress}}/api/v3/staging",
+      "@type": "PackageStaging/1.0.0"
+    },
+    {
       "@id": "{{cfg.GalleryBaseAddress}}/packages/{id}/{version}?_src=template",
       "@type": "PackageDetailsUriTemplate/5.1.0",
       "comment": "URI template for package details page."
