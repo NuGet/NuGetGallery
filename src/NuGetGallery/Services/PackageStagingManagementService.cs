@@ -315,8 +315,16 @@ namespace NuGetGallery
             StagingGroupDeletionResult result = null;
             await _stagingGroupRepository.ExecuteInTransactionAsync(async () =>
             {
-                var stagedPackages = GetCurrentStagedPackages(new[] { stagingOwner.Key })
+                var groupedAttempts = _stagedPackageRepository
+                    .GetAll()
+                    .Include(package => package.StagedPackageIdentity.Package)
+                    .Where(package => package.StagedPackageIdentity.OwnerKey == stagingOwner.Key)
                     .Where(package => package.StagedPackageIdentity.StagingGroupKey == group.Key)
+                    .Where(package => package.StagedPackageIdentity.CurrentStagedPackageKey == package.Key)
+                    .ToList();
+                var stagedPackages = groupedAttempts
+                    .Where(package => package.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Staged)
+                    .Where(package => package.Status != StagedPackageStatus.Superseded && package.Status != StagedPackageStatus.Deleted)
                     .ToList();
                 if (stagedPackages.Any(package => package.Status == StagedPackageStatus.Promoting))
                 {
@@ -324,15 +332,19 @@ namespace NuGetGallery
                     return;
                 }
 
-                foreach (var stagedPackage in stagedPackages)
+                foreach (var stagedPackage in groupedAttempts)
                 {
                     var identity = stagedPackage.StagedPackageIdentity;
-                    var package = identity.Package;
-                    stagedPackage.Status = StagedPackageStatus.Deleted;
-                    package.Listed = false;
                     identity.StagingGroupKey = null;
                     identity.StagingGroup = null;
-                    await _packageService.UpdatePackageStatusAsync(package, PackageStatus.Deleted, commitChanges: false);
+
+                    if (stagedPackages.Contains(stagedPackage))
+                    {
+                        var package = identity.Package;
+                        stagedPackage.Status = StagedPackageStatus.Deleted;
+                        package.Listed = false;
+                        await _packageService.UpdatePackageStatusAsync(package, PackageStatus.Deleted, commitChanges: false);
+                    }
                 }
 
                 _stagingGroupRepository.DeleteOnCommit(group);

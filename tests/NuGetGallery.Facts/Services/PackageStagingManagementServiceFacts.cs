@@ -261,7 +261,12 @@ namespace NuGetGallery
                 secondPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
                 secondPackage.StagedPackageIdentity.StagingGroup = group;
                 secondPackage.StagedPackageIdentity.Package.Listed = true;
-                var unrelatedPackage = CreateStagedPackage(102, "Other.Package", "3.0.0", currentUser);
+                var deletedPackage = CreateStagedPackage(102, "Deleted.Package", "3.0.0", currentUser);
+                deletedPackage.Status = StagedPackageStatus.Deleted;
+                deletedPackage.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Deleted;
+                deletedPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
+                deletedPackage.StagedPackageIdentity.StagingGroup = group;
+                var unrelatedPackage = CreateStagedPackage(103, "Other.Package", "4.0.0", currentUser);
                 var packageService = new Mock<IPackageService>();
                 packageService
                     .Setup(x => x.UpdatePackageStatusAsync(It.IsAny<Package>(), PackageStatus.Deleted, false))
@@ -269,7 +274,7 @@ namespace NuGetGallery
                     .Returns(Task.CompletedTask);
                 var stagingGroupRepository = new Mock<IEntityRepository<StagingGroup>>();
                 var target = CreateService(
-                    new[] { firstPackage, secondPackage, unrelatedPackage },
+                    new[] { firstPackage, secondPackage, deletedPackage, unrelatedPackage },
                     owner => true,
                     packageService: packageService.Object,
                     stagingGroups: new[] { group },
@@ -287,6 +292,10 @@ namespace NuGetGallery
                     Assert.Null(stagedPackage.StagedPackageIdentity.StagingGroupKey);
                     Assert.Null(stagedPackage.StagedPackageIdentity.StagingGroup);
                 });
+                Assert.Equal(StagedPackageStatus.Deleted, deletedPackage.Status);
+                Assert.Equal(PackageStatus.Deleted, deletedPackage.StagedPackageIdentity.Package.PackageStatusKey);
+                Assert.Null(deletedPackage.StagedPackageIdentity.StagingGroupKey);
+                Assert.Null(deletedPackage.StagedPackageIdentity.StagingGroup);
                 Assert.Equal(StagedPackageStatus.Validating, unrelatedPackage.Status);
                 packageService.Verify(
                     x => x.UpdatePackageStatusAsync(It.IsAny<Package>(), PackageStatus.Deleted, false),
@@ -661,6 +670,7 @@ namespace NuGetGallery
                 stagedPackagesSet.As<IQueryable<StagedPackage>>().Setup(x => x.Expression).Returns(stagedPackagesQuery.Expression);
                 stagedPackagesSet.As<IQueryable<StagedPackage>>().Setup(x => x.ElementType).Returns(stagedPackagesQuery.ElementType);
                 stagedPackagesSet.As<IQueryable<StagedPackage>>().Setup(x => x.GetEnumerator()).Returns(() => stagedPackagesQuery.GetEnumerator());
+                stagedPackagesSet.Setup(x => x.Include("StagedPackageIdentity.Package")).Returns(stagedPackagesSet.Object);
                 stagedPackagesSet.Setup(x => x.Include("StagedPackageIdentity.Package.PackageRegistration")).Returns(stagedPackagesSet.Object);
                 stagedPackagesSet.Setup(x => x.Include("StagedPackageIdentity.Owner")).Returns(stagedPackagesSet.Object);
                 stagedPackagesSet.Setup(x => x.Include("StagedPackageIdentity.StagingGroup")).Returns(stagedPackagesSet.Object);
