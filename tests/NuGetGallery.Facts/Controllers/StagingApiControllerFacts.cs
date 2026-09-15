@@ -556,6 +556,7 @@ namespace NuGetGallery
         private static void AssertError(StagingApiController controller, ActionResult result, HttpStatusCode statusCode, string code, string target = null)
         {
             var json = Assert.IsType<JsonResult>(result);
+            Assert.Equal(JsonRequestBehavior.AllowGet, json.JsonRequestBehavior);
             Mock.Get(controller.Response).VerifySet(x => x.StatusCode = (int)statusCode);
             var body = JObject.FromObject(json.Data);
             Assert.Equal(code, (string)body["error"]["code"]);

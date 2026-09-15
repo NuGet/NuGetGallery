@@ -26,31 +26,37 @@
             }
             else
             {
-                using (Html.BeginForm("RenameGroup", "Staging", new { owner = Model.Owner, groupId = Model.Id }, FormMethod.Post, new { @class = "form-inline staging-group-rename" }))
-                {
-                    @Html.AntiForgeryToken()
-                    <div class="staging-group-heading">
-                        <h1>
-                            <span class="staging-group-name@(showRenameForm ? " hidden" : string.Empty)">@Model.Name</span>
-                            @Html.Label("Name", "Display name", new { @class = "sr-only" })
-                            @Html.TextBox("Name", Model.Name, new { @class = "form-control input-brand staging-group-name-input" + (showRenameForm ? string.Empty : " hidden"), maxlength = 128, required = "required", aria_label = "Display name" })
-                            <button type="button"
-                                    class="btn btn-brand-icon staging-group-rename-trigger@(showRenameForm ? " hidden" : string.Empty)"
-                                    aria-label="Rename group"
-                                    title="Rename group">
-                                <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
-                            </button>
-                            <button type="submit"
-                                    class="btn btn-brand-icon staging-group-rename-confirm@(showRenameForm ? string.Empty : " hidden")"
-                                    aria-label="Confirm group name"
-                                    title="Confirm group name">
-                                <i class="ms-Icon ms-Icon--CheckMark" aria-hidden="true"></i>
-                            </button>
-                        </h1>
-                        @Html.ValidationMessage("Name", new { @class = "text-danger" })
-                        <span class="text-muted">@Model.Id</span>
-                    </div>
-                }
+                <div class="staging-group-header">
+                    @using (Html.BeginForm("RenameGroup", "Staging", new { owner = Model.Owner, groupId = Model.Id }, FormMethod.Post, new { @class = "form-inline staging-group-rename" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <div class="staging-group-heading">
+                            <h1>
+                                <span class="staging-group-name@(showRenameForm ? " hidden" : string.Empty)">@Model.Name</span>
+                                @Html.Label("Name", "Display name", new { @class = "sr-only" })
+                                @Html.TextBox("Name", Model.Name, new { @class = "form-control input-brand staging-group-name-input" + (showRenameForm ? string.Empty : " hidden"), maxlength = 128, required = "required", aria_label = "Display name" })
+                                <button type="button"
+                                        class="btn btn-brand-icon staging-group-rename-trigger@(showRenameForm ? " hidden" : string.Empty)"
+                                        aria-label="Rename group"
+                                        title="Rename group">
+                                    <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
+                                </button>
+                                <button type="submit"
+                                        class="btn btn-brand-icon staging-group-rename-confirm@(showRenameForm ? string.Empty : " hidden")"
+                                        aria-label="Confirm group name"
+                                        title="Confirm group name">
+                                    <i class="ms-Icon ms-Icon--CheckMark" aria-hidden="true"></i>
+                                </button>
+                            </h1>
+                            @Html.ValidationMessage("Name", new { @class = "text-danger" })
+                            <span class="text-muted">@Model.Id</span>
+                        </div>
+                    }
+                    <a class="btn btn-brand-danger staging-group-delete" href="@Url.DeleteStagingGroup(Model.Owner, Model.Id)">
+                        <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
+                        <span>Delete group</span>
+                    </a>
+                </div>
             }
 
             <div class="staging-group-summary">
@@ -67,13 +73,6 @@
                     <span class="label staging-status staging-status-failedvalidation">@Model.FailedCount failed</span>
                 }
             </div>
-
-            @if (!Model.IsUngrouped)
-            {
-                <p>
-                    <a class="btn btn-brand-danger" href="@Url.DeleteStagingGroup(Model.Owner, Model.Id)">Delete group</a>
-                </p>
-            }
 
             <hr class="breadcrumb-divider" />
 

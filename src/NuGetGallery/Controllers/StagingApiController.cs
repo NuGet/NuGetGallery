@@ -318,7 +318,7 @@ namespace NuGetGallery
         private JsonResult Error(HttpStatusCode statusCode, string code, string message, string target = null)
         {
             var error = target == null ? (object)new { code, message } : new { code, message, target };
-            return Json(statusCode, new { error });
+            return Json(statusCode, new { error }, JsonRequestBehavior.AllowGet);
         }
 
         private ActionResult ValidatePaging(int page, int pageSize)
