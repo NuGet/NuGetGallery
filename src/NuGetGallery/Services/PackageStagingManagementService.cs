@@ -317,7 +317,7 @@ namespace NuGetGallery
 
             if (identity.StagingGroupKey == group.Key)
             {
-                return StagingGroupMembershipResult.AlreadyMember;
+                return StagingGroupMembershipResult.Unchanged;
             }
 
             if (stagedPackage.Status == StagedPackageStatus.Promoting)
@@ -327,6 +327,40 @@ namespace NuGetGallery
 
             identity.StagingGroupKey = group.Key;
             identity.StagingGroup = group;
+            await _stagedPackageRepository.CommitChangesAsync();
+            return StagingGroupMembershipResult.Updated;
+        }
+
+        public async Task<StagingGroupMembershipResult> RemovePackageFromStagingGroupAsync(User stagingOwner, StagedPackage stagedPackage)
+        {
+            if (stagingOwner == null)
+            {
+                throw new ArgumentNullException(nameof(stagingOwner));
+            }
+
+            if (stagedPackage == null)
+            {
+                throw new ArgumentNullException(nameof(stagedPackage));
+            }
+
+            var identity = stagedPackage.StagedPackageIdentity;
+            if (identity.OwnerKey != stagingOwner.Key)
+            {
+                throw new ArgumentException("The staged package must belong to the authorized owner.");
+            }
+
+            if (!identity.StagingGroupKey.HasValue)
+            {
+                return StagingGroupMembershipResult.Unchanged;
+            }
+
+            if (stagedPackage.Status == StagedPackageStatus.Promoting)
+            {
+                return StagingGroupMembershipResult.Conflict;
+            }
+
+            identity.StagingGroupKey = null;
+            identity.StagingGroup = null;
             await _stagedPackageRepository.CommitChangesAsync();
             return StagingGroupMembershipResult.Updated;
         }

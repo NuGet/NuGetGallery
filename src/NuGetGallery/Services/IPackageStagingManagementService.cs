@@ -123,6 +123,14 @@ namespace NuGetGallery
         Task<StagingGroupMembershipResult> AddPackageToStagingGroupAsync(User stagingOwner, StagingGroup group, StagedPackage stagedPackage);
 
         /// <summary>
+        /// Removes a staged package identity from an owner-scoped group.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="stagedPackage">The current staged package attempt whose identity should become ungrouped.</param>
+        /// <returns>The membership update result.</returns>
+        Task<StagingGroupMembershipResult> RemovePackageFromStagingGroupAsync(User stagingOwner, StagedPackage stagedPackage);
+
+        /// <summary>
         /// Gets staging group summaries for an authorized owner.
         /// </summary>
         /// <param name="stagingOwner">The authorized staging owner.</param>
@@ -133,7 +141,7 @@ namespace NuGetGallery
     public enum StagingGroupMembershipResult
     {
         Updated,
-        AlreadyMember,
+        Unchanged,
         Conflict,
     }
 }

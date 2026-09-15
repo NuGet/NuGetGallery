@@ -18,7 +18,7 @@
             </div>
 
             <h1>Move Staged Package</h1>
-            <p>Move <strong>@Model.Id @Model.Version</strong> to another staging group.</p>
+            <p>Move <strong>@Model.Id @Model.Version</strong> to another staging group or to Ungrouped.</p>
 
             @using (Html.BeginForm("MovePackage", "Staging", new { owner = Model.Owner, id = Model.Id, version = Model.Version }, FormMethod.Post, null))
             {
@@ -26,11 +26,11 @@
                 @Html.ValidationSummary(excludePropertyErrors: true)
 
                 <div class="form-group @Html.HasErrorFor(model => model.GroupId)">
-                    <span class="required">@Html.ShowLabelFor(model => model.GroupId)</span>
+                    <label for="@Html.IdFor(model => model.GroupId)">Group</label>
                     @Html.DropDownListFor(
                         model => model.GroupId,
                         new SelectList(Model.Groups, "Id", "Name", Model.GroupId),
-                        new { @class = "form-control select-brand" })
+                        new { @class = "form-control select-brand staging-move-group-select" })
                     @Html.ShowValidationMessagesFor(model => model.GroupId)
                 </div>
 

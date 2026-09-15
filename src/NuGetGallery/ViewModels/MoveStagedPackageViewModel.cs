@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 
 namespace NuGetGallery
 {
@@ -14,8 +13,6 @@ namespace NuGetGallery
 
         public string Version { get; set; }
 
-        [Required]
-        [Display(Name = "Group")]
         public string GroupId { get; set; }
 
         public IReadOnlyList<StagingGroupAssignmentViewModel> Groups { get; set; }

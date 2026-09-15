@@ -247,10 +247,13 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var group = string.IsNullOrWhiteSpace(model?.GroupId)
-                ? null
-                : _packageStagingManagementService.FindStagingGroup(stagingOwner, model.GroupId);
-            if (group == null)
+            if (model == null)
+            {
+                ModelState.AddModelError(nameof(MoveStagedPackageViewModel.GroupId), "Select an available staging group.");
+            }
+
+            var group = string.IsNullOrWhiteSpace(model?.GroupId) ? null : _packageStagingManagementService.FindStagingGroup(stagingOwner, model.GroupId);
+            if (!string.IsNullOrWhiteSpace(model?.GroupId) && group == null)
             {
                 ModelState.AddModelError(nameof(model.GroupId), "Select an available staging group.");
             }
@@ -262,12 +265,23 @@ namespace NuGetGallery
                 return View(viewModel);
             }
 
-            var result = await _packageStagingManagementService.AddPackageToStagingGroupAsync(stagingOwner, group, stagedPackage);
+            StagingGroupMembershipResult result;
+            if (group == null)
+            {
+                result = await _packageStagingManagementService.RemovePackageFromStagingGroupAsync(stagingOwner, stagedPackage);
+            }
+            else
+            {
+                result = await _packageStagingManagementService.AddPackageToStagingGroupAsync(stagingOwner, group, stagedPackage);
+            }
+
             switch (result)
             {
                 case StagingGroupMembershipResult.Updated:
-                case StagingGroupMembershipResult.AlreadyMember:
-                    return Redirect(Url.ManageStagingGroup(group.Owner.Username, group.Id));
+                case StagingGroupMembershipResult.Unchanged:
+                    return group == null
+                        ? Redirect(Url.ManageUngroupedStaging(stagingOwner.Username))
+                        : Redirect(Url.ManageStagingGroup(group.Owner.Username, group.Id));
                 case StagingGroupMembershipResult.Conflict:
                     ModelState.AddModelError(string.Empty, "The staged package cannot be moved while promotion is active.");
                     var viewModel = CreateMovePackageViewModel(currentUser, stagedPackage);
@@ -292,6 +306,14 @@ namespace NuGetGallery
                     Name = group.Name,
                 })
                 .ToList();
+            if (identity.StagingGroupKey.HasValue)
+            {
+                groups.Insert(0, new StagingGroupAssignmentViewModel
+                {
+                    Id = null,
+                    Name = "Ungrouped",
+                });
+            }
 
             return new MoveStagedPackageViewModel
             {

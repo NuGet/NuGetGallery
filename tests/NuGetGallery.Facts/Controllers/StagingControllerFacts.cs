@@ -430,6 +430,102 @@ namespace NuGetGallery
         }
 
         [Fact]
+        public void OffersUngroupedAndOtherGroupsAsMoveTargets()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var currentGroup = new StagingGroup
+            {
+                Key = 10,
+                OwnerKey = currentUser.Key,
+                Owner = currentUser,
+                Id = "current",
+                Name = "Current",
+            };
+            var targetGroup = new StagingGroup
+            {
+                Key = 11,
+                OwnerKey = currentUser.Key,
+                Owner = currentUser,
+                Id = "target",
+                Name = "Target",
+            };
+            var stagedPackage = CreateStagedPackage(currentUser);
+            stagedPackage.StagedPackageIdentity.StagingGroupKey = currentGroup.Key;
+            GetMock<IPackageStagingAuthorizationService>()
+                .Setup(x => x.GetEnabledOwner(currentUser, currentUser.Username))
+                .Returns(currentUser);
+            GetMock<IPackageStagingAuthorizationService>()
+                .Setup(x => x.CanManage(currentUser, stagedPackage))
+                .Returns(true);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
+                .Returns(stagedPackage);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagingGroups(currentUser))
+                .Returns(new[] { currentGroup, targetGroup });
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(currentUser);
+
+            var result = target.MovePackage(currentUser.Username, "PackageA", "1.0.0");
+
+            var model = ResultAssert.IsView<MoveStagedPackageViewModel>(result);
+            Assert.Collection(
+                model.Groups,
+                group =>
+                {
+                    Assert.Null(group.Id);
+                    Assert.Equal("Ungrouped", group.Name);
+                },
+                group =>
+                {
+                    Assert.Equal(targetGroup.Id, group.Id);
+                    Assert.Equal(targetGroup.Name, group.Name);
+                });
+        }
+
+        [Fact]
+        public async Task MovesAnAuthorizedPackageToUngrouped()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var group = new StagingGroup
+            {
+                Key = 10,
+                OwnerKey = currentUser.Key,
+                Owner = currentUser,
+                Id = "release",
+                Name = "Release",
+            };
+            var stagedPackage = CreateStagedPackage(currentUser);
+            stagedPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
+            stagedPackage.StagedPackageIdentity.StagingGroup = group;
+            GetMock<IPackageStagingAuthorizationService>()
+                .Setup(x => x.GetEnabledOwner(currentUser, currentUser.Username))
+                .Returns(currentUser);
+            GetMock<IPackageStagingAuthorizationService>()
+                .Setup(x => x.CanManage(currentUser, stagedPackage))
+                .Returns(true);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
+                .Returns(stagedPackage);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagingGroups(currentUser))
+                .Returns(new[] { group });
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.RemovePackageFromStagingGroupAsync(currentUser, stagedPackage))
+                .ReturnsAsync(StagingGroupMembershipResult.Updated);
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(currentUser);
+
+            var result = await target.MovePackage(
+                currentUser.Username,
+                "PackageA",
+                "1.0.0",
+                new MoveStagedPackageViewModel { GroupId = null });
+
+            ResultAssert.IsRedirectTo(result, "/account/staging/current/ungrouped");
+        }
+
+        [Fact]
         public async Task RedisplaysMovePageWhenPackageCannotBeMoved()
         {
             var currentUser = new User("current") { Key = 1 };
