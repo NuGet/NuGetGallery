@@ -164,14 +164,6 @@ namespace NuGetGallery
                 Name = "Test group",
                 CreatedDate = new System.DateTime(2026, 9, 10),
             };
-            var destinationGroup = new StagingGroup
-            {
-                Key = 11,
-                OwnerKey = currentUser.Key,
-                Owner = currentUser,
-                Id = "next-group",
-                Name = "Next group",
-            };
             var failedPackage = CreateStagedPackage(42, "Failed.Package", "1.0.0", currentUser, StagedPackageStatus.FailedValidation);
             failedPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
             var readyPackage = CreateStagedPackage(43, "Ready.Package", "2.0.0", currentUser, StagedPackageStatus.Ready);
@@ -189,7 +181,7 @@ namespace NuGetGallery
                 .Returns(new[] { readyPackage, ungroupedPackage, failedPackage });
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.GetStagingGroups(currentUser))
-                .Returns(new[] { group, destinationGroup });
+                .Returns(new[] { group });
             GetMock<IValidationService>()
                 .Setup(x => x.GetStagedPackageValidationIssues(
                     It.Is<IReadOnlyCollection<int>>(keys => keys.SequenceEqual(new[] { failedPackage.Key }))))

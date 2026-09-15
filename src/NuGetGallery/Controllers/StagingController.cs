@@ -423,21 +423,24 @@ namespace NuGetGallery
                 .Select(stagedPackage =>
                 {
                     validationIssues.TryGetValue(stagedPackage.Key, out var issues);
+                    var identity = stagedPackage.StagedPackageIdentity;
+                    var package = identity.Package;
+                    var hasMoveTarget = identity.StagingGroupKey.HasValue || stagingGroups.Any(group => group.Key != identity.StagingGroupKey);
+                    var moveUrl = hasMoveTarget ? Url.MoveStagedPackage(identity.Owner.Username, package.PackageRegistration.Id, package.NormalizedVersion) : null;
+
                     return new PackageStagingViewModel
                     {
-                        Id = stagedPackage.StagedPackageIdentity.Package.PackageRegistration.Id,
-                        Version = stagedPackage.StagedPackageIdentity.Package.NormalizedVersion,
-                        Owner = stagedPackage.StagedPackageIdentity.Owner.Username,
+                        Id = package.PackageRegistration.Id,
+                        Version = package.NormalizedVersion,
+                        Owner = identity.Owner.Username,
                         Status = stagedPackage.Status.ToString(),
                         StatusClass = $"staging-status-{stagedPackage.Status.ToString().ToLowerInvariant()}",
                         UploadedDate = stagedPackage.UploadedDate,
                         ValidationIssues = issues ?? [],
-                        Listed = stagedPackage.StagedPackageIdentity.Package.Listed,
+                        Listed = package.Listed,
                         CanManage = true,
-                        CanPromote = stagedPackage.Status == StagedPackageStatus.Ready && !stagedPackage.StagedPackageIdentity.StagingGroupKey.HasValue,
-                        MoveUrl = stagingGroups.Any(group => group.Key != stagedPackage.StagedPackageIdentity.StagingGroupKey)
-                            ? Url.MoveStagedPackage(stagedPackage.StagedPackageIdentity.Owner.Username, stagedPackage.StagedPackageIdentity.Package.PackageRegistration.Id, stagedPackage.StagedPackageIdentity.Package.NormalizedVersion)
-                            : null,
+                        CanPromote = stagedPackage.Status == StagedPackageStatus.Ready && !identity.StagingGroupKey.HasValue,
+                        MoveUrl = moveUrl,
                     };
                 })
                 .ToList();
