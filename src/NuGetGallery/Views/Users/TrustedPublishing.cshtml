@@ -529,6 +529,14 @@
                             </label>
                         </div>
                     </li>
+                    <li>
+                        <div class="row-checkbox-label">
+                            <label class="brand-checkbox" data-bind="attr: { for: StageScopeCheckedUid, id: StageScopeCheckedUid() + '-label' }">
+                                <input type="checkbox" data-bind="checked: StageScopeChecked, enable: StageEnabled, attr: { id: StageScopeCheckedUid, 'aria-labelledby': StageScopeCheckedUid() + '-label' }" />
+                                <span>@NuGetScopes.Describe(NuGetScopes.PackageStage, isDeprecateApiEnabled: Model.IsDeprecateApiEnabled)</span>
+                            </label>
+                        </div>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -610,6 +618,7 @@
                          PackagePushScope = NuGetScopes.PackagePush,
                          PackagePushVersionScope = NuGetScopes.PackagePushVersion,
                          PackageUnlistScope = NuGetScopes.PackageUnlist,
+                         PackageStageScope = NuGetScopes.PackageStage,
                          GenerateUrl = Url.GenerateTrustedPublisherPolicy(),
                          EditUrl = Url.EditTrustedPublisherPolicy(),
                          EnableUrl = Url.EnableTrustedPublisherPolicy(),
