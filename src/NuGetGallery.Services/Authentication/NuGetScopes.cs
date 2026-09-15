@@ -12,9 +12,10 @@ namespace NuGetGallery.Authentication
         public const string PackagePushVersion = "package:pushversion";
         public const string PackagePush = "package:push";
         public const string PackageUnlist = "package:unlist";
+        public const string PackageStage = "package:stage";
         public const string PackageVerify = "package:verify";
 
-        public static readonly IList<string> ListOfScopes = [ All, PackagePushVersion, PackagePush, PackageUnlist, PackageVerify ];
+        public static readonly IList<string> ListOfScopes = [ All, PackagePushVersion, PackagePush, PackageUnlist, PackageStage, PackageVerify ];
 
         public static string Describe(string scope, bool isDeprecateApiEnabled)
         {
@@ -28,6 +29,8 @@ namespace NuGetGallery.Authentication
                     return ServicesStrings.ScopeDescription_PushPackageVersion;
                 case PackageUnlist:
                     return isDeprecateApiEnabled ? ServicesStrings.ScopeDescription_UnlistDeprecatePackage : ServicesStrings.ScopeDescription_UnlistPackage;
+                case PackageStage:
+                    return ServicesStrings.ScopeDescription_StagePackage;
                 case PackageVerify:
                     return ServicesStrings.ScopeDescription_VerifyPackage;
             }
