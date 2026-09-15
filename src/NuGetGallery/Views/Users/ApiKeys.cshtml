@@ -404,6 +404,16 @@
                             </label>
                         </div>
                     </li>
+                    <li>
+                        <div class="row-checkbox-label">
+                            <label id="select-scopes-stage" class="brand-checkbox">
+                                <input type="checkbox" value="@NuGetScopes.PackageStage"
+                                       aria-labelledby="select-scopes-stage select-scopes"
+                                       data-bind="checked: StageScopeChecked, enable: StageEnabled" />
+                                <span>@NuGetScopes.Describe(NuGetScopes.PackageStage, Model.IsDeprecationApiEnabled)</span>
+                            </label>
+                        </div>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -534,6 +544,7 @@
                          PackagePushScope = NuGetScopes.PackagePush,
                          PackagePushVersionScope = NuGetScopes.PackagePushVersion,
                          PackageUnlistScope = NuGetScopes.PackageUnlist,
+                         PackageStageScope = NuGetScopes.PackageStage,
                          RemoveUrl = Url.RemoveCredential(),
                          RevokeUrl = Url.RevokeApiKeyCredential(),
                          RegenerateUrl = Url.RegenerateCredential(),
