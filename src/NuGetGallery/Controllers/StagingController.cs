@@ -167,8 +167,12 @@ namespace NuGetGallery
                     stagedPackage.StagedPackageIdentity.OwnerKey == group.OwnerKey &&
                     stagedPackage.StagedPackageIdentity.StagingGroupKey == group.Key)
                 .ToList();
+            var stagingGroups = _packageStagingManagementService
+                .GetStagingGroups(currentUser)
+                .Where(candidate => candidate.OwnerKey == group.OwnerKey)
+                .ToList();
 
-            return View(CreateGroupViewModel(group.Owner.Username, group.Id, group.Name, null, stagedPackages));
+            return View(CreateGroupViewModel(group.Owner.Username, group.Id, group.Name, null, stagedPackages, stagingGroups));
         }
 
         [HttpGet]
@@ -190,9 +194,113 @@ namespace NuGetGallery
             }
 
             var canonicalOwner = stagedPackages[0].StagedPackageIdentity.Owner.Username;
-            var model = CreateGroupViewModel(canonicalOwner, id: null, "Ungrouped", "Staged packages not in any group", stagedPackages);
+            var stagingGroups = _packageStagingManagementService
+                .GetStagingGroups(GetCurrentUser())
+                .Where(group => string.Equals(group.Owner.Username, canonicalOwner, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            var model = CreateGroupViewModel(canonicalOwner, id: null, "Ungrouped", "Staged packages not in any group", stagedPackages, stagingGroups);
 
             return View("Group", model);
+        }
+
+        [HttpGet]
+        public virtual ActionResult MovePackage(string owner, string id, string version)
+        {
+            ValidatePackageIdentity(id, version);
+            if (string.IsNullOrWhiteSpace(owner))
+            {
+                return HttpNotFound();
+            }
+
+            var currentUser = GetCurrentUser();
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledOwner(currentUser, owner);
+            var stagedPackage = _packageStagingManagementService.FindCurrentStagedPackage(id, version);
+            if (stagingOwner == null
+                || stagedPackage == null
+                || stagedPackage.StagedPackageIdentity.OwnerKey != stagingOwner.Key
+                || !_packageStagingAuthorizationService.CanManage(currentUser, stagedPackage))
+            {
+                return HttpNotFound();
+            }
+
+            return View(CreateMovePackageViewModel(currentUser, stagedPackage));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> MovePackage(string owner, string id, string version, MoveStagedPackageViewModel model)
+        {
+            ValidatePackageIdentity(id, version);
+            if (string.IsNullOrWhiteSpace(owner))
+            {
+                return HttpNotFound();
+            }
+
+            var currentUser = GetCurrentUser();
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledOwner(currentUser, owner);
+            var stagedPackage = _packageStagingManagementService.FindCurrentStagedPackage(id, version);
+            if (stagingOwner == null
+                || stagedPackage == null
+                || stagedPackage.StagedPackageIdentity.OwnerKey != stagingOwner.Key
+                || !_packageStagingAuthorizationService.CanManage(currentUser, stagedPackage))
+            {
+                return HttpNotFound();
+            }
+
+            var group = string.IsNullOrWhiteSpace(model?.GroupId)
+                ? null
+                : _packageStagingManagementService.FindStagingGroup(stagingOwner, model.GroupId);
+            if (group == null)
+            {
+                ModelState.AddModelError(nameof(model.GroupId), "Select an available staging group.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                var viewModel = CreateMovePackageViewModel(currentUser, stagedPackage);
+                viewModel.GroupId = model?.GroupId;
+                return View(viewModel);
+            }
+
+            var result = await _packageStagingManagementService.AddPackageToStagingGroupAsync(stagingOwner, group, stagedPackage);
+            switch (result)
+            {
+                case StagingGroupMembershipResult.Updated:
+                case StagingGroupMembershipResult.AlreadyMember:
+                    return Redirect(Url.ManageStagingGroup(group.Owner.Username, group.Id));
+                case StagingGroupMembershipResult.Conflict:
+                    ModelState.AddModelError(string.Empty, "The staged package cannot be moved while promotion is active.");
+                    var viewModel = CreateMovePackageViewModel(currentUser, stagedPackage);
+                    viewModel.GroupId = model.GroupId;
+                    return View(viewModel);
+                default:
+                    throw new InvalidOperationException($"Unknown staging group membership result '{result}'.");
+            }
+        }
+
+        private MoveStagedPackageViewModel CreateMovePackageViewModel(User currentUser, StagedPackage stagedPackage)
+        {
+            var identity = stagedPackage.StagedPackageIdentity;
+            var groups = _packageStagingManagementService
+                .GetStagingGroups(currentUser)
+                .Where(group => group.OwnerKey == identity.OwnerKey && group.Key != identity.StagingGroupKey)
+                .OrderBy(group => group.Name)
+                .ThenBy(group => group.Id)
+                .Select(group => new StagingGroupAssignmentViewModel
+                {
+                    Id = group.Id,
+                    Name = group.Name,
+                })
+                .ToList();
+
+            return new MoveStagedPackageViewModel
+            {
+                Owner = identity.Owner.Username,
+                Id = identity.Package.PackageRegistration.Id,
+                Version = identity.Package.NormalizedVersion,
+                Groups = groups,
+                GroupId = groups.FirstOrDefault()?.Id,
+            };
         }
 
         private IReadOnlyList<string> GetStagingOwnerNames()
@@ -208,7 +316,8 @@ namespace NuGetGallery
             string id,
             string name,
             string description,
-            IReadOnlyCollection<StagedPackage> stagedPackages)
+            IReadOnlyCollection<StagedPackage> stagedPackages,
+            IReadOnlyCollection<StagingGroup> stagingGroups)
         {
             var orderedStagedPackages = stagedPackages
                 .OrderBy(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageRegistration.Id)
@@ -237,7 +346,10 @@ namespace NuGetGallery
                         ValidationIssues = issues ?? [],
                         Listed = stagedPackage.StagedPackageIdentity.Package.Listed,
                         CanManage = true,
-                        CanPromote = stagedPackage.Status == StagedPackageStatus.Ready,
+                        CanPromote = stagedPackage.Status == StagedPackageStatus.Ready && !stagedPackage.StagedPackageIdentity.StagingGroupKey.HasValue,
+                        MoveUrl = stagingGroups.Any(group => group.Key != stagedPackage.StagedPackageIdentity.StagingGroupKey)
+                            ? Url.MoveStagedPackage(stagedPackage.StagedPackageIdentity.Owner.Username, stagedPackage.StagedPackageIdentity.Package.PackageRegistration.Id, stagedPackage.StagedPackageIdentity.Package.NormalizedVersion)
+                            : null,
                     };
                 })
                 .ToList();
@@ -364,6 +476,9 @@ namespace NuGetGallery
                     return HttpNotFound();
                 case PackageStagingPromotionResult.NotReady:
                     TempData["ErrorMessage"] = "The staged package is not ready for promotion.";
+                    return Redirect(Url.ManageMyPackages());
+                case PackageStagingPromotionResult.Grouped:
+                    TempData["ErrorMessage"] = "Promote this package with its staging group.";
                     return Redirect(Url.ManageMyPackages());
                 default:
                     throw new InvalidOperationException($"Unknown package promotion result '{result}'.");

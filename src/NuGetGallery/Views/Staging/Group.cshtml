@@ -182,6 +182,11 @@
                                                 <li data-bind="css: { disabled: IsBusy }">
                                                     <a data-bind="click: FollowLink, attr: { href: DownloadUrl, 'aria-disabled': IsBusy() ? 'true' : null, tabindex: IsBusy() ? '-1' : null }">Download</a>
                                                 </li>
+                                                <!-- ko if: MoveUrl -->
+                                                <li data-bind="css: { disabled: IsBusy }">
+                                                    <a data-bind="click: FollowLink, attr: { href: MoveUrl, 'aria-disabled': IsBusy() ? 'true' : null, tabindex: IsBusy() ? '-1' : null }">Move</a>
+                                                </li>
+                                                <!-- /ko -->
                                                 <li data-bind="css: { disabled: IsBusy }">
                                                     <a href="#"
                                                        class="staging-replace-trigger"
@@ -296,6 +301,7 @@
             package.CanManage,
             package.CanPromote,
             package.Listed,
+            package.MoveUrl,
             ListedInputId = "staged-listed-" + index,
             DownloadUrl = Url.DownloadStagedPackage(package.Id, package.Version),
             ReplaceUrl = Url.ReplaceStagedPackage(package.Id, package.Version),

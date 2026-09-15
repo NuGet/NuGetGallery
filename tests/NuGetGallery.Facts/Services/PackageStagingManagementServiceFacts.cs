@@ -249,6 +249,69 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task MovesAStagedPackageIdentityToAGroup()
+            {
+                var currentUser = new User("current") { Key = 1 };
+                var previousGroup = CreateStagingGroup(10, "previous", "Previous", currentUser);
+                var targetGroup = CreateStagingGroup(11, "target", "Target", currentUser);
+                var stagedPackage = CreateStagedPackage(100, "Test.Package", "1.0.0", currentUser);
+                stagedPackage.StagedPackageIdentity.StagingGroupKey = previousGroup.Key;
+                stagedPackage.StagedPackageIdentity.StagingGroup = previousGroup;
+                var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
+                var target = CreateService(
+                    new[] { stagedPackage },
+                    owner => true,
+                    stagedPackageRepository: stagedPackageRepository);
+
+                var result = await target.AddPackageToStagingGroupAsync(currentUser, targetGroup, stagedPackage);
+
+                Assert.Equal(StagingGroupMembershipResult.Updated, result);
+                Assert.Equal(targetGroup.Key, stagedPackage.StagedPackageIdentity.StagingGroupKey);
+                Assert.Same(targetGroup, stagedPackage.StagedPackageIdentity.StagingGroup);
+                stagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
+            }
+
+            [Fact]
+            public async Task TreatsExistingGroupMembershipAsANoOp()
+            {
+                var currentUser = new User("current") { Key = 1 };
+                var group = CreateStagingGroup(10, "release", "Release", currentUser);
+                var stagedPackage = CreateStagedPackage(100, "Test.Package", "1.0.0", currentUser);
+                stagedPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
+                stagedPackage.StagedPackageIdentity.StagingGroup = group;
+                var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
+                var target = CreateService(
+                    new[] { stagedPackage },
+                    owner => true,
+                    stagedPackageRepository: stagedPackageRepository);
+
+                var result = await target.AddPackageToStagingGroupAsync(currentUser, group, stagedPackage);
+
+                Assert.Equal(StagingGroupMembershipResult.AlreadyMember, result);
+                stagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
+            }
+
+            [Fact]
+            public async Task RejectsMovingAPromotingPackage()
+            {
+                var currentUser = new User("current") { Key = 1 };
+                var group = CreateStagingGroup(10, "release", "Release", currentUser);
+                var stagedPackage = CreateStagedPackage(100, "Test.Package", "1.0.0", currentUser);
+                stagedPackage.Status = StagedPackageStatus.Promoting;
+                var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
+                var target = CreateService(
+                    new[] { stagedPackage },
+                    owner => true,
+                    stagedPackageRepository: stagedPackageRepository);
+
+                var result = await target.AddPackageToStagingGroupAsync(currentUser, group, stagedPackage);
+
+                Assert.Equal(StagingGroupMembershipResult.Conflict, result);
+                Assert.Null(stagedPackage.StagedPackageIdentity.StagingGroupKey);
+                stagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
+            }
+
+            [Fact]
             public void ListsOnlyNewestApiKeyAuthorizedAttempts()
             {
                 var currentUser = new User("current") { Key = 1 };

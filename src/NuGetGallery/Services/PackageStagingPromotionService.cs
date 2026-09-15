@@ -51,6 +51,11 @@ namespace NuGetGallery
                 return PackageStagingPromotionResult.Unauthorized;
             }
 
+            if (stagedPackage.StagedPackageIdentity.StagingGroupKey.HasValue)
+            {
+                return PackageStagingPromotionResult.Grouped;
+            }
+
             if (stagedPackage.Status != StagedPackageStatus.Ready)
             {
                 return PackageStagingPromotionResult.NotReady;

@@ -33,6 +33,7 @@
         this.ValidationIssuesId = packageItem.ValidationIssuesId;
         this.CanManage = packageItem.CanManage;
         this.CanPromote = packageItem.CanPromote;
+        this.MoveUrl = packageItem.MoveUrl;
         this.ListedInputId = packageItem.ListedInputId;
         this.DownloadUrl = packageItem.DownloadUrl;
         this.ReplaceUrl = packageItem.ReplaceUrl;

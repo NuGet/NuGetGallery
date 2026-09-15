@@ -114,10 +114,26 @@ namespace NuGetGallery
         Task<StagingGroup> RenameStagingGroupAsync(User stagingOwner, string groupId, string name);
 
         /// <summary>
+        /// Adds or moves a staged package identity to an owner-scoped group.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="group">The target staging group.</param>
+        /// <param name="stagedPackage">The current staged package attempt whose identity should move.</param>
+        /// <returns>The membership update result.</returns>
+        Task<StagingGroupMembershipResult> AddPackageToStagingGroupAsync(User stagingOwner, StagingGroup group, StagedPackage stagedPackage);
+
+        /// <summary>
         /// Gets staging group summaries for an authorized owner.
         /// </summary>
         /// <param name="stagingOwner">The authorized staging owner.</param>
         /// <returns>The staging groups and current package attempts owned by the owner.</returns>
         IReadOnlyList<StagingGroupSummary> GetStagingGroupSummaries(User stagingOwner);
+    }
+
+    public enum StagingGroupMembershipResult
+    {
+        Updated,
+        AlreadyMember,
+        Conflict,
     }
 }

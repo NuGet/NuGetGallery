@@ -292,6 +292,45 @@ namespace NuGetGallery
             return group;
         }
 
+        public async Task<StagingGroupMembershipResult> AddPackageToStagingGroupAsync(User stagingOwner, StagingGroup group, StagedPackage stagedPackage)
+        {
+            if (stagingOwner == null)
+            {
+                throw new ArgumentNullException(nameof(stagingOwner));
+            }
+
+            if (group == null)
+            {
+                throw new ArgumentNullException(nameof(group));
+            }
+
+            if (stagedPackage == null)
+            {
+                throw new ArgumentNullException(nameof(stagedPackage));
+            }
+
+            var identity = stagedPackage.StagedPackageIdentity;
+            if (group.OwnerKey != stagingOwner.Key || identity.OwnerKey != stagingOwner.Key)
+            {
+                throw new ArgumentException("The staging group and package must belong to the authorized owner.");
+            }
+
+            if (identity.StagingGroupKey == group.Key)
+            {
+                return StagingGroupMembershipResult.AlreadyMember;
+            }
+
+            if (stagedPackage.Status == StagedPackageStatus.Promoting)
+            {
+                return StagingGroupMembershipResult.Conflict;
+            }
+
+            identity.StagingGroupKey = group.Key;
+            identity.StagingGroup = group;
+            await _stagedPackageRepository.CommitChangesAsync();
+            return StagingGroupMembershipResult.Updated;
+        }
+
         public IReadOnlyList<StagingGroupSummary> GetStagingGroupSummaries(User stagingOwner)
         {
             if (stagingOwner == null)

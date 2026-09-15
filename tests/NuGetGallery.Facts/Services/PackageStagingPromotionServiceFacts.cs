@@ -79,6 +79,23 @@ namespace NuGetGallery
         }
 
         [Fact]
+        public async Task RejectsPackageThatBelongsToAGroup()
+        {
+            var stagedPackage = CreateStagedPackage(StagedPackageStatus.Ready);
+            stagedPackage.StagedPackageIdentity.StagingGroupKey = 10;
+            var repository = new Mock<IEntityRepository<StagedPackage>>();
+            var enqueuer = new Mock<IStagedPackagePromotionMessageEnqueuer>();
+            var target = CreateService(repository, enqueuer);
+
+            var result = await target.PromotePackageAsync(new User("owner"), stagedPackage);
+
+            Assert.Equal(PackageStagingPromotionResult.Grouped, result);
+            Assert.Equal(StagedPackageStatus.Ready, stagedPackage.Status);
+            repository.Verify(x => x.CommitChangesAsync(), Times.Never);
+            enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagedPackagePromotionMessage>()), Times.Never);
+        }
+
+        [Fact]
         public async Task RollsBackAcceptanceWhenSendingFails()
         {
             var committedStatuses = new List<StagedPackageStatus>();

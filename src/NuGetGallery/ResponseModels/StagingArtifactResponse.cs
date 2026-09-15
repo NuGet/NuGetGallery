@@ -63,7 +63,18 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(package));
             }
 
-            var canPromote = package.Status == StagedPackageStatus.Ready;
+            var isGrouped = package.StagedPackageIdentity.StagingGroupKey.HasValue;
+            var canPromote = package.Status == StagedPackageStatus.Ready && !isGrouped;
+            var blockers = new List<StagingBlockerResponse>();
+            if (isGrouped)
+            {
+                blockers.Add(new StagingBlockerResponse("PackageGrouped", "The staged package must be promoted with its group."));
+            }
+            else if (!canPromote)
+            {
+                blockers.Add(new StagingBlockerResponse("PackageNotReady", "The staged package is not ready for promotion."));
+            }
+
             return new StagingArtifactResponse
             {
                 Id = package.StagedPackageIdentity.Package.PackageRegistration.Id,
@@ -80,9 +91,7 @@ namespace NuGetGallery
                 Expires = expirationDate.ToUtcIso8601String(),
                 Listed = package.StagedPackageIdentity.Package.Listed,
                 CanPromote = canPromote,
-                Blockers = canPromote
-                    ? Array.Empty<StagingBlockerResponse>()
-                    : new[] { new StagingBlockerResponse("PackageNotReady", "The staged package is not ready for promotion.") },
+                Blockers = blockers,
                 ManagementUrl = managementUrl,
             };
         }

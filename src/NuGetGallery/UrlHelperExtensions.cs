@@ -1207,6 +1207,20 @@ namespace NuGetGallery
                 });
         }
 
+        public static string MoveStagedPackage(this UrlHelper url, string owner, string id, string version, bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.MoveStagedPackage,
+                relativeUrl,
+                new RouteValueDictionary
+                {
+                    { "owner", owner },
+                    { "id", id },
+                    { "version", version },
+                });
+        }
+
         public static string ManageUngroupedStaging(this UrlHelper url, string owner, bool relativeUrl = true)
         {
             return GetRouteLink(

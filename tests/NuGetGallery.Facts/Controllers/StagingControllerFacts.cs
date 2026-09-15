@@ -164,6 +164,14 @@ namespace NuGetGallery
                 Name = "Test group",
                 CreatedDate = new System.DateTime(2026, 9, 10),
             };
+            var destinationGroup = new StagingGroup
+            {
+                Key = 11,
+                OwnerKey = currentUser.Key,
+                Owner = currentUser,
+                Id = "next-group",
+                Name = "Next group",
+            };
             var failedPackage = CreateStagedPackage(42, "Failed.Package", "1.0.0", currentUser, StagedPackageStatus.FailedValidation);
             failedPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
             var readyPackage = CreateStagedPackage(43, "Ready.Package", "2.0.0", currentUser, StagedPackageStatus.Ready);
@@ -179,6 +187,9 @@ namespace NuGetGallery
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.GetStagedPackages(currentUser))
                 .Returns(new[] { readyPackage, ungroupedPackage, failedPackage });
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagingGroups(currentUser))
+                .Returns(new[] { group, destinationGroup });
             GetMock<IValidationService>()
                 .Setup(x => x.GetStagedPackageValidationIssues(
                     It.Is<IReadOnlyCollection<int>>(keys => keys.SequenceEqual(new[] { failedPackage.Key }))))
@@ -200,7 +211,13 @@ namespace NuGetGallery
             Assert.Equal(new[] { validationIssue }, model.Packages.First().ValidationIssues);
             Assert.All(model.Packages, package => Assert.True(package.CanManage));
             Assert.False(model.Packages.First().CanPromote);
-            Assert.True(model.Packages.Last().CanPromote);
+            Assert.False(model.Packages.Last().CanPromote);
+            Assert.All(model.Packages, package =>
+            {
+                Assert.EndsWith(
+                    $"/account/staging/current/package/{package.Id}/{package.Version}/move",
+                    package.MoveUrl);
+            });
         }
 
         [Fact]
@@ -263,6 +280,9 @@ namespace NuGetGallery
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.GetStagedPackages(currentUser))
                 .Returns(Enumerable.Empty<StagedPackage>().ToList());
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagingGroups(currentUser))
+                .Returns(new[] { group });
             var target = GetController<StagingController>();
             target.SetCurrentUser(currentUser);
             target.ModelState.AddModelError("Name", "The Display name field is required.");
@@ -290,6 +310,9 @@ namespace NuGetGallery
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.GetStagedPackages(currentUser))
                 .Returns(new[] { groupedPackage, ungroupedPackage });
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagingGroups(currentUser))
+                .Returns(Enumerable.Empty<StagingGroup>().ToList());
             var target = GetController<StagingController>();
             target.SetCurrentUser(currentUser);
 
@@ -352,6 +375,9 @@ namespace NuGetGallery
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.GetStagedPackages(currentUser))
                 .Returns(stagedPackages);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagingGroups(currentUser))
+                .Returns(new[] { group });
             var target = GetController<StagingController>();
             target.SetCurrentUser(currentUser);
 
@@ -361,6 +387,93 @@ namespace NuGetGallery
             Assert.Equal(
                 Enumerable.Range(1, GalleryConstants.DefaultPackageListPageSize + 1).Select(index => $"Package.{index:D2}"),
                 model.Packages.Select(package => package.Id));
+        }
+
+        [Fact]
+        public async Task MovesAnAuthorizedPackageToAGroup()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var group = new StagingGroup
+            {
+                Key = 10,
+                OwnerKey = currentUser.Key,
+                Owner = currentUser,
+                Id = "release",
+                Name = "Release",
+            };
+            var stagedPackage = CreateStagedPackage(currentUser);
+            GetMock<IPackageStagingAuthorizationService>()
+                .Setup(x => x.GetEnabledOwner(currentUser, currentUser.Username))
+                .Returns(currentUser);
+            GetMock<IPackageStagingAuthorizationService>()
+                .Setup(x => x.CanManage(currentUser, stagedPackage))
+                .Returns(true);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.FindStagingGroup(currentUser, group.Id))
+                .Returns(group);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
+                .Returns(stagedPackage);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.AddPackageToStagingGroupAsync(currentUser, group, stagedPackage))
+                .ReturnsAsync(StagingGroupMembershipResult.Updated);
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(currentUser);
+
+            var result = await target.MovePackage(
+                currentUser.Username,
+                "PackageA",
+                "1.0.0",
+                new MoveStagedPackageViewModel { GroupId = group.Id });
+
+            ResultAssert.IsRedirectTo(result, "/account/staging/current/groups/release");
+        }
+
+        [Fact]
+        public async Task RedisplaysMovePageWhenPackageCannotBeMoved()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var group = new StagingGroup
+            {
+                Key = 10,
+                OwnerKey = currentUser.Key,
+                Owner = currentUser,
+                Id = "release",
+                Name = "Release",
+            };
+            var stagedPackage = CreateStagedPackage(currentUser);
+            GetMock<IPackageStagingAuthorizationService>()
+                .Setup(x => x.GetEnabledOwner(currentUser, currentUser.Username))
+                .Returns(currentUser);
+            GetMock<IPackageStagingAuthorizationService>()
+                .Setup(x => x.CanManage(currentUser, stagedPackage))
+                .Returns(true);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.FindStagingGroup(currentUser, group.Id))
+                .Returns(group);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
+                .Returns(stagedPackage);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagingGroups(currentUser))
+                .Returns(new[] { group });
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.AddPackageToStagingGroupAsync(currentUser, group, stagedPackage))
+                .ReturnsAsync(StagingGroupMembershipResult.Conflict);
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(currentUser);
+
+            var result = await target.MovePackage(
+                currentUser.Username,
+                "PackageA",
+                "1.0.0",
+                new MoveStagedPackageViewModel { GroupId = group.Id });
+
+            var model = ResultAssert.IsView<MoveStagedPackageViewModel>(result);
+            Assert.Equal(group.Id, model.GroupId);
+            Assert.Contains(
+                target.ModelState[string.Empty].Errors,
+                error => error.ErrorMessage == "The staged package cannot be moved while promotion is active.");
         }
 
         [Fact]
