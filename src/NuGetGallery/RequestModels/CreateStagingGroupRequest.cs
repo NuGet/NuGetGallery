@@ -17,7 +17,7 @@ namespace NuGetGallery
         /// </summary>
         [Required]
         [StringLength(64)]
-        [RegularExpression(@"^[A-Za-z0-9._-]+$")]
+        [RegularExpression(@"^[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?$")]
         public string Id { get; set; }
 
         /// <summary>

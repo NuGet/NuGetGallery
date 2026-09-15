@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -126,6 +127,27 @@ namespace NuGetGallery
             GetMock<IPackageStagingManagementService>().Verify(
                 x => x.CreateStagingGroupAsync(It.IsAny<User>(), It.IsAny<string>(), It.IsAny<string>()),
                 Times.Never);
+        }
+
+        [Theory]
+        [InlineData(".")]
+        [InlineData("..")]
+        [InlineData("-release")]
+        [InlineData("release_")]
+        public void RejectsGroupIdsThatDoNotStartAndEndWithLettersOrNumbers(string id)
+        {
+            var model = new CreateStagingGroupViewModel
+            {
+                Owner = "current",
+                Id = id,
+                Name = "Release",
+            };
+            var validationResults = new List<ValidationResult>();
+
+            var isValid = Validator.TryValidateObject(model, new ValidationContext(model), validationResults, validateAllProperties: true);
+
+            Assert.False(isValid);
+            Assert.Contains(validationResults, result => result.MemberNames.Contains(nameof(model.Id)));
         }
 
         [Fact]

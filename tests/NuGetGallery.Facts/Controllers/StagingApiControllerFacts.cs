@@ -102,6 +102,10 @@ namespace NuGetGallery
                 yield return new object[] { null, "InvalidJson", null };
                 yield return new object[] { new CreateStagingGroupRequest { Name = "Release" }, "InvalidRequest", "id" };
                 yield return new object[] { new CreateStagingGroupRequest { Id = "invalid id", Name = "Release" }, "InvalidRequest", "id" };
+                yield return new object[] { new CreateStagingGroupRequest { Id = ".", Name = "Release" }, "InvalidRequest", "id" };
+                yield return new object[] { new CreateStagingGroupRequest { Id = "..", Name = "Release" }, "InvalidRequest", "id" };
+                yield return new object[] { new CreateStagingGroupRequest { Id = "-release", Name = "Release" }, "InvalidRequest", "id" };
+                yield return new object[] { new CreateStagingGroupRequest { Id = "release_", Name = "Release" }, "InvalidRequest", "id" };
                 yield return new object[] { new CreateStagingGroupRequest { Id = "release" }, "InvalidRequest", "name" };
                 yield return new object[] { new CreateStagingGroupRequest { Id = "release", Name = "   " }, "InvalidRequest", "name" };
             }
