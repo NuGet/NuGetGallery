@@ -397,6 +397,32 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task RejectsMovingWhenPromotionWinsTheRace()
+            {
+                var currentUser = new User("current") { Key = 1 };
+                var group = CreateStagingGroup(10, "release", "Release", currentUser);
+                var stagedPackage = CreateStagedPackage(100, "Test.Package", "1.0.0", currentUser);
+                var database = new Mock<IDatabase>();
+                database
+                    .Setup(x => x.ExecuteSqlCommandAsync(It.IsAny<string>(), It.IsAny<object[]>()))
+                    .ReturnsAsync(0);
+                var entitiesContext = new Mock<IEntitiesContext>();
+                entitiesContext.Setup(x => x.GetDatabase()).Returns(database.Object);
+                var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
+                var target = CreateService(
+                    new[] { stagedPackage },
+                    owner => true,
+                    entitiesContext: entitiesContext,
+                    stagedPackageRepository: stagedPackageRepository);
+
+                var result = await target.AddPackageToStagingGroupAsync(currentUser, group, stagedPackage);
+
+                Assert.Equal(StagingGroupMembershipResult.Conflict, result);
+                Assert.Null(stagedPackage.StagedPackageIdentity.StagingGroupKey);
+                stagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
+            }
+
+            [Fact]
             public async Task RemovesAStagedPackageIdentityFromAGroup()
             {
                 var currentUser = new User("current") { Key = 1 };
@@ -623,6 +649,7 @@ namespace NuGetGallery
                 IPackageStagingAuthorizationService authorizationService = null,
                 IPackageService packageService = null,
                 IStagingBlobService stagingBlobService = null,
+                Mock<IEntitiesContext> entitiesContext = null,
                 Mock<IEntityRepository<StagedPackage>> stagedPackageRepository = null,
                 IEnumerable<StagingGroup> stagingGroups = null,
                 Mock<IEntityRepository<StagingGroup>> stagingGroupRepository = null)
@@ -644,6 +671,9 @@ namespace NuGetGallery
                 stagedPackageRepository
                     .Setup(x => x.CommitChangesAsync())
                     .Returns(Task.CompletedTask);
+                stagedPackageRepository
+                    .Setup(x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()))
+                    .Returns((Func<Task> action) => action());
                 var stagingGroupsList = (stagingGroups ?? Array.Empty<StagingGroup>()).ToList();
                 var stagingGroupsQuery = stagingGroupsList.AsQueryable();
                 var stagingGroupsSet = new Mock<DbSet<StagingGroup>>();
@@ -663,6 +693,16 @@ namespace NuGetGallery
                     .Setup(x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()))
                     .Returns((Func<Task> action) => action());
 
+                if (entitiesContext == null)
+                {
+                    var database = new Mock<IDatabase>();
+                    database
+                        .Setup(x => x.ExecuteSqlCommandAsync(It.IsAny<string>(), It.IsAny<object[]>()))
+                        .ReturnsAsync(1);
+                    entitiesContext = new Mock<IEntitiesContext>();
+                    entitiesContext.Setup(x => x.GetDatabase()).Returns(database.Object);
+                }
+
                 var defaultAuthorizationService = new Mock<IPackageStagingAuthorizationService>();
                 defaultAuthorizationService
                     .Setup(x => x.CanManage(It.IsAny<User>(), It.IsAny<StagedPackage>()))
@@ -679,6 +719,7 @@ namespace NuGetGallery
                 return new PackageStagingManagementService(
                     authorizationService ?? defaultAuthorizationService.Object,
                     packageService ?? Mock.Of<IPackageService>(),
+                    entitiesContext.Object,
                     stagedPackageRepository.Object,
                     stagingGroupRepository.Object,
                     stagingBlobService ?? Mock.Of<IStagingBlobService>());

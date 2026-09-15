@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Data.Entity.Infrastructure;
 using System.Threading.Tasks;
 using NuGet.Services.Staging;
 using NuGet.Services.Entities;
@@ -61,15 +62,22 @@ namespace NuGetGallery
                 return PackageStagingPromotionResult.NotReady;
             }
 
-            await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
+            try
             {
-                var promotionId = Guid.NewGuid();
-                stagedPackage.ActivePromotionId = promotionId;
-                stagedPackage.Status = StagedPackageStatus.Promoting;
-                await _stagedPackageRepository.CommitChangesAsync();
+                await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
+                {
+                    var promotionId = Guid.NewGuid();
+                    stagedPackage.ActivePromotionId = promotionId;
+                    stagedPackage.Status = StagedPackageStatus.Promoting;
+                    await _stagedPackageRepository.CommitChangesAsync();
 
-                await _messageEnqueuer.SendMessageAsync(new StagedPackagePromotionMessage(promotionId, stagedPackage.Key));
-            });
+                    await _messageEnqueuer.SendMessageAsync(new StagedPackagePromotionMessage(promotionId, stagedPackage.Key));
+                });
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return PackageStagingPromotionResult.Conflict;
+            }
 
             return PackageStagingPromotionResult.Accepted;
         }

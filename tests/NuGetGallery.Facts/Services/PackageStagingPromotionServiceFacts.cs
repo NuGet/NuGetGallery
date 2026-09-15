@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Entity.Infrastructure;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
@@ -92,6 +93,26 @@ namespace NuGetGallery
             Assert.Equal(PackageStagingPromotionResult.Grouped, result);
             Assert.Equal(StagedPackageStatus.Ready, stagedPackage.Status);
             repository.Verify(x => x.CommitChangesAsync(), Times.Never);
+            enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagedPackagePromotionMessage>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task ReturnsConflictWhenMembershipChangeWinsTheRace()
+        {
+            var stagedPackage = CreateStagedPackage(StagedPackageStatus.Ready);
+            var repository = new Mock<IEntityRepository<StagedPackage>>();
+            SetupTransaction(repository, stagedPackage);
+            repository
+                .Setup(x => x.CommitChangesAsync())
+                .ThrowsAsync(new DbUpdateConcurrencyException());
+            var enqueuer = new Mock<IStagedPackagePromotionMessageEnqueuer>();
+            var target = CreateService(repository, enqueuer);
+
+            var result = await target.PromotePackageAsync(new User("owner"), stagedPackage);
+
+            Assert.Equal(PackageStagingPromotionResult.Conflict, result);
+            Assert.Equal(StagedPackageStatus.Ready, stagedPackage.Status);
+            Assert.Null(stagedPackage.ActivePromotionId);
             enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagedPackagePromotionMessage>()), Times.Never);
         }
 

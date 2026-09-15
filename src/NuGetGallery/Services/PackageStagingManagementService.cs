@@ -16,6 +16,7 @@ namespace NuGetGallery
     {
         private readonly IPackageStagingAuthorizationService _packageStagingAuthorizationService;
         private readonly IPackageService _packageService;
+        private readonly IEntitiesContext _entitiesContext;
         private readonly IEntityRepository<StagedPackage> _stagedPackageRepository;
         private readonly IEntityRepository<StagingGroup> _stagingGroupRepository;
         private readonly IStagingBlobService _stagingBlobService;
@@ -23,12 +24,14 @@ namespace NuGetGallery
         public PackageStagingManagementService(
             IPackageStagingAuthorizationService packageStagingAuthorizationService,
             IPackageService packageService,
+            IEntitiesContext entitiesContext,
             IEntityRepository<StagedPackage> stagedPackageRepository,
             IEntityRepository<StagingGroup> stagingGroupRepository,
             IStagingBlobService stagingBlobService)
         {
             _packageStagingAuthorizationService = packageStagingAuthorizationService ?? throw new ArgumentNullException(nameof(packageStagingAuthorizationService));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
+            _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _stagedPackageRepository = stagedPackageRepository ?? throw new ArgumentNullException(nameof(stagedPackageRepository));
             _stagingGroupRepository = stagingGroupRepository ?? throw new ArgumentNullException(nameof(stagingGroupRepository));
             _stagingBlobService = stagingBlobService ?? throw new ArgumentNullException(nameof(stagingBlobService));
@@ -373,10 +376,21 @@ namespace NuGetGallery
                 return StagingGroupMembershipResult.Conflict;
             }
 
-            identity.StagingGroupKey = group.Key;
-            identity.StagingGroup = group;
-            await _stagedPackageRepository.CommitChangesAsync();
-            return StagingGroupMembershipResult.Updated;
+            var result = StagingGroupMembershipResult.Conflict;
+            await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
+            {
+                if (!await TryReserveStagedPackageForMembershipChangeAsync(stagedPackage))
+                {
+                    return;
+                }
+
+                identity.StagingGroupKey = group.Key;
+                identity.StagingGroup = group;
+                await _stagedPackageRepository.CommitChangesAsync();
+                result = StagingGroupMembershipResult.Updated;
+            });
+
+            return result;
         }
 
         public async Task<StagingGroupMembershipResult> RemovePackageFromStagingGroupAsync(User stagingOwner, StagedPackage stagedPackage)
@@ -407,10 +421,41 @@ namespace NuGetGallery
                 return StagingGroupMembershipResult.Conflict;
             }
 
-            identity.StagingGroupKey = null;
-            identity.StagingGroup = null;
-            await _stagedPackageRepository.CommitChangesAsync();
-            return StagingGroupMembershipResult.Updated;
+            var result = StagingGroupMembershipResult.Conflict;
+            await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
+            {
+                if (!await TryReserveStagedPackageForMembershipChangeAsync(stagedPackage))
+                {
+                    return;
+                }
+
+                identity.StagingGroupKey = null;
+                identity.StagingGroup = null;
+                await _stagedPackageRepository.CommitChangesAsync();
+                result = StagingGroupMembershipResult.Updated;
+            });
+
+            return result;
+        }
+
+        private async Task<bool> TryReserveStagedPackageForMembershipChangeAsync(StagedPackage stagedPackage)
+        {
+            // The self-assignment intentionally advances RowVersion and holds the update lock until the
+            // surrounding membership transaction commits. A concurrent promotion using the old RowVersion fails.
+            const string query = @"
+                UPDATE [dbo].[StagedPackages]
+                SET [Status] = [Status]
+                WHERE [Key] = @p0
+                    AND [RowVersion] = @p1
+                    AND [Status] <> @p2";
+
+            var affectedRows = await _entitiesContext.GetDatabase().ExecuteSqlCommandAsync(
+                query,
+                stagedPackage.Key,
+                stagedPackage.RowVersion,
+                (int)StagedPackageStatus.Promoting);
+
+            return affectedRows == 1;
         }
 
         public IReadOnlyList<StagingGroupSummary> GetStagingGroupSummaries(User stagingOwner)

@@ -568,6 +568,9 @@ namespace NuGetGallery
                 case PackageStagingPromotionResult.Grouped:
                     TempData["ErrorMessage"] = "Promote this package with its staging group.";
                     return Redirect(Url.ManageMyPackages());
+                case PackageStagingPromotionResult.Conflict:
+                    TempData["ErrorMessage"] = "The staged package changed before promotion could begin. Try again.";
+                    return Redirect(Url.ManageMyPackages());
                 default:
                     throw new InvalidOperationException($"Unknown package promotion result '{result}'.");
             }
