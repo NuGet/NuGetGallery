@@ -133,14 +133,11 @@ namespace NuGetGallery
 
             var summaryPage = _packageStagingManagementService.GetStagingGroupSummaryPage(stagingOwner, page, pageSize);
             var responses = summaryPage.Items
-                .Select(summary =>
-                {
-                    return StagingGroupResponse.FromGroup(
-                        summary.Group,
-                        summary.Packages,
-                        summary.Group.CreatedDate.Add(InitialGroupExpiration),
-                        Url.ManageStagingGroup(summary.Group.Owner.Username, summary.Group.Id, relativeUrl: false));
-                })
+                .Select(summary => StagingGroupResponse.FromGroup(
+                    summary.Group,
+                    summary.Packages,
+                    summary.Group.CreatedDate.Add(InitialGroupExpiration),
+                    Url.ManageStagingGroup(summary.Group.Owner.Username, summary.Group.Id, relativeUrl: false)))
                 .ToList();
 
             return JsonContent(new StagingPagedResponse<StagingGroupResponse>(
