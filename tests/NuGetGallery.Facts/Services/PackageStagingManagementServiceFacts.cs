@@ -188,6 +188,33 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public void GetsAnOrderedPageOfGroupsAndOnlyItsPackages()
+            {
+                var currentUser = new User("current") { Key = 1 };
+                var oldestGroup = CreateStagingGroup(10, "oldest", "Oldest", currentUser);
+                oldestGroup.CreatedDate = new DateTime(2026, 9, 1);
+                var middleGroup = CreateStagingGroup(11, "middle", "Middle", currentUser);
+                middleGroup.CreatedDate = new DateTime(2026, 9, 2);
+                var newestGroup = CreateStagingGroup(12, "newest", "Newest", currentUser);
+                newestGroup.CreatedDate = new DateTime(2026, 9, 3);
+                var middlePackage = CreateStagedPackage(100, "Middle.Package", "1.0.0", currentUser);
+                middlePackage.StagedPackageIdentity.StagingGroupKey = middleGroup.Key;
+                var newestPackage = CreateStagedPackage(101, "Newest.Package", "1.0.0", currentUser);
+                newestPackage.StagedPackageIdentity.StagingGroupKey = newestGroup.Key;
+                var target = CreateService(
+                    new[] { middlePackage, newestPackage },
+                    owner => true,
+                    stagingGroups: new[] { oldestGroup, middleGroup, newestGroup });
+
+                var result = target.GetStagingGroupSummaryPage(currentUser, page: 2, pageSize: 1);
+
+                Assert.Equal(3, result.TotalCount);
+                var summary = Assert.Single(result.Items);
+                Assert.Same(middleGroup, summary.Group);
+                Assert.Same(middlePackage, Assert.Single(summary.Packages));
+            }
+
+            [Fact]
             public async Task UsesTheGroupIdWhenTheNameIsNotProvided()
             {
                 var currentUser = new User("current") { Key = 1 };

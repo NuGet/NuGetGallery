@@ -144,6 +144,15 @@ namespace NuGetGallery
         /// <param name="stagingOwner">The authorized staging owner.</param>
         /// <returns>The staging groups and current package attempts owned by the owner.</returns>
         IReadOnlyList<StagingGroupSummary> GetStagingGroupSummaries(User stagingOwner);
+
+        /// <summary>
+        /// Gets one ordered page of staging group summaries for an authorized owner.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="page">The one-based page number.</param>
+        /// <param name="pageSize">The number of groups per page.</param>
+        /// <returns>The requested summaries and total number of matching groups.</returns>
+        StagingGroupSummaryPage GetStagingGroupSummaryPage(User stagingOwner, int page, int pageSize);
     }
 
     public enum StagingGroupMembershipResult

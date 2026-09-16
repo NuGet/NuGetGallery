@@ -168,12 +168,10 @@ namespace NuGetGallery
             var target = GetController<StagingApiController>();
             ConfigureCreateGroupRequest(target, currentUser, owner);
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagingGroupSummaries(owner))
-                .Returns(new[]
-                {
-                    new StagingGroupSummary(olderGroup, Array.Empty<StagedPackage>()),
-                    new StagingGroupSummary(newerGroup, Array.Empty<StagedPackage>()),
-                });
+                .Setup(x => x.GetStagingGroupSummaryPage(owner, 1, 1))
+                .Returns(new StagingGroupSummaryPage(
+                    new[] { new StagingGroupSummary(newerGroup, Array.Empty<StagedPackage>()) },
+                    totalCount: 2));
 
             var result = target.GetStagingGroups(page: 1, pageSize: 1);
 
@@ -195,8 +193,8 @@ namespace NuGetGallery
             var target = GetController<StagingApiController>();
             ConfigureCreateGroupRequest(target, currentUser, owner);
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagingGroupSummaries(owner))
-                .Returns(new[] { new StagingGroupSummary(group, Array.Empty<StagedPackage>()) });
+                .Setup(x => x.GetStagingGroupSummaryPage(owner, 2, 100))
+                .Returns(new StagingGroupSummaryPage(Array.Empty<StagingGroupSummary>(), totalCount: 1));
 
             var result = target.GetStagingGroups(page: 2, pageSize: 100);
 

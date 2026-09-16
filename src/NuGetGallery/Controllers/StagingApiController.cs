@@ -131,12 +131,8 @@ namespace NuGetGallery
                 return Error(HttpStatusCode.Forbidden, "StagingOwnerUnavailable", "Staging is not available for the API key owner.");
             }
 
-            var summaries = _packageStagingManagementService.GetStagingGroupSummaries(stagingOwner);
-            var orderedSummaries = summaries
-                .OrderByDescending(summary => summary.Group.CreatedDate)
-                .ThenBy(summary => summary.Group.Id, StringComparer.OrdinalIgnoreCase)
-                .ToList();
-            var responses = GetPage(orderedSummaries, page, pageSize)
+            var summaryPage = _packageStagingManagementService.GetStagingGroupSummaryPage(stagingOwner, page, pageSize);
+            var responses = summaryPage.Items
                 .Select(summary =>
                 {
                     return StagingGroupResponse.FromGroup(
@@ -151,7 +147,7 @@ namespace NuGetGallery
                 responses,
                 page,
                 pageSize,
-                orderedSummaries.Count));
+                summaryPage.TotalCount));
         }
 
         [HttpGet]

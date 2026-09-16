@@ -491,6 +491,55 @@ namespace NuGetGallery
                 .ToList();
         }
 
+        public StagingGroupSummaryPage GetStagingGroupSummaryPage(User stagingOwner, int page, int pageSize)
+        {
+            if (stagingOwner == null)
+            {
+                throw new ArgumentNullException(nameof(stagingOwner));
+            }
+
+            if (page <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(page));
+            }
+
+            if (pageSize <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(pageSize));
+            }
+
+            var groupsQuery = _stagingGroupRepository
+                .GetAll()
+                .Include(group => group.Owner)
+                .Where(group => group.OwnerKey == stagingOwner.Key);
+
+            var totalCount = groupsQuery.Count();
+            var skip = ((long)page - 1) * pageSize;
+
+            var groups = new List<StagingGroup>();
+            if (skip < totalCount)
+            {
+                groups = groupsQuery
+                    .OrderByDescending(group => group.CreatedDate)
+                    .ThenBy(group => group.Id)
+                    .Skip((int)skip)
+                    .Take(pageSize)
+                    .ToList();
+            }
+
+            var groupKeys = groups.Select(group => group.Key).ToArray();
+            var packagesByGroup = GetCurrentStagedPackages(new[] { stagingOwner.Key })
+                .Where(package => package.StagedPackageIdentity.StagingGroupKey.HasValue)
+                .Where(package => groupKeys.Contains(package.StagedPackageIdentity.StagingGroupKey.Value))
+                .ToLookup(package => package.StagedPackageIdentity.StagingGroupKey.Value);
+
+            var summaries = groups
+                .Select(group => new StagingGroupSummary(group, packagesByGroup[group.Key].ToList()))
+                .ToList();
+
+            return new StagingGroupSummaryPage(summaries, totalCount);
+        }
+
         public IReadOnlyList<PackageStagingStatus> GetPackages(User currentUser, IEnumerable<Scope> scopes)
         {
             if (currentUser == null)
@@ -515,7 +564,7 @@ namespace NuGetGallery
                 .ToList();
         }
 
-        private IEnumerable<StagedPackage> GetCurrentStagedPackages(int[] ownerKeys)
+        private IQueryable<StagedPackage> GetCurrentStagedPackages(int[] ownerKeys)
         {
             return _stagedPackageRepository
                 .GetAll()

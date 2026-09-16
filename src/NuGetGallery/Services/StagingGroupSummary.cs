@@ -33,4 +33,36 @@ namespace NuGetGallery
         /// </summary>
         public IReadOnlyList<StagedPackage> Packages { get; }
     }
+
+    /// <summary>
+    /// Represents one page of staging group summaries and the total number of matching groups.
+    /// </summary>
+    public class StagingGroupSummaryPage
+    {
+        /// <summary>
+        /// Initializes a page of staging group summaries.
+        /// </summary>
+        /// <param name="items">The summaries on the requested page.</param>
+        /// <param name="totalCount">The total number of matching groups.</param>
+        public StagingGroupSummaryPage(IReadOnlyList<StagingGroupSummary> items, int totalCount)
+        {
+            Items = items ?? throw new ArgumentNullException(nameof(items));
+            if (totalCount < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(totalCount));
+            }
+
+            TotalCount = totalCount;
+        }
+
+        /// <summary>
+        /// Gets the summaries on the requested page.
+        /// </summary>
+        public IReadOnlyList<StagingGroupSummary> Items { get; }
+
+        /// <summary>
+        /// Gets the total number of matching groups.
+        /// </summary>
+        public int TotalCount { get; }
+    }
 }
