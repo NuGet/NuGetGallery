@@ -236,7 +236,6 @@ namespace NuGetGallery
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<EntityRepository<StagingGroup>>()
-                .AsSelf()
                 .As<IEntityRepository<StagingGroup>>()
                 .InstancePerLifetimeScope();
 
