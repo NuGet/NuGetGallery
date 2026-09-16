@@ -13,7 +13,6 @@ using System.Web;
 using System.Web.Mvc;
 using Newtonsoft.Json;
 using NuGet.Services.Entities;
-using NuGet.Versioning;
 using NuGetGallery.Authentication;
 using NuGetGallery.Filters;
 
@@ -164,29 +163,21 @@ namespace NuGetGallery
                 return Error(HttpStatusCode.Forbidden, "StagingOwnerUnavailable", "Staging is not available for the API key owner.");
             }
 
-            var summaries = _packageStagingManagementService.GetStagingGroupSummaries(stagingOwner);
-            var summary = summaries.SingleOrDefault(candidate => string.Equals(candidate.Group.Id, groupId, StringComparison.OrdinalIgnoreCase));
-            if (summary == null)
+            var packagePage = _packageStagingManagementService.GetStagingGroupPackagePage(stagingOwner, groupId, page, pageSize);
+            if (packagePage == null)
             {
                 return Error(HttpStatusCode.NotFound, "GroupNotFound", "The staging group was not found.");
             }
 
-            var group = summary.Group;
-            var packages = summary.Packages
-                .OrderBy(package => package.StagedPackageIdentity.Package.PackageRegistration.Id, StringComparer.OrdinalIgnoreCase)
-                .ThenByDescending(package => NuGetVersion.Parse(package.StagedPackageIdentity.Package.NormalizedVersion))
-                .ToList();
+            var group = packagePage.Group;
             var managementUrl = Url.ManageStagingGroup(group.Owner.Username, group.Id, relativeUrl: false);
             var expirationDate = group.CreatedDate.Add(InitialGroupExpiration);
-            var artifacts = packages
+            var artifacts = packagePage.Items
                 .Select(package => StagingArtifactResponse.FromPackage(package, expirationDate, managementUrl))
                 .ToList();
-            var response = new StagingGroupDetailResponse(
-                StagingGroupResponse.FromGroup(group, packages, expirationDate, managementUrl),
-                GetPage(artifacts, page, pageSize),
-                page,
-                pageSize,
-                artifacts.Count);
+
+            var stagingGroupResponse = StagingGroupResponse.FromGroup(group, packagePage.TotalCount, packagePage.AllPackagesReady, expirationDate, managementUrl);
+            var response = new StagingGroupDetailResponse(stagingGroupResponse, artifacts, page, pageSize, packagePage.TotalCount);
 
             return JsonContent(response);
         }
@@ -343,17 +334,6 @@ namespace NuGetGallery
         private ContentResult JsonContent(object response)
         {
             return Content(JsonConvert.SerializeObject(response), JsonContentType);
-        }
-
-        private static IReadOnlyList<T> GetPage<T>(IReadOnlyList<T> items, int page, int pageSize)
-        {
-            var skip = (long)(page - 1) * pageSize;
-            if (skip >= items.Count)
-            {
-                return Array.Empty<T>();
-            }
-
-            return items.Skip((int)skip).Take(pageSize).ToList();
         }
 
         protected override void OnException(ExceptionContext filterContext)

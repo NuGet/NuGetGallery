@@ -66,9 +66,29 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(packages));
             }
 
-            var canPromote = packages.Count > 0 && packages.All(package => package.Status == StagedPackageStatus.Ready);
+            return FromGroup(group, packages.Count, packages.All(package => package.Status == StagedPackageStatus.Ready), expirationDate, managementUrl);
+        }
+
+        public static StagingGroupResponse FromGroup(
+            StagingGroup group,
+            int itemCount,
+            bool allPackagesReady,
+            DateTime expirationDate,
+            string managementUrl)
+        {
+            if (group == null)
+            {
+                throw new ArgumentNullException(nameof(group));
+            }
+
+            if (itemCount < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(itemCount));
+            }
+
+            var canPromote = itemCount > 0 && allPackagesReady;
             IReadOnlyList<StagingBlockerResponse> blockers = Array.Empty<StagingBlockerResponse>();
-            if (packages.Count == 0)
+            if (itemCount == 0)
             {
                 blockers = new[]
                 {
@@ -90,7 +110,7 @@ namespace NuGetGallery
                 Owner = group.Owner.Username,
                 Created = group.CreatedDate.ToUtcIso8601String(),
                 Expires = expirationDate.ToUtcIso8601String(),
-                ItemCount = packages.Count,
+                ItemCount = itemCount,
                 CanPromote = canPromote,
                 Blockers = blockers,
                 ManagementUrl = managementUrl,

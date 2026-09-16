@@ -229,8 +229,8 @@ namespace NuGetGallery
             var target = GetController<StagingApiController>();
             ConfigureCreateGroupRequest(target, currentUser, owner);
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagingGroupSummaries(owner))
-                .Returns(new[] { new StagingGroupSummary(group, new[] { package }) });
+                .Setup(x => x.GetStagingGroupPackagePage(owner, "RELEASE", 1, 100))
+                .Returns(new StagingGroupPackagePage(group, new[] { package }, totalCount: 1, allPackagesReady: true));
 
             var result = target.GetStagingGroup("RELEASE");
 
@@ -256,8 +256,8 @@ namespace NuGetGallery
             var target = GetController<StagingApiController>();
             ConfigureCreateGroupRequest(target, currentUser, owner);
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagingGroupSummaries(owner))
-                .Returns(Array.Empty<StagingGroupSummary>());
+                .Setup(x => x.GetStagingGroupPackagePage(owner, "missing", 1, 100))
+                .Returns((StagingGroupPackagePage)null);
 
             var result = target.GetStagingGroup("missing");
 

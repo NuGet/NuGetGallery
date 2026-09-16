@@ -215,6 +215,38 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public void GetsAnOrderedPageOfGroupPackagesWithWholeGroupState()
+            {
+                var currentUser = new User("current") { Key = 1 };
+                var group = CreateStagingGroup(10, "release", "Release", currentUser);
+                var olderPackage = CreateStagedPackage(100, "Older.Package", "1.0.0", currentUser);
+                olderPackage.UploadedDate = new DateTime(2026, 9, 1);
+                olderPackage.Status = StagedPackageStatus.Ready;
+                olderPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
+                var lowerKeyPackage = CreateStagedPackage(101, "LowerKey.Package", "1.0.0", currentUser);
+                lowerKeyPackage.UploadedDate = new DateTime(2026, 9, 2);
+                lowerKeyPackage.Status = StagedPackageStatus.Ready;
+                lowerKeyPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
+                var higherKeyPackage = CreateStagedPackage(102, "HigherKey.Package", "1.0.0", currentUser);
+                higherKeyPackage.UploadedDate = lowerKeyPackage.UploadedDate;
+                higherKeyPackage.Status = StagedPackageStatus.Validating;
+                higherKeyPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
+                var unrelatedPackage = CreateStagedPackage(103, "Unrelated.Package", "1.0.0", currentUser);
+                unrelatedPackage.UploadedDate = new DateTime(2026, 9, 3);
+                var target = CreateService(
+                    new[] { olderPackage, lowerKeyPackage, higherKeyPackage, unrelatedPackage },
+                    owner => true,
+                    stagingGroups: new[] { group });
+
+                var result = target.GetStagingGroupPackagePage(currentUser, group.Id, page: 2, pageSize: 1);
+
+                Assert.Same(group, result.Group);
+                Assert.Same(lowerKeyPackage, Assert.Single(result.Items));
+                Assert.Equal(3, result.TotalCount);
+                Assert.False(result.AllPackagesReady);
+            }
+
+            [Fact]
             public async Task UsesTheGroupIdWhenTheNameIsNotProvided()
             {
                 var currentUser = new User("current") { Key = 1 };

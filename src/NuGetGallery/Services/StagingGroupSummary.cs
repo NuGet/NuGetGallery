@@ -65,4 +65,54 @@ namespace NuGetGallery
         /// </summary>
         public int TotalCount { get; }
     }
+
+    /// <summary>
+    /// Represents one page of a staging group's current package attempts.
+    /// </summary>
+    public class StagingGroupPackagePage
+    {
+        /// <summary>
+        /// Initializes a page of staging group package attempts.
+        /// </summary>
+        /// <param name="group">The staging group.</param>
+        /// <param name="items">The package attempts on the requested page.</param>
+        /// <param name="totalCount">The total number of current package attempts in the group.</param>
+        /// <param name="allPackagesReady">Whether every current package attempt in the group is ready.</param>
+        public StagingGroupPackagePage(
+            StagingGroup group,
+            IReadOnlyList<StagedPackage> items,
+            int totalCount,
+            bool allPackagesReady)
+        {
+            Group = group ?? throw new ArgumentNullException(nameof(group));
+            Items = items ?? throw new ArgumentNullException(nameof(items));
+            if (totalCount < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(totalCount));
+            }
+
+            TotalCount = totalCount;
+            AllPackagesReady = allPackagesReady;
+        }
+
+        /// <summary>
+        /// Gets the staging group.
+        /// </summary>
+        public StagingGroup Group { get; }
+
+        /// <summary>
+        /// Gets the current package attempts on the requested page.
+        /// </summary>
+        public IReadOnlyList<StagedPackage> Items { get; }
+
+        /// <summary>
+        /// Gets the total number of current package attempts in the group.
+        /// </summary>
+        public int TotalCount { get; }
+
+        /// <summary>
+        /// Gets whether every current package attempt in the group is ready.
+        /// </summary>
+        public bool AllPackagesReady { get; }
+    }
 }

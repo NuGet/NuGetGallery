@@ -540,6 +540,54 @@ namespace NuGetGallery
             return new StagingGroupSummaryPage(summaries, totalCount);
         }
 
+        public StagingGroupPackagePage GetStagingGroupPackagePage(User stagingOwner, string groupId, int page, int pageSize)
+        {
+            if (stagingOwner == null)
+            {
+                throw new ArgumentNullException(nameof(stagingOwner));
+            }
+
+            if (string.IsNullOrWhiteSpace(groupId))
+            {
+                throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(groupId));
+            }
+
+            if (page <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(page));
+            }
+
+            if (pageSize <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(pageSize));
+            }
+
+            var group = FindStagingGroup(stagingOwner, groupId);
+            if (group == null)
+            {
+                return null;
+            }
+
+            var packagesQuery = GetCurrentStagedPackages(new[] { stagingOwner.Key })
+                .Where(package => package.StagedPackageIdentity.StagingGroupKey == group.Key);
+            var totalCount = packagesQuery.Count();
+            var allPackagesReady = !packagesQuery.Any(package => package.Status != StagedPackageStatus.Ready);
+            var skip = ((long)page - 1) * pageSize;
+
+            var packages = new List<StagedPackage>();
+            if (skip < totalCount)
+            {
+                packages = packagesQuery
+                    .OrderByDescending(package => package.UploadedDate)
+                    .ThenByDescending(package => package.Key)
+                    .Skip((int)skip)
+                    .Take(pageSize)
+                    .ToList();
+            }
+
+            return new StagingGroupPackagePage(group, packages, totalCount, allPackagesReady);
+        }
+
         public IReadOnlyList<PackageStagingStatus> GetPackages(User currentUser, IEnumerable<Scope> scopes)
         {
             if (currentUser == null)

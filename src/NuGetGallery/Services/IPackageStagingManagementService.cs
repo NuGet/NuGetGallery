@@ -153,6 +153,16 @@ namespace NuGetGallery
         /// <param name="pageSize">The number of groups per page.</param>
         /// <returns>The requested summaries and total number of matching groups.</returns>
         StagingGroupSummaryPage GetStagingGroupSummaryPage(User stagingOwner, int page, int pageSize);
+
+        /// <summary>
+        /// Gets one ordered page of current package attempts in an owner-scoped staging group.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="groupId">The owner-scoped group ID.</param>
+        /// <param name="page">The one-based page number.</param>
+        /// <param name="pageSize">The number of package attempts per page.</param>
+        /// <returns>The requested package page, or <see langword="null"/> when the group does not exist.</returns>
+        StagingGroupPackagePage GetStagingGroupPackagePage(User stagingOwner, string groupId, int page, int pageSize);
     }
 
     public enum StagingGroupMembershipResult
