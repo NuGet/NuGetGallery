@@ -1155,9 +1155,10 @@ namespace NuGetGallery
         {
             return new TrustedPublisherPolicyOwnerViewModel(
                 packageOwner.Username,
-                ActionsRequiringPermissions.UploadNewPackageId.IsAllowedOnBehalfOfAccount(currentUser, packageOwner),
-                ActionsRequiringPermissions.UploadNewPackageVersion.IsAllowedOnBehalfOfAccount(currentUser, packageOwner),
-                ActionsRequiringPermissions.UnlistOrRelistPackage.IsAllowedOnBehalfOfAccount(currentUser, packageOwner));
+                canPushNew: ActionsRequiringPermissions.UploadNewPackageId.IsAllowedOnBehalfOfAccount(currentUser, packageOwner),
+                canPushExisting: ActionsRequiringPermissions.UploadNewPackageVersion.IsAllowedOnBehalfOfAccount(currentUser, packageOwner),
+                canUnlist: ActionsRequiringPermissions.UnlistOrRelistPackage.IsAllowedOnBehalfOfAccount(currentUser, packageOwner),
+                canStage: ActionsRequiringPermissions.ManageStagedPackage.IsAllowedOnBehalfOfAccount(currentUser, packageOwner));
         }
 
         private bool IsDeprecateApiEnabled(User currentUser)
