@@ -2,6 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <OutputType>Exe</OutputType>
+    <PackageVersion Condition="'$(PackageVersion)' == ''">$(GalleryPackageVersion)</PackageVersion>
   </PropertyGroup>
   <PropertyGroup>
     <Description>Background job to ingest GitHub vulnerability data into Gallery database.</Description>
