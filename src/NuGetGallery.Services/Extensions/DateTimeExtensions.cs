@@ -24,9 +24,10 @@ namespace NuGetGallery
         }
 
         /// <summary>
-        /// Formats a UTC database timestamp using the round-trip ISO 8601 format.
+        /// Treats a database timestamp as UTC without converting its value and formats it
+        /// using the round-trip ISO 8601 format.
         /// </summary>
-        /// <param name="self">The timestamp whose ticks represent UTC.</param>
+        /// <param name="self">The timestamp whose value is assumed to be UTC, regardless of its <see cref="DateTime.Kind"/>.</param>
         /// <returns>The UTC timestamp in round-trip ISO 8601 format.</returns>
         public static string ToUtcIso8601String(this DateTime self)
         {
