@@ -302,7 +302,7 @@ namespace NuGetGallery
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> MovePackage(string owner, string id, string version, MoveStagedPackageViewModel model)
+        public virtual async Task<ActionResult> MovePackage(string owner, string id, string version, string groupId)
         {
             ValidatePackageIdentity(id, version);
             if (string.IsNullOrWhiteSpace(owner))
@@ -321,21 +321,16 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            if (model == null)
+            var group = string.IsNullOrWhiteSpace(groupId) ? null : _packageStagingManagementService.FindStagingGroup(stagingOwner, groupId);
+            if (!string.IsNullOrWhiteSpace(groupId) && group == null)
             {
                 ModelState.AddModelError(nameof(MoveStagedPackageViewModel.GroupId), "Select an available staging group.");
-            }
-
-            var group = string.IsNullOrWhiteSpace(model?.GroupId) ? null : _packageStagingManagementService.FindStagingGroup(stagingOwner, model.GroupId);
-            if (!string.IsNullOrWhiteSpace(model?.GroupId) && group == null)
-            {
-                ModelState.AddModelError(nameof(model.GroupId), "Select an available staging group.");
             }
 
             if (!ModelState.IsValid)
             {
                 var viewModel = CreateMovePackageViewModel(currentUser, stagedPackage);
-                viewModel.GroupId = model?.GroupId;
+                viewModel.GroupId = groupId;
                 return View(viewModel);
             }
 
@@ -359,7 +354,7 @@ namespace NuGetGallery
                 case StagingGroupMembershipResult.Conflict:
                     ModelState.AddModelError(string.Empty, "The staged package cannot be moved while promotion is active.");
                     var viewModel = CreateMovePackageViewModel(currentUser, stagedPackage);
-                    viewModel.GroupId = model.GroupId;
+                    viewModel.GroupId = groupId;
                     return View(viewModel);
                 default:
                     throw new InvalidOperationException($"Unknown staging group membership result '{result}'.");

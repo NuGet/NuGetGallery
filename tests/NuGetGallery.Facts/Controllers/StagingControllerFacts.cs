@@ -535,7 +535,7 @@ namespace NuGetGallery
                 currentUser.Username,
                 "PackageA",
                 "1.0.0",
-                new MoveStagedPackageViewModel { GroupId = group.Id });
+                group.Id);
 
             ResultAssert.IsRedirectTo(result, "/account/staging/current/groups/release");
         }
@@ -631,7 +631,7 @@ namespace NuGetGallery
                 currentUser.Username,
                 "PackageA",
                 "1.0.0",
-                new MoveStagedPackageViewModel { GroupId = null });
+                groupId: null);
 
             ResultAssert.IsRedirectTo(result, "/account/staging/current/ungrouped");
         }
@@ -674,7 +674,7 @@ namespace NuGetGallery
                 currentUser.Username,
                 "PackageA",
                 "1.0.0",
-                new MoveStagedPackageViewModel { GroupId = group.Id });
+                group.Id);
 
             var model = ResultAssert.IsView<MoveStagedPackageViewModel>(result);
             Assert.Equal(group.Id, model.GroupId);
