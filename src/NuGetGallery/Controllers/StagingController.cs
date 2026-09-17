@@ -61,6 +61,13 @@ namespace NuGetGallery
         public virtual async Task<ActionResult> CreateGroup(CreateStagingGroupViewModel model)
         {
             var owners = GetStagingOwnerNames();
+            if (model == null)
+            {
+                model = new CreateStagingGroupViewModel();
+                ModelState.AddModelError(nameof(CreateStagingGroupViewModel.Owner), "The Owner field is required.");
+                ModelState.AddModelError(nameof(CreateStagingGroupViewModel.Id), "The Group ID field is required.");
+            }
+
             model.Owners = owners;
 
             if (!string.IsNullOrWhiteSpace(model.Owner) && !owners.Contains(model.Owner, StringComparer.OrdinalIgnoreCase))
