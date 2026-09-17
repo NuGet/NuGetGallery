@@ -315,6 +315,8 @@ namespace NuGetGallery
                     .Where(package => package.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Staged)
                     .Where(package => package.Status != StagedPackageStatus.Superseded && package.Status != StagedPackageStatus.Deleted)
                     .ToList();
+
+                var stagedPackageKeys = new HashSet<int>(stagedPackages.Select(package => package.Key));
                 if (stagedPackages.Any(package => package.Status == StagedPackageStatus.Promoting))
                 {
                     result = StagingGroupDeletionResult.Conflict(stagedPackages.Count);
@@ -327,7 +329,7 @@ namespace NuGetGallery
                     identity.StagingGroupKey = null;
                     identity.StagingGroup = null;
 
-                    if (stagedPackages.Contains(stagedPackage))
+                    if (stagedPackageKeys.Contains(stagedPackage.Key))
                     {
                         var package = identity.Package;
                         stagedPackage.Status = StagedPackageStatus.Deleted;
