@@ -4,8 +4,11 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
+using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
@@ -267,20 +270,21 @@ namespace NuGetGallery
             public async Task DoesNotCreateADuplicateGroup()
             {
                 var currentUser = new User("current") { Key = 1 };
-                var existingGroup = CreateStagingGroup(10, "Release.1", "Release 1", currentUser);
                 var stagingGroupRepository = new Mock<IEntityRepository<StagingGroup>>();
                 var target = CreateService(
                     Array.Empty<StagedPackage>(),
                     owner => true,
-                    stagingGroups: new[] { existingGroup },
                     stagingGroupRepository: stagingGroupRepository);
+                stagingGroupRepository
+                    .Setup(x => x.CommitChangesAsync())
+                    .ThrowsAsync(new DbUpdateException("Duplicate group.", CreateSqlException(2627)));
 
                 var result = await target.CreateStagingGroupAsync(currentUser, "release.1", "Another name");
 
                 Assert.Equal(CreateStagingGroupResultType.GroupAlreadyExists, result.Type);
                 Assert.Null(result.Group);
-                stagingGroupRepository.Verify(x => x.InsertOnCommit(It.IsAny<StagingGroup>()), Times.Never);
-                stagingGroupRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
+                stagingGroupRepository.Verify(x => x.InsertOnCommit(It.IsAny<StagingGroup>()), Times.Once);
+                stagingGroupRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
             }
 
             [Fact]
@@ -852,6 +856,27 @@ namespace NuGetGallery
                 previousAttempt.StagedPackageIdentity = currentAttempt.StagedPackageIdentity;
                 previousAttempt.StagedPackageIdentityKey = currentAttempt.StagedPackageIdentityKey;
                 SetCurrentAttempt(currentAttempt);
+            }
+
+            private static SqlException CreateSqlException(int number)
+            {
+                var error = Activator.CreateInstance(
+                    typeof(SqlError),
+                    BindingFlags.NonPublic | BindingFlags.Instance,
+                    binder: null,
+                    args: new object[] { number, (byte)2, (byte)3, "server", "error", "procedure", 4 },
+                    culture: null);
+                var errors = (SqlErrorCollection)Activator.CreateInstance(typeof(SqlErrorCollection), nonPublic: true);
+                typeof(SqlErrorCollection).GetMethod("Add", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(errors, new[] { error });
+
+                return (SqlException)typeof(SqlException)
+                    .GetMethod(
+                        "CreateException",
+                        BindingFlags.Static | BindingFlags.NonPublic,
+                        binder: null,
+                        types: new[] { typeof(SqlErrorCollection), typeof(string) },
+                        modifiers: null)
+                    .Invoke(null, new object[] { errors, "16.0" });
             }
         }
     }

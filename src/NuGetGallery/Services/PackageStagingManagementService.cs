@@ -234,17 +234,6 @@ namespace NuGetGallery
                 throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(groupId));
             }
 
-            var groupExists = _stagingGroupRepository
-                .GetAll()
-                .Where(group => group.OwnerKey == stagingOwner.Key)
-                .Select(group => group.Id)
-                .ToList()
-                .Any(id => string.Equals(id, groupId, StringComparison.OrdinalIgnoreCase));
-            if (groupExists)
-            {
-                return CreateStagingGroupResult.GroupAlreadyExists();
-            }
-
             var group = new StagingGroup
             {
                 OwnerKey = stagingOwner.Key,
