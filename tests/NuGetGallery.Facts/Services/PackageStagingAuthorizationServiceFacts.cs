@@ -92,12 +92,13 @@ namespace NuGetGallery
         public void ApiKeyCanManageMatchingEnabledOwner()
         {
             var owner = new User("owner") { Key = 1, EmailAddress = "owner@example.test" };
+            var scopes = Array.Empty<Scope>();
             var stagedPackage = CreateStagedPackage(owner);
             var apiScopeEvaluator = new Mock<IApiScopeEvaluator>();
             apiScopeEvaluator
                 .Setup(x => x.Evaluate(
                     owner,
-                    It.IsAny<IEnumerable<Scope>>(),
+                    scopes,
                     ActionsRequiringPermissions.ManageStagedPackage,
                     stagedPackage,
                     It.IsAny<string[]>()))
@@ -110,7 +111,7 @@ namespace NuGetGallery
                 apiScopeEvaluator.Object,
                 featureFlagService.Object);
 
-            var result = target.CanManageWithApiKey(owner, Array.Empty<Scope>(), stagedPackage);
+            var result = target.CanManageWithApiKey(owner, scopes, stagedPackage);
 
             Assert.True(result);
         }
@@ -119,12 +120,13 @@ namespace NuGetGallery
         public void ApiKeyCannotManageWhenStagingIsDisabled()
         {
             var owner = new User("owner") { Key = 1, EmailAddress = "owner@example.test" };
+            var scopes = Array.Empty<Scope>();
             var stagedPackage = CreateStagedPackage(owner);
             var apiScopeEvaluator = new Mock<IApiScopeEvaluator>();
             apiScopeEvaluator
                 .Setup(x => x.Evaluate(
                     owner,
-                    It.IsAny<IEnumerable<Scope>>(),
+                    scopes,
                     ActionsRequiringPermissions.ManageStagedPackage,
                     stagedPackage,
                     It.IsAny<string[]>()))
@@ -133,7 +135,7 @@ namespace NuGetGallery
                 apiScopeEvaluator.Object,
                 Mock.Of<IFeatureFlagService>());
 
-            var result = target.CanManageWithApiKey(owner, Array.Empty<Scope>(), stagedPackage);
+            var result = target.CanManageWithApiKey(owner, scopes, stagedPackage);
 
             Assert.False(result);
         }
@@ -146,7 +148,7 @@ namespace NuGetGallery
             var stagedPackage = CreateStagedPackage(stagedOwner, otherPackageOwner);
             var scopes = new[]
             {
-                new Scope(ownerKey: null, subject: "PackageA", allowedAction: NuGetScopes.PackagePush),
+                new Scope(ownerKey: null, subject: "PackageA", allowedAction: NuGetScopes.PackageStage),
             };
             var featureFlagService = new Mock<IFeatureFlagService>();
             featureFlagService
@@ -230,6 +232,31 @@ namespace NuGetGallery
             var result = target.GetEnabledApiKeyOwner(currentUser, scopes);
 
             Assert.Null(result);
+        }
+
+        [Theory]
+        [InlineData(NuGetScopes.PackagePush)]
+        [InlineData(NuGetScopes.PackagePushVersion)]
+        [InlineData(NuGetScopes.PackageUnlist)]
+        public void OtherScopeCannotManageWithApiKey(string allowedAction)
+        {
+            var owner = new User("owner") { Key = 1, EmailAddress = "owner@example.test" };
+            var stagedPackage = CreateStagedPackage(owner);
+            var scopes = new[]
+            {
+                new Scope(ownerKey: null, subject: "PackageA", allowedAction: allowedAction),
+            };
+            var featureFlagService = new Mock<IFeatureFlagService>();
+            featureFlagService
+                .Setup(x => x.IsPackageStagingEnabled(owner))
+                .Returns(true);
+            var target = new PackageStagingAuthorizationService(
+                new ApiScopeEvaluator(Mock.Of<IUserService>()),
+                featureFlagService.Object);
+
+            var result = target.CanManageWithApiKey(owner, scopes, stagedPackage);
+
+            Assert.False(result);
         }
 
         private static StagedPackage CreateStagedPackage(User owner, params User[] additionalPackageOwners)

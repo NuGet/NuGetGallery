@@ -601,6 +601,7 @@ namespace NuGetGallery
                 Assert.True(firstPackageOwner.CanPushNew);
                 Assert.True(firstPackageOwner.CanPushExisting);
                 Assert.True(firstPackageOwner.CanUnlist);
+                Assert.True(firstPackageOwner.CanStage);
             }
 
             public static IEnumerable<object[]> OrganizationIsInPackageOwnersIfMember_Data =
@@ -619,6 +620,7 @@ namespace NuGetGallery
                 Assert.True(owner.CanPushNew);
                 Assert.True(owner.CanPushExisting);
                 Assert.True(owner.CanUnlist);
+                Assert.True(owner.CanStage);
             }
 
             public static IEnumerable<object[]> OrganizationIsNotInPackageOwnersIfNotMember_Data =

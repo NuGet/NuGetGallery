@@ -19,7 +19,7 @@ using NuGetGallery.Filters;
 namespace NuGetGallery
 {
     [ApiAuthorize]
-    [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
+    [ApiScopeRequired(NuGetScopes.PackageStage)]
     public class StagingApiController : AppController
     {
         private const string JsonContentType = "application/json";

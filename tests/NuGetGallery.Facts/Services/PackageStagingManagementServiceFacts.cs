@@ -575,6 +575,7 @@ namespace NuGetGallery
             public void GetsTheNewestAttemptForAPackage()
             {
                 var currentUser = new User("current") { Key = 1, EmailAddress = "current@example.test" };
+                var scopes = Array.Empty<Scope>();
                 var previousOwner = new User("previous") { Key = 2 };
                 var previousAttempt = CreateStagedPackage(100, 10, "Test.Package", "1.0.0", previousOwner);
                 var currentAttempt = CreateStagedPackage(101, 10, "Test.Package", "1.0.0", currentUser);
@@ -585,10 +586,7 @@ namespace NuGetGallery
                     .Returns(currentAttempt.StagedPackageIdentity.Package);
                 var authorizationService = new Mock<IPackageStagingAuthorizationService>();
                 authorizationService
-                    .Setup(x => x.CanManageWithApiKey(
-                        It.IsAny<User>(),
-                        It.IsAny<IEnumerable<Scope>>(),
-                        currentAttempt))
+                    .Setup(x => x.CanManageWithApiKey(It.IsAny<User>(), scopes, currentAttempt))
                     .Returns(true);
                 var target = CreateService(
                     new[] { previousAttempt, currentAttempt },
@@ -596,7 +594,7 @@ namespace NuGetGallery
                     authorizationService.Object,
                     packageService.Object);
 
-                var result = target.GetPackageStatus(currentUser, Array.Empty<Scope>(), "Test.Package", "1.0.0");
+                var result = target.GetPackageStatus(currentUser, scopes, "Test.Package", "1.0.0");
 
                 Assert.NotNull(result);
                 Assert.True(result.Listed);

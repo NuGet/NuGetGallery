@@ -88,8 +88,7 @@ namespace NuGetGallery
                 scopes,
                 ActionsRequiringPermissions.ManageStagedPackage,
                 stagedPackage,
-                NuGetScopes.PackagePushVersion,
-                NuGetScopes.PackagePush);
+                NuGetScopes.PackageStage);
 
             return authorizationResult.IsSuccessful()
                 && _featureFlagService.IsPackageStagingEnabled(authorizationResult.Owner);

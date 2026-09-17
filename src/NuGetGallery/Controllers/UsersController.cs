@@ -501,7 +501,7 @@ namespace NuGetGallery
             {
                 ApiKeys = apiKeys,
                 ExpirationInDaysForApiKeyV1 = _config.ExpirationInDaysForApiKeyV1,
-                PackageOwners = owners.Where(o => o.CanPushNew || o.CanPushExisting || o.CanUnlist).ToList(),
+                PackageOwners = owners.Where(o => o.CanPushNew || o.CanPushExisting || o.CanUnlist || o.CanStage).ToList(),
                 IsDeprecationApiEnabled = IsDeprecateApiEnabled(currentUser),
                 IsApiKeyExpirationRestricted = _featureFlagService.IsApiKeyExpirationRestricted(),
             };
@@ -513,9 +513,10 @@ namespace NuGetGallery
         {
             return new ApiKeyOwnerViewModel(
                 account.Username,
-                ActionsRequiringPermissions.UploadNewPackageId.IsAllowedOnBehalfOfAccount(currentUser, account),
-                ActionsRequiringPermissions.UploadNewPackageVersion.IsAllowedOnBehalfOfAccount(currentUser, account),
-                ActionsRequiringPermissions.UnlistOrRelistPackage.IsAllowedOnBehalfOfAccount(currentUser, account),
+                canPushNew: ActionsRequiringPermissions.UploadNewPackageId.IsAllowedOnBehalfOfAccount(currentUser, account),
+                canPushExisting: ActionsRequiringPermissions.UploadNewPackageVersion.IsAllowedOnBehalfOfAccount(currentUser, account),
+                canUnlist: ActionsRequiringPermissions.UnlistOrRelistPackage.IsAllowedOnBehalfOfAccount(currentUser, account),
+                canStage: ActionsRequiringPermissions.ManageStagedPackage.IsAllowedOnBehalfOfAccount(currentUser, account),
                 packageIds: PackageService.FindPackageRegistrationsByOwner(account)
                                 .Select(p => p.Id)
                                 .OrderBy(i => i)
@@ -1226,9 +1227,10 @@ namespace NuGetGallery
         {
             return new TrustedPublisherPolicyOwnerViewModel(
                 packageOwner.Username,
-                ActionsRequiringPermissions.UploadNewPackageId.IsAllowedOnBehalfOfAccount(currentUser, packageOwner),
-                ActionsRequiringPermissions.UploadNewPackageVersion.IsAllowedOnBehalfOfAccount(currentUser, packageOwner),
-                ActionsRequiringPermissions.UnlistOrRelistPackage.IsAllowedOnBehalfOfAccount(currentUser, packageOwner));
+                canPushNew: ActionsRequiringPermissions.UploadNewPackageId.IsAllowedOnBehalfOfAccount(currentUser, packageOwner),
+                canPushExisting: ActionsRequiringPermissions.UploadNewPackageVersion.IsAllowedOnBehalfOfAccount(currentUser, packageOwner),
+                canUnlist: ActionsRequiringPermissions.UnlistOrRelistPackage.IsAllowedOnBehalfOfAccount(currentUser, packageOwner),
+                canStage: ActionsRequiringPermissions.ManageStagedPackage.IsAllowedOnBehalfOfAccount(currentUser, packageOwner));
         }
 
         private bool IsDeprecateApiEnabled(User currentUser)
