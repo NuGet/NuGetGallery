@@ -525,7 +525,7 @@ namespace NuGetGallery
                     scopes,
                     ActionsRequiringPermissions.UploadNewPackageId,
                     new ActionOnNewPackageContext(id, _reservedNamespaceService),
-                    NuGetScopes.PackagePush);
+                    NuGetScopes.PackageStage);
             }
 
             return _apiScopeEvaluator.Evaluate(
@@ -533,8 +533,7 @@ namespace NuGetGallery
                 scopes,
                 ActionsRequiringPermissions.UploadNewPackageVersion,
                 packageRegistration,
-                NuGetScopes.PackagePushVersion,
-                NuGetScopes.PackagePush);
+                NuGetScopes.PackageStage);
         }
 
         private static PackageStagingResult GetAuthorizationFailure(ApiScopeEvaluationResult result)
