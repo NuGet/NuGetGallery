@@ -372,7 +372,7 @@ namespace NuGetGallery
             var target = GetController<StagingController>();
             target.SetCurrentUser(currentUser);
 
-            var result = await target.DeleteGroup(currentUser.Username, group.Id, new DeleteStagingGroupViewModel());
+            var result = await target.DeleteGroupPost(currentUser.Username, group.Id);
 
             ResultAssert.IsRedirectTo(result, "/account/Packages");
         }
@@ -402,7 +402,7 @@ namespace NuGetGallery
             var target = GetController<StagingController>();
             target.SetCurrentUser(currentUser);
 
-            var result = await target.DeleteGroup(currentUser.Username, group.Id, new DeleteStagingGroupViewModel());
+            var result = await target.DeleteGroupPost(currentUser.Username, group.Id);
 
             var model = ResultAssert.IsView<DeleteStagingGroupViewModel>(result);
             Assert.Equal(1, model.PackageCount);

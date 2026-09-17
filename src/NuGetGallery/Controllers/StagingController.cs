@@ -172,8 +172,9 @@ namespace NuGetGallery
         }
 
         [HttpPost]
+        [ActionName(nameof(DeleteGroup))]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> DeleteGroup(string owner, string groupId, DeleteStagingGroupViewModel model)
+        public virtual async Task<ActionResult> DeleteGroupPost(string owner, string groupId)
         {
             var summary = FindStagingGroupSummary(owner, groupId);
             if (summary == null)
