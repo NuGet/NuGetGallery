@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGetGallery.Areas.Admin.ViewModels;
+using NuGetGallery.Filters;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
@@ -27,6 +28,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpGet]
+        [ElevatedAdminAction]
         public virtual ActionResult Index()
         {
             var model = new DeletePackagesRequest
@@ -44,6 +46,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         };
 
         [HttpGet]
+        [ElevatedAdminAction]
         public virtual ActionResult Search(string query)
         {
             var packages = SearchForPackages(_packageService, query);

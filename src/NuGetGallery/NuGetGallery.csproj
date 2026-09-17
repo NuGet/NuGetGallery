@@ -257,6 +257,7 @@
     <Compile Include="Extensions\ImageExtensions.cs" />
     <Compile Include="Extensions\UserSafeExceptionExtensions.cs" />
     <Compile Include="Filters\AdminActionAttribute.cs" />
+    <Compile Include="Filters\ElevatedAdminActionAttribute.cs" />
     <Compile Include="Filters\RequiresUserAgentAttribute.cs" />
     <Compile Include="Areas\Admin\Filters\AdminApiAuthAttribute.cs" />
     <Compile Include="Areas\Admin\Authentication\AdminApiBearerAuthenticationMiddleware.cs" />
@@ -398,6 +399,10 @@
     <Compile Include="Migrations\202608031928454_AddFederatedCredentialPolicyScopes.cs" />
     <Compile Include="Migrations\202608031928454_AddFederatedCredentialPolicyScopes.Designer.cs">
       <DependentUpon>202608031928454_AddFederatedCredentialPolicyScopes.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202609172157099_AddElevatedAdminRole.cs" />
+    <Compile Include="Migrations\202609172157099_AddElevatedAdminRole.Designer.cs">
+      <DependentUpon>202609172157099_AddElevatedAdminRole.cs</DependentUpon>
     </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
@@ -1791,6 +1796,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202608031928454_AddFederatedCredentialPolicyScopes.resx">
       <DependentUpon>202608031928454_AddFederatedCredentialPolicyScopes.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609172157099_AddElevatedAdminRole.resx">
+      <DependentUpon>202609172157099_AddElevatedAdminRole.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

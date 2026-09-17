@@ -55,17 +55,20 @@
                     Prevent users from performing some actions.
                 </p>
             </li>
-            <li class="col-sm-6 col-xs-12">
-                <h2>
-                    <a href="@Url.Action(actionName: "Index", controllerName: "Delete")">
-                        <i class="ms-Icon ms-Icon--Delete"></i>
-                        <span>Delete packages</span>
-                    </a>
-                </h2>
-                <p class="text-muted">
-                    Soft delete or hard packages.
-                </p>
-            </li>
+            @if (AdminHelper.IsAdminPanelEnabled && User.IsAdministrator() && User.IsInRole(CoreConstants.ElevatedAdminRoleName))
+            {
+                <li class="col-sm-6 col-xs-12">
+                    <h2>
+                        <a href="@Url.Action(actionName: "Index", controllerName: "Delete")">
+                            <i class="ms-Icon ms-Icon--Delete"></i>
+                            <span>Delete packages</span>
+                        </a>
+                    </h2>
+                    <p class="text-muted">
+                        Soft delete or hard delete packages.
+                    </p>
+                </li>
+            }
             <li class="col-sm-6 col-xs-12">
                 <h2>
                     <a href="@Url.Action(actionName: "Index", controllerName: "UpdateListed")">
