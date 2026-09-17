@@ -29,6 +29,7 @@ namespace NuGetGallery
             public static class ManagePackagesPage
             {
                 public const string ShowRequestsReceivedContainer = "#show-requests-received-container";
+                public const string ShowStagingGroupsContainer = "#show-staging-groups-container";
             }
         }
 
@@ -1185,6 +1186,66 @@ namespace NuGetGallery
             return GetActionLink(url, "Packages", "Users", relativeUrl);
         }
 
+        public static string CreateStagingGroup(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.CreateStagingGroup,
+                relativeUrl);
+        }
+
+        public static string ManageStagingGroup(this UrlHelper url, string owner, string groupId, bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.ManageStagingGroup,
+                relativeUrl,
+                new RouteValueDictionary
+                {
+                    { "owner", owner },
+                    { "groupId", groupId },
+                });
+        }
+
+        public static string DeleteStagingGroup(this UrlHelper url, string owner, string groupId, bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.DeleteStagingGroup,
+                relativeUrl,
+                new RouteValueDictionary
+                {
+                    { "owner", owner },
+                    { "groupId", groupId },
+                });
+        }
+
+        public static string MoveStagedPackage(this UrlHelper url, string owner, string id, string version, bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.MoveStagedPackage,
+                relativeUrl,
+                new RouteValueDictionary
+                {
+                    { "owner", owner },
+                    { "id", id },
+                    { "version", version },
+                });
+        }
+
+        public static string ManageUngroupedStaging(this UrlHelper url, string owner, bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.ManageUngroupedStaging,
+                relativeUrl,
+                new RouteValueDictionary
+                {
+                    { "owner", owner },
+                });
+        }
+
         public static string DownloadStagedPackage(this UrlHelper url, string id, string version, bool relativeUrl = true)
         {
             return GetRouteLink(
@@ -1253,6 +1314,11 @@ namespace NuGetGallery
         public static string ManageMyReceivedPackageOwnershipRequests(this UrlHelper url, bool relativeUrl = true)
         {
             return url.ManageMyPackages(relativeUrl) + Fragments.ManagePackagesPage.ShowRequestsReceivedContainer;
+        }
+
+        public static string ManageMyStagingGroups(this UrlHelper url, bool relativeUrl = true)
+        {
+            return url.ManageMyPackages(relativeUrl) + Fragments.ManagePackagesPage.ShowStagingGroupsContainer;
         }
 
         public static string GetPackageOwners(this UrlHelper url, bool relativeUrl = true)

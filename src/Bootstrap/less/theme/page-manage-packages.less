@@ -49,6 +49,11 @@
     margin-top: 5px;
   }
 
+  .staging-groups-actions {
+    margin-bottom: 16px;
+    text-align: right;
+  }
+
   .staging-status {
     &.staging-status-validating {
       background-color: var(--statusGenericBlueBackground2Rest);
@@ -76,6 +81,61 @@
     }
   }
 
+  .staging-group-back-link {
+    align-items: center;
+    display: inline-flex;
+    gap: 4px;
+
+    .ms-Icon {
+      line-height: 1;
+    }
+  }
+
+  .staging-group-heading {
+    margin-bottom: 8px;
+
+    h1 {
+      align-items: center;
+      display: flex;
+      gap: 8px;
+      margin: 0;
+    }
+  }
+
+  .staging-group-header {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: space-between;
+  }
+
+  .staging-group-delete {
+    align-items: center;
+    display: inline-flex;
+    flex: none;
+    gap: 6px;
+  }
+
+  .staging-group-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .staging-group-search {
+    margin-bottom: 16px;
+  }
+
+  .staging-move-group-select {
+    height: (@input-height-base + 2);
+  }
+
+  .staging-group-package-list {
+    margin-top: 16px;
+  }
+
   .staging-packages-table {
     table-layout: fixed;
 
@@ -93,6 +153,10 @@
 
     .staging-package-status-column {
       width: 22%;
+    }
+
+    .staging-package-uploaded-column {
+      width: 18%;
     }
 
     .staging-package-listed-column {

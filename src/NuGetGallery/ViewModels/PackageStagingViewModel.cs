@@ -28,5 +28,7 @@ namespace NuGetGallery
         public bool CanManage { get; set; }
 
         public bool CanPromote { get; set; }
+
+        public string MoveUrl { get; set; }
     }
 }

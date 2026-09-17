@@ -16,129 +16,57 @@
     }
 
     $(function () {
-        const stagingValidationModal = $('#staging-validation-modal');
-        const stagingValidationModalTitle = $('#staging-validation-modal-title');
-        const stagingValidationModalContent = $('.staging-validation-modal-content');
+        function showStagingGroupsFromHash() {
+            if (window.location.hash === '#show-staging-groups-container') {
+                $('#staging-groups-container').collapse('show');
+            }
+        }
 
-        stagingValidationModal.on('shown.bs.modal', function () {
-            stagingValidationModalTitle.focus();
-        });
+        $(window).on('hashchange', showStagingGroupsFromHash);
+        showStagingGroupsFromHash();
 
-        stagingValidationModal.on('hide.bs.modal', function () {
-            stagingValidationModal.addClass('staging-validation-modal-closing');
-        });
-
-        stagingValidationModal.on('hidden.bs.modal', function () {
-            stagingValidationModal.removeClass('staging-validation-modal-closing');
-            $('html').removeClass('staging-validation-modal-open');
-        });
-
-        function StagedPackageViewModel(packageItem) {
+        function StagingGroupViewModel(group) {
             const self = this;
 
-            this.Id = packageItem.Id;
-            this.Version = packageItem.Version;
-            this.Owner = packageItem.Owner;
-            this.OwnerUrl = packageItem.OwnerUrl;
-            this.Status = packageItem.Status;
-            this.StatusClass = packageItem.StatusClass;
-            this.HasValidationIssues = packageItem.HasValidationIssues;
-            this.ValidationIssuesId = packageItem.ValidationIssuesId;
-            this.CanManage = packageItem.CanManage;
-            this.CanPromote = packageItem.CanPromote;
-            this.ListedInputId = packageItem.ListedInputId;
-            this.DownloadUrl = packageItem.DownloadUrl;
-            this.ReplaceUrl = packageItem.ReplaceUrl;
-            this.UpdateListedUrl = packageItem.UpdateListedUrl;
-            this.PromoteUrl = packageItem.PromoteUrl;
-            this.DeleteUrl = packageItem.DeleteUrl;
+            this.Owner = group.Owner;
+            this.OwnerUrl = group.OwnerUrl;
+            this.Id = group.Id;
+            this.Name = group.Name;
+            this.Description = group.Description;
+            this.Url = group.Url;
+            this.CreatedDate = group.CreatedDate;
+            this.IsUngrouped = group.IsUngrouped;
+            this.PackageCount = group.PackageCount;
+            this.PackageCountText = group.PackageCount + ' package' + (group.PackageCount === 1 ? '' : 's');
+            this.PackageStatusSummary = group.PackageStatusSummary;
+            this.Status = group.Status;
+            this.StatusClass = group.StatusClass;
+            this.Visible = ko.observable(true);
 
-            this.Listed = ko.observable(packageItem.Listed);
-            this.IsBusy = ko.observable(packageItem.Status === 'Promoting');
-            this.IsSavingListed = ko.observable(false);
-            this.ListedStatus = ko.observable('');
-            this.IsDisabled = ko.pureComputed(function () {
-                return self.IsBusy() || self.IsSavingListed();
+            this.UpdateVisibility = function (ownerFilter) {
+                self.Visible(ownerFilter === 'All packages' || ownerFilter === self.Owner);
+            };
+        }
+
+        function StagingGroupsListViewModel(managePackagesViewModel, groups) {
+            const self = this;
+
+            this.Groups = $.map(groups, function (group) {
+                return new StagingGroupViewModel(group);
+            });
+            this.VisibleGroupsHeading = ko.pureComputed(function () {
+                const visibleCount = self.Groups.filter(function (group) {
+                    return group.Visible();
+                }).length;
+
+                return visibleCount + ' group' + (visibleCount === 1 ? '' : 's');
             });
 
-            this.UpdateListed = function (model, event) {
-                const input = $(event.currentTarget);
-                const form = input.closest('form');
-                const previousValue = !self.Listed();
-
-                self.IsSavingListed(true);
-                self.ListedStatus('');
-
-                $.ajax({
-                    method: 'POST',
-                    url: form.attr('action'),
-                    cache: false,
-                    data: form.serialize()
-                })
-                    .fail(function () {
-                        self.Listed(previousValue);
-                        self.ListedStatus('Not saved');
-                    })
-                    .always(function () {
-                        self.IsSavingListed(false);
-                    });
-            };
-
-            this.FollowLink = function (model, event) {
-                if (self.IsBusy()) {
-                    event.preventDefault();
-                    return false;
+            managePackagesViewModel.OwnerFilter.subscribe(function (newOwner) {
+                for (let index = 0; index < self.Groups.length; index++) {
+                    self.Groups[index].UpdateVisibility(newOwner.Username);
                 }
-
-                return true;
-            };
-
-            this.ChooseReplacement = function (model, event) {
-                event.preventDefault();
-                if (!self.IsBusy()) {
-                    $(event.currentTarget)
-                        .siblings('.staging-replace-form')
-                        .find('.staging-replace-input')
-                        .trigger('click');
-                }
-            };
-
-            this.Replace = function (model, event) {
-                const input = event.currentTarget;
-                if (input.files.length > 0) {
-                    self.IsBusy(true);
-                    input.form.submit();
-                }
-            };
-
-            this.Promote = function (model, event) {
-                event.preventDefault();
-                const trigger = $(event.currentTarget);
-                const message = `Promote staged package ${self.Id} ${self.Version}?`;
-                if (!self.IsBusy() && window.nuget.confirmEvent(message)) {
-                    self.IsBusy(true);
-                    trigger.siblings('.staging-promote-form')[0].submit();
-                }
-            };
-
-            this.Delete = function (model, event) {
-                event.preventDefault();
-                const trigger = $(event.currentTarget);
-                const message = `Delete staged package ${self.Id} ${self.Version}?`;
-                if (!self.IsBusy() && window.nuget.confirmEvent(message)) {
-                    self.IsBusy(true);
-                    trigger.siblings('.staging-delete-form')[0].submit();
-                }
-            };
-
-            this.ShowValidationIssues = function () {
-                const validationIssues = $(`#${self.ValidationIssuesId}`).html();
-
-                $('html').addClass('staging-validation-modal-open');
-                stagingValidationModalTitle.text(`Validation errors for ${self.Id}`);
-                stagingValidationModalContent.html(validationIssues);
-                return true;
-            };
+            });
         }
 
         function PackageListItemViewModel(packagesListViewModel, packageItem) {
@@ -477,9 +405,7 @@
 
             this.ListedPackages = new PackagesListViewModel(this, "published", initialData.ListedPackages);
             this.UnlistedPackages = new PackagesListViewModel(this, "unlisted", initialData.UnlistedPackages);
-            this.StagedPackages = $.map(initialData.StagedPackages, function (packageItem) {
-                return new StagedPackageViewModel(packageItem);
-            });
+            this.StagingGroups = new StagingGroupsListViewModel(this, initialData.StagingGroups);
             this.ReservedNamespaces = new ReservedNamespaceListViewModel(this, initialData.ReservedNamespaces);
             this.RequestsReceived = new OwnerRequestsListViewModel(this, initialData.RequestsReceived, true, false);
             this.RequestsSent = new OwnerRequestsListViewModel(this, initialData.RequestsSent, false, true);

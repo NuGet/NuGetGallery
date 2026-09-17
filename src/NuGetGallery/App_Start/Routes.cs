@@ -149,6 +149,42 @@ namespace NuGetGallery
                 new { controller = "Packages", action = "UploadPackageProgress" });
 
             routes.MapRoute(
+                RouteName.CreateStagingGroup,
+                "account/staging/groups/new",
+                new { controller = "Staging", action = nameof(StagingController.CreateGroup) },
+                new { httpMethod = new HttpMethodConstraint("GET", "POST") });
+
+            routes.MapRoute(
+                RouteName.ManageUngroupedStaging,
+                "account/staging/{owner}/ungrouped",
+                new { controller = "Staging", action = nameof(StagingController.Ungrouped) },
+                new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
+                RouteName.RenameStagingGroup,
+                "account/staging/{owner}/groups/{groupId}",
+                new { controller = "Staging", action = nameof(StagingController.RenameGroup) },
+                new { httpMethod = new HttpMethodConstraint("POST") });
+
+            routes.MapRoute(
+                RouteName.DeleteStagingGroup,
+                "account/staging/{owner}/groups/{groupId}/delete",
+                new { controller = "Staging", action = nameof(StagingController.DeleteGroup) },
+                new { httpMethod = new HttpMethodConstraint("GET", "POST") });
+
+            routes.MapRoute(
+                RouteName.MoveStagedPackage,
+                "account/staging/{owner}/package/{id}/{version}/move",
+                new { controller = "Staging", action = nameof(StagingController.MovePackage) },
+                new { httpMethod = new HttpMethodConstraint("GET", "POST") });
+
+            routes.MapRoute(
+                RouteName.ManageStagingGroup,
+                "account/staging/{owner}/groups/{groupId}",
+                new { controller = "Staging", action = nameof(StagingController.Group) },
+                new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
                 RouteName.DownloadManagedStagedPackage,
                 "account/staging/package/{id}/{version}/content",
                 new { controller = "Staging", action = nameof(StagingController.DownloadPackage) },
@@ -927,6 +963,30 @@ namespace NuGetGallery
 
         public static void RegisterStagingApiRoutes(RouteCollection routes)
         {
+            routes.MapRoute(
+                RouteName.DeleteStagingGroupApi,
+                "api/v3/staging/groups/{groupId}",
+                new { controller = "StagingApi", action = nameof(StagingApiController.DeleteStagingGroup) },
+                new { httpMethod = new HttpMethodConstraint("DELETE") });
+
+            routes.MapRoute(
+                RouteName.GetStagingGroupApi,
+                "api/v3/staging/groups/{groupId}",
+                new { controller = "StagingApi", action = nameof(StagingApiController.GetStagingGroup) },
+                new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
+                RouteName.GetStagingGroupsApi,
+                "api/v3/staging/groups",
+                new { controller = "StagingApi", action = nameof(StagingApiController.GetStagingGroups) },
+                new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
+                RouteName.CreateStagingGroupApi,
+                "api/v3/staging/groups",
+                new { controller = "StagingApi", action = nameof(StagingApiController.CreateStagingGroup) },
+                new { httpMethod = new HttpMethodConstraint("POST") });
+
             routes.MapRoute(
                 RouteName.DownloadStagedPackage,
                 "api/v3/staging/package/{id}/{version}",

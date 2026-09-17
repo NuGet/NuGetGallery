@@ -624,9 +624,14 @@
     <Compile Include="Migrations\201711021733062_ApiKeyOwnerScope.Designer.cs">
       <DependentUpon>201711021733062_ApiKeyOwnerScope.cs</DependentUpon>
     </Compile>
+    <Compile Include="RequestModels\CreateStagingGroupRequest.cs" />
     <Compile Include="RequestModels\SimulatedErrorType.cs" />
     <Compile Include="RequestModels\UpdateStagedPackageRequest.cs" />
+    <Compile Include="ResponseModels\StagingGroupResponse.cs" />
+    <Compile Include="ResponseModels\StagingArtifactResponse.cs" />
+    <Compile Include="ResponseModels\StagingPagedResponse.cs" />
     <Compile Include="Services\AsynchronousValidationMessageEmitter.cs" />
+    <Compile Include="Services\CreateStagingGroupResult.cs" />
     <Compile Include="Services\IStagedPackageValidationMessageEmitter.cs" />
     <Compile Include="Services\IPackageStagingAuthorizationService.cs" />
     <Compile Include="Services\IPackageStagingManagementService.cs" />
@@ -638,7 +643,14 @@
     <Compile Include="Services\PackageStagingPromotionService.cs" />
     <Compile Include="Services\PackageStagingStatus.cs" />
     <Compile Include="Services\PackageStagingUploadService.cs" />
+    <Compile Include="Services\StagingGroupSummary.cs" />
+    <Compile Include="ViewModels\CreateStagingGroupViewModel.cs" />
+    <Compile Include="ViewModels\DeleteStagingGroupViewModel.cs" />
+    <Compile Include="ViewModels\MoveStagedPackageViewModel.cs" />
     <Compile Include="ViewModels\PackageStagingViewModel.cs" />
+    <Compile Include="ViewModels\RenameStagingGroupViewModel.cs" />
+    <Compile Include="ViewModels\StagingGroupDetailViewModel.cs" />
+    <Compile Include="ViewModels\StagingGroupViewModel.cs" />
     <Compile Include="Infrastructure\Mail\BackgroundMarkdownMessageService.cs" />
     <Compile Include="Services\GalleryContentFileMetadataService.cs" />
     <Compile Include="Services\InvalidLicenseUrlValidationMessage.cs" />
@@ -2051,6 +2063,7 @@
     <Content Include="Scripts\gallery\page-manage-organization.js" />
     <Content Include="Scripts\gallery\page-manage-owners.js" />
     <Content Include="Scripts\gallery\page-manage-packages.js" />
+    <Content Include="Scripts\gallery\page-staging-group.js" />
     <Content Include="Scripts\gallery\page-manage-sponsorship-links.js" />
     <Content Include="Scripts\gallery\page-signin.js" />
     <Content Include="Scripts\gallery\page-support-requests.js" />
@@ -2078,6 +2091,10 @@
     <Content Include="Views\Packages\ReportAbuse.cshtml" />
     <Content Include="Views\Packages\UploadPackage.cshtml" />
     <Content Include="Views\Shared\_ListPackage.cshtml" />
+    <Content Include="Views\Staging\CreateGroup.cshtml" />
+    <Content Include="Views\Staging\DeleteGroup.cshtml" />
+    <Content Include="Views\Staging\Group.cshtml" />
+    <Content Include="Views\Staging\MovePackage.cshtml" />
     <Content Include="Views\Users\Packages.cshtml" />
     <Content Include="App_Code\ViewHelpers.cshtml" />
     <Content Include="Views\Users\PasswordChanged.cshtml" />

@@ -28,6 +28,6 @@ namespace NuGetGallery
 
         public bool IsPackageStagingEnabled { get; set; }
 
-        public IReadOnlyList<PackageStagingViewModel> StagedPackages { get; set; }
+        public IReadOnlyList<StagingGroupViewModel> StagingGroups { get; set; }
     }
 }

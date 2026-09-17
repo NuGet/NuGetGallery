@@ -13,6 +13,21 @@ namespace NuGetGallery
     public interface IPackageStagingAuthorizationService
     {
         /// <summary>
+        /// Gets the enabled staging owners manageable by a signed-in user.
+        /// </summary>
+        /// <param name="currentUser">The user requesting access.</param>
+        /// <returns>The enabled staging owners.</returns>
+        IReadOnlyList<User> GetEnabledOwners(User currentUser);
+
+        /// <summary>
+        /// Gets an enabled staging owner manageable by a signed-in user.
+        /// </summary>
+        /// <param name="currentUser">The user requesting access.</param>
+        /// <param name="owner">The staging owner's username.</param>
+        /// <returns>The enabled staging owner, or <see langword="null"/> when it is unavailable.</returns>
+        User GetEnabledOwner(User currentUser, string owner);
+
+        /// <summary>
         /// Determines whether a signed-in user can manage a staged package.
         /// </summary>
         /// <param name="currentUser">The user requesting access.</param>
@@ -28,5 +43,13 @@ namespace NuGetGallery
         /// <param name="stagedPackage">The staged package attempt.</param>
         /// <returns><see langword="true"/> when the credential can manage the staged package.</returns>
         bool CanManageWithApiKey(User currentUser, IEnumerable<Scope> scopes, StagedPackage stagedPackage);
+
+        /// <summary>
+        /// Gets the enabled staging owner identified by an API credential.
+        /// </summary>
+        /// <param name="currentUser">The user associated with the API credential.</param>
+        /// <param name="scopes">The scopes granted to the API credential.</param>
+        /// <returns>The enabled staging owner, or <see langword="null"/> when the credential does not identify exactly one manageable owner.</returns>
+        User GetEnabledApiKeyOwner(User currentUser, IEnumerable<Scope> scopes);
     }
 }

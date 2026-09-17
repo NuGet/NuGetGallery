@@ -79,5 +79,125 @@ namespace NuGetGallery
         /// <param name="currentUser">The user requesting the staged packages.</param>
         /// <returns>The owner-visible staged packages.</returns>
         IReadOnlyList<StagedPackage> GetStagedPackages(User currentUser);
+
+        /// <summary>
+        /// Gets staging groups owned by the user or an enabled organization the user belongs to.
+        /// </summary>
+        /// <param name="currentUser">The user requesting the staging groups.</param>
+        /// <returns>The owner-visible staging groups.</returns>
+        IReadOnlyList<StagingGroup> GetStagingGroups(User currentUser);
+
+        /// <summary>
+        /// Finds a staging group for an authorized owner.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="groupId">The owner-scoped group ID.</param>
+        /// <returns>The staging group, or <see langword="null"/> when it does not exist.</returns>
+        StagingGroup FindStagingGroup(User stagingOwner, string groupId);
+
+        /// <summary>
+        /// Creates an owner-scoped staging group.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="groupId">The immutable owner-scoped group ID.</param>
+        /// <param name="name">The optional group display name. The group ID is used when omitted.</param>
+        /// <returns>The staging group creation result.</returns>
+        Task<CreateStagingGroupResult> CreateStagingGroupAsync(User stagingOwner, string groupId, string name);
+
+        /// <summary>
+        /// Renames an owner-scoped staging group.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="groupId">The immutable owner-scoped group ID.</param>
+        /// <param name="name">The new group display name.</param>
+        /// <returns>The renamed group, or <see langword="null"/> when it does not exist.</returns>
+        Task<StagingGroup> RenameStagingGroupAsync(User stagingOwner, string groupId, string name);
+
+        /// <summary>
+        /// Deletes an owner-scoped staging group and its current staged package members.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="group">The staging group to delete.</param>
+        /// <returns>The group deletion result.</returns>
+        Task<StagingGroupDeletionResult> DeleteStagingGroupAsync(User stagingOwner, StagingGroup group);
+
+        /// <summary>
+        /// Adds or moves a staged package identity to an owner-scoped group.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="group">The target staging group.</param>
+        /// <param name="stagedPackage">The current staged package attempt whose identity should move.</param>
+        /// <returns>The membership update result.</returns>
+        Task<StagingGroupMembershipResult> AddPackageToStagingGroupAsync(User stagingOwner, StagingGroup group, StagedPackage stagedPackage);
+
+        /// <summary>
+        /// Removes a staged package identity from an owner-scoped group.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="stagedPackage">The current staged package attempt whose identity should become ungrouped.</param>
+        /// <returns>The membership update result.</returns>
+        Task<StagingGroupMembershipResult> RemovePackageFromStagingGroupAsync(User stagingOwner, StagedPackage stagedPackage);
+
+        /// <summary>
+        /// Gets staging group summaries for an authorized owner.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <returns>The staging groups and current package attempts owned by the owner.</returns>
+        IReadOnlyList<StagingGroupSummary> GetStagingGroupSummaries(User stagingOwner);
+
+        /// <summary>
+        /// Gets one ordered page of staging group summaries for an authorized owner.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="page">The one-based page number.</param>
+        /// <param name="pageSize">The number of groups per page.</param>
+        /// <returns>The requested summaries and total number of matching groups.</returns>
+        StagingGroupSummaryPage GetStagingGroupSummaryPage(User stagingOwner, int page, int pageSize);
+
+        /// <summary>
+        /// Gets one ordered page of current package attempts in an owner-scoped staging group.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="groupId">The owner-scoped group ID.</param>
+        /// <param name="page">The one-based page number.</param>
+        /// <param name="pageSize">The number of package attempts per page.</param>
+        /// <returns>The requested package page, or <see langword="null"/> when the group does not exist.</returns>
+        StagingGroupPackagePage GetStagingGroupPackagePage(User stagingOwner, string groupId, int page, int pageSize);
+    }
+
+    public enum StagingGroupMembershipResult
+    {
+        Updated,
+        Unchanged,
+        Conflict,
+    }
+
+    public enum StagingGroupDeletionResultType
+    {
+        Deleted,
+        Conflict,
+    }
+
+    public sealed class StagingGroupDeletionResult
+    {
+        private StagingGroupDeletionResult(StagingGroupDeletionResultType type, int affectedPackageCount)
+        {
+            Type = type;
+            AffectedPackageCount = affectedPackageCount;
+        }
+
+        public StagingGroupDeletionResultType Type { get; }
+
+        public int AffectedPackageCount { get; }
+
+        public static StagingGroupDeletionResult Deleted(int affectedPackageCount)
+        {
+            return new StagingGroupDeletionResult(StagingGroupDeletionResultType.Deleted, affectedPackageCount);
+        }
+
+        public static StagingGroupDeletionResult Conflict(int affectedPackageCount)
+        {
+            return new StagingGroupDeletionResult(StagingGroupDeletionResultType.Conflict, affectedPackageCount);
+        }
     }
 }
