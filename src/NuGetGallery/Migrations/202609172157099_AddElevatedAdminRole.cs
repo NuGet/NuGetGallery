@@ -9,11 +9,7 @@ namespace NuGetGallery.Migrations
     {
         public override void Up()
         {
-            Sql(@"
-IF NOT EXISTS (SELECT 1 FROM dbo.Roles WHERE Name = N'ElevatedAdmin')
-BEGIN
-    INSERT INTO dbo.Roles (Name) VALUES (N'ElevatedAdmin');
-END");
+            Sql(@"INSERT INTO dbo.Roles (Name) VALUES (N'ElevatedAdmin');");
         }
 
         public override void Down()
