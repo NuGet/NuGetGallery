@@ -328,7 +328,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 };
                 stagedPackageIdentity.CurrentStagedPackageKey = StagedPackage.Key;
                 stagedPackageIdentity.CurrentStagedPackage = StagedPackage;
-                Message = new StagedPackagePromotionMessage(PromotionId, StagedPackage.Key);
+                Message = StagingPromotionMessage.ForPackage(PromotionId, StagedPackage.Key);
                 StagedPackages = new List<StagedPackage> { StagedPackage };
 
                 StagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
@@ -426,7 +426,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
             public Guid PromotionId { get; }
             public Package Package { get; }
             public StagedPackage StagedPackage { get; }
-            public StagedPackagePromotionMessage Message { get; }
+            public StagingPromotionMessage Message { get; }
             public List<StagedPackage> StagedPackages { get; }
             public Mock<IEntityRepository<StagedPackage>> StagedPackageRepository { get; }
             public Mock<ICorePackageService> PackageService { get; }

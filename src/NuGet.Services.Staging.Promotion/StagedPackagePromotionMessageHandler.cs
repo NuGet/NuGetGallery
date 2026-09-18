@@ -17,7 +17,7 @@ namespace NuGet.Services.Staging.Promotion
     /// <summary>
     /// Publishes validated staged package content and completes the corresponding Gallery state transition.
     /// </summary>
-    public class StagedPackagePromotionMessageHandler : IMessageHandler<StagedPackagePromotionMessage>
+    public class StagedPackagePromotionMessageHandler : IStagingPromotionMessageHandler<StagedPackage>
     {
         private readonly IEntityRepository<StagedPackage> _stagedPackageRepository;
         private readonly ICorePackageService _packageService;
@@ -60,14 +60,19 @@ namespace NuGet.Services.Staging.Promotion
         }
 
         /// <inheritdoc />
-        public async Task<bool> HandleAsync(StagedPackagePromotionMessage message)
+        public async Task<bool> HandleAsync(StagingPromotionMessage message)
         {
             if (message == null)
             {
                 throw new ArgumentNullException(nameof(message));
             }
 
-            using (_logger.BeginScope("Staged package {StagedPackageKey}, promotion {PromotionId}",  message.StagedPackageKey, message.PromotionId))
+            if (message.TargetType != StagingPromotionTargetType.StagedPackage)
+            {
+                throw new ArgumentException("The promotion message must identify a staged package.", nameof(message));
+            }
+
+            using (_logger.BeginScope("Staged package {StagedPackageKey}, promotion {PromotionId}", message.TargetKey, message.PromotionId))
             {
                 _logger.LogInformation("Processing staged package promotion message.");
 
@@ -75,7 +80,7 @@ namespace NuGet.Services.Staging.Promotion
                     .GetAll()
                     .Include(candidate => candidate.StagedPackageIdentity.Package.PackageRegistration.Owners)
                     .Include(candidate => candidate.StagedPackageIdentity.Owner)
-                    .SingleOrDefault(candidate => candidate.Key == message.StagedPackageKey);
+                    .SingleOrDefault(candidate => candidate.Key == message.TargetKey);
                 if (!IsActivePromotionAttempt(stagedPackage, message.PromotionId))
                 {
                     _logger.LogInformation("Ignoring inactive staged package promotion attempt.");

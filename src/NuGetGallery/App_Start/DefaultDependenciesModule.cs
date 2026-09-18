@@ -1005,15 +1005,15 @@ namespace NuGetGallery
                 .OnRelease(x => _ = x.CloseAsync());
 
             builder
-                .RegisterType<StagedPackagePromotionMessageSerializer>()
-                .As<IBrokeredMessageSerializer<StagedPackagePromotionMessage>>();
+                .RegisterType<StagingPromotionMessageSerializer>()
+                .As<IBrokeredMessageSerializer<StagingPromotionMessage>>();
 
             builder
-                .RegisterType<StagedPackagePromotionMessageEnqueuer>()
+                .RegisterType<StagingPromotionMessageEnqueuer>()
                 .WithParameter(new ResolvedParameter(
                     (parameter, context) => parameter.ParameterType == typeof(ITopicClient),
                     (parameter, context) => context.ResolveKeyed<ITopicClient>(BindingKeys.StagingPromotionTopic)))
-                .As<IStagedPackagePromotionMessageEnqueuer>();
+                .As<IStagingPromotionMessageEnqueuer>();
         }
 
         private static void RegisterFeatureFlagsService(ContainerBuilder builder, ConfigurationService configuration)
