@@ -55,7 +55,7 @@
                     Prevent users from performing some actions.
                 </p>
             </li>
-            @if (User.IsAdministrator() && User.IsInRole(CoreConstants.ElevatedAdminRoleName))
+            @if (User.IsElevatedAdministrator())
             {
                 <li class="col-sm-6 col-xs-12">
                     <h2>

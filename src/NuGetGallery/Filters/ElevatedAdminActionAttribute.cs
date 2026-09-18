@@ -16,7 +16,7 @@ namespace NuGetGallery.Filters
                 return;
             }
 
-            Roles = "ElevatedAdmin";
+            Roles = "ElevatedAdmins";
 
             base.OnAuthorization(filterContext);
         }

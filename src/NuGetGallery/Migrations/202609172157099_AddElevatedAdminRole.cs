@@ -9,7 +9,7 @@ namespace NuGetGallery.Migrations
     {
         public override void Up()
         {
-            Sql(@"INSERT INTO dbo.Roles (Name) VALUES (N'ElevatedAdmin');");
+            Sql(@"INSERT INTO dbo.Roles (Name) VALUES (N'ElevatedAdmins');");
         }
 
         public override void Down()
@@ -18,9 +18,9 @@ namespace NuGetGallery.Migrations
 DELETE ur
 FROM dbo.UserRoles AS ur
 INNER JOIN dbo.Roles AS r ON r.[Key] = ur.RoleKey
-WHERE r.Name = N'ElevatedAdmin';
+WHERE r.Name = N'ElevatedAdmins';
 
-DELETE FROM dbo.Roles WHERE Name = N'ElevatedAdmin';");
+DELETE FROM dbo.Roles WHERE Name = N'ElevatedAdmins';");
         }
     }
 }
