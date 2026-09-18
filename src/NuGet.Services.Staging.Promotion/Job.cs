@@ -17,7 +17,7 @@ namespace NuGet.Services.Staging.Promotion
     /// <summary>
     /// Hosts staged package promotion message processing.
     /// </summary>
-    public class Job : SubscriptionProcessorJob<StagedPackagePromotionMessage>
+    public class Job : SubscriptionProcessorJob<StagingPromotionMessage>
     {
         private const string PromotionConfigurationSectionName = "Promotion";
         private const string PackageStorageKey = "PackageStorage";
@@ -39,7 +39,7 @@ namespace NuGet.Services.Staging.Promotion
             services.Add(ServiceDescriptor.Transient(typeof(IEntityRepository<>), typeof(EntityRepository<>)));
             services.AddTransient<ICorePackageService, CorePackageService>();
             services.AddTransient<IFileMetadataService, PackageFileMetadataService>();
-            services.AddTransient<IBrokeredMessageSerializer<StagedPackagePromotionMessage>, StagedPackagePromotionMessageSerializer>();
+            services.AddTransient<IBrokeredMessageSerializer<StagingPromotionMessage>, StagingPromotionMessageSerializer>();
             services.AddTransient<ISubscriptionProcessorTelemetryService, SubscriptionProcessorNoTelemetryService>();
             services.AddTransient<ICloudBlobContainerInformationProvider, GalleryCloudBlobContainerInformationProvider>();
         }
@@ -80,7 +80,13 @@ namespace NuGet.Services.Staging.Promotion
             containerBuilder
                 .RegisterType<StagedPackagePromotionMessageHandler>()
                 .WithKeyedParameter(typeof(ICoreFileStorageService), PackageStorageKey)
-                .As<IMessageHandler<StagedPackagePromotionMessage>>();
+                .As<IStagingPromotionMessageHandler<StagedPackage>>();
+            containerBuilder
+                .RegisterType<StagingGroupPromotionMessageHandler>()
+                .As<IStagingPromotionMessageHandler<StagingGroup>>();
+            containerBuilder
+                .RegisterType<StagingPromotionMessageHandler>()
+                .As<IMessageHandler<StagingPromotionMessage>>();
         }
 
         private static void RegisterFileStorageService(ContainerBuilder containerBuilder, string storageKey)

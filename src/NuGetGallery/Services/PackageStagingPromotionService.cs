@@ -15,7 +15,7 @@ namespace NuGetGallery
     public class PackageStagingPromotionService : IPackageStagingPromotionService
     {
         private readonly IPackageStagingAuthorizationService _authorizationService;
-        private readonly IStagedPackagePromotionMessageEnqueuer _messageEnqueuer;
+        private readonly IStagingPromotionMessageEnqueuer _messageEnqueuer;
         private readonly IEntityRepository<StagedPackage> _stagedPackageRepository;
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace NuGetGallery
         /// <param name="stagedPackageRepository">The staged-package repository.</param>
         public PackageStagingPromotionService(
             IPackageStagingAuthorizationService authorizationService,
-            IStagedPackagePromotionMessageEnqueuer messageEnqueuer,
+            IStagingPromotionMessageEnqueuer messageEnqueuer,
             IEntityRepository<StagedPackage> stagedPackageRepository)
         {
             _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
@@ -71,7 +71,7 @@ namespace NuGetGallery
                     stagedPackage.Status = StagedPackageStatus.Promoting;
                     await _stagedPackageRepository.CommitChangesAsync();
 
-                    await _messageEnqueuer.SendMessageAsync(new StagedPackagePromotionMessage(promotionId, stagedPackage.Key));
+                    await _messageEnqueuer.SendMessageAsync(StagingPromotionMessage.ForPackage(promotionId, stagedPackage.Key));
                 });
             }
             catch (DbUpdateConcurrencyException)

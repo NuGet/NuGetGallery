@@ -27,11 +27,11 @@ namespace NuGetGallery
                 .Setup(x => x.CommitChangesAsync())
                 .Callback(() => events.Add($"Commit:{stagedPackage.Status}"))
                 .Returns(Task.CompletedTask);
-            StagedPackagePromotionMessage message = null;
-            var enqueuer = new Mock<IStagedPackagePromotionMessageEnqueuer>();
+            StagingPromotionMessage message = null;
+            var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
             enqueuer
-                .Setup(x => x.SendMessageAsync(It.IsAny<StagedPackagePromotionMessage>()))
-                .Callback<StagedPackagePromotionMessage>(value =>
+                .Setup(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()))
+                .Callback<StagingPromotionMessage>(value =>
                 {
                     events.Add("Send");
                     message = value;
@@ -44,7 +44,8 @@ namespace NuGetGallery
             Assert.Equal(PackageStagingPromotionResult.Accepted, result);
             Assert.Equal(StagedPackageStatus.Promoting, stagedPackage.Status);
             Assert.Equal(stagedPackage.ActivePromotionId, message.PromotionId);
-            Assert.Equal(StagedPackageKey, message.StagedPackageKey);
+            Assert.Equal(StagingPromotionTargetType.StagedPackage, message.TargetType);
+            Assert.Equal(StagedPackageKey, message.TargetKey);
             Assert.Equal(new[] { "Transaction", "Commit:Promoting", "Send" }, events);
         }
 
@@ -53,7 +54,7 @@ namespace NuGetGallery
         {
             var stagedPackage = CreateStagedPackage(StagedPackageStatus.Ready);
             var repository = new Mock<IEntityRepository<StagedPackage>>();
-            var enqueuer = new Mock<IStagedPackagePromotionMessageEnqueuer>();
+            var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
             var target = CreateService(repository, enqueuer, authorized: false);
 
             var result = await target.PromotePackageAsync(new User("other"), stagedPackage);
@@ -61,7 +62,7 @@ namespace NuGetGallery
             Assert.Equal(PackageStagingPromotionResult.Unauthorized, result);
             Assert.Equal(StagedPackageStatus.Ready, stagedPackage.Status);
             repository.Verify(x => x.CommitChangesAsync(), Times.Never);
-            enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagedPackagePromotionMessage>()), Times.Never);
+            enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
         }
 
         [Fact]
@@ -69,14 +70,14 @@ namespace NuGetGallery
         {
             var stagedPackage = CreateStagedPackage(StagedPackageStatus.Promoting);
             var repository = new Mock<IEntityRepository<StagedPackage>>();
-            var enqueuer = new Mock<IStagedPackagePromotionMessageEnqueuer>();
+            var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
             var target = CreateService(repository, enqueuer);
 
             var result = await target.PromotePackageAsync(new User("owner"), stagedPackage);
 
             Assert.Equal(PackageStagingPromotionResult.NotReady, result);
             repository.Verify(x => x.CommitChangesAsync(), Times.Never);
-            enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagedPackagePromotionMessage>()), Times.Never);
+            enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
         }
 
         [Fact]
@@ -85,7 +86,7 @@ namespace NuGetGallery
             var stagedPackage = CreateStagedPackage(StagedPackageStatus.Ready);
             stagedPackage.StagedPackageIdentity.StagingGroupKey = 10;
             var repository = new Mock<IEntityRepository<StagedPackage>>();
-            var enqueuer = new Mock<IStagedPackagePromotionMessageEnqueuer>();
+            var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
             var target = CreateService(repository, enqueuer);
 
             var result = await target.PromotePackageAsync(new User("owner"), stagedPackage);
@@ -93,7 +94,7 @@ namespace NuGetGallery
             Assert.Equal(PackageStagingPromotionResult.Grouped, result);
             Assert.Equal(StagedPackageStatus.Ready, stagedPackage.Status);
             repository.Verify(x => x.CommitChangesAsync(), Times.Never);
-            enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagedPackagePromotionMessage>()), Times.Never);
+            enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
         }
 
         [Fact]
@@ -105,7 +106,7 @@ namespace NuGetGallery
             repository
                 .Setup(x => x.CommitChangesAsync())
                 .ThrowsAsync(new DbUpdateConcurrencyException());
-            var enqueuer = new Mock<IStagedPackagePromotionMessageEnqueuer>();
+            var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
             var target = CreateService(repository, enqueuer);
 
             var result = await target.PromotePackageAsync(new User("owner"), stagedPackage);
@@ -113,7 +114,7 @@ namespace NuGetGallery
             Assert.Equal(PackageStagingPromotionResult.Conflict, result);
             Assert.Equal(StagedPackageStatus.Ready, stagedPackage.Status);
             Assert.Null(stagedPackage.ActivePromotionId);
-            enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagedPackagePromotionMessage>()), Times.Never);
+            enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
         }
 
         [Fact]
@@ -128,9 +129,9 @@ namespace NuGetGallery
                 .Callback(() => committedStatuses.Add(stagedPackage.Status))
                 .Returns(Task.CompletedTask);
             var expectedException = new InvalidOperationException("Send failed.");
-            var enqueuer = new Mock<IStagedPackagePromotionMessageEnqueuer>();
+            var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
             enqueuer
-                .Setup(x => x.SendMessageAsync(It.IsAny<StagedPackagePromotionMessage>()))
+                .Setup(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()))
                 .ThrowsAsync(expectedException);
             var target = CreateService(repository, enqueuer);
 
@@ -147,7 +148,7 @@ namespace NuGetGallery
 
         private static PackageStagingPromotionService CreateService(
             Mock<IEntityRepository<StagedPackage>> repository,
-            Mock<IStagedPackagePromotionMessageEnqueuer> enqueuer,
+            Mock<IStagingPromotionMessageEnqueuer> enqueuer,
             bool authorized = true)
         {
             var authorizationService = new Mock<IPackageStagingAuthorizationService>();
