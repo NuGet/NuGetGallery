@@ -7,7 +7,7 @@ using NuGet.Services.Entities;
 namespace NuGetGallery
 {
     /// <summary>
-    /// Accepts package promotion requests from signed-in Gallery users.
+    /// Accepts package and staging group promotion requests from signed-in Gallery users.
     /// </summary>
     public interface IPackageStagingPromotionService
     {
@@ -18,6 +18,14 @@ namespace NuGetGallery
         /// <param name="stagedPackage">The staged package attempt to promote.</param>
         /// <returns>The result of accepting the promotion request.</returns>
         Task<PackageStagingPromotionResult> PromotePackageAsync(User currentUser, StagedPackage stagedPackage);
+
+        /// <summary>
+        /// Attempts to begin promotion of every current package in a staging group.
+        /// </summary>
+        /// <param name="currentUser">The user requesting promotion.</param>
+        /// <param name="group">The staging group to promote.</param>
+        /// <returns>The result of accepting the promotion request.</returns>
+        Task<StagingGroupPromotionResult> PromoteGroupAsync(User currentUser, StagingGroup group);
     }
 
     /// <summary>
@@ -47,6 +55,37 @@ namespace NuGetGallery
 
         /// <summary>
         /// The staged package changed while promotion was being accepted.
+        /// </summary>
+        Conflict,
+    }
+
+    /// <summary>
+    /// Describes whether a staging group promotion request was accepted.
+    /// </summary>
+    public enum StagingGroupPromotionResult
+    {
+        /// <summary>
+        /// The promotion request was accepted for asynchronous processing.
+        /// </summary>
+        Accepted,
+
+        /// <summary>
+        /// The user cannot promote every package in the staging group.
+        /// </summary>
+        Unauthorized,
+
+        /// <summary>
+        /// The staging group has no current package members.
+        /// </summary>
+        Empty,
+
+        /// <summary>
+        /// At least one current package is not ready for promotion.
+        /// </summary>
+        NotReady,
+
+        /// <summary>
+        /// The staging group or one of its packages changed while promotion was being accepted.
         /// </summary>
         Conflict,
     }

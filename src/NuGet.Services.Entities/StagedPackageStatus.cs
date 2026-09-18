@@ -12,5 +12,6 @@ namespace NuGet.Services.Entities
         Deleted = 4,
         Promoting = 5,
         PromotionFailed = 6,
+        Succeeded = 7,
     }
 }
