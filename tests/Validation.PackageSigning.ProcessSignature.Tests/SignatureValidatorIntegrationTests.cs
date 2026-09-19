@@ -17,6 +17,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Internal.NuGet.Testing.SignedPackages;
 using Moq;
+using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.PackageSigning.Configuration;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.ProcessSignature;
@@ -184,6 +185,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 _corePackageService.Object,
                 _optionsSnapshot.Object,
                 _sasDefinitionConfigurationMock.Object,
+                Mock.Of<IFeatureFlagService>(service => service.IsDerOrderingEnforcementEnabled()),
                 _telemetryService,
                 _logger);
         }
@@ -2011,6 +2013,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 _corePackageService.Object,
                 _optionsSnapshot.Object,
                 _sasDefinitionConfigurationMock.Object,
+                Mock.Of<IFeatureFlagService>(service => service.IsDerOrderingEnforcementEnabled()),
                 _telemetryService,
                 _logger);
         }

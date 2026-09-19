@@ -24,5 +24,10 @@ namespace NuGet.Jobs.Validation
         /// https://github.com/NuGet/Engineering/issues/5250
         /// </summary>
         bool IsExtraValidationLoggingEnabled();
+
+        /// <summary>
+        /// Determines whether non-canonical DER ordering in author signed attributes should be rejected.
+        /// </summary>
+        bool IsDerOrderingEnforcementEnabled();
     }
 }
