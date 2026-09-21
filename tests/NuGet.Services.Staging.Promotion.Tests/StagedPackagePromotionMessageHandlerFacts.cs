@@ -339,9 +339,8 @@ namespace NuGet.Services.Staging.Promotion.Tests
                     .Setup(x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()))
                     .Returns((Func<Task> action) => action());
                 StagedPackageRepository
-                    .Setup(x => x.DeleteOnCommit(StagedPackage))
-                    .Callback(() => StagedPackages.Remove(StagedPackage));
-
+                    .Setup(x => x.DeleteOnCommit(It.IsAny<StagedPackage>()))
+                    .Callback<StagedPackage>(stagedPackage => StagedPackages.Remove(stagedPackage));
                 PackageService = new Mock<ICorePackageService>();
                 PackageService
                     .Setup(x => x.UpdatePackageStreamMetadataAsync(Package, It.IsAny<NuGetGallery.Packaging.PackageStreamMetadata>(), false))
@@ -383,6 +382,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 ReadmeFileService = new Mock<ICoreReadmeFileService>();
                 Target = new StagedPackagePromotionMessageHandler(
                     StagedPackageRepository.Object,
+                    Mock.Of<IStagingGroupPromotionService>(),
                     PackageService.Object,
                     StagingBlobService.Object,
                     PackageFileStorageService.Object,
