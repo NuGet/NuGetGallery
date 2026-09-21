@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using NuGet.Services.Entities;
 
 namespace NuGet.Services.Staging.Promotion
@@ -17,6 +18,6 @@ namespace NuGet.Services.Staging.Promotion
         /// <remarks>
         /// The caller owns the database transaction and commits these changes with the package publication state.
         /// </remarks>
-        void CompletePackage(StagedPackage stagedPackage);
+        Task CompletePackageAsync(StagedPackage stagedPackage);
     }
 }

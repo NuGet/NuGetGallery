@@ -244,7 +244,7 @@ namespace NuGet.Services.Staging.Promotion
                 }
                 else
                 {
-                    _stagingGroupPromotionService.CompletePackage(stagedPackage);
+                    await _stagingGroupPromotionService.CompletePackageAsync(stagedPackage);
                 }
 
                 await _stagedPackageRepository.CommitChangesAsync();

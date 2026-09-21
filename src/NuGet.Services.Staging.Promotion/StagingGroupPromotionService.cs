@@ -4,6 +4,7 @@
 using System;
 using System.Data.Entity;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Entities;
 using NuGetGallery;
@@ -17,6 +18,7 @@ namespace NuGet.Services.Staging.Promotion
     {
         private readonly IEntityRepository<StagedPackage> _stagedPackageRepository;
         private readonly IEntityRepository<StagingGroup> _stagingGroupRepository;
+        private readonly IStagingGroupLockService _stagingGroupLockService;
         private readonly ILogger<StagingGroupPromotionService> _logger;
 
         /// <summary>
@@ -24,19 +26,22 @@ namespace NuGet.Services.Staging.Promotion
         /// </summary>
         /// <param name="stagedPackageRepository">The staged package repository.</param>
         /// <param name="stagingGroupRepository">The staging group repository.</param>
+        /// <param name="stagingGroupLockService">The staging group lock service.</param>
         /// <param name="logger">The logger.</param>
         public StagingGroupPromotionService(
             IEntityRepository<StagedPackage> stagedPackageRepository,
             IEntityRepository<StagingGroup> stagingGroupRepository,
+            IStagingGroupLockService stagingGroupLockService,
             ILogger<StagingGroupPromotionService> logger)
         {
             _stagedPackageRepository = stagedPackageRepository ?? throw new ArgumentNullException(nameof(stagedPackageRepository));
             _stagingGroupRepository = stagingGroupRepository ?? throw new ArgumentNullException(nameof(stagingGroupRepository));
+            _stagingGroupLockService = stagingGroupLockService ?? throw new ArgumentNullException(nameof(stagingGroupLockService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc />
-        public void CompletePackage(StagedPackage stagedPackage)
+        public async Task CompletePackageAsync(StagedPackage stagedPackage)
         {
             if (stagedPackage == null)
             {
@@ -55,6 +60,7 @@ namespace NuGet.Services.Staging.Promotion
 
             using (_logger.BeginScope("Staging group {StagingGroupKey}, promotion {PromotionId}", stagingGroup.Key, stagedPackage.ActivePromotionId))
             {
+                await _stagingGroupLockService.AcquireAsync(stagingGroup.Key);
                 _logger.LogInformation("Completing successful staged package {StagedPackageKey}.", stagedPackage.Key);
                 stagedPackage.Status = StagedPackageStatus.Succeeded;
                 var activeMembers = _stagedPackageRepository

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Services.Entities;
@@ -15,12 +16,12 @@ namespace NuGet.Services.Staging.Promotion.Tests
     public class StagingGroupPromotionServiceFacts
     {
         [Fact]
-        public void RetainsSuccessfulPackageUntilRemainingMembersComplete()
+        public async Task RetainsSuccessfulPackageUntilRemainingMembersComplete()
         {
             var context = new TestContext();
             var remainingMember = context.AddMember(43, StagedPackageStatus.Promoting);
 
-            context.Target.CompletePackage(context.StagedPackage);
+            await context.Target.CompletePackageAsync(context.StagedPackage);
 
             Assert.Equal(StagedPackageStatus.Succeeded, context.StagedPackage.Status);
             Assert.Equal(StagedPackageStatus.Promoting, remainingMember.Status);
@@ -31,12 +32,12 @@ namespace NuGet.Services.Staging.Promotion.Tests
         }
 
         [Fact]
-        public void RemovesGroupWhenAllMembersHaveSucceeded()
+        public async Task RemovesGroupWhenAllMembersHaveSucceeded()
         {
             var context = new TestContext();
             var completedMember = context.AddMember(43, StagedPackageStatus.Succeeded);
 
-            context.Target.CompletePackage(context.StagedPackage);
+            await context.Target.CompletePackageAsync(context.StagedPackage);
 
             Assert.Empty(context.StagedPackages);
             Assert.Empty(context.StagingGroups);
@@ -63,7 +64,13 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 StagedPackage = AddMember(42, StagedPackageStatus.Promoting);
 
                 StagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
-                StagedPackageRepository.Setup(x => x.GetAll()).Returns(() => StagedPackages.AsQueryable());
+                StagedPackageRepository
+                    .Setup(x => x.GetAll())
+                    .Returns(() =>
+                    {
+                        StagingGroupLockService.Verify(x => x.AcquireAsync(StagingGroup.Key), Times.Once);
+                        return StagedPackages.AsQueryable();
+                    });
                 StagedPackageRepository
                     .Setup(x => x.DeleteOnCommit(It.IsAny<StagedPackage>()))
                     .Callback<StagedPackage>(stagedPackage => StagedPackages.Remove(stagedPackage));
@@ -71,10 +78,15 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 StagingGroupRepository
                     .Setup(x => x.DeleteOnCommit(It.IsAny<StagingGroup>()))
                     .Callback<StagingGroup>(stagingGroup => StagingGroups.Remove(stagingGroup));
+                StagingGroupLockService = new Mock<IStagingGroupLockService>();
+                StagingGroupLockService
+                    .Setup(x => x.AcquireAsync(It.IsAny<int>()))
+                    .Returns(Task.CompletedTask);
 
                 Target = new StagingGroupPromotionService(
                     StagedPackageRepository.Object,
                     StagingGroupRepository.Object,
+                    StagingGroupLockService.Object,
                     Mock.Of<ILogger<StagingGroupPromotionService>>());
             }
 
@@ -107,6 +119,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
             public List<StagedPackage> StagedPackages { get; }
             public Mock<IEntityRepository<StagedPackage>> StagedPackageRepository { get; }
             public Mock<IEntityRepository<StagingGroup>> StagingGroupRepository { get; }
+            public Mock<IStagingGroupLockService> StagingGroupLockService { get; }
             public StagingGroupPromotionService Target { get; }
         }
     }
