@@ -58,9 +58,21 @@ namespace NuGet.Services.Staging.Promotion
                 var group = _stagingGroupRepository
                     .GetAll()
                     .SingleOrDefault(candidate => candidate.Key == message.TargetKey);
-                if (group?.ActivePromotionId != message.PromotionId)
+                if (group == null)
                 {
-                    _logger.LogInformation("Ignoring inactive staging group promotion attempt.");
+                    _logger.LogInformation("Ignoring promotion message for a missing staging group.");
+                    return true;
+                }
+
+                if (!group.ActivePromotionId.HasValue)
+                {
+                    _logger.LogInformation("Staging group promotion is not visible yet. Retrying the root message.");
+                    return false;
+                }
+
+                if (group.ActivePromotionId != message.PromotionId)
+                {
+                    _logger.LogInformation("Ignoring stale staging group promotion attempt.");
                     return true;
                 }
 

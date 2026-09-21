@@ -40,7 +40,19 @@ namespace NuGet.Services.Staging.Promotion.Tests
         }
 
         [Fact]
-        public async Task ConsumesInactiveGroupMessage()
+        public async Task RetriesMessageBeforePromotionIsVisible()
+        {
+            var context = new TestContext();
+            context.Group.ActivePromotionId = null;
+
+            var handled = await context.Target.HandleAsync(context.Message);
+
+            Assert.False(handled);
+            Assert.Empty(context.SentMessages);
+        }
+
+        [Fact]
+        public async Task ConsumesMessageForDifferentActivePromotion()
         {
             var context = new TestContext();
             context.Group.ActivePromotionId = Guid.NewGuid();
