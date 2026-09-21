@@ -1,4 +1,4 @@
-﻿﻿@using Newtonsoft.Json
+﻿@using Newtonsoft.Json
 @model ApiKeyListViewModel
 @using NuGetGallery.Authentication
 @{
@@ -12,10 +12,18 @@
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             @ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, true, @<text>API keys</text>)
 
+            @ViewHelpers.AlertWarning(
+                    @<text>
+                        <strong>Action required:</strong> API keys created before August 17, 2026 will expire on November 1, 2026.
+                        New keys are limited to 30 days. We recommend switching to
+                        <a href="@Url.ManageMyTrustedPublishing()">Trusted Publishing</a>.
+                        <a href="https://learn.microsoft.com/en-us/nuget/nuget-org/trusted-publishing">Learn more</a>
+                    </text>)
+
             @ViewHelpers.Alert(
                     @<text>
                         <strong>Looking for a more secure and streamlined way to publish packages?</strong>
-                        If you're using GitHub Actions, we recommend switching to
+                        If you're using GitHub Actions or GitLab, we recommend switching to
                         <a href="@Url.ManageMyTrustedPublishing()">Trusted Publishing</a> since it eliminates the need to manage API keys.
                     </text>,
            "info", icon: null)
