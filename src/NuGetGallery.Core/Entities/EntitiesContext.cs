@@ -526,6 +526,10 @@ namespace NuGetGallery
                 .HasColumnType("datetime2");
 
             modelBuilder.Entity<StagingGroup>()
+                .Property(g => g.RowVersion)
+                .IsRowVersion();
+
+            modelBuilder.Entity<StagingGroup>()
                 .Property(g => g.OwnerKey)
                 .HasColumnAnnotation(
                     IndexAnnotation.AnnotationName,

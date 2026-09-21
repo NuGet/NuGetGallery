@@ -26,5 +26,15 @@ namespace NuGet.Services.Entities
         public string Name { get; set; }
 
         public DateTime CreatedDate { get; set; }
+
+        /// <summary>
+        /// Identifies the active promotion for message correlation and fencing.
+        /// </summary>
+        public Guid? ActivePromotionId { get; set; }
+
+        /// <summary>
+        /// Used for optimistic concurrency when updating the staging group.
+        /// </summary>
+        public byte[] RowVersion { get; set; }
     }
 }
