@@ -66,6 +66,30 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public void ShowsOnlyRemainingStagedMembersDuringGroupPromotion()
+            {
+                var owner = new User("owner") { Key = 1 };
+                var group = CreateStagingGroup(10, "release", "Release", owner);
+                group.ActivePromotionId = Guid.NewGuid();
+                var promoting = CreateStagedPackage(100, "Promoting.Package", "1.0.0", owner);
+                promoting.Status = StagedPackageStatus.Promoting;
+                promoting.StagedPackageIdentity.StagingGroupKey = group.Key;
+                var succeeded = CreateStagedPackage(101, "Succeeded.Package", "1.0.0", owner);
+                succeeded.Status = StagedPackageStatus.Succeeded;
+                succeeded.ActivePromotionId = group.ActivePromotionId;
+                succeeded.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Available;
+                succeeded.StagedPackageIdentity.StagingGroupKey = group.Key;
+                var target = CreateService(new[] { promoting, succeeded }, user => true, stagingGroups: new[] { group });
+
+                Assert.Same(promoting, Assert.Single(target.GetStagedPackages(owner)));
+                Assert.Same(promoting, Assert.Single(Assert.Single(target.GetStagingGroupSummaries(owner)).Packages));
+                Assert.Same(promoting, Assert.Single(Assert.Single(target.GetStagingGroupSummaryPage(owner, 1, 1).Items).Packages));
+                var page = target.GetStagingGroupPackagePage(owner, group.Id, page: 1, pageSize: 10);
+                Assert.Same(promoting, Assert.Single(page.Items));
+                Assert.Equal(1, page.TotalCount);
+            }
+
+            [Fact]
             public void ListsGroupsForEnabledPersonalAndOrganizationOwners()
             {
                 var currentUser = new User("current") { Key = 1 };

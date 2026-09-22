@@ -236,7 +236,7 @@ namespace NuGetGallery
         }
 
         [Fact]
-        public void DisplaysStableProgressAndFreezesAnActiveGroup()
+        public void DisplaysRemainingPackagesAndFreezesAnActiveGroup()
         {
             var currentUser = new User("current") { Key = 1 };
             var group = new StagingGroup
@@ -250,8 +250,6 @@ namespace NuGetGallery
             };
             var promotingPackage = CreateStagedPackage(42, "Promoting.Package", "1.0.0", currentUser, StagedPackageStatus.Promoting);
             promotingPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
-            var succeededPackage = CreateStagedPackage(43, "Succeeded.Package", "2.0.0", currentUser, StagedPackageStatus.Succeeded);
-            succeededPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
             GetMock<IPackageStagingAuthorizationService>()
                 .Setup(x => x.GetEnabledOwner(currentUser, currentUser.Username))
                 .Returns(currentUser);
@@ -260,7 +258,7 @@ namespace NuGetGallery
                 .Returns(group);
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.GetStagedPackages(currentUser))
-                .Returns(new[] { promotingPackage, succeededPackage });
+                .Returns(new[] { promotingPackage });
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.GetStagingGroups(currentUser))
                 .Returns(new[] { group });
@@ -273,7 +271,7 @@ namespace NuGetGallery
             Assert.True(model.IsPromotionActive);
             Assert.False(model.CanPromote);
             Assert.Equal(1, model.PromotingCount);
-            Assert.Equal(1, model.SucceededCount);
+            Assert.Equal(1, model.PackageCount);
             Assert.All(model.Packages, package =>
             {
                 Assert.False(package.CanManage);

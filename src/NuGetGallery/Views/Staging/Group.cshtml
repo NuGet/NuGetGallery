@@ -93,10 +93,6 @@
                 {
                     <span class="label staging-status staging-status-promoting">@Model.PromotingCount promoting</span>
                 }
-                @if (Model.SucceededCount > 0)
-                {
-                    <span class="label staging-status staging-status-succeeded">@Model.SucceededCount succeeded</span>
-                }
                 @if (Model.FailedCount > 0)
                 {
                     <span class="label staging-status staging-status-failedvalidation">@Model.FailedCount failed</span>
@@ -104,14 +100,14 @@
             </div>
             @if (Model.IsPromotionActive)
             {
-                <p class="text-muted">Package promotion is in progress. Group and package changes are disabled until it finishes.</p>
+                <p class="text-muted">Promotion is in progress. You can't change this group or its packages until it's done.</p>
             }
 
             <hr class="breadcrumb-divider" />
 
             @if (Model.PackageCount == 0)
             {
-                <p>This staging group has no packages.</p>
+                <p>@(Model.IsPromotionActive ? "No staged packages remain. Promotion is finishing." : "This staging group has no packages.")</p>
             }
             else
             {
