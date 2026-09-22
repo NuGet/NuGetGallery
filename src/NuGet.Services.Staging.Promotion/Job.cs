@@ -4,6 +4,7 @@
 using Autofac;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
 using NuGet.Jobs.Validation;
@@ -23,6 +24,7 @@ namespace NuGet.Services.Staging.Promotion
         private const string PackageStorageKey = "PackageStorage";
         private const string StagingStorageKey = "StagingStorage";
         private const string FlatContainerStorageKey = "FlatContainerStorage";
+        private const string PromotionTopicKey = "PromotionTopic";
 
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
@@ -47,6 +49,20 @@ namespace NuGet.Services.Staging.Promotion
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
             ConfigureDefaultSubscriptionProcessor(containerBuilder);
+
+            containerBuilder
+                .Register(context =>
+                {
+                    var configuration = context.Resolve<IOptionsSnapshot<ServiceBusConfiguration>>().Value;
+                    return new TopicClientWrapper(configuration.ConnectionString, configuration.TopicPath);
+                })
+                .Keyed<ITopicClient>(PromotionTopicKey)
+                .SingleInstance()
+                .OnRelease(client => _ = client.CloseAsync());
+            containerBuilder
+                .RegisterType<StagingPromotionMessageEnqueuer>()
+                .WithKeyedParameter(typeof(ITopicClient), PromotionTopicKey)
+                .As<IStagingPromotionMessageEnqueuer>();
 
             containerBuilder
                 .RegisterStorageAccount<PromotionConfiguration>(configuration => configuration.PackageStorageConnectionString)
@@ -77,6 +93,9 @@ namespace NuGet.Services.Staging.Promotion
                 .RegisterType<CoreReadmeFileService>()
                 .WithKeyedParameter(typeof(ICoreFileStorageService), FlatContainerStorageKey)
                 .As<ICoreReadmeFileService>();
+            containerBuilder
+                .RegisterType<StagingGroupPromotionService>()
+                .As<IStagingGroupPromotionService>();
             containerBuilder
                 .RegisterType<StagedPackagePromotionMessageHandler>()
                 .WithKeyedParameter(typeof(ICoreFileStorageService), PackageStorageKey)

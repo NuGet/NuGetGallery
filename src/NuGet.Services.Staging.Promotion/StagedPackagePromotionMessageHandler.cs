@@ -20,6 +20,7 @@ namespace NuGet.Services.Staging.Promotion
     public class StagedPackagePromotionMessageHandler : IStagingPromotionMessageHandler<StagedPackage>
     {
         private readonly IEntityRepository<StagedPackage> _stagedPackageRepository;
+        private readonly IStagingGroupPromotionService _stagingGroupPromotionService;
         private readonly ICorePackageService _packageService;
         private readonly IStagingBlobService _stagingBlobService;
         private readonly ICoreFileStorageService _packageFileStorageService;
@@ -32,6 +33,7 @@ namespace NuGet.Services.Staging.Promotion
         /// Initializes a new instance of the <see cref="StagedPackagePromotionMessageHandler"/> class.
         /// </summary>
         /// <param name="stagedPackageRepository">The staged package repository.</param>
+        /// <param name="stagingGroupPromotionService">The staging group promotion service.</param>
         /// <param name="packageService">The package service.</param>
         /// <param name="stagingBlobService">The private staging blob service.</param>
         /// <param name="packageFileStorageService">The public package file storage service.</param>
@@ -41,6 +43,7 @@ namespace NuGet.Services.Staging.Promotion
         /// <param name="logger">The logger.</param>
         public StagedPackagePromotionMessageHandler(
             IEntityRepository<StagedPackage> stagedPackageRepository,
+            IStagingGroupPromotionService stagingGroupPromotionService,
             ICorePackageService packageService,
             IStagingBlobService stagingBlobService,
             ICoreFileStorageService packageFileStorageService,
@@ -50,6 +53,7 @@ namespace NuGet.Services.Staging.Promotion
             ILogger<StagedPackagePromotionMessageHandler> logger)
         {
             _stagedPackageRepository = stagedPackageRepository ?? throw new ArgumentNullException(nameof(stagedPackageRepository));
+            _stagingGroupPromotionService = stagingGroupPromotionService ?? throw new ArgumentNullException(nameof(stagingGroupPromotionService));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _stagingBlobService = stagingBlobService ?? throw new ArgumentNullException(nameof(stagingBlobService));
             _packageFileStorageService = packageFileStorageService ?? throw new ArgumentNullException(nameof(packageFileStorageService));
@@ -80,7 +84,15 @@ namespace NuGet.Services.Staging.Promotion
                     .GetAll()
                     .Include(candidate => candidate.StagedPackageIdentity.Package.PackageRegistration.Owners)
                     .Include(candidate => candidate.StagedPackageIdentity.Owner)
+                    .Include(candidate => candidate.StagedPackageIdentity.StagingGroup)
                     .SingleOrDefault(candidate => candidate.Key == message.TargetKey);
+                if (IsSuccessfulGroupPromotionAttempt(stagedPackage, message.PromotionId))
+                {
+                    _logger.LogInformation("Resuming staging group finalization for an already successful package.");
+                    await _stagingGroupPromotionService.TryFinalizeAsync(stagedPackage.StagedPackageIdentity.StagingGroupKey.Value, message.PromotionId);
+                    return true;
+                }
+
                 if (!IsActivePromotionAttempt(stagedPackage, message.PromotionId))
                 {
                     _logger.LogInformation("Ignoring inactive staged package promotion attempt.");
@@ -88,10 +100,7 @@ namespace NuGet.Services.Staging.Promotion
                 }
 
                 var package = stagedPackage.StagedPackageIdentity.Package;
-                using (_logger.BeginScope(
-                    "Package {PackageId} {PackageVersion}",
-                    package.PackageRegistration.Id,
-                    package.NormalizedVersion))
+                using (_logger.BeginScope("Package {PackageId} {PackageVersion}", package.PackageRegistration.Id, package.NormalizedVersion))
                 {
                     if (!HasValidPromotionState(stagedPackage))
                     {
@@ -100,6 +109,7 @@ namespace NuGet.Services.Staging.Promotion
                         return true;
                     }
 
+                    var stagingGroupKey = stagedPackage.StagedPackageIdentity.StagingGroupKey;
                     var streamMetadata = await GetStreamMetadataAsync(stagedPackage);
                     var packageFileName = await CopyPackageAsync(package, stagedPackage);
 
@@ -120,6 +130,11 @@ namespace NuGet.Services.Staging.Promotion
                         throw;
                     }
 
+                    if (stagingGroupKey.HasValue)
+                    {
+                        await _stagingGroupPromotionService.TryFinalizeAsync(stagingGroupKey.Value, message.PromotionId);
+                    }
+
                     _logger.LogInformation("Completed staged package promotion.");
                     return true;
                 }
@@ -131,7 +146,18 @@ namespace NuGet.Services.Staging.Promotion
             return stagedPackage != null
                 && stagedPackage.Status == StagedPackageStatus.Promoting
                 && stagedPackage.ActivePromotionId == promotionId
-                && stagedPackage.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Staged;
+                && stagedPackage.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Staged
+                && (!stagedPackage.StagedPackageIdentity.StagingGroupKey.HasValue || stagedPackage.StagedPackageIdentity.StagingGroup?.ActivePromotionId == promotionId);
+        }
+
+        private static bool IsSuccessfulGroupPromotionAttempt(StagedPackage stagedPackage, Guid promotionId)
+        {
+            return stagedPackage != null
+                && stagedPackage.Status == StagedPackageStatus.Succeeded
+                && stagedPackage.ActivePromotionId == promotionId
+                && stagedPackage.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Available
+                && stagedPackage.StagedPackageIdentity.StagingGroupKey.HasValue
+                && stagedPackage.StagedPackageIdentity.StagingGroup?.ActivePromotionId == promotionId;
         }
 
         private static bool HasValidPromotionState(StagedPackage stagedPackage)
@@ -228,9 +254,19 @@ namespace NuGet.Services.Staging.Promotion
         {
             await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
             {
+                var stagingGroup = stagedPackage.StagedPackageIdentity.StagingGroup;
                 await _packageService.UpdatePackageStreamMetadataAsync(package, streamMetadata, commitChanges: false);
                 await _packageService.UpdatePackageStatusAsync(package, PackageStatus.Available, commitChanges: false);
-                _stagedPackageRepository.DeleteOnCommit(stagedPackage);
+
+                if (stagingGroup == null)
+                {
+                    _stagedPackageRepository.DeleteOnCommit(stagedPackage);
+                }
+                else
+                {
+                    _stagingGroupPromotionService.MarkPackageSucceeded(stagedPackage);
+                }
+
                 await _stagedPackageRepository.CommitChangesAsync();
             });
         }
