@@ -166,7 +166,7 @@ namespace NuGetGallery
                     return HttpNotFound();
                 }
 
-                ModelState.AddModelError(string.Empty, "The staging group cannot be renamed while package promotion is active.");
+                ModelState.AddModelError(string.Empty, "The group changed or promotion started. Refresh and try again.");
                 return GroupView(currentUser, group);
             }
 
