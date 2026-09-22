@@ -170,19 +170,27 @@ namespace NuGetGallery
             }
 
             var deleted = false;
-            await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
+            try
             {
-                if (!await TryReservePackageAndGroupsForMutationAsync(stagedPackage, stagedPackage.StagedPackageIdentity.StagingGroup))
+                await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
                 {
-                    return;
-                }
+                    if (stagedPackage.Status == StagedPackageStatus.Promoting || !await TryReserveStagingGroupsForMutationAsync(stagedPackage.StagedPackageIdentity.StagingGroup))
+                    {
+                        return;
+                    }
 
-                stagedPackage.Status = StagedPackageStatus.Deleted;
-                stagedPackage.StagedPackageIdentity.Package.Listed = false;
-                await _packageService.UpdatePackageStatusAsync(stagedPackage.StagedPackageIdentity.Package, PackageStatus.Deleted, commitChanges: false);
-                await _stagedPackageRepository.CommitChangesAsync();
-                deleted = true;
-            });
+                    stagedPackage.Status = StagedPackageStatus.Deleted;
+                    stagedPackage.StagedPackageIdentity.Package.Listed = false;
+                    await _packageService.UpdatePackageStatusAsync(stagedPackage.StagedPackageIdentity.Package, PackageStatus.Deleted, commitChanges: false);
+                    await _stagedPackageRepository.CommitChangesAsync();
+                    deleted = true;
+                });
+            }
+            catch (DbUpdateConcurrencyException exception)
+            {
+                exception.Log();
+                return false;
+            }
 
             return deleted;
         }
