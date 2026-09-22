@@ -312,6 +312,26 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task RejectsRenamingAGroupWhilePromotionIsActive()
+            {
+                var currentUser = new User("current") { Key = 1 };
+                var group = CreateStagingGroup(10, "release.1", "Release 1", currentUser);
+                group.ActivePromotionId = Guid.NewGuid();
+                var stagingGroupRepository = new Mock<IEntityRepository<StagingGroup>>();
+                var target = CreateService(
+                    Array.Empty<StagedPackage>(),
+                    owner => true,
+                    stagingGroups: new[] { group },
+                    stagingGroupRepository: stagingGroupRepository);
+
+                var result = await target.RenameStagingGroupAsync(currentUser, group.Id, "Release 2");
+
+                Assert.Null(result);
+                Assert.Equal("Release 1", group.Name);
+                stagingGroupRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
+            }
+
+            [Fact]
             public async Task DeletesAGroupAndItsCurrentStagedPackagesInOneTransaction()
             {
                 var currentUser = new User("current") { Key = 1 };
@@ -373,6 +393,7 @@ namespace NuGetGallery
             {
                 var currentUser = new User("current") { Key = 1 };
                 var group = CreateStagingGroup(10, "release", "Release", currentUser);
+                group.ActivePromotionId = Guid.NewGuid();
                 var readyPackage = CreateStagedPackage(100, "Ready.Package", "1.0.0", currentUser);
                 readyPackage.Status = StagedPackageStatus.Ready;
                 readyPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
@@ -469,6 +490,27 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task RejectsMovingAPackageIntoAnActiveGroup()
+            {
+                var currentUser = new User("current") { Key = 1 };
+                var group = CreateStagingGroup(10, "release", "Release", currentUser);
+                group.ActivePromotionId = Guid.NewGuid();
+                var stagedPackage = CreateStagedPackage(100, "Test.Package", "1.0.0", currentUser);
+                stagedPackage.Status = StagedPackageStatus.Ready;
+                var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
+                var target = CreateService(
+                    new[] { stagedPackage },
+                    owner => true,
+                    stagedPackageRepository: stagedPackageRepository);
+
+                var result = await target.AddPackageToStagingGroupAsync(currentUser, group, stagedPackage);
+
+                Assert.Equal(StagingGroupMembershipResult.Conflict, result);
+                Assert.Null(stagedPackage.StagedPackageIdentity.StagingGroupKey);
+                stagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
+            }
+
+            [Fact]
             public async Task RejectsMovingWhenPromotionWinsTheRace()
             {
                 var currentUser = new User("current") { Key = 1 };
@@ -523,6 +565,29 @@ namespace NuGetGallery
                 var group = CreateStagingGroup(10, "release", "Release", currentUser);
                 var stagedPackage = CreateStagedPackage(100, "Test.Package", "1.0.0", currentUser);
                 stagedPackage.Status = StagedPackageStatus.Promoting;
+                stagedPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
+                stagedPackage.StagedPackageIdentity.StagingGroup = group;
+                var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
+                var target = CreateService(
+                    new[] { stagedPackage },
+                    owner => true,
+                    stagedPackageRepository: stagedPackageRepository);
+
+                var result = await target.RemovePackageFromStagingGroupAsync(currentUser, stagedPackage);
+
+                Assert.Equal(StagingGroupMembershipResult.Conflict, result);
+                Assert.Equal(group.Key, stagedPackage.StagedPackageIdentity.StagingGroupKey);
+                stagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
+            }
+
+            [Fact]
+            public async Task RejectsRemovingAPackageFromAnActiveGroup()
+            {
+                var currentUser = new User("current") { Key = 1 };
+                var group = CreateStagingGroup(10, "release", "Release", currentUser);
+                group.ActivePromotionId = Guid.NewGuid();
+                var stagedPackage = CreateStagedPackage(100, "Test.Package", "1.0.0", currentUser);
+                stagedPackage.Status = StagedPackageStatus.Succeeded;
                 stagedPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
                 stagedPackage.StagedPackageIdentity.StagingGroup = group;
                 var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
@@ -681,10 +746,34 @@ namespace NuGetGallery
                     user => true,
                     stagedPackageRepository: stagedPackageRepository);
 
-                await target.UpdateListedAsync(stagedPackage, listed: true);
+                var result = await target.UpdateListedAsync(stagedPackage, listed: true);
 
+                Assert.True(result);
                 Assert.True(stagedPackage.StagedPackageIdentity.Package.Listed);
                 stagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
+            }
+
+            [Fact]
+            public async Task RejectsUpdatingListedIntentWhileGroupPromotionIsActive()
+            {
+                var owner = new User("owner") { Key = 1 };
+                var group = CreateStagingGroup(20, "release", "Release", owner);
+                group.ActivePromotionId = Guid.NewGuid();
+                var stagedPackage = CreateStagedPackage(10, "Test.Package", "1.0.0", owner);
+                stagedPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
+                stagedPackage.StagedPackageIdentity.StagingGroup = group;
+                stagedPackage.StagedPackageIdentity.Package.Listed = false;
+                var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
+                var target = CreateService(
+                    new[] { stagedPackage },
+                    user => true,
+                    stagedPackageRepository: stagedPackageRepository);
+
+                var result = await target.UpdateListedAsync(stagedPackage, listed: true);
+
+                Assert.False(result);
+                Assert.False(stagedPackage.StagedPackageIdentity.Package.Listed);
+                stagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
             }
 
             [Fact]
@@ -705,12 +794,41 @@ namespace NuGetGallery
                     packageService: packageService.Object,
                     stagedPackageRepository: stagedPackageRepository);
 
-                await target.DeletePackageAsync(stagedPackage);
+                var result = await target.DeletePackageAsync(stagedPackage);
 
+                Assert.True(result);
                 Assert.Equal(StagedPackageStatus.Deleted, stagedPackage.Status);
                 Assert.Equal(PackageStatus.Deleted, stagedPackage.StagedPackageIdentity.Package.PackageStatusKey);
                 Assert.False(stagedPackage.StagedPackageIdentity.Package.Listed);
                 stagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
+            }
+
+            [Fact]
+            public async Task RejectsDeletingAPackageWhileGroupPromotionIsActive()
+            {
+                var owner = new User("owner") { Key = 1 };
+                var group = CreateStagingGroup(20, "release", "Release", owner);
+                group.ActivePromotionId = Guid.NewGuid();
+                var stagedPackage = CreateStagedPackage(10, "Test.Package", "1.0.0", owner);
+                stagedPackage.Status = StagedPackageStatus.Promoting;
+                stagedPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
+                stagedPackage.StagedPackageIdentity.StagingGroup = group;
+                var packageService = new Mock<IPackageService>();
+                var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
+                var target = CreateService(
+                    new[] { stagedPackage },
+                    user => true,
+                    packageService: packageService.Object,
+                    stagedPackageRepository: stagedPackageRepository);
+
+                var result = await target.DeletePackageAsync(stagedPackage);
+
+                Assert.False(result);
+                Assert.Equal(StagedPackageStatus.Promoting, stagedPackage.Status);
+                packageService.Verify(
+                    x => x.UpdatePackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), It.IsAny<bool>()),
+                    Times.Never);
+                stagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
             }
 
             private static PackageStagingManagementService CreateService(

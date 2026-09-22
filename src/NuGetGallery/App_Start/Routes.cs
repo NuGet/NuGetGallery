@@ -161,6 +161,12 @@ namespace NuGetGallery
                 new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
+                RouteName.PromoteStagingGroup,
+                "account/staging/{owner}/groups/{groupId}/promote",
+                new { controller = "Staging", action = nameof(StagingController.PromoteGroup) },
+                new { httpMethod = new HttpMethodConstraint("POST") });
+
+            routes.MapRoute(
                 RouteName.RenameStagingGroup,
                 "account/staging/{owner}/groups/{groupId}",
                 new { controller = "Staging", action = nameof(StagingController.RenameGroup) },

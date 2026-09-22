@@ -86,9 +86,16 @@ namespace NuGetGallery
                 throw new ArgumentOutOfRangeException(nameof(itemCount));
             }
 
-            var canPromote = itemCount > 0 && allPackagesReady;
+            var canPromote = itemCount > 0 && allPackagesReady && !group.ActivePromotionId.HasValue;
             IReadOnlyList<StagingBlockerResponse> blockers = Array.Empty<StagingBlockerResponse>();
-            if (itemCount == 0)
+            if (group.ActivePromotionId.HasValue)
+            {
+                blockers = new[]
+                {
+                    new StagingBlockerResponse("GroupPromotionInProgress", "The staging group is being promoted."),
+                };
+            }
+            else if (itemCount == 0)
             {
                 blockers = new[]
                 {

@@ -70,6 +70,11 @@
       color: var(--statusSuccessForeground1Rest);
     }
 
+    &.staging-status-succeeded {
+      background-color: var(--statusSuccessBackground1Rest);
+      color: var(--statusSuccessForeground1Rest);
+    }
+
     &.staging-status-failedvalidation {
       background-color: var(--statusDangerBackground1Rest);
       color: var(--statusDangerForeground1Rest);
@@ -108,6 +113,15 @@
     flex-wrap: wrap;
     gap: 16px;
     justify-content: space-between;
+  }
+
+  .staging-group-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .staging-group-promote {
+    margin: 0;
   }
 
   .staging-group-delete {

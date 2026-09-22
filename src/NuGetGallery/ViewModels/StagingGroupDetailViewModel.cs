@@ -20,11 +20,19 @@ namespace NuGetGallery
 
         public bool IsUngrouped { get; set; }
 
+        public bool IsPromotionActive { get; set; }
+
+        public bool CanPromote { get; set; }
+
         public int PackageCount { get; set; }
 
         public int ReadyCount { get; set; }
 
         public int ValidatingCount { get; set; }
+
+        public int PromotingCount { get; set; }
+
+        public int SucceededCount { get; set; }
 
         public int FailedCount { get; set; }
 

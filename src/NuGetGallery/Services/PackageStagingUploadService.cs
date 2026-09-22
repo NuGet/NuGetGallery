@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Globalization;
 using System.IO;
@@ -252,6 +253,12 @@ namespace NuGetGallery
                 return PackageStagingResult.Error(HttpStatusCode.NotFound, "The staged package was not found.");
             }
 
+            if (currentAttempt.StagedPackageIdentity.StagingGroup?.ActivePromotionId.HasValue == true)
+            {
+                target = null;
+                return PackageStagingResult.Error(HttpStatusCode.Conflict, "The staged package cannot be replaced while its group is being promoted.");
+            }
+
             return ResolveTarget(
                 upload,
                 packageRegistration,
@@ -318,6 +325,11 @@ namespace NuGetGallery
             if (currentAttempt.Status == StagedPackageStatus.Superseded)
             {
                 return CreateExistingPackageConflict(upload.Id, upload.PackageMetadata.Version);
+            }
+
+            if (currentAttempt.StagedPackageIdentity.StagingGroup?.ActivePromotionId.HasValue == true)
+            {
+                return PackageStagingResult.Error(HttpStatusCode.Conflict, "The staged package cannot be replaced while its group is being promoted.");
             }
 
             var canReplace = packageStatus == PackageStatus.Staged;
@@ -498,6 +510,7 @@ namespace NuGetGallery
         {
             return _stagedPackageRepository
                 .GetAll()
+                .Include(candidate => candidate.StagedPackageIdentity.StagingGroup)
                 .SingleOrDefault(candidate => candidate.StagedPackageIdentityKey == packageKey && candidate.StagedPackageIdentity.CurrentStagedPackageKey == candidate.Key);
         }
 

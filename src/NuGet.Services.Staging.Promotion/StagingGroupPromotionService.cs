@@ -115,9 +115,9 @@ namespace NuGet.Services.Staging.Promotion
                             _stagedPackageRepository.DeleteOnCommit(activeMember);
                         }
 
-                        _stagingGroupRepository.DeleteOnCommit(stagingGroup);
+                        stagingGroup.ActivePromotionId = null;
                         await _stagedPackageRepository.CommitChangesAsync();
-                        _logger.LogInformation("Completed staging group promotion with {PackageCount} successful packages.", activeMembers.Count);
+                        _logger.LogInformation("Completed staging group promotion with {PackageCount} successful packages and retained the empty group.", activeMembers.Count);
                     });
                 }
                 catch (DbUpdateConcurrencyException)

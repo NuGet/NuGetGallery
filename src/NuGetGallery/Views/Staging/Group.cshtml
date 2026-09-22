@@ -30,32 +30,53 @@
                     @using (Html.BeginForm("RenameGroup", "Staging", new { owner = Model.Owner, groupId = Model.Id }, FormMethod.Post, new { @class = "form-inline staging-group-rename" }))
                     {
                         @Html.AntiForgeryToken()
+                        @Html.ValidationSummary(excludePropertyErrors: true)
                         <div class="staging-group-heading">
                             <h1>
                                 <span class="staging-group-name@(showRenameForm ? " hidden" : string.Empty)">@Model.Name</span>
                                 @Html.Label("Name", "Display name", new { @class = "sr-only" })
                                 @Html.TextBox("Name", Model.Name, new { @class = "form-control input-brand staging-group-name-input" + (showRenameForm ? string.Empty : " hidden"), maxlength = 128, required = "required", aria_label = "Display name" })
-                                <button type="button"
-                                        class="btn btn-brand-icon staging-group-rename-trigger@(showRenameForm ? " hidden" : string.Empty)"
-                                        aria-label="Rename group"
-                                        title="Rename group">
-                                    <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
-                                </button>
-                                <button type="submit"
-                                        class="btn btn-brand-icon staging-group-rename-confirm@(showRenameForm ? string.Empty : " hidden")"
-                                        aria-label="Confirm group name"
-                                        title="Confirm group name">
-                                    <i class="ms-Icon ms-Icon--CheckMark" aria-hidden="true"></i>
-                                </button>
+                                @if (!Model.IsPromotionActive)
+                                {
+                                    <button type="button"
+                                            class="btn btn-brand-icon staging-group-rename-trigger@(showRenameForm ? " hidden" : string.Empty)"
+                                            aria-label="Rename group"
+                                            title="Rename group">
+                                        <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
+                                    </button>
+                                    <button type="submit"
+                                            class="btn btn-brand-icon staging-group-rename-confirm@(showRenameForm ? string.Empty : " hidden")"
+                                            aria-label="Confirm group name"
+                                            title="Confirm group name">
+                                        <i class="ms-Icon ms-Icon--CheckMark" aria-hidden="true"></i>
+                                    </button>
+                                }
                             </h1>
                             @Html.ValidationMessage("Name", new { @class = "text-danger" })
                             <span class="text-muted">@Model.Id</span>
                         </div>
                     }
-                    <a class="btn btn-brand-danger staging-group-delete" href="@Url.DeleteStagingGroup(Model.Owner, Model.Id)">
-                        <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
-                        <span>Delete group</span>
-                    </a>
+                    <div class="staging-group-actions">
+                        <form method="post"
+                              class="staging-group-promote"
+                              action="@Url.PromoteStagingGroup(Model.Owner, Model.Id)"
+                              data-bind="submit: PromoteGroup">
+                            @Html.AntiForgeryToken()
+                            <button type="submit"
+                                    class="btn btn-brand"
+                                    data-bind="disable: !CanPromote || IsPromotingGroup()"
+                                    disabled="disabled">
+                                Promote group
+                            </button>
+                        </form>
+                        @if (!Model.IsPromotionActive)
+                        {
+                            <a class="btn btn-brand-danger staging-group-delete" href="@Url.DeleteStagingGroup(Model.Owner, Model.Id)">
+                                <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
+                                <span>Delete group</span>
+                            </a>
+                        }
+                    </div>
                 </div>
             }
 
@@ -68,11 +89,23 @@
                 {
                     <span class="label staging-status staging-status-validating">@Model.ValidatingCount validating</span>
                 }
+                @if (Model.PromotingCount > 0)
+                {
+                    <span class="label staging-status staging-status-promoting">@Model.PromotingCount promoting</span>
+                }
+                @if (Model.SucceededCount > 0)
+                {
+                    <span class="label staging-status staging-status-succeeded">@Model.SucceededCount succeeded</span>
+                }
                 @if (Model.FailedCount > 0)
                 {
                     <span class="label staging-status staging-status-failedvalidation">@Model.FailedCount failed</span>
                 }
             </div>
+            @if (Model.IsPromotionActive)
+            {
+                <p class="text-muted">Package promotion is in progress. Group and package changes are disabled until it finishes.</p>
+            }
 
             <hr class="breadcrumb-divider" />
 
@@ -167,7 +200,7 @@
                                                     data-toggle="dropdown"
                                                     aria-haspopup="true"
                                                     aria-expanded="false"
-                                                    data-bind="disable: IsBusy, attr: { 'aria-label': 'Actions for ' + Id + ' ' + Version }"
+                                                    data-bind="attr: { 'aria-label': 'Actions for ' + Id + ' ' + Version }"
                                                     title="Package actions">
                                                 <span aria-hidden="true">&hellip;</span>
                                             </button>
@@ -185,9 +218,10 @@
                                                 </li>
                                                 <li role="separator" class="divider"></li>
                                                 <!-- /ko -->
-                                                <li data-bind="css: { disabled: IsBusy }">
-                                                    <a data-bind="click: FollowLink, attr: { href: DownloadUrl, 'aria-disabled': IsBusy() ? 'true' : null, tabindex: IsBusy() ? '-1' : null }">Download</a>
+                                                <li>
+                                                    <a data-bind="attr: { href: DownloadUrl }">Download</a>
                                                 </li>
+                                                <!-- ko if: CanManage -->
                                                 <!-- ko if: MoveUrl -->
                                                 <li data-bind="css: { disabled: IsBusy }">
                                                     <a data-bind="click: FollowLink, attr: { href: MoveUrl, 'aria-disabled': IsBusy() ? 'true' : null, tabindex: IsBusy() ? '-1' : null }">Move</a>
@@ -220,6 +254,7 @@
                                                         @Html.AntiForgeryToken()
                                                     </form>
                                                 </li>
+                                                <!-- /ko -->
                                             </ul>
                                         </div>
                                     </td>
@@ -322,15 +357,17 @@
     <script nonce="@Html.GetCSPNonce()">
         window.stagingGroupData = @Html.ToJson(new
                                   {
+                                      Name = Model.Name,
+                                      CanPromote = Model.CanPromote,
                                       Packages = Model.Packages.Select((package, index) => GetSerializableStagedPackage(package, index)),
                                   });
 
-        var renameTrigger = document.querySelector('.staging-group-rename-trigger');
+        const renameTrigger = document.querySelector('.staging-group-rename-trigger');
         if (renameTrigger) {
             renameTrigger.addEventListener('click', function () {
-                var name = document.querySelector('.staging-group-name');
-                var input = document.querySelector('.staging-group-name-input');
-                var confirm = document.querySelector('.staging-group-rename-confirm');
+                const name = document.querySelector('.staging-group-name');
+                const input = document.querySelector('.staging-group-name-input');
+                const confirm = document.querySelector('.staging-group-rename-confirm');
 
                 name.classList.add('hidden');
                 renameTrigger.classList.add('hidden');
