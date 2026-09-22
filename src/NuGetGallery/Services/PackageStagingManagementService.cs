@@ -16,7 +16,6 @@ namespace NuGetGallery
     {
         private readonly IPackageStagingAuthorizationService _packageStagingAuthorizationService;
         private readonly IPackageService _packageService;
-        private readonly IEntitiesContext _entitiesContext;
         private readonly IEntityRepository<StagedPackage> _stagedPackageRepository;
         private readonly IEntityRepository<StagingGroup> _stagingGroupRepository;
         private readonly IStagingBlobService _stagingBlobService;
@@ -24,14 +23,12 @@ namespace NuGetGallery
         public PackageStagingManagementService(
             IPackageStagingAuthorizationService packageStagingAuthorizationService,
             IPackageService packageService,
-            IEntitiesContext entitiesContext,
             IEntityRepository<StagedPackage> stagedPackageRepository,
             IEntityRepository<StagingGroup> stagingGroupRepository,
             IStagingBlobService stagingBlobService)
         {
             _packageStagingAuthorizationService = packageStagingAuthorizationService ?? throw new ArgumentNullException(nameof(packageStagingAuthorizationService));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
-            _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _stagedPackageRepository = stagedPackageRepository ?? throw new ArgumentNullException(nameof(stagedPackageRepository));
             _stagingGroupRepository = stagingGroupRepository ?? throw new ArgumentNullException(nameof(stagingGroupRepository));
             _stagingBlobService = stagingBlobService ?? throw new ArgumentNullException(nameof(stagingBlobService));
@@ -147,17 +144,32 @@ namespace NuGetGallery
             }
 
             var updated = false;
-            await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
+            try
             {
-                if (!await TryReservePackageAndGroupsForMutationAsync(stagedPackage, stagedPackage.StagedPackageIdentity.StagingGroup))
+                await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
                 {
-                    return;
-                }
+                    var group = stagedPackage.StagedPackageIdentity.StagingGroup;
+                    if (stagedPackage.Status == StagedPackageStatus.Promoting || group?.ActivePromotionId.HasValue == true)
+                    {
+                        return;
+                    }
 
-                stagedPackage.StagedPackageIdentity.Package.Listed = listed;
-                await _stagedPackageRepository.CommitChangesAsync();
-                updated = true;
-            });
+                    stagedPackage.MutationRevision++;
+                    if (group != null)
+                    {
+                        group.MutationRevision++;
+                    }
+
+                    stagedPackage.StagedPackageIdentity.Package.Listed = listed;
+                    await _stagedPackageRepository.CommitChangesAsync();
+                    updated = true;
+                });
+            }
+            catch (DbUpdateConcurrencyException exception)
+            {
+                exception.Log();
+                return false;
+            }
 
             return updated;
         }
@@ -174,9 +186,15 @@ namespace NuGetGallery
             {
                 await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
                 {
-                    if (stagedPackage.Status == StagedPackageStatus.Promoting || !await TryReserveStagingGroupsForMutationAsync(stagedPackage.StagedPackageIdentity.StagingGroup))
+                    var group = stagedPackage.StagedPackageIdentity.StagingGroup;
+                    if (stagedPackage.Status == StagedPackageStatus.Promoting || group?.ActivePromotionId.HasValue == true)
                     {
                         return;
+                    }
+
+                    if (group != null)
+                    {
+                        group.MutationRevision++;
                     }
 
                     stagedPackage.Status = StagedPackageStatus.Deleted;
@@ -430,18 +448,27 @@ namespace NuGetGallery
             }
 
             var result = StagingGroupMembershipResult.Conflict;
-            await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
+            try
             {
-                if (!await TryReservePackageAndGroupsForMutationAsync(stagedPackage, identity.StagingGroup, group))
+                await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
                 {
-                    return;
-                }
+                    stagedPackage.MutationRevision++;
+                    if (identity.StagingGroup != null)
+                    {
+                        identity.StagingGroup.MutationRevision++;
+                    }
 
-                identity.StagingGroupKey = group.Key;
-                identity.StagingGroup = group;
-                await _stagedPackageRepository.CommitChangesAsync();
-                result = StagingGroupMembershipResult.Updated;
-            });
+                    group.MutationRevision++;
+                    identity.StagingGroupKey = group.Key;
+                    identity.StagingGroup = group;
+                    await _stagedPackageRepository.CommitChangesAsync();
+                    result = StagingGroupMembershipResult.Updated;
+                });
+            }
+            catch (DbUpdateConcurrencyException exception)
+            {
+                exception.Log();
+            }
 
             return result;
         }
@@ -476,73 +503,25 @@ namespace NuGetGallery
             }
 
             var result = StagingGroupMembershipResult.Conflict;
-            await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
+            try
             {
-                if (!await TryReservePackageAndGroupsForMutationAsync(stagedPackage, identity.StagingGroup))
+                await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
                 {
-                    return;
-                }
+                    stagedPackage.MutationRevision++;
+                    identity.StagingGroup.MutationRevision++;
 
-                identity.StagingGroupKey = null;
-                identity.StagingGroup = null;
-                await _stagedPackageRepository.CommitChangesAsync();
-                result = StagingGroupMembershipResult.Updated;
-            });
-
-            return result;
-        }
-
-        private async Task<bool> TryReservePackageAndGroupsForMutationAsync(StagedPackage stagedPackage, params StagingGroup[] groups)
-        {
-            return await TryReserveStagedPackageForMutationAsync(stagedPackage) && await TryReserveStagingGroupsForMutationAsync(groups);
-        }
-
-        private async Task<bool> TryReserveStagedPackageForMutationAsync(StagedPackage stagedPackage)
-        {
-            // The self-assignment intentionally advances RowVersion and holds the update lock until the
-            // surrounding mutation transaction commits. A concurrent promotion using the old RowVersion fails.
-            const string query = @"
-                UPDATE [dbo].[StagedPackages]
-                SET [Status] = [Status]
-                WHERE [Key] = @p0
-                    AND [RowVersion] = @p1
-                    AND [Status] <> @p2";
-
-            var affectedRows = await _entitiesContext.GetDatabase().ExecuteSqlCommandAsync(
-                query,
-                stagedPackage.Key,
-                stagedPackage.RowVersion,
-                (int)StagedPackageStatus.Promoting);
-
-            return affectedRows == 1;
-        }
-
-        private async Task<bool> TryReserveStagingGroupsForMutationAsync(params StagingGroup[] groups)
-        {
-            // Reserve every affected group before changing package state or membership. This prevents
-            // promotion acceptance from selecting a package while the mutation transaction is open.
-            const string query = @"
-                UPDATE [dbo].[StagingGroups]
-                SET [Name] = [Name]
-                WHERE [Key] = @p0
-                    AND [RowVersion] = @p1
-                    AND [ActivePromotionId] IS NULL";
-
-            foreach (var group in groups.Where(group => group != null).Distinct().OrderBy(group => group.Key))
+                    identity.StagingGroupKey = null;
+                    identity.StagingGroup = null;
+                    await _stagedPackageRepository.CommitChangesAsync();
+                    result = StagingGroupMembershipResult.Updated;
+                });
+            }
+            catch (DbUpdateConcurrencyException exception)
             {
-                if (group.ActivePromotionId.HasValue)
-                {
-                    return false;
-                }
-
-                var affectedRows = await _entitiesContext.GetDatabase().ExecuteSqlCommandAsync(query, group.Key, group.RowVersion);
-                if (affectedRows != 1)
-                {
-                    return false;
-                }
+                exception.Log();
             }
 
-            return true;
+            return result;
         }
 
         public IReadOnlyList<StagingGroupSummary> GetStagingGroupSummaries(User stagingOwner)
