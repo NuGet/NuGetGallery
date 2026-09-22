@@ -94,9 +94,6 @@ namespace NuGet.Services.Staging.Promotion
                 .WithKeyedParameter(typeof(ICoreFileStorageService), FlatContainerStorageKey)
                 .As<ICoreReadmeFileService>();
             containerBuilder
-                .RegisterType<StagingGroupLockService>()
-                .As<IStagingGroupLockService>();
-            containerBuilder
                 .RegisterType<StagingGroupPromotionService>()
                 .As<IStagingGroupPromotionService>();
             containerBuilder

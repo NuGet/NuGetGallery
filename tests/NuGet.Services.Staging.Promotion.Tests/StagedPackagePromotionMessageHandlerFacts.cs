@@ -136,6 +136,47 @@ namespace NuGet.Services.Staging.Promotion.Tests
             context.VerifyNotPublished();
         }
 
+        [Fact]
+        public async Task FinalizesGroupAfterPackageSuccessCommits()
+        {
+            var context = new TestContext();
+            context.AddToGroup();
+            var packageSuccessCommitted = false;
+            context.StagedPackageRepository
+                .Setup(x => x.CommitChangesAsync())
+                .Callback(() => packageSuccessCommitted = true)
+                .Returns(Task.CompletedTask);
+            context.StagingGroupPromotionService
+                .Setup(x => x.TryFinalizeAsync(context.StagingGroup.Key, context.PromotionId))
+                .Callback(() => Assert.True(packageSuccessCommitted))
+                .Returns(Task.CompletedTask);
+
+            var handled = await context.Target.HandleAsync(context.Message);
+
+            Assert.True(handled);
+            Assert.Equal(StagedPackageStatus.Succeeded, context.StagedPackage.Status);
+            context.StagingGroupPromotionService.Verify(
+                x => x.TryFinalizeAsync(context.StagingGroup.Key, context.PromotionId),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task ResumesGroupFinalizationWithoutRepublishingSuccessfulPackage()
+        {
+            var context = new TestContext();
+            context.AddToGroup();
+            context.StagedPackage.Status = StagedPackageStatus.Succeeded;
+            context.Package.PackageStatusKey = PackageStatus.Available;
+
+            var handled = await context.Target.HandleAsync(context.Message);
+
+            Assert.True(handled);
+            context.VerifyNotPublished();
+            context.StagingGroupPromotionService.Verify(
+                x => x.TryFinalizeAsync(context.StagingGroup.Key, context.PromotionId),
+                Times.Once);
+        }
+
         [Theory]
         [InlineData(InvalidState.MissingValidatedBlob)]
         [InlineData(InvalidState.OwnerNoLongerOwnsPackage)]
@@ -306,7 +347,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
                     },
                 };
                 Package.PackageRegistration.Packages.Add(Package);
-                var stagedPackageIdentity = new StagedPackageIdentity
+                StagedPackageIdentity = new StagedPackageIdentity
                 {
                     Key = Package.Key,
                     Package = Package,
@@ -316,8 +357,8 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 StagedPackage = new StagedPackage
                 {
                     Key = 42,
-                    StagedPackageIdentityKey = stagedPackageIdentity.Key,
-                    StagedPackageIdentity = stagedPackageIdentity,
+                    StagedPackageIdentityKey = StagedPackageIdentity.Key,
+                    StagedPackageIdentity = StagedPackageIdentity,
                     Status = StagedPackageStatus.Promoting,
                     ActivePromotionId = PromotionId,
                     ValidatedBlobPath = "example.package/1.2.3/validated.nupkg",
@@ -326,8 +367,8 @@ namespace NuGet.Services.Staging.Promotion.Tests
                     UploadedBlobETag = "\"uploaded\"",
                     UploadHash = "upload-hash",
                 };
-                stagedPackageIdentity.CurrentStagedPackageKey = StagedPackage.Key;
-                stagedPackageIdentity.CurrentStagedPackage = StagedPackage;
+                StagedPackageIdentity.CurrentStagedPackageKey = StagedPackage.Key;
+                StagedPackageIdentity.CurrentStagedPackage = StagedPackage;
                 Message = StagingPromotionMessage.ForPackage(PromotionId, StagedPackage.Key);
                 StagedPackages = new List<StagedPackage> { StagedPackage };
 
@@ -380,9 +421,16 @@ namespace NuGet.Services.Staging.Promotion.Tests
 
                 LicenseFileService = new Mock<ICoreLicenseFileService>();
                 ReadmeFileService = new Mock<ICoreReadmeFileService>();
+                StagingGroupPromotionService = new Mock<IStagingGroupPromotionService>();
+                StagingGroupPromotionService
+                    .Setup(x => x.MarkPackageSucceeded(It.IsAny<StagedPackage>()))
+                    .Callback<StagedPackage>(stagedPackage => stagedPackage.Status = StagedPackageStatus.Succeeded);
+                StagingGroupPromotionService
+                    .Setup(x => x.TryFinalizeAsync(It.IsAny<int>(), It.IsAny<Guid>()))
+                    .Returns(Task.CompletedTask);
                 Target = new StagedPackagePromotionMessageHandler(
                     StagedPackageRepository.Object,
-                    Mock.Of<IStagingGroupPromotionService>(),
+                    StagingGroupPromotionService.Object,
                     PackageService.Object,
                     StagingBlobService.Object,
                     PackageFileStorageService.Object,
@@ -390,6 +438,17 @@ namespace NuGet.Services.Staging.Promotion.Tests
                     LicenseFileService.Object,
                     ReadmeFileService.Object,
                     Mock.Of<ILogger<StagedPackagePromotionMessageHandler>>());
+            }
+
+            public void AddToGroup()
+            {
+                StagingGroup = new StagingGroup
+                {
+                    Key = 7,
+                    ActivePromotionId = PromotionId,
+                };
+                StagedPackageIdentity.StagingGroupKey = StagingGroup.Key;
+                StagedPackageIdentity.StagingGroup = StagingGroup;
             }
 
             public void Apply(InvalidState state)
@@ -425,10 +484,13 @@ namespace NuGet.Services.Staging.Promotion.Tests
             public Uri SourceUri { get; }
             public Guid PromotionId { get; }
             public Package Package { get; }
+            public StagedPackageIdentity StagedPackageIdentity { get; }
             public StagedPackage StagedPackage { get; }
+            public StagingGroup StagingGroup { get; private set; }
             public StagingPromotionMessage Message { get; }
             public List<StagedPackage> StagedPackages { get; }
             public Mock<IEntityRepository<StagedPackage>> StagedPackageRepository { get; }
+            public Mock<IStagingGroupPromotionService> StagingGroupPromotionService { get; }
             public Mock<ICorePackageService> PackageService { get; }
             public Mock<IStagingBlobService> StagingBlobService { get; }
             public Mock<ICoreFileStorageService> PackageFileStorageService { get; }

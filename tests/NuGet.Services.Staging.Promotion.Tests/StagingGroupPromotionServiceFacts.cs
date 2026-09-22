@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -21,14 +22,19 @@ namespace NuGet.Services.Staging.Promotion.Tests
             var context = new TestContext();
             var remainingMember = context.AddMember(43, StagedPackageStatus.Promoting);
 
-            await context.Target.CompletePackageAsync(context.StagedPackage);
+            context.Target.MarkPackageSucceeded(context.StagedPackage);
+            await context.Target.TryFinalizeAsync(context.StagingGroup.Key, context.PromotionId);
 
             Assert.Equal(StagedPackageStatus.Succeeded, context.StagedPackage.Status);
             Assert.Equal(StagedPackageStatus.Promoting, remainingMember.Status);
             Assert.Equal(2, context.StagedPackages.Count);
             Assert.Single(context.StagingGroups);
+            context.StagedPackageRepository.Verify(
+                x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()),
+                Times.Once);
             context.StagedPackageRepository.Verify(x => x.DeleteOnCommit(It.IsAny<StagedPackage>()), Times.Never);
             context.StagingGroupRepository.Verify(x => x.DeleteOnCommit(It.IsAny<StagingGroup>()), Times.Never);
+            context.StagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
         }
 
         [Fact]
@@ -37,7 +43,8 @@ namespace NuGet.Services.Staging.Promotion.Tests
             var context = new TestContext();
             var completedMember = context.AddMember(43, StagedPackageStatus.Succeeded);
 
-            await context.Target.CompletePackageAsync(context.StagedPackage);
+            context.Target.MarkPackageSucceeded(context.StagedPackage);
+            await context.Target.TryFinalizeAsync(context.StagingGroup.Key, context.PromotionId);
 
             Assert.Empty(context.StagedPackages);
             Assert.Empty(context.StagingGroups);
@@ -47,6 +54,33 @@ namespace NuGet.Services.Staging.Promotion.Tests
             Assert.Null(completedMember.StagedPackageIdentity.StagingGroupKey);
             context.StagedPackageRepository.Verify(x => x.DeleteOnCommit(It.IsAny<StagedPackage>()), Times.Exactly(2));
             context.StagingGroupRepository.Verify(x => x.DeleteOnCommit(context.StagingGroup), Times.Once);
+            context.StagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
+        }
+
+        [Fact]
+        public async Task AcceptsConcurrencyWhenAnotherHandlerCompletedFinalization()
+        {
+            var context = new TestContext();
+            context.Target.MarkPackageSucceeded(context.StagedPackage);
+            context.SimulateConcurrentFinalization();
+
+            await context.Target.TryFinalizeAsync(context.StagingGroup.Key, context.PromotionId);
+
+            Assert.Empty(context.StagedPackages);
+            Assert.Empty(context.StagingGroups);
+        }
+
+        [Fact]
+        public async Task PropagatesConcurrencyWhenPromotionRemainsActive()
+        {
+            var context = new TestContext();
+            context.Target.MarkPackageSucceeded(context.StagedPackage);
+            context.StagedPackageRepository
+                .Setup(x => x.CommitChangesAsync())
+                .ThrowsAsync(new DbUpdateConcurrencyException());
+
+            await Assert.ThrowsAsync<DbUpdateConcurrencyException>(
+                () => context.Target.TryFinalizeAsync(context.StagingGroup.Key, context.PromotionId));
         }
 
         private class TestContext
@@ -66,28 +100,53 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 StagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
                 StagedPackageRepository
                     .Setup(x => x.GetAll())
-                    .Returns(() =>
-                    {
-                        StagingGroupLockService.Verify(x => x.AcquireAsync(StagingGroup.Key), Times.Once);
-                        return StagedPackages.AsQueryable();
-                    });
+                    .Returns(() => StagedPackages.AsQueryable());
+                StagedPackageRepository
+                    .Setup(x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()))
+                    .Returns((Func<Task> action) => action());
                 StagedPackageRepository
                     .Setup(x => x.DeleteOnCommit(It.IsAny<StagedPackage>()))
-                    .Callback<StagedPackage>(stagedPackage => StagedPackages.Remove(stagedPackage));
+                    .Callback<StagedPackage>(stagedPackage => PendingStagedPackageDeletes.Add(stagedPackage));
+                StagedPackageRepository
+                    .Setup(x => x.CommitChangesAsync())
+                    .Returns(() =>
+                    {
+                        foreach (var stagedPackage in PendingStagedPackageDeletes)
+                        {
+                            StagedPackages.Remove(stagedPackage);
+                        }
+
+                        foreach (var stagingGroup in PendingStagingGroupDeletes)
+                        {
+                            StagingGroups.Remove(stagingGroup);
+                        }
+
+                        return Task.CompletedTask;
+                    });
                 StagingGroupRepository = new Mock<IEntityRepository<StagingGroup>>();
                 StagingGroupRepository
+                    .Setup(x => x.GetAll())
+                    .Returns(() => StagingGroups.AsQueryable());
+                StagingGroupRepository
                     .Setup(x => x.DeleteOnCommit(It.IsAny<StagingGroup>()))
-                    .Callback<StagingGroup>(stagingGroup => StagingGroups.Remove(stagingGroup));
-                StagingGroupLockService = new Mock<IStagingGroupLockService>();
-                StagingGroupLockService
-                    .Setup(x => x.AcquireAsync(It.IsAny<int>()))
-                    .Returns(Task.CompletedTask);
+                    .Callback<StagingGroup>(stagingGroup => PendingStagingGroupDeletes.Add(stagingGroup));
 
                 Target = new StagingGroupPromotionService(
                     StagedPackageRepository.Object,
                     StagingGroupRepository.Object,
-                    StagingGroupLockService.Object,
                     Mock.Of<ILogger<StagingGroupPromotionService>>());
+            }
+
+            public void SimulateConcurrentFinalization()
+            {
+                StagedPackageRepository
+                    .Setup(x => x.CommitChangesAsync())
+                    .Returns(() =>
+                    {
+                        StagedPackages.Clear();
+                        StagingGroups.Clear();
+                        return Task.FromException(new DbUpdateConcurrencyException());
+                    });
             }
 
             public StagedPackage AddMember(int key, StagedPackageStatus status)
@@ -117,9 +176,10 @@ namespace NuGet.Services.Staging.Promotion.Tests
             public StagedPackage StagedPackage { get; }
             public List<StagingGroup> StagingGroups { get; }
             public List<StagedPackage> StagedPackages { get; }
+            public List<StagingGroup> PendingStagingGroupDeletes { get; } = new List<StagingGroup>();
+            public List<StagedPackage> PendingStagedPackageDeletes { get; } = new List<StagedPackage>();
             public Mock<IEntityRepository<StagedPackage>> StagedPackageRepository { get; }
             public Mock<IEntityRepository<StagingGroup>> StagingGroupRepository { get; }
-            public Mock<IStagingGroupLockService> StagingGroupLockService { get; }
             public StagingGroupPromotionService Target { get; }
         }
     }

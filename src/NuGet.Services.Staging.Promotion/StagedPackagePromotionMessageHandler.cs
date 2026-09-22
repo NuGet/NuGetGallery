@@ -86,6 +86,13 @@ namespace NuGet.Services.Staging.Promotion
                     .Include(candidate => candidate.StagedPackageIdentity.Owner)
                     .Include(candidate => candidate.StagedPackageIdentity.StagingGroup)
                     .SingleOrDefault(candidate => candidate.Key == message.TargetKey);
+                if (IsSuccessfulGroupPromotionAttempt(stagedPackage, message.PromotionId))
+                {
+                    _logger.LogInformation("Resuming staging group finalization for an already successful package.");
+                    await _stagingGroupPromotionService.TryFinalizeAsync(stagedPackage.StagedPackageIdentity.StagingGroupKey.Value, message.PromotionId);
+                    return true;
+                }
+
                 if (!IsActivePromotionAttempt(stagedPackage, message.PromotionId))
                 {
                     _logger.LogInformation("Ignoring inactive staged package promotion attempt.");
@@ -93,10 +100,7 @@ namespace NuGet.Services.Staging.Promotion
                 }
 
                 var package = stagedPackage.StagedPackageIdentity.Package;
-                using (_logger.BeginScope(
-                    "Package {PackageId} {PackageVersion}",
-                    package.PackageRegistration.Id,
-                    package.NormalizedVersion))
+                using (_logger.BeginScope("Package {PackageId} {PackageVersion}", package.PackageRegistration.Id, package.NormalizedVersion))
                 {
                     if (!HasValidPromotionState(stagedPackage))
                     {
@@ -105,6 +109,7 @@ namespace NuGet.Services.Staging.Promotion
                         return true;
                     }
 
+                    var stagingGroupKey = stagedPackage.StagedPackageIdentity.StagingGroupKey;
                     var streamMetadata = await GetStreamMetadataAsync(stagedPackage);
                     var packageFileName = await CopyPackageAsync(package, stagedPackage);
 
@@ -125,6 +130,11 @@ namespace NuGet.Services.Staging.Promotion
                         throw;
                     }
 
+                    if (stagingGroupKey.HasValue)
+                    {
+                        await _stagingGroupPromotionService.TryFinalizeAsync(stagingGroupKey.Value, message.PromotionId);
+                    }
+
                     _logger.LogInformation("Completed staged package promotion.");
                     return true;
                 }
@@ -138,6 +148,16 @@ namespace NuGet.Services.Staging.Promotion
                 && stagedPackage.ActivePromotionId == promotionId
                 && stagedPackage.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Staged
                 && (!stagedPackage.StagedPackageIdentity.StagingGroupKey.HasValue || stagedPackage.StagedPackageIdentity.StagingGroup?.ActivePromotionId == promotionId);
+        }
+
+        private static bool IsSuccessfulGroupPromotionAttempt(StagedPackage stagedPackage, Guid promotionId)
+        {
+            return stagedPackage != null
+                && stagedPackage.Status == StagedPackageStatus.Succeeded
+                && stagedPackage.ActivePromotionId == promotionId
+                && stagedPackage.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Available
+                && stagedPackage.StagedPackageIdentity.StagingGroupKey.HasValue
+                && stagedPackage.StagedPackageIdentity.StagingGroup?.ActivePromotionId == promotionId;
         }
 
         private static bool HasValidPromotionState(StagedPackage stagedPackage)
@@ -244,7 +264,7 @@ namespace NuGet.Services.Staging.Promotion
                 }
                 else
                 {
-                    await _stagingGroupPromotionService.CompletePackageAsync(stagedPackage);
+                    _stagingGroupPromotionService.MarkPackageSucceeded(stagedPackage);
                 }
 
                 await _stagedPackageRepository.CommitChangesAsync();
