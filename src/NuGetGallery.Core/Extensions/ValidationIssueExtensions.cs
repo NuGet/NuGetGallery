@@ -53,6 +53,8 @@ namespace NuGetGallery
                 case ValidationIssueCode.PackageIsSignedWithUnauthorizedCertificate:
                     var certIssue = (UnauthorizedCertificateFailure)validationIssue;
                     return $"The package was signed, but the signing certificate {(certIssue != null ? $"(SHA-256 thumbprint {certIssue.Sha256Thumbprint})" : "")} is not associated with your account. You must register this certificate to publish signed packages. [Read more...](https://aka.ms/nuget-signed-ref)";
+                case ValidationIssueCode.AuthorSignedAttributesNotCanonical:
+                    return "The author signature's signed attributes are not in canonical DER order. The package must be signed again with a compliant signing tool.";
                 case ValidationIssueCode.SymbolErrorCode_ChecksumDoesNotMatch:
                     return "The checksum does not match for the dll(s) and corresponding pdb(s).";
                 case ValidationIssueCode.SymbolErrorCode_MatchingAssemblyNotFound:

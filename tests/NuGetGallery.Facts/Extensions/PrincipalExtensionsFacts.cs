@@ -166,6 +166,64 @@ namespace NuGetGallery.Extensions
             }
         }
 
+        public class TheIsElevatedAdministratorMethod
+        {
+            [Fact]
+            public void WhenSelfIsNull_ReturnsFalse()
+            {
+                Assert.False(PrincipalExtensions.IsElevatedAdministrator(null));
+            }
+
+            [Fact]
+            public void WhenBothAdminAndElevatedAdminRoleClaims_ReturnsTrue()
+            {
+                var user = new User("admin")
+                {
+                    Roles = new[]
+                    {
+                        new Role { Key = 1, Name = "Admins" },
+                        new Role { Key = 2, Name = "ElevatedAdmins" }
+                    }
+                };
+                var principal = Fakes.ToPrincipal(user);
+
+                Assert.True(PrincipalExtensions.IsElevatedAdministrator(principal));
+            }
+
+            [Fact]
+            public void WhenOnlyAdminRoleClaim_ReturnsFalse()
+            {
+                var user = new User("admin")
+                {
+                    Roles = new[] { new Role { Key = 1, Name = "Admins" } }
+                };
+                var principal = Fakes.ToPrincipal(user);
+
+                Assert.False(PrincipalExtensions.IsElevatedAdministrator(principal));
+            }
+
+            [Fact]
+            public void WhenOnlyElevatedAdminRoleClaim_ReturnsFalse()
+            {
+                var user = new User("admin")
+                {
+                    Roles = new[] { new Role { Key = 2, Name = "ElevatedAdmins" } }
+                };
+                var principal = Fakes.ToPrincipal(user);
+
+                Assert.False(PrincipalExtensions.IsElevatedAdministrator(principal));
+            }
+
+            [Fact]
+            public void WhenNoRoleClaims_ReturnsFalse()
+            {
+                var user = new User("admin");
+                var principal = Fakes.ToPrincipal(user);
+
+                Assert.False(PrincipalExtensions.IsElevatedAdministrator(principal));
+            }
+        }
+
         public class TheIsScopedAuthenticationMethod
         {
             [Fact]

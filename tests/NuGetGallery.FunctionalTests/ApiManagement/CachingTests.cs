@@ -13,6 +13,7 @@ using Xunit;
 
 namespace NuGetGallery.FunctionalTests.ApiManagement
 {
+    [Collection(GalleryTestCollection.Definition)]
     public class CachingTests
     {
         private const string CacheHeaderName = "x-cache";
