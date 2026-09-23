@@ -35,6 +35,11 @@ namespace NuGet.Services.Entities
         public StagedPackageStatus Status { get; set; }
 
         /// <summary>
+        /// Advances RowVersion when an edit changes the package or identity without changing this attempt.
+        /// </summary>
+        public long MutationRevision { get; set; }
+
+        /// <summary>
         /// Identifies the active promotion for message correlation and fencing.
         /// </summary>
         public Guid? ActivePromotionId { get; set; }

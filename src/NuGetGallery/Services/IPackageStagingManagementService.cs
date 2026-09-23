@@ -65,13 +65,15 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="stagedPackage">The authorized current staged package attempt.</param>
         /// <param name="listed">Whether the package should be listed after promotion.</param>
-        Task UpdateListedAsync(StagedPackage stagedPackage, bool listed);
+        /// <returns><see langword="true"/> when the value was updated; otherwise, <see langword="false"/> when promotion prevents the change.</returns>
+        Task<bool> UpdateListedAsync(StagedPackage stagedPackage, bool listed);
 
         /// <summary>
         /// Deletes an authorized current staged package attempt while retaining its reserved package row.
         /// </summary>
         /// <param name="stagedPackage">The authorized current staged package attempt.</param>
-        Task DeletePackageAsync(StagedPackage stagedPackage);
+        /// <returns><see langword="true"/> when the package was deleted; otherwise, <see langword="false"/> when promotion prevents deletion.</returns>
+        Task<bool> DeletePackageAsync(StagedPackage stagedPackage);
 
         /// <summary>
         /// Gets staged packages owned by the user or an enabled organization the user belongs to.

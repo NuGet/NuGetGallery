@@ -43,11 +43,11 @@
         this.SearchText = `${packageItem.Id} ${packageItem.Version}`.toLowerCase();
 
         this.Listed = ko.observable(packageItem.Listed);
-        this.IsBusy = ko.observable(packageItem.Status === 'Promoting');
+        this.IsBusy = ko.observable(packageItem.Status === 'Promoting' || packageItem.Status === 'Succeeded');
         this.IsSavingListed = ko.observable(false);
         this.ListedStatus = ko.observable('');
         this.IsDisabled = ko.pureComputed(function () {
-            return self.IsBusy() || self.IsSavingListed();
+            return !self.CanManage || self.IsBusy() || self.IsSavingListed();
         });
         this.Visible = ko.pureComputed(function () {
             const query = searchQuery().trim().toLowerCase();
@@ -75,15 +75,6 @@
                 .always(function () {
                     self.IsSavingListed(false);
                 });
-        };
-
-        this.FollowLink = function (model, event) {
-            if (self.IsBusy()) {
-                event.preventDefault();
-                return false;
-            }
-
-            return true;
         };
 
         this.ChooseReplacement = function (model, event) {
@@ -137,6 +128,8 @@
     function StagingGroupViewModel(data) {
         const self = this;
 
+        this.CanPromote = data.CanPromote;
+        this.IsPromotingGroup = ko.observable(false);
         this.SearchQuery = ko.observable('');
         this.Packages = data.Packages.map(function (packageItem) {
             return new StagedPackageViewModel(packageItem, self.SearchQuery);
@@ -157,6 +150,15 @@
             return `Showing ${visibleCount} of ${totalText}`;
         });
         this.Search = function () {
+            return false;
+        };
+        this.PromoteGroup = function () {
+            const message = `Promote all staged packages in ${data.Name}?`;
+            if (!self.IsPromotingGroup() && window.nuget.confirmEvent(message)) {
+                self.IsPromotingGroup(true);
+                return true;
+            }
+
             return false;
         };
     }

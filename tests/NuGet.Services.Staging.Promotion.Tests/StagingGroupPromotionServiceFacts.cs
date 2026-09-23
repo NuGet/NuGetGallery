@@ -38,7 +38,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
         }
 
         [Fact]
-        public async Task RemovesGroupWhenAllMembersHaveSucceeded()
+        public async Task RetainsEmptyGroupWhenAllMembersHaveSucceeded()
         {
             var context = new TestContext();
             var completedMember = context.AddMember(43, StagedPackageStatus.Succeeded);
@@ -47,13 +47,14 @@ namespace NuGet.Services.Staging.Promotion.Tests
             await context.Target.TryFinalizeAsync(context.StagingGroup.Key, context.PromotionId);
 
             Assert.Empty(context.StagedPackages);
-            Assert.Empty(context.StagingGroups);
+            Assert.Same(context.StagingGroup, Assert.Single(context.StagingGroups));
+            Assert.Null(context.StagingGroup.ActivePromotionId);
             Assert.Null(context.StagedPackage.StagedPackageIdentity.CurrentStagedPackageKey);
             Assert.Null(context.StagedPackage.StagedPackageIdentity.StagingGroupKey);
             Assert.Null(completedMember.StagedPackageIdentity.CurrentStagedPackageKey);
             Assert.Null(completedMember.StagedPackageIdentity.StagingGroupKey);
             context.StagedPackageRepository.Verify(x => x.DeleteOnCommit(It.IsAny<StagedPackage>()), Times.Exactly(2));
-            context.StagingGroupRepository.Verify(x => x.DeleteOnCommit(context.StagingGroup), Times.Once);
+            context.StagingGroupRepository.Verify(x => x.DeleteOnCommit(It.IsAny<StagingGroup>()), Times.Never);
             context.StagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
         }
 
@@ -67,7 +68,8 @@ namespace NuGet.Services.Staging.Promotion.Tests
             await context.Target.TryFinalizeAsync(context.StagingGroup.Key, context.PromotionId);
 
             Assert.Empty(context.StagedPackages);
-            Assert.Empty(context.StagingGroups);
+            Assert.Same(context.StagingGroup, Assert.Single(context.StagingGroups));
+            Assert.Null(context.StagingGroup.ActivePromotionId);
         }
 
         [Fact]
@@ -77,7 +79,11 @@ namespace NuGet.Services.Staging.Promotion.Tests
             context.Target.MarkPackageSucceeded(context.StagedPackage);
             context.StagedPackageRepository
                 .Setup(x => x.CommitChangesAsync())
-                .ThrowsAsync(new DbUpdateConcurrencyException());
+                .Returns(() =>
+                {
+                    context.StagingGroup.ActivePromotionId = context.PromotionId;
+                    return Task.FromException(new DbUpdateConcurrencyException());
+                });
 
             await Assert.ThrowsAsync<DbUpdateConcurrencyException>(
                 () => context.Target.TryFinalizeAsync(context.StagingGroup.Key, context.PromotionId));
@@ -144,7 +150,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
                     .Returns(() =>
                     {
                         StagedPackages.Clear();
-                        StagingGroups.Clear();
+                        StagingGroup.ActivePromotionId = null;
                         return Task.FromException(new DbUpdateConcurrencyException());
                     });
             }

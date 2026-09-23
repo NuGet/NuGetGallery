@@ -28,6 +28,11 @@ namespace NuGet.Services.Entities
         public DateTime CreatedDate { get; set; }
 
         /// <summary>
+        /// Advances RowVersion when an edit changes a member without changing this group.
+        /// </summary>
+        public long MutationRevision { get; set; }
+
+        /// <summary>
         /// Identifies the active promotion for message correlation and fencing.
         /// </summary>
         public Guid? ActivePromotionId { get; set; }

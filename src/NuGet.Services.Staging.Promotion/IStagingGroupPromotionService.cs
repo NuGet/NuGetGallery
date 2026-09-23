@@ -19,7 +19,7 @@ namespace NuGet.Services.Staging.Promotion
         void MarkPackageSucceeded(StagedPackage stagedPackage);
 
         /// <summary>
-        /// Finalizes a group when all active package attempts have succeeded.
+        /// Finalizes a group when all active package attempts have succeeded, retaining the empty group for reuse.
         /// </summary>
         /// <param name="stagingGroupKey">The staging group key.</param>
         /// <param name="promotionId">The active promotion identifier.</param>

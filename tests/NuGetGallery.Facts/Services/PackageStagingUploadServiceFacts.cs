@@ -452,6 +452,49 @@ namespace NuGetGallery
                 Assert.Equal("The staged package was not found.", result.ErrorMessage);
             }
 
+            [Fact]
+            public async Task RejectsReplacementWhileGroupPromotionIsActive()
+            {
+                var currentUser = new User { Key = 17 };
+                var owner = new User { Key = 23 };
+                var stagedPackage = CreateStagedPackage(owner);
+                var group = new StagingGroup
+                {
+                    Key = 37,
+                    ActivePromotionId = System.Guid.NewGuid(),
+                };
+                stagedPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
+                stagedPackage.StagedPackageIdentity.StagingGroup = group;
+                var packageService = new Mock<IPackageService>();
+                packageService
+                    .Setup(x => x.EnsureValid(It.IsAny<PackageArchiveReader>()))
+                    .Returns(Task.CompletedTask);
+                packageService
+                    .Setup(x => x.FindPackageRegistrationById("PackageA"))
+                    .Returns(stagedPackage.StagedPackageIdentity.Package.PackageRegistration);
+                packageService
+                    .Setup(x => x.GetPackageStatus("PackageA", It.IsAny<NuGet.Versioning.NuGetVersion>()))
+                    .Returns(PackageStatus.Staged);
+                packageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict("PackageA", "1.0.0"))
+                    .Returns(stagedPackage.StagedPackageIdentity.Package);
+                var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
+                stagedPackageRepository
+                    .Setup(x => x.GetAll())
+                    .Returns(new[] { stagedPackage }.AsQueryable());
+                var target = CreateService(currentUser, packageService.Object, stagedPackageRepository.Object);
+                using var packageFile = TestPackage.CreateTestPackageStream("PackageA", "1.0.0");
+
+                var result = await target.ReplacePackageAsync(
+                    currentUser,
+                    Mock.Of<HttpContextBase>(),
+                    stagedPackage,
+                    packageFile);
+
+                Assert.Equal(HttpStatusCode.Conflict, result.StatusCode);
+                Assert.Equal("The staged package cannot be replaced while its group is being promoted.", result.ErrorMessage);
+            }
+
             private static StagedPackage CreateStagedPackage(User owner)
             {
                 var package = new Package

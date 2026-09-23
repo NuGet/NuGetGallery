@@ -249,6 +249,31 @@ namespace NuGetGallery
         }
 
         [Fact]
+        public void ReportsActiveGroupProgress()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var owner = new User("example-org") { Key = 2 };
+            var group = CreateStagingGroup(10, "release", "Release", owner, new DateTime(2026, 9, 1));
+            group.ActivePromotionId = Guid.NewGuid();
+            var package = CreateStagedPackage(owner);
+            package.Status = StagedPackageStatus.Succeeded;
+            package.StagedPackageIdentity.StagingGroupKey = group.Key;
+            package.StagedPackageIdentity.StagingGroup = group;
+            var target = GetController<StagingApiController>();
+            ConfigureCreateGroupRequest(target, currentUser, owner);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagingGroupPackagePage(owner, group.Id, 1, 100))
+                .Returns(new StagingGroupPackagePage(group, new[] { package }, totalCount: 1, allPackagesReady: false));
+
+            var result = target.GetStagingGroup(group.Id);
+
+            var body = ParseJsonContent(result);
+            Assert.False((bool)body["group"]["canPromote"]);
+            Assert.Equal("GroupPromotionInProgress", (string)body["group"]["blockers"][0]["code"]);
+            Assert.Equal("succeeded", (string)body["items"][0]["status"]);
+        }
+
+        [Fact]
         public void HidesUnavailableStagingGroup()
         {
             var currentUser = new User("current") { Key = 1 };
@@ -378,7 +403,7 @@ namespace NuGetGallery
                 .Returns(true);
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.UpdateListedAsync(stagedPackage, true))
-                .Returns(Task.CompletedTask);
+                .ReturnsAsync(true);
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.GetStatus(stagedPackage))
                 .Returns(status);
@@ -395,6 +420,35 @@ namespace NuGetGallery
 
             var json = Assert.IsType<JsonResult>(result);
             Assert.Same(status, json.Data);
+        }
+
+        [Fact]
+        public async Task ReportsConflictWhenPromotionPreventsListedUpdate()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var stagedPackage = CreateStagedPackage(currentUser);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
+                .Returns(stagedPackage);
+            GetMock<IPackageStagingAuthorizationService>()
+                .Setup(x => x.CanManageWithApiKey(currentUser, It.IsAny<IEnumerable<Scope>>(), stagedPackage))
+                .Returns(true);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.UpdateListedAsync(stagedPackage, true))
+                .ReturnsAsync(false);
+            GetMock<HttpContextBase>()
+                .SetupGet(x => x.User)
+                .Returns(Fakes.ToPrincipal(currentUser));
+            var target = GetController<StagingApiController>();
+            target.SetCurrentUser(currentUser);
+
+            var result = await target.UpdateStagedPackageListed(
+                "PackageA",
+                "1.0.0",
+                new UpdateStagedPackageRequest { Listed = true });
+
+            var status = Assert.IsType<HttpStatusCodeResult>(result);
+            Assert.Equal(409, status.StatusCode);
         }
 
         [Fact]
@@ -456,7 +510,7 @@ namespace NuGetGallery
                 .Returns(true);
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.DeletePackageAsync(stagedPackage))
-                .Returns(Task.CompletedTask);
+                .ReturnsAsync(true);
             GetMock<HttpContextBase>()
                 .SetupGet(x => x.User)
                 .Returns(Fakes.ToPrincipal(currentUser));
@@ -467,6 +521,32 @@ namespace NuGetGallery
 
             var status = Assert.IsType<HttpStatusCodeResult>(result);
             Assert.Equal(204, status.StatusCode);
+        }
+
+        [Fact]
+        public async Task ReportsConflictWhenPromotionPreventsPackageDeletion()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var stagedPackage = CreateStagedPackage(currentUser);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
+                .Returns(stagedPackage);
+            GetMock<IPackageStagingAuthorizationService>()
+                .Setup(x => x.CanManageWithApiKey(currentUser, It.IsAny<IEnumerable<Scope>>(), stagedPackage))
+                .Returns(true);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.DeletePackageAsync(stagedPackage))
+                .ReturnsAsync(false);
+            GetMock<HttpContextBase>()
+                .SetupGet(x => x.User)
+                .Returns(Fakes.ToPrincipal(currentUser));
+            var target = GetController<StagingApiController>();
+            target.SetCurrentUser(currentUser);
+
+            var result = await target.DeleteStagedPackage("PackageA", "1.0.0");
+
+            var status = Assert.IsType<HttpStatusCodeResult>(result);
+            Assert.Equal(409, status.StatusCode);
         }
 
         [Fact]

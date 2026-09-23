@@ -263,7 +263,10 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
 
-            await _packageStagingManagementService.UpdateListedAsync(stagedPackage, request.Listed);
+            if (!await _packageStagingManagementService.UpdateListedAsync(stagedPackage, request.Listed))
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.Conflict);
+            }
 
             return Json(_packageStagingManagementService.GetStatus(stagedPackage));
         }
@@ -277,8 +280,8 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
 
-            await _packageStagingManagementService.DeletePackageAsync(stagedPackage);
-            return new HttpStatusCodeResult(HttpStatusCode.NoContent);
+            var deleted = await _packageStagingManagementService.DeletePackageAsync(stagedPackage);
+            return new HttpStatusCodeResult(deleted ? HttpStatusCode.NoContent : HttpStatusCode.Conflict);
         }
 
         private StagedPackage FindAuthorizedStagedPackage(string id, string version)

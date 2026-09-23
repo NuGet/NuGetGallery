@@ -427,6 +427,10 @@
     <Compile Include="Migrations\202609182152047_AddStagingGroupPromotionState.Designer.cs">
       <DependentUpon>202609182152047_AddStagingGroupPromotionState.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202609222212426_AddStagingMutationRevisions.cs" />
+    <Compile Include="Migrations\202609222212426_AddStagingMutationRevisions.Designer.cs">
+      <DependentUpon>202609222212426_AddStagingMutationRevisions.cs</DependentUpon>
+    </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
     <Compile Include="RequestModels\UpdateListedRequest.cs" />
@@ -1869,6 +1873,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202609182152047_AddStagingGroupPromotionState.resx">
       <DependentUpon>202609182152047_AddStagingGroupPromotionState.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609222212426_AddStagingMutationRevisions.resx">
+      <DependentUpon>202609222212426_AddStagingMutationRevisions.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

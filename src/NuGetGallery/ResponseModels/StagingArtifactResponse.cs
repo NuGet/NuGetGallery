@@ -108,6 +108,8 @@ namespace NuGetGallery
                     return "validationFailed";
                 case StagedPackageStatus.Promoting:
                     return "promoting";
+                case StagedPackageStatus.Succeeded:
+                    return "succeeded";
                 case StagedPackageStatus.PromotionFailed:
                     return "promotionFailed";
                 default:

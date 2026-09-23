@@ -66,6 +66,7 @@ namespace NuGetGallery
         public const string CreateStagingGroupApi = "CreateStagingGroupApi";
         public const string RenameStagingGroup = "RenameStagingGroup";
         public const string DeleteStagingGroup = "DeleteStagingGroup";
+        public const string PromoteStagingGroup = "PromoteStagingGroup";
         public const string DeleteStagingGroupApi = "DeleteStagingGroupApi";
         public const string MoveStagedPackage = "MoveStagedPackage";
         public const string GetStagingGroupApi = "GetStagingGroupApi";

@@ -16,7 +16,6 @@ namespace NuGetGallery
     {
         private readonly IPackageStagingAuthorizationService _packageStagingAuthorizationService;
         private readonly IPackageService _packageService;
-        private readonly IEntitiesContext _entitiesContext;
         private readonly IEntityRepository<StagedPackage> _stagedPackageRepository;
         private readonly IEntityRepository<StagingGroup> _stagingGroupRepository;
         private readonly IStagingBlobService _stagingBlobService;
@@ -24,14 +23,12 @@ namespace NuGetGallery
         public PackageStagingManagementService(
             IPackageStagingAuthorizationService packageStagingAuthorizationService,
             IPackageService packageService,
-            IEntitiesContext entitiesContext,
             IEntityRepository<StagedPackage> stagedPackageRepository,
             IEntityRepository<StagingGroup> stagingGroupRepository,
             IStagingBlobService stagingBlobService)
         {
             _packageStagingAuthorizationService = packageStagingAuthorizationService ?? throw new ArgumentNullException(nameof(packageStagingAuthorizationService));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
-            _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _stagedPackageRepository = stagedPackageRepository ?? throw new ArgumentNullException(nameof(stagedPackageRepository));
             _stagingGroupRepository = stagingGroupRepository ?? throw new ArgumentNullException(nameof(stagingGroupRepository));
             _stagingBlobService = stagingBlobService ?? throw new ArgumentNullException(nameof(stagingBlobService));
@@ -139,28 +136,81 @@ namespace NuGetGallery
             return await _stagingBlobService.OpenPackageFileAsync(path, etag);
         }
 
-        public async Task UpdateListedAsync(StagedPackage stagedPackage, bool listed)
+        public async Task<bool> UpdateListedAsync(StagedPackage stagedPackage, bool listed)
         {
             if (stagedPackage == null)
             {
                 throw new ArgumentNullException(nameof(stagedPackage));
             }
 
-            stagedPackage.StagedPackageIdentity.Package.Listed = listed;
-            await _stagedPackageRepository.CommitChangesAsync();
+            var updated = false;
+            try
+            {
+                await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
+                {
+                    var group = stagedPackage.StagedPackageIdentity.StagingGroup;
+                    if (stagedPackage.Status == StagedPackageStatus.Promoting || group?.ActivePromotionId.HasValue == true)
+                    {
+                        return;
+                    }
+
+                    stagedPackage.MutationRevision++;
+                    if (group != null)
+                    {
+                        group.MutationRevision++;
+                    }
+
+                    stagedPackage.StagedPackageIdentity.Package.Listed = listed;
+                    await _stagedPackageRepository.CommitChangesAsync();
+                    updated = true;
+                });
+            }
+            catch (DbUpdateConcurrencyException exception)
+            {
+                exception.Log();
+                return false;
+            }
+
+            return updated;
         }
 
-        public async Task DeletePackageAsync(StagedPackage stagedPackage)
+        public async Task<bool> DeletePackageAsync(StagedPackage stagedPackage)
         {
             if (stagedPackage == null)
             {
                 throw new ArgumentNullException(nameof(stagedPackage));
             }
 
-            stagedPackage.Status = StagedPackageStatus.Deleted;
-            stagedPackage.StagedPackageIdentity.Package.Listed = false;
-            await _packageService.UpdatePackageStatusAsync(stagedPackage.StagedPackageIdentity.Package, PackageStatus.Deleted, commitChanges: false);
-            await _stagedPackageRepository.CommitChangesAsync();
+            var deleted = false;
+            try
+            {
+                await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
+                {
+                    var group = stagedPackage.StagedPackageIdentity.StagingGroup;
+                    if (stagedPackage.Status == StagedPackageStatus.Promoting || group?.ActivePromotionId.HasValue == true)
+                    {
+                        return;
+                    }
+
+                    if (group != null)
+                    {
+                        group.MutationRevision++;
+                    }
+
+                    stagedPackage.Status = StagedPackageStatus.Deleted;
+                    stagedPackage.StagedPackageIdentity.Package.Listed = false;
+                    await _packageService.UpdatePackageStatusAsync(stagedPackage.StagedPackageIdentity.Package, PackageStatus.Deleted, commitChanges: false);
+                    await _stagedPackageRepository.CommitChangesAsync();
+                    deleted = true;
+                });
+            }
+            catch (DbUpdateConcurrencyException exception)
+            {
+                exception.Log();
+                return false;
+            }
+
+            return deleted;
         }
 
         public IReadOnlyList<StagedPackage> GetStagedPackages(User currentUser)
@@ -175,6 +225,7 @@ namespace NuGetGallery
                 .ToArray();
 
             return GetCurrentStagedPackages(ownerKeys)
+                .AsEnumerable()
                 .Where(stagedPackage => _packageStagingAuthorizationService.CanManage(currentUser, stagedPackage))
                 .OrderBy(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageRegistration.Id)
                 .ThenByDescending(stagedPackage => stagedPackage.UploadedDate)
@@ -274,13 +325,22 @@ namespace NuGetGallery
             }
 
             var group = FindStagingGroup(stagingOwner, groupId);
-            if (group == null)
+            if (group == null || group.ActivePromotionId.HasValue)
             {
                 return null;
             }
 
-            group.Name = name.Trim();
-            await _stagingGroupRepository.CommitChangesAsync();
+            try
+            {
+                group.Name = name.Trim();
+                await _stagingGroupRepository.CommitChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException exception)
+            {
+                exception.Log();
+                return null;
+            }
+
             return group;
         }
 
@@ -302,46 +362,54 @@ namespace NuGetGallery
             }
 
             StagingGroupDeletionResult result = null;
-            await _stagingGroupRepository.ExecuteInTransactionAsync(async () =>
+            try
             {
-                var groupedAttempts = _stagedPackageRepository
-                    .GetAll()
-                    .Include(package => package.StagedPackageIdentity.Package)
-                    .Where(package => package.StagedPackageIdentity.OwnerKey == stagingOwner.Key)
-                    .Where(package => package.StagedPackageIdentity.StagingGroupKey == group.Key)
-                    .Where(package => package.StagedPackageIdentity.CurrentStagedPackageKey == package.Key)
-                    .ToList();
-                var stagedPackages = groupedAttempts
-                    .Where(package => package.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Staged)
-                    .Where(package => package.Status != StagedPackageStatus.Superseded && package.Status != StagedPackageStatus.Deleted)
-                    .ToList();
-
-                var stagedPackageKeys = new HashSet<int>(stagedPackages.Select(package => package.Key));
-                if (stagedPackages.Any(package => package.Status == StagedPackageStatus.Promoting))
+                await _stagingGroupRepository.ExecuteInTransactionAsync(async () =>
                 {
-                    result = StagingGroupDeletionResult.Conflict(stagedPackages.Count);
-                    return;
-                }
+                    var groupedAttempts = _stagedPackageRepository
+                        .GetAll()
+                        .Include(package => package.StagedPackageIdentity.Package)
+                        .Where(package => package.StagedPackageIdentity.OwnerKey == stagingOwner.Key)
+                        .Where(package => package.StagedPackageIdentity.StagingGroupKey == group.Key)
+                        .Where(package => package.StagedPackageIdentity.CurrentStagedPackageKey == package.Key)
+                        .ToList();
+                    var stagedPackages = groupedAttempts
+                        .Where(package => package.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Staged)
+                        .Where(package => package.Status != StagedPackageStatus.Superseded && package.Status != StagedPackageStatus.Deleted)
+                        .ToList();
 
-                foreach (var stagedPackage in groupedAttempts)
-                {
-                    var identity = stagedPackage.StagedPackageIdentity;
-                    identity.StagingGroupKey = null;
-                    identity.StagingGroup = null;
-
-                    if (stagedPackageKeys.Contains(stagedPackage.Key))
+                    if (group.ActivePromotionId.HasValue)
                     {
-                        var package = identity.Package;
-                        stagedPackage.Status = StagedPackageStatus.Deleted;
-                        package.Listed = false;
-                        await _packageService.UpdatePackageStatusAsync(package, PackageStatus.Deleted, commitChanges: false);
+                        result = StagingGroupDeletionResult.Conflict(stagedPackages.Count);
+                        return;
                     }
-                }
 
-                _stagingGroupRepository.DeleteOnCommit(group);
-                await _stagingGroupRepository.CommitChangesAsync();
-                result = StagingGroupDeletionResult.Deleted(stagedPackages.Count);
-            });
+                    var stagedPackageKeys = new HashSet<int>(stagedPackages.Select(package => package.Key));
+                    foreach (var stagedPackage in groupedAttempts)
+                    {
+                        var identity = stagedPackage.StagedPackageIdentity;
+                        identity.StagingGroupKey = null;
+                        identity.StagingGroup = null;
+
+                        if (stagedPackageKeys.Contains(stagedPackage.Key))
+                        {
+                            var package = identity.Package;
+                            stagedPackage.Status = StagedPackageStatus.Deleted;
+                            package.Listed = false;
+                            await _packageService.UpdatePackageStatusAsync(package, PackageStatus.Deleted, commitChanges: false);
+                        }
+                    }
+
+                    _stagingGroupRepository.DeleteOnCommit(group);
+                    await _stagingGroupRepository.CommitChangesAsync();
+                    result = StagingGroupDeletionResult.Deleted(stagedPackages.Count);
+                });
+            }
+            catch (DbUpdateConcurrencyException exception)
+            {
+                exception.Log();
+                result = StagingGroupDeletionResult.Conflict(result?.AffectedPackageCount ?? 0);
+            }
 
             return result;
         }
@@ -374,24 +442,33 @@ namespace NuGetGallery
                 return StagingGroupMembershipResult.Unchanged;
             }
 
-            if (stagedPackage.Status == StagedPackageStatus.Promoting)
+            if (stagedPackage.Status == StagedPackageStatus.Promoting || group.ActivePromotionId.HasValue || identity.StagingGroup?.ActivePromotionId.HasValue == true)
             {
                 return StagingGroupMembershipResult.Conflict;
             }
 
             var result = StagingGroupMembershipResult.Conflict;
-            await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
+            try
             {
-                if (!await TryReserveStagedPackageForMembershipChangeAsync(stagedPackage))
+                await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
                 {
-                    return;
-                }
+                    stagedPackage.MutationRevision++;
+                    if (identity.StagingGroup != null)
+                    {
+                        identity.StagingGroup.MutationRevision++;
+                    }
 
-                identity.StagingGroupKey = group.Key;
-                identity.StagingGroup = group;
-                await _stagedPackageRepository.CommitChangesAsync();
-                result = StagingGroupMembershipResult.Updated;
-            });
+                    group.MutationRevision++;
+                    identity.StagingGroupKey = group.Key;
+                    identity.StagingGroup = group;
+                    await _stagedPackageRepository.CommitChangesAsync();
+                    result = StagingGroupMembershipResult.Updated;
+                });
+            }
+            catch (DbUpdateConcurrencyException exception)
+            {
+                exception.Log();
+            }
 
             return result;
         }
@@ -419,46 +496,32 @@ namespace NuGetGallery
                 return StagingGroupMembershipResult.Unchanged;
             }
 
-            if (stagedPackage.Status == StagedPackageStatus.Promoting)
+            if (stagedPackage.Status == StagedPackageStatus.Promoting
+                || identity.StagingGroup?.ActivePromotionId.HasValue == true)
             {
                 return StagingGroupMembershipResult.Conflict;
             }
 
             var result = StagingGroupMembershipResult.Conflict;
-            await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
+            try
             {
-                if (!await TryReserveStagedPackageForMembershipChangeAsync(stagedPackage))
+                await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
                 {
-                    return;
-                }
+                    stagedPackage.MutationRevision++;
+                    identity.StagingGroup.MutationRevision++;
 
-                identity.StagingGroupKey = null;
-                identity.StagingGroup = null;
-                await _stagedPackageRepository.CommitChangesAsync();
-                result = StagingGroupMembershipResult.Updated;
-            });
+                    identity.StagingGroupKey = null;
+                    identity.StagingGroup = null;
+                    await _stagedPackageRepository.CommitChangesAsync();
+                    result = StagingGroupMembershipResult.Updated;
+                });
+            }
+            catch (DbUpdateConcurrencyException exception)
+            {
+                exception.Log();
+            }
 
             return result;
-        }
-
-        private async Task<bool> TryReserveStagedPackageForMembershipChangeAsync(StagedPackage stagedPackage)
-        {
-            // The self-assignment intentionally advances RowVersion and holds the update lock until the
-            // surrounding membership transaction commits. A concurrent promotion using the old RowVersion fails.
-            const string query = @"
-                UPDATE [dbo].[StagedPackages]
-                SET [Status] = [Status]
-                WHERE [Key] = @p0
-                    AND [RowVersion] = @p1
-                    AND [Status] <> @p2";
-
-            var affectedRows = await _entitiesContext.GetDatabase().ExecuteSqlCommandAsync(
-                query,
-                stagedPackage.Key,
-                stagedPackage.RowVersion,
-                (int)StagedPackageStatus.Promoting);
-
-            return affectedRows == 1;
         }
 
         public IReadOnlyList<StagingGroupSummary> GetStagingGroupSummaries(User stagingOwner)
@@ -596,6 +659,7 @@ namespace NuGetGallery
                 .ToArray();
 
             return GetCurrentStagedPackages(ownerKeys)
+                .AsEnumerable()
                 .Where(stagedPackage => _packageStagingAuthorizationService.CanManageWithApiKey(currentUser, scopes, stagedPackage))
                 .Select(GetStatus)
                 .OrderBy(package => package.Id)
@@ -621,6 +685,7 @@ namespace NuGetGallery
             return _stagedPackageRepository
                 .GetAll()
                 .Include(stagedPackage => stagedPackage.StagedPackageIdentity.Owner)
+                .Include(stagedPackage => stagedPackage.StagedPackageIdentity.StagingGroup)
                 .SingleOrDefault(stagedPackage => stagedPackage.StagedPackageIdentityKey == packageKey && stagedPackage.StagedPackageIdentity.CurrentStagedPackageKey == stagedPackage.Key);
         }
 

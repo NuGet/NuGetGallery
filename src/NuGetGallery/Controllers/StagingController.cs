@@ -160,7 +160,57 @@ namespace NuGetGallery
             group = await _packageStagingManagementService.RenameStagingGroupAsync(stagingOwner, groupId, model.Name);
             if (group == null)
             {
+                group = _packageStagingManagementService.FindStagingGroup(stagingOwner, groupId);
+                if (group == null)
+                {
+                    return HttpNotFound();
+                }
+
+                ModelState.AddModelError(string.Empty, "The group changed or promotion started. Refresh and try again.");
+                return GroupView(currentUser, group);
+            }
+
+            return Redirect(Url.ManageStagingGroup(group.Owner.Username, group.Id));
+        }
+
+        /// <summary>
+        /// Begins asynchronous publication of every ready package in a staging group.
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> PromoteGroup(string owner, string groupId)
+        {
+            if (string.IsNullOrWhiteSpace(owner) || string.IsNullOrWhiteSpace(groupId))
+            {
                 return HttpNotFound();
+            }
+
+            var currentUser = GetCurrentUser();
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledOwner(currentUser, owner);
+            var group = stagingOwner == null ? null : _packageStagingManagementService.FindStagingGroup(stagingOwner, groupId);
+            if (group == null)
+            {
+                return HttpNotFound();
+            }
+
+            var result = await _packageStagingPromotionService.PromoteGroupAsync(currentUser, group);
+            switch (result)
+            {
+                case StagingGroupPromotionResult.Accepted:
+                    break;
+                case StagingGroupPromotionResult.Unauthorized:
+                    return HttpNotFound();
+                case StagingGroupPromotionResult.Empty:
+                    TempData["ErrorMessage"] = "The staging group has no packages to promote.";
+                    break;
+                case StagingGroupPromotionResult.NotReady:
+                    TempData["ErrorMessage"] = "Every package in the staging group must be ready before promotion can begin.";
+                    break;
+                case StagingGroupPromotionResult.Conflict:
+                    TempData["ErrorMessage"] = "The staging group changed before promotion could begin. Try again.";
+                    break;
+                default:
+                    throw new InvalidOperationException($"Unknown staging group promotion result '{result}'.");
             }
 
             return Redirect(Url.ManageStagingGroup(group.Owner.Username, group.Id));
@@ -246,7 +296,7 @@ namespace NuGetGallery
                 .Where(candidate => candidate.OwnerKey == group.OwnerKey)
                 .ToList();
 
-            return View(CreateGroupViewModel(group.Owner.Username, group.Id, group.Name, null, stagedPackages, stagingGroups));
+            return View(nameof(Group), CreateGroupViewModel(group.Owner.Username, group.Id, group.Name, null, stagedPackages, stagingGroups, group.ActivePromotionId.HasValue));
         }
 
         [HttpGet]
@@ -408,7 +458,8 @@ namespace NuGetGallery
             string name,
             string description,
             IReadOnlyCollection<StagedPackage> stagedPackages,
-            IReadOnlyCollection<StagingGroup> stagingGroups)
+            IReadOnlyCollection<StagingGroup> stagingGroups,
+            bool isPromotionActive = false)
         {
             var orderedStagedPackages = stagedPackages
                 .OrderBy(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageRegistration.Id)
@@ -429,7 +480,7 @@ namespace NuGetGallery
                     var identity = stagedPackage.StagedPackageIdentity;
                     var package = identity.Package;
                     var hasMoveTarget = identity.StagingGroupKey.HasValue || stagingGroups.Any(group => group.Key != identity.StagingGroupKey);
-                    var moveUrl = hasMoveTarget ? Url.MoveStagedPackage(identity.Owner.Username, package.PackageRegistration.Id, package.NormalizedVersion) : null;
+                    var moveUrl = hasMoveTarget && !isPromotionActive ? Url.MoveStagedPackage(identity.Owner.Username, package.PackageRegistration.Id, package.NormalizedVersion) : null;
 
                     return new PackageStagingViewModel
                     {
@@ -441,7 +492,7 @@ namespace NuGetGallery
                         UploadedDate = stagedPackage.UploadedDate,
                         ValidationIssues = issues ?? [],
                         Listed = package.Listed,
-                        CanManage = true,
+                        CanManage = !isPromotionActive,
                         CanPromote = stagedPackage.Status == StagedPackageStatus.Ready && !identity.StagingGroupKey.HasValue,
                         MoveUrl = moveUrl,
                     };
@@ -455,10 +506,16 @@ namespace NuGetGallery
                 Name = name,
                 Description = description,
                 IsUngrouped = id == null,
+                IsPromotionActive = isPromotionActive,
+                CanPromote = id != null
+                    && !isPromotionActive
+                    && orderedStagedPackages.Count > 0
+                    && orderedStagedPackages.All(stagedPackage => stagedPackage.Status == StagedPackageStatus.Ready),
                 PackageCount = packageViewModels.Count,
                 ReadyCount = orderedStagedPackages.Count(stagedPackage => stagedPackage.Status == StagedPackageStatus.Ready),
                 ValidatingCount = orderedStagedPackages.Count(stagedPackage => stagedPackage.Status == StagedPackageStatus.Validating),
-                FailedCount = orderedStagedPackages.Count(stagedPackage => stagedPackage.Status == StagedPackageStatus.FailedValidation),
+                PromotingCount = orderedStagedPackages.Count(stagedPackage => stagedPackage.Status == StagedPackageStatus.Promoting),
+                FailedCount = orderedStagedPackages.Count(stagedPackage => stagedPackage.Status == StagedPackageStatus.FailedValidation || stagedPackage.Status == StagedPackageStatus.PromotionFailed),
                 Packages = packageViewModels,
             };
         }
@@ -526,8 +583,8 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            await _packageStagingManagementService.UpdateListedAsync(stagedPackage, listed);
-            return new HttpStatusCodeResult(HttpStatusCode.NoContent);
+            var updated = await _packageStagingManagementService.UpdateListedAsync(stagedPackage, listed);
+            return new HttpStatusCodeResult(updated ? HttpStatusCode.NoContent : HttpStatusCode.Conflict);
         }
 
         [HttpPost]
@@ -542,7 +599,11 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            await _packageStagingManagementService.DeletePackageAsync(stagedPackage);
+            if (!await _packageStagingManagementService.DeletePackageAsync(stagedPackage))
+            {
+                TempData["ErrorMessage"] = "The staged package cannot be deleted while package promotion is active.";
+            }
+
             return Redirect(Url.ManageMyPackages());
         }
 
