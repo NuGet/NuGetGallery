@@ -202,31 +202,31 @@
                                             </button>
                                             <ul class="dropdown-menu dropdown-menu-right">
                                                 <!-- ko if: CanPromote -->
-                                                <li data-bind="css: { disabled: IsBusy }">
+                                                <li data-bind="visible: !IsBusy()">
                                                     <a href="#"
                                                        class="staging-promote-trigger"
-                                                       data-bind="click: Promote, attr: { 'aria-disabled': IsBusy() ? 'true' : null, tabindex: IsBusy() ? '-1' : null }">Promote&hellip;</a>
+                                                       data-bind="click: Promote">Promote&hellip;</a>
                                                     <form method="post"
                                                           class="hidden staging-promote-form"
                                                           data-bind="attr: { action: PromoteUrl }">
                                                         @Html.AntiForgeryToken()
                                                     </form>
                                                 </li>
-                                                <li role="separator" class="divider"></li>
+                                                <li role="separator" class="divider" data-bind="visible: !IsBusy()"></li>
                                                 <!-- /ko -->
                                                 <li>
                                                     <a data-bind="attr: { href: DownloadUrl }">Download</a>
                                                 </li>
                                                 <!-- ko if: CanManage -->
                                                 <!-- ko if: MoveUrl -->
-                                                <li data-bind="css: { disabled: IsBusy }">
-                                                    <a data-bind="click: FollowLink, attr: { href: MoveUrl, 'aria-disabled': IsBusy() ? 'true' : null, tabindex: IsBusy() ? '-1' : null }">Move</a>
+                                                <li data-bind="visible: !IsBusy()">
+                                                    <a data-bind="attr: { href: MoveUrl }">Move</a>
                                                 </li>
                                                 <!-- /ko -->
-                                                <li data-bind="css: { disabled: IsBusy }">
+                                                <li data-bind="visible: !IsBusy()">
                                                     <a href="#"
                                                        class="staging-replace-trigger"
-                                                       data-bind="click: ChooseReplacement, attr: { 'aria-disabled': IsBusy() ? 'true' : null, tabindex: IsBusy() ? '-1' : null }">Replace&hellip;</a>
+                                                       data-bind="click: ChooseReplacement">Replace&hellip;</a>
                                                     <form method="post"
                                                           enctype="multipart/form-data"
                                                           class="hidden staging-replace-form"
@@ -239,11 +239,11 @@
                                                                accept=".nupkg" />
                                                     </form>
                                                 </li>
-                                                <li role="separator" class="divider"></li>
-                                                <li data-bind="css: { disabled: IsBusy }">
+                                                <li role="separator" class="divider" data-bind="visible: !IsBusy()"></li>
+                                                <li data-bind="visible: !IsBusy()">
                                                     <a href="#"
                                                        class="staging-delete-trigger"
-                                                       data-bind="click: Delete, attr: { 'aria-disabled': IsBusy() ? 'true' : null, tabindex: IsBusy() ? '-1' : null }">Delete&hellip;</a>
+                                                       data-bind="click: Delete">Delete&hellip;</a>
                                                     <form method="post"
                                                           class="hidden staging-delete-form"
                                                           data-bind="attr: { action: DeleteUrl }">

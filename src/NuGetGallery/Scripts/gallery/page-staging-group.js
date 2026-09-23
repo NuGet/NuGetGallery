@@ -54,15 +54,6 @@
             return query.length === 0 || self.SearchText.indexOf(query) !== -1;
         });
 
-        this.FollowLink = function (model, event) {
-            if (self.IsBusy()) {
-                event.preventDefault();
-                return false;
-            }
-
-            return true;
-        };
-
         this.UpdateListed = function (model, event) {
             const input = $(event.currentTarget);
             const form = input.closest('form');
