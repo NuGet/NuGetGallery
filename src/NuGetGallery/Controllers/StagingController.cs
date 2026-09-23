@@ -516,6 +516,7 @@ namespace NuGetGallery
                 ValidatingCount = orderedStagedPackages.Count(stagedPackage => stagedPackage.Status == StagedPackageStatus.Validating),
                 PromotingCount = orderedStagedPackages.Count(stagedPackage => stagedPackage.Status == StagedPackageStatus.Promoting),
                 FailedCount = orderedStagedPackages.Count(stagedPackage => stagedPackage.Status == StagedPackageStatus.FailedValidation || stagedPackage.Status == StagedPackageStatus.PromotionFailed),
+                PromotionFailedCount = orderedStagedPackages.Count(stagedPackage => stagedPackage.Status == StagedPackageStatus.PromotionFailed),
                 Packages = packageViewModels,
             };
         }

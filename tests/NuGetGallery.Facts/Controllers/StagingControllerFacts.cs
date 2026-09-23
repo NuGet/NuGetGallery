@@ -250,6 +250,8 @@ namespace NuGetGallery
             };
             var promotingPackage = CreateStagedPackage(42, "Promoting.Package", "1.0.0", currentUser, StagedPackageStatus.Promoting);
             promotingPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
+            var failedPackage = CreateStagedPackage(43, "Failed.Package", "1.0.0", currentUser, StagedPackageStatus.PromotionFailed);
+            failedPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
             GetMock<IPackageStagingAuthorizationService>()
                 .Setup(x => x.GetEnabledOwner(currentUser, currentUser.Username))
                 .Returns(currentUser);
@@ -258,7 +260,7 @@ namespace NuGetGallery
                 .Returns(group);
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.GetStagedPackages(currentUser))
-                .Returns(new[] { promotingPackage });
+                .Returns(new[] { promotingPackage, failedPackage });
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.GetStagingGroups(currentUser))
                 .Returns(new[] { group });
@@ -271,7 +273,8 @@ namespace NuGetGallery
             Assert.True(model.IsPromotionActive);
             Assert.False(model.CanPromote);
             Assert.Equal(1, model.PromotingCount);
-            Assert.Equal(1, model.PackageCount);
+            Assert.Equal(1, model.PromotionFailedCount);
+            Assert.Equal(2, model.PackageCount);
             Assert.All(model.Packages, package =>
             {
                 Assert.False(package.CanManage);

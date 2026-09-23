@@ -102,6 +102,10 @@
             {
                 <p class="text-muted">Promotion is in progress. You can't change this group or its packages until it's done.</p>
             }
+            else if (Model.PromotionFailedCount > 0)
+            {
+                <p class="text-muted">Some packages failed promotion. Replace or remove them before promoting this group again.</p>
+            }
 
             <hr class="breadcrumb-divider" />
 

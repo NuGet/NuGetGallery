@@ -86,9 +86,9 @@ namespace NuGet.Services.Staging.Promotion
                     .Include(candidate => candidate.StagedPackageIdentity.Owner)
                     .Include(candidate => candidate.StagedPackageIdentity.StagingGroup)
                     .SingleOrDefault(candidate => candidate.Key == message.TargetKey);
-                if (IsSuccessfulGroupPromotionAttempt(stagedPackage, message.PromotionId))
+                if (IsCompletedGroupPromotionAttempt(stagedPackage, message.PromotionId))
                 {
-                    _logger.LogInformation("Resuming staging group finalization for an already successful package.");
+                    _logger.LogInformation("Resuming staging group finalization for an already completed package.");
                     await _stagingGroupPromotionService.TryFinalizeAsync(stagedPackage.StagedPackageIdentity.StagingGroupKey.Value, message.PromotionId);
                     return true;
                 }
@@ -105,7 +105,14 @@ namespace NuGet.Services.Staging.Promotion
                     if (!HasValidPromotionState(stagedPackage))
                     {
                         _logger.LogWarning("Staged package has invalid promotion state. Marking promotion as failed.");
+
+                        var failedGroupKey = stagedPackage.StagedPackageIdentity.StagingGroupKey;
                         await MarkPromotionFailedAsync(stagedPackage);
+                        if (failedGroupKey.HasValue)
+                        {
+                            await _stagingGroupPromotionService.TryFinalizeAsync(failedGroupKey.Value, message.PromotionId);
+                        }
+
                         return true;
                     }
 
@@ -150,14 +157,36 @@ namespace NuGet.Services.Staging.Promotion
                 && (!stagedPackage.StagedPackageIdentity.StagingGroupKey.HasValue || stagedPackage.StagedPackageIdentity.StagingGroup?.ActivePromotionId == promotionId);
         }
 
-        private static bool IsSuccessfulGroupPromotionAttempt(StagedPackage stagedPackage, Guid promotionId)
+        private static bool IsCompletedGroupPromotionAttempt(StagedPackage stagedPackage, Guid promotionId)
         {
-            return stagedPackage != null
-                && stagedPackage.Status == StagedPackageStatus.Succeeded
-                && stagedPackage.ActivePromotionId == promotionId
-                && stagedPackage.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Available
-                && stagedPackage.StagedPackageIdentity.StagingGroupKey.HasValue
-                && stagedPackage.StagedPackageIdentity.StagingGroup?.ActivePromotionId == promotionId;
+            if (stagedPackage == null)
+            {
+                return false;
+            }
+
+            if (stagedPackage.ActivePromotionId != promotionId)
+            {
+                return false;
+            }
+
+            var identity = stagedPackage.StagedPackageIdentity;
+            if (!identity.StagingGroupKey.HasValue)
+            {
+                return false;
+            }
+
+            if (identity.StagingGroup?.ActivePromotionId != promotionId)
+            {
+                return false;
+            }
+
+            var packageStatus = identity.Package.PackageStatusKey;
+            if (stagedPackage.Status == StagedPackageStatus.Succeeded)
+            {
+                return packageStatus == PackageStatus.Available;
+            }
+
+            return stagedPackage.Status == StagedPackageStatus.PromotionFailed && packageStatus == PackageStatus.Staged;
         }
 
         private static bool HasValidPromotionState(StagedPackage stagedPackage)

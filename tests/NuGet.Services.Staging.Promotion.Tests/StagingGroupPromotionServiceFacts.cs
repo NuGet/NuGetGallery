@@ -59,6 +59,59 @@ namespace NuGet.Services.Staging.Promotion.Tests
         }
 
         [Fact]
+        public async Task UnlocksGroupWhenSomeMembersFailedAndOthersSucceeded()
+        {
+            var context = new TestContext();
+            var failedMember = context.AddMember(43, StagedPackageStatus.PromotionFailed);
+
+            context.Target.MarkPackageSucceeded(context.StagedPackage);
+            await context.Target.TryFinalizeAsync(context.StagingGroup.Key, context.PromotionId);
+
+            Assert.Same(failedMember, Assert.Single(context.StagedPackages));
+            Assert.Same(context.StagingGroup, Assert.Single(context.StagingGroups));
+            Assert.Null(context.StagingGroup.ActivePromotionId);
+            Assert.Null(context.StagedPackage.StagedPackageIdentity.CurrentStagedPackageKey);
+            Assert.Null(context.StagedPackage.StagedPackageIdentity.StagingGroupKey);
+            Assert.Equal(failedMember.Key, failedMember.StagedPackageIdentity.CurrentStagedPackageKey);
+            Assert.Equal(context.StagingGroup.Key, failedMember.StagedPackageIdentity.StagingGroupKey);
+            Assert.Null(failedMember.ActivePromotionId);
+            context.StagedPackageRepository.Verify(x => x.DeleteOnCommit(context.StagedPackage), Times.Once);
+            context.StagedPackageRepository.Verify(x => x.DeleteOnCommit(failedMember), Times.Never);
+            context.StagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
+        }
+
+        [Fact]
+        public async Task UnlocksGroupWhenEveryMemberFailed()
+        {
+            var context = new TestContext();
+            context.StagedPackage.Status = StagedPackageStatus.PromotionFailed;
+            var failedMember = context.AddMember(43, StagedPackageStatus.PromotionFailed);
+
+            await context.Target.TryFinalizeAsync(context.StagingGroup.Key, context.PromotionId);
+
+            Assert.Equal(2, context.StagedPackages.Count);
+            Assert.Null(context.StagingGroup.ActivePromotionId);
+            Assert.Null(context.StagedPackage.ActivePromotionId);
+            Assert.Null(failedMember.ActivePromotionId);
+            context.StagedPackageRepository.Verify(x => x.DeleteOnCommit(It.IsAny<StagedPackage>()), Times.Never);
+            context.StagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
+        }
+
+        [Fact]
+        public async Task KeepsGroupFrozenWhileOtherMembersAreStillPromoting()
+        {
+            var context = new TestContext();
+            context.StagedPackage.Status = StagedPackageStatus.PromotionFailed;
+            context.AddMember(43, StagedPackageStatus.Promoting);
+
+            await context.Target.TryFinalizeAsync(context.StagingGroup.Key, context.PromotionId);
+
+            Assert.Equal(context.PromotionId, context.StagingGroup.ActivePromotionId);
+            Assert.Equal(2, context.StagedPackages.Count);
+            context.StagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
+        }
+
+        [Fact]
         public async Task AcceptsConcurrencyWhenAnotherHandlerCompletedFinalization()
         {
             var context = new TestContext();

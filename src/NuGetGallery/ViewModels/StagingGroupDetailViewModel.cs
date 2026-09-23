@@ -34,6 +34,8 @@ namespace NuGetGallery
 
         public int FailedCount { get; set; }
 
+        public int PromotionFailedCount { get; set; }
+
         public IReadOnlyList<PackageStagingViewModel> Packages { get; set; }
     }
 }
