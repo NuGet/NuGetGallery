@@ -69,6 +69,17 @@
                                 Promote group
                             </button>
                         </form>
+                        @if (Model.CanResend)
+                        {
+                            <form method="post"
+                                  action="@Url.ResendStagingGroup(Model.Owner, Model.Id)"
+                                  data-bind="submit: ResendGroup">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-brand-secondary" data-bind="disable: IsResendingGroup">
+                                    Retry promotion
+                                </button>
+                            </form>
+                        }
                         @if (!Model.IsPromotionActive)
                         {
                             <a class="btn btn-brand-danger staging-group-delete" href="@Url.DeleteStagingGroup(Model.Owner, Model.Id)">
@@ -101,10 +112,18 @@
             @if (Model.IsPromotionActive)
             {
                 <p class="text-muted">Promotion is in progress. You can't change this group or its packages until it's done.</p>
+                if (Model.CanResend)
+                {
+                    <p class="text-muted">This promotion is taking longer than expected. Retry requests another attempt at unfinished work; failed packages remain failed.</p>
+                }
             }
             else if (Model.PromotionFailedCount > 0)
             {
                 <p class="text-muted">Some packages failed promotion. Replace or remove them before promoting this group again.</p>
+            }
+            @if (Model.IsUngrouped && Model.Packages.Any(package => package.CanResend))
+            {
+                <p class="text-muted">A promotion is taking longer than expected. Retry requests another attempt at unfinished work; failed packages remain failed.</p>
             }
 
             <hr class="breadcrumb-divider" />
@@ -221,6 +240,15 @@
                                                 <li>
                                                     <a data-bind="attr: { href: DownloadUrl }">Download</a>
                                                 </li>
+                                                <!-- ko if: CanResend -->
+                                                <li role="separator" class="divider" data-bind="visible: !IsResending()"></li>
+                                                <li data-bind="visible: !IsResending()">
+                                                    <a href="#" data-bind="click: Resend">Retry promotion&hellip;</a>
+                                                    <form method="post" class="hidden staging-resend-form" data-bind="attr: { action: ResendUrl }">
+                                                        @Html.AntiForgeryToken()
+                                                    </form>
+                                                </li>
+                                                <!-- /ko -->
                                                 <!-- ko if: CanManage -->
                                                 <!-- ko if: MoveUrl -->
                                                 <li data-bind="visible: !IsBusy()">
@@ -341,6 +369,7 @@
             ValidationIssuesId = GetStagedValidationIssuesId(index),
             package.CanManage,
             package.CanPromote,
+            package.CanResend,
             package.Listed,
             package.MoveUrl,
             ListedInputId = "staged-listed-" + index,
@@ -348,6 +377,7 @@
             ReplaceUrl = Url.ReplaceStagedPackage(package.Id, package.Version),
             UpdateListedUrl = Url.UpdateStagedPackageListed(package.Id, package.Version),
             PromoteUrl = Url.PromoteStagedPackage(package.Id, package.Version),
+            ResendUrl = Url.ResendStagedPackage(package.Id, package.Version),
             DeleteUrl = Url.DeleteStagedPackage(package.Id, package.Version),
         };
     }
@@ -359,6 +389,7 @@
                                   {
                                       Name = Model.Name,
                                       CanPromote = Model.CanPromote,
+                                      CanResend = Model.CanResend,
                                       Packages = Model.Packages.Select((package, index) => GetSerializableStagedPackage(package, index)),
                                   });
 

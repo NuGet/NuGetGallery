@@ -37,6 +37,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 Assert.Equal(context.PromotionId, message.PromotionId);
                 Assert.Equal(StagingPromotionTargetType.StagedPackage, message.TargetType);
             });
+            context.GroupPromotionService.Verify(x => x.TryFinalizeAsync(It.IsAny<int>(), It.IsAny<Guid>()), Times.Never);
         }
 
         [Fact]
@@ -79,6 +80,19 @@ namespace NuGet.Services.Staging.Promotion.Tests
             Assert.Collection(context.SentMessages, message => Assert.Equal(42, message.TargetKey));
         }
 
+        [Fact]
+        public async Task FinalizesGroupWhenNoPromotingPackagesRemain()
+        {
+            var context = new TestContext();
+            context.Packages[0].Status = StagedPackageStatus.PromotionFailed;
+
+            var handled = await context.Target.HandleAsync(context.Message);
+
+            Assert.True(handled);
+            Assert.Empty(context.SentMessages);
+            context.GroupPromotionService.Verify(x => x.TryFinalizeAsync(context.Group.Key, context.PromotionId), Times.Once);
+        }
+
         private class TestContext
         {
             public TestContext()
@@ -99,12 +113,17 @@ namespace NuGet.Services.Staging.Promotion.Tests
                     .Setup(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()))
                     .Callback<StagingPromotionMessage>(message => SentMessages.Add(message))
                     .Returns(Task.CompletedTask);
+                GroupPromotionService = new Mock<IStagingGroupPromotionService>();
+                GroupPromotionService
+                    .Setup(x => x.TryFinalizeAsync(It.IsAny<int>(), It.IsAny<Guid>()))
+                    .Returns(Task.CompletedTask);
 
                 AddPackage(42, StagedPackageStatus.Promoting, PromotionId, isCurrent: true);
                 Target = new StagingGroupPromotionMessageHandler(
                     StagingGroupRepository.Object,
                     StagedPackageRepository.Object,
                     MessageEnqueuer.Object,
+                    GroupPromotionService.Object,
                     Mock.Of<ILogger<StagingGroupPromotionMessageHandler>>());
             }
 
@@ -138,6 +157,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
             public Mock<IEntityRepository<StagingGroup>> StagingGroupRepository { get; }
             public Mock<IEntityRepository<StagedPackage>> StagedPackageRepository { get; }
             public Mock<IStagingPromotionMessageEnqueuer> MessageEnqueuer { get; }
+            public Mock<IStagingGroupPromotionService> GroupPromotionService { get; }
             public StagingGroupPromotionMessageHandler Target { get; }
         }
     }

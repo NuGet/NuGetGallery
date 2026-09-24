@@ -70,9 +70,62 @@ namespace NuGetGallery
                 {
                     var promotionId = Guid.NewGuid();
                     stagedPackage.ActivePromotionId = promotionId;
+                    stagedPackage.PromotionMessageSentDate = DateTime.UtcNow;
                     stagedPackage.Status = StagedPackageStatus.Promoting;
                     await _stagedPackageRepository.CommitChangesAsync();
 
+                    await _messageEnqueuer.SendMessageAsync(StagingPromotionMessage.ForPackage(promotionId, stagedPackage.Key));
+                });
+            }
+            catch (DbUpdateConcurrencyException exception)
+            {
+                exception.Log();
+                return PackageStagingPromotionResult.Conflict;
+            }
+
+            return PackageStagingPromotionResult.Accepted;
+        }
+
+        /// <inheritdoc />
+        public async Task<PackageStagingPromotionResult> ResendPackageAsync(User currentUser, StagedPackage stagedPackage)
+        {
+            if (currentUser == null)
+            {
+                throw new ArgumentNullException(nameof(currentUser));
+            }
+
+            if (stagedPackage == null)
+            {
+                throw new ArgumentNullException(nameof(stagedPackage));
+            }
+
+            if (!_authorizationService.CanManage(currentUser, stagedPackage))
+            {
+                return PackageStagingPromotionResult.Unauthorized;
+            }
+
+            if (stagedPackage.StagedPackageIdentity.StagingGroupKey.HasValue)
+            {
+                return PackageStagingPromotionResult.Grouped;
+            }
+
+            if (stagedPackage.Status != StagedPackageStatus.Promoting || !stagedPackage.ActivePromotionId.HasValue)
+            {
+                return PackageStagingPromotionResult.NotReady;
+            }
+
+            if (!StagingPromotionResendPolicy.IsDue(stagedPackage.PromotionMessageSentDate))
+            {
+                return PackageStagingPromotionResult.NotReady;
+            }
+
+            var promotionId = stagedPackage.ActivePromotionId.Value;
+            try
+            {
+                await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
+                {
+                    stagedPackage.PromotionMessageSentDate = DateTime.UtcNow;
+                    await _stagedPackageRepository.CommitChangesAsync();
                     await _messageEnqueuer.SendMessageAsync(StagingPromotionMessage.ForPackage(promotionId, stagedPackage.Key));
                 });
             }
@@ -139,6 +192,7 @@ namespace NuGetGallery
 
                     var promotionId = Guid.NewGuid();
                     group.ActivePromotionId = promotionId;
+                    group.PromotionMessageSentDate = DateTime.UtcNow;
                     foreach (var stagedPackage in stagedPackages)
                     {
                         stagedPackage.ActivePromotionId = promotionId;
@@ -158,6 +212,48 @@ namespace NuGetGallery
             }
 
             return result;
+        }
+
+        /// <inheritdoc />
+        public async Task<StagingGroupPromotionResult> ResendGroupAsync(User currentUser, StagingGroup group)
+        {
+            if (currentUser == null)
+            {
+                throw new ArgumentNullException(nameof(currentUser));
+            }
+
+            if (group == null)
+            {
+                throw new ArgumentNullException(nameof(group));
+            }
+
+            if (!_authorizationService.GetEnabledOwners(currentUser).Any(owner => owner.Key == group.OwnerKey))
+            {
+                return StagingGroupPromotionResult.Unauthorized;
+            }
+
+            if (!group.ActivePromotionId.HasValue || !StagingPromotionResendPolicy.IsDue(group.PromotionMessageSentDate))
+            {
+                return StagingGroupPromotionResult.NotReady;
+            }
+
+            var promotionId = group.ActivePromotionId.Value;
+            try
+            {
+                await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
+                {
+                    group.PromotionMessageSentDate = DateTime.UtcNow;
+                    await _stagedPackageRepository.CommitChangesAsync();
+                    await _messageEnqueuer.SendMessageAsync(StagingPromotionMessage.ForGroup(promotionId, group.Key));
+                });
+            }
+            catch (DbUpdateConcurrencyException exception)
+            {
+                exception.Log();
+                return StagingGroupPromotionResult.Conflict;
+            }
+
+            return StagingGroupPromotionResult.Accepted;
         }
     }
 }

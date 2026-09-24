@@ -51,6 +51,52 @@ namespace NuGetGallery
         }
 
         [Fact]
+        public async Task ResendsStalledPackageWithSamePromotionId()
+        {
+            var stagedPackage = CreateStagedPackage(StagedPackageStatus.Promoting);
+            stagedPackage.ActivePromotionId = Guid.NewGuid();
+            var previousSentDate = DateTime.UtcNow.AddMinutes(-61);
+            stagedPackage.PromotionMessageSentDate = previousSentDate;
+            var repository = new Mock<IEntityRepository<StagedPackage>>();
+            SetupTransaction(repository, stagedPackage);
+            StagingPromotionMessage message = null;
+            var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
+            enqueuer.Setup(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()))
+                .Callback<StagingPromotionMessage>(value => message = value)
+                .Returns(Task.CompletedTask);
+            var target = CreateService(repository, enqueuer);
+
+            var result = await target.ResendPackageAsync(new User("owner"), stagedPackage);
+
+            Assert.Equal(PackageStagingPromotionResult.Accepted, result);
+            Assert.Equal(StagedPackageStatus.Promoting, stagedPackage.Status);
+            Assert.Equal(stagedPackage.ActivePromotionId, message.PromotionId);
+            Assert.Equal(StagingPromotionTargetType.StagedPackage, message.TargetType);
+            Assert.Equal(stagedPackage.Key, message.TargetKey);
+            Assert.True(stagedPackage.PromotionMessageSentDate > previousSentDate);
+            repository.Verify(x => x.CommitChangesAsync(), Times.Once);
+        }
+
+        [Theory]
+        [InlineData(StagedPackageStatus.Promoting, -59)]
+        [InlineData(StagedPackageStatus.PromotionFailed, -120)]
+        public async Task DoesNotResendPackageBeforeDelayOrAfterFailure(StagedPackageStatus status, int minutesAgo)
+        {
+            var stagedPackage = CreateStagedPackage(status);
+            stagedPackage.ActivePromotionId = Guid.NewGuid();
+            stagedPackage.PromotionMessageSentDate = DateTime.UtcNow.AddMinutes(minutesAgo);
+            var repository = new Mock<IEntityRepository<StagedPackage>>();
+            var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
+            var target = CreateService(repository, enqueuer);
+
+            var result = await target.ResendPackageAsync(new User("owner"), stagedPackage);
+
+            Assert.Equal(PackageStagingPromotionResult.NotReady, result);
+            repository.Verify(x => x.CommitChangesAsync(), Times.Never);
+            enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
+        }
+
+        [Fact]
         public async Task RejectsUnauthorizedPackage()
         {
             var stagedPackage = CreateStagedPackage(StagedPackageStatus.Ready);
@@ -188,6 +234,55 @@ namespace NuGetGallery
                 Assert.Equal(StagedPackageStatus.Promoting, stagedPackage.Status);
             });
             Assert.Equal(new[] { "Transaction", "Commit:Promoting", "Send" }, events);
+        }
+
+        [Fact]
+        public async Task ResendsStalledGroupWithSamePromotionId()
+        {
+            var group = CreateStagingGroup();
+            group.ActivePromotionId = Guid.NewGuid();
+            var previousSentDate = DateTime.UtcNow.AddMinutes(-61);
+            group.PromotionMessageSentDate = previousSentDate;
+            var stagedPackage = CreateStagedPackage(StagedPackageStatus.Promoting, group: group);
+            stagedPackage.ActivePromotionId = group.ActivePromotionId;
+            var repository = new Mock<IEntityRepository<StagedPackage>>();
+            SetupTransaction(repository, group, new[] { stagedPackage });
+            StagingPromotionMessage message = null;
+            var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
+            enqueuer.Setup(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()))
+                .Callback<StagingPromotionMessage>(value => message = value)
+                .Returns(Task.CompletedTask);
+            var target = CreateService(repository, enqueuer);
+
+            var result = await target.ResendGroupAsync(new User("owner") { Key = 1 }, group);
+
+            Assert.Equal(StagingGroupPromotionResult.Accepted, result);
+            Assert.Equal(group.ActivePromotionId, message.PromotionId);
+            Assert.Equal(StagingPromotionTargetType.StagingGroup, message.TargetType);
+            Assert.Equal(group.Key, message.TargetKey);
+            Assert.Equal(StagedPackageStatus.Promoting, stagedPackage.Status);
+            Assert.Equal(group.ActivePromotionId, stagedPackage.ActivePromotionId);
+            Assert.True(group.PromotionMessageSentDate > previousSentDate);
+            repository.Verify(x => x.CommitChangesAsync(), Times.Once);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task DoesNotResendGroupWithoutActiveTimedOutPromotion(bool isActive)
+        {
+            var group = CreateStagingGroup();
+            group.ActivePromotionId = isActive ? Guid.NewGuid() : null;
+            group.PromotionMessageSentDate = isActive ? DateTime.UtcNow.AddMinutes(-59) : DateTime.UtcNow.AddHours(-2);
+            var repository = new Mock<IEntityRepository<StagedPackage>>();
+            var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
+            var target = CreateService(repository, enqueuer);
+
+            var result = await target.ResendGroupAsync(new User("owner") { Key = 1 }, group);
+
+            Assert.Equal(StagingGroupPromotionResult.NotReady, result);
+            repository.Verify(x => x.CommitChangesAsync(), Times.Never);
+            enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
         }
 
         [Fact]
@@ -359,6 +454,7 @@ namespace NuGetGallery
                     events?.Add("Transaction");
                     var originalPromotionId = stagedPackage.ActivePromotionId;
                     var originalStatus = stagedPackage.Status;
+                    var originalSentDate = stagedPackage.PromotionMessageSentDate;
 
                     try
                     {
@@ -368,6 +464,7 @@ namespace NuGetGallery
                     {
                         stagedPackage.ActivePromotionId = originalPromotionId;
                         stagedPackage.Status = originalStatus;
+                        stagedPackage.PromotionMessageSentDate = originalSentDate;
                         throw;
                     }
                 });
@@ -385,6 +482,7 @@ namespace NuGetGallery
                 {
                     events?.Add("Transaction");
                     var originalGroupPromotionId = group.ActivePromotionId;
+                    var originalGroupSentDate = group.PromotionMessageSentDate;
                     var originalPackages = stagedPackages
                         .Select(stagedPackage => new
                         {
@@ -401,6 +499,7 @@ namespace NuGetGallery
                     catch
                     {
                         group.ActivePromotionId = originalGroupPromotionId;
+                        group.PromotionMessageSentDate = originalGroupSentDate;
                         foreach (var originalPackage in originalPackages)
                         {
                             originalPackage.Package.ActivePromotionId = originalPackage.ActivePromotionId;

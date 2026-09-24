@@ -247,6 +247,7 @@ namespace NuGetGallery
                 Id = "test-group",
                 Name = "Test group",
                 ActivePromotionId = System.Guid.NewGuid(),
+                PromotionMessageSentDate = System.DateTime.UtcNow.AddHours(-2),
             };
             var promotingPackage = CreateStagedPackage(42, "Promoting.Package", "1.0.0", currentUser, StagedPackageStatus.Promoting);
             promotingPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
@@ -271,6 +272,7 @@ namespace NuGetGallery
 
             var model = ResultAssert.IsView<StagingGroupDetailViewModel>(result, viewName: "Group");
             Assert.True(model.IsPromotionActive);
+            Assert.True(model.CanResend);
             Assert.False(model.CanPromote);
             Assert.Equal(1, model.PromotingCount);
             Assert.Equal(1, model.PromotionFailedCount);
@@ -530,6 +532,29 @@ namespace NuGetGallery
             Assert.Equal("Ungrouped", model.Name);
             Assert.Equal("Staged packages not in any group", model.Description);
             Assert.Equal("Ungrouped.Package", Assert.Single(model.Packages).Id);
+        }
+
+        [Fact]
+        public void OffersResendForAStalledUngroupedPromotion()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var stagedPackage = CreateStagedPackage(42, "Example.Package", "1.0.0", currentUser, StagedPackageStatus.Promoting);
+            stagedPackage.ActivePromotionId = System.Guid.NewGuid();
+            stagedPackage.PromotionMessageSentDate = System.DateTime.UtcNow.AddHours(-2);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagedPackages(currentUser))
+                .Returns(new[] { stagedPackage });
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagingGroups(currentUser))
+                .Returns(new List<StagingGroup>());
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(currentUser);
+
+            var result = target.Ungrouped(currentUser.Username);
+
+            var model = ResultAssert.IsView<StagingGroupDetailViewModel>(result, viewName: "Group");
+            Assert.True(Assert.Single(model.Packages).CanResend);
+            Assert.False(model.CanResend);
         }
 
         [Fact]

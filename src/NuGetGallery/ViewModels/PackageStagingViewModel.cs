@@ -29,6 +29,8 @@ namespace NuGetGallery
 
         public bool CanPromote { get; set; }
 
+        public bool CanResend { get; set; }
+
         public string MoveUrl { get; set; }
     }
 }

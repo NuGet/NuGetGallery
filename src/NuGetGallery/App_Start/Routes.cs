@@ -167,6 +167,12 @@ namespace NuGetGallery
                 new { httpMethod = new HttpMethodConstraint("POST") });
 
             routes.MapRoute(
+                RouteName.ResendStagingGroup,
+                "account/staging/{owner}/groups/{groupId}/resend",
+                new { controller = "Staging", action = nameof(StagingController.ResendGroup) },
+                new { httpMethod = new HttpMethodConstraint("POST") });
+
+            routes.MapRoute(
                 RouteName.RenameStagingGroup,
                 "account/staging/{owner}/groups/{groupId}",
                 new { controller = "Staging", action = nameof(StagingController.RenameGroup) },
@@ -212,6 +218,12 @@ namespace NuGetGallery
                 RouteName.PromoteManagedStagedPackage,
                 "account/staging/package/{id}/{version}/promote",
                 new { controller = "Staging", action = nameof(StagingController.PromotePackage) },
+                new { httpMethod = new HttpMethodConstraint("POST") });
+
+            routes.MapRoute(
+                RouteName.ResendManagedStagedPackage,
+                "account/staging/package/{id}/{version}/resend",
+                new { controller = "Staging", action = nameof(StagingController.ResendPackage) },
                 new { httpMethod = new HttpMethodConstraint("POST") });
 
             routes.MapRoute(

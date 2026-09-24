@@ -24,6 +24,8 @@ namespace NuGetGallery
 
         public bool CanPromote { get; set; }
 
+        public bool CanResend { get; set; }
+
         public int PackageCount { get; set; }
 
         public int ReadyCount { get; set; }

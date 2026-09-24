@@ -44,6 +44,11 @@ namespace NuGet.Services.Entities
         /// </summary>
         public Guid? ActivePromotionId { get; set; }
 
+        /// <summary>
+        /// Records the last time work was sent for an individual promotion.
+        /// </summary>
+        public DateTime? PromotionMessageSentDate { get; set; }
+
         public DateTime UploadedDate { get; set; }
 
         /// <summary>
