@@ -1,4 +1,4 @@
-﻿﻿@using Newtonsoft.Json
+﻿@using Newtonsoft.Json
 @model ApiKeyListViewModel
 @using NuGetGallery.Authentication
 @{
@@ -12,14 +12,13 @@
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             @ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, true, @<text>API keys</text>)
 
-            @ViewHelpers.Alert(
+            @ViewHelpers.AlertWarning(
                     @<text>
-                        <strong>Looking for a more secure and streamlined way to publish packages?</strong>
-                        If you're using GitHub Actions, we recommend switching to
-                        <a href="@Url.ManageMyTrustedPublishing()">Trusted Publishing</a> since it eliminates the need to manage API keys.
-                    </text>,
-           "info", icon: null)
-
+                        <strong>Action required:</strong> API Keys with duration longer than 30 days will expire on November 1, 2026.
+                         Starting August 17 2026, new keys are limited to maximum of 30 days. If you're using GitHub Actions or GitLab, we recommend switching to
+                        <a href="@Url.ManageMyTrustedPublishing()">Trusted Publishing</a>.
+                        <a href="https://learn.microsoft.com/en-us/nuget/nuget-org/trusted-publishing">Learn more</a>
+                    </text>)
             <p>
                 An API key is a token that can identify you to @(Config.Current.Brand). The
                 <a href="https://docs.nuget.org/Consume/Command-Line-Reference">NuGet command-line utility</a> allows
