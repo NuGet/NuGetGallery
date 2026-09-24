@@ -106,8 +106,9 @@ namespace NuGet.Services.Staging.Promotion
                     {
                         _logger.LogWarning("Staged package has invalid promotion state. Marking promotion as failed.");
 
-                        var failedGroupKey = stagedPackage.StagedPackageIdentity.StagingGroupKey;
                         await MarkPromotionFailedAsync(stagedPackage);
+
+                        var failedGroupKey = stagedPackage.StagedPackageIdentity.StagingGroupKey;
                         if (failedGroupKey.HasValue)
                         {
                             await _stagingGroupPromotionService.TryFinalizeAsync(failedGroupKey.Value, message.PromotionId);
