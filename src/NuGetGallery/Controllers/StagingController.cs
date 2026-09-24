@@ -353,22 +353,23 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var stagedPackages = _packageStagingManagementService
-                .GetStagedPackages(GetCurrentUser())
-                .Where(package => package.StagedPackageIdentity.StagingGroupKey == null)
-                .Where(package => string.Equals(package.StagedPackageIdentity.Owner.Username, owner, StringComparison.OrdinalIgnoreCase))
-                .ToList();
-            if (stagedPackages.Count == 0)
+            var currentUser = GetCurrentUser();
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledOwner(currentUser, owner);
+            if (stagingOwner == null)
             {
                 return HttpNotFound();
             }
 
-            var canonicalOwner = stagedPackages[0].StagedPackageIdentity.Owner.Username;
-            var stagingGroups = _packageStagingManagementService
-                .GetStagingGroups(GetCurrentUser())
-                .Where(group => string.Equals(group.Owner.Username, canonicalOwner, StringComparison.OrdinalIgnoreCase))
+            var stagedPackages = _packageStagingManagementService
+                .GetStagedPackages(currentUser)
+                .Where(package => package.StagedPackageIdentity.StagingGroupKey == null
+                    && package.StagedPackageIdentity.OwnerKey == stagingOwner.Key)
                 .ToList();
-            var model = CreateGroupViewModel(canonicalOwner, id: null, "Ungrouped", "Staged packages not in any group", stagedPackages, stagingGroups);
+            var stagingGroups = _packageStagingManagementService
+                .GetStagingGroups(currentUser)
+                .Where(group => group.OwnerKey == stagingOwner.Key)
+                .ToList();
+            var model = CreateGroupViewModel(stagingOwner.Username, id: null, "Ungrouped", "Staged packages not in any group", stagedPackages, stagingGroups);
 
             return View("Group", model);
         }

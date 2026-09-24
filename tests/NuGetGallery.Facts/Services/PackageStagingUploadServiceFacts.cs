@@ -191,11 +191,13 @@ namespace NuGetGallery
             [InlineData(StagedPackageStatus.Validating, HttpStatusCode.OK, true)]
             [InlineData(StagedPackageStatus.Ready, HttpStatusCode.OK, true)]
             [InlineData(StagedPackageStatus.FailedValidation, HttpStatusCode.OK, true)]
+            [InlineData(StagedPackageStatus.PromotionFailed, HttpStatusCode.OK, true)]
             [InlineData(StagedPackageStatus.Superseded, HttpStatusCode.Conflict, true)]
             [InlineData(StagedPackageStatus.Deleted, HttpStatusCode.OK, true)]
             [InlineData(StagedPackageStatus.Validating, HttpStatusCode.OK, false)]
             [InlineData(StagedPackageStatus.Ready, HttpStatusCode.OK, false)]
             [InlineData(StagedPackageStatus.FailedValidation, HttpStatusCode.OK, false)]
+            [InlineData(StagedPackageStatus.PromotionFailed, HttpStatusCode.OK, false)]
             [InlineData(StagedPackageStatus.Superseded, HttpStatusCode.Conflict, false)]
             [InlineData(StagedPackageStatus.Deleted, HttpStatusCode.OK, false)]
             public async Task UploadReturnsExpectedStatus(StagedPackageStatus status, HttpStatusCode expectedStatusCode, bool identical)

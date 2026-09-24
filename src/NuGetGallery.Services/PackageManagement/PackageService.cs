@@ -924,7 +924,8 @@ namespace NuGetGallery
                 package.PackageStatusKey == PackageStatus.Staged &&
                 (stagedPackage.Status == StagedPackageStatus.Validating ||
                  stagedPackage.Status == StagedPackageStatus.Ready ||
-                 stagedPackage.Status == StagedPackageStatus.FailedValidation);
+                 stagedPackage.Status == StagedPackageStatus.FailedValidation ||
+                 stagedPackage.Status == StagedPackageStatus.PromotionFailed);
             var isDeletedStagedPackage =
                 package.PackageStatusKey == PackageStatus.Deleted &&
                 stagedPackage.Status == StagedPackageStatus.Deleted;
