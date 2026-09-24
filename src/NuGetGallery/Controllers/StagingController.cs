@@ -207,7 +207,10 @@ namespace NuGetGallery
                     TempData["ErrorMessage"] = "Every package in the staging group must be ready before promotion can begin.";
                     break;
                 case StagingGroupPromotionResult.Conflict:
-                    TempData["ErrorMessage"] = "The staging group changed before promotion could begin. Try again.";
+                    TempData["ErrorMessage"] = "The group promotion changed while processing your request. Refresh and check its status.";
+                    break;
+                case StagingGroupPromotionResult.DispatchFailed:
+                    TempData["ErrorMessage"] = "Promotion started, but we couldn't confirm it's being processed. Refresh the page; if it's still in progress, you can retry now.";
                     break;
                 default:
                     throw new InvalidOperationException($"Unknown staging group promotion result '{result}'.");
@@ -248,6 +251,9 @@ namespace NuGetGallery
                     break;
                 case StagingGroupPromotionResult.Conflict:
                     TempData["ErrorMessage"] = "The group promotion changed. Refresh the page and try again.";
+                    break;
+                case StagingGroupPromotionResult.DispatchFailed:
+                    TempData["ErrorMessage"] = "We couldn't confirm your retry is being processed. Refresh the page; if the promotion is still in progress, you can retry now.";
                     break;
                 default:
                     throw new InvalidOperationException($"Unknown group promotion resend result '{result}'.");
@@ -683,7 +689,10 @@ namespace NuGetGallery
                     TempData["ErrorMessage"] = "Promote this package with its staging group.";
                     return Redirect(Url.ManageMyPackages());
                 case PackageStagingPromotionResult.Conflict:
-                    TempData["ErrorMessage"] = "The staged package changed before promotion could begin. Try again.";
+                    TempData["ErrorMessage"] = "The package promotion changed while processing your request. Refresh and check its status.";
+                    return Redirect(Url.ManageMyPackages());
+                case PackageStagingPromotionResult.DispatchFailed:
+                    TempData["ErrorMessage"] = "Promotion started, but we couldn't confirm it's being processed. Refresh the page; if it's still in progress, you can retry now.";
                     return Redirect(Url.ManageMyPackages());
                 default:
                     throw new InvalidOperationException($"Unknown package promotion result '{result}'.");
@@ -720,6 +729,9 @@ namespace NuGetGallery
                     break;
                 case PackageStagingPromotionResult.Conflict:
                     TempData["ErrorMessage"] = "The package promotion changed. Refresh the page and try again.";
+                    break;
+                case PackageStagingPromotionResult.DispatchFailed:
+                    TempData["ErrorMessage"] = "We couldn't confirm your retry is being processed. Refresh the page; if the promotion is still in progress, you can retry now.";
                     break;
                 default:
                     throw new InvalidOperationException($"Unknown package promotion resend result '{result}'.");

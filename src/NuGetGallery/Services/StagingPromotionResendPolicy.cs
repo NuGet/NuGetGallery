@@ -16,5 +16,11 @@ namespace NuGetGallery
         {
             return sentDate.HasValue && sentDate.Value <= DateTime.UtcNow - MinimumDelay;
         }
+
+        internal static DateTime GetRetryableSentDate()
+        {
+            // Leave room for SQL datetime rounding before checking eligibility.
+            return DateTime.UtcNow - MinimumDelay - TimeSpan.FromSeconds(1);
+        }
     }
 }

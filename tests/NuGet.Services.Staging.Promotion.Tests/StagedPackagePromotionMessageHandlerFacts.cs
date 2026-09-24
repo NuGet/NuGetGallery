@@ -116,7 +116,21 @@ namespace NuGet.Services.Staging.Promotion.Tests
         public async Task ConsumesMessageWhenPromotionIsNoLongerActive()
         {
             var context = new TestContext();
+            context.StagedPackage.Status = StagedPackageStatus.PromotionFailed;
+            context.StagedPackage.ActivePromotionId = null;
+
+            var handled = await context.Target.HandleAsync(context.Message);
+
+            Assert.True(handled);
+            context.VerifyNotPublished();
+        }
+
+        [Fact]
+        public async Task ConsumesMessageWhenPackageWasNeverPromoted()
+        {
+            var context = new TestContext();
             context.StagedPackage.Status = StagedPackageStatus.Ready;
+            context.StagedPackage.ActivePromotionId = null;
 
             var handled = await context.Target.HandleAsync(context.Message);
 

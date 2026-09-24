@@ -73,6 +73,11 @@ namespace NuGetGallery
         /// The staged package changed while promotion was being accepted.
         /// </summary>
         Conflict,
+
+        /// <summary>
+        /// The promotion is active, but its message could not be confirmed as sent; it can be retried now.
+        /// </summary>
+        DispatchFailed,
     }
 
     /// <summary>
@@ -104,5 +109,10 @@ namespace NuGetGallery
         /// The staging group or one of its packages changed while promotion was being accepted.
         /// </summary>
         Conflict,
+
+        /// <summary>
+        /// The promotion is active, but its message could not be confirmed as sent; it can be retried now.
+        /// </summary>
+        DispatchFailed,
     }
 }

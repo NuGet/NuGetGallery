@@ -70,8 +70,8 @@ namespace NuGet.Services.Staging.Promotion
 
                 if (!group.ActivePromotionId.HasValue)
                 {
-                    _logger.LogInformation("Staging group promotion is not visible yet. Retrying the root message.");
-                    return false;
+                    _logger.LogInformation("Ignoring inactive staging group promotion attempt.");
+                    return true;
                 }
 
                 if (group.ActivePromotionId != message.PromotionId)

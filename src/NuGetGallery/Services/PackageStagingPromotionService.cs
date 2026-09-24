@@ -6,6 +6,7 @@ using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Threading.Tasks;
+using Azure.Messaging.ServiceBus;
 using NuGet.Services.Entities;
 using NuGet.Services.Staging;
 
@@ -64,23 +65,23 @@ namespace NuGetGallery
                 return PackageStagingPromotionResult.NotReady;
             }
 
+            var promotionId = Guid.NewGuid();
             try
             {
-                await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
-                {
-                    var promotionId = Guid.NewGuid();
-                    stagedPackage.ActivePromotionId = promotionId;
-                    stagedPackage.PromotionMessageSentDate = DateTime.UtcNow;
-                    stagedPackage.Status = StagedPackageStatus.Promoting;
-                    await _stagedPackageRepository.CommitChangesAsync();
-
-                    await _messageEnqueuer.SendMessageAsync(StagingPromotionMessage.ForPackage(promotionId, stagedPackage.Key));
-                });
+                stagedPackage.ActivePromotionId = promotionId;
+                stagedPackage.PromotionMessageSentDate = DateTime.UtcNow;
+                stagedPackage.Status = StagedPackageStatus.Promoting;
+                await _stagedPackageRepository.CommitChangesAsync();
             }
             catch (DbUpdateConcurrencyException exception)
             {
                 exception.Log();
                 return PackageStagingPromotionResult.Conflict;
+            }
+
+            if (!await TrySendMessageAsync(StagingPromotionMessage.ForPackage(promotionId, stagedPackage.Key)))
+            {
+                return await MakePackageImmediatelyRetryableAsync(stagedPackage);
             }
 
             return PackageStagingPromotionResult.Accepted;
@@ -122,17 +123,18 @@ namespace NuGetGallery
             var promotionId = stagedPackage.ActivePromotionId.Value;
             try
             {
-                await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
-                {
-                    stagedPackage.PromotionMessageSentDate = DateTime.UtcNow;
-                    await _stagedPackageRepository.CommitChangesAsync();
-                    await _messageEnqueuer.SendMessageAsync(StagingPromotionMessage.ForPackage(promotionId, stagedPackage.Key));
-                });
+                stagedPackage.PromotionMessageSentDate = DateTime.UtcNow;
+                await _stagedPackageRepository.CommitChangesAsync();
             }
             catch (DbUpdateConcurrencyException exception)
             {
                 exception.Log();
                 return PackageStagingPromotionResult.Conflict;
+            }
+
+            if (!await TrySendMessageAsync(StagingPromotionMessage.ForPackage(promotionId, stagedPackage.Key)))
+            {
+                return await MakePackageImmediatelyRetryableAsync(stagedPackage);
             }
 
             return PackageStagingPromotionResult.Accepted;
@@ -180,30 +182,23 @@ namespace NuGetGallery
                 return StagingGroupPromotionResult.NotReady;
             }
 
-            var result = StagingGroupPromotionResult.Conflict;
+            if (group.ActivePromotionId.HasValue)
+            {
+                return StagingGroupPromotionResult.Conflict;
+            }
+
+            var promotionId = Guid.NewGuid();
             try
             {
-                await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
+                group.ActivePromotionId = promotionId;
+                group.PromotionMessageSentDate = DateTime.UtcNow;
+                foreach (var stagedPackage in stagedPackages)
                 {
-                    if (group.ActivePromotionId.HasValue)
-                    {
-                        return;
-                    }
+                    stagedPackage.ActivePromotionId = promotionId;
+                    stagedPackage.Status = StagedPackageStatus.Promoting;
+                }
 
-                    var promotionId = Guid.NewGuid();
-                    group.ActivePromotionId = promotionId;
-                    group.PromotionMessageSentDate = DateTime.UtcNow;
-                    foreach (var stagedPackage in stagedPackages)
-                    {
-                        stagedPackage.ActivePromotionId = promotionId;
-                        stagedPackage.Status = StagedPackageStatus.Promoting;
-                    }
-
-                    await _stagedPackageRepository.CommitChangesAsync();
-                    await _messageEnqueuer.SendMessageAsync(StagingPromotionMessage.ForGroup(promotionId, group.Key));
-
-                    result = StagingGroupPromotionResult.Accepted;
-                });
+                await _stagedPackageRepository.CommitChangesAsync();
             }
             catch (DbUpdateConcurrencyException exception)
             {
@@ -211,7 +206,12 @@ namespace NuGetGallery
                 return StagingGroupPromotionResult.Conflict;
             }
 
-            return result;
+            if (!await TrySendMessageAsync(StagingPromotionMessage.ForGroup(promotionId, group.Key)))
+            {
+                return await MakeGroupImmediatelyRetryableAsync(group);
+            }
+
+            return StagingGroupPromotionResult.Accepted;
         }
 
         /// <inheritdoc />
@@ -240,12 +240,8 @@ namespace NuGetGallery
             var promotionId = group.ActivePromotionId.Value;
             try
             {
-                await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
-                {
-                    group.PromotionMessageSentDate = DateTime.UtcNow;
-                    await _stagedPackageRepository.CommitChangesAsync();
-                    await _messageEnqueuer.SendMessageAsync(StagingPromotionMessage.ForGroup(promotionId, group.Key));
-                });
+                group.PromotionMessageSentDate = DateTime.UtcNow;
+                await _stagedPackageRepository.CommitChangesAsync();
             }
             catch (DbUpdateConcurrencyException exception)
             {
@@ -253,7 +249,67 @@ namespace NuGetGallery
                 return StagingGroupPromotionResult.Conflict;
             }
 
+            if (!await TrySendMessageAsync(StagingPromotionMessage.ForGroup(promotionId, group.Key)))
+            {
+                return await MakeGroupImmediatelyRetryableAsync(group);
+            }
+
             return StagingGroupPromotionResult.Accepted;
+        }
+
+        private async Task<bool> TrySendMessageAsync(StagingPromotionMessage message)
+        {
+            try
+            {
+                await _messageEnqueuer.SendMessageAsync(message);
+                return true;
+            }
+            catch (ServiceBusException exception)
+            {
+                exception.Log();
+            }
+            catch (TimeoutException exception)
+            {
+                exception.Log();
+            }
+            catch (OperationCanceledException exception)
+            {
+                exception.Log();
+            }
+
+            return false;
+        }
+
+        private async Task<PackageStagingPromotionResult> MakePackageImmediatelyRetryableAsync(StagedPackage stagedPackage)
+        {
+            try
+            {
+                stagedPackage.PromotionMessageSentDate = StagingPromotionResendPolicy.GetRetryableSentDate();
+                await _stagedPackageRepository.CommitChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException exception)
+            {
+                exception.Log();
+                return PackageStagingPromotionResult.Conflict;
+            }
+
+            return PackageStagingPromotionResult.DispatchFailed;
+        }
+
+        private async Task<StagingGroupPromotionResult> MakeGroupImmediatelyRetryableAsync(StagingGroup group)
+        {
+            try
+            {
+                group.PromotionMessageSentDate = StagingPromotionResendPolicy.GetRetryableSentDate();
+                await _stagedPackageRepository.CommitChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException exception)
+            {
+                exception.Log();
+                return StagingGroupPromotionResult.Conflict;
+            }
+
+            return StagingGroupPromotionResult.DispatchFailed;
         }
     }
 }

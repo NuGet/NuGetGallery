@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Threading.Tasks;
+using Azure.Messaging.ServiceBus;
 using Moq;
 using NuGet.Services.Entities;
 using NuGet.Services.Staging;
@@ -18,16 +19,16 @@ namespace NuGetGallery
         private const int StagedPackageKey = 456;
 
         [Fact]
-        public async Task AcceptsAuthorizedReadyPackageBeforeSendingMessage()
+        public async Task CommitsAuthorizedReadyPackageBeforeSendingMessage()
         {
             var events = new List<string>();
             var stagedPackage = CreateStagedPackage(StagedPackageStatus.Ready);
             var repository = new Mock<IEntityRepository<StagedPackage>>();
-            SetupTransaction(repository, stagedPackage, events);
+            var saveCompleted = new TaskCompletionSource<bool>();
             repository
                 .Setup(x => x.CommitChangesAsync())
                 .Callback(() => events.Add($"Commit:{stagedPackage.Status}"))
-                .Returns(Task.CompletedTask);
+                .Returns(saveCompleted.Task);
             StagingPromotionMessage message = null;
             var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
             enqueuer
@@ -40,29 +41,39 @@ namespace NuGetGallery
                 .Returns(Task.CompletedTask);
             var target = CreateService(repository, enqueuer);
 
-            var result = await target.PromotePackageAsync(new User("owner"), stagedPackage);
+            var promotion = target.PromotePackageAsync(new User("owner"), stagedPackage);
+            enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
+            saveCompleted.SetResult(true);
+            var result = await promotion;
 
             Assert.Equal(PackageStagingPromotionResult.Accepted, result);
             Assert.Equal(StagedPackageStatus.Promoting, stagedPackage.Status);
             Assert.Equal(stagedPackage.ActivePromotionId, message.PromotionId);
             Assert.Equal(StagingPromotionTargetType.StagedPackage, message.TargetType);
             Assert.Equal(StagedPackageKey, message.TargetKey);
-            Assert.Equal(new[] { "Transaction", "Commit:Promoting", "Send" }, events);
+            Assert.Equal(new[] { "Commit:Promoting", "Send" }, events);
         }
 
         [Fact]
         public async Task ResendsStalledPackageWithSamePromotionId()
         {
+            var events = new List<string>();
             var stagedPackage = CreateStagedPackage(StagedPackageStatus.Promoting);
             stagedPackage.ActivePromotionId = Guid.NewGuid();
             var previousSentDate = DateTime.UtcNow.AddMinutes(-61);
             stagedPackage.PromotionMessageSentDate = previousSentDate;
             var repository = new Mock<IEntityRepository<StagedPackage>>();
-            SetupTransaction(repository, stagedPackage);
+            repository.Setup(x => x.CommitChangesAsync())
+                .Callback(() => events.Add("Commit"))
+                .Returns(Task.CompletedTask);
             StagingPromotionMessage message = null;
             var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
             enqueuer.Setup(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()))
-                .Callback<StagingPromotionMessage>(value => message = value)
+                .Callback<StagingPromotionMessage>(value =>
+                {
+                    events.Add("Send");
+                    message = value;
+                })
                 .Returns(Task.CompletedTask);
             var target = CreateService(repository, enqueuer);
 
@@ -74,7 +85,31 @@ namespace NuGetGallery
             Assert.Equal(StagingPromotionTargetType.StagedPackage, message.TargetType);
             Assert.Equal(stagedPackage.Key, message.TargetKey);
             Assert.True(stagedPackage.PromotionMessageSentDate > previousSentDate);
+            Assert.Equal(new[] { "Commit", "Send" }, events);
             repository.Verify(x => x.CommitChangesAsync(), Times.Once);
+        }
+
+        [Fact]
+        public async Task MakesPackageImmediatelyRetryableWhenResendFails()
+        {
+            var stagedPackage = CreateStagedPackage(StagedPackageStatus.Promoting);
+            stagedPackage.ActivePromotionId = Guid.NewGuid();
+            stagedPackage.PromotionMessageSentDate = DateTime.UtcNow.AddMinutes(-61);
+            var promotionId = stagedPackage.ActivePromotionId;
+            var repository = new Mock<IEntityRepository<StagedPackage>>();
+            repository.Setup(x => x.CommitChangesAsync()).Returns(Task.CompletedTask);
+            var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
+            enqueuer.Setup(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()))
+                .ThrowsAsync(new ServiceBusException("Send failed.", ServiceBusFailureReason.ServiceTimeout));
+            var target = CreateService(repository, enqueuer);
+
+            var result = await target.ResendPackageAsync(new User("owner"), stagedPackage);
+
+            Assert.Equal(PackageStagingPromotionResult.DispatchFailed, result);
+            Assert.Equal(promotionId, stagedPackage.ActivePromotionId);
+            Assert.Equal(StagedPackageStatus.Promoting, stagedPackage.Status);
+            Assert.True(StagingPromotionResendPolicy.IsDue(stagedPackage.PromotionMessageSentDate));
+            repository.Verify(x => x.CommitChangesAsync(), Times.Exactly(2));
         }
 
         [Theory]
@@ -149,7 +184,6 @@ namespace NuGetGallery
         {
             var stagedPackage = CreateStagedPackage(StagedPackageStatus.Ready);
             var repository = new Mock<IEntityRepository<StagedPackage>>();
-            SetupTransaction(repository, stagedPackage);
             repository
                 .Setup(x => x.CommitChangesAsync())
                 .ThrowsAsync(new DbUpdateConcurrencyException());
@@ -159,42 +193,64 @@ namespace NuGetGallery
             var result = await target.PromotePackageAsync(new User("owner"), stagedPackage);
 
             Assert.Equal(PackageStagingPromotionResult.Conflict, result);
-            Assert.Equal(StagedPackageStatus.Ready, stagedPackage.Status);
-            Assert.Null(stagedPackage.ActivePromotionId);
             enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
         }
 
         [Fact]
-        public async Task RollsBackAcceptanceWhenSendingFails()
+        public async Task MakesCommittedPackageImmediatelyRetryableWhenSendingFails()
         {
-            var committedStatuses = new List<StagedPackageStatus>();
             var stagedPackage = CreateStagedPackage(StagedPackageStatus.Ready);
             var repository = new Mock<IEntityRepository<StagedPackage>>();
-            SetupTransaction(repository, stagedPackage);
-            repository
-                .Setup(x => x.CommitChangesAsync())
-                .Callback(() => committedStatuses.Add(stagedPackage.Status))
-                .Returns(Task.CompletedTask);
-            var expectedException = new InvalidOperationException("Send failed.");
+            repository.Setup(x => x.CommitChangesAsync()).Returns(Task.CompletedTask);
             var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
             enqueuer
                 .Setup(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()))
-                .ThrowsAsync(expectedException);
+                .ThrowsAsync(new TimeoutException("Send timed out."));
             var target = CreateService(repository, enqueuer);
 
-            var actualException = await Assert.ThrowsAsync<InvalidOperationException>(
-                () => target.PromotePackageAsync(new User("owner"), stagedPackage));
+            var result = await target.PromotePackageAsync(new User("owner"), stagedPackage);
 
-            Assert.Same(expectedException, actualException);
-            Assert.Equal(StagedPackageStatus.Ready, stagedPackage.Status);
-            Assert.Null(stagedPackage.ActivePromotionId);
-            Assert.Equal(
-                new[] { StagedPackageStatus.Promoting },
-                committedStatuses);
+            Assert.Equal(PackageStagingPromotionResult.DispatchFailed, result);
+            Assert.Equal(StagedPackageStatus.Promoting, stagedPackage.Status);
+            Assert.NotNull(stagedPackage.ActivePromotionId);
+            Assert.True(StagingPromotionResendPolicy.IsDue(stagedPackage.PromotionMessageSentDate));
+            repository.Verify(x => x.CommitChangesAsync(), Times.Exactly(2));
+
+            enqueuer.Setup(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>())).Returns(Task.CompletedTask);
+            Assert.Equal(PackageStagingPromotionResult.Accepted, await target.ResendPackageAsync(new User("owner"), stagedPackage));
+            Assert.Equal(StagedPackageStatus.Promoting, stagedPackage.Status);
+            Assert.False(StagingPromotionResendPolicy.IsDue(stagedPackage.PromotionMessageSentDate));
         }
 
         [Fact]
-        public async Task AcceptsAuthorizedReadyGroupBeforeSendingMessage()
+        public async Task ReportsConflictWhenSendFailureRecoveryLosesARace()
+        {
+            var stagedPackage = CreateStagedPackage(StagedPackageStatus.Ready);
+            var repository = new Mock<IEntityRepository<StagedPackage>>();
+            var commits = 0;
+            repository.Setup(x => x.CommitChangesAsync()).Returns(() =>
+            {
+                if (++commits == 2)
+                {
+                    throw new DbUpdateConcurrencyException();
+                }
+
+                return Task.CompletedTask;
+            });
+            var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
+            enqueuer.Setup(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()))
+                .ThrowsAsync(new TimeoutException("Send timed out."));
+            var target = CreateService(repository, enqueuer);
+
+            var result = await target.PromotePackageAsync(new User("owner"), stagedPackage);
+
+            Assert.Equal(PackageStagingPromotionResult.Conflict, result);
+            Assert.Equal(StagedPackageStatus.Promoting, stagedPackage.Status);
+            Assert.NotNull(stagedPackage.ActivePromotionId);
+        }
+
+        [Fact]
+        public async Task CommitsAuthorizedReadyGroupBeforeSendingMessage()
         {
             var events = new List<string>();
             var group = CreateStagingGroup();
@@ -205,7 +261,6 @@ namespace NuGetGallery
             };
             var repository = new Mock<IEntityRepository<StagedPackage>>();
             repository.Setup(x => x.GetAll()).Returns(stagedPackages.AsQueryable());
-            SetupTransaction(repository, group, stagedPackages, events);
             repository
                 .Setup(x => x.CommitChangesAsync())
                 .Callback(() => events.Add("Commit:Promoting"))
@@ -228,29 +283,38 @@ namespace NuGetGallery
             Assert.Equal(group.ActivePromotionId, message.PromotionId);
             Assert.Equal(StagingPromotionTargetType.StagingGroup, message.TargetType);
             Assert.Equal(group.Key, message.TargetKey);
+            Assert.Equal(0, group.MutationRevision);
             Assert.All(stagedPackages, stagedPackage =>
             {
                 Assert.Equal(group.ActivePromotionId, stagedPackage.ActivePromotionId);
                 Assert.Equal(StagedPackageStatus.Promoting, stagedPackage.Status);
             });
-            Assert.Equal(new[] { "Transaction", "Commit:Promoting", "Send" }, events);
+            Assert.Equal(new[] { "Commit:Promoting", "Send" }, events);
         }
 
         [Fact]
         public async Task ResendsStalledGroupWithSamePromotionId()
         {
+            var events = new List<string>();
             var group = CreateStagingGroup();
             group.ActivePromotionId = Guid.NewGuid();
+            group.MutationRevision = 3;
             var previousSentDate = DateTime.UtcNow.AddMinutes(-61);
             group.PromotionMessageSentDate = previousSentDate;
             var stagedPackage = CreateStagedPackage(StagedPackageStatus.Promoting, group: group);
             stagedPackage.ActivePromotionId = group.ActivePromotionId;
             var repository = new Mock<IEntityRepository<StagedPackage>>();
-            SetupTransaction(repository, group, new[] { stagedPackage });
+            repository.Setup(x => x.CommitChangesAsync())
+                .Callback(() => events.Add("Commit"))
+                .Returns(Task.CompletedTask);
             StagingPromotionMessage message = null;
             var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
             enqueuer.Setup(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()))
-                .Callback<StagingPromotionMessage>(value => message = value)
+                .Callback<StagingPromotionMessage>(value =>
+                {
+                    events.Add("Send");
+                    message = value;
+                })
                 .Returns(Task.CompletedTask);
             var target = CreateService(repository, enqueuer);
 
@@ -260,10 +324,34 @@ namespace NuGetGallery
             Assert.Equal(group.ActivePromotionId, message.PromotionId);
             Assert.Equal(StagingPromotionTargetType.StagingGroup, message.TargetType);
             Assert.Equal(group.Key, message.TargetKey);
+            Assert.Equal(3, group.MutationRevision);
             Assert.Equal(StagedPackageStatus.Promoting, stagedPackage.Status);
             Assert.Equal(group.ActivePromotionId, stagedPackage.ActivePromotionId);
             Assert.True(group.PromotionMessageSentDate > previousSentDate);
+            Assert.Equal(new[] { "Commit", "Send" }, events);
             repository.Verify(x => x.CommitChangesAsync(), Times.Once);
+        }
+
+        [Fact]
+        public async Task MakesGroupImmediatelyRetryableWhenResendFails()
+        {
+            var group = CreateStagingGroup();
+            group.ActivePromotionId = Guid.NewGuid();
+            group.PromotionMessageSentDate = DateTime.UtcNow.AddMinutes(-61);
+            var promotionId = group.ActivePromotionId;
+            var repository = new Mock<IEntityRepository<StagedPackage>>();
+            repository.Setup(x => x.CommitChangesAsync()).Returns(Task.CompletedTask);
+            var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
+            enqueuer.Setup(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()))
+                .ThrowsAsync(new TimeoutException("Send timed out."));
+            var target = CreateService(repository, enqueuer);
+
+            var result = await target.ResendGroupAsync(new User("owner") { Key = 1 }, group);
+
+            Assert.Equal(StagingGroupPromotionResult.DispatchFailed, result);
+            Assert.Equal(promotionId, group.ActivePromotionId);
+            Assert.True(StagingPromotionResendPolicy.IsDue(group.PromotionMessageSentDate));
+            repository.Verify(x => x.CommitChangesAsync(), Times.Exactly(2));
         }
 
         [Theory]
@@ -296,7 +384,6 @@ namespace NuGetGallery
             };
             var repository = new Mock<IEntityRepository<StagedPackage>>();
             repository.Setup(x => x.GetAll()).Returns(stagedPackages.AsQueryable());
-            SetupTransaction(repository, group, stagedPackages);
             var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
             var target = CreateService(repository, enqueuer, authorizedPackageKey: 456);
 
@@ -323,7 +410,6 @@ namespace NuGetGallery
             };
             var repository = new Mock<IEntityRepository<StagedPackage>>();
             repository.Setup(x => x.GetAll()).Returns(stagedPackages.AsQueryable());
-            SetupTransaction(repository, group, stagedPackages);
             var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
             var target = CreateService(repository, enqueuer);
 
@@ -342,7 +428,6 @@ namespace NuGetGallery
             var stagedPackages = new[] { CreateStagedPackage(StagedPackageStatus.Ready, key: 456, group) };
             var repository = new Mock<IEntityRepository<StagedPackage>>();
             repository.Setup(x => x.GetAll()).Returns(stagedPackages.AsQueryable());
-            SetupTransaction(repository, group, stagedPackages);
             repository
                 .Setup(x => x.CommitChangesAsync())
                 .ThrowsAsync(new DbUpdateConcurrencyException());
@@ -352,35 +437,36 @@ namespace NuGetGallery
             var result = await target.PromoteGroupAsync(new User("owner") { Key = 1 }, group);
 
             Assert.Equal(StagingGroupPromotionResult.Conflict, result);
-            Assert.Null(group.ActivePromotionId);
-            Assert.Null(stagedPackages[0].ActivePromotionId);
-            Assert.Equal(StagedPackageStatus.Ready, stagedPackages[0].Status);
             enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
         }
 
         [Fact]
-        public async Task RollsBackGroupAcceptanceWhenSendingFails()
+        public async Task MakesCommittedGroupImmediatelyRetryableWhenSendingFails()
         {
             var group = CreateStagingGroup();
             var stagedPackages = new[] { CreateStagedPackage(StagedPackageStatus.Ready, key: 456, group) };
             var repository = new Mock<IEntityRepository<StagedPackage>>();
             repository.Setup(x => x.GetAll()).Returns(stagedPackages.AsQueryable());
-            SetupTransaction(repository, group, stagedPackages);
             repository.Setup(x => x.CommitChangesAsync()).Returns(Task.CompletedTask);
-            var expectedException = new InvalidOperationException("Send failed.");
             var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
             enqueuer
                 .Setup(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()))
-                .ThrowsAsync(expectedException);
+                .ThrowsAsync(new TimeoutException("Send timed out."));
             var target = CreateService(repository, enqueuer);
 
-            var actualException = await Assert.ThrowsAsync<InvalidOperationException>(
-                () => target.PromoteGroupAsync(new User("owner") { Key = 1 }, group));
+            var result = await target.PromoteGroupAsync(new User("owner") { Key = 1 }, group);
 
-            Assert.Same(expectedException, actualException);
-            Assert.Null(group.ActivePromotionId);
-            Assert.Null(stagedPackages[0].ActivePromotionId);
-            Assert.Equal(StagedPackageStatus.Ready, stagedPackages[0].Status);
+            Assert.Equal(StagingGroupPromotionResult.DispatchFailed, result);
+            Assert.NotNull(group.ActivePromotionId);
+            Assert.Equal(group.ActivePromotionId, stagedPackages[0].ActivePromotionId);
+            Assert.Equal(StagedPackageStatus.Promoting, stagedPackages[0].Status);
+            Assert.True(StagingPromotionResendPolicy.IsDue(group.PromotionMessageSentDate));
+            repository.Verify(x => x.CommitChangesAsync(), Times.Exactly(2));
+
+            enqueuer.Setup(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>())).Returns(Task.CompletedTask);
+            Assert.Equal(StagingGroupPromotionResult.Accepted, await target.ResendGroupAsync(new User("owner") { Key = 1 }, group));
+            Assert.Equal(group.ActivePromotionId, stagedPackages[0].ActivePromotionId);
+            Assert.False(StagingPromotionResendPolicy.IsDue(group.PromotionMessageSentDate));
         }
 
         private static PackageStagingPromotionService CreateService(
@@ -442,73 +528,5 @@ namespace NuGetGallery
             };
         }
 
-        private static void SetupTransaction(
-            Mock<IEntityRepository<StagedPackage>> repository,
-            StagedPackage stagedPackage,
-            List<string> events = null)
-        {
-            repository
-                .Setup(x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()))
-                .Returns<Func<Task>>(async action =>
-                {
-                    events?.Add("Transaction");
-                    var originalPromotionId = stagedPackage.ActivePromotionId;
-                    var originalStatus = stagedPackage.Status;
-                    var originalSentDate = stagedPackage.PromotionMessageSentDate;
-
-                    try
-                    {
-                        await action();
-                    }
-                    catch
-                    {
-                        stagedPackage.ActivePromotionId = originalPromotionId;
-                        stagedPackage.Status = originalStatus;
-                        stagedPackage.PromotionMessageSentDate = originalSentDate;
-                        throw;
-                    }
-                });
-        }
-
-        private static void SetupTransaction(
-            Mock<IEntityRepository<StagedPackage>> repository,
-            StagingGroup group,
-            IReadOnlyList<StagedPackage> stagedPackages,
-            List<string> events = null)
-        {
-            repository
-                .Setup(x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()))
-                .Returns<Func<Task>>(async action =>
-                {
-                    events?.Add("Transaction");
-                    var originalGroupPromotionId = group.ActivePromotionId;
-                    var originalGroupSentDate = group.PromotionMessageSentDate;
-                    var originalPackages = stagedPackages
-                        .Select(stagedPackage => new
-                        {
-                            Package = stagedPackage,
-                            stagedPackage.ActivePromotionId,
-                            stagedPackage.Status,
-                        })
-                        .ToList();
-
-                    try
-                    {
-                        await action();
-                    }
-                    catch
-                    {
-                        group.ActivePromotionId = originalGroupPromotionId;
-                        group.PromotionMessageSentDate = originalGroupSentDate;
-                        foreach (var originalPackage in originalPackages)
-                        {
-                            originalPackage.Package.ActivePromotionId = originalPackage.ActivePromotionId;
-                            originalPackage.Package.Status = originalPackage.Status;
-                        }
-
-                        throw;
-                    }
-                });
-        }
     }
 }

@@ -41,15 +41,16 @@ namespace NuGet.Services.Staging.Promotion.Tests
         }
 
         [Fact]
-        public async Task RetriesMessageBeforePromotionIsVisible()
+        public async Task ConsumesRootMessageAfterPromotionCompletes()
         {
             var context = new TestContext();
             context.Group.ActivePromotionId = null;
 
             var handled = await context.Target.HandleAsync(context.Message);
 
-            Assert.False(handled);
+            Assert.True(handled);
             Assert.Empty(context.SentMessages);
+            context.GroupPromotionService.Verify(x => x.TryFinalizeAsync(It.IsAny<int>(), It.IsAny<Guid>()), Times.Never);
         }
 
         [Fact]
