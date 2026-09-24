@@ -15,19 +15,10 @@
             @ViewHelpers.AlertWarning(
                     @<text>
                         <strong>Action required:</strong> API Keys with duration longer than 30 days will expire on November 1, 2026.
-                         Starting August 17 2026, new keys are limited to maximum of 30 days. We recommend switching to
+                         Starting August 17 2026, new keys are limited to maximum of 30 days. If you're using GitHub Actions or GitLab, we recommend switching to
                         <a href="@Url.ManageMyTrustedPublishing()">Trusted Publishing</a>.
                         <a href="https://learn.microsoft.com/en-us/nuget/nuget-org/trusted-publishing">Learn more</a>
                     </text>)
-
-            @ViewHelpers.Alert(
-                    @<text>
-                        <strong>Looking for a more secure and streamlined way to publish packages?</strong>
-                        If you're using GitHub Actions or GitLab, we recommend switching to
-                        <a href="@Url.ManageMyTrustedPublishing()">Trusted Publishing</a> since it eliminates the need to manage API keys.
-                    </text>,
-           "info", icon: null)
-
             <p>
                 An API key is a token that can identify you to @(Config.Current.Brand). The
                 <a href="https://docs.nuget.org/Consume/Command-Line-Reference">NuGet command-line utility</a> allows
