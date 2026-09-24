@@ -431,6 +431,10 @@
     <Compile Include="Migrations\202609222212426_AddStagingMutationRevisions.Designer.cs">
       <DependentUpon>202609222212426_AddStagingMutationRevisions.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202609232306044_AddStagingPromotionMessageSentDates.cs" />
+    <Compile Include="Migrations\202609232306044_AddStagingPromotionMessageSentDates.Designer.cs">
+      <DependentUpon>202609232306044_AddStagingPromotionMessageSentDates.cs</DependentUpon>
+    </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
     <Compile Include="RequestModels\UpdateListedRequest.cs" />
@@ -649,6 +653,7 @@
     <Compile Include="Services\PackageStagingAuthorizationService.cs" />
     <Compile Include="Services\PackageStagingManagementService.cs" />
     <Compile Include="Services\PackageStagingPromotionService.cs" />
+    <Compile Include="Services\StagingPromotionResendPolicy.cs" />
     <Compile Include="Services\PackageStagingStatus.cs" />
     <Compile Include="Services\PackageStagingUploadService.cs" />
     <Compile Include="Services\StagingGroupSummary.cs" />
@@ -1876,6 +1881,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202609222212426_AddStagingMutationRevisions.resx">
       <DependentUpon>202609222212426_AddStagingMutationRevisions.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609232306044_AddStagingPromotionMessageSentDates.resx">
+      <DependentUpon>202609232306044_AddStagingPromotionMessageSentDates.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

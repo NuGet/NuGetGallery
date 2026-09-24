@@ -56,27 +56,44 @@
                             <span class="text-muted">@Model.Id</span>
                         </div>
                     }
-                    <div class="staging-group-actions">
-                        <form method="post"
-                              class="staging-group-promote"
-                              action="@Url.PromoteStagingGroup(Model.Owner, Model.Id)"
-                              data-bind="submit: PromoteGroup">
-                            @Html.AntiForgeryToken()
-                            <button type="submit"
-                                    class="btn btn-brand"
-                                    data-bind="disable: !CanPromote || IsPromotingGroup()"
-                                    disabled="disabled">
-                                Promote group
-                            </button>
-                        </form>
-                        @if (!Model.IsPromotionActive)
-                        {
-                            <a class="btn btn-brand-danger staging-group-delete" href="@Url.DeleteStagingGroup(Model.Owner, Model.Id)">
-                                <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
-                                <span>Delete group</span>
-                            </a>
-                        }
-                    </div>
+                    @if (!Model.IsPromotionActive || Model.CanResend)
+                    {
+                        <div class="staging-group-actions">
+                            @if (Model.CanPromote)
+                            {
+                                <form method="post"
+                                      class="staging-group-promote"
+                                      action="@Url.PromoteStagingGroup(Model.Owner, Model.Id)"
+                                      data-bind="submit: PromoteGroup">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit"
+                                            class="btn btn-brand"
+                                            data-bind="disable: !CanPromote || IsPromotingGroup()"
+                                            disabled="disabled">
+                                        Promote group
+                                    </button>
+                                </form>
+                            }
+                            @if (Model.CanResend)
+                            {
+                                <form method="post"
+                                      action="@Url.ResendStagingGroup(Model.Owner, Model.Id)"
+                                      data-bind="submit: ResendGroup">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-brand" data-bind="disable: IsResendingGroup">
+                                        Retry promotion
+                                    </button>
+                                </form>
+                            }
+                            @if (!Model.IsPromotionActive)
+                            {
+                                <a class="btn btn-brand-danger staging-group-delete" href="@Url.DeleteStagingGroup(Model.Owner, Model.Id)">
+                                    <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
+                                    <span>Delete group</span>
+                                </a>
+                            }
+                        </div>
+                    }
                 </div>
             }
 
@@ -100,14 +117,37 @@
             </div>
             @if (Model.IsPromotionActive)
             {
-                <p class="text-muted">Promotion is in progress. You can't change this group or its packages until it's done.</p>
+                @ViewHelpers.AlertInfo("Promotion is in progress. You can't change this group or its packages until it's done.")
+                if (Model.CanResend)
+                {
+                    @ViewHelpers.AlertWarning(@<text>Promotion is taking longer than expected. You can retry it. Packages that have already failed won't be retried.</text>)
+                }
+            }
+            else if (Model.PromotionFailedCount > 0)
+            {
+                <p class="text-muted">Some packages failed promotion. Replace or remove them before promoting this group again.</p>
+            }
+            @if (Model.IsUngrouped && Model.Packages.Any(package => package.CanResend))
+            {
+                <p class="text-muted">A promotion is taking longer than expected. Retry requests another attempt at unfinished work; failed packages remain failed.</p>
             }
 
             <hr class="breadcrumb-divider" />
 
             @if (Model.PackageCount == 0)
             {
-                <p>@(Model.IsPromotionActive ? "No staged packages remain. Promotion is finishing." : "This staging group has no packages.")</p>
+                if (Model.IsUngrouped)
+                {
+                    <p>There are no ungrouped staged packages.</p>
+                }
+                else if (Model.IsPromotionActive)
+                {
+                    <p>No staged packages remain. Promotion is finishing.</p>
+                }
+                else
+                {
+                    <p>This staging group has no packages.</p>
+                }
             }
             else
             {
@@ -217,6 +257,15 @@
                                                 <li>
                                                     <a data-bind="attr: { href: DownloadUrl }">Download</a>
                                                 </li>
+                                                <!-- ko if: CanResend -->
+                                                <li role="separator" class="divider" data-bind="visible: !IsResending()"></li>
+                                                <li data-bind="visible: !IsResending()">
+                                                    <a href="#" data-bind="click: Resend">Retry promotion&hellip;</a>
+                                                    <form method="post" class="hidden staging-resend-form" data-bind="attr: { action: ResendUrl }">
+                                                        @Html.AntiForgeryToken()
+                                                    </form>
+                                                </li>
+                                                <!-- /ko -->
                                                 <!-- ko if: CanManage -->
                                                 <!-- ko if: MoveUrl -->
                                                 <li data-bind="visible: !IsBusy()">
@@ -337,6 +386,7 @@
             ValidationIssuesId = GetStagedValidationIssuesId(index),
             package.CanManage,
             package.CanPromote,
+            package.CanResend,
             package.Listed,
             package.MoveUrl,
             ListedInputId = "staged-listed-" + index,
@@ -344,6 +394,7 @@
             ReplaceUrl = Url.ReplaceStagedPackage(package.Id, package.Version),
             UpdateListedUrl = Url.UpdateStagedPackageListed(package.Id, package.Version),
             PromoteUrl = Url.PromoteStagedPackage(package.Id, package.Version),
+            ResendUrl = Url.ResendStagedPackage(package.Id, package.Version),
             DeleteUrl = Url.DeleteStagedPackage(package.Id, package.Version),
         };
     }
@@ -355,6 +406,7 @@
                                   {
                                       Name = Model.Name,
                                       CanPromote = Model.CanPromote,
+                                      CanResend = Model.CanResend,
                                       Packages = Model.Packages.Select((package, index) => GetSerializableStagedPackage(package, index)),
                                   });
 

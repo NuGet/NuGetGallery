@@ -1233,6 +1233,34 @@ namespace NuGetGallery
                 });
         }
 
+        public static string ResendStagingGroup(this UrlHelper url, string owner, string groupId, bool relativeUrl = true)
+        {
+            if (url == null)
+            {
+                throw new ArgumentNullException(nameof(url));
+            }
+
+            if (string.IsNullOrWhiteSpace(owner))
+            {
+                throw new ArgumentNullException(nameof(owner));
+            }
+
+            if (string.IsNullOrWhiteSpace(groupId))
+            {
+                throw new ArgumentNullException(nameof(groupId));
+            }
+
+            return GetRouteLink(
+                url,
+                RouteName.ResendStagingGroup,
+                relativeUrl,
+                new RouteValueDictionary
+                {
+                    { "owner", owner },
+                    { "groupId", groupId },
+                });
+        }
+
         public static string MoveStagedPackage(this UrlHelper url, string owner, string id, string version, bool relativeUrl = true)
         {
             return GetRouteLink(
@@ -1316,6 +1344,34 @@ namespace NuGetGallery
             return GetRouteLink(
                 url,
                 RouteName.PromoteManagedStagedPackage,
+                relativeUrl,
+                new RouteValueDictionary
+                {
+                    { "id", id },
+                    { "version", version },
+                });
+        }
+
+        public static string ResendStagedPackage(this UrlHelper url, string id, string version, bool relativeUrl = true)
+        {
+            if (url == null)
+            {
+                throw new ArgumentNullException(nameof(url));
+            }
+
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+
+            if (string.IsNullOrWhiteSpace(version))
+            {
+                throw new ArgumentNullException(nameof(version));
+            }
+
+            return GetRouteLink(
+                url,
+                RouteName.ResendManagedStagedPackage,
                 relativeUrl,
                 new RouteValueDictionary
                 {

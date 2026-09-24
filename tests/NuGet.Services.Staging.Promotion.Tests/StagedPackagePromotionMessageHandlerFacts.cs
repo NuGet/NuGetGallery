@@ -116,7 +116,21 @@ namespace NuGet.Services.Staging.Promotion.Tests
         public async Task ConsumesMessageWhenPromotionIsNoLongerActive()
         {
             var context = new TestContext();
+            context.StagedPackage.Status = StagedPackageStatus.PromotionFailed;
+            context.StagedPackage.ActivePromotionId = null;
+
+            var handled = await context.Target.HandleAsync(context.Message);
+
+            Assert.True(handled);
+            context.VerifyNotPublished();
+        }
+
+        [Fact]
+        public async Task ConsumesMessageWhenPackageWasNeverPromoted()
+        {
+            var context = new TestContext();
             context.StagedPackage.Status = StagedPackageStatus.Ready;
+            context.StagedPackage.ActivePromotionId = null;
 
             var handled = await context.Target.HandleAsync(context.Message);
 
@@ -191,6 +205,47 @@ namespace NuGet.Services.Staging.Promotion.Tests
             Assert.Equal(StagedPackageStatus.PromotionFailed, context.StagedPackage.Status);
             context.VerifyNotPublished();
             context.StagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
+        }
+
+        [Fact]
+        public async Task FinalizesGroupAfterPackageFailureCommits()
+        {
+            var context = new TestContext();
+            context.AddToGroup();
+            context.StagedPackage.ValidatedBlobPath = null;
+            var packageFailureCommitted = false;
+            context.StagedPackageRepository
+                .Setup(x => x.CommitChangesAsync())
+                .Callback(() => packageFailureCommitted = true)
+                .Returns(Task.CompletedTask);
+            context.StagingGroupPromotionService
+                .Setup(x => x.TryFinalizeAsync(context.StagingGroup.Key, context.PromotionId))
+                .Callback(() => Assert.True(packageFailureCommitted))
+                .Returns(Task.CompletedTask);
+
+            var handled = await context.Target.HandleAsync(context.Message);
+
+            Assert.True(handled);
+            Assert.Equal(StagedPackageStatus.PromotionFailed, context.StagedPackage.Status);
+            context.StagingGroupPromotionService.Verify(
+                x => x.TryFinalizeAsync(context.StagingGroup.Key, context.PromotionId),
+                Times.Once);
+        }
+
+        [Fact]
+        public async Task FinalizesGroupOnRedeliveryAfterPackageFailure()
+        {
+            var context = new TestContext();
+            context.AddToGroup();
+            context.StagedPackage.Status = StagedPackageStatus.PromotionFailed;
+
+            var handled = await context.Target.HandleAsync(context.Message);
+
+            Assert.True(handled);
+            context.VerifyNotPublished();
+            context.StagingGroupPromotionService.Verify(
+                x => x.TryFinalizeAsync(context.StagingGroup.Key, context.PromotionId),
+                Times.Once);
         }
 
         [Fact]

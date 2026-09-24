@@ -24,6 +24,8 @@ namespace NuGetGallery
 
         public bool CanPromote { get; set; }
 
+        public bool CanResend { get; set; }
+
         public int PackageCount { get; set; }
 
         public int ReadyCount { get; set; }
@@ -33,6 +35,8 @@ namespace NuGetGallery
         public int PromotingCount { get; set; }
 
         public int FailedCount { get; set; }
+
+        public int PromotionFailedCount { get; set; }
 
         public IReadOnlyList<PackageStagingViewModel> Packages { get; set; }
     }

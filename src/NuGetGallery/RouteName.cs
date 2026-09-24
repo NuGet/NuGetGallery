@@ -67,6 +67,7 @@ namespace NuGetGallery
         public const string RenameStagingGroup = "RenameStagingGroup";
         public const string DeleteStagingGroup = "DeleteStagingGroup";
         public const string PromoteStagingGroup = "PromoteStagingGroup";
+        public const string ResendStagingGroup = "ResendStagingGroup";
         public const string DeleteStagingGroupApi = "DeleteStagingGroupApi";
         public const string MoveStagedPackage = "MoveStagedPackage";
         public const string GetStagingGroupApi = "GetStagingGroupApi";
@@ -77,6 +78,7 @@ namespace NuGetGallery
         public const string ReplaceManagedStagedPackage = "ReplaceManagedStagedPackage";
         public const string UpdateManagedStagedPackageListed = "UpdateManagedStagedPackageListed";
         public const string PromoteManagedStagedPackage = "PromoteManagedStagedPackage";
+        public const string ResendManagedStagedPackage = "ResendManagedStagedPackage";
         public const string DeleteManagedStagedPackage = "DeleteManagedStagedPackage";
         public const string PublishPackageApi = "PublishPackageApi";
         public const string DeprecatePackageApi = "DeprecatePackageApi";

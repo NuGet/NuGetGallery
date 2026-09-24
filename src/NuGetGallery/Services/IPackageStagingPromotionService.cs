@@ -20,12 +20,28 @@ namespace NuGetGallery
         Task<PackageStagingPromotionResult> PromotePackageAsync(User currentUser, StagedPackage stagedPackage);
 
         /// <summary>
+        /// Resends an individual promotion that is still in progress and has exceeded the wait threshold.
+        /// </summary>
+        /// <param name="currentUser">The user requesting the resend.</param>
+        /// <param name="stagedPackage">The staged package attempt being promoted.</param>
+        /// <returns>The result of the resend request.</returns>
+        Task<PackageStagingPromotionResult> ResendPackageAsync(User currentUser, StagedPackage stagedPackage);
+
+        /// <summary>
         /// Attempts to begin promotion of every current package in a staging group.
         /// </summary>
         /// <param name="currentUser">The user requesting promotion.</param>
         /// <param name="group">The staging group to promote.</param>
         /// <returns>The result of accepting the promotion request.</returns>
         Task<StagingGroupPromotionResult> PromoteGroupAsync(User currentUser, StagingGroup group);
+
+        /// <summary>
+        /// Resends work for an active group promotion that has exceeded the wait threshold.
+        /// </summary>
+        /// <param name="currentUser">The user requesting the resend.</param>
+        /// <param name="group">The staging group being promoted.</param>
+        /// <returns>The result of the resend request.</returns>
+        Task<StagingGroupPromotionResult> ResendGroupAsync(User currentUser, StagingGroup group);
     }
 
     /// <summary>
@@ -57,6 +73,11 @@ namespace NuGetGallery
         /// The staged package changed while promotion was being accepted.
         /// </summary>
         Conflict,
+
+        /// <summary>
+        /// The promotion is active, but its message could not be confirmed as sent; it can be retried now.
+        /// </summary>
+        DispatchFailed,
     }
 
     /// <summary>
@@ -88,5 +109,10 @@ namespace NuGetGallery
         /// The staging group or one of its packages changed while promotion was being accepted.
         /// </summary>
         Conflict,
+
+        /// <summary>
+        /// The promotion is active, but its message could not be confirmed as sent; it can be retried now.
+        /// </summary>
+        DispatchFailed,
     }
 }

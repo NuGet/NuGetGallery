@@ -247,9 +247,12 @@ namespace NuGetGallery
                 Id = "test-group",
                 Name = "Test group",
                 ActivePromotionId = System.Guid.NewGuid(),
+                PromotionMessageSentDate = System.DateTime.UtcNow.AddHours(-2),
             };
             var promotingPackage = CreateStagedPackage(42, "Promoting.Package", "1.0.0", currentUser, StagedPackageStatus.Promoting);
             promotingPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
+            var failedPackage = CreateStagedPackage(43, "Failed.Package", "1.0.0", currentUser, StagedPackageStatus.PromotionFailed);
+            failedPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
             GetMock<IPackageStagingAuthorizationService>()
                 .Setup(x => x.GetEnabledOwner(currentUser, currentUser.Username))
                 .Returns(currentUser);
@@ -258,7 +261,7 @@ namespace NuGetGallery
                 .Returns(group);
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.GetStagedPackages(currentUser))
-                .Returns(new[] { promotingPackage });
+                .Returns(new[] { promotingPackage, failedPackage });
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.GetStagingGroups(currentUser))
                 .Returns(new[] { group });
@@ -269,9 +272,11 @@ namespace NuGetGallery
 
             var model = ResultAssert.IsView<StagingGroupDetailViewModel>(result, viewName: "Group");
             Assert.True(model.IsPromotionActive);
+            Assert.True(model.CanResend);
             Assert.False(model.CanPromote);
             Assert.Equal(1, model.PromotingCount);
-            Assert.Equal(1, model.PackageCount);
+            Assert.Equal(1, model.PromotionFailedCount);
+            Assert.Equal(2, model.PackageCount);
             Assert.All(model.Packages, package =>
             {
                 Assert.False(package.CanManage);
@@ -509,6 +514,9 @@ namespace NuGetGallery
             var ungroupedPackage = CreateStagedPackage(42, "Ungrouped.Package", "1.0.0", currentUser, StagedPackageStatus.Ready);
             var groupedPackage = CreateStagedPackage(43, "Grouped.Package", "2.0.0", currentUser, StagedPackageStatus.Ready);
             groupedPackage.StagedPackageIdentity.StagingGroupKey = 10;
+            GetMock<IPackageStagingAuthorizationService>()
+                .Setup(x => x.GetEnabledOwner(currentUser, "current"))
+                .Returns(currentUser);
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.GetStagedPackages(currentUser))
                 .Returns(new[] { groupedPackage, ungroupedPackage });
@@ -530,7 +538,57 @@ namespace NuGetGallery
         }
 
         [Fact]
-        public void HidesEmptyOrUnauthorizedUngroupedPackages()
+        public void OffersResendForAStalledUngroupedPromotion()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var stagedPackage = CreateStagedPackage(42, "Example.Package", "1.0.0", currentUser, StagedPackageStatus.Promoting);
+            stagedPackage.ActivePromotionId = System.Guid.NewGuid();
+            stagedPackage.PromotionMessageSentDate = System.DateTime.UtcNow.AddHours(-2);
+            GetMock<IPackageStagingAuthorizationService>()
+                .Setup(x => x.GetEnabledOwner(currentUser, currentUser.Username))
+                .Returns(currentUser);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagedPackages(currentUser))
+                .Returns(new[] { stagedPackage });
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagingGroups(currentUser))
+                .Returns(new List<StagingGroup>());
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(currentUser);
+
+            var result = target.Ungrouped(currentUser.Username);
+
+            var model = ResultAssert.IsView<StagingGroupDetailViewModel>(result, viewName: "Group");
+            Assert.True(Assert.Single(model.Packages).CanResend);
+            Assert.False(model.CanResend);
+        }
+
+        [Fact]
+        public void DisplaysEmptyUngroupedPageAfterLastPackageLeaves()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            GetMock<IPackageStagingAuthorizationService>()
+                .Setup(x => x.GetEnabledOwner(currentUser, currentUser.Username))
+                .Returns(currentUser);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagedPackages(currentUser))
+                .Returns(System.Array.Empty<StagedPackage>());
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagingGroups(currentUser))
+                .Returns(new List<StagingGroup>());
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(currentUser);
+
+            var result = target.Ungrouped(currentUser.Username);
+
+            var model = ResultAssert.IsView<StagingGroupDetailViewModel>(result, viewName: "Group");
+            Assert.True(model.IsUngrouped);
+            Assert.Equal(currentUser.Username, model.Owner);
+            Assert.Empty(model.Packages);
+        }
+
+        [Fact]
+        public void HidesUngroupedPageFromUnauthorizedOwners()
         {
             var currentUser = new User("current") { Key = 1 };
             var otherOwner = new User("other") { Key = 2 };

@@ -3645,6 +3645,7 @@ namespace NuGetGallery
             [InlineData(PackageStatus.Staged, StagedPackageStatus.Validating)]
             [InlineData(PackageStatus.Staged, StagedPackageStatus.Ready)]
             [InlineData(PackageStatus.Staged, StagedPackageStatus.FailedValidation)]
+            [InlineData(PackageStatus.Staged, StagedPackageStatus.PromotionFailed)]
             [InlineData(PackageStatus.Deleted, StagedPackageStatus.Deleted)]
             public void AcceptsEligibleState(PackageStatus packageStatus, StagedPackageStatus stagedPackageStatus)
             {

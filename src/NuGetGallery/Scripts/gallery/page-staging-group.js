@@ -33,17 +33,20 @@
         this.ValidationIssuesId = packageItem.ValidationIssuesId;
         this.CanManage = packageItem.CanManage;
         this.CanPromote = packageItem.CanPromote;
+        this.CanResend = packageItem.CanResend;
         this.MoveUrl = packageItem.MoveUrl;
         this.ListedInputId = packageItem.ListedInputId;
         this.DownloadUrl = packageItem.DownloadUrl;
         this.ReplaceUrl = packageItem.ReplaceUrl;
         this.UpdateListedUrl = packageItem.UpdateListedUrl;
         this.PromoteUrl = packageItem.PromoteUrl;
+        this.ResendUrl = packageItem.ResendUrl;
         this.DeleteUrl = packageItem.DeleteUrl;
         this.SearchText = `${packageItem.Id} ${packageItem.Version}`.toLowerCase();
 
         this.Listed = ko.observable(packageItem.Listed);
         this.IsBusy = ko.observable(packageItem.Status === 'Promoting' || packageItem.Status === 'Succeeded');
+        this.IsResending = ko.observable(false);
         this.IsSavingListed = ko.observable(false);
         this.ListedStatus = ko.observable('');
         this.IsDisabled = ko.pureComputed(function () {
@@ -105,6 +108,16 @@
             }
         };
 
+        this.Resend = function (model, event) {
+            event.preventDefault();
+            const trigger = $(event.currentTarget);
+            const message = `Retry promotion for ${self.Id} ${self.Version}?`;
+            if (!self.IsResending() && window.nuget.confirmEvent(message)) {
+                self.IsResending(true);
+                trigger.siblings('.staging-resend-form')[0].submit();
+            }
+        };
+
         this.Delete = function (model, event) {
             event.preventDefault();
             const trigger = $(event.currentTarget);
@@ -129,7 +142,9 @@
         const self = this;
 
         this.CanPromote = data.CanPromote;
+        this.CanResend = data.CanResend;
         this.IsPromotingGroup = ko.observable(false);
+        this.IsResendingGroup = ko.observable(false);
         this.SearchQuery = ko.observable('');
         this.Packages = data.Packages.map(function (packageItem) {
             return new StagedPackageViewModel(packageItem, self.SearchQuery);
@@ -156,6 +171,14 @@
             const message = `Promote all staged packages in ${data.Name}?`;
             if (!self.IsPromotingGroup() && window.nuget.confirmEvent(message)) {
                 self.IsPromotingGroup(true);
+                return true;
+            }
+
+            return false;
+        };
+        this.ResendGroup = function () {
+            if (!self.IsResendingGroup() && window.nuget.confirmEvent(`Retry promotion for ${data.Name}?`)) {
+                self.IsResendingGroup(true);
                 return true;
             }
 

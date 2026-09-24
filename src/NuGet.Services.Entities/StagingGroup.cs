@@ -38,6 +38,11 @@ namespace NuGet.Services.Entities
         public Guid? ActivePromotionId { get; set; }
 
         /// <summary>
+        /// Records the last time work was sent for an active group promotion.
+        /// </summary>
+        public DateTime? PromotionMessageSentDate { get; set; }
+
+        /// <summary>
         /// Used for optimistic concurrency when updating the staging group.
         /// </summary>
         public byte[] RowVersion { get; set; }

@@ -12,9 +12,7 @@ using NuGetGallery;
 
 namespace NuGet.Services.Staging.Promotion
 {
-    /// <summary>
-    /// Coordinates successful package completion within an active staging group promotion.
-    /// </summary>
+    /// <inheritdoc />
     public class StagingGroupPromotionService : IStagingGroupPromotionService
     {
         private readonly IEntityRepository<StagedPackage> _stagedPackageRepository;
@@ -99,7 +97,7 @@ namespace NuGet.Services.Staging.Promotion
                             .Where(candidate => candidate.ActivePromotionId == promotionId)
                             .ToList();
 
-                        var remainingPackageCount = activeMembers.Count(candidate => candidate.Status != StagedPackageStatus.Succeeded);
+                        var remainingPackageCount = activeMembers.Count(candidate => candidate.Status != StagedPackageStatus.Succeeded && candidate.Status != StagedPackageStatus.PromotionFailed);
                         if (activeMembers.Count == 0 || remainingPackageCount > 0)
                         {
                             _logger.LogInformation("Group finalization is not ready while {RemainingPackageCount} packages remain.", remainingPackageCount);
@@ -108,16 +106,26 @@ namespace NuGet.Services.Staging.Promotion
 
                         foreach (var activeMember in activeMembers)
                         {
-                            activeMember.StagedPackageIdentity.CurrentStagedPackageKey = null;
-                            activeMember.StagedPackageIdentity.CurrentStagedPackage = null;
-                            activeMember.StagedPackageIdentity.StagingGroupKey = null;
-                            activeMember.StagedPackageIdentity.StagingGroup = null;
-                            _stagedPackageRepository.DeleteOnCommit(activeMember);
+                            if (activeMember.Status == StagedPackageStatus.Succeeded)
+                            {
+                                activeMember.StagedPackageIdentity.CurrentStagedPackageKey = null;
+                                activeMember.StagedPackageIdentity.CurrentStagedPackage = null;
+                                activeMember.StagedPackageIdentity.StagingGroupKey = null;
+                                activeMember.StagedPackageIdentity.StagingGroup = null;
+                                _stagedPackageRepository.DeleteOnCommit(activeMember);
+                            }
+                            else
+                            {
+                                activeMember.ActivePromotionId = null;
+                            }
                         }
 
                         stagingGroup.ActivePromotionId = null;
                         await _stagedPackageRepository.CommitChangesAsync();
-                        _logger.LogInformation("Completed staging group promotion with {PackageCount} successful packages and retained the empty group.", activeMembers.Count);
+                        _logger.LogInformation(
+                            "Completed staging group promotion with {SucceededCount} successful and {FailedCount} failed packages; retained the group.",
+                            activeMembers.Count(candidate => candidate.Status == StagedPackageStatus.Succeeded),
+                            activeMembers.Count(candidate => candidate.Status == StagedPackageStatus.PromotionFailed));
                     });
                 }
                 catch (DbUpdateConcurrencyException)

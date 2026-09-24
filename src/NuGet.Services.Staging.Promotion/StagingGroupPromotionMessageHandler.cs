@@ -19,6 +19,7 @@ namespace NuGet.Services.Staging.Promotion
         private readonly IEntityRepository<StagingGroup> _stagingGroupRepository;
         private readonly IEntityRepository<StagedPackage> _stagedPackageRepository;
         private readonly IStagingPromotionMessageEnqueuer _messageEnqueuer;
+        private readonly IStagingGroupPromotionService _groupPromotionService;
         private readonly ILogger<StagingGroupPromotionMessageHandler> _logger;
 
         /// <summary>
@@ -27,16 +28,19 @@ namespace NuGet.Services.Staging.Promotion
         /// <param name="stagingGroupRepository">The staging group repository.</param>
         /// <param name="stagedPackageRepository">The staged package repository.</param>
         /// <param name="messageEnqueuer">The staging promotion message enqueuer.</param>
+        /// <param name="groupPromotionService">The group finalization service.</param>
         /// <param name="logger">The logger.</param>
         public StagingGroupPromotionMessageHandler(
             IEntityRepository<StagingGroup> stagingGroupRepository,
             IEntityRepository<StagedPackage> stagedPackageRepository,
             IStagingPromotionMessageEnqueuer messageEnqueuer,
+            IStagingGroupPromotionService groupPromotionService,
             ILogger<StagingGroupPromotionMessageHandler> logger)
         {
             _stagingGroupRepository = stagingGroupRepository ?? throw new ArgumentNullException(nameof(stagingGroupRepository));
             _stagedPackageRepository = stagedPackageRepository ?? throw new ArgumentNullException(nameof(stagedPackageRepository));
             _messageEnqueuer = messageEnqueuer ?? throw new ArgumentNullException(nameof(messageEnqueuer));
+            _groupPromotionService = groupPromotionService ?? throw new ArgumentNullException(nameof(groupPromotionService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -66,8 +70,8 @@ namespace NuGet.Services.Staging.Promotion
 
                 if (!group.ActivePromotionId.HasValue)
                 {
-                    _logger.LogInformation("Staging group promotion is not visible yet. Retrying the root message.");
-                    return false;
+                    _logger.LogInformation("Ignoring inactive staging group promotion attempt.");
+                    return true;
                 }
 
                 if (group.ActivePromotionId != message.PromotionId)
@@ -89,6 +93,12 @@ namespace NuGet.Services.Staging.Promotion
                 foreach (var stagedPackage in stagedPackages)
                 {
                     await _messageEnqueuer.SendMessageAsync(StagingPromotionMessage.ForPackage(message.PromotionId, stagedPackage.Key));
+                }
+
+                if (stagedPackages.Count == 0)
+                {
+                    _logger.LogInformation("No promoting packages remain; checking group finalization.");
+                    await _groupPromotionService.TryFinalizeAsync(group.Key, message.PromotionId);
                 }
 
                 _logger.LogInformation("Completed staging group promotion fan-out.");

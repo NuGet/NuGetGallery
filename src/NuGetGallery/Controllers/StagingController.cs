@@ -207,10 +207,56 @@ namespace NuGetGallery
                     TempData["ErrorMessage"] = "Every package in the staging group must be ready before promotion can begin.";
                     break;
                 case StagingGroupPromotionResult.Conflict:
-                    TempData["ErrorMessage"] = "The staging group changed before promotion could begin. Try again.";
+                    TempData["ErrorMessage"] = "The group promotion changed while processing your request. Refresh and check its status.";
+                    break;
+                case StagingGroupPromotionResult.DispatchFailed:
+                    TempData["ErrorMessage"] = "Promotion started, but we couldn't confirm it's being processed. Refresh the page; if it's still in progress, you can retry now.";
                     break;
                 default:
                     throw new InvalidOperationException($"Unknown staging group promotion result '{result}'.");
+            }
+
+            return Redirect(Url.ManageStagingGroup(group.Owner.Username, group.Id));
+        }
+
+        /// <summary>
+        /// Resends unfinished work for a stalled group promotion.
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> ResendGroup(string owner, string groupId)
+        {
+            if (string.IsNullOrWhiteSpace(owner) || string.IsNullOrWhiteSpace(groupId))
+            {
+                return HttpNotFound();
+            }
+
+            var currentUser = GetCurrentUser();
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledOwner(currentUser, owner);
+            var group = stagingOwner == null ? null : _packageStagingManagementService.FindStagingGroup(stagingOwner, groupId);
+            if (group == null)
+            {
+                return HttpNotFound();
+            }
+
+            var result = await _packageStagingPromotionService.ResendGroupAsync(currentUser, group);
+            switch (result)
+            {
+                case StagingGroupPromotionResult.Accepted:
+                    break;
+                case StagingGroupPromotionResult.Unauthorized:
+                    return HttpNotFound();
+                case StagingGroupPromotionResult.NotReady:
+                    TempData["ErrorMessage"] = "This group promotion cannot be retried yet. Refresh the page and try again later.";
+                    break;
+                case StagingGroupPromotionResult.Conflict:
+                    TempData["ErrorMessage"] = "The group promotion changed. Refresh the page and try again.";
+                    break;
+                case StagingGroupPromotionResult.DispatchFailed:
+                    TempData["ErrorMessage"] = "We couldn't confirm your retry is being processed. Refresh the page; if the promotion is still in progress, you can retry now.";
+                    break;
+                default:
+                    throw new InvalidOperationException($"Unknown group promotion resend result '{result}'.");
             }
 
             return Redirect(Url.ManageStagingGroup(group.Owner.Username, group.Id));
@@ -296,7 +342,7 @@ namespace NuGetGallery
                 .Where(candidate => candidate.OwnerKey == group.OwnerKey)
                 .ToList();
 
-            return View(nameof(Group), CreateGroupViewModel(group.Owner.Username, group.Id, group.Name, null, stagedPackages, stagingGroups, group.ActivePromotionId.HasValue));
+            return View(nameof(Group), CreateGroupViewModel(group.Owner.Username, group.Id, group.Name, null, stagedPackages, stagingGroups, group.ActivePromotionId.HasValue, group.PromotionMessageSentDate));
         }
 
         [HttpGet]
@@ -307,22 +353,23 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var stagedPackages = _packageStagingManagementService
-                .GetStagedPackages(GetCurrentUser())
-                .Where(package => package.StagedPackageIdentity.StagingGroupKey == null)
-                .Where(package => string.Equals(package.StagedPackageIdentity.Owner.Username, owner, StringComparison.OrdinalIgnoreCase))
-                .ToList();
-            if (stagedPackages.Count == 0)
+            var currentUser = GetCurrentUser();
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledOwner(currentUser, owner);
+            if (stagingOwner == null)
             {
                 return HttpNotFound();
             }
 
-            var canonicalOwner = stagedPackages[0].StagedPackageIdentity.Owner.Username;
-            var stagingGroups = _packageStagingManagementService
-                .GetStagingGroups(GetCurrentUser())
-                .Where(group => string.Equals(group.Owner.Username, canonicalOwner, StringComparison.OrdinalIgnoreCase))
+            var stagedPackages = _packageStagingManagementService
+                .GetStagedPackages(currentUser)
+                .Where(package => package.StagedPackageIdentity.StagingGroupKey == null
+                    && package.StagedPackageIdentity.OwnerKey == stagingOwner.Key)
                 .ToList();
-            var model = CreateGroupViewModel(canonicalOwner, id: null, "Ungrouped", "Staged packages not in any group", stagedPackages, stagingGroups);
+            var stagingGroups = _packageStagingManagementService
+                .GetStagingGroups(currentUser)
+                .Where(group => group.OwnerKey == stagingOwner.Key)
+                .ToList();
+            var model = CreateGroupViewModel(stagingOwner.Username, id: null, "Ungrouped", "Staged packages not in any group", stagedPackages, stagingGroups);
 
             return View("Group", model);
         }
@@ -459,7 +506,8 @@ namespace NuGetGallery
             string description,
             IReadOnlyCollection<StagedPackage> stagedPackages,
             IReadOnlyCollection<StagingGroup> stagingGroups,
-            bool isPromotionActive = false)
+            bool isPromotionActive = false,
+            DateTime? promotionMessageSentDate = null)
         {
             var orderedStagedPackages = stagedPackages
                 .OrderBy(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageRegistration.Id)
@@ -494,6 +542,10 @@ namespace NuGetGallery
                         Listed = package.Listed,
                         CanManage = !isPromotionActive,
                         CanPromote = stagedPackage.Status == StagedPackageStatus.Ready && !identity.StagingGroupKey.HasValue,
+                        CanResend = !identity.StagingGroupKey.HasValue
+                            && stagedPackage.Status == StagedPackageStatus.Promoting
+                            && stagedPackage.ActivePromotionId.HasValue
+                            && StagingPromotionResendPolicy.IsDue(stagedPackage.PromotionMessageSentDate),
                         MoveUrl = moveUrl,
                     };
                 })
@@ -511,11 +563,13 @@ namespace NuGetGallery
                     && !isPromotionActive
                     && orderedStagedPackages.Count > 0
                     && orderedStagedPackages.All(stagedPackage => stagedPackage.Status == StagedPackageStatus.Ready),
+                CanResend = id != null && isPromotionActive && StagingPromotionResendPolicy.IsDue(promotionMessageSentDate),
                 PackageCount = packageViewModels.Count,
                 ReadyCount = orderedStagedPackages.Count(stagedPackage => stagedPackage.Status == StagedPackageStatus.Ready),
                 ValidatingCount = orderedStagedPackages.Count(stagedPackage => stagedPackage.Status == StagedPackageStatus.Validating),
                 PromotingCount = orderedStagedPackages.Count(stagedPackage => stagedPackage.Status == StagedPackageStatus.Promoting),
                 FailedCount = orderedStagedPackages.Count(stagedPackage => stagedPackage.Status == StagedPackageStatus.FailedValidation || stagedPackage.Status == StagedPackageStatus.PromotionFailed),
+                PromotionFailedCount = orderedStagedPackages.Count(stagedPackage => stagedPackage.Status == StagedPackageStatus.PromotionFailed),
                 Packages = packageViewModels,
             };
         }
@@ -636,11 +690,55 @@ namespace NuGetGallery
                     TempData["ErrorMessage"] = "Promote this package with its staging group.";
                     return Redirect(Url.ManageMyPackages());
                 case PackageStagingPromotionResult.Conflict:
-                    TempData["ErrorMessage"] = "The staged package changed before promotion could begin. Try again.";
+                    TempData["ErrorMessage"] = "The package promotion changed while processing your request. Refresh and check its status.";
+                    return Redirect(Url.ManageMyPackages());
+                case PackageStagingPromotionResult.DispatchFailed:
+                    TempData["ErrorMessage"] = "Promotion started, but we couldn't confirm it's being processed. Refresh the page; if it's still in progress, you can retry now.";
                     return Redirect(Url.ManageMyPackages());
                 default:
                     throw new InvalidOperationException($"Unknown package promotion result '{result}'.");
             }
+        }
+
+        /// <summary>
+        /// Resends a stalled individual package promotion.
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> ResendPackage(string id, string version)
+        {
+            ValidatePackageIdentity(id, version);
+
+            var stagedPackage = FindAuthorizedStagedPackage(id, version);
+            if (stagedPackage == null)
+            {
+                return HttpNotFound();
+            }
+
+            var result = await _packageStagingPromotionService.ResendPackageAsync(GetCurrentUser(), stagedPackage);
+            switch (result)
+            {
+                case PackageStagingPromotionResult.Accepted:
+                    break;
+                case PackageStagingPromotionResult.Unauthorized:
+                    return HttpNotFound();
+                case PackageStagingPromotionResult.NotReady:
+                    TempData["ErrorMessage"] = "This package promotion cannot be retried yet. Refresh the page and try again later.";
+                    break;
+                case PackageStagingPromotionResult.Grouped:
+                    TempData["ErrorMessage"] = "Retry this package's promotion with its staging group.";
+                    break;
+                case PackageStagingPromotionResult.Conflict:
+                    TempData["ErrorMessage"] = "The package promotion changed. Refresh the page and try again.";
+                    break;
+                case PackageStagingPromotionResult.DispatchFailed:
+                    TempData["ErrorMessage"] = "We couldn't confirm your retry is being processed. Refresh the page; if the promotion is still in progress, you can retry now.";
+                    break;
+                default:
+                    throw new InvalidOperationException($"Unknown package promotion resend result '{result}'.");
+            }
+
+            return Redirect(Url.ManageUngroupedStaging(stagedPackage.StagedPackageIdentity.Owner.Username));
         }
 
         private static void ValidatePackageIdentity(string id, string version)
