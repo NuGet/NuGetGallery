@@ -368,7 +368,7 @@ namespace NuGetGallery
                 {
                     var groupedAttempts = _stagedPackageRepository
                         .GetAll()
-                        .Include(package => package.StagedPackageIdentity.Package)
+                        .Include(package => package.StagedPackageIdentity.Package.PackageRegistration)
                         .Where(package => package.StagedPackageIdentity.OwnerKey == stagingOwner.Key)
                         .Where(package => package.StagedPackageIdentity.StagingGroupKey == group.Key)
                         .Where(package => package.StagedPackageIdentity.CurrentStagedPackageKey == package.Key)

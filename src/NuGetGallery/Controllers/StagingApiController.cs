@@ -23,6 +23,7 @@ namespace NuGetGallery
     public class StagingApiController : AppController
     {
         private const string JsonContentType = "application/json";
+        private const string MultipartContentType = "multipart/form-data";
         private const int DefaultPageSize = 100;
         private const int MaximumPageSize = 500;
         private static readonly TimeSpan InitialGroupExpiration = TimeSpan.FromDays(30);
@@ -87,14 +88,34 @@ namespace NuGetGallery
         }
 
         [HttpPut]
-        public virtual async Task<ActionResult> StagePackage()
+        public virtual async Task<ActionResult> StagePackage(StagePackageRequest request)
         {
-            var currentUser = GetCurrentUser();
-            var scopes = User.Identity.GetScopesFromClaim();
-
             try
             {
-                var result = await _packageStagingUploadService.StagePackageAsync(currentUser, scopes, HttpContext, Request.InputStream);
+                if (!MediaTypeWithQualityHeaderValue.TryParse(Request.ContentType, out var contentType) || !string.Equals(contentType.MediaType, MultipartContentType, StringComparison.OrdinalIgnoreCase))
+                {
+                    return Error(HttpStatusCode.UnsupportedMediaType, "UnsupportedMediaType", $"The request must have a Content-Type of '{MultipartContentType}'.");
+                }
+
+                if (request == null || request.Package == null || Request.Files.Count != 1 || !string.Equals(Request.Files.GetKey(0), "package", StringComparison.OrdinalIgnoreCase))
+                {
+                    return Error(HttpStatusCode.BadRequest, "InvalidRequest", "The request must contain one package file.", "package");
+                }
+
+                if (Request.Form.AllKeys.Any(key => string.Equals(key, "groupId", StringComparison.OrdinalIgnoreCase)) && string.IsNullOrWhiteSpace(Request.Form["groupId"]))
+                {
+                    return Error(HttpStatusCode.BadRequest, "InvalidRequest", "The group ID must not be empty.", "groupid");
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    var target = ModelState.First(entry => entry.Value.Errors.Count > 0).Key;
+                    return Error(HttpStatusCode.BadRequest, "InvalidRequest", "The request is invalid.", target.ToLowerInvariant());
+                }
+
+                var currentUser = GetCurrentUser();
+                var scopes = User.Identity.GetScopesFromClaim();
+                var result = await _packageStagingUploadService.StagePackageAsync(currentUser, scopes, HttpContext, request.Package.InputStream, request.GroupId, request.Listed);
                 if (!result.Success)
                 {
                     return new HttpStatusCodeWithBodyResult(result.StatusCode, result.ErrorMessage);
