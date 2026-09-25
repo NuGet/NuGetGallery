@@ -39,6 +39,24 @@ namespace NuGetGallery
         }
 
         [Fact]
+        public async Task SavesSymbolPackageToPrivateSnupkgPath()
+        {
+            var storage = new Mock<ICoreFileStorageService>();
+            storage.Setup(x => x.GetETagOrNullAsync(CoreConstants.Folders.StagingFolderName, It.IsAny<string>()))
+                .ReturnsAsync("\"symbol-etag\"");
+
+            var result = await new StagingBlobService(storage.Object).SaveSymbolPackageFileAsync(
+                "NuGet.Versioning", "3.4.0", new MemoryStream(new byte[] { 1, 2, 3 }));
+
+            Assert.StartsWith("nuget.versioning/3.4.0/", result.Path);
+            Assert.EndsWith(".snupkg", result.Path);
+            Assert.Equal("\"symbol-etag\"", result.ETag);
+            storage.Verify(x => x.SaveFileAsync(
+                CoreConstants.Folders.StagingFolderName, result.Path,
+                CoreConstants.PackageContentType, It.IsAny<Stream>(), false), Times.Once);
+        }
+
+        [Fact]
         public async Task GetsReadUriWhenUploadedETagMatches()
         {
             var expected = new Uri("https://example.test/staged-package");
