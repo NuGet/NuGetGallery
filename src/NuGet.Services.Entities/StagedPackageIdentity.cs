@@ -23,5 +23,9 @@ namespace NuGet.Services.Entities
         public int? CurrentStagedPackageKey { get; set; }
 
         public virtual StagedPackage CurrentStagedPackage { get; set; }
+
+        public int? CurrentStagedSymbolPackageKey { get; set; }
+
+        public virtual StagedSymbolPackage CurrentStagedSymbolPackage { get; set; }
     }
 }
