@@ -1,16 +1,17 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Threading.Tasks;
 using NuGet.Jobs;
 
 namespace Gallery.Maintenance
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var job = new Job();
-            JobRunner.Run(job, args).Wait();
+            await JobRunner.Run(job, args);
         }
     }
 }
