@@ -82,6 +82,7 @@ namespace NuGetGallery
         public DbSet<UserCertificate> UserCertificates { get; set; }
         public DbSet<SymbolPackage> SymbolPackages { get; set; }
         public DbSet<StagedPackage> StagedPackages { get; set; }
+        public DbSet<StagedSymbolPackage> StagedSymbolPackages { get; set; }
         public DbSet<StagedPackageIdentity> StagedPackageIdentities { get; set; }
         public DbSet<StagingGroup> StagingGroups { get; set; }
         public DbSet<PackageVulnerability> Vulnerabilities { get; set; }
@@ -486,6 +487,25 @@ namespace NuGetGallery
                 .HasForeignKey(s => s.StagedPackageIdentityKey)
                 .WillCascadeOnDelete(true);
 
+            modelBuilder.Entity<StagedSymbolPackage>()
+                .HasKey(s => s.Key);
+
+            modelBuilder.Entity<StagedSymbolPackage>()
+                .HasRequired(s => s.SymbolPackage)
+                .WithMany()
+                .HasForeignKey(s => s.SymbolPackageKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StagedSymbolPackage>()
+                .HasRequired(s => s.StagedPackageIdentity)
+                .WithMany()
+                .HasForeignKey(s => s.StagedPackageIdentityKey)
+                .WillCascadeOnDelete(true);
+
+            modelBuilder.Entity<StagedSymbolPackage>()
+                .Property(s => s.RowVersion)
+                .IsRowVersion();
+
             modelBuilder.Entity<StagedPackageIdentity>()
                 .HasKey(i => i.Key);
 
@@ -510,6 +530,12 @@ namespace NuGetGallery
                 .HasOptional(i => i.CurrentStagedPackage)
                 .WithMany()
                 .HasForeignKey(i => i.CurrentStagedPackageKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StagedPackageIdentity>()
+                .HasOptional(i => i.CurrentStagedSymbolPackage)
+                .WithMany()
+                .HasForeignKey(i => i.CurrentStagedSymbolPackageKey)
                 .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<StagingGroup>()

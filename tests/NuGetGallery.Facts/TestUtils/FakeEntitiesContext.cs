@@ -48,6 +48,12 @@ namespace NuGetGallery
             set => throw new NotSupportedException();
         }
 
+        public DbSet<StagedSymbolPackage> StagedSymbolPackages
+        {
+            get => Set<StagedSymbolPackage>();
+            set => throw new NotSupportedException();
+        }
+
         public DbSet<StagedPackageIdentity> StagedPackageIdentities
         {
             get => Set<StagedPackageIdentity>();

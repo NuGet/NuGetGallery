@@ -22,6 +22,11 @@ namespace NuGetGallery
         Task<StagingFileReference> SavePackageFileAsync(string packageId, string normalizedVersion, Stream packageFile);
 
         /// <summary>
+        /// Saves a symbol package at a new private immutable .snupkg path.
+        /// </summary>
+        Task<StagingFileReference> SaveSymbolPackageFileAsync(string packageId, string normalizedVersion, Stream symbolPackageFile);
+
+        /// <summary>
         /// Gets a temporary read URI for an unchanged staged package.
         /// </summary>
         /// <param name="packagePath">The package path in private staging storage.</param>
