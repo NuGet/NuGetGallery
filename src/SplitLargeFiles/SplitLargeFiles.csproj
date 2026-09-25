@@ -6,6 +6,9 @@
     <AssemblyName>NuGet.Tools.SplitLargeFiles</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\NuGet.Services.Storage\StreamReadExtensions.cs" Link="StreamReadExtensions.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="ICSharpCode.SharpZipLib">
       <HintPath>..\..\external\ICSharpCode.SharpZipLib.0.86.0\ICSharpCode.SharpZipLib.dll</HintPath>
     </Reference>

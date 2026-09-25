@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using ICSharpCode.SharpZipLib.GZip;
+using NuGet.Services.Storage;
 
 namespace NuGet.Tools.SplitLargeFiles
 {
@@ -71,14 +72,17 @@ namespace NuGet.Tools.SplitLargeFiles
                 using (var gzipStream = new GZipInputStream(stream) { IsStreamOwner = false })
                 {
                     var buffer = new byte[128];
-                    gzipStream.Read(buffer, 0, buffer.Length);
+                    gzipStream.ReadUpTo(buffer, 0, buffer.Length);
                 }
             }
             catch (InvalidDataException)
             {
                 return false;
             }
-            stream.Position = initialPosition;
+            finally
+            {
+                stream.Position = initialPosition;
+            }
 
             return true;
         }

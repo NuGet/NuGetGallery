@@ -15,6 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Services.Validation.Orchestrator\NuGet.Services.Validation.Orchestrator.csproj" />
     <ProjectReference Include="..\Validation.Symbols.Core\Validation.Symbols.Core.csproj" />
+    <ProjectReference Include="..\NuGet.Services.Storage\NuGet.Services.Storage.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Scripts\nssm.exe" />

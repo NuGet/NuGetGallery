@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.Symbols.Core;
+using NuGet.Services.Storage;
 using NuGet.Services.Validation;
 using NuGet.Services.Validation.Issues;
 using System.Diagnostics;
@@ -303,7 +304,11 @@ namespace Validation.Symbols
             var portableStamp = new byte[4] { 66, 83, 74, 66 };
 
             var currentPDBStamp = new byte[4];
-            pdbStream.Read(currentPDBStamp, 0, 4);
+            if (pdbStream.ReadUpTo(currentPDBStamp, 0, currentPDBStamp.Length) < currentPDBStamp.Length)
+            {
+                return false;
+            }
+
             return currentPDBStamp.SequenceEqual(portableStamp);
         }
 

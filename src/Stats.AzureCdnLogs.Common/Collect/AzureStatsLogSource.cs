@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using NuGet.Services.Storage;
 using Azure.Storage.Blobs;
 using ICSharpCode.SharpZipLib.GZip;
 using Azure.Storage.Blobs.Models;
@@ -20,8 +21,6 @@ namespace Stats.AzureCdnLogs.Common.Collect
     /// </summary>
     public class AzureStatsLogSource : ILogSource
     {
-        private const ushort GzipLeadBytes = 0x8b1f;
-
         /// <summary>
         ///  Maximum allowed lease time for Azure Blobs is 60 seconds.
         /// </summary>
@@ -352,9 +351,10 @@ namespace Stats.AzureCdnLogs.Common.Collect
             stream.Position = 0;
             try
             {
-                var bytes = new byte[4];
-                await stream.ReadAsync(bytes, 0, 4);
-                return BitConverter.ToUInt16(bytes, 0) == GzipLeadBytes;
+                var bytes = new byte[2];
+                var bytesRead = await stream.ReadUpToAsync(bytes, 0, bytes.Length);
+                // GZip files start with the magic bytes 0x1f, 0x8b.
+                return bytesRead == bytes.Length && bytes[0] == 0x1f && bytes[1] == 0x8b;
             }
             finally
             {
