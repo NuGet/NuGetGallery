@@ -380,16 +380,19 @@ namespace NuGetGallery
                     .Callback<Package, PackageStatus, bool>((package, status, commitChanges) => package.PackageStatusKey = status)
                     .Returns(Task.CompletedTask);
                 var stagingGroupRepository = new Mock<IEntityRepository<StagingGroup>>();
+                var includedPaths = new List<string>();
                 var target = CreateService(
                     new[] { firstPackage, secondPackage, deletedPackage, unrelatedPackage },
                     owner => true,
                     packageService: packageService.Object,
                     stagingGroups: new[] { group },
-                    stagingGroupRepository: stagingGroupRepository);
+                    stagingGroupRepository: stagingGroupRepository,
+                    includedPath: includedPaths.Add);
 
                 var result = await target.DeleteStagingGroupAsync(currentUser, group);
 
                 Assert.Equal(StagingGroupDeletionResultType.Deleted, result.Type);
+                Assert.Contains("StagedPackageIdentity.Package.PackageRegistration", includedPaths);
                 Assert.Equal(2, result.AffectedPackageCount);
                 Assert.All(new[] { firstPackage, secondPackage }, stagedPackage =>
                 {
@@ -984,7 +987,8 @@ namespace NuGetGallery
                 IStagingBlobService stagingBlobService = null,
                 Mock<IEntityRepository<StagedPackage>> stagedPackageRepository = null,
                 IEnumerable<StagingGroup> stagingGroups = null,
-                Mock<IEntityRepository<StagingGroup>> stagingGroupRepository = null)
+                Mock<IEntityRepository<StagingGroup>> stagingGroupRepository = null,
+                Action<string> includedPath = null)
             {
                 var stagedPackagesList = stagedPackages.ToList();
                 var stagedPackagesQuery = stagedPackagesList.AsQueryable();
@@ -994,7 +998,9 @@ namespace NuGetGallery
                 stagedPackagesSet.As<IQueryable<StagedPackage>>().Setup(x => x.ElementType).Returns(stagedPackagesQuery.ElementType);
                 stagedPackagesSet.As<IQueryable<StagedPackage>>().Setup(x => x.GetEnumerator()).Returns(() => stagedPackagesQuery.GetEnumerator());
                 stagedPackagesSet.Setup(x => x.Include("StagedPackageIdentity.Package")).Returns(stagedPackagesSet.Object);
-                stagedPackagesSet.Setup(x => x.Include("StagedPackageIdentity.Package.PackageRegistration")).Returns(stagedPackagesSet.Object);
+                stagedPackagesSet.Setup(x => x.Include("StagedPackageIdentity.Package.PackageRegistration"))
+                    .Callback<string>(path => includedPath?.Invoke(path))
+                    .Returns(stagedPackagesSet.Object);
                 stagedPackagesSet.Setup(x => x.Include("StagedPackageIdentity.Owner")).Returns(stagedPackagesSet.Object);
                 stagedPackagesSet.Setup(x => x.Include("StagedPackageIdentity.StagingGroup")).Returns(stagedPackagesSet.Object);
                 stagedPackageRepository = stagedPackageRepository ?? new Mock<IEntityRepository<StagedPackage>>();

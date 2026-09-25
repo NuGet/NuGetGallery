@@ -22,9 +22,10 @@ namespace NuGetGallery
         public class TheStagePackageAsyncMethod
         {
             [Theory]
-            [InlineData(StagedPackageStatus.Validating)]
-            [InlineData(StagedPackageStatus.Ready)]
-            public async Task StagesPackage(StagedPackageStatus expectedStatus)
+            [InlineData(StagedPackageStatus.Validating, false, false)]
+            [InlineData(StagedPackageStatus.Ready, true, false)]
+            [InlineData(StagedPackageStatus.Validating, true, true)]
+            public async Task StagesPackage(StagedPackageStatus expectedStatus, bool assignGroup, bool createGroup)
             {
                 var currentUser = new User { Key = 17 };
                 var owner = new User { Key = 23, EmailAddress = "owner@example.com" };
@@ -35,6 +36,9 @@ namespace NuGetGallery
                     NormalizedVersion = "1.0.0",
                 };
                 var file = new StagingFileReference("packagea/1.0.0/file.nupkg", "etag");
+                var group = new StagingGroup { Key = 47, Id = "release", OwnerKey = owner.Key };
+                var managementService = new Mock<IPackageStagingManagementService>();
+                managementService.Setup(x => x.FindStagingGroup(owner, "release")).Returns(createGroup ? null : group);
 
                 var apiScopeEvaluator = new Mock<IApiScopeEvaluator>(MockBehavior.Strict);
                 apiScopeEvaluator
@@ -104,7 +108,16 @@ namespace NuGetGallery
                     .ReturnsAsync(file);
 
                 StagedPackage stagedPackage = null;
+                StagingGroup createdGroup = null;
                 var operations = new List<string>();
+                var stagingGroupRepository = new Mock<IEntityRepository<StagingGroup>>();
+                stagingGroupRepository
+                    .Setup(x => x.InsertOnCommit(It.IsAny<StagingGroup>()))
+                    .Callback<StagingGroup>(value =>
+                    {
+                        createdGroup = value;
+                        operations.Add("insert group");
+                    });
                 var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
                 stagedPackageRepository
                     .Setup(x => x.InsertOnCommit(It.IsAny<StagedPackage>()))
@@ -115,6 +128,11 @@ namespace NuGetGallery
                     {
                         operations.Add("save");
                         stagedPackage.Key = 43;
+                        if (createdGroup != null)
+                        {
+                            createdGroup.Key = 48;
+                            stagedPackage.StagedPackageIdentity.StagingGroupKey = createdGroup.Key;
+                        }
                     })
                     .Returns(Task.CompletedTask);
 
@@ -146,11 +164,13 @@ namespace NuGetGallery
                     apiScopeEvaluator.Object,
                     featureFlagService.Object,
                     packageService.Object,
+                    managementService.Object,
                     packageUploadService.Object,
                     Mock.Of<IReservedNamespaceService>(),
                     securityPolicyService.Object,
                     stagingFiles.Object,
                     stagedPackageRepository.Object,
+                    stagingGroupRepository.Object,
                     stagedValidationMessageEmitter.Object);
 
                 using (var packageFile = TestPackage.CreateTestPackageStream("PackageA", "1.0.0"))
@@ -159,7 +179,9 @@ namespace NuGetGallery
                         currentUser,
                         scopes,
                         Mock.Of<HttpContextBase>(),
-                        packageFile);
+                        packageFile,
+                        assignGroup ? "release" : null,
+                        listed: false);
 
                     Assert.True(result.Success, result.ErrorMessage);
                     Assert.Equal(HttpStatusCode.Created, result.StatusCode);
@@ -167,6 +189,17 @@ namespace NuGetGallery
 
                 Assert.Equal(PackageStatus.Staged, package.PackageStatusKey);
                 Assert.Equal(owner.Key, stagedPackage.StagedPackageIdentity.OwnerKey);
+                Assert.Equal(assignGroup ? (createGroup ? createdGroup.Key : group.Key) : (int?)null, stagedPackage.StagedPackageIdentity.StagingGroupKey);
+                Assert.False(package.Listed);
+                Assert.Equal(assignGroup && !createGroup ? 1L : 0L, group.MutationRevision);
+                if (createGroup)
+                {
+                    Assert.Equal("release", createdGroup.Id);
+                    Assert.Equal("release", createdGroup.Name);
+                    Assert.Equal(owner.Key, createdGroup.OwnerKey);
+                    Assert.Same(owner, createdGroup.Owner);
+                    Assert.Same(createdGroup, stagedPackage.StagedPackageIdentity.StagingGroup);
+                }
                 Assert.Equal(file.Path, stagedPackage.UploadedBlobPath);
                 Assert.Equal(file.ETag, stagedPackage.UploadedBlobETag);
                 Assert.Equal(streamMetadata.Hash, stagedPackage.UploadHash);
@@ -178,7 +211,12 @@ namespace NuGetGallery
                 var expectedOperations = expectedStatus == StagedPackageStatus.Validating
                     ? new[] { "begin", "save", "save", "enqueue", "commit" }
                     : new[] { "begin", "save", "save", "enqueue", "save", "commit" };
+                if (createGroup)
+                {
+                    expectedOperations = new[] { "begin", "insert group", "save", "save", "enqueue", "commit" };
+                }
                 Assert.Equal(expectedOperations, operations);
+                stagingGroupRepository.Verify(x => x.InsertOnCommit(It.IsAny<StagingGroup>()), createGroup ? Times.Once() : Times.Never());
                 stagedValidationMessageEmitter.Verify(x => x.StartValidationAsync(stagedPackage), Times.Once);
                 stagedPackageRepository.Verify(x => x.InsertOnCommit(stagedPackage), Times.Once);
                 stagedPackageRepository.Verify(
@@ -188,19 +226,25 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData(StagedPackageStatus.Validating, HttpStatusCode.OK, true)]
-            [InlineData(StagedPackageStatus.Ready, HttpStatusCode.OK, true)]
-            [InlineData(StagedPackageStatus.FailedValidation, HttpStatusCode.OK, true)]
-            [InlineData(StagedPackageStatus.PromotionFailed, HttpStatusCode.OK, true)]
-            [InlineData(StagedPackageStatus.Superseded, HttpStatusCode.Conflict, true)]
-            [InlineData(StagedPackageStatus.Deleted, HttpStatusCode.OK, true)]
-            [InlineData(StagedPackageStatus.Validating, HttpStatusCode.OK, false)]
-            [InlineData(StagedPackageStatus.Ready, HttpStatusCode.OK, false)]
-            [InlineData(StagedPackageStatus.FailedValidation, HttpStatusCode.OK, false)]
-            [InlineData(StagedPackageStatus.PromotionFailed, HttpStatusCode.OK, false)]
-            [InlineData(StagedPackageStatus.Superseded, HttpStatusCode.Conflict, false)]
-            [InlineData(StagedPackageStatus.Deleted, HttpStatusCode.OK, false)]
-            public async Task UploadReturnsExpectedStatus(StagedPackageStatus status, HttpStatusCode expectedStatusCode, bool identical)
+            [InlineData(StagedPackageStatus.Validating, HttpStatusCode.OK, true, false, false)]
+            [InlineData(StagedPackageStatus.Ready, HttpStatusCode.OK, true, false, false)]
+            [InlineData(StagedPackageStatus.FailedValidation, HttpStatusCode.OK, true, false, false)]
+            [InlineData(StagedPackageStatus.PromotionFailed, HttpStatusCode.OK, true, false, false)]
+            [InlineData(StagedPackageStatus.Superseded, HttpStatusCode.Conflict, true, false, false)]
+            [InlineData(StagedPackageStatus.Deleted, HttpStatusCode.OK, true, false, false)]
+            [InlineData(StagedPackageStatus.Validating, HttpStatusCode.OK, false, false, false)]
+            [InlineData(StagedPackageStatus.Ready, HttpStatusCode.OK, false, false, false)]
+            [InlineData(StagedPackageStatus.FailedValidation, HttpStatusCode.OK, false, false, false)]
+            [InlineData(StagedPackageStatus.PromotionFailed, HttpStatusCode.OK, false, false, false)]
+            [InlineData(StagedPackageStatus.Superseded, HttpStatusCode.Conflict, false, false, false)]
+            [InlineData(StagedPackageStatus.Deleted, HttpStatusCode.OK, false, false, false)]
+            [InlineData(StagedPackageStatus.Ready, HttpStatusCode.OK, true, true, false)]
+            [InlineData(StagedPackageStatus.Ready, HttpStatusCode.OK, false, true, false)]
+            [InlineData(StagedPackageStatus.Deleted, HttpStatusCode.OK, false, true, false)]
+            [InlineData(StagedPackageStatus.Ready, HttpStatusCode.OK, true, true, true)]
+            [InlineData(StagedPackageStatus.Ready, HttpStatusCode.OK, false, true, true)]
+            [InlineData(StagedPackageStatus.Deleted, HttpStatusCode.OK, false, true, true)]
+            public async Task UploadReturnsExpectedStatus(StagedPackageStatus status, HttpStatusCode expectedStatusCode, bool identical, bool assignGroup, bool createGroup)
             {
                 var currentUser = new User { Key = 17 };
                 var owner = new User { Key = 23, EmailAddress = "owner@example.com" };
@@ -244,6 +288,12 @@ namespace NuGetGallery
                 {
                     stagedPackage.UploadHash = "different";
                 }
+                var originalGroup = new StagingGroup { Key = 37, Id = "original", OwnerKey = owner.Key };
+                stagedPackage.StagedPackageIdentity.StagingGroupKey = originalGroup.Key;
+                stagedPackage.StagedPackageIdentity.StagingGroup = originalGroup;
+                var requestedGroup = new StagingGroup { Key = 38, Id = "release", OwnerKey = owner.Key };
+                var managementService = new Mock<IPackageStagingManagementService>();
+                managementService.Setup(x => x.FindStagingGroup(owner, "release")).Returns(createGroup ? null : requestedGroup);
 
                 var apiScopeEvaluator = new Mock<IApiScopeEvaluator>(MockBehavior.Strict);
                 apiScopeEvaluator
@@ -295,6 +345,11 @@ namespace NuGetGallery
                     .Returns(Task.CompletedTask);
 
                 var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
+                StagingGroup createdGroup = null;
+                var stagingGroupRepository = new Mock<IEntityRepository<StagingGroup>>();
+                stagingGroupRepository
+                    .Setup(x => x.InsertOnCommit(It.IsAny<StagingGroup>()))
+                    .Callback<StagingGroup>(value => createdGroup = value);
                 StagedPackage successor = null;
                 stagedPackageRepository
                     .Setup(x => x.GetAll())
@@ -306,6 +361,12 @@ namespace NuGetGallery
                     .Setup(x => x.CommitChangesAsync())
                     .Callback(() =>
                     {
+                        if (createdGroup != null && createdGroup.Key == 0)
+                        {
+                            createdGroup.Key = 39;
+                            stagedPackage.StagedPackageIdentity.StagingGroupKey = createdGroup.Key;
+                        }
+
                         if (successor != null && successor.Key == 0)
                         {
                             successor.Key = 32;
@@ -359,22 +420,37 @@ namespace NuGetGallery
                     apiScopeEvaluator.Object,
                     featureFlagService.Object,
                     packageService.Object,
+                    managementService.Object,
                     packageUploadService.Object,
                     Mock.Of<IReservedNamespaceService>(),
                     securityPolicyService.Object,
                     stagingBlobService.Object,
                     stagedPackageRepository.Object,
+                    stagingGroupRepository.Object,
                     stagedValidationMessageEmitter.Object);
 
+                var isActiveNoOp = identical && (status == StagedPackageStatus.Validating || status == StagedPackageStatus.Ready);
                 var result = await target.StagePackageAsync(
                     currentUser,
                     scopes,
                     Mock.Of<HttpContextBase>(),
-                    packageFile);
+                    packageFile,
+                    assignGroup ? "release" : null,
+                    listed: assignGroup ? false : (bool?)null);
 
                 Assert.Equal(expectedStatusCode, result.StatusCode);
-                var isActiveNoOp = identical && (status == StagedPackageStatus.Validating || status == StagedPackageStatus.Ready);
+                Assert.Equal(assignGroup && expectedStatusCode == HttpStatusCode.OK ? (createGroup ? createdGroup.Key : requestedGroup.Key) : originalGroup.Key, stagedPackage.StagedPackageIdentity.StagingGroupKey);
+                Assert.Equal(!assignGroup || expectedStatusCode == HttpStatusCode.Conflict, package.Listed);
                 var createsSuccessor = expectedStatusCode == HttpStatusCode.OK && !isActiveNoOp;
+                Assert.Equal(createsSuccessor || (assignGroup && isActiveNoOp) ? 1L : 0L, originalGroup.MutationRevision);
+                Assert.Equal(assignGroup && !createGroup && expectedStatusCode == HttpStatusCode.OK ? 1L : 0L, requestedGroup.MutationRevision);
+                stagingGroupRepository.Verify(x => x.InsertOnCommit(It.IsAny<StagingGroup>()), createGroup ? Times.Once() : Times.Never());
+                if (createGroup)
+                {
+                    Assert.Equal("release", createdGroup.Name);
+                    Assert.Equal(owner.Key, createdGroup.OwnerKey);
+                    Assert.Same(createdGroup, stagedPackage.StagedPackageIdentity.StagingGroup);
+                }
                 if (createsSuccessor && (status == StagedPackageStatus.Validating || status == StagedPackageStatus.Ready))
                 {
                     Assert.Equal(StagedPackageStatus.Superseded, stagedPackage.Status);
@@ -399,6 +475,106 @@ namespace NuGetGallery
                 {
                     stagedPackageRepository.Verify(x => x.InsertOnCommit(It.IsAny<StagedPackage>()), Times.Never());
                 }
+            }
+
+            [Fact]
+            public async Task RejectsPromotingGroupBeforeStoringPackage()
+            {
+                var currentUser = new User { Key = 17 };
+                var owner = new User { Key = 23, EmailAddress = "owner@example.com" };
+                var scopes = new List<Scope>();
+                var apiScopeEvaluator = new Mock<IApiScopeEvaluator>();
+                apiScopeEvaluator
+                    .Setup(x => x.Evaluate(
+                        currentUser,
+                        scopes,
+                        It.IsAny<IActionRequiringEntityPermissions<ActionOnNewPackageContext>>(),
+                        It.IsAny<ActionOnNewPackageContext>(),
+                        It.IsAny<string[]>()))
+                    .Returns(new ApiScopeEvaluationResult(owner, PermissionsCheckResult.Allowed, scopesAreValid: true));
+                var packageService = new Mock<IPackageService>();
+                packageService.Setup(x => x.EnsureValid(It.IsAny<PackageArchiveReader>())).Returns(Task.CompletedTask);
+                var managementService = new Mock<IPackageStagingManagementService>();
+                var group = new StagingGroup { Key = 37, OwnerKey = owner.Key, ActivePromotionId = System.Guid.NewGuid() };
+                managementService.Setup(x => x.FindStagingGroup(owner, "release")).Returns(group);
+                var securityPolicyService = new Mock<ISecurityPolicyService>();
+                securityPolicyService
+                    .Setup(x => x.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackagePush, currentUser, It.IsAny<HttpContextBase>()))
+                    .ReturnsAsync(SecurityPolicyResult.SuccessResult);
+                var blobService = new Mock<IStagingBlobService>();
+                var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
+                var featureFlags = new Mock<IFeatureFlagService>();
+                featureFlags.Setup(x => x.IsPackageStagingEnabled(owner)).Returns(true);
+                var target = new PackageStagingUploadService(
+                    apiScopeEvaluator.Object,
+                    featureFlags.Object,
+                    packageService.Object,
+                    managementService.Object,
+                    Mock.Of<IPackageUploadService>(),
+                    Mock.Of<IReservedNamespaceService>(),
+                    securityPolicyService.Object,
+                    blobService.Object,
+                    stagedPackageRepository.Object,
+                    Mock.Of<IEntityRepository<StagingGroup>>(),
+                    Mock.Of<IStagedPackageValidationMessageEmitter>());
+                using var packageFile = TestPackage.CreateTestPackageStream("PackageA", "1.0.0");
+
+                var result = await target.StagePackageAsync(currentUser, scopes, Mock.Of<HttpContextBase>(), packageFile, "release");
+
+                Assert.Equal(HttpStatusCode.Conflict, result.StatusCode);
+                blobService.Verify(x => x.SavePackageFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Stream>()), Times.Never);
+                stagedPackageRepository.Verify(x => x.InsertOnCommit(It.IsAny<StagedPackage>()), Times.Never);
+            }
+
+            [Fact]
+            public async Task DoesNotCreateGroupWhenPackageValidationRejectsUpload()
+            {
+                var currentUser = new User { Key = 17 };
+                var owner = new User { Key = 23, EmailAddress = "owner@example.com" };
+                var scopes = new List<Scope>();
+                var apiScopeEvaluator = new Mock<IApiScopeEvaluator>();
+                apiScopeEvaluator
+                    .Setup(x => x.Evaluate(
+                        currentUser,
+                        scopes,
+                        It.IsAny<IActionRequiringEntityPermissions<ActionOnNewPackageContext>>(),
+                        It.IsAny<ActionOnNewPackageContext>(),
+                        It.IsAny<string[]>()))
+                    .Returns(new ApiScopeEvaluationResult(owner, PermissionsCheckResult.Allowed, scopesAreValid: true));
+                var packageService = new Mock<IPackageService>();
+                packageService.Setup(x => x.EnsureValid(It.IsAny<PackageArchiveReader>())).Returns(Task.CompletedTask);
+                var managementService = new Mock<IPackageStagingManagementService>();
+                managementService.Setup(x => x.FindStagingGroup(owner, "release")).Returns((StagingGroup)null);
+                var securityPolicyService = new Mock<ISecurityPolicyService>();
+                securityPolicyService
+                    .Setup(x => x.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackagePush, currentUser, It.IsAny<HttpContextBase>()))
+                    .ReturnsAsync(SecurityPolicyResult.SuccessResult);
+                var packageUploadService = new Mock<IPackageUploadService>();
+                packageUploadService
+                    .Setup(x => x.ValidateBeforeGeneratePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageMetadata>(), currentUser))
+                    .ReturnsAsync(PackageValidationResult.Invalid("Rejected package."));
+                var groups = new Mock<IEntityRepository<StagingGroup>>();
+                var stagedPackages = new Mock<IEntityRepository<StagedPackage>>();
+                var target = new PackageStagingUploadService(
+                    apiScopeEvaluator.Object,
+                    Mock.Of<IFeatureFlagService>(x => x.IsPackageStagingEnabled(owner) == true),
+                    packageService.Object,
+                    managementService.Object,
+                    packageUploadService.Object,
+                    Mock.Of<IReservedNamespaceService>(),
+                    securityPolicyService.Object,
+                    Mock.Of<IStagingBlobService>(),
+                    stagedPackages.Object,
+                    groups.Object,
+                    Mock.Of<IStagedPackageValidationMessageEmitter>());
+                using var packageFile = TestPackage.CreateTestPackageStream("PackageA", "1.0.0");
+
+                var result = await target.StagePackageAsync(currentUser, scopes, Mock.Of<HttpContextBase>(), packageFile, "release");
+
+                Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
+                Assert.Equal("Rejected package.", result.ErrorMessage);
+                groups.Verify(x => x.InsertOnCommit(It.IsAny<StagingGroup>()), Times.Never);
+                stagedPackages.Verify(x => x.InsertOnCommit(It.IsAny<StagedPackage>()), Times.Never);
             }
         }
 
@@ -541,11 +717,13 @@ namespace NuGetGallery
                     Mock.Of<IApiScopeEvaluator>(),
                     Mock.Of<IFeatureFlagService>(),
                     packageService,
+                    Mock.Of<IPackageStagingManagementService>(),
                     Mock.Of<IPackageUploadService>(),
                     Mock.Of<IReservedNamespaceService>(),
                     securityPolicyService.Object,
                     Mock.Of<IStagingBlobService>(),
                     stagedPackageRepository,
+                    Mock.Of<IEntityRepository<StagingGroup>>(),
                     Mock.Of<IStagedPackageValidationMessageEmitter>());
             }
         }

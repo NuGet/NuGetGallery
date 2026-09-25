@@ -637,6 +637,7 @@
       <DependentUpon>201711021733062_ApiKeyOwnerScope.cs</DependentUpon>
     </Compile>
     <Compile Include="RequestModels\CreateStagingGroupRequest.cs" />
+    <Compile Include="RequestModels\StagePackageRequest.cs" />
     <Compile Include="RequestModels\SimulatedErrorType.cs" />
     <Compile Include="RequestModels\UpdateStagedPackageRequest.cs" />
     <Compile Include="ResponseModels\StagingGroupResponse.cs" />
