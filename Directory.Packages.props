@@ -6,6 +6,7 @@
     <NuGetClientPackageVersion>6.13.2</NuGetClientPackageVersion>
   </PropertyGroup>
   <ItemGroup>
+    <PackageVersion Include="AngleSharp" Version="1.8.2" />
     <PackageVersion Include="Aspire.Hosting.Azure.Search" Version="13.2.1" />
     <PackageVersion Include="Aspire.Hosting.Azure.Storage" Version="13.2.1" />
     <PackageVersion Include="Aspire.Hosting.Testing" Version="13.5.3" />

@@ -43,6 +43,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Direct reference to elevate the AngleSharp version pulled in transitively by dotNetRdf.Core, which resolves to a version with a known vulnerability. -->
+    <PackageReference Include="AngleSharp" />
     <PackageReference Include="Azure.Storage.Blobs" />
     <PackageReference Include="dotNetRdf.Core" />
     <PackageReference Include="NuGet.StrongName.json-ld.net" />
