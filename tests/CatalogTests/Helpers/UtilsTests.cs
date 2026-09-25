@@ -150,7 +150,7 @@ namespace CatalogTests.Helpers
                     var subdirEntry = zipArchive.CreateEntry("subdir\\malicious.nuspec");
                     using (var writer = new StreamWriter(subdirEntry.Open()))
                     {
-                        writer.Write("<?xml version=\"1.0\"?><package xmlns=\"http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd\"><metadata><id>MaliciousPackage</id><version>2.0.0</version><authors>MaliciousAuthor</authors><description>Malicious Description</description></metadata></package>");
+                        writer.Write("<?xml version=\"1.0\"?><package xmlns=\"http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd\"><metadata><id>Malicious</id><version>2.0.0</version><authors>MaliciousAuthor</authors><description>Malicious Description</description></metadata></package>");
                     }
 
                     var rootEntry = zipArchive.CreateEntry("package.nuspec");

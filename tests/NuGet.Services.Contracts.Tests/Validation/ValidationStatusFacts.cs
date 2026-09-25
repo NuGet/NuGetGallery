@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -16,10 +16,11 @@ namespace NuGet.Services.Validation
         [InlineData(1, ValidationStatus.Incomplete)]
         [InlineData(2, ValidationStatus.Succeeded)]
         [InlineData(3, ValidationStatus.Failed)]
+        [InlineData(4, ValidationStatus.Malicious)]
         public void HasUnchangingValues(int expected, ValidationStatus input)
         {
             Assert.Equal(expected, (int)input);
-            Assert.Equal(4, Enum.GetValues(typeof(ValidationStatus)).Length);
+            Assert.Equal(5, Enum.GetValues(typeof(ValidationStatus)).Length);
         }
     }
 }
