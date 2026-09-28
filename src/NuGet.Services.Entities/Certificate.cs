@@ -54,6 +54,16 @@ namespace NuGet.Services.Entities
         public DateTime? Expiration { get; set; }
 
         /// <summary>
+        /// The foreign key of the durable identity value found in this certificate, if any.
+        /// </summary>
+        public int? DurableIdentityValueKey { get; set; }
+
+        /// <summary>
+        /// The durable identity value found in this certificate, if any.
+        /// </summary>
+        public virtual DurableIdentityValue DurableIdentityValue { get; set; }
+
+        /// <summary>
         /// Gets or sets the collection of user certificates.
         /// </summary>
         public ICollection<UserCertificate> UserCertificates { get; set; }

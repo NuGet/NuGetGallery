@@ -22,6 +22,8 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
         public DbSet<UserSecurityPolicy> UserSecurityPolicies { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public DbSet<ReservedNamespace> ReservedNamespaces { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public DbSet<UserCertificate> UserCertificates { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public DbSet<DurableIdentityValue> DurableIdentityValues { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public DbSet<UserDurableIdentityValue> UserDurableIdentityValues { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public DbSet<SymbolPackage> SymbolPackages { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public DbSet<PackageVulnerability> Vulnerabilities { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public DbSet<VulnerablePackageVersionRange> VulnerableRanges { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
