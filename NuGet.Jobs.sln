@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.6.11627.30 main
+VisualStudioVersion = 18.6.11627.30
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Jobs", "Jobs", "{C86C6DEE-84E1-4E4E-8868-6755D7A8E0E4}"
 EndProject
@@ -67,6 +67,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Gallery.Maintenance", "src\Gallery.Maintenance\Gallery.Maintenance.csproj", "{EFF021CA-1BF4-4C09-BFB8-D314EAAD24D2}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CopyAzureContainer", "src\CopyAzureContainer\CopyAzureContainer.csproj", "{A07F7D0C-F269-43D5-A812-3ABC47090885}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetCDNRedirect", "src\NuGetCDNRedirect\NuGetCDNRedirect.csproj", "{BC9EA7CE-AD21-4D17-B581-F8ED8CBD7191}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.Gallery.Maintenance", "tests\Tests.Gallery.Maintenance\Tests.Gallery.Maintenance.csproj", "{147A757D-864B-4C74-B8CF-14DFF9793605}"
 EndProject
@@ -241,6 +243,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NuGet.Services.Validation.I
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UpdateBlobProperties", "src\UpdateBlobProperties\UpdateBlobProperties.csproj", "{6F2096D0-BA21-42D1-9C49-36038C51128F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGetCDNRedirect.Tests", "tests\NuGetCDNRedirect.Tests\NuGetCDNRedirect.Tests.csproj", "{4D9164E8-8CE4-92C1-8DCC-5790D2CA51B0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -351,6 +355,10 @@ Global
 		{A07F7D0C-F269-43D5-A812-3ABC47090885}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A07F7D0C-F269-43D5-A812-3ABC47090885}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A07F7D0C-F269-43D5-A812-3ABC47090885}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC9EA7CE-AD21-4D17-B581-F8ED8CBD7191}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC9EA7CE-AD21-4D17-B581-F8ED8CBD7191}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC9EA7CE-AD21-4D17-B581-F8ED8CBD7191}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC9EA7CE-AD21-4D17-B581-F8ED8CBD7191}.Release|Any CPU.Build.0 = Release|Any CPU
 		{147A757D-864B-4C74-B8CF-14DFF9793605}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{147A757D-864B-4C74-B8CF-14DFF9793605}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{147A757D-864B-4C74-B8CF-14DFF9793605}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -623,6 +631,10 @@ Global
 		{6F2096D0-BA21-42D1-9C49-36038C51128F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6F2096D0-BA21-42D1-9C49-36038C51128F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6F2096D0-BA21-42D1-9C49-36038C51128F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D9164E8-8CE4-92C1-8DCC-5790D2CA51B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D9164E8-8CE4-92C1-8DCC-5790D2CA51B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D9164E8-8CE4-92C1-8DCC-5790D2CA51B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D9164E8-8CE4-92C1-8DCC-5790D2CA51B0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -656,6 +668,8 @@ Global
 		{12719498-B87E-4E92-8C2B-30046393CF85} = {88725659-D5F8-49F9-9B7E-D87C5B9917D7}
 		{EFF021CA-1BF4-4C09-BFB8-D314EAAD24D2} = {88725659-D5F8-49F9-9B7E-D87C5B9917D7}
 		{A07F7D0C-F269-43D5-A812-3ABC47090885} = {C86C6DEE-84E1-4E4E-8868-6755D7A8E0E4}
+		{BC9EA7CE-AD21-4D17-B581-F8ED8CBD7191} = {97E23323-BA7A-48F0-A578-858B82B6D8FB}
+		{4D9164E8-8CE4-92C1-8DCC-5790D2CA51B0} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{147A757D-864B-4C74-B8CF-14DFF9793605} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{FC0CEF12-D501-46D1-B1BF-D4134BD8D478} = {B9D03824-A9CA-43AC-86D6-8BB399B9A228}
 		{0C887292-C5AB-4107-946C-A53B18A38D22} = {6A776396-02B1-475D-A104-26940ADB04AB}

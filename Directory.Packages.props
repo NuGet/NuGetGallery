@@ -40,7 +40,7 @@
     <PackageVersion Include="Lucene.Net" Version="3.0.3" />
     <PackageVersion Include="Markdig.Signed" Version="0.37.0" />
     <PackageVersion Include="MicroBuild.Core" Version="0.3.0" />
-    <PackageVersion Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
+    <PackageVersion Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.23.0" />
     <PackageVersion Include="Microsoft.ApplicationInsights.DependencyCollector" Version="2.21.0" />
     <PackageVersion Include="Microsoft.ApplicationInsights.TraceListener" Version="2.21.0" />
     <PackageVersion Include="Microsoft.ApplicationInsights.Web" Version="2.21.0" />
