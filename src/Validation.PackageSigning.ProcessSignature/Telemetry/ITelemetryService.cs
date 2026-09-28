@@ -21,5 +21,11 @@ namespace NuGet.Jobs.Validation.PackageSigning.Telemetry
             Guid validationId,
             PrimarySignature inputSignature,
             PrimarySignature outputSignature);
+
+        void TrackDurableIdentityValueLinked(
+            string packageId,
+            string normalizedVersion,
+            Guid validationId,
+            int linkedAccountCount);
     }
 }

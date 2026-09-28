@@ -126,8 +126,12 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
 
         private string NoLongerThanOrNull(string input)
         {
-            if (string.IsNullOrWhiteSpace(input) ||
-                input.Length > _configuration.Value.MaxCertificateStringLength)
+            return NoLongerThanOrNull(input, _configuration.Value.MaxCertificateStringLength);
+        }
+
+        internal static string NoLongerThanOrNull(string input, int maxLength)
+        {
+            if (string.IsNullOrWhiteSpace(input) || input.Length > maxLength)
             {
                 return null;
             }
