@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using NuGet.Services.Entities;
+
 namespace NuGet.Jobs.Validation
 {
     public interface IFeatureFlagService
@@ -29,5 +31,12 @@ namespace NuGet.Jobs.Validation
         /// Determines whether non-canonical DER ordering in author signed attributes should be rejected.
         /// </summary>
         bool IsDerOrderingEnforcementEnabled();
+
+        /// <summary>
+        /// Determines whether durable identity values of Artifact Signing certificates are linked to the specified
+        /// account. The progress of this feature is tracked here:
+        /// https://github.com/NuGet/NuGetGallery/issues/10027
+        /// </summary>
+        bool IsArtifactSigningDurableIdentityEnabled(User account);
     }
 }
