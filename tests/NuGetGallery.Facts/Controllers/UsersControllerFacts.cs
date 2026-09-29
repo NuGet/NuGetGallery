@@ -4114,6 +4114,9 @@ namespace NuGetGallery
 
             public ThePackagesAction()
             {
+                GetMock<ISymbolPackageStagingManagementService>()
+                    .Setup(x => x.GetStagedSymbolPackages(It.IsAny<User>()))
+                    .Returns(Array.Empty<StagedSymbolPackage>());
                 _testController = GetController<UsersController>();
                 _fakes = Get<Fakes>();
                 _testUser = _fakes.CreateUser(userName);
@@ -4242,6 +4245,32 @@ namespace NuGetGallery
                         Assert.Null(group.Status);
                         Assert.Null(group.StatusClass);
                     });
+            }
+
+            [Fact]
+            public void IncludesUngroupedSummaryWhenOnlySymbolsAreStaged()
+            {
+                var identity = CreateStagedPackage(101, "Symbols.Package", StagedPackageStatus.Ready).StagedPackageIdentity;
+                identity.CurrentStagedPackageKey = null;
+                identity.CurrentStagedPackage = null;
+                identity.Package.PackageStatusKey = PackageStatus.Available;
+                var attempt = new StagedSymbolPackage { StagedPackageIdentity = identity, Status = StagedPackageStatus.FailedValidation };
+                GetMock<IPackageService>()
+                    .Setup(x => x.FindPackagesByAnyMatchingOwner(_testUser, It.IsAny<bool>(), false))
+                    .Returns(Array.Empty<Package>());
+                GetMock<IPackageStagingManagementService>().Setup(x => x.IsEnabled(_testUser)).Returns(true);
+                GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagedPackages(_testUser)).Returns(Array.Empty<StagedPackage>());
+                GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagingGroups(_testUser)).Returns(Array.Empty<StagingGroup>());
+                GetMock<ISymbolPackageStagingManagementService>().Setup(x => x.GetStagedSymbolPackages(_testUser)).Returns(new[] { attempt });
+
+                var model = ResultAssert.IsView<ManagePackagesViewModel>(_testController.Packages());
+
+                var summary = Assert.Single(model.StagingGroups);
+                Assert.True(summary.IsUngrouped);
+                Assert.Equal(_testUser.Username, summary.Owner);
+                Assert.Equal(1, summary.PackageCount);
+                Assert.Equal("1 failed", summary.PackageStatusSummary);
+                Assert.Contains($"/account/staging/{_testUser.Username}/ungrouped", summary.Url);
             }
 
             [Fact]

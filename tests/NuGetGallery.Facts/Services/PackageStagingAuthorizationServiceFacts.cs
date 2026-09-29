@@ -28,6 +28,7 @@ namespace NuGetGallery
             var result = target.CanManage(owner, stagedPackage);
 
             Assert.True(result);
+            Assert.True(target.CanManage(owner, new StagedSymbolPackage { StagedPackageIdentity = stagedPackage.StagedPackageIdentity }));
         }
 
         [Fact]
@@ -41,6 +42,7 @@ namespace NuGetGallery
             var result = target.CanManage(owner, CreateStagedPackage(owner));
 
             Assert.False(result);
+            Assert.False(target.CanManage(owner, new StagedSymbolPackage { StagedPackageIdentity = CreateStagedPackage(owner).StagedPackageIdentity }));
         }
 
         [Fact]
@@ -67,6 +69,7 @@ namespace NuGetGallery
             var result = target.CanManage(member, stagedPackage);
 
             Assert.True(result);
+            Assert.True(target.CanManage(member, new StagedSymbolPackage { StagedPackageIdentity = stagedPackage.StagedPackageIdentity }));
         }
 
         [Fact]
@@ -86,6 +89,7 @@ namespace NuGetGallery
             var result = target.CanManage(otherPackageOwner, stagedPackage);
 
             Assert.False(result);
+            Assert.False(target.CanManage(otherPackageOwner, new StagedSymbolPackage { StagedPackageIdentity = stagedPackage.StagedPackageIdentity }));
         }
 
         [Fact]

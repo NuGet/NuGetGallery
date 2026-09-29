@@ -19,6 +19,114 @@ namespace NuGetGallery
 {
     public class StagingControllerFacts : TestContainer
     {
+        public StagingControllerFacts()
+        {
+            GetMock<ISymbolPackageStagingManagementService>()
+                .Setup(x => x.GetStagedSymbolPackages(It.IsAny<User>()))
+                .Returns(new List<StagedSymbolPackage>());
+        }
+
+        [Theory]
+        [InlineData(PackageStatus.Available)]
+        [InlineData(PackageStatus.Deleted)]
+        public void DisplaysUngroupedSymbolFindingsAndParentStatus(PackageStatus parentStatus)
+        {
+            var owner = new User("owner") { Key = 1 };
+            var attempt = CreateStagedSymbolPackage(owner);
+            attempt.Status = StagedPackageStatus.FailedValidation;
+            attempt.StagedPackageIdentity.Package.PackageStatusKey = parentStatus;
+            var grouped = CreateStagedSymbolPackage(owner);
+            grouped.StagedPackageIdentity.StagingGroupKey = 10;
+            var otherOwner = CreateStagedSymbolPackage(new User("other") { Key = 2 });
+            var issue = ValidationIssue.SymbolErrorCode_MatchingAssemblyNotFound;
+            GetMock<IPackageStagingAuthorizationService>().Setup(x => x.GetEnabledOwner(owner, owner.Username)).Returns(owner);
+            GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagedPackages(owner)).Returns(new List<StagedPackage>());
+            GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagingGroups(owner)).Returns(new List<StagingGroup>());
+            GetMock<ISymbolPackageStagingManagementService>()
+                .Setup(x => x.GetStagedSymbolPackages(owner))
+                .Returns(new[] { attempt, grouped, otherOwner });
+            GetMock<IValidationService>()
+                .Setup(x => x.GetStagedSymbolPackageValidationIssues(It.Is<IReadOnlyCollection<int>>(keys => keys.SequenceEqual(new[] { attempt.Key }))))
+                .Returns(new Dictionary<int, IReadOnlyList<ValidationIssue>> { { attempt.Key, new[] { issue } } });
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(owner);
+
+            var model = ResultAssert.IsView<StagingGroupDetailViewModel>(target.Ungrouped(owner.Username), viewName: "Group");
+
+            var symbols = Assert.Single(model.Packages);
+            Assert.True(symbols.IsSymbolPackage);
+            Assert.Equal(parentStatus.ToString(), symbols.ParentStatus);
+            Assert.Equal(parentStatus == PackageStatus.Available, symbols.ParentUrl != null);
+            Assert.Same(issue, Assert.Single(symbols.ValidationIssues));
+            Assert.True(symbols.CanManage);
+            Assert.False(symbols.CanPromote);
+            Assert.False(symbols.CanResend);
+            Assert.Null(symbols.MoveUrl);
+            Assert.Equal(1, model.PackageCount);
+            Assert.Equal(1, model.FailedCount);
+            GetMock<IValidationService>().Verify(x => x.GetStagedPackageValidationIssues(It.IsAny<IReadOnlyCollection<int>>()), Times.Never);
+        }
+
+        [Theory]
+        [InlineData(false, false)]
+        [InlineData(true, true)]
+        [InlineData(true, false)]
+        public async Task SymbolActionsHonorAuthorizationAndDeletionOutcome(bool authorized, bool deletionSucceeds)
+        {
+            var owner = new User("owner") { Key = 1 };
+            var attempt = CreateStagedSymbolPackage(owner);
+            using var content = new MemoryStream(new byte[] { 1, 2, 3 });
+            GetMock<ISymbolPackageStagingManagementService>()
+                .Setup(x => x.FindCurrentStagedSymbolPackage("PackageA", "1.0.0"))
+                .Returns(attempt);
+            GetMock<IPackageStagingAuthorizationService>().Setup(x => x.CanManage(owner, attempt)).Returns(authorized);
+            GetMock<ISymbolPackageStagingManagementService>().Setup(x => x.OpenPackageContentAsync(attempt)).ReturnsAsync(content);
+            GetMock<ISymbolPackageStagingManagementService>().Setup(x => x.DeletePackageAsync(attempt)).ReturnsAsync(deletionSucceeds);
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(owner);
+
+            var download = await target.DownloadSymbolPackage("PackageA", "1.0.0");
+            var delete = await target.DeleteSymbolPackage("PackageA", "1.0.0");
+
+            if (authorized)
+            {
+                var file = Assert.IsType<FileStreamResult>(download);
+                Assert.Same(content, file.FileStream);
+                Assert.Equal("PackageA.1.0.0.snupkg", file.FileDownloadName);
+                Assert.Equal(CoreConstants.OctetStreamContentType, file.ContentType);
+                ResultAssert.IsRedirectTo(delete, "/account/staging/owner/ungrouped");
+                GetMock<ISymbolPackageStagingManagementService>().Verify(x => x.DeletePackageAsync(attempt), Times.Once);
+                if (!deletionSucceeds)
+                {
+                    Assert.Equal("The staged symbols changed or promotion started. Refresh and try again.", target.TempData["ErrorMessage"]);
+                }
+            }
+            else
+            {
+                Assert.IsType<HttpNotFoundResult>(download);
+                Assert.IsType<HttpNotFoundResult>(delete);
+                GetMock<ISymbolPackageStagingManagementService>().Verify(x => x.OpenPackageContentAsync(It.IsAny<StagedSymbolPackage>()), Times.Never);
+                GetMock<ISymbolPackageStagingManagementService>().Verify(x => x.DeletePackageAsync(It.IsAny<StagedSymbolPackage>()), Times.Never);
+            }
+        }
+
+        private static StagedSymbolPackage CreateStagedSymbolPackage(User owner)
+        {
+            var identity = CreateStagedPackage(owner).StagedPackageIdentity;
+            identity.CurrentStagedPackageKey = null;
+            identity.CurrentStagedPackage = null;
+            identity.Package.PackageStatusKey = PackageStatus.Available;
+            var attempt = new StagedSymbolPackage
+            {
+                Key = 100,
+                StagedPackageIdentity = identity,
+                Status = StagedPackageStatus.Ready,
+            };
+            identity.CurrentStagedSymbolPackageKey = attempt.Key;
+            identity.CurrentStagedSymbolPackage = attempt;
+            return attempt;
+        }
+
         [Fact]
         public void DisplaysCreateGroupFormForEnabledOwners()
         {
