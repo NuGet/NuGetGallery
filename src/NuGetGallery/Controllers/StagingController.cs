@@ -22,6 +22,7 @@ namespace NuGetGallery
     {
         private readonly IPackageStagingAuthorizationService _packageStagingAuthorizationService;
         private readonly IPackageStagingManagementService _packageStagingManagementService;
+        private readonly ISymbolPackageStagingManagementService _symbolPackageStagingManagementService;
         private readonly IPackageStagingPromotionService _packageStagingPromotionService;
         private readonly IPackageStagingUploadService _packageStagingUploadService;
         private readonly IValidationService _validationService;
@@ -29,12 +30,14 @@ namespace NuGetGallery
         public StagingController(
             IPackageStagingAuthorizationService packageStagingAuthorizationService,
             IPackageStagingManagementService packageStagingManagementService,
+            ISymbolPackageStagingManagementService symbolPackageStagingManagementService,
             IPackageStagingPromotionService packageStagingPromotionService,
             IPackageStagingUploadService packageStagingUploadService,
             IValidationService validationService)
         {
             _packageStagingAuthorizationService = packageStagingAuthorizationService ?? throw new ArgumentNullException(nameof(packageStagingAuthorizationService));
             _packageStagingManagementService = packageStagingManagementService ?? throw new ArgumentNullException(nameof(packageStagingManagementService));
+            _symbolPackageStagingManagementService = symbolPackageStagingManagementService ?? throw new ArgumentNullException(nameof(symbolPackageStagingManagementService));
             _packageStagingPromotionService = packageStagingPromotionService ?? throw new ArgumentNullException(nameof(packageStagingPromotionService));
             _packageStagingUploadService = packageStagingUploadService ?? throw new ArgumentNullException(nameof(packageStagingUploadService));
             _validationService = validationService ?? throw new ArgumentNullException(nameof(validationService));
@@ -370,8 +373,62 @@ namespace NuGetGallery
                 .Where(group => group.OwnerKey == stagingOwner.Key)
                 .ToList();
             var model = CreateGroupViewModel(stagingOwner.Username, id: null, "Ungrouped", "Staged packages not in any group", stagedPackages, stagingGroups);
+            var stagedSymbols = _symbolPackageStagingManagementService.GetStagedSymbolPackages(currentUser)
+                .Where(attempt => attempt.StagedPackageIdentity.OwnerKey == stagingOwner.Key && !attempt.StagedPackageIdentity.StagingGroupKey.HasValue)
+                .ToList();
+            AddSymbolPackages(model, stagedSymbols);
 
             return View("Group", model);
+        }
+
+        private void AddSymbolPackages(StagingGroupDetailViewModel model, IReadOnlyList<StagedSymbolPackage> stagedSymbols)
+        {
+            var failedKeys = stagedSymbols
+                .Where(attempt => attempt.Status == StagedPackageStatus.FailedValidation)
+                .Select(attempt => attempt.Key)
+                .ToList();
+            IReadOnlyDictionary<int, IReadOnlyList<ValidationIssue>> findings = new Dictionary<int, IReadOnlyList<ValidationIssue>>();
+            if (failedKeys.Count > 0)
+            {
+                findings = _validationService.GetStagedSymbolPackageValidationIssues(failedKeys);
+            }
+
+            var symbolModels = stagedSymbols.Select(attempt =>
+            {
+                var identity = attempt.StagedPackageIdentity;
+                var package = identity.Package;
+                string parentUrl = null;
+                if (package.PackageStatusKey == PackageStatus.Available)
+                {
+                    parentUrl = Url.Package(package.PackageRegistration.Id, package.NormalizedVersion);
+                }
+
+                findings.TryGetValue(attempt.Key, out var issues);
+                return new PackageStagingViewModel
+                {
+                    Id = package.PackageRegistration.Id,
+                    Version = package.NormalizedVersion,
+                    Owner = identity.Owner.Username,
+                    IsSymbolPackage = true,
+                    ParentStatus = package.PackageStatusKey.ToString(),
+                    ParentUrl = parentUrl,
+                    Status = attempt.Status.ToString(),
+                    StatusClass = $"staging-status-{attempt.Status.ToString().ToLowerInvariant()}",
+                    UploadedDate = attempt.UploadedDate,
+                    ValidationIssues = issues ?? [],
+                    CanManage = attempt.Status != StagedPackageStatus.Promoting,
+                };
+            });
+
+            model.Packages = model.Packages.Concat(symbolModels)
+                .OrderBy(package => package.Id)
+                .ThenBy(package => package.Version)
+                .ThenBy(package => package.IsSymbolPackage)
+                .ToList();
+            model.PackageCount = model.Packages.Count;
+            model.ReadyCount += stagedSymbols.Count(attempt => attempt.Status == StagedPackageStatus.Ready);
+            model.ValidatingCount += stagedSymbols.Count(attempt => attempt.Status == StagedPackageStatus.Validating);
+            model.FailedCount += stagedSymbols.Count(attempt => attempt.Status == StagedPackageStatus.FailedValidation);
         }
 
         [HttpGet]
@@ -769,6 +826,56 @@ namespace NuGetGallery
             }
 
             return stagedPackage;
+        }
+
+        [HttpGet]
+        public virtual async Task<ActionResult> DownloadSymbolPackage(string id, string version)
+        {
+            ValidatePackageIdentity(id, version);
+            var attempt = FindAuthorizedStagedSymbolPackage(id, version);
+            if (attempt == null)
+            {
+                return HttpNotFound();
+            }
+
+            var content = await _symbolPackageStagingManagementService.OpenPackageContentAsync(attempt);
+            if (content == null)
+            {
+                return HttpNotFound();
+            }
+
+            return File(content, CoreConstants.OctetStreamContentType, $"{id}.{version}.snupkg");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> DeleteSymbolPackage(string id, string version)
+        {
+            ValidatePackageIdentity(id, version);
+            var attempt = FindAuthorizedStagedSymbolPackage(id, version);
+            if (attempt == null)
+            {
+                return HttpNotFound();
+            }
+
+            var owner = attempt.StagedPackageIdentity.Owner.Username;
+            if (!await _symbolPackageStagingManagementService.DeletePackageAsync(attempt))
+            {
+                TempData["ErrorMessage"] = "The staged symbols changed or promotion started. Refresh and try again.";
+            }
+
+            return Redirect(Url.ManageUngroupedStaging(owner));
+        }
+
+        private StagedSymbolPackage FindAuthorizedStagedSymbolPackage(string id, string version)
+        {
+            var attempt = _symbolPackageStagingManagementService.FindCurrentStagedSymbolPackage(id, version);
+            if (attempt == null || !_packageStagingAuthorizationService.CanManage(GetCurrentUser(), attempt))
+            {
+                return null;
+            }
+
+            return attempt;
         }
     }
 }

@@ -15,6 +15,12 @@ namespace NuGetGallery
 
         public string Owner { get; set; }
 
+        public bool IsSymbolPackage { get; set; }
+
+        public string ParentStatus { get; set; }
+
+        public string ParentUrl { get; set; }
+
         public string Status { get; set; }
 
         public string StatusClass { get; set; }

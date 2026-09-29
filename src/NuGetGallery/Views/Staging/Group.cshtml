@@ -197,7 +197,21 @@
                             <tbody data-bind="foreach: Packages">
                                 <tr class="manage-package-listing"
                                     data-bind="visible: Visible, css: { 'staging-package-busy': IsBusy }, attr: { 'aria-busy': IsBusy() ? 'true' : null }">
-                                    <td class="align-middle package-id" data-bind="text: Id"></td>
+                                    <td class="align-middle package-id">
+                                        <span data-bind="text: Id"></span>
+                                        <!-- ko if: IsSymbolPackage -->
+                                        <span class="text-muted">(.snupkg)</span>
+                                        <div class="text-muted">
+                                            Parent:
+                                            <!-- ko if: ParentUrl -->
+                                            <a data-bind="attr: { href: ParentUrl }, text: ParentStatus"></a>
+                                            <!-- /ko -->
+                                            <!-- ko ifnot: ParentUrl -->
+                                            <span data-bind="text: ParentStatus"></span>
+                                            <!-- /ko -->
+                                        </div>
+                                        <!-- /ko -->
+                                    </td>
                                     <td class="align-middle staging-package-version" data-bind="text: Version"></td>
                                     <td class="align-middle">
                                         <div class="staging-status-content">
@@ -215,6 +229,7 @@
                                         </div>
                                     </td>
                                     <td class="align-middle staging-package-listed">
+                                        <!-- ko ifnot: IsSymbolPackage -->
                                         <form method="post"
                                               class="staging-listed-form"
                                               data-bind="attr: { action: UpdateListedUrl, 'aria-busy': IsSavingListed() ? 'true' : null }">
@@ -227,6 +242,10 @@
                                             <input type="hidden" name="listed" value="false" />
                                             <span class="staging-listed-status" aria-live="polite" data-bind="text: ListedStatus"></span>
                                         </form>
+                                        <!-- /ko -->
+                                        <!-- ko if: IsSymbolPackage -->
+                                        <span class="text-muted" aria-label="Not applicable">N/A</span>
+                                        <!-- /ko -->
                                     </td>
                                     <td class="align-middle" data-bind="text: UploadedDate"></td>
                                     <td class="text-right align-middle package-controls">
@@ -272,6 +291,7 @@
                                                     <a data-bind="attr: { href: MoveUrl }">Move</a>
                                                 </li>
                                                 <!-- /ko -->
+                                                <!-- ko ifnot: IsSymbolPackage -->
                                                 <li data-bind="visible: !IsBusy()">
                                                     <a href="#"
                                                        class="staging-replace-trigger"
@@ -288,6 +308,7 @@
                                                                accept=".nupkg" />
                                                     </form>
                                                 </li>
+                                                <!-- /ko -->
                                                 <li role="separator" class="divider" data-bind="visible: !IsBusy()"></li>
                                                 <li data-bind="visible: !IsBusy()">
                                                     <a href="#"
@@ -375,10 +396,26 @@
 
     dynamic GetSerializableStagedPackage(PackageStagingViewModel package, int index)
     {
+        string downloadUrl;
+        string deleteUrl;
+        if (package.IsSymbolPackage)
+        {
+            downloadUrl = Url.DownloadStagedSymbolPackage(package.Id, package.Version);
+            deleteUrl = Url.DeleteStagedSymbolPackage(package.Id, package.Version);
+        }
+        else
+        {
+            downloadUrl = Url.DownloadStagedPackage(package.Id, package.Version);
+            deleteUrl = Url.DeleteStagedPackage(package.Id, package.Version);
+        }
+
         return new
         {
             package.Id,
             package.Version,
+            package.IsSymbolPackage,
+            package.ParentStatus,
+            package.ParentUrl,
             Status = GetStagedPackageStatus(package.Status),
             package.StatusClass,
             UploadedDate = package.UploadedDate.ToNuGetShortDateString(),
@@ -390,12 +427,12 @@
             package.Listed,
             package.MoveUrl,
             ListedInputId = "staged-listed-" + index,
-            DownloadUrl = Url.DownloadStagedPackage(package.Id, package.Version),
+            DownloadUrl = downloadUrl,
             ReplaceUrl = Url.ReplaceStagedPackage(package.Id, package.Version),
             UpdateListedUrl = Url.UpdateStagedPackageListed(package.Id, package.Version),
             PromoteUrl = Url.PromoteStagedPackage(package.Id, package.Version),
             ResendUrl = Url.ResendStagedPackage(package.Id, package.Version),
-            DeleteUrl = Url.DeleteStagedPackage(package.Id, package.Version),
+            DeleteUrl = deleteUrl,
         };
     }
 }
