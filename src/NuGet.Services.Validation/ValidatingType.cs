@@ -28,5 +28,10 @@ namespace NuGet.Services.Validation
         /// The entity is a staged NuGet package.
         /// </summary>
         StagedPackage = 3,
+
+        /// <summary>
+        /// An immutable staged symbols upload, separate from the published symbols package.
+        /// </summary>
+        StagedSymbolPackage = 4,
     }
 }

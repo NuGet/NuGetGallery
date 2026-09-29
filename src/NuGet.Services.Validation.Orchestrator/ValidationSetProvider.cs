@@ -49,7 +49,7 @@ namespace NuGet.Services.Validation.Orchestrator
             return await _validationStorageService.TryGetParentValidationSetAsync(validationId);
         }
 
-        public async Task<PackageValidationSet> TryGetOrCreateValidationSetAsync(ProcessValidationSetData message, IValidatingEntity<T> validatingEntity)
+        public virtual async Task<PackageValidationSet> TryGetOrCreateValidationSetAsync(ProcessValidationSetData message, IValidatingEntity<T> validatingEntity)
         {
             var validationSet = await _validationStorageService.GetValidationSetAsync(message.ValidationTrackingId);
 
@@ -168,9 +168,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 ValidationSetStatus = ValidationSetStatus.InProgress,
             };
 
-            var validationsToStart = _validationConfiguration
-                .Validations
-                .Where(v => v.ShouldStart);
+            var validationsToStart = GetValidationsToStart();
 
             foreach (var validation in validationsToStart)
             {
@@ -186,6 +184,11 @@ namespace NuGet.Services.Validation.Orchestrator
             }
 
             return validationSet;
+        }
+
+        protected virtual IEnumerable<ValidationConfigurationItem> GetValidationsToStart()
+        {
+            return _validationConfiguration.Validations.Where(v => v.ShouldStart);
         }
     }
 }
