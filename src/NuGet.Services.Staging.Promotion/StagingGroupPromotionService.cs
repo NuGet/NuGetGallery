@@ -16,6 +16,7 @@ namespace NuGet.Services.Staging.Promotion
     public class StagingGroupPromotionService : IStagingGroupPromotionService
     {
         private readonly IEntityRepository<StagedPackage> _stagedPackageRepository;
+        private readonly IEntityRepository<StagedPackageIdentity> _stagedPackageIdentityRepository;
         private readonly IEntityRepository<StagingGroup> _stagingGroupRepository;
         private readonly ILogger<StagingGroupPromotionService> _logger;
 
@@ -23,14 +24,17 @@ namespace NuGet.Services.Staging.Promotion
         /// Initializes a new instance of the <see cref="StagingGroupPromotionService"/> class.
         /// </summary>
         /// <param name="stagedPackageRepository">The staged package repository.</param>
+        /// <param name="stagedPackageIdentityRepository">The staging identity repository.</param>
         /// <param name="stagingGroupRepository">The staging group repository.</param>
         /// <param name="logger">The logger.</param>
         public StagingGroupPromotionService(
             IEntityRepository<StagedPackage> stagedPackageRepository,
+            IEntityRepository<StagedPackageIdentity> stagedPackageIdentityRepository,
             IEntityRepository<StagingGroup> stagingGroupRepository,
             ILogger<StagingGroupPromotionService> logger)
         {
             _stagedPackageRepository = stagedPackageRepository ?? throw new ArgumentNullException(nameof(stagedPackageRepository));
+            _stagedPackageIdentityRepository = stagedPackageIdentityRepository ?? throw new ArgumentNullException(nameof(stagedPackageIdentityRepository));
             _stagingGroupRepository = stagingGroupRepository ?? throw new ArgumentNullException(nameof(stagingGroupRepository));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -104,15 +108,23 @@ namespace NuGet.Services.Staging.Promotion
                             return;
                         }
 
+                        var completedIdentities = activeMembers
+                            .Where(x => x.Status == StagedPackageStatus.Succeeded && !x.StagedPackageIdentity.CurrentStagedSymbolPackageKey.HasValue)
+                            .Select(x => x.StagedPackageIdentity)
+                            .ToList();
                         foreach (var activeMember in activeMembers)
                         {
                             if (activeMember.Status == StagedPackageStatus.Succeeded)
                             {
-                                activeMember.StagedPackageIdentity.CurrentStagedPackageKey = null;
-                                activeMember.StagedPackageIdentity.CurrentStagedPackage = null;
-                                activeMember.StagedPackageIdentity.StagingGroupKey = null;
-                                activeMember.StagedPackageIdentity.StagingGroup = null;
+                                var identity = activeMember.StagedPackageIdentity;
+                                identity.CurrentStagedPackageKey = null;
+                                identity.CurrentStagedPackage = null;
                                 _stagedPackageRepository.DeleteOnCommit(activeMember);
+                                if (!identity.CurrentStagedSymbolPackageKey.HasValue)
+                                {
+                                    identity.StagingGroupKey = null;
+                                    identity.StagingGroup = null;
+                                }
                             }
                             else
                             {
@@ -122,6 +134,18 @@ namespace NuGet.Services.Staging.Promotion
 
                         stagingGroup.ActivePromotionId = null;
                         await _stagedPackageRepository.CommitChangesAsync();
+
+                        if (completedIdentities.Count > 0)
+                        {
+                            // Clear the current-attempt relationships before deleting their identities.
+                            foreach (var identity in completedIdentities)
+                            {
+                                _stagedPackageIdentityRepository.DeleteOnCommit(identity);
+                            }
+
+                            await _stagedPackageRepository.CommitChangesAsync();
+                        }
+
                         _logger.LogInformation(
                             "Completed staging group promotion with {SucceededCount} successful and {FailedCount} failed packages; retained the group.",
                             activeMembers.Count(candidate => candidate.Status == StagedPackageStatus.Succeeded),
