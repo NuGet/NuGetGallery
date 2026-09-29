@@ -20,6 +20,7 @@ namespace NuGet.Services.Staging.Promotion
     public class StagedPackagePromotionMessageHandler : IStagingPromotionMessageHandler<StagedPackage>
     {
         private readonly IEntityRepository<StagedPackage> _stagedPackageRepository;
+        private readonly IEntityRepository<StagedPackageIdentity> _stagedPackageIdentityRepository;
         private readonly IStagingGroupPromotionService _stagingGroupPromotionService;
         private readonly ICorePackageService _packageService;
         private readonly IStagingBlobService _stagingBlobService;
@@ -33,6 +34,7 @@ namespace NuGet.Services.Staging.Promotion
         /// Initializes a new instance of the <see cref="StagedPackagePromotionMessageHandler"/> class.
         /// </summary>
         /// <param name="stagedPackageRepository">The staged package repository.</param>
+        /// <param name="stagedPackageIdentityRepository">The staging identity repository.</param>
         /// <param name="stagingGroupPromotionService">The staging group promotion service.</param>
         /// <param name="packageService">The package service.</param>
         /// <param name="stagingBlobService">The private staging blob service.</param>
@@ -43,6 +45,7 @@ namespace NuGet.Services.Staging.Promotion
         /// <param name="logger">The logger.</param>
         public StagedPackagePromotionMessageHandler(
             IEntityRepository<StagedPackage> stagedPackageRepository,
+            IEntityRepository<StagedPackageIdentity> stagedPackageIdentityRepository,
             IStagingGroupPromotionService stagingGroupPromotionService,
             ICorePackageService packageService,
             IStagingBlobService stagingBlobService,
@@ -53,6 +56,7 @@ namespace NuGet.Services.Staging.Promotion
             ILogger<StagedPackagePromotionMessageHandler> logger)
         {
             _stagedPackageRepository = stagedPackageRepository ?? throw new ArgumentNullException(nameof(stagedPackageRepository));
+            _stagedPackageIdentityRepository = stagedPackageIdentityRepository ?? throw new ArgumentNullException(nameof(stagedPackageIdentityRepository));
             _stagingGroupPromotionService = stagingGroupPromotionService ?? throw new ArgumentNullException(nameof(stagingGroupPromotionService));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _stagingBlobService = stagingBlobService ?? throw new ArgumentNullException(nameof(stagingBlobService));
@@ -284,12 +288,15 @@ namespace NuGet.Services.Staging.Promotion
         {
             await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
             {
-                var stagingGroup = stagedPackage.StagedPackageIdentity.StagingGroup;
+                var identity = stagedPackage.StagedPackageIdentity;
+                var stagingGroup = identity.StagingGroup;
                 await _packageService.UpdatePackageStreamMetadataAsync(package, streamMetadata, commitChanges: false);
                 await _packageService.UpdatePackageStatusAsync(package, PackageStatus.Available, commitChanges: false);
 
                 if (stagingGroup == null)
                 {
+                    identity.CurrentStagedPackageKey = null;
+                    identity.CurrentStagedPackage = null;
                     _stagedPackageRepository.DeleteOnCommit(stagedPackage);
                 }
                 else
@@ -298,6 +305,13 @@ namespace NuGet.Services.Staging.Promotion
                 }
 
                 await _stagedPackageRepository.CommitChangesAsync();
+
+                if (stagingGroup == null && !identity.CurrentStagedSymbolPackageKey.HasValue)
+                {
+                    // Clear the current-attempt relationship before deleting its identity.
+                    _stagedPackageIdentityRepository.DeleteOnCommit(identity);
+                    await _stagedPackageRepository.CommitChangesAsync();
+                }
             });
         }
 
