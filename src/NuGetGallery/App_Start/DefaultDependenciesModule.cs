@@ -235,6 +235,16 @@ namespace NuGetGallery
                 .As<IEntityRepository<StagedPackage>>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<EntityRepository<StagedSymbolPackage>>()
+                .AsSelf()
+                .As<IEntityRepository<StagedSymbolPackage>>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<EntityRepository<StagedPackageIdentity>>()
+                .AsSelf()
+                .As<IEntityRepository<StagedPackageIdentity>>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<EntityRepository<StagingGroup>>()
                 .As<IEntityRepository<StagingGroup>>()
                 .InstancePerLifetimeScope();
@@ -419,6 +429,10 @@ namespace NuGetGallery
 
             builder.RegisterType<SymbolPackageStagingUploadService>()
                 .As<ISymbolPackageStagingUploadService>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<SymbolPackageStagingManagementService>()
+                .As<ISymbolPackageStagingManagementService>()
                 .InstancePerLifetimeScope();
 
             RegisterStagingPromotionMessaging(builder, configuration);

@@ -26,6 +26,9 @@
 
         this.Id = packageItem.Id;
         this.Version = packageItem.Version;
+        this.IsSymbolPackage = packageItem.IsSymbolPackage;
+        this.ParentStatus = packageItem.ParentStatus;
+        this.ParentUrl = packageItem.ParentUrl;
         this.Status = packageItem.Status;
         this.StatusClass = packageItem.StatusClass;
         this.UploadedDate = packageItem.UploadedDate;
@@ -121,7 +124,8 @@
         this.Delete = function (model, event) {
             event.preventDefault();
             const trigger = $(event.currentTarget);
-            const message = `Delete staged package ${self.Id} ${self.Version}?`;
+            const artifact = self.IsSymbolPackage ? 'symbols' : 'package';
+            const message = `Delete staged ${artifact} ${self.Id} ${self.Version}?`;
             if (!self.IsBusy() && window.nuget.confirmEvent(message)) {
                 self.IsBusy(true);
                 trigger.siblings('.staging-delete-form')[0].submit();
@@ -132,7 +136,8 @@
             const validationIssues = $(`#${self.ValidationIssuesId}`).html();
 
             $('html').addClass('staging-validation-modal-open');
-            stagingValidationModalTitle.text(`Validation errors for ${self.Id}`);
+            const artifact = self.IsSymbolPackage ? 'symbols' : 'package';
+            stagingValidationModalTitle.text(`Validation errors for ${self.Id} ${self.Version} (${artifact})`);
             stagingValidationModalContent.html(validationIssues);
             return true;
         };

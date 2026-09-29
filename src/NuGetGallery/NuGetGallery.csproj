@@ -657,6 +657,7 @@
     <Compile Include="Services\IPackageStagingPromotionService.cs" />
     <Compile Include="Services\IPackageStagingUploadService.cs" />
     <Compile Include="Services\ISymbolPackageStagingUploadService.cs" />
+    <Compile Include="Services\ISymbolPackageStagingManagementService.cs" />
     <Compile Include="Services\PackageStagingResult.cs" />
     <Compile Include="Services\PackageStagingAuthorizationService.cs" />
     <Compile Include="Services\PackageStagingManagementService.cs" />
@@ -665,6 +666,7 @@
     <Compile Include="Services\PackageStagingStatus.cs" />
     <Compile Include="Services\PackageStagingUploadService.cs" />
     <Compile Include="Services\SymbolPackageStagingUploadService.cs" />
+    <Compile Include="Services\SymbolPackageStagingManagementService.cs" />
     <Compile Include="Services\SymbolPackageStagingStatus.cs" />
     <Compile Include="Services\StagingGroupSummary.cs" />
     <Compile Include="ViewModels\CreateStagingGroupViewModel.cs" />

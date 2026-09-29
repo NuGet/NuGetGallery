@@ -336,13 +336,15 @@ namespace NuGetGallery
                 Assert.Empty(issues);
             }
 
-            [Fact]
-            public void FetchesIssuesForRequestedStagedPackageAttempts()
+            [Theory]
+            [InlineData(ValidatingType.StagedPackage)]
+            [InlineData(ValidatingType.StagedSymbolPackage)]
+            public void FetchesIssuesForRequestedStagedPackageAttempts(ValidatingType validatingType)
             {
                 var validationSet = new PackageValidationSet
                 {
                     PackageKey = 123,
-                    ValidatingType = ValidatingType.StagedPackage,
+                    ValidatingType = validatingType,
                     PackageValidations = new[]
                     {
                         new PackageValidation
@@ -363,14 +365,14 @@ namespace NuGetGallery
                 var otherValidationSet = new PackageValidationSet
                 {
                     PackageKey = 456,
-                    ValidatingType = ValidatingType.StagedPackage,
+                    ValidatingType = validatingType,
                     PackageValidations = Array.Empty<PackageValidation>(),
                 };
 
                 var nonMatchingValidationSet = new PackageValidationSet
                 {
                     PackageKey = 789,
-                    ValidatingType = ValidatingType.StagedPackage,
+                    ValidatingType = validatingType,
                     PackageValidations = Array.Empty<PackageValidation>(),
                 };
 
@@ -378,6 +380,18 @@ namespace NuGetGallery
                 {
                     PackageKey = validationSet.PackageKey,
                     ValidatingType = ValidatingType.Package,
+                    PackageValidations = Array.Empty<PackageValidation>(),
+                };
+                var otherArtifactValidationSet = new PackageValidationSet
+                {
+                    PackageKey = validationSet.PackageKey,
+                    ValidatingType = validatingType == ValidatingType.StagedPackage ? ValidatingType.StagedSymbolPackage : ValidatingType.StagedPackage,
+                    PackageValidations = Array.Empty<PackageValidation>(),
+                };
+                var ordinarySymbolValidationSet = new PackageValidationSet
+                {
+                    PackageKey = validationSet.PackageKey,
+                    ValidatingType = ValidatingType.SymbolPackage,
                     PackageValidations = Array.Empty<PackageValidation>(),
                 };
 
@@ -389,9 +403,20 @@ namespace NuGetGallery
                         otherValidationSet,
                         nonMatchingValidationSet,
                         ordinaryPackageValidationSet,
+                        otherArtifactValidationSet,
+                        ordinarySymbolValidationSet,
                     }.AsQueryable());
 
-                var issues = _target.GetStagedPackageValidationIssues(new[] { validationSet.PackageKey.Value, otherValidationSet.PackageKey.Value });
+                var keys = new[] { validationSet.PackageKey.Value, otherValidationSet.PackageKey.Value };
+                IReadOnlyDictionary<int, IReadOnlyList<ValidationIssue>> issues;
+                if (validatingType == ValidatingType.StagedSymbolPackage)
+                {
+                    issues = _target.GetStagedSymbolPackageValidationIssues(keys);
+                }
+                else
+                {
+                    issues = _target.GetStagedPackageValidationIssues(keys);
+                }
 
                 var issue = Assert.Single(issues[validationSet.PackageKey.Value]);
                 Assert.Equal(ValidationIssueCode.PackageIsSigned, issue.IssueCode);
