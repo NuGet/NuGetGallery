@@ -8,6 +8,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using Moq;
+using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Services.Entities;
 using NuGetGallery.Authentication;
@@ -20,6 +21,70 @@ namespace NuGetGallery
 {
     public class SymbolPackageStagingUploadServiceFacts
     {
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task ReturnsBadRequestForInvalidSymbolMetadata(bool invalidFramework)
+        {
+            var currentUser = new User("uploader") { Key = 10 };
+            var owner = new User("owner") { Key = 20, EmailAddress = "owner@example.test" };
+            var scopes = new List<Scope>();
+            var package = new Package
+            {
+                Key = 42,
+                PackageRegistration = new PackageRegistration { Id = "Test.Package" },
+                Version = "1.0.0",
+                NormalizedVersion = "1.0.0",
+                PackageStatusKey = PackageStatus.Available,
+            };
+            var authorizationService = new Mock<IPackageStagingAuthorizationService>();
+            authorizationService.Setup(x => x.GetEnabledApiKeyOwner(currentUser, scopes)).Returns(owner);
+            var contentObjectService = new Mock<IContentObjectService>();
+            contentObjectService.Setup(x => x.SymbolsConfiguration.IsSymbolsUploadEnabledForUser(currentUser)).Returns(true);
+            var packageService = new Mock<IPackageService>();
+            packageService.Setup(x => x.FindPackageByIdAndVersionStrict("Test.Package", "1.0.0")).Returns(package);
+            var apiScopeEvaluator = new Mock<IApiScopeEvaluator>();
+            apiScopeEvaluator
+                .Setup(x => x.Evaluate(currentUser, scopes, ActionsRequiringPermissions.UploadSymbolPackage, package.PackageRegistration, It.IsAny<string[]>()))
+                .Returns(new ApiScopeEvaluationResult(owner, PermissionsCheckResult.Allowed, scopesAreValid: true));
+            var entitiesContext = new Mock<IEntitiesContext>();
+            entitiesContext.Setup(x => x.StagedPackageIdentities).Returns(Enumerable.Empty<StagedPackageIdentity>().MockDbSet().Object);
+            entitiesContext.Setup(x => x.SymbolPackages).Returns(Enumerable.Empty<SymbolPackage>().MockDbSet().Object);
+            var symbolPackageService = new Mock<ISymbolPackageService>();
+            Exception exception = new EntityException("Invalid symbol metadata.");
+            if (invalidFramework)
+            {
+                exception = new FrameworkException("Invalid target framework.");
+            }
+
+            symbolPackageService.Setup(x => x.EnsureValidAsync(It.IsAny<PackageArchiveReader>())).ThrowsAsync(exception);
+            var securityPolicyService = new Mock<ISecurityPolicyService>();
+            securityPolicyService
+                .Setup(x => x.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackagePush, currentUser, It.IsAny<HttpContextBase>()))
+                .ReturnsAsync(SecurityPolicyResult.SuccessResult);
+            var stagingBlobService = new Mock<IStagingBlobService>(MockBehavior.Strict);
+            var repository = new Mock<IEntityRepository<StagedSymbolPackage>>(MockBehavior.Strict);
+            var validationMessageEmitter = new Mock<IStagedSymbolPackageValidationMessageEmitter>(MockBehavior.Strict);
+            var target = new SymbolPackageStagingUploadService(
+                apiScopeEvaluator.Object,
+                contentObjectService.Object,
+                entitiesContext.Object,
+                packageService.Object,
+                authorizationService.Object,
+                symbolPackageService.Object,
+                securityPolicyService.Object,
+                stagingBlobService.Object,
+                repository.Object,
+                validationMessageEmitter.Object);
+
+            using var file = TestPackage.CreateTestSymbolPackageStream("Test.Package", "1.0.0");
+            var result = await target.StageSymbolPackageAsync(currentUser, scopes, Mock.Of<HttpContextBase>(), file);
+
+            Assert.False(result.Success);
+            Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
+            Assert.Equal(exception.Message, result.ErrorMessage);
+        }
+
         [Theory]
         [InlineData(PackageStatus.Available, HttpStatusCode.Created)]
         [InlineData(PackageStatus.Staged, HttpStatusCode.NotFound)]

@@ -10,6 +10,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web;
+using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Services.Entities;
 using NuGetGallery.Authentication;
@@ -171,7 +172,7 @@ namespace NuGetGallery
 
                 return PackageStagingResult.Created(warnings: null);
             }
-            catch (Exception exception) when (exception is InvalidPackageException || exception is InvalidDataException)
+            catch (Exception exception) when (IsInvalidPackage(exception))
             {
                 exception.Log();
                 return PackageStagingResult.Error(HttpStatusCode.BadRequest, exception.Message);
@@ -280,6 +281,14 @@ namespace NuGetGallery
         {
             return _entitiesContext.StagedPackageIdentities
                 .SingleOrDefault(candidate => candidate.Key == package.Key);
+        }
+
+        private static bool IsInvalidPackage(Exception exception)
+        {
+            return exception is InvalidPackageException
+                || exception is InvalidDataException
+                || exception is EntityException
+                || exception is FrameworkException;
         }
     }
 }
