@@ -231,6 +231,7 @@ namespace NuGet.Services.Validation.Orchestrator
             ConfigureFileServices(services, configurationRoot);
             ConfigureOrchestratorSymbolTypes(services);
             ConfigureOrchestratorStagedPackageTypes(services);
+            ConfigureOrchestratorStagedSymbolPackageTypes(services);
             ValidationJobBase.ConfigureFeatureFlagServices(services, configurationRoot);
         }
 
@@ -508,7 +509,9 @@ namespace NuGet.Services.Validation.Orchestrator
                     services.AddTransient<IMessageHandler<PackageValidationMessageData>, PackageValidationMessageHandlerRouter>();
                     break;
                 case ValidatingType.SymbolPackage:
-                    services.AddTransient<IMessageHandler<PackageValidationMessageData>, SymbolValidationMessageHandler>();
+                    services.AddTransient<IValidationMessageHandler<SymbolPackage>, SymbolValidationMessageHandler>();
+                    services.AddTransient<IValidationMessageHandler<StagedSymbolPackage>, StagedSymbolPackageValidationMessageHandler>();
+                    services.AddTransient<IMessageHandler<PackageValidationMessageData>, SymbolValidationMessageHandlerRouter>();
                     break;
                 default:
                     throw new NotImplementedException($"Unknown type: {validatingType}");
@@ -563,6 +566,15 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddTransient<IValidationOutcomeProcessor<StagedPackage>, ValidationOutcomeProcessor<StagedPackage>>();
             services.AddTransient<IStatusProcessor<StagedPackage>, StagedPackageStatusProcessor>();
             services.AddTransient<IMessageService<StagedPackage>, StagedPackageMessageService>();
+        }
+
+        private static void ConfigureOrchestratorStagedSymbolPackageTypes(IServiceCollection services)
+        {
+            services.AddTransient<IEntityService<StagedSymbolPackage>, StagedSymbolPackageEntityService>();
+            services.AddTransient<IValidationSetProvider<StagedSymbolPackage>, StagedSymbolPackageValidationSetProvider>();
+            services.AddTransient<IValidationOutcomeProcessor<StagedSymbolPackage>, ValidationOutcomeProcessor<StagedSymbolPackage>>();
+            services.AddTransient<IStatusProcessor<StagedSymbolPackage>, StagedSymbolPackageStatusProcessor>();
+            services.AddTransient<IMessageService<StagedSymbolPackage>, StagedSymbolPackageMessageService>();
         }
 
         private static void ConfigureSymbolsValidator(ContainerBuilder builder)

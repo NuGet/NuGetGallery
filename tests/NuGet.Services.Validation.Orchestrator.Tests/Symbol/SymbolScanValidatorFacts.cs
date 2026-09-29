@@ -163,6 +163,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
             protected readonly Mock<IScanAndSignEnqueuer> _scanAndSignEnqueuer;
             protected readonly Mock<IOptionsSnapshot<SymbolScanOnlyConfiguration>> _configurationAccessor;
             protected readonly Mock<IValidatorStateService> _validatorStateServiceMock;
+            protected readonly Mock<IValidationStorageService> _validationStorageService;
             protected readonly Mock<ILogger<ScanAndSignProcessor>> _loggerMock;
             protected readonly SymbolScanOnlyConfiguration _config;
             protected readonly SymbolScanValidator _target;
@@ -175,6 +176,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
                 _scanAndSignEnqueuer = new Mock<IScanAndSignEnqueuer>();
                 _configurationAccessor = new Mock<IOptionsSnapshot<SymbolScanOnlyConfiguration>>();
                 _validatorStateServiceMock = new Mock<IValidatorStateService>();
+                _validationStorageService = new Mock<IValidationStorageService>();
+                _validationStorageService.Setup(x => x.TryGetParentValidationSetAsync(It.IsAny<Guid>()))
+                    .ReturnsAsync(new PackageValidationSet { PackageKey = 42, ValidatingType = ValidatingType.SymbolPackage });
                 _loggerMock = new Mock<ILogger<ScanAndSignProcessor>>();
 
                 _config = new SymbolScanOnlyConfiguration();
@@ -190,7 +194,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
                     _criteriaEvaluatorMock.Object,
                     _scanAndSignEnqueuer.Object,
                     _configurationAccessor.Object,
-                    _loggerMock.Object);
+                    _loggerMock.Object,
+                    Mock.Of<IEntityService<StagedSymbolPackage>>(),
+                    _validationStorageService.Object);
             }
         }
     }
