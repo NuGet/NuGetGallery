@@ -60,6 +60,33 @@ namespace NuGetGallery
                 Times.Once);
         }
 
+        [Fact]
+        public async Task StagesMultipartSymbolPackage()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var target = GetController<StagingApiController>();
+            ConfigureCreateGroupRequest(target, currentUser, owner: null);
+            var request = Mock.Get(target.Request);
+            request.SetupGet(x => x.ContentType).Returns("multipart/form-data; boundary=test");
+            var files = new Mock<HttpFileCollectionBase>();
+            files.SetupGet(x => x.Count).Returns(1);
+            files.Setup(x => x.GetKey(0)).Returns("package");
+            request.SetupGet(x => x.Files).Returns(files.Object);
+            using var stream = new MemoryStream(new byte[] { 1, 2, 3 });
+            var file = new Mock<HttpPostedFileBase>();
+            file.SetupGet(x => x.InputStream).Returns(stream);
+            GetMock<ISymbolPackageStagingUploadService>()
+                .Setup(x => x.StageSymbolPackageAsync(currentUser, It.IsAny<IReadOnlyCollection<Scope>>(), target.HttpContext, stream))
+                .ReturnsAsync(PackageStagingResult.Created(warnings: null));
+
+            var result = await target.StageSymbolPackage(new StageSymbolPackageRequest { Package = file.Object });
+
+            Assert.Equal((int)HttpStatusCode.Created, Assert.IsType<HttpStatusCodeWithServerWarningResult>(result).StatusCode);
+            GetMock<ISymbolPackageStagingUploadService>().Verify(
+                x => x.StageSymbolPackageAsync(currentUser, It.IsAny<IReadOnlyCollection<Scope>>(), target.HttpContext, stream),
+                Times.Once);
+        }
+
         [Theory]
         [InlineData("application/octet-stream", "UnsupportedMediaType")]
         [InlineData("multipart/form-data; boundary=test", "InvalidRequest")]
