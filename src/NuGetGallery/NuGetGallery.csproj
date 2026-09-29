@@ -642,6 +642,7 @@
     </Compile>
     <Compile Include="RequestModels\CreateStagingGroupRequest.cs" />
     <Compile Include="RequestModels\StagePackageRequest.cs" />
+    <Compile Include="RequestModels\StageSymbolPackageRequest.cs" />
     <Compile Include="RequestModels\SimulatedErrorType.cs" />
     <Compile Include="RequestModels\UpdateStagedPackageRequest.cs" />
     <Compile Include="ResponseModels\StagingGroupResponse.cs" />
@@ -650,10 +651,12 @@
     <Compile Include="Services\AsynchronousValidationMessageEmitter.cs" />
     <Compile Include="Services\CreateStagingGroupResult.cs" />
     <Compile Include="Services\IStagedPackageValidationMessageEmitter.cs" />
+    <Compile Include="Services\IStagedSymbolPackageValidationMessageEmitter.cs" />
     <Compile Include="Services\IPackageStagingAuthorizationService.cs" />
     <Compile Include="Services\IPackageStagingManagementService.cs" />
     <Compile Include="Services\IPackageStagingPromotionService.cs" />
     <Compile Include="Services\IPackageStagingUploadService.cs" />
+    <Compile Include="Services\ISymbolPackageStagingUploadService.cs" />
     <Compile Include="Services\PackageStagingResult.cs" />
     <Compile Include="Services\PackageStagingAuthorizationService.cs" />
     <Compile Include="Services\PackageStagingManagementService.cs" />
@@ -661,6 +664,8 @@
     <Compile Include="Services\StagingPromotionResendPolicy.cs" />
     <Compile Include="Services\PackageStagingStatus.cs" />
     <Compile Include="Services\PackageStagingUploadService.cs" />
+    <Compile Include="Services\SymbolPackageStagingUploadService.cs" />
+    <Compile Include="Services\SymbolPackageStagingStatus.cs" />
     <Compile Include="Services\StagingGroupSummary.cs" />
     <Compile Include="ViewModels\CreateStagingGroupViewModel.cs" />
     <Compile Include="ViewModels\DeleteStagingGroupViewModel.cs" />
@@ -702,8 +707,10 @@
     <Compile Include="Services\ICertificateService.cs" />
     <Compile Include="Services\ICertificateValidator.cs" />
     <Compile Include="Services\ImmediateStagedPackageValidationMessageEmitter.cs" />
+    <Compile Include="Services\ImmediateStagedSymbolPackageValidationMessageEmitter.cs" />
     <Compile Include="Services\ImmediateValidationMessageEmitter.cs" />
     <Compile Include="Services\StagedPackageValidationMessageEmitter.cs" />
+    <Compile Include="Services\StagedSymbolPackageValidationMessageEmitter.cs" />
     <Compile Include="Services\ISymbolPackageService.cs" />
     <Compile Include="Services\PackageCommitResult.cs" />
     <Compile Include="Services\IValidationMessageEmitter.cs" />

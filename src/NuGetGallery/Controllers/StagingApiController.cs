@@ -30,15 +30,18 @@ namespace NuGetGallery
         private readonly IPackageStagingAuthorizationService _packageStagingAuthorizationService;
         private readonly IPackageStagingManagementService _packageStagingManagementService;
         private readonly IPackageStagingUploadService _packageStagingUploadService;
+        private readonly ISymbolPackageStagingUploadService _symbolPackageStagingUploadService;
 
         public StagingApiController(
             IPackageStagingAuthorizationService packageStagingAuthorizationService,
             IPackageStagingManagementService packageStagingManagementService,
-            IPackageStagingUploadService packageStagingUploadService)
+            IPackageStagingUploadService packageStagingUploadService,
+            ISymbolPackageStagingUploadService symbolPackageStagingUploadService)
         {
             _packageStagingAuthorizationService = packageStagingAuthorizationService ?? throw new ArgumentNullException(nameof(packageStagingAuthorizationService));
             _packageStagingManagementService = packageStagingManagementService ?? throw new ArgumentNullException(nameof(packageStagingManagementService));
             _packageStagingUploadService = packageStagingUploadService ?? throw new ArgumentNullException(nameof(packageStagingUploadService));
+            _symbolPackageStagingUploadService = symbolPackageStagingUploadService ?? throw new ArgumentNullException(nameof(symbolPackageStagingUploadService));
         }
 
         [HttpPost]
@@ -116,6 +119,48 @@ namespace NuGetGallery
                 var currentUser = GetCurrentUser();
                 var scopes = User.Identity.GetScopesFromClaim();
                 var result = await _packageStagingUploadService.StagePackageAsync(currentUser, scopes, HttpContext, request.Package.InputStream, request.GroupId, request.Listed);
+                if (!result.Success)
+                {
+                    return new HttpStatusCodeWithBodyResult(result.StatusCode, result.ErrorMessage);
+                }
+
+                return new HttpStatusCodeWithServerWarningResult(result.StatusCode, result.Warnings);
+            }
+            catch (HttpException exception) when (exception.IsMaxRequestLengthExceeded())
+            {
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.RequestEntityTooLarge, Strings.PackageFileTooLarge);
+            }
+            catch (HttpException exception) when (!Response.IsClientConnected)
+            {
+                QuietLog.LogHandledException(exception);
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, Strings.PackageUploadCancelled);
+            }
+        }
+
+        [HttpPut]
+        public virtual async Task<ActionResult> StageSymbolPackage(StageSymbolPackageRequest request)
+        {
+            try
+            {
+                if (!MediaTypeWithQualityHeaderValue.TryParse(Request.ContentType, out var contentType) || !string.Equals(contentType.MediaType, MultipartContentType, StringComparison.OrdinalIgnoreCase))
+                {
+                    return Error(HttpStatusCode.UnsupportedMediaType, "UnsupportedMediaType", $"The request must have a Content-Type of '{MultipartContentType}'.");
+                }
+
+                if (request == null || request.Package == null || Request.Files.Count != 1 || !string.Equals(Request.Files.GetKey(0), "package", StringComparison.OrdinalIgnoreCase))
+                {
+                    return Error(HttpStatusCode.BadRequest, "InvalidRequest", "The request must contain one symbol package file.", "package");
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    var target = ModelState.First(entry => entry.Value.Errors.Count > 0).Key;
+                    return Error(HttpStatusCode.BadRequest, "InvalidRequest", "The request is invalid.", target.ToLowerInvariant());
+                }
+
+                var currentUser = GetCurrentUser();
+                var scopes = User.Identity.GetScopesFromClaim();
+                var result = await _symbolPackageStagingUploadService.StageSymbolPackageAsync(currentUser, scopes, HttpContext, request.Package.InputStream);
                 if (!result.Success)
                 {
                     return new HttpStatusCodeWithBodyResult(result.StatusCode, result.ErrorMessage);
@@ -268,6 +313,21 @@ namespace NuGetGallery
             }
 
             return Json(package, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
+        public virtual ActionResult GetStagedSymbolPackage(string id, string version)
+        {
+            var currentUser = GetCurrentUser();
+            var scopes = User.Identity.GetScopesFromClaim();
+
+            var symbolPackage = _symbolPackageStagingUploadService.GetStatus(currentUser, scopes, id, version);
+            if (symbolPackage == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+            }
+
+            return Json(symbolPackage, JsonRequestBehavior.AllowGet);
         }
 
         [AcceptVerbs(HttpVerbs.Patch)]
