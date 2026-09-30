@@ -10,11 +10,18 @@ using Microsoft.Extensions.Configuration;
 /// <summary>
 /// Seeds blobs in Azurite that the Gallery and pipeline jobs expect to exist:
 /// auxiliary blobs, Gallery content files from App_Data, and the V3 service index.
+/// Enables symbol uploads only in profiles that run the symbol-validation pipeline.
 /// </summary>
 static class SeedBlobsTool
 {
 	public static async Task<int> RunAsync(string[] args)
 	{
+		if (args.Length != 1 || string.IsNullOrWhiteSpace(args[0]))
+		{
+			throw new ArgumentException("Expected the AppHost profile.");
+		}
+
+		var profile = args[0];
 		var cfg = new ConfigurationBuilder()
 			.AddEnvironmentVariables()
 			.Build()
@@ -53,6 +60,17 @@ static class SeedBlobsTool
 					await SeedPatchedFlagsAsync(blobService, cfg.Containers.Content, file);
 					continue;
 				}
+				if (profile != "ci-gallery" && fileName.Equals("Symbols-Configuration.json", StringComparison.OrdinalIgnoreCase))
+				{
+					var symbolsConfiguration = JsonNode.Parse(await File.ReadAllTextAsync(file))
+						?? throw new InvalidOperationException("The symbols configuration is empty.");
+					symbolsConfiguration["isSymbolsUploadEnabledForAll"] = true;
+					await SeedAsync(blobService, cfg.Containers.Content, fileName,
+						symbolsConfiguration.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+					Console.WriteLine("  (enabled symbol uploads for the symbol-validation pipeline)");
+					continue;
+				}
+
 				var contentType = Path.GetExtension(file).ToLowerInvariant() switch
 				{
 					".json" => "application/json",
