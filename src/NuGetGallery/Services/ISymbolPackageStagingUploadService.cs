@@ -15,7 +15,7 @@ namespace NuGetGallery
     public interface ISymbolPackageStagingUploadService
     {
         /// <summary>
-        /// Stages a symbol package for an available or same-owner staged parent package.
+        /// Stages or replaces a symbol package for an available or same-owner staged parent package.
         /// </summary>
         /// <param name="currentUser">The user associated with the staging credential.</param>
         /// <param name="scopes">The scopes granted to the staging credential.</param>
@@ -24,6 +24,20 @@ namespace NuGetGallery
         /// <param name="groupId">The optional group for the shared package and symbol identity.</param>
         /// <returns>The result of the staging operation.</returns>
         Task<PackageStagingResult> StageSymbolPackageAsync(User currentUser, IReadOnlyCollection<Scope> scopes, HttpContextBase httpContext, Stream symbolPackageFile, string groupId = null);
+
+        /// <summary>
+        /// Replaces an authorized current staged symbol package with a fresh immutable validation attempt.
+        /// </summary>
+        /// <param name="currentUser">The user replacing the symbol package.</param>
+        /// <param name="httpContext">The current HTTP context.</param>
+        /// <param name="stagedSymbolPackage">The authorized current symbol attempt.</param>
+        /// <param name="symbolPackageFile">The replacement symbol package stream.</param>
+        /// <returns>The result of the replacement operation.</returns>
+        Task<PackageStagingResult> ReplaceSymbolPackageAsync(
+            User currentUser,
+            HttpContextBase httpContext,
+            StagedSymbolPackage stagedSymbolPackage,
+            Stream symbolPackageFile);
 
         /// <summary>
         /// Gets the owner-visible status for the current staged symbol package.

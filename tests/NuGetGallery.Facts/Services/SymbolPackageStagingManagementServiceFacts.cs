@@ -53,6 +53,10 @@ namespace NuGetGallery
         {
             var context = new TestContext();
             var identity = context.Attempt.StagedPackageIdentity;
+            var previousAttempt = context.AddAttempt(2);
+            previousAttempt.StagedPackageIdentityKey = identity.Key;
+            previousAttempt.StagedPackageIdentity = identity;
+            previousAttempt.Status = StagedPackageStatus.Superseded;
             if (hasStagedPackage)
             {
                 identity.CurrentStagedPackageKey = 42;
@@ -72,6 +76,8 @@ namespace NuGetGallery
             Assert.Equal(PackageStatus.Available, identity.Package.PackageStatusKey);
             Assert.Equal(PackageStatus.Available, publicSymbols.StatusKey);
             context.AttemptRepository.Verify(x => x.DeleteOnCommit(context.Attempt), Times.Once);
+            context.AttemptRepository.Verify(x => x.DeleteOnCommit(previousAttempt), Times.Once);
+            context.SymbolRepository.Verify(x => x.DeleteOnCommit(previousAttempt.SymbolPackage), Times.Once);
             context.SymbolRepository.Verify(x => x.DeleteOnCommit(context.Attempt.SymbolPackage), Times.Once);
             context.SymbolRepository.Verify(x => x.DeleteOnCommit(publicSymbols), Times.Never);
             context.IdentityRepository.Verify(x => x.DeleteOnCommit(identity), hasStagedPackage ? Times.Never() : Times.Once());

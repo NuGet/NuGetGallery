@@ -396,12 +396,15 @@ namespace NuGetGallery
                         return;
                     }
 
-                    var symbolMembers = stagedSymbols.Select(symbol => new
-                    {
-                        Attempt = symbol,
-                        Identity = symbol.StagedPackageIdentity,
-                        SymbolPackage = symbol.SymbolPackage,
-                    }).ToList();
+                    var symbolMembers = _stagedSymbolPackageRepository.GetAll()
+                        .Where(symbol => symbol.StagedPackageIdentity.OwnerKey == stagingOwner.Key && symbol.StagedPackageIdentity.StagingGroupKey == group.Key)
+                        .Where(symbol => symbol.SymbolPackage.StatusKey == PackageStatus.Staged)
+                        .Select(symbol => new
+                        {
+                            Attempt = symbol,
+                            Identity = symbol.StagedPackageIdentity,
+                            SymbolPackage = symbol.SymbolPackage,
+                        }).ToList();
                     foreach (var member in symbolMembers)
                     {
                         var identity = member.Identity;
@@ -413,17 +416,19 @@ namespace NuGetGallery
                     }
 
                     // Break the current-symbol circular references before deleting their ordinary rows.
-                    if (stagedSymbols.Count > 0)
+                    if (symbolMembers.Count > 0)
                     {
                         await _stagingGroupRepository.CommitChangesAsync();
                     }
+                    foreach (var identity in symbolMembers.Select(member => member.Identity).Distinct())
+                    {
+                        if (!identity.CurrentStagedPackageKey.HasValue)
+                        {
+                            _identityRepository.DeleteOnCommit(identity);
+                        }
+                    }
                     foreach (var member in symbolMembers)
                     {
-                        if (!member.Identity.CurrentStagedPackageKey.HasValue)
-                        {
-                            _identityRepository.DeleteOnCommit(member.Identity);
-                        }
-
                         _symbolPackageRepository.DeleteOnCommit(member.SymbolPackage);
                     }
 
