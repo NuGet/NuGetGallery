@@ -428,7 +428,7 @@
         }
 
         var isParentContinuation = false;
-        if (!Model.IsUngrouped && package.IsSymbolPackage && index > 0)
+        if (package.IsSymbolPackage && index > 0)
         {
             var parent = Model.Packages[index - 1];
             isParentContinuation = !parent.IsSymbolPackage && parent.Id == package.Id && parent.Version == package.Version;
