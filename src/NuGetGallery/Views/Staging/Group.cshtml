@@ -295,7 +295,6 @@
                                                     <a data-bind="attr: { href: MoveUrl }">Move</a>
                                                 </li>
                                                 <!-- /ko -->
-                                                <!-- ko ifnot: IsSymbolPackage -->
                                                 <li data-bind="visible: !IsBusy()">
                                                     <a href="#"
                                                        class="staging-replace-trigger"
@@ -308,11 +307,9 @@
                                                         <input type="file"
                                                                class="staging-replace-input"
                                                                name="packageFile"
-                                                               data-bind="event: { change: Replace }"
-                                                               accept=".nupkg" />
+                                                               data-bind="event: { change: Replace }, attr: { accept: IsSymbolPackage ? '.snupkg' : '.nupkg' }" />
                                                     </form>
                                                 </li>
-                                                <!-- /ko -->
                                                 <li role="separator" class="divider" data-bind="visible: !IsBusy()"></li>
                                                 <!-- ko if: CanDelete -->
                                                 <li data-bind="visible: !IsBusy()">
@@ -418,15 +415,18 @@
     {
         string downloadUrl;
         string deleteUrl;
+        string replaceUrl;
         if (package.IsSymbolPackage)
         {
             downloadUrl = Url.DownloadStagedSymbolPackage(package.Id, package.Version);
             deleteUrl = Url.DeleteStagedSymbolPackage(package.Id, package.Version);
+            replaceUrl = Url.ReplaceStagedSymbolPackage(package.Id, package.Version);
         }
         else
         {
             downloadUrl = Url.DownloadStagedPackage(package.Id, package.Version);
             deleteUrl = Url.DeleteStagedPackage(package.Id, package.Version);
+            replaceUrl = Url.ReplaceStagedPackage(package.Id, package.Version);
         }
 
         return new
@@ -450,7 +450,7 @@
             package.MoveUrl,
             ListedInputId = "staged-listed-" + index,
             DownloadUrl = downloadUrl,
-            ReplaceUrl = Url.ReplaceStagedPackage(package.Id, package.Version),
+            ReplaceUrl = replaceUrl,
             UpdateListedUrl = Url.UpdateStagedPackageListed(package.Id, package.Version),
             PromoteUrl = Url.PromoteStagedPackage(package.Id, package.Version),
             ResendUrl = Url.ResendStagedPackage(package.Id, package.Version),
