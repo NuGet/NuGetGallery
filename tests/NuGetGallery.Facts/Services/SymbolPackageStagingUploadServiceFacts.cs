@@ -77,7 +77,9 @@ namespace NuGetGallery
                 securityPolicyService.Object,
                 stagingBlobService.Object,
                 repository.Object,
-                validationMessageEmitter.Object);
+                validationMessageEmitter.Object,
+                Mock.Of<IPackageStagingManagementService>(),
+                Mock.Of<IEntityRepository<StagingGroup>>());
 
             using var file = TestPackage.CreateTestSymbolPackageStream("Test.Package", "1.0.0");
             var result = await target.StageSymbolPackageAsync(currentUser, scopes, Mock.Of<HttpContextBase>(), file);
@@ -95,9 +97,22 @@ namespace NuGetGallery
         [InlineData(PackageStatus.Staged, true, StagedPackageStatus.Ready, true, false, HttpStatusCode.Created)]
         [InlineData(PackageStatus.Staged, true, StagedPackageStatus.Ready, false, false, HttpStatusCode.NotFound)]
         [InlineData(PackageStatus.Staged, true, StagedPackageStatus.Promoting, true, false, HttpStatusCode.Conflict)]
-        [InlineData(PackageStatus.Staged, true, StagedPackageStatus.Ready, true, true, HttpStatusCode.Conflict)]
-        [InlineData(PackageStatus.Available, true, StagedPackageStatus.Ready, true, true, HttpStatusCode.Conflict)]
-        public async Task StagesSymbolsForAccessibleUngroupedParent(PackageStatus parentStatus, bool hasStagedParent, StagedPackageStatus stagedStatus, bool sameOwner, bool grouped, HttpStatusCode expectedStatus)
+        [InlineData(PackageStatus.Staged, true, StagedPackageStatus.Ready, true, true, HttpStatusCode.Created)]
+        [InlineData(PackageStatus.Available, true, StagedPackageStatus.Ready, true, true, HttpStatusCode.Created)]
+        [InlineData(PackageStatus.Available, false, StagedPackageStatus.Ready, true, false, HttpStatusCode.Created, "release")]
+        [InlineData(PackageStatus.Staged, true, StagedPackageStatus.Ready, true, false, HttpStatusCode.Created, "release")]
+        [InlineData(PackageStatus.Available, false, StagedPackageStatus.Ready, true, false, HttpStatusCode.Created, "new")]
+        [InlineData(PackageStatus.Staged, true, StagedPackageStatus.Ready, true, true, HttpStatusCode.Conflict, null, true)]
+        [InlineData(PackageStatus.Available, false, StagedPackageStatus.Ready, true, false, HttpStatusCode.Conflict, "release", true)]
+        public async Task StagesSymbolsForAccessibleParent(
+            PackageStatus parentStatus,
+            bool hasStagedParent,
+            StagedPackageStatus stagedStatus,
+            bool sameOwner,
+            bool grouped,
+            HttpStatusCode expectedStatus,
+            string groupId = null,
+            bool promotionActive = false)
         {
             var currentUser = new User("uploader") { Key = 10 };
             var owner = new User("owner") { Key = 20, EmailAddress = "owner@example.test" };
@@ -123,6 +138,13 @@ namespace NuGetGallery
             var entitiesContext = new Mock<IEntitiesContext>();
             var identity = new StagedPackageIdentity { Key = package.Key, Package = package, Owner = owner, OwnerKey = sameOwner ? owner.Key : 999, CurrentStagedPackageKey = 50, StagingGroupKey = grouped ? 60 : (int?)null };
             identity.CurrentStagedPackage = new StagedPackage { Key = 50, StagedPackageIdentity = identity, Status = stagedStatus };
+            var group = new StagingGroup { Key = 60, OwnerKey = owner.Key, Owner = owner, Id = "release" };
+            if (promotionActive)
+            {
+                group.ActivePromotionId = Guid.NewGuid();
+            }
+
+            identity.StagingGroup = grouped ? group : null;
             var identities = (hasStagedParent ? new[] { identity } : Array.Empty<StagedPackageIdentity>()).MockDbSet();
             identities.Setup(x => x.Include(It.IsAny<string>())).Returns(identities.Object);
             entitiesContext.Setup(x => x.StagedPackageIdentities).Returns(identities.Object);
@@ -151,6 +173,9 @@ namespace NuGetGallery
             repository.Setup(x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task>>())).Returns<Func<Task>>(action => action());
             var validationMessageEmitter = new Mock<IStagedSymbolPackageValidationMessageEmitter>();
             validationMessageEmitter.Setup(x => x.StartValidationAsync(It.IsAny<StagedSymbolPackage>())).ReturnsAsync(StagedPackageStatus.Validating);
+            var managementService = new Mock<IPackageStagingManagementService>();
+            managementService.Setup(x => x.FindStagingGroup(owner, "release")).Returns(group);
+            var groupRepository = new Mock<IEntityRepository<StagingGroup>>();
             var target = new SymbolPackageStagingUploadService(
                 apiScopeEvaluator.Object,
                 contentObjectService.Object,
@@ -161,10 +186,12 @@ namespace NuGetGallery
                 securityPolicyService.Object,
                 stagingBlobService.Object,
                 repository.Object,
-                validationMessageEmitter.Object);
+                validationMessageEmitter.Object,
+                managementService.Object,
+                groupRepository.Object);
 
             using var file = TestPackage.CreateTestSymbolPackageStream("Test.Package", "1.0.0");
-            var result = await target.StageSymbolPackageAsync(currentUser, scopes, Mock.Of<HttpContextBase>(), file);
+            var result = await target.StageSymbolPackageAsync(currentUser, scopes, Mock.Of<HttpContextBase>(), file, groupId);
 
             Assert.Equal(expectedStatus, result.StatusCode);
             if (expectedStatus == HttpStatusCode.Created)
@@ -178,10 +205,23 @@ namespace NuGetGallery
                 if (hasStagedParent)
                 {
                     Assert.Same(identity, attempt.StagedPackageIdentity);
-                    Assert.Equal(1, identity.CurrentStagedPackage.MutationRevision);
+                    Assert.Equal(parentStatus == PackageStatus.Staged ? 1 : 0, identity.CurrentStagedPackage.MutationRevision);
                 }
 
                 validationMessageEmitter.Verify(x => x.StartValidationAsync(attempt), Times.Once);
+                if (grouped || groupId != null)
+                {
+                    Assert.Equal(groupId ?? group.Id, attempt.StagedPackageIdentity.StagingGroup.Id);
+                    if (groupId == "new")
+                    {
+                        groupRepository.Verify(x => x.InsertOnCommit(It.Is<StagingGroup>(value => value.OwnerKey == owner.Key && value.Id == "new" && value.Name == "new")), Times.Once);
+                    }
+                    else
+                    {
+                        Assert.Equal(group.Key, attempt.StagedPackageIdentity.StagingGroupKey);
+                        Assert.Equal(1, group.MutationRevision);
+                    }
+                }
                 var status = target.GetStatus(currentUser, scopes, "Test.Package", "1.0.0");
                 Assert.Equal("Test.Package", status.Id);
                 Assert.Equal("1.0.0", status.Version);

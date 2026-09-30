@@ -35,6 +35,8 @@ namespace NuGetGallery
         private readonly IStagingBlobService _stagingBlobService;
         private readonly IEntityRepository<StagedSymbolPackage> _stagedSymbolPackageRepository;
         private readonly IStagedSymbolPackageValidationMessageEmitter _validationMessageEmitter;
+        private readonly IPackageStagingManagementService _managementService;
+        private readonly IEntityRepository<StagingGroup> _stagingGroupRepository;
 
         public SymbolPackageStagingUploadService(
             IApiScopeEvaluator apiScopeEvaluator,
@@ -46,7 +48,9 @@ namespace NuGetGallery
             ISecurityPolicyService securityPolicyService,
             IStagingBlobService stagingBlobService,
             IEntityRepository<StagedSymbolPackage> stagedSymbolPackageRepository,
-            IStagedSymbolPackageValidationMessageEmitter validationMessageEmitter)
+            IStagedSymbolPackageValidationMessageEmitter validationMessageEmitter,
+            IPackageStagingManagementService managementService,
+            IEntityRepository<StagingGroup> stagingGroupRepository)
         {
             _apiScopeEvaluator = apiScopeEvaluator ?? throw new ArgumentNullException(nameof(apiScopeEvaluator));
             _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
@@ -58,13 +62,16 @@ namespace NuGetGallery
             _stagingBlobService = stagingBlobService ?? throw new ArgumentNullException(nameof(stagingBlobService));
             _stagedSymbolPackageRepository = stagedSymbolPackageRepository ?? throw new ArgumentNullException(nameof(stagedSymbolPackageRepository));
             _validationMessageEmitter = validationMessageEmitter ?? throw new ArgumentNullException(nameof(validationMessageEmitter));
+            _managementService = managementService ?? throw new ArgumentNullException(nameof(managementService));
+            _stagingGroupRepository = stagingGroupRepository ?? throw new ArgumentNullException(nameof(stagingGroupRepository));
         }
 
         public async Task<PackageStagingResult> StageSymbolPackageAsync(
             User currentUser,
             IReadOnlyCollection<Scope> scopes,
             HttpContextBase httpContext,
-            Stream symbolPackageFile)
+            Stream symbolPackageFile,
+            string groupId = null)
         {
             if (currentUser == null)
             {
@@ -84,6 +91,11 @@ namespace NuGetGallery
             if (httpContext == null)
             {
                 throw new ArgumentNullException(nameof(httpContext));
+            }
+
+            if (groupId != null && string.IsNullOrWhiteSpace(groupId))
+            {
+                return PackageStagingResult.Error(HttpStatusCode.BadRequest, "The group ID must not be empty.");
             }
 
             var userPolicyResult = await _securityPolicyService.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackagePush, currentUser, httpContext);
@@ -114,6 +126,23 @@ namespace NuGetGallery
                 if (targetError != null)
                 {
                     return targetError;
+                }
+
+                StagingGroup group = null;
+                if (groupId != null)
+                {
+                    group = _managementService.FindStagingGroup(owner, groupId) ?? new StagingGroup
+                    {
+                        Owner = owner,
+                        OwnerKey = owner.Key,
+                        Id = groupId,
+                        Name = groupId,
+                        CreatedDate = DateTime.UtcNow,
+                    };
+                    if (group.ActivePromotionId.HasValue)
+                    {
+                        return PackageStagingResult.Error(HttpStatusCode.Conflict, "The staging group is being promoted.");
+                    }
                 }
 
                 if (PackageValidationHelper.HasDuplicatedEntries(archive))
@@ -161,6 +190,7 @@ namespace NuGetGallery
                             identity.CurrentStagedPackage.MutationRevision++;
                         }
 
+                        StagingGroupAssignment.Update(identity, group, _stagingGroupRepository);
                         await _stagedSymbolPackageRepository.CommitChangesAsync();
                         identity.CurrentStagedSymbolPackageKey = stagedSymbolPackage.Key;
                         identity.CurrentStagedSymbolPackage = stagedSymbolPackage;
@@ -265,9 +295,9 @@ namespace NuGetGallery
                 return PackageStagingResult.Error(HttpStatusCode.Conflict, "The parent package is being promoted.");
             }
 
-            if (identity?.StagingGroupKey != null)
+            if (identity?.StagingGroup?.ActivePromotionId.HasValue == true)
             {
-                return PackageStagingResult.Error(HttpStatusCode.Conflict, "Staged symbol packages are currently supported only in Ungrouped. Remove the parent from its group before uploading symbols.");
+                return PackageStagingResult.Error(HttpStatusCode.Conflict, "The staging group is being promoted.");
             }
 
             if (identity?.CurrentStagedSymbolPackageKey != null)
@@ -303,6 +333,7 @@ namespace NuGetGallery
         {
             return _entitiesContext.StagedPackageIdentities
                 .Include(identity => identity.CurrentStagedPackage)
+                .Include(identity => identity.StagingGroup)
                 .SingleOrDefault(candidate => candidate.Key == package.Key);
         }
 

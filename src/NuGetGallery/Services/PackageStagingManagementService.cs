@@ -19,19 +19,28 @@ namespace NuGetGallery
         private readonly IEntityRepository<StagedPackage> _stagedPackageRepository;
         private readonly IEntityRepository<StagingGroup> _stagingGroupRepository;
         private readonly IStagingBlobService _stagingBlobService;
+        private readonly IEntityRepository<StagedSymbolPackage> _stagedSymbolPackageRepository;
+        private readonly IEntityRepository<StagedPackageIdentity> _identityRepository;
+        private readonly IEntityRepository<SymbolPackage> _symbolPackageRepository;
 
         public PackageStagingManagementService(
             IPackageStagingAuthorizationService packageStagingAuthorizationService,
             IPackageService packageService,
             IEntityRepository<StagedPackage> stagedPackageRepository,
             IEntityRepository<StagingGroup> stagingGroupRepository,
-            IStagingBlobService stagingBlobService)
+            IStagingBlobService stagingBlobService,
+            IEntityRepository<StagedSymbolPackage> stagedSymbolPackageRepository,
+            IEntityRepository<StagedPackageIdentity> identityRepository,
+            IEntityRepository<SymbolPackage> symbolPackageRepository)
         {
             _packageStagingAuthorizationService = packageStagingAuthorizationService ?? throw new ArgumentNullException(nameof(packageStagingAuthorizationService));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _stagedPackageRepository = stagedPackageRepository ?? throw new ArgumentNullException(nameof(stagedPackageRepository));
             _stagingGroupRepository = stagingGroupRepository ?? throw new ArgumentNullException(nameof(stagingGroupRepository));
             _stagingBlobService = stagingBlobService ?? throw new ArgumentNullException(nameof(stagingBlobService));
+            _stagedSymbolPackageRepository = stagedSymbolPackageRepository ?? throw new ArgumentNullException(nameof(stagedSymbolPackageRepository));
+            _identityRepository = identityRepository ?? throw new ArgumentNullException(nameof(identityRepository));
+            _symbolPackageRepository = symbolPackageRepository ?? throw new ArgumentNullException(nameof(symbolPackageRepository));
         }
 
         public PackageStagingStatus GetPackageStatus(User currentUser, IEnumerable<Scope> scopes, string id, string version)
@@ -377,11 +386,45 @@ namespace NuGetGallery
                         .Where(package => package.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Staged)
                         .Where(package => package.Status != StagedPackageStatus.Superseded && package.Status != StagedPackageStatus.Deleted)
                         .ToList();
+                    var stagedSymbols = GetCurrentStagedSymbols(new[] { stagingOwner.Key })
+                        .Where(symbol => symbol.StagedPackageIdentity.StagingGroupKey == group.Key)
+                        .ToList();
 
-                    if (group.ActivePromotionId.HasValue)
+                    if (group.ActivePromotionId.HasValue || stagedSymbols.Any(symbol => symbol.Status == StagedPackageStatus.Promoting))
                     {
-                        result = StagingGroupDeletionResult.Conflict(stagedPackages.Count);
+                        result = StagingGroupDeletionResult.Conflict(stagedPackages.Count + stagedSymbols.Count);
                         return;
+                    }
+
+                    var symbolMembers = stagedSymbols.Select(symbol => new
+                    {
+                        Attempt = symbol,
+                        Identity = symbol.StagedPackageIdentity,
+                        SymbolPackage = symbol.SymbolPackage,
+                    }).ToList();
+                    foreach (var member in symbolMembers)
+                    {
+                        var identity = member.Identity;
+                        identity.CurrentStagedSymbolPackageKey = null;
+                        identity.CurrentStagedSymbolPackage = null;
+                        identity.StagingGroupKey = null;
+                        identity.StagingGroup = null;
+                        _stagedSymbolPackageRepository.DeleteOnCommit(member.Attempt);
+                    }
+
+                    // Break the current-symbol circular references before deleting their ordinary rows.
+                    if (stagedSymbols.Count > 0)
+                    {
+                        await _stagingGroupRepository.CommitChangesAsync();
+                    }
+                    foreach (var member in symbolMembers)
+                    {
+                        if (!member.Identity.CurrentStagedPackageKey.HasValue)
+                        {
+                            _identityRepository.DeleteOnCommit(member.Identity);
+                        }
+
+                        _symbolPackageRepository.DeleteOnCommit(member.SymbolPackage);
                     }
 
                     var stagedPackageKeys = new HashSet<int>(stagedPackages.Select(package => package.Key));
@@ -402,7 +445,7 @@ namespace NuGetGallery
 
                     _stagingGroupRepository.DeleteOnCommit(group);
                     await _stagingGroupRepository.CommitChangesAsync();
-                    result = StagingGroupDeletionResult.Deleted(stagedPackages.Count);
+                    result = StagingGroupDeletionResult.Deleted(stagedPackages.Count + stagedSymbols.Count);
                 });
             }
             catch (DbUpdateConcurrencyException exception)
@@ -431,46 +474,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(stagedPackage));
             }
 
-            var identity = stagedPackage.StagedPackageIdentity;
-            if (group.OwnerKey != stagingOwner.Key || identity.OwnerKey != stagingOwner.Key)
-            {
-                throw new ArgumentException("The staging group and package must belong to the authorized owner.");
-            }
-
-            if (identity.StagingGroupKey == group.Key)
-            {
-                return StagingGroupMembershipResult.Unchanged;
-            }
-
-            if (stagedPackage.Status == StagedPackageStatus.Promoting || group.ActivePromotionId.HasValue || identity.StagingGroup?.ActivePromotionId.HasValue == true || identity.CurrentStagedSymbolPackageKey.HasValue)
-            {
-                return StagingGroupMembershipResult.Conflict;
-            }
-
-            var result = StagingGroupMembershipResult.Conflict;
-            try
-            {
-                await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
-                {
-                    stagedPackage.MutationRevision++;
-                    if (identity.StagingGroup != null)
-                    {
-                        identity.StagingGroup.MutationRevision++;
-                    }
-
-                    group.MutationRevision++;
-                    identity.StagingGroupKey = group.Key;
-                    identity.StagingGroup = group;
-                    await _stagedPackageRepository.CommitChangesAsync();
-                    result = StagingGroupMembershipResult.Updated;
-                });
-            }
-            catch (DbUpdateConcurrencyException exception)
-            {
-                exception.Log();
-            }
-
-            return result;
+            return await MovePackageIdentityAsync(stagingOwner, stagedPackage.StagedPackageIdentity, group);
         }
 
         public async Task<StagingGroupMembershipResult> RemovePackageFromStagingGroupAsync(User stagingOwner, StagedPackage stagedPackage)
@@ -485,43 +489,67 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(stagedPackage));
             }
 
-            var identity = stagedPackage.StagedPackageIdentity;
-            if (identity.OwnerKey != stagingOwner.Key)
+            return await MovePackageIdentityAsync(stagingOwner, stagedPackage.StagedPackageIdentity, group: null);
+        }
+
+        public async Task<StagingGroupMembershipResult> MovePackageIdentityAsync(User stagingOwner, StagedPackageIdentity identity, StagingGroup group)
+        {
+            if (stagingOwner == null)
             {
-                throw new ArgumentException("The staged package must belong to the authorized owner.");
+                throw new ArgumentNullException(nameof(stagingOwner));
             }
 
-            if (!identity.StagingGroupKey.HasValue)
+            if (identity == null)
+            {
+                throw new ArgumentNullException(nameof(identity));
+            }
+
+            if (identity.OwnerKey != stagingOwner.Key || (group != null && group.OwnerKey != stagingOwner.Key))
+            {
+                throw new ArgumentException("The staging identity and group must belong to the authorized owner.");
+            }
+
+            if (identity.StagingGroupKey == group?.Key)
             {
                 return StagingGroupMembershipResult.Unchanged;
             }
 
-            if (stagedPackage.Status == StagedPackageStatus.Promoting
-                || identity.StagingGroup?.ActivePromotionId.HasValue == true)
+            if (identity.CurrentStagedPackage?.Status == StagedPackageStatus.Promoting || identity.CurrentStagedSymbolPackage?.Status == StagedPackageStatus.Promoting || identity.StagingGroup?.ActivePromotionId.HasValue == true || group?.ActivePromotionId.HasValue == true)
             {
                 return StagingGroupMembershipResult.Conflict;
             }
 
-            var result = StagingGroupMembershipResult.Conflict;
             try
             {
                 await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
                 {
-                    stagedPackage.MutationRevision++;
-                    identity.StagingGroup.MutationRevision++;
+                    if (identity.CurrentStagedPackage != null)
+                    {
+                        identity.CurrentStagedPackage.MutationRevision++;
+                    }
 
-                    identity.StagingGroupKey = null;
-                    identity.StagingGroup = null;
+                    if (identity.StagingGroup != null)
+                    {
+                        identity.StagingGroup.MutationRevision++;
+                    }
+
+                    if (group != null)
+                    {
+                        group.MutationRevision++;
+                    }
+
+                    identity.StagingGroupKey = group?.Key;
+                    identity.StagingGroup = group;
                     await _stagedPackageRepository.CommitChangesAsync();
-                    result = StagingGroupMembershipResult.Updated;
                 });
             }
             catch (DbUpdateConcurrencyException exception)
             {
                 exception.Log();
+                return StagingGroupMembershipResult.Conflict;
             }
 
-            return result;
+            return StagingGroupMembershipResult.Updated;
         }
 
         public IReadOnlyList<StagingGroupSummary> GetStagingGroupSummaries(User stagingOwner)
@@ -539,9 +567,12 @@ namespace NuGetGallery
             var packagesByGroup = GetCurrentStagedPackages(new[] { stagingOwner.Key })
                 .Where(package => package.StagedPackageIdentity.StagingGroupKey.HasValue)
                 .ToLookup(package => package.StagedPackageIdentity.StagingGroupKey.Value);
+            var symbolsByGroup = GetCurrentStagedSymbols(new[] { stagingOwner.Key })
+                .Where(symbol => symbol.StagedPackageIdentity.StagingGroupKey.HasValue)
+                .ToLookup(symbol => symbol.StagedPackageIdentity.StagingGroupKey.Value);
 
             return groups
-                .Select(group => new StagingGroupSummary(group, packagesByGroup[group.Key].ToList()))
+                .Select(group => new StagingGroupSummary(group, packagesByGroup[group.Key].ToList(), symbolsByGroup[group.Key].ToList()))
                 .ToList();
         }
 
@@ -586,9 +617,13 @@ namespace NuGetGallery
                 .Where(package => package.StagedPackageIdentity.StagingGroupKey.HasValue)
                 .Where(package => groupKeys.Contains(package.StagedPackageIdentity.StagingGroupKey.Value))
                 .ToLookup(package => package.StagedPackageIdentity.StagingGroupKey.Value);
+            var symbolsByGroup = GetCurrentStagedSymbols(new[] { stagingOwner.Key })
+                .Where(symbol => symbol.StagedPackageIdentity.StagingGroupKey.HasValue)
+                .Where(symbol => groupKeys.Contains(symbol.StagedPackageIdentity.StagingGroupKey.Value))
+                .ToLookup(symbol => symbol.StagedPackageIdentity.StagingGroupKey.Value);
 
             var summaries = groups
-                .Select(group => new StagingGroupSummary(group, packagesByGroup[group.Key].ToList()))
+                .Select(group => new StagingGroupSummary(group, packagesByGroup[group.Key].ToList(), symbolsByGroup[group.Key].ToList()))
                 .ToList();
 
             return new StagingGroupSummaryPage(summaries, totalCount);
@@ -624,22 +659,33 @@ namespace NuGetGallery
 
             var packagesQuery = GetCurrentStagedPackages(new[] { stagingOwner.Key })
                 .Where(package => package.StagedPackageIdentity.StagingGroupKey == group.Key);
-            var totalCount = packagesQuery.Count();
-            var allPackagesReady = !packagesQuery.Any(package => package.Status != StagedPackageStatus.Ready);
+            var symbolsQuery = GetCurrentStagedSymbols(new[] { stagingOwner.Key })
+                .Where(symbol => symbol.StagedPackageIdentity.StagingGroupKey == group.Key);
+            var symbolCount = symbolsQuery.Count();
+            var totalCount = packagesQuery.Count() + symbolCount;
+            var allPackagesReady = !packagesQuery.Any(package => package.Status != StagedPackageStatus.Ready)
+                && !symbolsQuery.Any(symbol => symbol.Status != StagedPackageStatus.Ready);
             var skip = ((long)page - 1) * pageSize;
 
             var packages = new List<StagedPackage>();
+            var symbols = new List<StagedSymbolPackage>();
             if (skip < totalCount)
             {
-                packages = packagesQuery
-                    .OrderByDescending(package => package.UploadedDate)
-                    .ThenByDescending(package => package.Key)
+                var pageItems = packagesQuery.Select(package => new { package.Key, package.UploadedDate, IsSymbol = false })
+                    .Concat(symbolsQuery.Select(symbol => new { symbol.Key, symbol.UploadedDate, IsSymbol = true }))
+                    .OrderByDescending(item => item.UploadedDate)
+                    .ThenByDescending(item => item.Key)
+                    .ThenBy(item => item.IsSymbol)
                     .Skip((int)skip)
                     .Take(pageSize)
                     .ToList();
+                var packageKeys = pageItems.Where(item => !item.IsSymbol).Select(item => item.Key).ToArray();
+                var symbolKeys = pageItems.Where(item => item.IsSymbol).Select(item => item.Key).ToArray();
+                packages = packagesQuery.Where(package => packageKeys.Contains(package.Key)).OrderByDescending(package => package.UploadedDate).ThenByDescending(package => package.Key).ToList();
+                symbols = symbolsQuery.Where(symbol => symbolKeys.Contains(symbol.Key)).OrderByDescending(symbol => symbol.UploadedDate).ThenByDescending(symbol => symbol.Key).ToList();
             }
 
-            return new StagingGroupPackagePage(group, packages, totalCount, allPackagesReady);
+            return new StagingGroupPackagePage(group, packages, totalCount, allPackagesReady, symbols, symbolCount);
         }
 
         public IReadOnlyList<PackageStagingStatus> GetPackages(User currentUser, IEnumerable<Scope> scopes)
@@ -680,12 +726,25 @@ namespace NuGetGallery
                 .Where(stagedPackage => stagedPackage.StagedPackageIdentity.CurrentStagedPackageKey == stagedPackage.Key);
         }
 
+        private IQueryable<StagedSymbolPackage> GetCurrentStagedSymbols(int[] ownerKeys)
+        {
+            return _stagedSymbolPackageRepository.GetAll()
+                .Include(symbol => symbol.SymbolPackage)
+                .Include(symbol => symbol.StagedPackageIdentity.Owner)
+                .Include(symbol => symbol.StagedPackageIdentity.StagingGroup)
+                .Include(symbol => symbol.StagedPackageIdentity.Package.PackageRegistration)
+                .Where(symbol => ownerKeys.Contains(symbol.StagedPackageIdentity.OwnerKey))
+                .Where(symbol => symbol.StagedPackageIdentity.CurrentStagedSymbolPackageKey == symbol.Key)
+                .Where(symbol => symbol.SymbolPackage.StatusKey == PackageStatus.Staged);
+        }
+
         private StagedPackage GetCurrentAttempt(int packageKey)
         {
             return _stagedPackageRepository
                 .GetAll()
                 .Include(stagedPackage => stagedPackage.StagedPackageIdentity.Owner)
                 .Include(stagedPackage => stagedPackage.StagedPackageIdentity.StagingGroup)
+                .Include(stagedPackage => stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackage)
                 .SingleOrDefault(stagedPackage => stagedPackage.StagedPackageIdentityKey == packageKey && stagedPackage.StagedPackageIdentity.CurrentStagedPackageKey == stagedPackage.Key);
         }
 

@@ -16,5 +16,12 @@ namespace NuGetGallery
         /// </summary>
         [Required]
         public HttpPostedFileBase Package { get; set; }
+
+        /// <summary>
+        /// Gets or sets the group for the shared package and symbol identity.
+        /// </summary>
+        [StringLength(64)]
+        [RegularExpression(@"^[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?$")]
+        public string GroupId { get; set; }
     }
 }

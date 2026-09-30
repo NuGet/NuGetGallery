@@ -114,5 +114,10 @@ namespace NuGetGallery
         /// The promotion is active, but its message could not be confirmed as sent; it can be retried now.
         /// </summary>
         DispatchFailed,
+
+        /// <summary>
+        /// The group contains staged symbols whose promotion is not available yet.
+        /// </summary>
+        SymbolsNotSupported,
     }
 }
