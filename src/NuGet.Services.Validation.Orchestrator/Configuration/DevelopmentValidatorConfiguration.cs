@@ -13,6 +13,12 @@ namespace NuGet.Services.Validation.Orchestrator
         /// </summary>
         public bool UseForSymbolScan { get; set; }
 
+        /// <summary>
+        /// Simulates symbol ingestion for local promotion instead of uploading to the symbol server.
+        /// Requires <see cref="Enabled"/>; leave disabled outside local development.
+        /// </summary>
+        public bool UseForSymbolsIngester { get; set; }
+
         public int DelaySeconds { get; set; }
 
         public string FailurePackageIdPrefix { get; set; }

@@ -45,13 +45,31 @@ namespace NuGet.Services.Staging.Promotion.Tests
             groupHandler.Verify(x => x.HandleAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
         }
 
+        [Fact]
+        public async Task ReturnsFalseWhenSymbolDispatcherDoesNotHandleMessage()
+        {
+            var groupHandler = new Mock<IStagingPromotionMessageHandler<StagingGroup>>(MockBehavior.Strict);
+            var packageHandler = new Mock<IStagingPromotionMessageHandler<StagedPackage>>(MockBehavior.Strict);
+            var symbolHandler = new Mock<IStagingPromotionMessageHandler<StagedSymbolPackage>>(MockBehavior.Strict);
+            var message = StagingPromotionMessage.ForSymbolPackage(Guid.NewGuid(), 43);
+            symbolHandler.Setup(handler => handler.HandleAsync(message)).ReturnsAsync(false);
+            var dispatcher = new Lazy<IStagingPromotionMessageHandler<StagedSymbolPackage>>(() => symbolHandler.Object);
+            var target = CreateTarget(groupHandler, packageHandler, dispatcher);
+
+            Assert.False(await target.HandleAsync(message));
+
+            symbolHandler.Verify(handler => handler.HandleAsync(message), Times.Once);
+        }
+
         private static StagingPromotionMessageHandler CreateTarget(
             Mock<IStagingPromotionMessageHandler<StagingGroup>> groupHandler,
-            Mock<IStagingPromotionMessageHandler<StagedPackage>> packageHandler)
+            Mock<IStagingPromotionMessageHandler<StagedPackage>> packageHandler,
+            Lazy<IStagingPromotionMessageHandler<StagedSymbolPackage>> symbolHandler = null)
         {
             return new StagingPromotionMessageHandler(
                 groupHandler.Object,
                 packageHandler.Object,
+                symbolHandler ?? new Lazy<IStagingPromotionMessageHandler<StagedSymbolPackage>>(() => Mock.Of<IStagingPromotionMessageHandler<StagedSymbolPackage>>()),
                 Mock.Of<ILogger<StagingPromotionMessageHandler>>());
         }
     }

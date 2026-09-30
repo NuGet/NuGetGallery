@@ -64,6 +64,7 @@ static class ConfigureValidationTool
 		if (symbols)
 		{
 			SetJsonValue(root, "SymbolsValidator", "ServiceBus", "ConnectionString", serviceBusHostName);
+			SetJsonValue(root, "SymbolsIngester", "ServiceBus", "ConnectionString", serviceBusHostName);
 		}
 
 		File.WriteAllText(path, root.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
@@ -75,6 +76,7 @@ static class ConfigureValidationTool
 			?? throw new InvalidOperationException("The staging promotion configuration is empty.");
 
 		SetJsonValue(root, "ServiceBus", "ConnectionString", serviceBusHostName);
+		SetJsonValue(root, "PackageValidationServiceBus", "ConnectionString", serviceBusHostName);
 		File.WriteAllText(path, root.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
 	}
 

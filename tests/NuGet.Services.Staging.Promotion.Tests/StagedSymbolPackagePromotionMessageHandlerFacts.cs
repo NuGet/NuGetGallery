@@ -6,9 +6,14 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using Autofac;
+using Autofac.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Services.Entities;
+using NuGet.Services.ServiceBus;
 using NuGet.Services.Staging;
 using NuGet.Services.Validation;
 using NuGetGallery;
@@ -18,6 +23,44 @@ namespace NuGet.Services.Staging.Promotion.Tests
 {
     public class StagedSymbolPackagePromotionMessageHandlerFacts
     {
+        [Fact]
+        public async Task JobDispatchesAcceptedSymbolsToSeparateOrchestratorTopic()
+        {
+            var fixture = new Fixture();
+            IBrokeredMessage symbolsMessage = null;
+            var symbolsTopic = new Mock<ITopicClient>();
+            symbolsTopic.Setup(topic => topic.SendAsync(It.IsAny<IBrokeredMessage>()))
+                .Callback<IBrokeredMessage>(message => symbolsMessage = message).Returns(Task.CompletedTask);
+            var promotionTopic = new Mock<ITopicClient>();
+            promotionTopic.Setup(topic => topic.SendAsync(It.IsAny<IBrokeredMessage>())).Returns(Task.CompletedTask);
+            var builder = new ContainerBuilder();
+            new JobHarness().Configure(builder);
+            builder.RegisterInstance(symbolsTopic.Object).Keyed<ITopicClient>("SymbolsOrchestratorTopic");
+            builder.RegisterInstance(promotionTopic.Object).Keyed<ITopicClient>("PromotionTopic");
+            builder.RegisterInstance(fixture.Attempts.Object).As<IEntityRepository<StagedSymbolPackage>>();
+            builder.RegisterInstance(Mock.Of<IStagingPromotionMessageHandler<StagingGroup>>()).As<IStagingPromotionMessageHandler<StagingGroup>>();
+            builder.RegisterInstance(Mock.Of<IStagingPromotionMessageHandler<StagedPackage>>()).As<IStagingPromotionMessageHandler<StagedPackage>>();
+            using (var container = builder.Build())
+            {
+                Assert.True(await container.Resolve<IMessageHandler<StagingPromotionMessage>>().HandleAsync(fixture.Message));
+
+                Assert.NotNull(symbolsMessage);
+                promotionTopic.Verify(topic => topic.SendAsync(It.IsAny<IBrokeredMessage>()), Times.Never);
+                var received = new Mock<IReceivedBrokeredMessage>();
+                received.Setup(message => message.GetBody()).Returns(symbolsMessage.GetBody());
+                received.SetupGet(message => message.Properties).Returns(new Dictionary<string, object>(symbolsMessage.Properties));
+                var validation = container.Resolve<IServiceBusMessageSerializer>().DeserializePackageValidationMessageData(received.Object);
+                Assert.Equal(ValidatingType.StagedSymbolPackage, validation.ProcessValidationSet.ValidatingType);
+                Assert.Equal(fixture.Attempt.Key, validation.ProcessValidationSet.EntityKey);
+                Assert.Equal(SymbolPromotionValidationTrackingId.Create(fixture.Message.PromotionId, fixture.Attempt.Key), validation.ProcessValidationSet.ValidationTrackingId);
+
+                await container.Resolve<IStagingPromotionMessageEnqueuer>().SendMessageAsync(StagingPromotionMessage.ForPackage(Guid.NewGuid(), 12));
+
+                promotionTopic.Verify(topic => topic.SendAsync(It.IsAny<IBrokeredMessage>()), Times.Once);
+                symbolsTopic.Verify(topic => topic.SendAsync(It.IsAny<IBrokeredMessage>()), Times.Once);
+            }
+        }
+
         [Fact]
         public void TrackingIdentityIsStableAcrossCulturesAndDistinctForEachAcceptedAttempt()
         {
@@ -144,6 +187,22 @@ namespace NuGet.Services.Staging.Promotion.Tests
             await Assert.ThrowsAsync<NotSupportedException>(() => fixture.Target.HandleAsync(fixture.Message));
 
             fixture.Orchestrator.Verify(service => service.SendMessageAsync(It.IsAny<PackageValidationMessageData>()), Times.Never);
+        }
+
+        /// <summary>
+        /// Exposes host registrations without starting subscriptions or connecting to external services.
+        /// </summary>
+        private class JobHarness : Job
+        {
+            public void Configure(ContainerBuilder builder)
+            {
+                var configuration = new ConfigurationBuilder().Build();
+                var services = new ServiceCollection();
+                services.AddLogging();
+                ConfigureJobServices(services, configuration);
+                builder.Populate(services);
+                ConfigureAutofacServices(builder, configuration);
+            }
         }
 
         private class Fixture
