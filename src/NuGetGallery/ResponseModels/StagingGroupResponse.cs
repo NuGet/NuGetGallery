@@ -54,7 +54,8 @@ namespace NuGetGallery
             StagingGroup group,
             IReadOnlyCollection<StagedPackage> packages,
             DateTime expirationDate,
-            string managementUrl)
+            string managementUrl,
+            int symbolCount = 0)
         {
             if (group == null)
             {
@@ -66,7 +67,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(packages));
             }
 
-            return FromGroup(group, packages.Count, packages.All(package => package.Status == StagedPackageStatus.Ready), expirationDate, managementUrl);
+            return FromGroup(group, packages.Count + symbolCount, packages.All(package => package.Status == StagedPackageStatus.Ready), expirationDate, managementUrl, symbolCount);
         }
 
         public static StagingGroupResponse FromGroup(
@@ -74,7 +75,8 @@ namespace NuGetGallery
             int itemCount,
             bool allPackagesReady,
             DateTime expirationDate,
-            string managementUrl)
+            string managementUrl,
+            int symbolCount = 0)
         {
             if (group == null)
             {
@@ -86,7 +88,12 @@ namespace NuGetGallery
                 throw new ArgumentOutOfRangeException(nameof(itemCount));
             }
 
-            var canPromote = itemCount > 0 && allPackagesReady && !group.ActivePromotionId.HasValue;
+            if (symbolCount < 0 || symbolCount > itemCount)
+            {
+                throw new ArgumentOutOfRangeException(nameof(symbolCount));
+            }
+
+            var canPromote = itemCount > 0 && allPackagesReady && symbolCount == 0 && !group.ActivePromotionId.HasValue;
             IReadOnlyList<StagingBlockerResponse> blockers = Array.Empty<StagingBlockerResponse>();
             if (group.ActivePromotionId.HasValue)
             {
@@ -100,6 +107,13 @@ namespace NuGetGallery
                 blockers = new[]
                 {
                     new StagingBlockerResponse("GroupEmpty", "The staging group does not contain any packages."),
+                };
+            }
+            else if (symbolCount > 0)
+            {
+                blockers = new[]
+                {
+                    new StagingBlockerResponse("SymbolPromotionUnavailable", "Groups containing staged symbols cannot be promoted yet."),
                 };
             }
             else if (!canPromote)

@@ -160,7 +160,7 @@ namespace NuGetGallery
 
                 var currentUser = GetCurrentUser();
                 var scopes = User.Identity.GetScopesFromClaim();
-                var result = await _symbolPackageStagingUploadService.StageSymbolPackageAsync(currentUser, scopes, HttpContext, request.Package.InputStream);
+                var result = await _symbolPackageStagingUploadService.StageSymbolPackageAsync(currentUser, scopes, HttpContext, request.Package.InputStream, request.GroupId);
                 if (!result.Success)
                 {
                     return new HttpStatusCodeWithBodyResult(result.StatusCode, result.ErrorMessage);
@@ -202,7 +202,8 @@ namespace NuGetGallery
                     summary.Group,
                     summary.Packages,
                     summary.Group.CreatedDate.Add(InitialGroupExpiration),
-                    Url.ManageStagingGroup(summary.Group.Owner.Username, summary.Group.Id, relativeUrl: false)))
+                    Url.ManageStagingGroup(summary.Group.Owner.Username, summary.Group.Id, relativeUrl: false),
+                    summary.Symbols.Count))
                 .ToList();
 
             return JsonContent(new StagingPagedResponse<StagingGroupResponse>(
@@ -239,10 +240,15 @@ namespace NuGetGallery
             var managementUrl = Url.ManageStagingGroup(group.Owner.Username, group.Id, relativeUrl: false);
             var expirationDate = group.CreatedDate.Add(InitialGroupExpiration);
             var artifacts = packagePage.Items
-                .Select(package => StagingArtifactResponse.FromPackage(package, expirationDate, managementUrl))
+                .Select(package => new { package.Key, package.UploadedDate, IsSymbol = false, Artifact = StagingArtifactResponse.FromPackage(package, expirationDate, managementUrl) })
+                .Concat(packagePage.Symbols.Select(symbol => new { symbol.Key, symbol.UploadedDate, IsSymbol = true, Artifact = StagingArtifactResponse.FromSymbolPackage(symbol, expirationDate, managementUrl) }))
+                .OrderByDescending(item => item.UploadedDate)
+                .ThenByDescending(item => item.Key)
+                .ThenBy(item => item.IsSymbol)
+                .Select(item => item.Artifact)
                 .ToList();
 
-            var stagingGroupResponse = StagingGroupResponse.FromGroup(group, packagePage.TotalCount, packagePage.AllPackagesReady, expirationDate, managementUrl);
+            var stagingGroupResponse = StagingGroupResponse.FromGroup(group, packagePage.TotalCount, packagePage.AllPackagesReady, expirationDate, managementUrl, packagePage.SymbolCount);
             var response = new StagingGroupDetailResponse(stagingGroupResponse, artifacts, page, pageSize, packagePage.TotalCount);
 
             return JsonContent(response);

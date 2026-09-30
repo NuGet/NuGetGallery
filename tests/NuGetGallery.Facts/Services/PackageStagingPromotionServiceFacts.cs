@@ -469,11 +469,40 @@ namespace NuGetGallery
             Assert.False(StagingPromotionResendPolicy.IsDue(group.PromotionMessageSentDate));
         }
 
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task DoesNotPromoteGroupsContainingSymbols(bool hasStagedParent)
+        {
+            var group = CreateStagingGroup();
+            var parent = CreateStagedPackage(StagedPackageStatus.Ready, group: group);
+            var symbols = new StagedSymbolPackage
+            {
+                Key = 50,
+                StagedPackageIdentity = parent.StagedPackageIdentity,
+                SymbolPackage = new SymbolPackage { StatusKey = PackageStatus.Staged },
+                Status = StagedPackageStatus.Ready,
+            };
+            parent.StagedPackageIdentity.CurrentStagedSymbolPackageKey = symbols.Key;
+            var repository = new Mock<IEntityRepository<StagedPackage>>();
+            repository.Setup(x => x.GetAll()).Returns((hasStagedParent ? new[] { parent } : Array.Empty<StagedPackage>()).AsQueryable());
+            var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
+            var target = CreateService(repository, enqueuer, stagedSymbols: new[] { symbols });
+
+            var result = await target.PromoteGroupAsync(group.Owner, group);
+
+            Assert.Equal(StagingGroupPromotionResult.SymbolsNotSupported, result);
+            Assert.Null(group.ActivePromotionId);
+            repository.Verify(x => x.CommitChangesAsync(), Times.Never);
+            enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
+        }
+
         private static PackageStagingPromotionService CreateService(
             Mock<IEntityRepository<StagedPackage>> repository,
             Mock<IStagingPromotionMessageEnqueuer> enqueuer,
             bool authorized = true,
-            int? authorizedPackageKey = null)
+            int? authorizedPackageKey = null,
+            IEnumerable<StagedSymbolPackage> stagedSymbols = null)
         {
             var authorizationService = new Mock<IPackageStagingAuthorizationService>();
             authorizationService
@@ -487,7 +516,8 @@ namespace NuGetGallery
             return new PackageStagingPromotionService(
                 authorizationService.Object,
                 enqueuer.Object,
-                repository.Object);
+                repository.Object,
+                Mock.Of<IEntityRepository<StagedSymbolPackage>>(x => x.GetAll() == (stagedSymbols ?? Array.Empty<StagedSymbolPackage>()).AsQueryable()));
         }
 
         private static StagedPackage CreateStagedPackage(StagedPackageStatus status, int key = StagedPackageKey, StagingGroup group = null)

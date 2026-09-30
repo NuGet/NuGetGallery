@@ -15,14 +15,15 @@ namespace NuGetGallery
     public interface ISymbolPackageStagingUploadService
     {
         /// <summary>
-        /// Stages a symbol package for an available parent package.
+        /// Stages a symbol package for an available or same-owner staged parent package.
         /// </summary>
         /// <param name="currentUser">The user associated with the staging credential.</param>
         /// <param name="scopes">The scopes granted to the staging credential.</param>
         /// <param name="httpContext">The current HTTP context.</param>
         /// <param name="symbolPackageFile">The stream containing the symbol package.</param>
+        /// <param name="groupId">The optional group for the shared package and symbol identity.</param>
         /// <returns>The result of the staging operation.</returns>
-        Task<PackageStagingResult> StageSymbolPackageAsync(User currentUser, IReadOnlyCollection<Scope> scopes, HttpContextBase httpContext, Stream symbolPackageFile);
+        Task<PackageStagingResult> StageSymbolPackageAsync(User currentUser, IReadOnlyCollection<Scope> scopes, HttpContextBase httpContext, Stream symbolPackageFile, string groupId = null);
 
         /// <summary>
         /// Gets the owner-visible status for the current staged symbol package.
