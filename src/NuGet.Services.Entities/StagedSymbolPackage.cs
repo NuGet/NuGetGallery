@@ -33,6 +33,11 @@ namespace NuGet.Services.Entities
 
         public DateTime UploadedDate { get; set; }
 
+        /// <summary>
+        /// Identifies the accepted promotion of this immutable attempt.
+        /// </summary>
+        public Guid? ActivePromotionId { get; set; }
+
         public byte[] RowVersion { get; set; }
     }
 }
