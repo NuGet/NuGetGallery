@@ -368,11 +368,6 @@ namespace NuGetGallery
             }
 
             var deleted = await _packageStagingManagementService.DeletePackageAsync(stagedPackage);
-            if (!deleted && stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackageKey.HasValue)
-            {
-                return Error(HttpStatusCode.Conflict, "PackageHasStagedSymbols", "Remove the staged symbols before deleting their parent package.");
-            }
-
             return new HttpStatusCodeResult(deleted ? HttpStatusCode.NoContent : HttpStatusCode.Conflict);
         }
 

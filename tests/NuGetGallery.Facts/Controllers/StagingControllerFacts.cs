@@ -29,11 +29,12 @@ namespace NuGetGallery
         [Theory]
         [InlineData(PackageStatus.Available)]
         [InlineData(PackageStatus.Deleted)]
-        public void DisplaysUngroupedSymbolFindingsAndParentStatus(PackageStatus parentStatus)
+        [InlineData(PackageStatus.Deleted, StagedPackageStatus.WaitingForParent)]
+        public void DisplaysUngroupedSymbolFindingsAndParentStatus(PackageStatus parentStatus, StagedPackageStatus symbolStatus = StagedPackageStatus.FailedValidation)
         {
             var owner = new User("owner") { Key = 1 };
             var attempt = CreateStagedSymbolPackage(owner);
-            attempt.Status = StagedPackageStatus.FailedValidation;
+            attempt.Status = symbolStatus;
             attempt.StagedPackageIdentity.Package.PackageStatusKey = parentStatus;
             var grouped = CreateStagedSymbolPackage(owner);
             grouped.StagedPackageIdentity.StagingGroupKey = 10;
@@ -57,13 +58,22 @@ namespace NuGetGallery
             Assert.True(symbols.IsSymbolPackage);
             Assert.Equal(parentStatus.ToString(), symbols.ParentStatus);
             Assert.Equal(parentStatus == PackageStatus.Available, symbols.ParentUrl != null);
-            Assert.Same(issue, Assert.Single(symbols.ValidationIssues));
+            if (symbolStatus == StagedPackageStatus.WaitingForParent)
+            {
+                Assert.Empty(symbols.ValidationIssues);
+                GetMock<IValidationService>().Verify(x => x.GetStagedSymbolPackageValidationIssues(It.IsAny<IReadOnlyCollection<int>>()), Times.Never);
+            }
+            else
+            {
+                Assert.Same(issue, Assert.Single(symbols.ValidationIssues));
+            }
             Assert.True(symbols.CanManage);
             Assert.False(symbols.CanPromote);
             Assert.False(symbols.CanResend);
             Assert.Null(symbols.MoveUrl);
             Assert.Equal(1, model.PackageCount);
-            Assert.Equal(1, model.FailedCount);
+            Assert.Equal(symbolStatus == StagedPackageStatus.FailedValidation ? 1 : 0, model.FailedCount);
+            Assert.Equal(symbolStatus == StagedPackageStatus.WaitingForParent ? 1 : 0, model.WaitingForParentCount);
             GetMock<IValidationService>().Verify(x => x.GetStagedPackageValidationIssues(It.IsAny<IReadOnlyCollection<int>>()), Times.Never);
         }
 
@@ -1170,15 +1180,10 @@ namespace NuGetGallery
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public async Task DeletesAuthorizedPackageOrExplainsSymbolRestriction(bool hasSymbols)
+        public async Task DeletesAuthorizedPackageOrReportsConflict(bool succeeds)
         {
             var currentUser = new User("current") { Key = 1 };
             var stagedPackage = CreateStagedPackage(currentUser);
-            if (hasSymbols)
-            {
-                stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackageKey = 100;
-            }
-
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
                 .Returns(stagedPackage);
@@ -1187,16 +1192,16 @@ namespace NuGetGallery
                 .Returns(true);
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.DeletePackageAsync(stagedPackage))
-                .ReturnsAsync(!hasSymbols);
+                .ReturnsAsync(succeeds);
             var target = GetController<StagingController>();
             target.SetCurrentUser(currentUser);
 
             var result = await target.DeletePackage("PackageA", "1.0.0");
 
             Assert.IsType<RedirectResult>(result);
-            if (hasSymbols)
+            if (!succeeds)
             {
-                Assert.Equal("Remove the staged symbols before deleting their parent package.", target.TempData["ErrorMessage"]);
+                Assert.Equal("The staged package changed or promotion started. Refresh and try again.", target.TempData["ErrorMessage"]);
             }
 
             GetMock<IPackageStagingManagementService>().Verify(
