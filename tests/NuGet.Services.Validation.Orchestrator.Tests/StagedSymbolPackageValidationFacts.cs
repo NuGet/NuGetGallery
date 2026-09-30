@@ -77,10 +77,18 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 provider.TryGetOrCreateValidationSetAsync(message, new StagedSymbolPackageValidatingEntity(attempt)));
         }
 
-        [Fact]
-        public async Task CreatesValidationSetWithStagedSymbolValidators()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task CreatesValidationSetWithStagedSymbolValidators(bool stagedParent)
         {
             var attempt = CreateAttempt();
+            if (stagedParent)
+            {
+                attempt.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Staged;
+                attempt.StagedPackageIdentity.CurrentStagedPackageKey = 50;
+            }
+
             var newId = Guid.NewGuid();
             var storage = new Mock<IValidationStorageService>();
             storage.Setup(x => x.CreateValidationSetAsync(It.IsAny<PackageValidationSet>())).ReturnsAsync((PackageValidationSet set) => set);
@@ -149,11 +157,19 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         }
 
         [Theory]
-        [InlineData(PackageStatus.Available)]
-        [InlineData(PackageStatus.FailedValidation)]
-        public async Task CurrentOutcomeOnlyUpdatesStagedAttempt(PackageStatus status)
+        [InlineData(PackageStatus.Available, false)]
+        [InlineData(PackageStatus.FailedValidation, false)]
+        [InlineData(PackageStatus.Available, true)]
+        [InlineData(PackageStatus.FailedValidation, true)]
+        public async Task CurrentOutcomeOnlyUpdatesStagedAttempt(PackageStatus status, bool stagedParent)
         {
             var attempt = CreateAttempt();
+            if (stagedParent)
+            {
+                attempt.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Staged;
+                attempt.StagedPackageIdentity.CurrentStagedPackageKey = 50;
+            }
+
             var service = new Mock<IEntityService<StagedSymbolPackage>>();
             var set = new PackageValidationSet
             {
@@ -187,10 +203,13 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             context.Verify(x => x.SaveChangesAsync(), Times.Once);
         }
 
-        [Fact]
-        public void EntityLookupRequiresAvailableParentAndCurrentAttempt()
+        [Theory]
+        [InlineData(PackageStatus.Available)]
+        [InlineData(PackageStatus.Staged)]
+        public void EntityLookupRequiresAccessibleParentAndCurrentAttempt(PackageStatus parentStatus)
         {
             var attempt = CreateAttempt();
+            attempt.StagedPackageIdentity.Package.PackageStatusKey = parentStatus;
             attempt.StagedPackageIdentity.Package.NormalizedVersion = "1.0.0";
             attempt.StagedPackageIdentity.Package.PackageRegistration = new PackageRegistration { Id = "PackageA" };
             var query = new[] { attempt }.AsQueryable();

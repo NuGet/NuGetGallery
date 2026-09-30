@@ -47,7 +47,8 @@ namespace NuGet.Services.Validation.Orchestrator
                 validationSet.PackageKey == attempt.Key &&
                 validationSet.PackageETag == attempt.UploadedBlobETag;
             var isCurrentAttempt = attempt.Status == StagedPackageStatus.Validating && attempt.StagedPackageIdentity.CurrentStagedSymbolPackageKey == attempt.Key;
-            var parentIsAvailable = attempt.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Available;
+            var identity = attempt.StagedPackageIdentity;
+            var parentIsAvailable = identity.Package.PackageStatusKey == PackageStatus.Available || (identity.Package.PackageStatusKey == PackageStatus.Staged && identity.CurrentStagedPackageKey.HasValue);
 
             return matchesAttempt && isCurrentAttempt && parentIsAvailable;
         }
