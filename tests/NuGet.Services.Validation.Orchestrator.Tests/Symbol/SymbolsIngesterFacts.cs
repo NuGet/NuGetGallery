@@ -12,6 +12,8 @@ using NuGet.Jobs.Validation;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 using NuGet.Services.Validation.Symbols;
 using NuGet.Jobs.Validation.Symbols.Core;
+using NuGet.Services.Entities;
+using NuGet.Services.Staging;
 
 using Xunit;
 using Xunit.Abstractions;
@@ -60,6 +62,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
                 var actual = await _target.GetResponseAsync(_validationRequest.Object);
 
                 Assert.Equal(status, actual.Status);
+                _symbolsValidationEntitiesService.Verify(service => service.GetSymbolsServerRequestAsync(_validationRequest.Object), Times.Once);
+                _stagedSymbols.Verify(service => service.FindPackageByKey(It.IsAny<int>()), Times.Never);
             }
 
             public static IEnumerable<object[]> PossibleValidationStatuses => possibleValidationStatuses.Select(s => new object[] { s });
@@ -167,6 +171,99 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
             public static IEnumerable<object[]> StartedValidationStatuses => startedValidationStatuses.Select(s => new object[] { s });
         }
 
+        public class StagedSymbolPromotion : FactsBase
+        {
+            private const int OrdinarySymbolKey = 2002;
+
+            private readonly StagedSymbolPackage _attempt;
+
+            private readonly PackageValidationSet _validationSet;
+
+            public StagedSymbolPromotion(ITestOutputHelper output) : base(output)
+            {
+                _attempt = new StagedSymbolPackage
+                {
+                    Key = PackageKey,
+                    SymbolPackageKey = OrdinarySymbolKey,
+                    Status = StagedPackageStatus.Promoting,
+                    ActivePromotionId = Guid.NewGuid(),
+                    StagedPackageIdentity = new StagedPackageIdentity { CurrentStagedSymbolPackageKey = PackageKey },
+                };
+                _validationSet = new PackageValidationSet
+                {
+                    PackageKey = _attempt.Key,
+                    ValidatingType = ValidatingType.StagedSymbolPackage,
+                    ValidationTrackingId = SymbolPromotionValidationTrackingId.Create(_attempt.ActivePromotionId.Value, _attempt.Key),
+                    PackageValidations = new List<PackageValidation>
+                    {
+                        new PackageValidation { Key = ValidationId, Type = ValidatorName.SymbolsIngester },
+                    },
+                };
+                _validationStorageService.Setup(service => service.TryGetParentValidationSetAsync(ValidationId)).ReturnsAsync(_validationSet);
+                _stagedSymbols.Setup(service => service.FindPackageByKey(PackageKey)).Returns(new StagedSymbolPackageValidatingEntity(_attempt));
+            }
+
+            [Fact]
+            public async Task UsesOrdinarySymbolKeyForUploadAndServerTracking()
+            {
+                _symbolMessageEnqueuer.Setup(service => service.EnqueueSymbolsIngestionMessageAsync(It.IsAny<INuGetValidationRequest>()))
+                    .ReturnsAsync((INuGetValidationRequest request) => new SymbolsIngesterMessage(
+                        request.ValidationId, request.PackageKey, request.PackageId, request.PackageVersion, request.NupkgUrl, "request"));
+                _symbolsValidationEntitiesService.Setup(service => service.AddSymbolsServerRequestAsync(It.IsAny<SymbolsServerRequest>()))
+                    .ReturnsAsync((SymbolsServerRequest request) => request);
+
+                var result = await _target.StartAsync(_validationRequest.Object);
+
+                Assert.Equal(ValidationStatus.Incomplete, result.Status);
+                _symbolMessageEnqueuer.Verify(service => service.EnqueueSymbolsIngestionMessageAsync(It.Is<INuGetValidationRequest>(request =>
+                    request.PackageKey == OrdinarySymbolKey && request.ValidationId == ValidationId
+                    && request.PackageId == PackageId && request.PackageVersion == PackageVersion && request.NupkgUrl == NupkgUrl)), Times.Once);
+                _symbolsValidationEntitiesService.Verify(service => service.AddSymbolsServerRequestAsync(It.Is<SymbolsServerRequest>(request =>
+                    request.SymbolsKey == OrdinarySymbolKey && request.RequestName == "request")), Times.Once);
+                Assert.Equal(PackageKey, _validationSet.PackageKey);
+            }
+
+            [Fact]
+            public async Task UsesOrdinarySymbolKeyToReadIngestionOutcome()
+            {
+                _symbolsValidationEntitiesService.Setup(service => service.GetSymbolsServerRequestAsync(It.Is<INuGetValidationRequest>(request =>
+                    request.PackageKey == OrdinarySymbolKey && request.ValidationId == ValidationId)))
+                    .ReturnsAsync(new SymbolsServerRequest { SymbolsKey = OrdinarySymbolKey, RequestStatusKey = SymbolsPackageIngestRequestStatus.Ingested });
+
+                var result = await _target.GetResponseAsync(_validationRequest.Object);
+
+                Assert.Equal(ValidationStatus.Succeeded, result.Status);
+                _symbolsValidationEntitiesService.Verify(service => service.GetSymbolsServerRequestAsync(It.Is<INuGetValidationRequest>(request =>
+                    request.PackageKey == PackageKey)), Times.Never);
+            }
+
+            [Theory]
+            [InlineData("superseded")]
+            [InlineData("new-promotion")]
+            [InlineData("validation-phase")]
+            public async Task DoesNotIngestInactiveOrValidationOnlyAttempts(string scenario)
+            {
+                switch (scenario)
+                {
+                    case "superseded":
+                        _attempt.StagedPackageIdentity.CurrentStagedSymbolPackageKey++;
+                        break;
+                    case "new-promotion":
+                        _attempt.ActivePromotionId = Guid.NewGuid();
+                        break;
+                    case "validation-phase":
+                        _validationSet.PackageValidations.Clear();
+                        _validationSet.PackageValidations.Add(new PackageValidation { Type = ValidatorName.SymbolScan });
+                        break;
+                }
+
+                await Assert.ThrowsAsync<InvalidOperationException>(() => _target.StartAsync(_validationRequest.Object));
+
+                _symbolMessageEnqueuer.Verify(service => service.EnqueueSymbolsIngestionMessageAsync(It.IsAny<INuGetValidationRequest>()), Times.Never);
+                _symbolsValidationEntitiesService.Verify(service => service.AddSymbolsServerRequestAsync(It.IsAny<SymbolsServerRequest>()), Times.Never);
+            }
+        }
+
         public abstract class FactsBase
         {
             protected readonly Mock<ISymbolsValidationEntitiesService> _symbolsValidationEntitiesService;
@@ -174,6 +271,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
             protected readonly Mock<ITelemetryService> _telemetryService;
             protected readonly ILogger<SymbolsIngester> _logger;
             protected readonly Mock<INuGetValidationRequest> _validationRequest;
+            protected readonly Mock<IValidationStorageService> _validationStorageService;
+            protected readonly Mock<IEntityService<StagedSymbolPackage>> _stagedSymbols;
             protected readonly SymbolsIngester _target;
 
             public FactsBase(ITestOutputHelper output)
@@ -190,12 +289,18 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
                 _validationRequest.Setup(x => x.PackageKey).Returns(PackageKey);
                 _validationRequest.Setup(x => x.PackageVersion).Returns(PackageVersion);
                 _validationRequest.Setup(x => x.ValidationId).Returns(ValidationId);
+                _validationStorageService = new Mock<IValidationStorageService>();
+                _validationStorageService.Setup(service => service.TryGetParentValidationSetAsync(ValidationId))
+                    .ReturnsAsync(new PackageValidationSet { ValidatingType = ValidatingType.SymbolPackage });
+                _stagedSymbols = new Mock<IEntityService<StagedSymbolPackage>>();
                 
                 _target = new SymbolsIngester(
                     _symbolsValidationEntitiesService.Object,
                     _symbolMessageEnqueuer.Object,
                     _telemetryService.Object,
-                    _logger);
+                    _logger,
+                    _validationStorageService.Object,
+                    _stagedSymbols.Object);
             }
 
             public static SymbolsPackageIngestRequestStatus ConvertToSymbolsPackageIngestRequestStatus(ValidationStatus validationStatus)

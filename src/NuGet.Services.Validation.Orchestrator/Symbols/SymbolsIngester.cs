@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.Symbols.Core;
+using NuGet.Services.Entities;
+using NuGet.Services.Staging;
 using NuGet.Services.Validation.Orchestrator;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 
@@ -18,17 +20,23 @@ namespace NuGet.Services.Validation.Symbols
         private readonly ISymbolsIngesterMessageEnqueuer _symbolMessageEnqueuer;
         private readonly ITelemetryService _telemetryService;
         private readonly ILogger<SymbolsIngester> _logger;
+        private readonly IValidationStorageService _validationStorageService;
+        private readonly IEntityService<StagedSymbolPackage> _stagedSymbols;
 
         public SymbolsIngester(
             ISymbolsValidationEntitiesService symbolsValidationEntitiesService,
             ISymbolsIngesterMessageEnqueuer symbolMessageEnqueuer,
             ITelemetryService telemetryService,
-            ILogger<SymbolsIngester> logger)
+            ILogger<SymbolsIngester> logger,
+            IValidationStorageService validationStorageService,
+            IEntityService<StagedSymbolPackage> stagedSymbols)
         {
             _symbolsValidationEntitiesService = symbolsValidationEntitiesService ?? throw new ArgumentNullException(nameof(symbolsValidationEntitiesService));
             _symbolMessageEnqueuer = symbolMessageEnqueuer ?? throw new ArgumentNullException(nameof(symbolMessageEnqueuer));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _validationStorageService = validationStorageService ?? throw new ArgumentNullException(nameof(validationStorageService));
+            _stagedSymbols = stagedSymbols ?? throw new ArgumentNullException(nameof(stagedSymbols));
         }
 
         public async Task<INuGetValidationResponse> GetResponseAsync(INuGetValidationRequest request)
@@ -38,6 +46,7 @@ namespace NuGet.Services.Validation.Symbols
                 throw new ArgumentNullException(nameof(request));
             }
 
+            request = await GetIngestionRequestAsync(request);
             var symbolsRequest = await _symbolsValidationEntitiesService.GetSymbolsServerRequestAsync(request);
             var response = SymbolsValidationEntitiesService.ToValidationResponse(symbolsRequest);
             _logger.LogInformation(
@@ -66,6 +75,7 @@ namespace NuGet.Services.Validation.Symbols
                 throw new ArgumentNullException(nameof(request));
             }
 
+            request = await GetIngestionRequestAsync(request);
             var symbolsRequest = await _symbolsValidationEntitiesService.GetSymbolsServerRequestAsync(request);
             var response = SymbolsValidationEntitiesService.ToValidationResponse(symbolsRequest);
 
@@ -105,6 +115,40 @@ namespace NuGet.Services.Validation.Symbols
                  request.PackageKey);
             }
             return SymbolsValidationEntitiesService.ToValidationResponse(savedSymbolRequest);
+        }
+
+        private async Task<INuGetValidationRequest> GetIngestionRequestAsync(INuGetValidationRequest request)
+        {
+            var validationSet = await _validationStorageService.TryGetParentValidationSetAsync(request.ValidationId);
+            if (validationSet == null)
+            {
+                throw new InvalidOperationException("The ingestion validation set could not be found.");
+            }
+
+            if (validationSet.ValidatingType == ValidatingType.SymbolPackage)
+            {
+                return request;
+            }
+
+            if (!SymbolPromotionValidationConfiguration.IsPromotion(validationSet))
+            {
+                throw new InvalidOperationException("Only symbol uploads and staged symbol promotions can ingest symbols.");
+            }
+
+            var attempt = _stagedSymbols.FindPackageByKey(request.PackageKey)?.EntityRecord;
+            var isCurrentAttempt = attempt != null && attempt.StagedPackageIdentity.CurrentStagedSymbolPackageKey == attempt.Key;
+            if (!isCurrentAttempt || attempt.Status != StagedPackageStatus.Promoting || !attempt.ActivePromotionId.HasValue)
+            {
+                throw new InvalidOperationException("The staged symbol promotion is no longer active.");
+            }
+
+            var trackingId = SymbolPromotionValidationTrackingId.Create(attempt.ActivePromotionId.Value, attempt.Key);
+            if (validationSet.PackageKey != attempt.Key || validationSet.ValidationTrackingId != trackingId)
+            {
+                throw new InvalidOperationException("The ingestion validation set does not match the active promotion.");
+            }
+
+            return new NuGetValidationRequest(request.ValidationId, attempt.SymbolPackageKey, request.PackageId, request.PackageVersion, request.NupkgUrl);
         }
     }
 }

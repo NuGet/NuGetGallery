@@ -57,7 +57,7 @@ namespace NuGet.Services.Validation.Orchestrator
             {
                 var shouldSkip = await _validationStorageService.OtherRecentValidationSetForPackageExists(
                     validatingEntity,
-                    _validationConfiguration.NewValidationRequestDeduplicationWindow,
+                    GetDeduplicationWindow(validatingEntity),
                     message.ValidationTrackingId);
                 if (shouldSkip)
                 {
@@ -168,7 +168,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 ValidationSetStatus = ValidationSetStatus.InProgress,
             };
 
-            var validationsToStart = GetValidationsToStart();
+            var validationsToStart = GetValidationsToStart(validatingEntity);
 
             foreach (var validation in validationsToStart)
             {
@@ -186,9 +186,14 @@ namespace NuGet.Services.Validation.Orchestrator
             return validationSet;
         }
 
-        protected virtual IEnumerable<ValidationConfigurationItem> GetValidationsToStart()
+        protected virtual IEnumerable<ValidationConfigurationItem> GetValidationsToStart(IValidatingEntity<T> validatingEntity)
         {
             return _validationConfiguration.Validations.Where(v => v.ShouldStart);
+        }
+
+        protected virtual TimeSpan GetDeduplicationWindow(IValidatingEntity<T> validatingEntity)
+        {
+            return _validationConfiguration.NewValidationRequestDeduplicationWindow;
         }
     }
 }
