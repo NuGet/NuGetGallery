@@ -35,6 +35,15 @@ namespace NuGetGallery
         Task<Uri> GetPackageReadUriAsync(string packagePath, string packageETag);
 
         /// <summary>
+        /// Gets a read URI for an unchanged staged package with the specified expiration.
+        /// </summary>
+        /// <param name="packagePath">The package path in private staging storage.</param>
+        /// <param name="packageETag">The expected source ETag.</param>
+        /// <param name="endOfAccess">The future expiration time for read access.</param>
+        /// <returns>A temporary read URI for the staged package.</returns>
+        Task<Uri> GetPackageReadUriAsync(string packagePath, string packageETag, DateTimeOffset endOfAccess);
+
+        /// <summary>
         /// Opens an unchanged package from private staging storage.
         /// </summary>
         /// <param name="packagePath">The package path in private staging storage.</param>

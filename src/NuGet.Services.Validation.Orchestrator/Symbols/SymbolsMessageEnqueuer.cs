@@ -3,6 +3,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using NuGet.Jobs.Validation.Symbols.Core;
 using NuGet.Services.Entities;
 using NuGet.Services.ServiceBus;
@@ -19,6 +20,7 @@ namespace NuGet.Services.Validation.Symbols
         private readonly IValidationStorageService _validationStorageService;
         private readonly IEntityService<StagedSymbolPackage> _stagedSymbolService;
         private readonly IStagingBlobService _stagingBlobService;
+        private readonly ValidationConfiguration _validationConfiguration;
 
         public SymbolsMessageEnqueuer(
             ITopicClient topicClient,
@@ -26,7 +28,8 @@ namespace NuGet.Services.Validation.Symbols
             TimeSpan? messageDelay,
             IValidationStorageService validationStorageService,
             IEntityService<StagedSymbolPackage> stagedSymbolService,
-            IStagingBlobService stagingBlobService)
+            IStagingBlobService stagingBlobService,
+            IOptionsSnapshot<ValidationConfiguration> validationConfigurationAccessor)
         {
             _topicClient = topicClient ?? throw new ArgumentNullException(nameof(topicClient));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
@@ -34,6 +37,12 @@ namespace NuGet.Services.Validation.Symbols
             _validationStorageService = validationStorageService ?? throw new ArgumentNullException(nameof(validationStorageService));
             _stagedSymbolService = stagedSymbolService ?? throw new ArgumentNullException(nameof(stagedSymbolService));
             _stagingBlobService = stagingBlobService ?? throw new ArgumentNullException(nameof(stagingBlobService));
+            if (validationConfigurationAccessor == null)
+            {
+                throw new ArgumentNullException(nameof(validationConfigurationAccessor));
+            }
+
+            _validationConfiguration = validationConfigurationAccessor.Value ?? throw new ArgumentException("The Value property cannot be null.", nameof(validationConfigurationAccessor));
         }
 
         public async Task EnqueueSymbolsValidationMessageAsync(INuGetValidationRequest request)
@@ -62,7 +71,10 @@ namespace NuGet.Services.Validation.Symbols
                 if (identity.Package.PackageStatusKey == PackageStatus.Staged && identity.CurrentStagedPackageKey.HasValue)
                 {
                     var parent = identity.CurrentStagedPackage;
-                    var uri = await _stagingBlobService.GetPackageReadUriAsync(parent.UploadedBlobPath, parent.UploadedBlobETag);
+                    var uri = await _stagingBlobService.GetPackageReadUriAsync(
+                        parent.UploadedBlobPath,
+                        parent.UploadedBlobETag,
+                        DateTimeOffset.UtcNow.Add(_validationConfiguration.TimeoutValidationSetAfter));
                     parentPackageUrl = uri.AbsoluteUri;
                 }
                 else if (identity.Package.PackageStatusKey != PackageStatus.Available)
