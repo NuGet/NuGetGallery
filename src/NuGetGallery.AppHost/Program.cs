@@ -63,6 +63,9 @@ public class Program
 
         const string validationTopicName = "validation";
         const string validationSubscriptionName = "orchestrator";
+        const string symbolsValidationTopicName = "symbols-validation";
+        const string symbolsValidatorTopicName = "symbols-validator";
+        const string symbolsValidatorSubscriptionName = "validator";
         const string stagingPromotionTopicName = "staging-promotion";
         const string stagingPromotionSubscriptionName = "package-promotion";
         const string emailTopicName = "email";
@@ -72,6 +75,10 @@ public class Program
             serviceBus = builder.AddAzureServiceBus("service-bus").WithParentRelationship(infraGroup);
             var validationTopic = serviceBus.AddServiceBusTopic(validationTopicName);
             validationTopic.AddServiceBusSubscription(validationSubscriptionName);
+            var symbolsValidationTopic = serviceBus.AddServiceBusTopic(symbolsValidationTopicName);
+            symbolsValidationTopic.AddServiceBusSubscription("symbols-orchestrator-subscription", validationSubscriptionName);
+            var symbolsValidatorTopic = serviceBus.AddServiceBusTopic("symbols-validator-topic", symbolsValidatorTopicName);
+            symbolsValidatorTopic.AddServiceBusSubscription("symbols-validator-subscription", symbolsValidatorSubscriptionName);
             var stagingPromotionTopic = serviceBus.AddServiceBusTopic(stagingPromotionTopicName);
             stagingPromotionTopic.AddServiceBusSubscription(stagingPromotionSubscriptionName);
             serviceBus.AddServiceBusTopic(emailTopicName);
@@ -168,7 +175,7 @@ public class Program
 
         // Generate appsettings.Aspire.config to switch Gallery to Azurite blob storage
         var galleryAspireConfigPath = GenerateGalleryAspireConfig(
-            galleryPath, azuriteConnStr, validationTopicName, stagingPromotionTopicName,
+            galleryPath, azuriteConnStr, validationTopicName, symbolsValidationTopicName, stagingPromotionTopicName,
             profile == "ci-gallery" ? null : config.SearchServiceBaseAddress,
             packages: config.Containers.Packages, auditing: config.Containers.Auditing,
             content: config.Containers.Content, uploads: config.Containers.Uploads);
@@ -196,80 +203,37 @@ public class Program
         if (serviceBus != null)
         {
             var orchestratorConfigPath = GenerateJsonConfig(
-                builder.AppHostDirectory, "validation-orchestrator-dev.json", new
+                builder.AppHostDirectory, "validation-orchestrator-dev.json",
+                CreateValidationOrchestratorConfiguration(
+                    config.GalleryDb.ConnectionString, validationConnectionString, azuriteConnStr,
+                    validationTopicName, validationSubscriptionName, emailTopicName, symbolsValidatorTopicName, symbols: false));
+            var symbolsOrchestratorConfigPath = GenerateJsonConfig(
+                builder.AppHostDirectory, "symbols-orchestrator-dev.json",
+                CreateValidationOrchestratorConfiguration(
+                    config.GalleryDb.ConnectionString, validationConnectionString, azuriteConnStr,
+                    symbolsValidationTopicName, validationSubscriptionName, emailTopicName, symbolsValidatorTopicName, symbols: true));
+            var symbolsValidatorConfigPath = GenerateJsonConfig(
+                builder.AppHostDirectory, "symbols-validator-dev.json", new
                 {
                     GalleryDb = new { ConnectionString = config.GalleryDb.ConnectionString },
                     ValidationDb = new { ConnectionString = validationConnectionString },
                     ServiceBus = new
                     {
                         ConnectionString = "",
-                        TopicPath = validationTopicName,
-                        SubscriptionName = validationSubscriptionName,
-                    },
-                    ValidationStorage = new { ConnectionString = azuriteConnStr },
-                    Configuration = new
-                    {
-                        Validations = new[]
-                        {
-                            new
-                            {
-                                Name = "DevelopmentValidator",
-                                TrackAfter = "00:00:10",
-                                RequiredValidations = Array.Empty<string>(),
-                                ShouldStart = true,
-                                FailureBehavior = "MustSucceed",
-                            },
-                        },
-                        ValidationStorageConnectionString = azuriteConnStr,
-                        StagingStorageConnectionString = azuriteConnStr,
-                        MissingPackageRetryCount = 5,
-                        ValidationMessageRecheckPeriod = "00:00:05",
-                        NewValidationRequestDeduplicationWindow = "00:01:00",
-                        ValidationSetNotificationTimeout = "00:10:00",
-                        TimeoutValidationSetAfter = "01:00:00",
-                    },
-                    RunnerConfiguration = new
-                    {
-                        ProcessRecycleInterval = "1.00:00:00",
-                        ShutdownWaitInterval = "00:00:10",
-                        ValidatingType = "Package",
+                        TopicPath = symbolsValidatorTopicName,
+                        SubscriptionName = symbolsValidatorSubscriptionName,
+                        ProcessDuration = "1.00:00:00",
                         MaxConcurrentCalls = 1,
                     },
-                    DevelopmentValidator = new
+                    PackageValidationServiceBus = new { ConnectionString = "", TopicPath = symbolsValidationTopicName },
+                    ValidationStorage = new { ConnectionString = azuriteConnStr },
+                    SymbolsConfiguration = new
                     {
-                        Enabled = true,
-                        DelaySeconds = 60,
-                        FailurePackageIdPrefix = "ValidationFail.",
-                    },
-                    Email = new
-                    {
-                        ServiceBus = new
-                        {
-                            ConnectionString = "",
-                            TopicPath = emailTopicName,
-                        },
-                        GalleryOwner = "NuGet Gallery <support@localhost>",
-                        GalleryNoReplyAddress = "NuGet Gallery <noreply@localhost>",
-                        PackageUrlTemplate = "https://localhost/packages/{0}/{1}",
-                        PackageSupportTemplate = "https://localhost/packages/{0}/{1}/contactowners",
-                        EmailSettingsUrl = "https://localhost/account",
-                        AnnouncementsUrl = "https://github.com/NuGet/Announcements",
-                        TwitterUrl = "https://twitter.com/nuget",
+                        PackageConnectionString = azuriteConnStr,
+                        ValidationPackageConnectionString = azuriteConnStr,
+                        ValidationSymbolsConnectionString = azuriteConnStr,
                     },
                     PackageDownloadTimeout = "00:01:00",
-                    FlatContainer = new { ConnectionString = azuriteConnStr },
-                    Leases = new
-                    {
-                        ConnectionString = azuriteConnStr,
-                        ContainerName = "validation-leases",
-                        StoragePath = "orchestrator",
-                    },
-                    SasDefinitions = new
-                    {
-                        PackageStatusProcessorSasDefinition = "",
-                        ValidationSetProviderSasDefinition = "",
-                        ValidationSetProcessorSasDefinition = "",
-                    },
                 });
 
             var promotionConfigPath = GenerateJsonConfig(
@@ -296,7 +260,9 @@ public class Program
                     "configure-validation",
                     galleryAspireConfigPath,
                     orchestratorConfigPath,
-                    promotionConfigPath)
+                    promotionConfigPath,
+                    symbolsOrchestratorConfigPath,
+                    symbolsValidatorConfigPath)
                 .WithEnvironment(
                     "SERVICE_BUS_HOST_NAME",
                     new BicepOutputReference("serviceBusHostName", serviceBus.Resource))
@@ -319,6 +285,25 @@ public class Program
                 .WithArgs("-Configuration", promotionConfigPath)
                 .WaitForCompletion(configureValidation)
                 .WaitForCompletion(dbMigrateGallery)
+                .WaitFor(storage)
+                .WaitFor(serviceBus)
+                .WithParentRelationship(pipelineGroup);
+
+            builder.AddProject<Projects.NuGet_Services_Validation_Orchestrator>("symbols-orchestrator")
+                .WithArgs("-Configuration", symbolsOrchestratorConfigPath)
+                .WaitForCompletion(configureValidation)
+                .WaitForCompletion(dbMigrateGallery)
+                .WaitForCompletion(dbMigrateValidation)
+                .WaitFor(storage)
+                .WaitFor(serviceBus)
+                .WaitFor(gallery)
+                .WithParentRelationship(pipelineGroup);
+
+            builder.AddProject<Projects.Validation_Symbols_Job>("symbols-validator")
+                .WithArgs("-Configuration", symbolsValidatorConfigPath)
+                .WaitForCompletion(configureValidation)
+                .WaitForCompletion(dbMigrateGallery)
+                .WaitForCompletion(dbMigrateValidation)
                 .WaitFor(storage)
                 .WaitFor(serviceBus)
                 .WithParentRelationship(pipelineGroup);
@@ -735,7 +720,7 @@ public class Program
                 var commandService = context.ServiceProvider.GetRequiredService<ResourceCommandService>();
 
                 // 1. Stop all V3 resources + Gallery
-                var allStoppable = allV3Resources.Concat(new[] { "validation-orchestrator", "gallery" }).ToArray();
+                var allStoppable = allV3Resources.Concat(new[] { "validation-orchestrator", "symbols-orchestrator", "symbols-validator", "gallery" }).ToArray();
                 foreach (var name in allStoppable)
                 {
                     try
@@ -856,6 +841,96 @@ public class Program
         return path;
     }
 
+    static object CreateValidationOrchestratorConfiguration(
+        string galleryConnectionString, string validationConnectionString, string storageConnectionString,
+        string topicName, string subscriptionName, string emailTopicName, string symbolsValidatorTopicName, bool symbols)
+    {
+        string[] validationNames;
+        string validatingType;
+        string failurePackageIdPrefix;
+        if (symbols)
+        {
+            validationNames = new[] { "SymbolScan", "SymbolsValidator" };
+            validatingType = "SymbolPackage";
+            failurePackageIdPrefix = "";
+        }
+        else
+        {
+            validationNames = new[] { "DevelopmentValidator" };
+            validatingType = "Package";
+            failurePackageIdPrefix = "ValidationFail.";
+        }
+
+        return new
+        {
+            GalleryDb = new { ConnectionString = galleryConnectionString },
+            ValidationDb = new { ConnectionString = validationConnectionString },
+            ServiceBus = new { ConnectionString = "", TopicPath = topicName, SubscriptionName = subscriptionName },
+            ValidationStorage = new { ConnectionString = storageConnectionString },
+            Configuration = new
+            {
+                Validations = validationNames.Select(name => new
+                {
+                    Name = name,
+                    TrackAfter = "00:00:10",
+                    RequiredValidations = Array.Empty<string>(),
+                    ShouldStart = true,
+                    FailureBehavior = "MustSucceed",
+                }).ToArray(),
+                ValidationStorageConnectionString = storageConnectionString,
+                StagingStorageConnectionString = storageConnectionString,
+                MissingPackageRetryCount = 5,
+                ValidationMessageRecheckPeriod = "00:00:05",
+                NewValidationRequestDeduplicationWindow = "00:01:00",
+                ValidationSetNotificationTimeout = "00:10:00",
+                TimeoutValidationSetAfter = "01:00:00",
+            },
+            RunnerConfiguration = new
+            {
+                ProcessRecycleInterval = "1.00:00:00",
+                ShutdownWaitInterval = "00:00:10",
+                ValidatingType = validatingType,
+                MaxConcurrentCalls = 1,
+            },
+            DevelopmentValidator = new
+            {
+                Enabled = true,
+                UseForSymbolScan = symbols,
+                DelaySeconds = 60,
+                FailurePackageIdPrefix = failurePackageIdPrefix,
+            },
+            SymbolsValidator = new
+            {
+                ServiceBus = new { ConnectionString = "", TopicPath = symbolsValidatorTopicName },
+            },
+            Email = new
+            {
+                ServiceBus = new { ConnectionString = "", TopicPath = emailTopicName },
+                GalleryOwner = "NuGet Gallery <support@localhost>",
+                GalleryNoReplyAddress = "NuGet Gallery <noreply@localhost>",
+                PackageUrlTemplate = "https://localhost/packages/{0}/{1}",
+                PackageSupportTemplate = "https://localhost/packages/{0}/{1}/contactowners",
+                EmailSettingsUrl = "https://localhost/account",
+                AnnouncementsUrl = "https://github.com/NuGet/Announcements",
+                TwitterUrl = "https://twitter.com/nuget",
+            },
+            PackageDownloadTimeout = "00:01:00",
+            FlatContainer = new { ConnectionString = storageConnectionString },
+            Leases = new
+            {
+                ConnectionString = storageConnectionString,
+                ContainerName = "validation-leases",
+                StoragePath = symbols ? "symbols-orchestrator" : "orchestrator",
+            },
+            SasDefinitions = new
+            {
+                PackageStatusProcessorSasDefinition = "",
+                ValidationSetProviderSasDefinition = "",
+                ValidationSetProcessorSasDefinition = "",
+            },
+        };
+    }
+
     /// <summary>
     /// Ensures the IIS Express site's physicalPath is absolute. The checked-in
     /// applicationhost.config uses a relative path that works when VS launches
@@ -904,7 +979,7 @@ public class Program
     /// and switches Gallery from FileSystem storage to Azurite blob storage.
     /// </summary>
     static string GenerateGalleryAspireConfig(
-        string galleryDir, string connectionString, string validationTopicName,
+        string galleryDir, string connectionString, string validationTopicName, string symbolsValidationTopicName,
         string stagingPromotionTopicName, string searchServiceBaseAddress,
         string packages, string auditing, string content, string uploads)
     {
@@ -930,7 +1005,7 @@ public class Program
                 Setting("AzureServiceBus.Validation.ConnectionString", ""),
                 Setting("AzureServiceBus.Validation.TopicName", validationTopicName),
                 Setting("AzureServiceBus.SymbolsValidation.ConnectionString", ""),
-                Setting("AzureServiceBus.SymbolsValidation.TopicName", validationTopicName),
+                Setting("AzureServiceBus.SymbolsValidation.TopicName", symbolsValidationTopicName),
                 Setting("AzureServiceBus.StagingPromotion.ConnectionString", ""),
                 Setting("AzureServiceBus.StagingPromotion.TopicName", stagingPromotionTopicName),
                 searchServiceBaseAddress == null ? null : Setting("Gallery.SearchServiceUriPrimary", searchServiceBaseAddress),
