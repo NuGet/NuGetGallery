@@ -246,7 +246,7 @@ namespace NuGetGallery
             [InlineData(StagedPackageStatus.Deleted, HttpStatusCode.OK, false, true, true)]
             [InlineData(StagedPackageStatus.Ready, HttpStatusCode.Conflict, false, false, false, true)]
             [InlineData(StagedPackageStatus.Ready, HttpStatusCode.OK, true, false, false, true)]
-            [InlineData(StagedPackageStatus.Ready, HttpStatusCode.Conflict, true, true, false, true)]
+            [InlineData(StagedPackageStatus.Ready, HttpStatusCode.OK, true, true, false, true)]
             public async Task UploadReturnsExpectedStatus(StagedPackageStatus status, HttpStatusCode expectedStatusCode, bool identical, bool assignGroup, bool createGroup, bool hasSymbols = false)
             {
                 var currentUser = new User { Key = 17 };

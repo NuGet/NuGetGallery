@@ -407,11 +407,6 @@ namespace NuGetGallery
             var isValidating = target.CurrentAttempt?.Status == StagedPackageStatus.Validating;
             var isReady = target.CurrentAttempt?.Status == StagedPackageStatus.Ready;
             var isIdentical = string.Equals(target.CurrentAttempt?.UploadHash, streamMetadata.Hash, StringComparison.Ordinal);
-            if (target.CurrentAttempt?.StagedPackageIdentity.CurrentStagedSymbolPackageKey.HasValue == true && requestedGroup != null && target.CurrentAttempt.StagedPackageIdentity.StagingGroupKey != requestedGroup.Key)
-            {
-                return PackageStagingResult.Error(HttpStatusCode.Conflict, "Remove the staged symbols before moving their parent package into a group.");
-            }
-
             if ((isValidating || isReady) && isIdentical)
             {
                 var identity = target.CurrentAttempt.StagedPackageIdentity;
@@ -768,26 +763,7 @@ namespace NuGetGallery
 
         private void UpdateGroupAssignment(StagedPackageIdentity identity, StagingGroup requestedGroup)
         {
-            var previousGroup = identity.StagingGroup;
-            if (previousGroup != null)
-            {
-                previousGroup.MutationRevision++;
-            }
-
-            if (requestedGroup != null && requestedGroup.Key != previousGroup?.Key)
-            {
-                if (requestedGroup.Key == 0)
-                {
-                    _stagingGroupRepository.InsertOnCommit(requestedGroup);
-                }
-                else
-                {
-                    requestedGroup.MutationRevision++;
-                    identity.StagingGroupKey = requestedGroup.Key;
-                }
-
-                identity.StagingGroup = requestedGroup;
-            }
+            StagingGroupAssignment.Update(identity, requestedGroup, _stagingGroupRepository);
         }
 
         private static bool IsConflict(Exception exception)

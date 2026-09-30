@@ -20,6 +20,7 @@ namespace NuGetGallery
         private readonly IPackageStagingAuthorizationService _authorizationService;
         private readonly IStagingPromotionMessageEnqueuer _messageEnqueuer;
         private readonly IEntityRepository<StagedPackage> _stagedPackageRepository;
+        private readonly IEntityRepository<StagedSymbolPackage> _stagedSymbolPackageRepository;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PackageStagingPromotionService"/> class.
@@ -27,14 +28,17 @@ namespace NuGetGallery
         /// <param name="authorizationService">The staged-package authorization service.</param>
         /// <param name="messageEnqueuer">The promotion message enqueuer.</param>
         /// <param name="stagedPackageRepository">The staged-package repository.</param>
+        /// <param name="stagedSymbolPackageRepository">The staged-symbol repository.</param>
         public PackageStagingPromotionService(
             IPackageStagingAuthorizationService authorizationService,
             IStagingPromotionMessageEnqueuer messageEnqueuer,
-            IEntityRepository<StagedPackage> stagedPackageRepository)
+            IEntityRepository<StagedPackage> stagedPackageRepository,
+            IEntityRepository<StagedSymbolPackage> stagedSymbolPackageRepository)
         {
             _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
             _messageEnqueuer = messageEnqueuer ?? throw new ArgumentNullException(nameof(messageEnqueuer));
             _stagedPackageRepository = stagedPackageRepository ?? throw new ArgumentNullException(nameof(stagedPackageRepository));
+            _stagedSymbolPackageRepository = stagedSymbolPackageRepository ?? throw new ArgumentNullException(nameof(stagedSymbolPackageRepository));
         }
 
         /// <inheritdoc />
@@ -167,6 +171,15 @@ namespace NuGetGallery
                 .Where(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Staged)
                 .Where(stagedPackage => stagedPackage.Status != StagedPackageStatus.Superseded && stagedPackage.Status != StagedPackageStatus.Deleted)
                 .ToList();
+            var containsSymbols = _stagedSymbolPackageRepository.GetAll()
+                .Where(symbol => symbol.StagedPackageIdentity.StagingGroupKey == group.Key)
+                .Where(symbol => symbol.StagedPackageIdentity.CurrentStagedSymbolPackageKey == symbol.Key)
+                .Any(symbol => symbol.SymbolPackage.StatusKey == PackageStatus.Staged);
+            if (containsSymbols)
+            {
+                return StagingGroupPromotionResult.SymbolsNotSupported;
+            }
+
             if (stagedPackages.Count == 0)
             {
                 return StagingGroupPromotionResult.Empty;

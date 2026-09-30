@@ -586,9 +586,10 @@ namespace NuGetGallery
             if (isPackageStagingEnabled)
             {
                 var stagedPackageEntities = _packageStagingManagementService.GetStagedPackages(currentUser).ToList();
-                var ungroupedSymbols = _symbolPackageStagingManagementService.GetStagedSymbolPackages(currentUser)
-                    .Where(attempt => !attempt.StagedPackageIdentity.StagingGroupKey.HasValue)
-                    .ToList();
+                var stagedSymbols = _symbolPackageStagingManagementService.GetStagedSymbolPackages(currentUser);
+                var ungroupedSymbols = stagedSymbols.Where(attempt => !attempt.StagedPackageIdentity.StagingGroupKey.HasValue).ToList();
+                var symbolsByGroup = stagedSymbols.Where(attempt => attempt.StagedPackageIdentity.StagingGroupKey.HasValue)
+                    .ToLookup(attempt => attempt.StagedPackageIdentity.StagingGroupKey.Value);
                 var stagedPackagesByGroupKey = stagedPackageEntities
                     .Where(stagedPackage => stagedPackage.StagedPackageIdentity.StagingGroupKey.HasValue)
                     .GroupBy(stagedPackage => stagedPackage.StagedPackageIdentity.StagingGroupKey.Value)
@@ -605,7 +606,8 @@ namespace NuGetGallery
                             group.CreatedDate,
                             groupPackages ?? [],
                             isUngrouped: false,
-                            url: Url.ManageStagingGroup(group.Owner.Username, group.Id));
+                            url: Url.ManageStagingGroup(group.Owner.Username, group.Id),
+                            symbols: symbolsByGroup[group.Key].ToList());
                     })
                     .Concat(stagedPackageEntities
                         .Where(stagedPackage => !stagedPackage.StagedPackageIdentity.StagingGroupKey.HasValue)

@@ -203,6 +203,9 @@ namespace NuGetGallery
                     break;
                 case StagingGroupPromotionResult.Unauthorized:
                     return HttpNotFound();
+                case StagingGroupPromotionResult.SymbolsNotSupported:
+                    TempData["ErrorMessage"] = "Groups containing staged symbols cannot be promoted yet.";
+                    break;
                 case StagingGroupPromotionResult.Empty:
                     TempData["ErrorMessage"] = "The staging group has no packages to promote.";
                     break;
@@ -328,7 +331,7 @@ namespace NuGetGallery
                 Owner = summary.Group.Owner.Username,
                 Id = summary.Group.Id,
                 Name = summary.Group.Name,
-                PackageCount = summary.Packages.Count,
+                PackageCount = summary.Packages.Count + summary.Symbols.Count,
             };
         }
 
@@ -345,7 +348,12 @@ namespace NuGetGallery
                 .Where(candidate => candidate.OwnerKey == group.OwnerKey)
                 .ToList();
 
-            return View(nameof(Group), CreateGroupViewModel(group.Owner.Username, group.Id, group.Name, null, stagedPackages, stagingGroups, group.ActivePromotionId.HasValue, group.PromotionMessageSentDate));
+            var model = CreateGroupViewModel(group.Owner.Username, group.Id, group.Name, null, stagedPackages, stagingGroups, group.ActivePromotionId.HasValue, group.PromotionMessageSentDate);
+            var stagedSymbols = _symbolPackageStagingManagementService.GetStagedSymbolPackages(currentUser)
+                .Where(attempt => attempt.StagedPackageIdentity.OwnerKey == group.OwnerKey && attempt.StagedPackageIdentity.StagingGroupKey == group.Key)
+                .ToList();
+            AddSymbolPackages(model, stagedSymbols, stagingGroups);
+            return View(nameof(Group), model);
         }
 
         [HttpGet]
@@ -376,12 +384,12 @@ namespace NuGetGallery
             var stagedSymbols = _symbolPackageStagingManagementService.GetStagedSymbolPackages(currentUser)
                 .Where(attempt => attempt.StagedPackageIdentity.OwnerKey == stagingOwner.Key && !attempt.StagedPackageIdentity.StagingGroupKey.HasValue)
                 .ToList();
-            AddSymbolPackages(model, stagedSymbols);
+            AddSymbolPackages(model, stagedSymbols, stagingGroups);
 
             return View("Group", model);
         }
 
-        private void AddSymbolPackages(StagingGroupDetailViewModel model, IReadOnlyList<StagedSymbolPackage> stagedSymbols)
+        private void AddSymbolPackages(StagingGroupDetailViewModel model, IReadOnlyList<StagedSymbolPackage> stagedSymbols, IReadOnlyCollection<StagingGroup> stagingGroups)
         {
             var failedKeys = stagedSymbols
                 .Where(attempt => attempt.Status == StagedPackageStatus.FailedValidation)
@@ -410,6 +418,9 @@ namespace NuGetGallery
                 }
 
                 findings.TryGetValue(attempt.Key, out var issues);
+                var canManage = !model.IsPromotionActive && attempt.Status != StagedPackageStatus.Promoting;
+                var hasMoveTarget = identity.StagingGroupKey.HasValue || stagingGroups.Any(group => group.Key != identity.StagingGroupKey);
+                var moveUrl = canManage && hasMoveTarget ? Url.MoveStagedPackage(identity.Owner.Username, package.Id, package.NormalizedVersion) : null;
                 return new PackageStagingViewModel
                 {
                     Id = package.PackageRegistration.Id,
@@ -422,8 +433,9 @@ namespace NuGetGallery
                     StatusClass = $"staging-status-{attempt.Status.ToString().ToLowerInvariant()}",
                     UploadedDate = attempt.UploadedDate,
                     ValidationIssues = issues ?? [],
-                    CanManage = attempt.Status != StagedPackageStatus.Promoting,
-                    CanDelete = attempt.Status != StagedPackageStatus.Promoting,
+                    CanManage = canManage,
+                    CanDelete = canManage,
+                    MoveUrl = moveUrl,
                 };
             });
 
@@ -436,6 +448,10 @@ namespace NuGetGallery
             model.ReadyCount += stagedSymbols.Count(attempt => attempt.Status == StagedPackageStatus.Ready);
             model.ValidatingCount += stagedSymbols.Count(attempt => attempt.Status == StagedPackageStatus.Validating);
             model.FailedCount += stagedSymbols.Count(attempt => attempt.Status == StagedPackageStatus.FailedValidation);
+            if (stagedSymbols.Count > 0)
+            {
+                model.CanPromote = false;
+            }
         }
 
         [HttpGet]
@@ -449,16 +465,13 @@ namespace NuGetGallery
 
             var currentUser = GetCurrentUser();
             var stagingOwner = _packageStagingAuthorizationService.GetEnabledOwner(currentUser, owner);
-            var stagedPackage = _packageStagingManagementService.FindCurrentStagedPackage(id, version);
-            if (stagingOwner == null
-                || stagedPackage == null
-                || stagedPackage.StagedPackageIdentity.OwnerKey != stagingOwner.Key
-                || !_packageStagingAuthorizationService.CanManage(currentUser, stagedPackage))
+            var identity = FindAuthorizedMoveIdentity(currentUser, stagingOwner, id, version);
+            if (identity == null)
             {
                 return HttpNotFound();
             }
 
-            return View(CreateMovePackageViewModel(currentUser, stagedPackage));
+            return View(CreateMovePackageViewModel(currentUser, identity));
         }
 
         [HttpPost]
@@ -473,11 +486,8 @@ namespace NuGetGallery
 
             var currentUser = GetCurrentUser();
             var stagingOwner = _packageStagingAuthorizationService.GetEnabledOwner(currentUser, owner);
-            var stagedPackage = _packageStagingManagementService.FindCurrentStagedPackage(id, version);
-            if (stagingOwner == null
-                || stagedPackage == null
-                || stagedPackage.StagedPackageIdentity.OwnerKey != stagingOwner.Key
-                || !_packageStagingAuthorizationService.CanManage(currentUser, stagedPackage))
+            var identity = FindAuthorizedMoveIdentity(currentUser, stagingOwner, id, version);
+            if (identity == null)
             {
                 return HttpNotFound();
             }
@@ -490,20 +500,12 @@ namespace NuGetGallery
 
             if (!ModelState.IsValid)
             {
-                var viewModel = CreateMovePackageViewModel(currentUser, stagedPackage);
+                var viewModel = CreateMovePackageViewModel(currentUser, identity);
                 viewModel.GroupId = groupId;
                 return View(viewModel);
             }
 
-            StagingGroupMembershipResult result;
-            if (group == null)
-            {
-                result = await _packageStagingManagementService.RemovePackageFromStagingGroupAsync(stagingOwner, stagedPackage);
-            }
-            else
-            {
-                result = await _packageStagingManagementService.AddPackageToStagingGroupAsync(stagingOwner, group, stagedPackage);
-            }
+            var result = await _packageStagingManagementService.MovePackageIdentityAsync(stagingOwner, identity, group);
 
             switch (result)
             {
@@ -513,16 +515,8 @@ namespace NuGetGallery
                         ? Redirect(Url.ManageUngroupedStaging(stagingOwner.Username))
                         : Redirect(Url.ManageStagingGroup(group.Owner.Username, group.Id));
                 case StagingGroupMembershipResult.Conflict:
-                    if (stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackageKey.HasValue)
-                    {
-                        ModelState.AddModelError(string.Empty, "Remove the staged symbols before moving their parent package into a group.");
-                    }
-                    else
-                    {
-                        ModelState.AddModelError(string.Empty, "The staged package cannot be moved while promotion is active.");
-                    }
-
-                    var viewModel = CreateMovePackageViewModel(currentUser, stagedPackage);
+                    ModelState.AddModelError(string.Empty, "The staged package and symbols cannot be moved while promotion is active.");
+                    var viewModel = CreateMovePackageViewModel(currentUser, identity);
                     viewModel.GroupId = groupId;
                     return View(viewModel);
                 default:
@@ -530,9 +524,35 @@ namespace NuGetGallery
             }
         }
 
-        private MoveStagedPackageViewModel CreateMovePackageViewModel(User currentUser, StagedPackage stagedPackage)
+        private StagedPackageIdentity FindAuthorizedMoveIdentity(User currentUser, User stagingOwner, string id, string version)
         {
-            var identity = stagedPackage.StagedPackageIdentity;
+            if (stagingOwner == null)
+            {
+                return null;
+            }
+
+            var package = _packageStagingManagementService.FindCurrentStagedPackage(id, version);
+            if (package != null)
+            {
+                if (package.StagedPackageIdentity.OwnerKey == stagingOwner.Key && _packageStagingAuthorizationService.CanManage(currentUser, package))
+                {
+                    return package.StagedPackageIdentity;
+                }
+
+                return null;
+            }
+
+            var symbols = _symbolPackageStagingManagementService.FindCurrentStagedSymbolPackage(id, version);
+            if (symbols != null && symbols.StagedPackageIdentity.OwnerKey == stagingOwner.Key && _packageStagingAuthorizationService.CanManage(currentUser, symbols))
+            {
+                return symbols.StagedPackageIdentity;
+            }
+
+            return null;
+        }
+
+        private MoveStagedPackageViewModel CreateMovePackageViewModel(User currentUser, StagedPackageIdentity identity)
+        {
             var groups = _packageStagingManagementService
                 .GetStagingGroups(currentUser)
                 .Where(group => group.OwnerKey == identity.OwnerKey && group.Key != identity.StagingGroupKey)

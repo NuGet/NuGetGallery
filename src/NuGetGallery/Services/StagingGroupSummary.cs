@@ -8,7 +8,7 @@ using NuGet.Services.Entities;
 namespace NuGetGallery
 {
     /// <summary>
-    /// Represents a staging group and its current package attempts.
+    /// Represents a staging group and its current package and symbol attempts.
     /// </summary>
     public class StagingGroupSummary
     {
@@ -17,10 +17,12 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="group">The staging group.</param>
         /// <param name="packages">The group's current package attempts.</param>
-        public StagingGroupSummary(StagingGroup group, IReadOnlyList<StagedPackage> packages)
+        /// <param name="symbols">The group's current symbol attempts.</param>
+        public StagingGroupSummary(StagingGroup group, IReadOnlyList<StagedPackage> packages, IReadOnlyList<StagedSymbolPackage> symbols = null)
         {
             Group = group ?? throw new ArgumentNullException(nameof(group));
             Packages = packages ?? throw new ArgumentNullException(nameof(packages));
+            Symbols = symbols ?? Array.Empty<StagedSymbolPackage>();
         }
 
         /// <summary>
@@ -32,6 +34,11 @@ namespace NuGetGallery
         /// Gets the group's current package attempts.
         /// </summary>
         public IReadOnlyList<StagedPackage> Packages { get; }
+
+        /// <summary>
+        /// Gets the group's current symbol attempts.
+        /// </summary>
+        public IReadOnlyList<StagedSymbolPackage> Symbols { get; }
     }
 
     /// <summary>
@@ -67,7 +74,7 @@ namespace NuGetGallery
     }
 
     /// <summary>
-    /// Represents one page of a staging group's current package attempts.
+    /// Represents one page of a staging group's current package and symbol attempts.
     /// </summary>
     public class StagingGroupPackagePage
     {
@@ -76,13 +83,17 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="group">The staging group.</param>
         /// <param name="items">The package attempts on the requested page.</param>
-        /// <param name="totalCount">The total number of current package attempts in the group.</param>
-        /// <param name="allPackagesReady">Whether every current package attempt in the group is ready.</param>
+        /// <param name="totalCount">The total number of current package and symbol attempts in the group.</param>
+        /// <param name="allPackagesReady">Whether every current package and symbol attempt in the group is ready.</param>
+        /// <param name="symbols">The symbol attempts on the requested artifact page.</param>
+        /// <param name="symbolCount">The total number of current symbol attempts in the group.</param>
         public StagingGroupPackagePage(
             StagingGroup group,
             IReadOnlyList<StagedPackage> items,
             int totalCount,
-            bool allPackagesReady)
+            bool allPackagesReady,
+            IReadOnlyList<StagedSymbolPackage> symbols = null,
+            int symbolCount = 0)
         {
             Group = group ?? throw new ArgumentNullException(nameof(group));
             Items = items ?? throw new ArgumentNullException(nameof(items));
@@ -93,6 +104,13 @@ namespace NuGetGallery
 
             TotalCount = totalCount;
             AllPackagesReady = allPackagesReady;
+            Symbols = symbols ?? Array.Empty<StagedSymbolPackage>();
+            if (symbolCount < 0 || symbolCount > totalCount)
+            {
+                throw new ArgumentOutOfRangeException(nameof(symbolCount));
+            }
+
+            SymbolCount = symbolCount;
         }
 
         /// <summary>
@@ -106,13 +124,23 @@ namespace NuGetGallery
         public IReadOnlyList<StagedPackage> Items { get; }
 
         /// <summary>
-        /// Gets the total number of current package attempts in the group.
+        /// Gets the total number of current package and symbol attempts in the group.
         /// </summary>
         public int TotalCount { get; }
 
         /// <summary>
-        /// Gets whether every current package attempt in the group is ready.
+        /// Gets whether every current package and symbol attempt in the group is ready.
         /// </summary>
         public bool AllPackagesReady { get; }
+
+        /// <summary>
+        /// Gets the symbol attempts on the requested artifact page.
+        /// </summary>
+        public IReadOnlyList<StagedSymbolPackage> Symbols { get; }
+
+        /// <summary>
+        /// Gets the total number of current symbol attempts in the group.
+        /// </summary>
+        public int SymbolCount { get; }
     }
 }

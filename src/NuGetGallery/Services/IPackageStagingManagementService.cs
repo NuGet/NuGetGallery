@@ -141,6 +141,15 @@ namespace NuGetGallery
         Task<StagingGroupMembershipResult> RemovePackageFromStagingGroupAsync(User stagingOwner, StagedPackage stagedPackage);
 
         /// <summary>
+        /// Moves an authorized identity's current package and symbols together, or removes them from their group.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="identity">The shared staging identity to move.</param>
+        /// <param name="group">The target group, or null for Ungrouped.</param>
+        /// <returns>The membership update result.</returns>
+        Task<StagingGroupMembershipResult> MovePackageIdentityAsync(User stagingOwner, StagedPackageIdentity identity, StagingGroup group);
+
+        /// <summary>
         /// Gets staging group summaries for an authorized owner.
         /// </summary>
         /// <param name="stagingOwner">The authorized staging owner.</param>

@@ -20,8 +20,9 @@
             <h1>Delete Staging Group</h1>
             <p>
                 Delete <strong>@Model.Name</strong> (<code>@Model.Id</code>) and
-                <strong>@Model.PackageCount current staged @(Model.PackageCount == 1 ? "package" : "packages")</strong>?
+                <strong>@Model.PackageCount current staged @(Model.PackageCount == 1 ? "artifact" : "artifacts")</strong>?
             </p>
+            <p>Staged packages and symbols in this group will be deleted. Published packages and symbols are not affected.</p>
             <p>This action cannot be undone.</p>
 
             @using (Html.BeginForm("DeleteGroup", "Staging", new { owner = Model.Owner, groupId = Model.Id }, FormMethod.Post, null))

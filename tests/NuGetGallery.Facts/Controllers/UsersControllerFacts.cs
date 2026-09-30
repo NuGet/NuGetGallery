@@ -4247,30 +4247,39 @@ namespace NuGetGallery
                     });
             }
 
-            [Fact]
-            public void IncludesUngroupedSummaryWhenOnlySymbolsAreStaged()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void IncludesSummaryWhenOnlySymbolsAreStaged(bool grouped)
             {
                 var identity = CreateStagedPackage(101, "Symbols.Package", StagedPackageStatus.Ready).StagedPackageIdentity;
                 identity.CurrentStagedPackageKey = null;
                 identity.CurrentStagedPackage = null;
                 identity.Package.PackageStatusKey = PackageStatus.Available;
+                var group = new StagingGroup { Key = 10, Id = "release", Name = "Release", Owner = _testUser, OwnerKey = _testUser.Key };
+                if (grouped)
+                {
+                    identity.StagingGroup = group;
+                    identity.StagingGroupKey = group.Key;
+                }
+
                 var attempt = new StagedSymbolPackage { StagedPackageIdentity = identity, Status = StagedPackageStatus.FailedValidation };
                 GetMock<IPackageService>()
                     .Setup(x => x.FindPackagesByAnyMatchingOwner(_testUser, It.IsAny<bool>(), false))
                     .Returns(Array.Empty<Package>());
                 GetMock<IPackageStagingManagementService>().Setup(x => x.IsEnabled(_testUser)).Returns(true);
                 GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagedPackages(_testUser)).Returns(Array.Empty<StagedPackage>());
-                GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagingGroups(_testUser)).Returns(Array.Empty<StagingGroup>());
+                GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagingGroups(_testUser)).Returns(grouped ? new[] { group } : Array.Empty<StagingGroup>());
                 GetMock<ISymbolPackageStagingManagementService>().Setup(x => x.GetStagedSymbolPackages(_testUser)).Returns(new[] { attempt });
 
                 var model = ResultAssert.IsView<ManagePackagesViewModel>(_testController.Packages());
 
                 var summary = Assert.Single(model.StagingGroups);
-                Assert.True(summary.IsUngrouped);
+                Assert.Equal(!grouped, summary.IsUngrouped);
                 Assert.Equal(_testUser.Username, summary.Owner);
                 Assert.Equal(1, summary.PackageCount);
                 Assert.Equal("1 failed", summary.PackageStatusSummary);
-                Assert.Contains($"/account/staging/{_testUser.Username}/ungrouped", summary.Url);
+                Assert.Contains(grouped ? $"/account/staging/{_testUser.Username}/groups/release" : $"/account/staging/{_testUser.Username}/ungrouped", summary.Url);
             }
 
             [Fact]
