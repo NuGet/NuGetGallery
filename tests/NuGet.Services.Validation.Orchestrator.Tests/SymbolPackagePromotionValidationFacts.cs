@@ -87,10 +87,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         [InlineData("superseded")]
         [InlineData("unaccepted")]
         [InlineData("ready")]
-        [InlineData("parent")]
-        [InlineData("owner")]
-        [InlineData("symbol")]
-        public async Task NoSetIsCreatedForInactiveOrIneligibleAttempt(string scenario)
+        public async Task NoSetIsCreatedForInactiveAttempt(string scenario)
         {
             var fixture = new Fixture();
             switch (scenario)
@@ -106,15 +103,6 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     break;
                 case "ready":
                     fixture.Attempt.Status = StagedPackageStatus.Ready;
-                    break;
-                case "parent":
-                    fixture.Attempt.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Deleted;
-                    break;
-                case "owner":
-                    fixture.Attempt.StagedPackageIdentity.Package.PackageRegistration.Owners.Clear();
-                    break;
-                case "symbol":
-                    fixture.Attempt.SymbolPackage.StatusKey = PackageStatus.Deleted;
                     break;
             }
 
@@ -198,6 +186,34 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             await Assert.ThrowsAsync<NotSupportedException>(() => processor.ProcessValidationsAsync(set));
 
             fixture.Validators.Verify(service => service.GetNuGetValidator(It.IsAny<string>()), Times.Never);
+        }
+
+        [Theory]
+        [InlineData(StagedPackageStatus.Succeeded)]
+        [InlineData(StagedPackageStatus.PromotionFailed)]
+        public async Task TerminalPromotionRequiresExistingIngestionSetForCompletionRetry(StagedPackageStatus status)
+        {
+            var fixture = new Fixture();
+            var set = await fixture.CreateSetAsync();
+            fixture.Attempt.Status = status;
+
+            Assert.Same(set, await fixture.CreateSetAsync());
+
+            fixture.Storage.Setup(service => service.GetValidationSetAsync(It.IsAny<Guid>())).ReturnsAsync((PackageValidationSet)null);
+            await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.CreateSetAsync());
+
+            fixture.Storage.Verify(service => service.CreateValidationSetAsync(It.IsAny<PackageValidationSet>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task CurrentPromotionStillReachesOutcomeWhenParentBecomesIneligible()
+        {
+            var fixture = new Fixture();
+            var set = await fixture.CreateSetAsync();
+            fixture.Attempt.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Deleted;
+            fixture.Attempt.StagedPackageIdentity.Package.PackageRegistration.Owners.Clear();
+
+            Assert.Same(set, await fixture.CreateSetAsync());
         }
 
         private static ValidationConfiguration CreateOrdinaryConfiguration()
