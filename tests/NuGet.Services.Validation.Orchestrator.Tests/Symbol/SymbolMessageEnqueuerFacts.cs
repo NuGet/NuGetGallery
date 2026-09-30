@@ -4,6 +4,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Entities;
 using NuGet.Services.Validation.Orchestrator;
@@ -55,15 +56,23 @@ namespace NuGet.Services.Validation.Symbols
             entities.Setup(x => x.FindPackageByKey(attempt.Key)).Returns(new StagedSymbolPackageValidatingEntity(attempt));
             var blobs = new Mock<IStagingBlobService>();
             var uri = new Uri("https://example.test/exact-parent.nupkg");
-            blobs.Setup(x => x.GetPackageReadUriAsync("exact-parent.nupkg", "parent-etag")).ReturnsAsync(uri);
+            blobs.Setup(x => x.GetPackageReadUriAsync("exact-parent.nupkg", "parent-etag", It.IsAny<DateTimeOffset>())).ReturnsAsync(uri);
             SymbolsValidatorMessage message = null;
             _serializer.Setup(x => x.Serialize(It.IsAny<SymbolsValidatorMessage>())).Callback<SymbolsValidatorMessage>(value => message = value).Returns(_brokeredMessage.Object);
-            var target = new SymbolsMessageEnqueuer(_topicClient.Object, _serializer.Object, null, storage.Object, entities.Object, blobs.Object);
+            var configuration = new ValidationConfiguration { TimeoutValidationSetAfter = TimeSpan.FromDays(5) };
+            var target = new SymbolsMessageEnqueuer(
+                _topicClient.Object, _serializer.Object, null, storage.Object, entities.Object, blobs.Object,
+                Mock.Of<IOptionsSnapshot<ValidationConfiguration>>(x => x.Value == configuration));
+            var expectedEndOfAccessLower = DateTimeOffset.UtcNow.Add(configuration.TimeoutValidationSetAfter);
 
             await target.EnqueueSymbolsValidationMessageAsync(_validationRequest.Object);
 
+            var expectedEndOfAccessUpper = DateTimeOffset.UtcNow.Add(configuration.TimeoutValidationSetAfter);
             Assert.Equal(uri.AbsoluteUri, message.ParentPackageUrl);
-            blobs.Verify(x => x.GetPackageReadUriAsync("exact-parent.nupkg", "parent-etag"), Times.Once);
+            blobs.Verify(x => x.GetPackageReadUriAsync(
+                "exact-parent.nupkg",
+                "parent-etag",
+                It.Is<DateTimeOffset>(expiry => expiry >= expectedEndOfAccessLower && expiry <= expectedEndOfAccessUpper)), Times.Once);
         }
 
         [Theory]
@@ -125,7 +134,8 @@ namespace NuGet.Services.Validation.Symbols
                 TimeSpan.FromSeconds(1),
                 storage.Object,
                 Mock.Of<IEntityService<StagedSymbolPackage>>(),
-                Mock.Of<IStagingBlobService>());
+                Mock.Of<IStagingBlobService>(),
+                Mock.Of<IOptionsSnapshot<ValidationConfiguration>>(x => x.Value == new ValidationConfiguration()));
         }
     }
 }

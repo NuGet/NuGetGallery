@@ -68,7 +68,12 @@ namespace NuGetGallery
             return new StagingFileReference(path, etag);
         }
 
-        public async Task<Uri> GetPackageReadUriAsync(string packagePath, string packageETag)
+        public Task<Uri> GetPackageReadUriAsync(string packagePath, string packageETag)
+        {
+            return GetPackageReadUriAsync(packagePath, packageETag, DateTimeOffset.UtcNow.Add(ReadAccessDuration));
+        }
+
+        public async Task<Uri> GetPackageReadUriAsync(string packagePath, string packageETag, DateTimeOffset endOfAccess)
         {
             if (string.IsNullOrWhiteSpace(packagePath))
             {
@@ -80,6 +85,11 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(packageETag));
             }
 
+            if (endOfAccess <= DateTimeOffset.UtcNow)
+            {
+                throw new ArgumentOutOfRangeException(nameof(endOfAccess), "Read access must expire in the future.");
+            }
+
             var currentETag = await _fileStorageService.GetETagOrNullAsync(CoreConstants.Folders.StagingFolderName, packagePath);
             if (!string.Equals(currentETag, packageETag, StringComparison.Ordinal))
             {
@@ -89,7 +99,7 @@ namespace NuGetGallery
             return await _fileStorageService.GetFileReadUriAsync(
                 CoreConstants.Folders.StagingFolderName,
                 packagePath,
-                DateTimeOffset.UtcNow.Add(ReadAccessDuration));
+                endOfAccess);
         }
 
         public async Task<Stream> OpenPackageFileAsync(string packagePath, string packageETag)
