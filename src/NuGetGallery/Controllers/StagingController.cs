@@ -701,10 +701,14 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
+            var identity = stagedPackage.StagedPackageIdentity;
+            var owner = identity.Owner.Username;
+            var groupId = identity.StagingGroup?.Id;
+            var returnUrl = groupId == null ? Url.ManageUngroupedStaging(owner) : Url.ManageStagingGroup(owner, groupId);
             if (packageFile == null || packageFile.ContentLength == 0)
             {
                 TempData["ErrorMessage"] = "Select a package file.";
-                return Redirect(Url.ManageMyPackages());
+                return Redirect(returnUrl);
             }
 
             var result = await _packageStagingUploadService.ReplacePackageAsync(
@@ -717,7 +721,7 @@ namespace NuGetGallery
                 TempData["ErrorMessage"] = result.ErrorMessage;
             }
 
-            return Redirect(Url.ManageMyPackages());
+            return Redirect(returnUrl);
         }
 
         [HttpPost]
@@ -748,12 +752,16 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
+            var identity = stagedPackage.StagedPackageIdentity;
+            var owner = identity.Owner.Username;
+            var groupId = identity.StagingGroup?.Id;
+            var returnUrl = groupId == null ? Url.ManageUngroupedStaging(owner) : Url.ManageStagingGroup(owner, groupId);
             if (!await _packageStagingManagementService.DeletePackageAsync(stagedPackage))
             {
                 TempData["ErrorMessage"] = "The staged package changed or promotion started. Refresh and try again.";
             }
 
-            return Redirect(Url.ManageMyPackages());
+            return Redirect(returnUrl);
         }
 
         /// <summary>

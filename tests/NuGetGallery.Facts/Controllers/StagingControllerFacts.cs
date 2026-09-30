@@ -1178,12 +1178,21 @@ namespace NuGetGallery
         }
 
         [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public async Task DeletesAuthorizedPackageOrReportsConflict(bool succeeds)
+        [InlineData(false, false)]
+        [InlineData(false, true)]
+        [InlineData(true, false)]
+        [InlineData(true, true)]
+        public async Task DeletesAuthorizedPackageOrReportsConflict(bool succeeds, bool grouped)
         {
             var currentUser = new User("current") { Key = 1 };
-            var stagedPackage = CreateStagedPackage(currentUser);
+            var owner = new User("owner") { Key = 2 };
+            var stagedPackage = CreateStagedPackage(owner);
+            if (grouped)
+            {
+                stagedPackage.StagedPackageIdentity.StagingGroup = new StagingGroup { Key = 10, Id = "release" };
+                stagedPackage.StagedPackageIdentity.StagingGroupKey = 10;
+            }
+
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
                 .Returns(stagedPackage);
@@ -1198,7 +1207,7 @@ namespace NuGetGallery
 
             var result = await target.DeletePackage("PackageA", "1.0.0");
 
-            Assert.IsType<RedirectResult>(result);
+            ResultAssert.IsRedirectTo(result, grouped ? "/account/staging/owner/groups/release" : "/account/staging/owner/ungrouped");
             if (!succeeds)
             {
                 Assert.Equal("The staged package changed or promotion started. Refresh and try again.", target.TempData["ErrorMessage"]);
@@ -1289,11 +1298,22 @@ namespace NuGetGallery
             Assert.Equal("The staged package is not ready for promotion.", target.TempData["ErrorMessage"]);
         }
 
-        [Fact]
-        public async Task ReplacesAuthorizedPackage()
+        [Theory]
+        [InlineData(false, false)]
+        [InlineData(false, true)]
+        [InlineData(true, false)]
+        [InlineData(true, true)]
+        public async Task ReplacesAuthorizedPackage(bool succeeds, bool grouped)
         {
             var currentUser = new User("current") { Key = 1 };
-            var stagedPackage = CreateStagedPackage(currentUser);
+            var owner = new User("owner") { Key = 2 };
+            var stagedPackage = CreateStagedPackage(owner);
+            if (grouped)
+            {
+                stagedPackage.StagedPackageIdentity.StagingGroup = new StagingGroup { Key = 10, Id = "release" };
+                stagedPackage.StagedPackageIdentity.StagingGroupKey = 10;
+            }
+
             var packageFile = new Mock<HttpPostedFileBase>();
             using var content = new MemoryStream();
             packageFile.SetupGet(x => x.ContentLength).Returns(1);
@@ -1306,23 +1326,33 @@ namespace NuGetGallery
                 .Returns(true);
             GetMock<IPackageStagingUploadService>()
                 .Setup(x => x.ReplacePackageAsync(currentUser, It.IsAny<HttpContextBase>(), stagedPackage, content))
-                .ReturnsAsync(PackageStagingResult.Ok());
+                .ReturnsAsync(succeeds ? PackageStagingResult.Ok() : PackageStagingResult.Error(HttpStatusCode.Conflict, "Replacement failed."));
             var target = GetController<StagingController>();
             target.SetCurrentUser(currentUser);
 
             var result = await target.ReplacePackage("PackageA", "1.0.0", packageFile.Object);
 
-            Assert.IsType<RedirectResult>(result);
+            ResultAssert.IsRedirectTo(result, grouped ? "/account/staging/owner/groups/release" : "/account/staging/owner/ungrouped");
+            Assert.Equal(succeeds ? null : "Replacement failed.", target.TempData["ErrorMessage"]);
             GetMock<IPackageStagingUploadService>().Verify(
                 x => x.ReplacePackageAsync(currentUser, It.IsAny<HttpContextBase>(), stagedPackage, content),
                 Times.Once);
         }
 
-        [Fact]
-        public async Task RequiresAReplacementFile()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task RequiresAReplacementFile(bool grouped)
         {
             var currentUser = new User("current") { Key = 1 };
-            var stagedPackage = CreateStagedPackage(currentUser);
+            var owner = new User("owner") { Key = 2 };
+            var stagedPackage = CreateStagedPackage(owner);
+            if (grouped)
+            {
+                stagedPackage.StagedPackageIdentity.StagingGroup = new StagingGroup { Key = 10, Id = "release" };
+                stagedPackage.StagedPackageIdentity.StagingGroupKey = 10;
+            }
+
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
                 .Returns(stagedPackage);
@@ -1334,7 +1364,7 @@ namespace NuGetGallery
 
             var result = await target.ReplacePackage("PackageA", "1.0.0", packageFile: null);
 
-            Assert.IsType<RedirectResult>(result);
+            ResultAssert.IsRedirectTo(result, grouped ? "/account/staging/owner/groups/release" : "/account/staging/owner/ungrouped");
             Assert.Equal("Select a package file.", target.TempData["ErrorMessage"]);
             GetMock<IPackageStagingUploadService>().Verify(
                 x => x.ReplacePackageAsync(
