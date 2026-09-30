@@ -4,6 +4,8 @@
 using System;
 using System.Linq;
 using NuGet.Jobs.Validation;
+using NuGet.Services.Entities;
+using NuGet.Services.Staging;
 
 namespace NuGet.Services.Validation.Orchestrator
 {
@@ -22,6 +24,40 @@ namespace NuGet.Services.Validation.Orchestrator
             return validationSet.ValidatingType == ValidatingType.StagedSymbolPackage
                 && validationSet.PackageValidations.Count == 1
                 && validationSet.PackageValidations.Single().Type == ValidatorName.SymbolsIngester;
+        }
+
+        /// <summary>
+        /// Checks whether a persisted ingestion set belongs to the current accepted symbol promotion.
+        /// </summary>
+        public static bool MatchesAttempt(PackageValidationSet validationSet, StagedSymbolPackage attempt)
+        {
+            if (validationSet == null)
+            {
+                throw new ArgumentNullException(nameof(validationSet));
+            }
+
+            if (attempt == null)
+            {
+                throw new ArgumentNullException(nameof(attempt));
+            }
+
+            var matchesAttempt = validationSet.PackageKey == attempt.Key && validationSet.PackageETag == attempt.UploadedBlobETag;
+            var isCurrentAttempt = attempt.StagedPackageIdentity.CurrentStagedSymbolPackageKey == attempt.Key;
+            var isPromotionState = attempt.Status == StagedPackageStatus.Promoting
+                || attempt.Status == StagedPackageStatus.Succeeded
+                || attempt.Status == StagedPackageStatus.PromotionFailed;
+
+            if (!IsPromotion(validationSet) || !matchesAttempt || !isCurrentAttempt || !attempt.ActivePromotionId.HasValue || !isPromotionState)
+            {
+                return false;
+            }
+
+            var package = attempt.StagedPackageIdentity.Package;
+            var matchesPackage = string.Equals(validationSet.PackageId, package.Id, StringComparison.OrdinalIgnoreCase)
+                && validationSet.PackageNormalizedVersion == package.NormalizedVersion;
+
+            return matchesPackage
+                && validationSet.ValidationTrackingId == SymbolPromotionValidationTrackingId.Create(attempt.ActivePromotionId.Value, attempt.Key);
         }
 
         public static ValidationConfigurationItem Create(ValidationConfiguration symbolsConfiguration)

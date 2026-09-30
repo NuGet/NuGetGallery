@@ -78,11 +78,6 @@ namespace NuGet.Services.Validation.Orchestrator
 
         protected abstract ValidatingType ValidatingType { get; }
 
-        protected virtual Task OnCompletedValidationSetAsync(PackageValidationSet validationSet, IValidatingEntity<TEntity> entity)
-        {
-            return Task.CompletedTask;
-        }
-
         public async Task<bool> HandleAsync(PackageValidationMessageData message)
         {
             if (message == null)
@@ -502,7 +497,6 @@ namespace NuGet.Services.Validation.Orchestrator
                     validationSet.PackageNormalizedVersion,
                     validationSet.PackageKey,
                     validationSet.ValidationTrackingId);
-                await OnCompletedValidationSetAsync(validationSet, entity);
                 return;
             }
 
