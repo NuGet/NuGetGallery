@@ -1191,17 +1191,28 @@ namespace NuGetGallery
         [Theory]
         [InlineData(PackageStagingDeletionResult.Deleted, false, null)]
         [InlineData(PackageStagingDeletionResult.Deleted, true, null)]
+        [InlineData(PackageStagingDeletionResult.Deleted, false, null, true)]
+        [InlineData(PackageStagingDeletionResult.Deleted, true, null, true)]
         [InlineData(PackageStagingDeletionResult.PromotionActive, false, "The staged package cannot be deleted while package promotion is active.")]
         [InlineData(PackageStagingDeletionResult.PromotionActive, true, "The staged package cannot be deleted while package promotion is active.")]
+        [InlineData(PackageStagingDeletionResult.PromotionActive, true, "The staged package cannot be deleted while package promotion is active.", true)]
         [InlineData(PackageStagingDeletionResult.Conflict, false, "The staged package changed. Refresh and try again.")]
         [InlineData(PackageStagingDeletionResult.Conflict, true, "The staged package changed. Refresh and try again.")]
-        public async Task DeletesAuthorizedPackageUsingServiceResult(PackageStagingDeletionResult deletionResult, bool hasSymbols, string expectedErrorMessage)
+        [InlineData(PackageStagingDeletionResult.Conflict, true, "The staged package changed. Refresh and try again.", true)]
+        public async Task DeletesAuthorizedPackageUsingServiceResult(PackageStagingDeletionResult deletionResult, bool hasSymbols, string expectedErrorMessage, bool grouped = false)
         {
             var currentUser = new User("current") { Key = 1 };
-            var stagedPackage = CreateStagedPackage(currentUser);
+            var owner = new User("owner") { Key = 2 };
+            var stagedPackage = CreateStagedPackage(owner);
             if (hasSymbols)
             {
                 stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackageKey = 100;
+            }
+
+            if (grouped)
+            {
+                stagedPackage.StagedPackageIdentity.StagingGroup = new StagingGroup { Key = 10, Id = "release" };
+                stagedPackage.StagedPackageIdentity.StagingGroupKey = 10;
             }
 
             GetMock<IPackageStagingManagementService>()
@@ -1218,7 +1229,7 @@ namespace NuGetGallery
 
             var result = await target.DeletePackage("PackageA", "1.0.0");
 
-            ResultAssert.IsRedirectTo(result, "/account/Packages");
+            ResultAssert.IsRedirectTo(result, grouped ? "/account/staging/owner/groups/release" : "/account/staging/owner/ungrouped");
             Assert.Equal(expectedErrorMessage, target.TempData["ErrorMessage"]);
 
             GetMock<IPackageStagingManagementService>().Verify(
@@ -1306,11 +1317,22 @@ namespace NuGetGallery
             Assert.Equal("The staged package is not ready for promotion.", target.TempData["ErrorMessage"]);
         }
 
-        [Fact]
-        public async Task ReplacesAuthorizedPackage()
+        [Theory]
+        [InlineData(false, false)]
+        [InlineData(false, true)]
+        [InlineData(true, false)]
+        [InlineData(true, true)]
+        public async Task ReplacesAuthorizedPackage(bool succeeds, bool grouped)
         {
             var currentUser = new User("current") { Key = 1 };
-            var stagedPackage = CreateStagedPackage(currentUser);
+            var owner = new User("owner") { Key = 2 };
+            var stagedPackage = CreateStagedPackage(owner);
+            if (grouped)
+            {
+                stagedPackage.StagedPackageIdentity.StagingGroup = new StagingGroup { Key = 10, Id = "release" };
+                stagedPackage.StagedPackageIdentity.StagingGroupKey = 10;
+            }
+
             var packageFile = new Mock<HttpPostedFileBase>();
             using var content = new MemoryStream();
             packageFile.SetupGet(x => x.ContentLength).Returns(1);
@@ -1323,23 +1345,33 @@ namespace NuGetGallery
                 .Returns(true);
             GetMock<IPackageStagingUploadService>()
                 .Setup(x => x.ReplacePackageAsync(currentUser, It.IsAny<HttpContextBase>(), stagedPackage, content))
-                .ReturnsAsync(PackageStagingResult.Ok());
+                .ReturnsAsync(succeeds ? PackageStagingResult.Ok() : PackageStagingResult.Error(HttpStatusCode.Conflict, "Replacement failed."));
             var target = GetController<StagingController>();
             target.SetCurrentUser(currentUser);
 
             var result = await target.ReplacePackage("PackageA", "1.0.0", packageFile.Object);
 
-            Assert.IsType<RedirectResult>(result);
+            ResultAssert.IsRedirectTo(result, grouped ? "/account/staging/owner/groups/release" : "/account/staging/owner/ungrouped");
+            Assert.Equal(succeeds ? null : "Replacement failed.", target.TempData["ErrorMessage"]);
             GetMock<IPackageStagingUploadService>().Verify(
                 x => x.ReplacePackageAsync(currentUser, It.IsAny<HttpContextBase>(), stagedPackage, content),
                 Times.Once);
         }
 
-        [Fact]
-        public async Task RequiresAReplacementFile()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task RequiresAReplacementFile(bool grouped)
         {
             var currentUser = new User("current") { Key = 1 };
-            var stagedPackage = CreateStagedPackage(currentUser);
+            var owner = new User("owner") { Key = 2 };
+            var stagedPackage = CreateStagedPackage(owner);
+            if (grouped)
+            {
+                stagedPackage.StagedPackageIdentity.StagingGroup = new StagingGroup { Key = 10, Id = "release" };
+                stagedPackage.StagedPackageIdentity.StagingGroupKey = 10;
+            }
+
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
                 .Returns(stagedPackage);
@@ -1351,7 +1383,7 @@ namespace NuGetGallery
 
             var result = await target.ReplacePackage("PackageA", "1.0.0", packageFile: null);
 
-            Assert.IsType<RedirectResult>(result);
+            ResultAssert.IsRedirectTo(result, grouped ? "/account/staging/owner/groups/release" : "/account/staging/owner/ungrouped");
             Assert.Equal("Select a package file.", target.TempData["ErrorMessage"]);
             GetMock<IPackageStagingUploadService>().Verify(
                 x => x.ReplacePackageAsync(
