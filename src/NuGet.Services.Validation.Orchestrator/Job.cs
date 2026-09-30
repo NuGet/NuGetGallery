@@ -572,8 +572,9 @@ namespace NuGet.Services.Validation.Orchestrator
         {
             services.AddTransient<IEntityService<StagedSymbolPackage>, StagedSymbolPackageEntityService>();
             services.AddTransient<IValidationSetProvider<StagedSymbolPackage>, StagedSymbolPackageValidationSetProvider>();
-            services.AddTransient<ValidationOutcomeProcessor<StagedSymbolPackage>>();
-            services.AddTransient<IValidationOutcomeProcessor<StagedSymbolPackage>, StagedSymbolPackageValidationOutcomeProcessor>();
+            services.AddTransient<IValidationOutcomeProcessor<StagedSymbolPackage>, ValidationOutcomeProcessor<StagedSymbolPackage>>();
+            services.AddTransient<StagedSymbolPackageValidationOutcomeProcessor>();
+            services.AddTransient<IStagedSymbolPackagePromotionValidationMessageHandler, StagedSymbolPackagePromotionValidationMessageHandler>();
             services.AddTransient<IStagedSymbolPackagePromotionService, StagedSymbolPackagePromotionService>();
             services.AddTransient<IStatusProcessor<StagedSymbolPackage>, StagedSymbolPackageStatusProcessor>();
             services.AddTransient<IMessageService<StagedSymbolPackage>, StagedSymbolPackageMessageService>();

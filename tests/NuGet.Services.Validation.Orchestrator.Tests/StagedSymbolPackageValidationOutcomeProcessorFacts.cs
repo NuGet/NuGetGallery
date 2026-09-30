@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -28,8 +29,6 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             Assert.Equal(new[] { "publish", "save-set", "delete-validation-blob", "cleanup" }, fixture.Calls);
             Assert.Equal(ValidationSetStatus.Completed, fixture.Set.ValidationSetStatus);
-            fixture.NormalStatus.VerifyNoOtherCalls();
-            fixture.Messages.VerifyNoOtherCalls();
         }
 
         [Theory]
@@ -49,7 +48,6 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             fixture.Storage.Verify(service => service.UpdateValidationStatusAsync(fixture.Ingestion, NuGetValidationResponse.Failed),
                 timedOut ? Times.Once() : Times.Never());
             fixture.Promotion.Verify(service => service.CompleteAsync(It.IsAny<int>(), It.IsAny<Guid>()), Times.Never);
-            fixture.Messages.VerifyNoOtherCalls();
         }
 
         [Theory]
@@ -85,14 +83,20 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             fixture.Set.ValidationSetStatus = ValidationSetStatus.InProgress;
             fixture.Storage.Setup(service => service.UpdateValidationSetAsync(fixture.Set)).Returns(Task.CompletedTask);
-            await fixture.ProcessAsync();
+            var validators = new Mock<IValidationSetProcessor>(MockBehavior.Strict);
+            Assert.True(await fixture.CreateHandler(validators.Object).HandleAsync(fixture.CreateMessage("process")));
 
             Assert.Equal(ValidationSetStatus.Completed, fixture.Set.ValidationSetStatus);
+            fixture.Promotion.Verify(service => service.CompleteAsync(fixture.Attempt.Key, fixture.PromotionId), Times.Once);
             fixture.Promotion.Verify(service => service.CleanUpAsync(fixture.Attempt.Key, fixture.PromotionId), Times.Once);
+            validators.VerifyNoOtherCalls();
         }
 
-        [Fact]
-        public async Task CompletedMessageRetriesCleanupWithoutRunningValidatorsOrPublishingAgain()
+        [Theory]
+        [InlineData("process")]
+        [InlineData("check")]
+        [InlineData("fail")]
+        public async Task CompletedMessageRetriesCleanupWithoutRunningValidatorsOrPublishingAgain(string messageType)
         {
             var fixture = new Fixture();
             fixture.Files.SetupSequence(service => service.DeletePackageForValidationSetAsync(fixture.Set))
@@ -103,21 +107,109 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             Assert.Equal(ValidationSetStatus.Completed, fixture.Set.ValidationSetStatus);
             fixture.Promotion.Verify(service => service.CleanUpAsync(It.IsAny<int>(), It.IsAny<Guid>()), Times.Never);
 
-            var entities = new Mock<IEntityService<StagedSymbolPackage>>();
-            entities.Setup(service => service.FindPackageByKey(fixture.Attempt.Key)).Returns(fixture.Entity);
-            var provider = new Mock<IValidationSetProvider<StagedSymbolPackage>>();
-            provider.Setup(service => service.TryGetOrCreateValidationSetAsync(It.IsAny<ProcessValidationSetData>(), fixture.Entity)).ReturnsAsync(fixture.Set);
             var validators = new Mock<IValidationSetProcessor>(MockBehavior.Strict);
-            var handler = new StagedSymbolPackageValidationMessageHandler(fixture.Configuration, entities.Object, provider.Object,
-                validators.Object, fixture.Target, fixture.Storage.Object, Mock.Of<ILeaseService>(), fixture.Enqueuer.Object,
-                Mock.Of<IFeatureFlagService>(), Mock.Of<ITelemetryService>(), Mock.Of<ILogger<StagedSymbolPackageValidationMessageHandler>>());
-            var message = PackageValidationMessageData.NewProcessValidationSet(fixture.Set.PackageId, fixture.Set.PackageNormalizedVersion,
-                fixture.Set.ValidationTrackingId, ValidatingType.StagedSymbolPackage, fixture.Attempt.Key);
 
-            Assert.True(await handler.HandleAsync(message));
+            Assert.True(await fixture.CreateHandler(validators.Object).HandleAsync(fixture.CreateMessage(messageType)));
 
             fixture.Promotion.Verify(service => service.CompleteAsync(fixture.Attempt.Key, fixture.PromotionId), Times.Once);
             fixture.Promotion.Verify(service => service.CleanUpAsync(fixture.Attempt.Key, fixture.PromotionId), Times.Once);
+            validators.VerifyNoOtherCalls();
+        }
+
+        [Theory]
+        [InlineData("process")]
+        [InlineData("check")]
+        [InlineData("fail")]
+        public async Task FailedPromotionMessagesFinalizeWithoutRunningValidators(string messageType)
+        {
+            var fixture = new Fixture();
+            fixture.Attempt.Status = StagedPackageStatus.PromotionFailed;
+            fixture.Ingestion.ValidationStatus = ValidationStatus.Incomplete;
+            var validators = new Mock<IValidationSetProcessor>(MockBehavior.Strict);
+
+            Assert.True(await fixture.CreateHandler(validators.Object).HandleAsync(fixture.CreateMessage(messageType)));
+
+            Assert.Equal(StagedPackageStatus.PromotionFailed, fixture.Attempt.Status);
+            Assert.Equal(ValidationStatus.Incomplete, fixture.Ingestion.ValidationStatus);
+            Assert.Equal(ValidationSetStatus.Completed, fixture.Set.ValidationSetStatus);
+            Assert.Equal(new[] { "save-set", "delete-validation-blob", "cleanup" }, fixture.Calls);
+            validators.VerifyNoOtherCalls();
+        }
+
+        [Theory]
+        [InlineData("check")]
+        [InlineData("fail")]
+        public async Task StaleCallbackIsDroppedBeforeReadingOrChangingValidatorStatus(string messageType)
+        {
+            var fixture = new Fixture();
+            fixture.Attempt.ActivePromotionId = Guid.NewGuid();
+            var validators = new Mock<IValidationSetProcessor>(MockBehavior.Strict);
+
+            Assert.True(await fixture.CreateHandler(validators.Object).HandleAsync(fixture.CreateMessage(messageType)));
+
+            Assert.Equal(StagedPackageStatus.Promoting, fixture.Attempt.Status);
+            Assert.Equal(ValidationSetStatus.InProgress, fixture.Set.ValidationSetStatus);
+            Assert.Empty(fixture.Calls);
+            validators.VerifyNoOtherCalls();
+        }
+
+        [Theory]
+        [InlineData("process")]
+        [InlineData("check")]
+        public async Task UnavailableLeaseDefersWorkExceptQueueBack(string messageType)
+        {
+            var fixture = new Fixture();
+            fixture.Features.Setup(service => service.IsOrchestratorLeaseEnabled()).Returns(true);
+            fixture.Leases.Setup(service => service.TryAcquireAsync("StagedSymbolPackage/packagea/1.0.0", TimeSpan.FromMinutes(1), CancellationToken.None))
+                .ReturnsAsync(LeaseResult.Failure());
+            var message = fixture.CreateMessage(messageType);
+            var validators = new Mock<IValidationSetProcessor>(MockBehavior.Strict);
+
+            Assert.True(await fixture.CreateHandler(validators.Object).HandleAsync(message));
+
+            Assert.Empty(fixture.Calls);
+            fixture.Enqueuer.Verify(service => service.SendMessageAsync(message, It.IsAny<DateTimeOffset>()),
+                messageType == "check" ? Times.Never() : Times.Once());
+            fixture.Leases.Verify(service => service.ReleaseAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+            validators.VerifyNoOtherCalls();
+        }
+
+        [Fact]
+        public async Task AcquiredLeaseIsReleasedWhenPublicationThrows()
+        {
+            var fixture = new Fixture();
+            fixture.Features.Setup(service => service.IsOrchestratorLeaseEnabled()).Returns(true);
+            fixture.Leases.Setup(service => service.TryAcquireAsync("StagedSymbolPackage/packagea/1.0.0", TimeSpan.FromMinutes(1), CancellationToken.None))
+                .ReturnsAsync(LeaseResult.Success("lease"));
+            fixture.Leases.Setup(service => service.ReleaseAsync("StagedSymbolPackage/packagea/1.0.0", "lease", CancellationToken.None)).ReturnsAsync(true);
+            fixture.Promotion.Setup(service => service.CompleteAsync(fixture.Attempt.Key, fixture.PromotionId))
+                .ThrowsAsync(new InvalidOperationException("Publication unavailable"));
+            var validators = new Mock<IValidationSetProcessor>();
+            validators.Setup(service => service.ProcessValidationsAsync(fixture.Set)).ReturnsAsync(new ValidationSetProcessorResult());
+            var handler = fixture.CreateHandler(validators.Object);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => handler.HandleAsync(fixture.CreateMessage("process")));
+
+            Assert.Equal(ValidationSetStatus.InProgress, fixture.Set.ValidationSetStatus);
+            validators.Verify(service => service.ProcessValidationsAsync(fixture.Set), Times.Once);
+            fixture.Leases.Verify(service => service.ReleaseAsync("StagedSymbolPackage/packagea/1.0.0", "lease", CancellationToken.None), Times.Once);
+        }
+
+        [Fact]
+        public async Task ForcedFailureUsesExistingProcessorForAnActivePromotion()
+        {
+            var fixture = new Fixture();
+            fixture.Ingestion.ValidationStatus = ValidationStatus.Incomplete;
+            var validators = new Mock<IValidationSetProcessor>(MockBehavior.Strict);
+            validators.Setup(service => service.ForceFailValidationSetAsync(fixture.Set))
+                .Callback(() => fixture.Ingestion.ValidationStatus = ValidationStatus.Failed)
+                .ReturnsAsync(new ValidationSetProcessorResult());
+
+            Assert.True(await fixture.CreateHandler(validators.Object).HandleAsync(fixture.CreateMessage("fail")));
+
+            Assert.Equal(StagedPackageStatus.PromotionFailed, fixture.Attempt.Status);
+            Assert.Equal(ValidationSetStatus.Completed, fixture.Set.ValidationSetStatus);
+            validators.Verify(service => service.ForceFailValidationSetAsync(fixture.Set), Times.Once);
             validators.VerifyNoOtherCalls();
         }
 
@@ -131,20 +223,6 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             Assert.Empty(fixture.Calls);
             Assert.Equal(ValidationSetStatus.InProgress, fixture.Set.ValidationSetStatus);
-        }
-
-        [Fact]
-        public async Task OrdinaryStagedValidationUsesExistingOutcomeWithoutResolvingPromotion()
-        {
-            var fixture = new Fixture();
-            fixture.Attempt.Status = StagedPackageStatus.Validating;
-            fixture.Ingestion.Type = ValidatorName.SymbolScan;
-            fixture.Target = fixture.CreateTarget(new Lazy<IStagedSymbolPackagePromotionService>(
-                () => throw new InvalidOperationException("Ordinary validation must not resolve promotion services.")));
-
-            await fixture.ProcessAsync();
-
-            fixture.NormalStatus.Verify(service => service.SetStatusAsync(fixture.Entity, fixture.Set, PackageStatus.Available), Times.Once);
         }
 
         private class Fixture
@@ -161,7 +239,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     StagedPackageIdentity = new StagedPackageIdentity { Package = package, CurrentStagedSymbolPackageKey = 43 },
                 };
                 Entity = new StagedSymbolPackageValidatingEntity(Attempt);
-                Ingestion = new PackageValidation { Type = ValidatorName.SymbolsIngester, ValidationStatus = ValidationStatus.Succeeded };
+                Ingestion = new PackageValidation { Key = Guid.NewGuid(), Type = ValidatorName.SymbolsIngester, ValidationStatus = ValidationStatus.Succeeded };
                 Set = new PackageValidationSet
                 {
                     PackageKey = Attempt.Key,
@@ -183,12 +261,12 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     Validations = new List<ValidationConfigurationItem>
                     {
                         new ValidationConfigurationItem { Name = ValidatorName.SymbolsIngester, ShouldStart = true, FailureBehavior = ValidationFailureBehavior.AllowedToFail },
-                        new ValidationConfigurationItem { Name = ValidatorName.SymbolScan, ShouldStart = true, FailureBehavior = ValidationFailureBehavior.MustSucceed },
                     },
                 };
                 var options = new Mock<IOptionsSnapshot<ValidationConfiguration>>();
                 options.SetupGet(value => value.Value).Returns(configuration);
                 Configuration = options.Object;
+                Features.Setup(service => service.IsQueueBackEnabled()).Returns(true);
                 Promotion.Setup(service => service.CompleteAsync(Attempt.Key, PromotionId)).Callback(() =>
                 {
                     Calls.Add("publish");
@@ -227,9 +305,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             public Mock<IPackageValidationEnqueuer> Enqueuer { get; } = new Mock<IPackageValidationEnqueuer>();
 
-            public Mock<IStatusProcessor<StagedSymbolPackage>> NormalStatus { get; } = new Mock<IStatusProcessor<StagedSymbolPackage>>();
+            public Mock<ILeaseService> Leases { get; } = new Mock<ILeaseService>();
 
-            public Mock<IMessageService<StagedSymbolPackage>> Messages { get; } = new Mock<IMessageService<StagedSymbolPackage>>();
+            public Mock<IFeatureFlagService> Features { get; } = new Mock<IFeatureFlagService>();
 
             public StagedSymbolPackageValidationOutcomeProcessor Target { get; set; }
 
@@ -238,11 +316,38 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 return Target.ProcessValidationOutcomeAsync(Set, Entity, new ValidationSetProcessorResult(), scheduleNextCheck);
             }
 
+            public StagedSymbolPackagePromotionValidationMessageHandler CreateHandler(IValidationSetProcessor validators)
+            {
+                var entities = new Mock<IEntityService<StagedSymbolPackage>>();
+                entities.Setup(service => service.FindPackageByKey(Attempt.Key)).Returns(Entity);
+                var provider = new Mock<IValidationSetProvider<StagedSymbolPackage>>();
+                provider.Setup(service => service.TryGetOrCreateValidationSetAsync(It.IsAny<ProcessValidationSetData>(), Entity)).ReturnsAsync(Set);
+                provider.Setup(service => service.TryGetParentValidationSetAsync(Ingestion.Key)).ReturnsAsync(Set);
+                Storage.Setup(service => service.GetValidationSetAsync(Set.ValidationTrackingId)).ReturnsAsync(Set);
+                return new StagedSymbolPackagePromotionValidationMessageHandler(Configuration, entities.Object, provider.Object, validators, Target,
+                    Storage.Object, Leases.Object, Enqueuer.Object, Features.Object, Mock.Of<ITelemetryService>(),
+                    Mock.Of<ILogger<StagedSymbolPackagePromotionValidationMessageHandler>>());
+            }
+
+            public PackageValidationMessageData CreateMessage(string type)
+            {
+                switch (type)
+                {
+                    case "check":
+                        return PackageValidationMessageData.NewCheckValidator(Ingestion.Key);
+                    case "fail":
+                        return PackageValidationMessageData.NewFailValidationSet(Set.ValidationTrackingId);
+                    case "process":
+                        return PackageValidationMessageData.NewProcessValidationSet(Set.PackageId, Set.PackageNormalizedVersion,
+                            Set.ValidationTrackingId, ValidatingType.StagedSymbolPackage, Attempt.Key);
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(type));
+                }
+            }
+
             public StagedSymbolPackageValidationOutcomeProcessor CreateTarget(Lazy<IStagedSymbolPackagePromotionService> promotion)
             {
-                var normal = new ValidationOutcomeProcessor<StagedSymbolPackage>(Storage.Object, Enqueuer.Object, NormalStatus.Object,
-                    Files.Object, Configuration, Messages.Object, Mock.Of<ITelemetryService>(), Mock.Of<ILogger<ValidationOutcomeProcessor<StagedSymbolPackage>>>());
-                return new StagedSymbolPackageValidationOutcomeProcessor(normal, promotion, Storage.Object, Files.Object, Enqueuer.Object,
+                return new StagedSymbolPackageValidationOutcomeProcessor(promotion, Storage.Object, Files.Object, Enqueuer.Object,
                     Configuration, Mock.Of<ITelemetryService>(), Mock.Of<ILogger<StagedSymbolPackageValidationOutcomeProcessor>>());
             }
         }

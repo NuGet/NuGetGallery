@@ -7,18 +7,16 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Services.Entities;
-using NuGet.Services.Staging;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 using NuGetGallery;
 
 namespace NuGet.Services.Validation.Orchestrator
 {
     /// <summary>
-    /// Applies staged validation normally and completes ingestion through Gallery promotion logic.
+    /// Completes promotion ingestion through Gallery publication and cleanup logic.
     /// </summary>
     public class StagedSymbolPackageValidationOutcomeProcessor : IValidationOutcomeProcessor<StagedSymbolPackage>
     {
-        private readonly ValidationOutcomeProcessor<StagedSymbolPackage> _validation;
         private readonly Lazy<IStagedSymbolPackagePromotionService> _promotion;
         private readonly IValidationStorageService _storage;
         private readonly IValidationFileService _files;
@@ -28,7 +26,6 @@ namespace NuGet.Services.Validation.Orchestrator
         private readonly ILogger<StagedSymbolPackageValidationOutcomeProcessor> _logger;
 
         public StagedSymbolPackageValidationOutcomeProcessor(
-            ValidationOutcomeProcessor<StagedSymbolPackage> validation,
             Lazy<IStagedSymbolPackagePromotionService> promotion,
             IValidationStorageService storage,
             IValidationFileService files,
@@ -37,7 +34,6 @@ namespace NuGet.Services.Validation.Orchestrator
             ITelemetryService telemetry,
             ILogger<StagedSymbolPackageValidationOutcomeProcessor> logger)
         {
-            _validation = validation ?? throw new ArgumentNullException(nameof(validation));
             _promotion = promotion ?? throw new ArgumentNullException(nameof(promotion));
             _storage = storage ?? throw new ArgumentNullException(nameof(storage));
             _files = files ?? throw new ArgumentNullException(nameof(files));
@@ -70,12 +66,11 @@ namespace NuGet.Services.Validation.Orchestrator
 
             if (!SymbolPromotionValidationConfiguration.IsPromotion(validationSet))
             {
-                await _validation.ProcessValidationOutcomeAsync(validationSet, validatingEntity, currentCallStats, scheduleNextCheck);
-                return;
+                throw new InvalidOperationException("Only staged symbol promotion ingestion sets can use this outcome processor.");
             }
 
             var attempt = validatingEntity.EntityRecord;
-            if (!MatchesPromotion(validationSet, attempt))
+            if (!SymbolPromotionValidationConfiguration.MatchesAttempt(validationSet, attempt))
             {
                 _logger.LogInformation("Ignoring stale symbol promotion outcome {ValidationTrackingId}.", validationSet.ValidationTrackingId);
                 return;
@@ -91,6 +86,12 @@ namespace NuGet.Services.Validation.Orchestrator
             if (!_configuration.EnableStagedSymbolPromotion)
             {
                 throw new NotSupportedException("Staged symbol promotion is not enabled.");
+            }
+
+            if (attempt.Status != StagedPackageStatus.Promoting)
+            {
+                await CompleteValidationSetAsync(validationSet, attempt, promotionId);
+                return;
             }
 
             var ingestion = validationSet.PackageValidations.Single();
@@ -127,6 +128,11 @@ namespace NuGet.Services.Validation.Orchestrator
                 throw new InvalidOperationException("The symbol ingestion outcome is not supported.");
             }
 
+            await CompleteValidationSetAsync(validationSet, attempt, promotionId);
+        }
+
+        private async Task CompleteValidationSetAsync(PackageValidationSet validationSet, StagedSymbolPackage attempt, Guid promotionId)
+        {
             validationSet.ValidationSetStatus = ValidationSetStatus.Completed;
             await _storage.UpdateValidationSetAsync(validationSet);
             _telemetry.TrackTotalValidationDuration(validationSet.PackageId, validationSet.PackageNormalizedVersion,
@@ -138,24 +144,6 @@ namespace NuGet.Services.Validation.Orchestrator
         {
             await _files.DeletePackageForValidationSetAsync(validationSet);
             await _promotion.Value.CleanUpAsync(attemptKey, promotionId);
-        }
-
-        private static bool MatchesPromotion(PackageValidationSet validationSet, StagedSymbolPackage attempt)
-        {
-            var matchesAttempt = validationSet.PackageKey == attempt.Key && validationSet.PackageETag == attempt.UploadedBlobETag;
-            var isCurrentAttempt = attempt.StagedPackageIdentity.CurrentStagedSymbolPackageKey == attempt.Key;
-            var hasPromotion = attempt.ActivePromotionId.HasValue;
-            var isPromotionState =
-                attempt.Status == StagedPackageStatus.Promoting ||
-                attempt.Status == StagedPackageStatus.Succeeded ||
-                attempt.Status == StagedPackageStatus.PromotionFailed;
-
-            if (!matchesAttempt || !isCurrentAttempt || !hasPromotion || !isPromotionState)
-            {
-                return false;
-            }
-
-            return validationSet.ValidationTrackingId == SymbolPromotionValidationTrackingId.Create(attempt.ActivePromotionId.Value, attempt.Key);
         }
     }
 }
