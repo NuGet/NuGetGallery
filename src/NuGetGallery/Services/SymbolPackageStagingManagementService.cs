@@ -159,6 +159,7 @@ namespace NuGetGallery
                 .GetAll()
                 .Include(attempt => attempt.SymbolPackage)
                 .Include(attempt => attempt.StagedPackageIdentity.Owner)
+                .Include(attempt => attempt.StagedPackageIdentity.CurrentStagedPackage)
                 .Include(attempt => attempt.StagedPackageIdentity.StagingGroup)
                 .Include(attempt => attempt.StagedPackageIdentity.Package.PackageRegistration.Owners)
                 .Where(attempt => attempt.StagedPackageIdentity.CurrentStagedSymbolPackageKey == attempt.Key)

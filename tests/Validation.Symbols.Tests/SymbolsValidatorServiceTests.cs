@@ -87,6 +87,23 @@ namespace Validation.Symbols.Tests
             }
 
             [Fact]
+            public async Task DownloadsExplicitStagedParentInsteadOfOrdinaryPackage()
+            {
+                var parentUri = new Uri("https://example.test/staged-parent.nupkg");
+                var message = new SymbolsValidatorMessage(Guid.NewGuid(), 1, PackageId, PackageNormalizedVersion, Message.SnupkgUrl, parentUri.AbsoluteUri);
+                _symbolsFileService.Setup(x => x.DownloadSnupkgFileAsync(message.SnupkgUrl, It.IsAny<CancellationToken>())).ReturnsAsync(new MemoryStream());
+                _symbolsFileService.Setup(x => x.DownloadNupkgFileAsync(parentUri, It.IsAny<CancellationToken>())).ReturnsAsync(new MemoryStream());
+                _zipService.Setup(x => x.ValidateZipAsync(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(true);
+                _zipService.Setup(x => x.ReadFilesFromZipStream(It.IsAny<Stream>(), It.IsAny<string[]>())).Returns(new List<string>());
+                var service = new SymbolsValidatorService(_symbolsFileService.Object, _zipService.Object, _telemetryService.Object, _logger);
+
+                await service.ValidateSymbolsAsync(message, CancellationToken.None);
+
+                _symbolsFileService.Verify(x => x.DownloadNupkgFileAsync(parentUri, It.IsAny<CancellationToken>()), Times.Once);
+                _symbolsFileService.Verify(x => x.DownloadNupkgFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+            }
+
+            [Fact]
             public async Task ValidateSymbolsAsyncWillFailIfSnupkgNotFound()
             {
                 // Arrange

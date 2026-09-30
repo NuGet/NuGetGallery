@@ -187,7 +187,7 @@ namespace NuGetGallery
                 await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
                 {
                     var group = stagedPackage.StagedPackageIdentity.StagingGroup;
-                    if (stagedPackage.Status == StagedPackageStatus.Promoting || group?.ActivePromotionId.HasValue == true)
+                    if (stagedPackage.Status == StagedPackageStatus.Promoting || group?.ActivePromotionId.HasValue == true || stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackageKey.HasValue)
                     {
                         return;
                     }
@@ -442,7 +442,7 @@ namespace NuGetGallery
                 return StagingGroupMembershipResult.Unchanged;
             }
 
-            if (stagedPackage.Status == StagedPackageStatus.Promoting || group.ActivePromotionId.HasValue || identity.StagingGroup?.ActivePromotionId.HasValue == true)
+            if (stagedPackage.Status == StagedPackageStatus.Promoting || group.ActivePromotionId.HasValue || identity.StagingGroup?.ActivePromotionId.HasValue == true || identity.CurrentStagedSymbolPackageKey.HasValue)
             {
                 return StagingGroupMembershipResult.Conflict;
             }

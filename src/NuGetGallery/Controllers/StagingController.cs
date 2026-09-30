@@ -397,10 +397,16 @@ namespace NuGetGallery
             {
                 var identity = attempt.StagedPackageIdentity;
                 var package = identity.Package;
+                var parentStatus = package.PackageStatusKey.ToString();
                 string parentUrl = null;
                 if (package.PackageStatusKey == PackageStatus.Available)
                 {
                     parentUrl = Url.Package(package.PackageRegistration.Id, package.NormalizedVersion);
+                }
+                else if (package.PackageStatusKey == PackageStatus.Staged)
+                {
+                    parentUrl = Url.DownloadStagedPackage(package.Id, package.NormalizedVersion);
+                    parentStatus = identity.CurrentStagedPackage?.Status.ToString();
                 }
 
                 findings.TryGetValue(attempt.Key, out var issues);
@@ -410,7 +416,7 @@ namespace NuGetGallery
                     Version = package.NormalizedVersion,
                     Owner = identity.Owner.Username,
                     IsSymbolPackage = true,
-                    ParentStatus = package.PackageStatusKey.ToString(),
+                    ParentStatus = parentStatus,
                     ParentUrl = parentUrl,
                     Status = attempt.Status.ToString(),
                     StatusClass = $"staging-status-{attempt.Status.ToString().ToLowerInvariant()}",
@@ -506,7 +512,15 @@ namespace NuGetGallery
                         ? Redirect(Url.ManageUngroupedStaging(stagingOwner.Username))
                         : Redirect(Url.ManageStagingGroup(group.Owner.Username, group.Id));
                 case StagingGroupMembershipResult.Conflict:
-                    ModelState.AddModelError(string.Empty, "The staged package cannot be moved while promotion is active.");
+                    if (stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackageKey.HasValue)
+                    {
+                        ModelState.AddModelError(string.Empty, "Remove the staged symbols before moving their parent package into a group.");
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, "The staged package cannot be moved while promotion is active.");
+                    }
+
                     var viewModel = CreateMovePackageViewModel(currentUser, stagedPackage);
                     viewModel.GroupId = groupId;
                     return View(viewModel);
@@ -712,7 +726,14 @@ namespace NuGetGallery
 
             if (!await _packageStagingManagementService.DeletePackageAsync(stagedPackage))
             {
-                TempData["ErrorMessage"] = "The staged package cannot be deleted while package promotion is active.";
+                if (stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackageKey.HasValue)
+                {
+                    TempData["ErrorMessage"] = "Remove the staged symbols before deleting their parent package.";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "The staged package cannot be deleted while package promotion is active.";
+                }
             }
 
             return Redirect(Url.ManageMyPackages());

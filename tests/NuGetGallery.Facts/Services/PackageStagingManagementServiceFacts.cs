@@ -499,13 +499,20 @@ namespace NuGetGallery
                 stagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
             }
 
-            [Fact]
-            public async Task RejectsMovingAPromotingPackage()
+            [Theory]
+            [InlineData(true, false)]
+            [InlineData(false, true)]
+            public async Task RejectsMovingAPromotingPackageOrParentWithSymbols(bool promoting, bool hasSymbols)
             {
                 var currentUser = new User("current") { Key = 1 };
                 var group = CreateStagingGroup(10, "release", "Release", currentUser);
                 var stagedPackage = CreateStagedPackage(100, "Test.Package", "1.0.0", currentUser);
-                stagedPackage.Status = StagedPackageStatus.Promoting;
+                stagedPackage.Status = promoting ? StagedPackageStatus.Promoting : StagedPackageStatus.Ready;
+                if (hasSymbols)
+                {
+                    stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackageKey = 50;
+                }
+
                 var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
                 var target = CreateService(
                     new[] { stagedPackage },
@@ -787,12 +794,19 @@ namespace NuGetGallery
                 Assert.Null(result);
             }
 
-            [Fact]
-            public async Task UpdatesListedIntent()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task UpdatesListedIntent(bool hasSymbols)
             {
                 var owner = new User("owner") { Key = 1 };
                 var stagedPackage = CreateStagedPackage(10, "Test.Package", "1.0.0", owner);
                 stagedPackage.StagedPackageIdentity.Package.Listed = false;
+                if (hasSymbols)
+                {
+                    stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackageKey = 50;
+                }
+
                 var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
                 var target = CreateService(
                     new[] { stagedPackage },
@@ -932,12 +946,19 @@ namespace NuGetGallery
                 Assert.False(result);
             }
 
-            [Fact]
-            public async Task RejectsDeletingAnUngroupedPromotingPackage()
+            [Theory]
+            [InlineData(true, false)]
+            [InlineData(false, true)]
+            public async Task RejectsDeletingAnUngroupedPromotingPackageOrParentWithSymbols(bool promoting, bool hasSymbols)
             {
                 var owner = new User("owner") { Key = 1 };
                 var stagedPackage = CreateStagedPackage(10, "Test.Package", "1.0.0", owner);
-                stagedPackage.Status = StagedPackageStatus.Promoting;
+                stagedPackage.Status = promoting ? StagedPackageStatus.Promoting : StagedPackageStatus.Ready;
+                if (hasSymbols)
+                {
+                    stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackageKey = 50;
+                }
+
                 var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
                 var target = CreateService(
                     new[] { stagedPackage },
@@ -947,7 +968,7 @@ namespace NuGetGallery
                 var result = await target.DeletePackageAsync(stagedPackage);
 
                 Assert.False(result);
-                Assert.Equal(StagedPackageStatus.Promoting, stagedPackage.Status);
+                Assert.Equal(promoting ? StagedPackageStatus.Promoting : StagedPackageStatus.Ready, stagedPackage.Status);
                 stagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
             }
 

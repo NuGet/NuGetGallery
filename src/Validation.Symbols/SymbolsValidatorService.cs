@@ -62,7 +62,7 @@ namespace Validation.Symbols
 
                     try
                     {
-                        using (Stream nupkgstream = await _symbolFileService.DownloadNupkgFileAsync(message.PackageId, message.PackageNormalizedVersion, token))
+                        using (Stream nupkgstream = await DownloadParentPackageAsync(message, token))
                         {
                             var pdbs = _zipArchiveService.ReadFilesFromZipStream(snupkgstream, SymbolExtension);
                             var pes = _zipArchiveService.ReadFilesFromZipStream(nupkgstream, PEExtensions);
@@ -119,6 +119,16 @@ namespace Validation.Symbols
                 _telemetryService.TrackSymbolsPackageNotFoundEvent(message.PackageId, message.PackageNormalizedVersion);
                 return NuGetValidationResponse.Failed;
             }
+        }
+
+        private Task<Stream> DownloadParentPackageAsync(SymbolsValidatorMessage message, CancellationToken token)
+        {
+            if (message.ParentPackageUrl != null)
+            {
+                return _symbolFileService.DownloadNupkgFileAsync(new Uri(message.ParentPackageUrl), token);
+            }
+
+            return _symbolFileService.DownloadNupkgFileAsync(message.PackageId, message.PackageNormalizedVersion, token);
         }
 
         private async Task TryDeleteWorkingDirectoryForSecondsAsync(string workingDirectory, string packageId, string packageNormalizedVersion, TimeSpan seconds)

@@ -638,11 +638,18 @@ namespace NuGetGallery
             Assert.Equal(204, status.StatusCode);
         }
 
-        [Fact]
-        public async Task ReportsConflictWhenPromotionPreventsPackageDeletion()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task ReportsConflictWhenPromotionOrSymbolsPreventPackageDeletion(bool hasSymbols)
         {
             var currentUser = new User("current") { Key = 1 };
             var stagedPackage = CreateStagedPackage(currentUser);
+            if (hasSymbols)
+            {
+                stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackageKey = 100;
+            }
+
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
                 .Returns(stagedPackage);
@@ -659,6 +666,12 @@ namespace NuGetGallery
             target.SetCurrentUser(currentUser);
 
             var result = await target.DeleteStagedPackage("PackageA", "1.0.0");
+
+            if (hasSymbols)
+            {
+                AssertError(target, result, HttpStatusCode.Conflict, "PackageHasStagedSymbols");
+                return;
+            }
 
             var status = Assert.IsType<HttpStatusCodeResult>(result);
             Assert.Equal(409, status.StatusCode);
