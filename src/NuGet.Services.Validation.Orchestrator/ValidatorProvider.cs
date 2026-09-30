@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NuGet.Jobs.Validation;
 
 namespace NuGet.Services.Validation.Orchestrator
@@ -22,11 +23,21 @@ namespace NuGet.Services.Validation.Orchestrator
 
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<ValidatorProvider> _logger;
+        private readonly DevelopmentValidatorConfiguration _developmentConfiguration;
 
-        public ValidatorProvider(IServiceProvider serviceProvider, ILogger<ValidatorProvider> logger)
+        public ValidatorProvider(
+            IServiceProvider serviceProvider,
+            ILogger<ValidatorProvider> logger,
+            IOptions<DevelopmentValidatorConfiguration> developmentConfiguration)
         {
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            if (developmentConfiguration == null)
+            {
+                throw new ArgumentNullException(nameof(developmentConfiguration));
+            }
+
+            _developmentConfiguration = developmentConfiguration.Value ?? throw new ArgumentException("Value property cannot be null", nameof(developmentConfiguration));
 
             InitializeEvaluatedTypes(Assembly.GetCallingAssembly());
         }
@@ -91,6 +102,12 @@ namespace NuGet.Services.Validation.Orchestrator
         public INuGetValidator GetNuGetValidator(string validatorName)
         {
             validatorName = validatorName ?? throw new ArgumentNullException(nameof(validatorName));
+
+            if (validatorName == ValidatorName.SymbolScan && _developmentConfiguration.Enabled && _developmentConfiguration.UseForSymbolScan)
+            {
+                _logger.LogWarning("Using DevelopmentValidator for SymbolScan. Malware scanning is not performed in this local development configuration.");
+                return _serviceProvider.GetRequiredService<DevelopmentValidator>();
+            }
 
             if (_evaluatedTypes.NuGetValidatorTypes.TryGetValue(validatorName, out Type validatorType))
             {

@@ -53,6 +53,17 @@ static class SeedBlobsTool
 					await SeedPatchedFlagsAsync(blobService, cfg.Containers.Content, file);
 					continue;
 				}
+				if (fileName.Equals("Symbols-Configuration.json", StringComparison.OrdinalIgnoreCase))
+				{
+					var symbolsConfiguration = JsonNode.Parse(await File.ReadAllTextAsync(file))
+						?? throw new InvalidOperationException("The symbols configuration is empty.");
+					symbolsConfiguration["isSymbolsUploadEnabledForAll"] = true;
+					await SeedAsync(blobService, cfg.Containers.Content, fileName,
+						symbolsConfiguration.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+					Console.WriteLine("  (enabled symbol uploads for local/CI testing)");
+					continue;
+				}
+
 				var contentType = Path.GetExtension(file).ToLowerInvariant() switch
 				{
 					".json" => "application/json",
