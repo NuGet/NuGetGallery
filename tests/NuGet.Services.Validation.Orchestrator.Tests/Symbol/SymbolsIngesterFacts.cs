@@ -185,9 +185,19 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
                 {
                     Key = PackageKey,
                     SymbolPackageKey = OrdinarySymbolKey,
+                    SymbolPackage = new SymbolPackage { Key = OrdinarySymbolKey, StatusKey = PackageStatus.Staged },
                     Status = StagedPackageStatus.Promoting,
                     ActivePromotionId = Guid.NewGuid(),
-                    StagedPackageIdentity = new StagedPackageIdentity { CurrentStagedSymbolPackageKey = PackageKey },
+                    StagedPackageIdentity = new StagedPackageIdentity
+                    {
+                        CurrentStagedSymbolPackageKey = PackageKey,
+                        OwnerKey = 7,
+                        Package = new Package
+                        {
+                            PackageStatusKey = PackageStatus.Available,
+                            PackageRegistration = new PackageRegistration { Owners = new[] { new User { Key = 7 } }.ToList() },
+                        },
+                    },
                 };
                 _validationSet = new PackageValidationSet
                 {
@@ -235,6 +245,31 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
                 Assert.Equal(ValidationStatus.Succeeded, result.Status);
                 _symbolsValidationEntitiesService.Verify(service => service.GetSymbolsServerRequestAsync(It.Is<INuGetValidationRequest>(request =>
                     request.PackageKey == PackageKey)), Times.Never);
+            }
+
+            [Theory]
+            [InlineData("parent")]
+            [InlineData("owner")]
+            [InlineData("symbol")]
+            public async Task LostEligibilityReturnsFailureInsteadOfLeavingPromotionPending(string scenario)
+            {
+                switch (scenario)
+                {
+                    case "parent":
+                        _attempt.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Deleted;
+                        break;
+                    case "owner":
+                        _attempt.StagedPackageIdentity.Package.PackageRegistration.Owners.Clear();
+                        break;
+                    case "symbol":
+                        _attempt.SymbolPackage.StatusKey = PackageStatus.Deleted;
+                        break;
+                }
+
+                Assert.Equal(ValidationStatus.Failed, (await _target.GetResponseAsync(_validationRequest.Object)).Status);
+                Assert.Equal(ValidationStatus.Failed, (await _target.StartAsync(_validationRequest.Object)).Status);
+
+                _symbolMessageEnqueuer.Verify(service => service.EnqueueSymbolsIngestionMessageAsync(It.IsAny<INuGetValidationRequest>()), Times.Never);
             }
 
             [Theory]

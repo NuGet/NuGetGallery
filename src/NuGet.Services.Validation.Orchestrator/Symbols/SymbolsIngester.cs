@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Jobs.Validation;
@@ -47,6 +48,11 @@ namespace NuGet.Services.Validation.Symbols
             }
 
             request = await GetIngestionRequestAsync(request);
+            if (request == null)
+            {
+                return NuGetValidationResponse.Failed;
+            }
+
             var symbolsRequest = await _symbolsValidationEntitiesService.GetSymbolsServerRequestAsync(request);
             var response = SymbolsValidationEntitiesService.ToValidationResponse(symbolsRequest);
             _logger.LogInformation(
@@ -76,6 +82,11 @@ namespace NuGet.Services.Validation.Symbols
             }
 
             request = await GetIngestionRequestAsync(request);
+            if (request == null)
+            {
+                return NuGetValidationResponse.Failed;
+            }
+
             var symbolsRequest = await _symbolsValidationEntitiesService.GetSymbolsServerRequestAsync(request);
             var response = SymbolsValidationEntitiesService.ToValidationResponse(symbolsRequest);
 
@@ -146,6 +157,16 @@ namespace NuGet.Services.Validation.Symbols
             if (validationSet.PackageKey != attempt.Key || validationSet.ValidationTrackingId != trackingId)
             {
                 throw new InvalidOperationException("The ingestion validation set does not match the active promotion.");
+            }
+
+            var identity = attempt.StagedPackageIdentity;
+            var parentIsAvailable = identity.Package.PackageStatusKey == PackageStatus.Available;
+            var symbolIsStaged = attempt.SymbolPackage.StatusKey == PackageStatus.Staged;
+            var ownerStillOwnsPackage = identity.Package.PackageRegistration.Owners.Any(owner => owner.Key == identity.OwnerKey);
+            if (!parentIsAvailable || !symbolIsStaged || !ownerStillOwnsPackage)
+            {
+                _logger.LogWarning("Symbol promotion {PromotionId} lost eligibility; marking ingestion validation failed.", attempt.ActivePromotionId);
+                return null;
             }
 
             return new NuGetValidationRequest(request.ValidationId, attempt.SymbolPackageKey, request.PackageId, request.PackageVersion, request.NupkgUrl);
