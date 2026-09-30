@@ -332,7 +332,7 @@ public class Program
         // ─── Auxiliary blob seeding (required before Gallery and V3 jobs) ────────────
 
         var seedBlobs = builder.AddProject<Projects.NuGetGallery_AppHost_Tools>("seed-blobs")
-            .WithArgs("seed-blobs")
+            .WithArgs("seed-blobs", profile)
             .WaitFor(storage)
             .WithEnvironment("REPO_ROOT", repoRoot)
             .WithUrl($"{azuriteBase}/{config.Containers.ServiceIndex}/index.json", "V3 Service Index")
