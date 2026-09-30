@@ -7,7 +7,7 @@ using System.ComponentModel.DataAnnotations;
 namespace NuGet.Services.Entities
 {
     /// <summary>
-    /// Records an immutable private symbol upload and its staging validation state.
+    /// Records a private symbol validation attempt and its immutable uploaded content reference.
     /// </summary>
     public class StagedSymbolPackage : IEntity
     {

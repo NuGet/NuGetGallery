@@ -670,6 +670,7 @@
     <Compile Include="Services\SymbolPackageStagingStatus.cs" />
     <Compile Include="Services\StagingGroupSummary.cs" />
     <Compile Include="Services\StagingGroupAssignment.cs" />
+    <Compile Include="Services\StagedSymbolPackageRevalidation.cs" />
     <Compile Include="ViewModels\CreateStagingGroupViewModel.cs" />
     <Compile Include="ViewModels\DeleteStagingGroupViewModel.cs" />
     <Compile Include="ViewModels\MoveStagedPackageViewModel.cs" />

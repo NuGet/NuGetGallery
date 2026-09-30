@@ -372,8 +372,6 @@ namespace NuGetGallery
             {
                 case PackageStagingDeletionResult.Deleted:
                     return new HttpStatusCodeResult(HttpStatusCode.NoContent);
-                case PackageStagingDeletionResult.HasStagedSymbols:
-                    return Error(HttpStatusCode.Conflict, "PackageHasStagedSymbols", "Remove the staged symbols before deleting their parent package.");
                 case PackageStagingDeletionResult.PromotionActive:
                 case PackageStagingDeletionResult.Conflict:
                     return new HttpStatusCodeResult(HttpStatusCode.Conflict);

@@ -171,7 +171,9 @@ namespace NuGetGallery
                     stagingFiles.Object,
                     stagedPackageRepository.Object,
                     stagingGroupRepository.Object,
-                    stagedValidationMessageEmitter.Object);
+                    stagedValidationMessageEmitter.Object,
+                    Mock.Of<IEntityRepository<StagedSymbolPackage>>(),
+                    Mock.Of<IStagedSymbolPackageValidationMessageEmitter>());
 
                 using (var packageFile = TestPackage.CreateTestPackageStream("PackageA", "1.0.0"))
                 {
@@ -244,7 +246,8 @@ namespace NuGetGallery
             [InlineData(StagedPackageStatus.Ready, HttpStatusCode.OK, true, true, true)]
             [InlineData(StagedPackageStatus.Ready, HttpStatusCode.OK, false, true, true)]
             [InlineData(StagedPackageStatus.Deleted, HttpStatusCode.OK, false, true, true)]
-            [InlineData(StagedPackageStatus.Ready, HttpStatusCode.Conflict, false, false, false, true)]
+            [InlineData(StagedPackageStatus.Ready, HttpStatusCode.OK, false, false, false, true)]
+            [InlineData(StagedPackageStatus.Deleted, HttpStatusCode.OK, false, false, false, true)]
             [InlineData(StagedPackageStatus.Ready, HttpStatusCode.OK, true, false, false, true)]
             [InlineData(StagedPackageStatus.Ready, HttpStatusCode.OK, true, true, false, true)]
             public async Task UploadReturnsExpectedStatus(StagedPackageStatus status, HttpStatusCode expectedStatusCode, bool identical, bool assignGroup, bool createGroup, bool hasSymbols = false)
@@ -290,7 +293,32 @@ namespace NuGetGallery
                 if (hasSymbols)
                 {
                     stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackageKey = 50;
+                    stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackage = new StagedSymbolPackage
+                    {
+                        Key = 50,
+                        StagedPackageIdentity = stagedPackage.StagedPackageIdentity,
+                        SymbolPackage = new SymbolPackage { Key = 51, Hash = "symbols-hash", StatusKey = PackageStatus.Staged },
+                        UploadedBlobPath = "symbols.snupkg",
+                        UploadedBlobETag = "symbols-etag",
+                        Status = status == StagedPackageStatus.Deleted ? StagedPackageStatus.WaitingForParent : StagedPackageStatus.Ready,
+                    };
                 }
+                var previousSymbols = stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackage;
+                StagedSymbolPackage renewedSymbols = null;
+                var symbolRepository = new Mock<IEntityRepository<StagedSymbolPackage>>();
+                symbolRepository.Setup(x => x.InsertOnCommit(It.IsAny<StagedSymbolPackage>())).Callback<StagedSymbolPackage>(value => renewedSymbols = value);
+                symbolRepository.Setup(x => x.CommitChangesAsync()).Returns(() =>
+                {
+                    renewedSymbols.Key = 52;
+                    return Task.CompletedTask;
+                });
+                var symbolEmitter = new Mock<IStagedSymbolPackageValidationMessageEmitter>();
+                symbolEmitter.Setup(x => x.StartValidationAsync(It.IsAny<StagedSymbolPackage>())).ReturnsAsync(StagedPackageStatus.Validating)
+                    .Callback<StagedSymbolPackage>(attempt =>
+                    {
+                        Assert.Equal(32, attempt.StagedPackageIdentity.CurrentStagedPackageKey);
+                        Assert.Equal(attempt.Key, attempt.StagedPackageIdentity.CurrentStagedSymbolPackageKey);
+                    });
 
                 if (!identical)
                 {
@@ -435,7 +463,9 @@ namespace NuGetGallery
                     stagingBlobService.Object,
                     stagedPackageRepository.Object,
                     stagingGroupRepository.Object,
-                    stagedValidationMessageEmitter.Object);
+                    stagedValidationMessageEmitter.Object,
+                    symbolRepository.Object,
+                    symbolEmitter.Object);
 
                 var isActiveNoOp = identical && (status == StagedPackageStatus.Validating || status == StagedPackageStatus.Ready);
                 var result = await target.StagePackageAsync(
@@ -450,6 +480,21 @@ namespace NuGetGallery
                 Assert.Equal(assignGroup && expectedStatusCode == HttpStatusCode.OK ? (createGroup ? createdGroup.Key : requestedGroup.Key) : originalGroup.Key, stagedPackage.StagedPackageIdentity.StagingGroupKey);
                 Assert.Equal(!assignGroup || expectedStatusCode == HttpStatusCode.Conflict, package.Listed);
                 var createsSuccessor = expectedStatusCode == HttpStatusCode.OK && !isActiveNoOp;
+                if (hasSymbols && createsSuccessor)
+                {
+                    Assert.Equal(StagedPackageStatus.Superseded, previousSymbols.Status);
+                    Assert.Same(renewedSymbols, stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackage);
+                    Assert.Same(previousSymbols.SymbolPackage, renewedSymbols.SymbolPackage);
+                    Assert.Equal("symbols.snupkg", renewedSymbols.UploadedBlobPath);
+                    Assert.Equal("symbols-etag", renewedSymbols.UploadedBlobETag);
+                    Assert.Equal(StagedPackageStatus.Validating, renewedSymbols.Status);
+                    symbolEmitter.Verify(x => x.StartValidationAsync(renewedSymbols), Times.Once);
+                }
+                else
+                {
+                    symbolRepository.Verify(x => x.InsertOnCommit(It.IsAny<StagedSymbolPackage>()), Times.Never);
+                    symbolEmitter.Verify(x => x.StartValidationAsync(It.IsAny<StagedSymbolPackage>()), Times.Never);
+                }
                 Assert.Equal(createsSuccessor || (assignGroup && isActiveNoOp && expectedStatusCode == HttpStatusCode.OK) ? 1L : 0L, originalGroup.MutationRevision);
                 Assert.Equal(assignGroup && !createGroup && expectedStatusCode == HttpStatusCode.OK ? 1L : 0L, requestedGroup.MutationRevision);
                 stagingGroupRepository.Verify(x => x.InsertOnCommit(It.IsAny<StagingGroup>()), createGroup ? Times.Once() : Times.Never());
@@ -524,7 +569,9 @@ namespace NuGetGallery
                     blobService.Object,
                     stagedPackageRepository.Object,
                     Mock.Of<IEntityRepository<StagingGroup>>(),
-                    Mock.Of<IStagedPackageValidationMessageEmitter>());
+                    Mock.Of<IStagedPackageValidationMessageEmitter>(),
+                    Mock.Of<IEntityRepository<StagedSymbolPackage>>(),
+                    Mock.Of<IStagedSymbolPackageValidationMessageEmitter>());
                 using var packageFile = TestPackage.CreateTestPackageStream("PackageA", "1.0.0");
 
                 var result = await target.StagePackageAsync(currentUser, scopes, Mock.Of<HttpContextBase>(), packageFile, "release");
@@ -574,7 +621,9 @@ namespace NuGetGallery
                     Mock.Of<IStagingBlobService>(),
                     stagedPackages.Object,
                     groups.Object,
-                    Mock.Of<IStagedPackageValidationMessageEmitter>());
+                    Mock.Of<IStagedPackageValidationMessageEmitter>(),
+                    Mock.Of<IEntityRepository<StagedSymbolPackage>>(),
+                    Mock.Of<IStagedSymbolPackageValidationMessageEmitter>());
                 using var packageFile = TestPackage.CreateTestPackageStream("PackageA", "1.0.0");
 
                 var result = await target.StagePackageAsync(currentUser, scopes, Mock.Of<HttpContextBase>(), packageFile, "release");
@@ -732,7 +781,9 @@ namespace NuGetGallery
                     Mock.Of<IStagingBlobService>(),
                     stagedPackageRepository,
                     Mock.Of<IEntityRepository<StagingGroup>>(),
-                    Mock.Of<IStagedPackageValidationMessageEmitter>());
+                    Mock.Of<IStagedPackageValidationMessageEmitter>(),
+                    Mock.Of<IEntityRepository<StagedSymbolPackage>>(),
+                    Mock.Of<IStagedSymbolPackageValidationMessageEmitter>());
             }
         }
 

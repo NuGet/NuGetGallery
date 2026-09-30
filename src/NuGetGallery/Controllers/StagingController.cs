@@ -414,7 +414,7 @@ namespace NuGetGallery
                     ParentStatus = parentStatus,
                     ParentUrl = parentUrl,
                     Status = attempt.Status.ToString(),
-                    StatusClass = $"staging-status-{attempt.Status.ToString().ToLowerInvariant()}",
+                    StatusClass = attempt.Status == StagedPackageStatus.WaitingForParent ? "label-warning" : $"staging-status-{attempt.Status.ToString().ToLowerInvariant()}",
                     UploadedDate = attempt.UploadedDate,
                     ValidationIssues = issues ?? [],
                     CanManage = canManage,
@@ -431,6 +431,7 @@ namespace NuGetGallery
             model.PackageCount = model.Packages.Count;
             model.ReadyCount += stagedSymbols.Count(attempt => attempt.Status == StagedPackageStatus.Ready);
             model.ValidatingCount += stagedSymbols.Count(attempt => attempt.Status == StagedPackageStatus.Validating);
+            model.WaitingForParentCount += stagedSymbols.Count(attempt => attempt.Status == StagedPackageStatus.WaitingForParent);
             model.FailedCount += stagedSymbols.Count(attempt => attempt.Status == StagedPackageStatus.FailedValidation);
             if (stagedSymbols.Count > 0)
             {
@@ -617,7 +618,7 @@ namespace NuGetGallery
                         ValidationIssues = issues ?? [],
                         Listed = package.Listed,
                         CanManage = !isPromotionActive,
-                        CanDelete = !isPromotionActive && stagedPackage.Status != StagedPackageStatus.Promoting && !identity.CurrentStagedSymbolPackageKey.HasValue,
+                        CanDelete = !isPromotionActive && stagedPackage.Status != StagedPackageStatus.Promoting && identity.CurrentStagedSymbolPackage?.Status != StagedPackageStatus.Promoting,
                         CanPromote = stagedPackage.Status == StagedPackageStatus.Ready && !identity.StagingGroupKey.HasValue,
                         CanResend = !identity.StagingGroupKey.HasValue
                             && stagedPackage.Status == StagedPackageStatus.Promoting
@@ -734,9 +735,6 @@ namespace NuGetGallery
             switch (result)
             {
                 case PackageStagingDeletionResult.Deleted:
-                    break;
-                case PackageStagingDeletionResult.HasStagedSymbols:
-                    TempData["ErrorMessage"] = "Remove the staged symbols before deleting their parent package.";
                     break;
                 case PackageStagingDeletionResult.PromotionActive:
                     TempData["ErrorMessage"] = "The staged package cannot be deleted while package promotion is active.";

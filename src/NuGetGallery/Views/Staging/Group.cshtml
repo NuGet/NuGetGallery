@@ -106,6 +106,10 @@
                 {
                     <span class="label staging-status staging-status-validating">@Model.ValidatingCount validating</span>
                 }
+                @if (Model.WaitingForParentCount > 0)
+                {
+                    <span class="label label-warning">@Model.WaitingForParentCount waiting for parent</span>
+                }
                 @if (Model.PromotingCount > 0)
                 {
                     <span class="label staging-status staging-status-promoting">@Model.PromotingCount promoting</span>
@@ -231,6 +235,9 @@
                                             </button>
                                             <!-- /ko -->
                                         </div>
+                                        <!-- ko if: Status === 'Waiting for parent' -->
+                                        <div class="text-muted">Restage the parent package to validate these symbols.</div>
+                                        <!-- /ko -->
                                     </td>
                                     <td class="align-middle staging-package-listed">
                                         <!-- ko ifnot: IsSymbolPackage -->
@@ -331,7 +338,7 @@
                                                         <span class="tooltip-block" role="tooltip" data-bind="attr: { id: DeleteDisabledReasonId }">
                                                             <span class="tooltip-wrapper popover left">
                                                                 <span class="arrow"></span>
-                                                                <span class="popover-content">Remove the staged symbols before deleting their parent package.</span>
+                                                                <span class="popover-content">Wait for promotion to finish before deleting this package.</span>
                                                             </span>
                                                         </span>
                                                     </a>
@@ -398,6 +405,11 @@
 
     string GetStagedPackageStatus(string status)
     {
+        if (status == StagedPackageStatus.WaitingForParent.ToString())
+        {
+            return "Waiting for parent";
+        }
+
         if (status == StagedPackageStatus.FailedValidation.ToString())
         {
             return "Validation failed";

@@ -675,6 +675,7 @@ namespace NuGetGallery
             }
 
             var validatingCount = statuses.Count(status => status == StagedPackageStatus.Validating);
+            var waitingForParentCount = statuses.Count(status => status == StagedPackageStatus.WaitingForParent);
             var readyCount = statuses.Count(status => status == StagedPackageStatus.Ready);
             var failedValidationCount = statuses.Count(status => status == StagedPackageStatus.FailedValidation);
             var status = "Not ready";
@@ -688,6 +689,10 @@ namespace NuGetGallery
             {
                 status = "Validating";
                 statusClass = "staging-status-validating";
+            }
+            else if (waitingForParentCount > 0)
+            {
+                status = "Waiting for parent";
             }
             else if (statuses.Count == 0)
             {
@@ -713,19 +718,21 @@ namespace NuGetGallery
                 PackageStatusSummary = GetStagingGroupPackageStatusSummary(
                     validatingCount,
                     readyCount,
-                    failedValidationCount),
+                    failedValidationCount,
+                    waitingForParentCount),
                 Status = isUngrouped ? null : status,
                 StatusClass = isUngrouped ? null : statusClass,
             };
         }
 
-        private static string GetStagingGroupPackageStatusSummary(int validatingCount, int readyCount, int failedValidationCount)
+        private static string GetStagingGroupPackageStatusSummary(int validatingCount, int readyCount, int failedValidationCount, int waitingForParentCount)
         {
             var statuses = new[]
             {
                 FormatStagingGroupPackageStatus(readyCount, "ready"),
                 FormatStagingGroupPackageStatus(validatingCount, "validating"),
                 FormatStagingGroupPackageStatus(failedValidationCount, "failed"),
+                FormatStagingGroupPackageStatus(waitingForParentCount, "waiting for parent"),
             };
 
             return string.Join(", ", statuses.Where(status => status != null));
