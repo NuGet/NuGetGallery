@@ -27,7 +27,7 @@ namespace NuGet.Services.Validation.Orchestrator
             var entity = GetAll().FirstOrDefault(candidate =>
                 candidate.StagedPackageIdentity.Package.PackageRegistration.Id == id &&
                 candidate.StagedPackageIdentity.Package.NormalizedVersion == version &&
-                candidate.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Available &&
+                (candidate.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Available || candidate.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Staged) &&
                 candidate.StagedPackageIdentity.CurrentStagedSymbolPackageKey == candidate.Key);
             return entity == null ? null : new StagedSymbolPackageValidatingEntity(entity);
         }
@@ -67,6 +67,7 @@ namespace NuGet.Services.Validation.Orchestrator
         {
             return _entitiesContext.StagedSymbolPackages
                 .Include(candidate => candidate.StagedPackageIdentity.Package.PackageRegistration)
+                .Include(candidate => candidate.StagedPackageIdentity.CurrentStagedPackage)
                 .Include(candidate => candidate.SymbolPackage);
         }
     }

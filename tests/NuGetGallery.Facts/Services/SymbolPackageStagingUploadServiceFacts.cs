@@ -48,7 +48,9 @@ namespace NuGetGallery
                 .Setup(x => x.Evaluate(currentUser, scopes, ActionsRequiringPermissions.UploadSymbolPackage, package.PackageRegistration, It.IsAny<string[]>()))
                 .Returns(new ApiScopeEvaluationResult(owner, PermissionsCheckResult.Allowed, scopesAreValid: true));
             var entitiesContext = new Mock<IEntitiesContext>();
-            entitiesContext.Setup(x => x.StagedPackageIdentities).Returns(Enumerable.Empty<StagedPackageIdentity>().MockDbSet().Object);
+            var identities = Enumerable.Empty<StagedPackageIdentity>().MockDbSet();
+            identities.Setup(x => x.Include(It.IsAny<string>())).Returns(identities.Object);
+            entitiesContext.Setup(x => x.StagedPackageIdentities).Returns(identities.Object);
             entitiesContext.Setup(x => x.SymbolPackages).Returns(Enumerable.Empty<SymbolPackage>().MockDbSet().Object);
             var symbolPackageService = new Mock<ISymbolPackageService>();
             Exception exception = new EntityException("Invalid symbol metadata.");
@@ -86,9 +88,16 @@ namespace NuGetGallery
         }
 
         [Theory]
-        [InlineData(PackageStatus.Available, HttpStatusCode.Created)]
-        [InlineData(PackageStatus.Staged, HttpStatusCode.NotFound)]
-        public async Task StagesSymbolsOnlyForAvailableParent(PackageStatus parentStatus, HttpStatusCode expectedStatus)
+        [InlineData(PackageStatus.Available, false, StagedPackageStatus.Ready, true, false, HttpStatusCode.Created)]
+        [InlineData(PackageStatus.Staged, false, StagedPackageStatus.Ready, true, false, HttpStatusCode.NotFound)]
+        [InlineData(PackageStatus.Staged, true, StagedPackageStatus.Validating, true, false, HttpStatusCode.Created)]
+        [InlineData(PackageStatus.Staged, true, StagedPackageStatus.FailedValidation, true, false, HttpStatusCode.Created)]
+        [InlineData(PackageStatus.Staged, true, StagedPackageStatus.Ready, true, false, HttpStatusCode.Created)]
+        [InlineData(PackageStatus.Staged, true, StagedPackageStatus.Ready, false, false, HttpStatusCode.NotFound)]
+        [InlineData(PackageStatus.Staged, true, StagedPackageStatus.Promoting, true, false, HttpStatusCode.Conflict)]
+        [InlineData(PackageStatus.Staged, true, StagedPackageStatus.Ready, true, true, HttpStatusCode.Conflict)]
+        [InlineData(PackageStatus.Available, true, StagedPackageStatus.Ready, true, true, HttpStatusCode.Conflict)]
+        public async Task StagesSymbolsForAccessibleUngroupedParent(PackageStatus parentStatus, bool hasStagedParent, StagedPackageStatus stagedStatus, bool sameOwner, bool grouped, HttpStatusCode expectedStatus)
         {
             var currentUser = new User("uploader") { Key = 10 };
             var owner = new User("owner") { Key = 20, EmailAddress = "owner@example.test" };
@@ -112,7 +121,11 @@ namespace NuGetGallery
                 .Setup(x => x.Evaluate(currentUser, scopes, ActionsRequiringPermissions.UploadSymbolPackage, package.PackageRegistration, It.IsAny<string[]>()))
                 .Returns(new ApiScopeEvaluationResult(owner, PermissionsCheckResult.Allowed, scopesAreValid: true));
             var entitiesContext = new Mock<IEntitiesContext>();
-            entitiesContext.Setup(x => x.StagedPackageIdentities).Returns(Enumerable.Empty<StagedPackageIdentity>().MockDbSet().Object);
+            var identity = new StagedPackageIdentity { Key = package.Key, Package = package, Owner = owner, OwnerKey = sameOwner ? owner.Key : 999, CurrentStagedPackageKey = 50, StagingGroupKey = grouped ? 60 : (int?)null };
+            identity.CurrentStagedPackage = new StagedPackage { Key = 50, StagedPackageIdentity = identity, Status = stagedStatus };
+            var identities = (hasStagedParent ? new[] { identity } : Array.Empty<StagedPackageIdentity>()).MockDbSet();
+            identities.Setup(x => x.Include(It.IsAny<string>())).Returns(identities.Object);
+            entitiesContext.Setup(x => x.StagedPackageIdentities).Returns(identities.Object);
             entitiesContext.Setup(x => x.SymbolPackages).Returns(Enumerable.Empty<SymbolPackage>().MockDbSet().Object);
             var symbolPackageService = new Mock<ISymbolPackageService>();
             var symbolPackage = new SymbolPackage { Package = package, PackageKey = package.Key };
@@ -154,7 +167,7 @@ namespace NuGetGallery
             var result = await target.StageSymbolPackageAsync(currentUser, scopes, Mock.Of<HttpContextBase>(), file);
 
             Assert.Equal(expectedStatus, result.StatusCode);
-            if (parentStatus == PackageStatus.Available)
+            if (expectedStatus == HttpStatusCode.Created)
             {
                 Assert.True(result.Success, result.ErrorMessage);
                 Assert.Equal(PackageStatus.Staged, symbolPackage.StatusKey);
@@ -162,6 +175,12 @@ namespace NuGetGallery
                 Assert.Equal(owner, attempt.StagedPackageIdentity.Owner);
                 Assert.Equal(attempt.Key, attempt.StagedPackageIdentity.CurrentStagedSymbolPackageKey);
                 Assert.Equal("test.package/1.0.0/file.snupkg", attempt.UploadedBlobPath);
+                if (hasStagedParent)
+                {
+                    Assert.Same(identity, attempt.StagedPackageIdentity);
+                    Assert.Equal(1, identity.CurrentStagedPackage.MutationRevision);
+                }
+
                 validationMessageEmitter.Verify(x => x.StartValidationAsync(attempt), Times.Once);
                 var status = target.GetStatus(currentUser, scopes, "Test.Package", "1.0.0");
                 Assert.Equal("Test.Package", status.Id);

@@ -21,7 +21,7 @@ using NuGetGallery.Security;
 namespace NuGetGallery
 {
     /// <summary>
-    /// Stages symbol packages for available parent packages.
+    /// Stages symbol packages for available or same-owner staged parent packages.
     /// </summary>
     public class SymbolPackageStagingUploadService : ISymbolPackageStagingUploadService
     {
@@ -156,6 +156,11 @@ namespace NuGetGallery
                 {
                     await _stagedSymbolPackageRepository.ExecuteInTransactionAsync(async () =>
                     {
+                        if (package.PackageStatusKey == PackageStatus.Staged)
+                        {
+                            identity.CurrentStagedPackage.MutationRevision++;
+                        }
+
                         await _stagedSymbolPackageRepository.CommitChangesAsync();
                         identity.CurrentStagedSymbolPackageKey = stagedSymbolPackage.Key;
                         identity.CurrentStagedSymbolPackage = stagedSymbolPackage;
@@ -237,15 +242,32 @@ namespace NuGetGallery
 
         private PackageStagingResult ValidateTarget(User currentUser, IReadOnlyCollection<Scope> scopes, User owner, Package package)
         {
-            if (package?.PackageStatusKey != PackageStatus.Available || !CanAccessPackage(currentUser, scopes, owner, package))
+            if (package == null || !CanAccessPackage(currentUser, scopes, owner, package))
             {
-                return PackageStagingResult.Error(HttpStatusCode.NotFound, "The available parent package was not found.");
+                return PackageStagingResult.Error(HttpStatusCode.NotFound, "The parent package was not found.");
             }
 
             var identity = GetIdentity(package);
             if (identity != null && identity.OwnerKey != owner.Key)
             {
-                return PackageStagingResult.Error(HttpStatusCode.NotFound, "The available parent package was not found.");
+                return PackageStagingResult.Error(HttpStatusCode.NotFound, "The parent package was not found.");
+            }
+
+            var parent = identity?.CurrentStagedPackage;
+            var stagedParent = package.PackageStatusKey == PackageStatus.Staged && parent != null && parent.Status != StagedPackageStatus.Deleted && parent.Status != StagedPackageStatus.Superseded;
+            if (package.PackageStatusKey != PackageStatus.Available && !stagedParent)
+            {
+                return PackageStagingResult.Error(HttpStatusCode.NotFound, "The parent package was not found.");
+            }
+
+            if (parent?.Status == StagedPackageStatus.Promoting)
+            {
+                return PackageStagingResult.Error(HttpStatusCode.Conflict, "The parent package is being promoted.");
+            }
+
+            if (identity?.StagingGroupKey != null)
+            {
+                return PackageStagingResult.Error(HttpStatusCode.Conflict, "Staged symbol packages are currently supported only in Ungrouped. Remove the parent from its group before uploading symbols.");
             }
 
             if (identity?.CurrentStagedSymbolPackageKey != null)
@@ -280,6 +302,7 @@ namespace NuGetGallery
         private StagedPackageIdentity GetIdentity(Package package)
         {
             return _entitiesContext.StagedPackageIdentities
+                .Include(identity => identity.CurrentStagedPackage)
                 .SingleOrDefault(candidate => candidate.Key == package.Key);
         }
 

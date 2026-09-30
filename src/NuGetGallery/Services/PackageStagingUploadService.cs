@@ -407,6 +407,11 @@ namespace NuGetGallery
             var isValidating = target.CurrentAttempt?.Status == StagedPackageStatus.Validating;
             var isReady = target.CurrentAttempt?.Status == StagedPackageStatus.Ready;
             var isIdentical = string.Equals(target.CurrentAttempt?.UploadHash, streamMetadata.Hash, StringComparison.Ordinal);
+            if (target.CurrentAttempt?.StagedPackageIdentity.CurrentStagedSymbolPackageKey.HasValue == true && requestedGroup != null && target.CurrentAttempt.StagedPackageIdentity.StagingGroupKey != requestedGroup.Key)
+            {
+                return PackageStagingResult.Error(HttpStatusCode.Conflict, "Remove the staged symbols before moving their parent package into a group.");
+            }
+
             if ((isValidating || isReady) && isIdentical)
             {
                 var identity = target.CurrentAttempt.StagedPackageIdentity;
@@ -434,6 +439,11 @@ namespace NuGetGallery
                 }
 
                 return PackageStagingResult.Ok();
+            }
+
+            if (target.CurrentAttempt?.StagedPackageIdentity.CurrentStagedSymbolPackageKey.HasValue == true)
+            {
+                return PackageStagingResult.Error(HttpStatusCode.Conflict, "Remove the staged symbol package before replacing its parent package.");
             }
 
             var beforeValidation = await _packageUploadService.ValidateBeforeGeneratePackageAsync(

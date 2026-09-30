@@ -102,7 +102,7 @@ namespace NuGet.Services.Validation.Orchestrator
             var isCurrentAttempt =
                 attempt.Status == StagedPackageStatus.Validating &&
                 attempt.StagedPackageIdentity.CurrentStagedSymbolPackageKey == attempt.Key;
-            var parentIsAvailable = package.PackageStatusKey == PackageStatus.Available;
+            var parentIsAvailable = package.PackageStatusKey == PackageStatus.Available || (package.PackageStatusKey == PackageStatus.Staged && attempt.StagedPackageIdentity.CurrentStagedPackageKey.HasValue);
 
             return matchesMessage && isCurrentAttempt && parentIsAvailable;
         }

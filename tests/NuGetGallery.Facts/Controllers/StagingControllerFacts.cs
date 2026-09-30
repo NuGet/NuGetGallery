@@ -68,6 +68,33 @@ namespace NuGetGallery
         }
 
         [Theory]
+        [InlineData(StagedPackageStatus.Validating)]
+        [InlineData(StagedPackageStatus.Ready)]
+        [InlineData(StagedPackageStatus.FailedValidation)]
+        public void DisplaysPrivateStagedParentStatusAndLink(StagedPackageStatus parentStatus)
+        {
+            var owner = new User("owner") { Key = 1 };
+            var parent = CreateStagedPackage(owner);
+            parent.Status = parentStatus;
+            parent.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Staged;
+            var attempt = new StagedSymbolPackage { Key = 100, StagedPackageIdentity = parent.StagedPackageIdentity, Status = StagedPackageStatus.Validating };
+            GetMock<IPackageStagingAuthorizationService>().Setup(x => x.GetEnabledOwner(owner, owner.Username)).Returns(owner);
+            GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagedPackages(owner)).Returns(new[] { parent });
+            GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagingGroups(owner)).Returns(new List<StagingGroup>());
+            GetMock<ISymbolPackageStagingManagementService>().Setup(x => x.GetStagedSymbolPackages(owner)).Returns(new[] { attempt });
+            GetMock<IValidationService>().Setup(x => x.GetStagedPackageValidationIssues(It.IsAny<IReadOnlyCollection<int>>())).Returns(new Dictionary<int, IReadOnlyList<ValidationIssue>>());
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(owner);
+
+            var model = ResultAssert.IsView<StagingGroupDetailViewModel>(target.Ungrouped(owner.Username), viewName: "Group");
+
+            Assert.Equal(2, model.PackageCount);
+            var symbols = Assert.Single(model.Packages.Where(package => package.IsSymbolPackage));
+            Assert.Equal(parentStatus.ToString(), symbols.ParentStatus);
+            Assert.Equal("/account/staging/package/PackageA/1.0.0/content", symbols.ParentUrl);
+        }
+
+        [Theory]
         [InlineData(false, false)]
         [InlineData(true, true)]
         [InlineData(true, false)]
@@ -1048,11 +1075,18 @@ namespace NuGetGallery
             Assert.Equal(HttpStatusCode.NoContent, (HttpStatusCode)status.StatusCode);
         }
 
-        [Fact]
-        public async Task DeletesAuthorizedPackage()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task DeletesAuthorizedPackageOrExplainsSymbolRestriction(bool hasSymbols)
         {
             var currentUser = new User("current") { Key = 1 };
             var stagedPackage = CreateStagedPackage(currentUser);
+            if (hasSymbols)
+            {
+                stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackageKey = 100;
+            }
+
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
                 .Returns(stagedPackage);
@@ -1061,13 +1095,18 @@ namespace NuGetGallery
                 .Returns(true);
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.DeletePackageAsync(stagedPackage))
-                .ReturnsAsync(true);
+                .ReturnsAsync(!hasSymbols);
             var target = GetController<StagingController>();
             target.SetCurrentUser(currentUser);
 
             var result = await target.DeletePackage("PackageA", "1.0.0");
 
             Assert.IsType<RedirectResult>(result);
+            if (hasSymbols)
+            {
+                Assert.Equal("Remove the staged symbols before deleting their parent package.", target.TempData["ErrorMessage"]);
+            }
+
             GetMock<IPackageStagingManagementService>().Verify(
                 x => x.DeletePackageAsync(stagedPackage),
                 Times.Once);

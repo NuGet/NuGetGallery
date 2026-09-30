@@ -244,7 +244,10 @@ namespace NuGetGallery
             [InlineData(StagedPackageStatus.Ready, HttpStatusCode.OK, true, true, true)]
             [InlineData(StagedPackageStatus.Ready, HttpStatusCode.OK, false, true, true)]
             [InlineData(StagedPackageStatus.Deleted, HttpStatusCode.OK, false, true, true)]
-            public async Task UploadReturnsExpectedStatus(StagedPackageStatus status, HttpStatusCode expectedStatusCode, bool identical, bool assignGroup, bool createGroup)
+            [InlineData(StagedPackageStatus.Ready, HttpStatusCode.Conflict, false, false, false, true)]
+            [InlineData(StagedPackageStatus.Ready, HttpStatusCode.OK, true, false, false, true)]
+            [InlineData(StagedPackageStatus.Ready, HttpStatusCode.Conflict, true, true, false, true)]
+            public async Task UploadReturnsExpectedStatus(StagedPackageStatus status, HttpStatusCode expectedStatusCode, bool identical, bool assignGroup, bool createGroup, bool hasSymbols = false)
             {
                 var currentUser = new User { Key = 17 };
                 var owner = new User { Key = 23, EmailAddress = "owner@example.com" };
@@ -284,6 +287,11 @@ namespace NuGetGallery
                 };
                 stagedPackage.StagedPackageIdentity.CurrentStagedPackageKey = stagedPackage.Key;
                 stagedPackage.StagedPackageIdentity.CurrentStagedPackage = stagedPackage;
+                if (hasSymbols)
+                {
+                    stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackageKey = 50;
+                }
+
                 if (!identical)
                 {
                     stagedPackage.UploadHash = "different";
@@ -442,7 +450,7 @@ namespace NuGetGallery
                 Assert.Equal(assignGroup && expectedStatusCode == HttpStatusCode.OK ? (createGroup ? createdGroup.Key : requestedGroup.Key) : originalGroup.Key, stagedPackage.StagedPackageIdentity.StagingGroupKey);
                 Assert.Equal(!assignGroup || expectedStatusCode == HttpStatusCode.Conflict, package.Listed);
                 var createsSuccessor = expectedStatusCode == HttpStatusCode.OK && !isActiveNoOp;
-                Assert.Equal(createsSuccessor || (assignGroup && isActiveNoOp) ? 1L : 0L, originalGroup.MutationRevision);
+                Assert.Equal(createsSuccessor || (assignGroup && isActiveNoOp && expectedStatusCode == HttpStatusCode.OK) ? 1L : 0L, originalGroup.MutationRevision);
                 Assert.Equal(assignGroup && !createGroup && expectedStatusCode == HttpStatusCode.OK ? 1L : 0L, requestedGroup.MutationRevision);
                 stagingGroupRepository.Verify(x => x.InsertOnCommit(It.IsAny<StagingGroup>()), createGroup ? Times.Once() : Times.Never());
                 if (createGroup)
