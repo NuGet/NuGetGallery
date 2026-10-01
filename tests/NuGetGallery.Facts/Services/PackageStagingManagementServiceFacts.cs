@@ -1058,8 +1058,10 @@ namespace NuGetGallery
                     identity.Package.PackageStatusKey = PackageStatus.Available;
                 }
 
-                var symbolPackage = new SymbolPackage { StatusKey = PackageStatus.Staged, Package = identity.Package };
+                var symbolPackage = new SymbolPackage { Key = 60, StatusKey = PackageStatus.Staged, Package = identity.Package };
                 var symbols = new StagedSymbolPackage { Key = 50, StagedPackageIdentity = identity, SymbolPackage = symbolPackage, Status = StagedPackageStatus.Ready };
+                var previousSymbolPackage = new SymbolPackage { Key = 59, StatusKey = PackageStatus.Staged, Package = identity.Package };
+                var previousSymbols = new StagedSymbolPackage { Key = 49, StagedPackageIdentity = identity, SymbolPackage = previousSymbolPackage, Status = StagedPackageStatus.Superseded };
                 identity.CurrentStagedSymbolPackage = symbols;
                 identity.CurrentStagedSymbolPackageKey = symbols.Key;
                 var attempts = new Mock<IEntityRepository<StagedSymbolPackage>>();
@@ -1070,12 +1072,14 @@ namespace NuGetGallery
                 var target = CreateService(
                     new[] { parent }, user => true, packageService: packageService.Object,
                     stagingGroupRepository: groups,
-                    stagedSymbols: new[] { symbols }, stagedSymbolRepository: attempts,
+                    stagedSymbols: new[] { previousSymbols, symbols }, stagedSymbolRepository: attempts,
                     identityRepository: identities, symbolRepository: ordinarySymbols);
                 groups.Setup(x => x.CommitChangesAsync()).Returns(() =>
                 {
                     symbols.StagedPackageIdentity = null;
                     symbols.SymbolPackage = null;
+                    previousSymbols.StagedPackageIdentity = null;
+                    previousSymbols.SymbolPackage = null;
                     return Task.CompletedTask;
                 });
 
@@ -1087,6 +1091,8 @@ namespace NuGetGallery
                 Assert.Null(identity.StagingGroupKey);
                 attempts.Verify(x => x.DeleteOnCommit(symbols), Times.Once);
                 ordinarySymbols.Verify(x => x.DeleteOnCommit(symbolPackage), Times.Once);
+                attempts.Verify(x => x.DeleteOnCommit(previousSymbols), Times.Once);
+                ordinarySymbols.Verify(x => x.DeleteOnCommit(previousSymbolPackage), Times.Once);
                 identities.Verify(x => x.DeleteOnCommit(identity), stagedParent ? Times.Never() : Times.Once());
                 packageService.Verify(x => x.UpdatePackageStatusAsync(identity.Package, PackageStatus.Deleted, false), stagedParent ? Times.Once() : Times.Never());
                 if (!stagedParent)

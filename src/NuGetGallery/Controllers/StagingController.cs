@@ -25,6 +25,7 @@ namespace NuGetGallery
         private readonly ISymbolPackageStagingManagementService _symbolPackageStagingManagementService;
         private readonly IPackageStagingPromotionService _packageStagingPromotionService;
         private readonly IPackageStagingUploadService _packageStagingUploadService;
+        private readonly ISymbolPackageStagingUploadService _symbolPackageStagingUploadService;
         private readonly IValidationService _validationService;
 
         public StagingController(
@@ -33,6 +34,7 @@ namespace NuGetGallery
             ISymbolPackageStagingManagementService symbolPackageStagingManagementService,
             IPackageStagingPromotionService packageStagingPromotionService,
             IPackageStagingUploadService packageStagingUploadService,
+            ISymbolPackageStagingUploadService symbolPackageStagingUploadService,
             IValidationService validationService)
         {
             _packageStagingAuthorizationService = packageStagingAuthorizationService ?? throw new ArgumentNullException(nameof(packageStagingAuthorizationService));
@@ -40,6 +42,7 @@ namespace NuGetGallery
             _symbolPackageStagingManagementService = symbolPackageStagingManagementService ?? throw new ArgumentNullException(nameof(symbolPackageStagingManagementService));
             _packageStagingPromotionService = packageStagingPromotionService ?? throw new ArgumentNullException(nameof(packageStagingPromotionService));
             _packageStagingUploadService = packageStagingUploadService ?? throw new ArgumentNullException(nameof(packageStagingUploadService));
+            _symbolPackageStagingUploadService = symbolPackageStagingUploadService ?? throw new ArgumentNullException(nameof(symbolPackageStagingUploadService));
             _validationService = validationService ?? throw new ArgumentNullException(nameof(validationService));
         }
 
@@ -886,6 +889,36 @@ namespace NuGetGallery
             }
 
             return File(content, CoreConstants.OctetStreamContentType, $"{id}.{version}.snupkg");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> ReplaceSymbolPackage(string id, string version, HttpPostedFileBase packageFile)
+        {
+            ValidatePackageIdentity(id, version);
+            var attempt = FindAuthorizedStagedSymbolPackage(id, version);
+            if (attempt == null)
+            {
+                return HttpNotFound();
+            }
+
+            var identity = attempt.StagedPackageIdentity;
+            var owner = identity.Owner.Username;
+            var groupId = identity.StagingGroup?.Id;
+            if (packageFile == null || packageFile.ContentLength == 0)
+            {
+                TempData["ErrorMessage"] = "Select a symbol package file.";
+            }
+            else
+            {
+                var result = await _symbolPackageStagingUploadService.ReplaceSymbolPackageAsync(GetCurrentUser(), HttpContext, attempt, packageFile.InputStream);
+                if (!result.Success)
+                {
+                    TempData["ErrorMessage"] = result.ErrorMessage;
+                }
+            }
+
+            return Redirect(groupId == null ? Url.ManageUngroupedStaging(owner) : Url.ManageStagingGroup(owner, groupId));
         }
 
         [HttpPost]

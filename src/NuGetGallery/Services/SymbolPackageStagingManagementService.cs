@@ -130,7 +130,15 @@ namespace NuGetGallery
 
                     identity.CurrentStagedSymbolPackageKey = null;
                     identity.CurrentStagedSymbolPackage = null;
-                    _stagedSymbolPackageRepository.DeleteOnCommit(stagedSymbolPackage);
+                    var attempts = _stagedSymbolPackageRepository.GetAll()
+                        .Include(attempt => attempt.SymbolPackage)
+                        .Where(attempt => attempt.StagedPackageIdentityKey == identity.Key && attempt.SymbolPackage.StatusKey == PackageStatus.Staged)
+                        .Select(attempt => new { Attempt = attempt, SymbolPackage = attempt.SymbolPackage })
+                        .ToList();
+                    foreach (var attempt in attempts)
+                    {
+                        _stagedSymbolPackageRepository.DeleteOnCommit(attempt.Attempt);
+                    }
 
                     // Save first to break the circular reference between the identity and its current attempt.
                     await _stagedSymbolPackageRepository.CommitChangesAsync();
@@ -140,7 +148,10 @@ namespace NuGetGallery
                         _identityRepository.DeleteOnCommit(identity);
                     }
 
-                    _symbolPackageRepository.DeleteOnCommit(symbolPackage);
+                    foreach (var attempt in attempts)
+                    {
+                        _symbolPackageRepository.DeleteOnCommit(attempt.SymbolPackage);
+                    }
                     await _stagedSymbolPackageRepository.CommitChangesAsync();
                 });
             }

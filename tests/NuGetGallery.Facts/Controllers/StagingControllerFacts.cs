@@ -158,6 +158,49 @@ namespace NuGetGallery
         }
 
         [Theory]
+        [InlineData(false, true, false)]
+        [InlineData(true, true, false)]
+        [InlineData(true, true, true)]
+        [InlineData(true, false, true)]
+        public async Task SymbolReplacementHonorsAuthorizationAndReturnsToItsGroup(bool authorized, bool succeeds, bool grouped)
+        {
+            var owner = new User("owner") { Key = 1 };
+            var attempt = CreateStagedSymbolPackage(owner);
+            if (grouped)
+            {
+                attempt.StagedPackageIdentity.StagingGroup = new StagingGroup { Key = 10, Id = "release" };
+                attempt.StagedPackageIdentity.StagingGroupKey = 10;
+            }
+
+            using var content = new MemoryStream(new byte[] { 1, 2, 3 });
+            var file = new Mock<HttpPostedFileBase>();
+            file.Setup(x => x.ContentLength).Returns(3);
+            file.Setup(x => x.InputStream).Returns(content);
+            GetMock<ISymbolPackageStagingManagementService>().Setup(x => x.FindCurrentStagedSymbolPackage("PackageA", "1.0.0")).Returns(attempt);
+            GetMock<IPackageStagingAuthorizationService>().Setup(x => x.CanManage(owner, attempt)).Returns(authorized);
+            var uploadResult = succeeds ? PackageStagingResult.Ok() : PackageStagingResult.Error(HttpStatusCode.Conflict, "Replacement failed.");
+            GetMock<ISymbolPackageStagingUploadService>()
+                .Setup(x => x.ReplaceSymbolPackageAsync(owner, It.IsAny<HttpContextBase>(), attempt, content))
+                .ReturnsAsync(uploadResult);
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(owner);
+
+            var result = await target.ReplaceSymbolPackage("PackageA", "1.0.0", file.Object);
+
+            if (authorized)
+            {
+                ResultAssert.IsRedirectTo(result, grouped ? "/account/staging/owner/groups/release" : "/account/staging/owner/ungrouped");
+                Assert.Equal(succeeds ? null : "Replacement failed.", target.TempData["ErrorMessage"]);
+                GetMock<ISymbolPackageStagingUploadService>().Verify(x => x.ReplaceSymbolPackageAsync(owner, It.IsAny<HttpContextBase>(), attempt, content), Times.Once);
+            }
+            else
+            {
+                Assert.IsType<HttpNotFoundResult>(result);
+                GetMock<ISymbolPackageStagingUploadService>().Verify(x => x.ReplaceSymbolPackageAsync(It.IsAny<User>(), It.IsAny<HttpContextBase>(), It.IsAny<StagedSymbolPackage>(), It.IsAny<Stream>()), Times.Never);
+            }
+        }
+
+        [Theory]
         [InlineData(false)]
         [InlineData(true)]
         public async Task MovesSymbolOnlyIdentityUsingOwnerAuthorization(bool authorized)
