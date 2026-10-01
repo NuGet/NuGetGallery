@@ -20,6 +20,8 @@ public class Program
         // APPHOST_PROFILE controls which resources are launched.
         // "ci-gallery" = minimal: only Azurite, DB migrations, and Gallery.
         var profile = Environment.GetEnvironmentVariable("APPHOST_PROFILE") ?? "full";
+        var enableSymbolPromotion = builder.Configuration.GetValue<bool>("Staging:EnableSymbolPromotion");
+        var useDevelopmentSymbolsIngester = builder.Configuration.GetValue("DevelopmentValidator:UseForSymbolsIngester", true);
 
         // Read the Aspire-provisioned search service name from deployment outputs in user secrets.
         var searchOutputsJson = builder.Configuration["Azure:Deployments:search:Outputs"];
@@ -66,6 +68,8 @@ public class Program
         const string symbolsValidationTopicName = "symbols-validation";
         const string symbolsValidatorTopicName = "symbols-validator";
         const string symbolsValidatorSubscriptionName = "validator";
+        const string symbolsIngesterTopicName = "symbols-ingester";
+        const string symbolsIngesterSubscriptionName = "ingester";
         const string stagingPromotionTopicName = "staging-promotion";
         const string stagingPromotionSubscriptionName = "package-promotion";
         const string emailTopicName = "email";
@@ -79,6 +83,8 @@ public class Program
             symbolsValidationTopic.AddServiceBusSubscription("symbols-orchestrator-subscription", validationSubscriptionName);
             var symbolsValidatorTopic = serviceBus.AddServiceBusTopic("symbols-validator-topic", symbolsValidatorTopicName);
             symbolsValidatorTopic.AddServiceBusSubscription("symbols-validator-subscription", symbolsValidatorSubscriptionName);
+            var symbolsIngesterTopic = serviceBus.AddServiceBusTopic("symbols-ingester-topic", symbolsIngesterTopicName);
+            symbolsIngesterTopic.AddServiceBusSubscription("symbols-ingester-subscription", symbolsIngesterSubscriptionName);
             var stagingPromotionTopic = serviceBus.AddServiceBusTopic(stagingPromotionTopicName);
             stagingPromotionTopic.AddServiceBusSubscription(stagingPromotionSubscriptionName);
             serviceBus.AddServiceBusTopic(emailTopicName);
@@ -206,12 +212,14 @@ public class Program
                 builder.AppHostDirectory, "validation-orchestrator-dev.json",
                 CreateValidationOrchestratorConfiguration(
                     config.GalleryDb.ConnectionString, validationConnectionString, azuriteConnStr,
-                    validationTopicName, validationSubscriptionName, emailTopicName, symbolsValidatorTopicName, symbols: false));
+                    validationTopicName, validationSubscriptionName, emailTopicName, symbolsValidatorTopicName, symbolsIngesterTopicName,
+                    symbols: false, enableSymbolPromotion: false, useDevelopmentSymbolsIngester: false));
             var symbolsOrchestratorConfigPath = GenerateJsonConfig(
                 builder.AppHostDirectory, "symbols-orchestrator-dev.json",
                 CreateValidationOrchestratorConfiguration(
                     config.GalleryDb.ConnectionString, validationConnectionString, azuriteConnStr,
-                    symbolsValidationTopicName, validationSubscriptionName, emailTopicName, symbolsValidatorTopicName, symbols: true));
+                    symbolsValidationTopicName, validationSubscriptionName, emailTopicName, symbolsValidatorTopicName, symbolsIngesterTopicName,
+                    symbols: true, enableSymbolPromotion: enableSymbolPromotion, useDevelopmentSymbolsIngester: useDevelopmentSymbolsIngester));
             var symbolsValidatorConfigPath = GenerateJsonConfig(
                 builder.AppHostDirectory, "symbols-validator-dev.json", new
                 {
@@ -237,22 +245,9 @@ public class Program
                 });
 
             var promotionConfigPath = GenerateJsonConfig(
-                builder.AppHostDirectory, "staging-promotion-dev.json", new
-                {
-                    GalleryDb = new { ConnectionString = config.GalleryDb.ConnectionString },
-                    ServiceBus = new
-                    {
-                        ConnectionString = "",
-                        TopicPath = stagingPromotionTopicName,
-                        SubscriptionName = stagingPromotionSubscriptionName,
-                    },
-                    Promotion = new
-                    {
-                        PackageStorageConnectionString = azuriteConnStr,
-                        StagingStorageConnectionString = azuriteConnStr,
-                        FlatContainerStorageConnectionString = azuriteConnStr,
-                    },
-                });
+                builder.AppHostDirectory, "staging-promotion-dev.json",
+                CreateStagingPromotionConfiguration(config.GalleryDb.ConnectionString, azuriteConnStr,
+                    stagingPromotionTopicName, stagingPromotionSubscriptionName, symbolsValidationTopicName));
 
             var configureValidation = builder
                 .AddProject<Projects.NuGetGallery_AppHost_Tools>("configure-validation")
@@ -841,16 +836,40 @@ public class Program
         return path;
     }
 
+    static object CreateStagingPromotionConfiguration(
+        string galleryConnectionString, string storageConnectionString,
+        string topicName, string subscriptionName, string symbolsValidationTopicName)
+    {
+        return new
+        {
+            GalleryDb = new { ConnectionString = galleryConnectionString },
+            ServiceBus = new
+            {
+                ConnectionString = "",
+                TopicPath = topicName,
+                SubscriptionName = subscriptionName,
+            },
+            Promotion = new
+            {
+                PackageStorageConnectionString = storageConnectionString,
+                StagingStorageConnectionString = storageConnectionString,
+                FlatContainerStorageConnectionString = storageConnectionString,
+            },
+            PackageValidationServiceBus = new { ConnectionString = "", TopicPath = symbolsValidationTopicName },
+        };
+    }
+
     static object CreateValidationOrchestratorConfiguration(
         string galleryConnectionString, string validationConnectionString, string storageConnectionString,
-        string topicName, string subscriptionName, string emailTopicName, string symbolsValidatorTopicName, bool symbols)
+        string topicName, string subscriptionName, string emailTopicName, string symbolsValidatorTopicName, string symbolsIngesterTopicName,
+        bool symbols, bool enableSymbolPromotion, bool useDevelopmentSymbolsIngester)
     {
         string[] validationNames;
         string validatingType;
         string failurePackageIdPrefix;
         if (symbols)
         {
-            validationNames = new[] { "SymbolScan", "SymbolsValidator" };
+            validationNames = new[] { "SymbolScan", "SymbolsValidator", "SymbolsIngester" };
             validatingType = "SymbolPackage";
             failurePackageIdPrefix = "";
         }
@@ -869,15 +888,17 @@ public class Program
             ValidationStorage = new { ConnectionString = storageConnectionString },
             Configuration = new
             {
+                EnableStagedSymbolPromotion = symbols && enableSymbolPromotion,
                 Validations = validationNames.Select(name => new
                 {
                     Name = name,
                     TrackAfter = "00:00:10",
                     RequiredValidations = Array.Empty<string>(),
-                    ShouldStart = true,
+                    ShouldStart = name != "SymbolsIngester",
                     FailureBehavior = "MustSucceed",
                 }).ToArray(),
                 ValidationStorageConnectionString = storageConnectionString,
+                PackageStorageConnectionString = storageConnectionString,
                 StagingStorageConnectionString = storageConnectionString,
                 MissingPackageRetryCount = 5,
                 ValidationMessageRecheckPeriod = "00:00:05",
@@ -896,12 +917,17 @@ public class Program
             {
                 Enabled = true,
                 UseForSymbolScan = symbols,
+                UseForSymbolsIngester = symbols && useDevelopmentSymbolsIngester,
                 DelaySeconds = 60,
                 FailurePackageIdPrefix = failurePackageIdPrefix,
             },
             SymbolsValidator = new
             {
                 ServiceBus = new { ConnectionString = "", TopicPath = symbolsValidatorTopicName },
+            },
+            SymbolsIngester = new
+            {
+                ServiceBus = new { ConnectionString = "", TopicPath = symbolsIngesterTopicName },
             },
             Email = new
             {

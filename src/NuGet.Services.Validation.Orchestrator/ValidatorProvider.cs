@@ -109,6 +109,12 @@ namespace NuGet.Services.Validation.Orchestrator
                 return _serviceProvider.GetRequiredService<DevelopmentValidator>();
             }
 
+            if (validatorName == ValidatorName.SymbolsIngester && _developmentConfiguration.Enabled && _developmentConfiguration.UseForSymbolsIngester)
+            {
+                _logger.LogWarning("Using DevelopmentValidator for SymbolsIngester. Symbol ingestion is simulated; PDBs are not uploaded in this local development configuration.");
+                return _serviceProvider.GetRequiredService<DevelopmentValidator>();
+            }
+
             if (_evaluatedTypes.NuGetValidatorTypes.TryGetValue(validatorName, out Type validatorType))
             {
                 return (INuGetValidator)_serviceProvider.GetRequiredService(validatorType);

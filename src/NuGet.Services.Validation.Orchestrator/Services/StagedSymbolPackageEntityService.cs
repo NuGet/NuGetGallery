@@ -66,7 +66,7 @@ namespace NuGet.Services.Validation.Orchestrator
         private IQueryable<StagedSymbolPackage> GetAll()
         {
             return _entitiesContext.StagedSymbolPackages
-                .Include(candidate => candidate.StagedPackageIdentity.Package.PackageRegistration)
+                .Include(candidate => candidate.StagedPackageIdentity.Package.PackageRegistration.Owners)
                 .Include(candidate => candidate.StagedPackageIdentity.CurrentStagedPackage)
                 .Include(candidate => candidate.SymbolPackage);
         }

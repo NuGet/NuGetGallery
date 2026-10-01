@@ -9,18 +9,22 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Jobs.Validation;
 using NuGet.Services.Entities;
+using NuGet.Services.Staging;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 using NuGetGallery;
 
 namespace NuGet.Services.Validation.Orchestrator
 {
     /// <summary>
-    /// Creates validation sets from the current immutable staged symbol upload.
+    /// Creates validation or ingestion sets from the current immutable staged symbol upload.
     /// </summary>
     public class StagedSymbolPackageValidationSetProvider : ValidationSetProvider<StagedSymbolPackage>
     {
         private readonly IValidationFileService _fileService;
         private readonly IStagingBlobService _stagingBlobService;
+        private readonly ValidationConfiguration _configuration;
+        private readonly ILogger<ValidationSetProvider<StagedSymbolPackage>> _logger;
+        private readonly IValidationStorageService _validationStorageService;
 
         public StagedSymbolPackageValidationSetProvider(
             IValidationStorageService validationStorageService,
@@ -42,6 +46,9 @@ namespace NuGet.Services.Validation.Orchestrator
         {
             _fileService = fileService ?? throw new ArgumentNullException(nameof(fileService));
             _stagingBlobService = stagingBlobService ?? throw new ArgumentNullException(nameof(stagingBlobService));
+            _configuration = validationConfigurationAccessor.Value;
+            _logger = logger;
+            _validationStorageService = validationStorageService;
         }
 
         public override async Task<PackageValidationSet> TryGetOrCreateValidationSetAsync(ProcessValidationSetData message, IValidatingEntity<StagedSymbolPackage> validatingEntity)
@@ -57,30 +64,75 @@ namespace NuGet.Services.Validation.Orchestrator
             }
 
             var attempt = validatingEntity.EntityRecord;
-            if (!CanValidateAttempt(message, attempt))
+            if (!CanProcessAttempt(message, validatingEntity))
             {
+                _logger.LogInformation("Ignoring inactive staged symbol request {ValidationTrackingId} for attempt {AttemptKey}.",
+                    message.ValidationTrackingId, attempt.Key);
                 return null;
             }
 
-            var validationSet = await base.TryGetOrCreateValidationSetAsync(message, validatingEntity);
+            var isPromotion = IsPromotionState(attempt.Status);
+            if (isPromotion)
+            {
+                if (!_configuration.EnableStagedSymbolPromotion)
+                {
+                    throw new NotSupportedException("Staged symbol promotion is not enabled.");
+                }
+
+                if (attempt.StagedPackageIdentity.StagingGroupKey.HasValue)
+                {
+                    throw new NotSupportedException("Grouped symbol promotion is not enabled yet.");
+                }
+            }
+
+            PackageValidationSet validationSet;
+            if (isPromotion && attempt.Status != StagedPackageStatus.Promoting)
+            {
+                validationSet = await _validationStorageService.GetValidationSetAsync(message.ValidationTrackingId);
+                if (validationSet == null)
+                {
+                    throw new InvalidOperationException("The completed symbol promotion has no validation set.");
+                }
+            }
+            else
+            {
+                validationSet = await base.TryGetOrCreateValidationSetAsync(message, validatingEntity);
+            }
+
             if (validationSet == null)
             {
                 return null;
             }
 
-            EnsureMatchesAttempt(validationSet, attempt);
+            EnsureMatchesAttempt(validationSet, attempt, isPromotion);
             return validationSet;
         }
 
-        protected override IEnumerable<ValidationConfigurationItem> GetValidationsToStart()
+        protected override IEnumerable<ValidationConfigurationItem> GetValidationsToStart(IValidatingEntity<StagedSymbolPackage> validatingEntity)
         {
-            var validations = base.GetValidationsToStart()
+            if (validatingEntity.EntityRecord.Status == StagedPackageStatus.Promoting)
+            {
+                return new[] { SymbolPromotionValidationConfiguration.Create(_configuration) };
+            }
+
+            var validations = base.GetValidationsToStart(validatingEntity)
                 .Where(IsStagedSymbolValidator)
                 .ToList();
 
             EnsureValidConfiguration(validations);
 
             return validations;
+        }
+
+        protected override TimeSpan GetDeduplicationWindow(IValidatingEntity<StagedSymbolPackage> validatingEntity)
+        {
+            if (validatingEntity.EntityRecord.Status == StagedPackageStatus.Promoting)
+            {
+                // A recent scan/validation set must not suppress the accepted ingestion phase.
+                return TimeSpan.Zero;
+            }
+
+            return base.GetDeduplicationWindow(validatingEntity);
         }
 
         protected override async Task CopyPackageFileToValidationSetAsync(PackageValidationSet validationSet, IValidatingEntity<StagedSymbolPackage> validatingEntity)
@@ -91,27 +143,66 @@ namespace NuGet.Services.Validation.Orchestrator
             validationSet.PackageETag = attempt.UploadedBlobETag;
         }
 
-        private static bool CanValidateAttempt(ProcessValidationSetData message, StagedSymbolPackage attempt)
+        private static bool CanProcessAttempt(ProcessValidationSetData message, IValidatingEntity<StagedSymbolPackage> validatingEntity)
         {
-            var package = attempt.StagedPackageIdentity.Package;
-            var matchesMessage =
+            var attempt = validatingEntity.EntityRecord;
+            var identity = attempt.StagedPackageIdentity;
+            var package = identity.Package;
+            var matchesEntity =
                 message.ValidatingType == ValidatingType.StagedSymbolPackage &&
                 message.EntityKey == attempt.Key &&
+                validatingEntity.ValidatingType == message.ValidatingType &&
+                validatingEntity.Key == attempt.Key;
+            var matchesPackage =
                 string.Equals(message.PackageId, package.PackageRegistration.Id, StringComparison.OrdinalIgnoreCase) &&
                 message.PackageNormalizedVersion == package.NormalizedVersion;
-            var isCurrentAttempt =
-                attempt.Status == StagedPackageStatus.Validating &&
-                attempt.StagedPackageIdentity.CurrentStagedSymbolPackageKey == attempt.Key;
-            var parentIsAvailable = package.PackageStatusKey == PackageStatus.Available || (package.PackageStatusKey == PackageStatus.Staged && attempt.StagedPackageIdentity.CurrentStagedPackageKey.HasValue);
+            var isCurrentAttempt = identity.CurrentStagedSymbolPackageKey == attempt.Key;
 
-            return matchesMessage && isCurrentAttempt && parentIsAvailable;
+            if (!matchesEntity || !matchesPackage || !isCurrentAttempt)
+            {
+                return false;
+            }
+
+            if (IsPromotionState(attempt.Status))
+            {
+                return attempt.ActivePromotionId.HasValue
+                    && message.ValidationTrackingId == SymbolPromotionValidationTrackingId.Create(attempt.ActivePromotionId.Value, attempt.Key);
+            }
+
+            var parentIsAvailable = package.PackageStatusKey == PackageStatus.Available;
+            var parentIsStaged = package.PackageStatusKey == PackageStatus.Staged && identity.CurrentStagedPackageKey.HasValue;
+
+            return attempt.Status == StagedPackageStatus.Validating && (parentIsAvailable || parentIsStaged);
         }
 
-        private static void EnsureMatchesAttempt(PackageValidationSet validationSet, StagedSymbolPackage attempt)
+        private static bool IsPromotionState(StagedPackageStatus status)
         {
-            if (validationSet.ValidatingType != ValidatingType.StagedSymbolPackage || validationSet.PackageETag != attempt.UploadedBlobETag)
+            return status == StagedPackageStatus.Promoting || status == StagedPackageStatus.Succeeded || status == StagedPackageStatus.PromotionFailed;
+        }
+
+        private static void EnsureMatchesAttempt(PackageValidationSet validationSet, StagedSymbolPackage attempt, bool isPromotion)
+        {
+            var package = attempt.StagedPackageIdentity.Package;
+            var matchesEntity = validationSet.ValidatingType == ValidatingType.StagedSymbolPackage && validationSet.PackageKey == attempt.Key;
+            var matchesUpload = validationSet.PackageETag == attempt.UploadedBlobETag;
+            var matchesPackage =
+                string.Equals(validationSet.PackageId, package.Id, StringComparison.OrdinalIgnoreCase) &&
+                validationSet.PackageNormalizedVersion == package.NormalizedVersion;
+
+            if (!matchesEntity || !matchesUpload || !matchesPackage)
             {
                 throw new InvalidOperationException("The validation set does not match the staged symbol upload.");
+            }
+
+            var matchesPhase = SymbolPromotionValidationConfiguration.IsPromotion(validationSet);
+            if (!isPromotion)
+            {
+                matchesPhase = validationSet.PackageValidations.All(validation => IsStagedSymbolValidatorName(validation.Type));
+            }
+
+            if (!matchesPhase)
+            {
+                throw new InvalidOperationException("The validation set does not match the requested staged symbol phase.");
             }
         }
 
