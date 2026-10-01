@@ -633,6 +633,8 @@ namespace NuGetGallery
                         CanManage = !isPromotionActive,
                         CanDelete = !isPromotionActive && stagedPackage.Status != StagedPackageStatus.Promoting && identity.CurrentStagedSymbolPackage?.Status != StagedPackageStatus.Promoting,
                         CanPromote = stagedPackage.Status == StagedPackageStatus.Ready && !identity.StagingGroupKey.HasValue,
+                        IncludesStagedSymbols = identity.CurrentStagedSymbolPackage != null
+                            && StagedSymbolPackagePromotionEligibility.GetBlockers(identity.CurrentStagedSymbolPackage, stagedPackage).Count == 0,
                         CanResend = !identity.StagingGroupKey.HasValue
                             && stagedPackage.Status == StagedPackageStatus.Promoting
                             && stagedPackage.ActivePromotionId.HasValue

@@ -22,6 +22,7 @@ namespace NuGet.Services.Staging.Promotion
         private readonly IEntityRepository<StagedPackage> _stagedPackageRepository;
         private readonly IEntityRepository<StagedPackageIdentity> _stagedPackageIdentityRepository;
         private readonly IStagingGroupPromotionService _stagingGroupPromotionService;
+        private readonly IStagingPromotionMessageEnqueuer _messageEnqueuer;
         private readonly ICorePackageService _packageService;
         private readonly IStagingBlobService _stagingBlobService;
         private readonly ICoreFileStorageService _packageFileStorageService;
@@ -36,6 +37,7 @@ namespace NuGet.Services.Staging.Promotion
         /// <param name="stagedPackageRepository">The staged package repository.</param>
         /// <param name="stagedPackageIdentityRepository">The staging identity repository.</param>
         /// <param name="stagingGroupPromotionService">The staging group promotion service.</param>
+        /// <param name="messageEnqueuer">The promotion message enqueuer for accepted symbol follow-up work.</param>
         /// <param name="packageService">The package service.</param>
         /// <param name="stagingBlobService">The private staging blob service.</param>
         /// <param name="packageFileStorageService">The public package file storage service.</param>
@@ -47,6 +49,7 @@ namespace NuGet.Services.Staging.Promotion
             IEntityRepository<StagedPackage> stagedPackageRepository,
             IEntityRepository<StagedPackageIdentity> stagedPackageIdentityRepository,
             IStagingGroupPromotionService stagingGroupPromotionService,
+            IStagingPromotionMessageEnqueuer messageEnqueuer,
             ICorePackageService packageService,
             IStagingBlobService stagingBlobService,
             ICoreFileStorageService packageFileStorageService,
@@ -58,6 +61,7 @@ namespace NuGet.Services.Staging.Promotion
             _stagedPackageRepository = stagedPackageRepository ?? throw new ArgumentNullException(nameof(stagedPackageRepository));
             _stagedPackageIdentityRepository = stagedPackageIdentityRepository ?? throw new ArgumentNullException(nameof(stagedPackageIdentityRepository));
             _stagingGroupPromotionService = stagingGroupPromotionService ?? throw new ArgumentNullException(nameof(stagingGroupPromotionService));
+            _messageEnqueuer = messageEnqueuer ?? throw new ArgumentNullException(nameof(messageEnqueuer));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _stagingBlobService = stagingBlobService ?? throw new ArgumentNullException(nameof(stagingBlobService));
             _packageFileStorageService = packageFileStorageService ?? throw new ArgumentNullException(nameof(packageFileStorageService));
@@ -89,7 +93,17 @@ namespace NuGet.Services.Staging.Promotion
                     .Include(candidate => candidate.StagedPackageIdentity.Package.PackageRegistration.Owners)
                     .Include(candidate => candidate.StagedPackageIdentity.Owner)
                     .Include(candidate => candidate.StagedPackageIdentity.StagingGroup)
+                    .Include(candidate => candidate.StagedPackageIdentity.CurrentStagedSymbolPackage)
                     .SingleOrDefault(candidate => candidate.Key == message.TargetKey);
+                if (stagedPackage?.Status == StagedPackageStatus.Succeeded
+                    && stagedPackage.ActivePromotionId == message.PromotionId
+                    && !stagedPackage.StagedPackageIdentity.StagingGroupKey.HasValue
+                    && stagedPackage.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Available)
+                {
+                    await SendSymbolFollowUpAndCleanUpAsync(stagedPackage);
+                    return true;
+                }
+
                 if (IsCompletedGroupPromotionAttempt(stagedPackage, message.PromotionId))
                 {
                     _logger.LogInformation("Resuming staging group finalization for an already completed package.");
@@ -145,6 +159,11 @@ namespace NuGet.Services.Staging.Promotion
                     if (stagingGroupKey.HasValue)
                     {
                         await _stagingGroupPromotionService.TryFinalizeAsync(stagingGroupKey.Value, message.PromotionId);
+                    }
+                    else if (stagedPackage.Status == StagedPackageStatus.Succeeded)
+                    {
+                        // Publication has committed. Dispatch failures must not compensate the public package.
+                        await SendSymbolFollowUpAndCleanUpAsync(stagedPackage);
                     }
 
                     _logger.LogInformation("Completed staged package promotion.");
@@ -203,6 +222,12 @@ namespace NuGet.Services.Staging.Promotion
 
         private async Task MarkPromotionFailedAsync(StagedPackage stagedPackage)
         {
+            var symbols = FindAcceptedSymbols(stagedPackage);
+            if (symbols != null)
+            {
+                symbols.Status = StagedPackageStatus.PromotionFailed;
+            }
+
             stagedPackage.Status = StagedPackageStatus.PromotionFailed;
             await _stagedPackageRepository.CommitChangesAsync();
         }
@@ -293,11 +318,13 @@ namespace NuGet.Services.Staging.Promotion
                 await _packageService.UpdatePackageStreamMetadataAsync(package, streamMetadata, commitChanges: false);
                 await _packageService.UpdatePackageStatusAsync(package, PackageStatus.Available, commitChanges: false);
 
-                if (stagingGroup == null)
+                if (stagingGroup == null && FindAcceptedSymbols(stagedPackage) != null)
                 {
-                    identity.CurrentStagedPackageKey = null;
-                    identity.CurrentStagedPackage = null;
-                    _stagedPackageRepository.DeleteOnCommit(stagedPackage);
+                    stagedPackage.Status = StagedPackageStatus.Succeeded;
+                }
+                else if (stagingGroup == null)
+                {
+                    RemoveStagedPackage(stagedPackage);
                 }
                 else
                 {
@@ -306,13 +333,61 @@ namespace NuGet.Services.Staging.Promotion
 
                 await _stagedPackageRepository.CommitChangesAsync();
 
-                if (stagingGroup == null && !identity.CurrentStagedSymbolPackageKey.HasValue)
+                if (stagingGroup == null && stagedPackage.Status != StagedPackageStatus.Succeeded)
                 {
-                    // Clear the current-attempt relationship before deleting its identity.
-                    _stagedPackageIdentityRepository.DeleteOnCommit(identity);
-                    await _stagedPackageRepository.CommitChangesAsync();
+                    await DeleteUnusedIdentityAsync(identity);
                 }
             });
+        }
+
+        private static StagedSymbolPackage FindAcceptedSymbols(StagedPackage stagedPackage)
+        {
+            var identity = stagedPackage.StagedPackageIdentity;
+            var symbols = identity.CurrentStagedSymbolPackage;
+            if (identity.StagingGroupKey.HasValue
+                || symbols?.Status != StagedPackageStatus.Promoting
+                || symbols.ActivePromotionId != stagedPackage.ActivePromotionId
+                || identity.CurrentStagedSymbolPackageKey != symbols.Key)
+            {
+                return null;
+            }
+
+            return symbols;
+        }
+
+        private async Task SendSymbolFollowUpAndCleanUpAsync(StagedPackage stagedPackage)
+        {
+            var symbols = FindAcceptedSymbols(stagedPackage);
+            if (symbols != null)
+            {
+                _logger.LogInformation("Dispatching accepted symbol attempt {AttemptKey} after parent publication.", symbols.Key);
+                await _messageEnqueuer.SendMessageAsync(StagingPromotionMessage.ForSymbolPackage(stagedPackage.ActivePromotionId.Value, symbols.Key));
+                symbols.PromotionMessageSentDate = DateTime.UtcNow;
+            }
+
+            await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
+            {
+                RemoveStagedPackage(stagedPackage);
+                await _stagedPackageRepository.CommitChangesAsync();
+                await DeleteUnusedIdentityAsync(stagedPackage.StagedPackageIdentity);
+            });
+        }
+
+        private void RemoveStagedPackage(StagedPackage stagedPackage)
+        {
+            var identity = stagedPackage.StagedPackageIdentity;
+            identity.CurrentStagedPackageKey = null;
+            identity.CurrentStagedPackage = null;
+            _stagedPackageRepository.DeleteOnCommit(stagedPackage);
+        }
+
+        private async Task DeleteUnusedIdentityAsync(StagedPackageIdentity identity)
+        {
+            if (!identity.CurrentStagedSymbolPackageKey.HasValue)
+            {
+                _stagedPackageIdentityRepository.DeleteOnCommit(identity);
+                await _stagedPackageRepository.CommitChangesAsync();
+            }
         }
 
         private async Task DeletePublishedFilesAsync(Package package, string packageFileName)

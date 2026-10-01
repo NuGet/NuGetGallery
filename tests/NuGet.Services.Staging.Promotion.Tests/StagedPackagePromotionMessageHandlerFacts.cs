@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Entity.Infrastructure;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -97,6 +98,104 @@ namespace NuGet.Services.Staging.Promotion.Tests
             context.StagedPackageRepository.Verify(
                 x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()),
                 Times.Once);
+        }
+
+        [Fact]
+        public async Task DispatchesAcceptedSymbolsOnlyAfterParentPublicationCommits()
+        {
+            var context = new TestContext();
+            var symbols = context.AddAcceptedSymbols();
+            var transactionCompleted = false;
+            context.StagedPackageRepository.Setup(repository => repository.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()))
+                .Returns(async (Func<Task> action) =>
+                {
+                    await action();
+                    transactionCompleted = true;
+                });
+            context.MessageEnqueuer.Setup(enqueuer => enqueuer.SendMessageAsync(It.IsAny<StagingPromotionMessage>()))
+                .Callback<StagingPromotionMessage>(message =>
+                {
+                    Assert.True(transactionCompleted);
+                    Assert.Equal(PackageStatus.Available, context.Package.PackageStatusKey);
+                    Assert.Equal(StagedPackageStatus.Succeeded, context.StagedPackage.Status);
+                    Assert.Contains(context.StagedPackage, context.StagedPackages);
+                    Assert.Equal(StagingPromotionTargetType.StagedSymbolPackage, message.TargetType);
+                    Assert.Equal(symbols.Key, message.TargetKey);
+                    Assert.Equal(context.PromotionId, message.PromotionId);
+                }).Returns(Task.CompletedTask);
+
+            Assert.True(await context.Target.HandleAsync(context.Message));
+
+            Assert.Empty(context.StagedPackages);
+            Assert.Null(context.StagedPackageIdentity.CurrentStagedPackageKey);
+            Assert.Equal(StagedPackageStatus.Promoting, symbols.Status);
+            Assert.NotNull(symbols.PromotionMessageSentDate);
+            context.MessageEnqueuer.Verify(enqueuer => enqueuer.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task FailedSymbolDispatchRetriesWithoutRepublishingOrCompensatingTheParent()
+        {
+            var context = new TestContext();
+            var symbols = context.AddAcceptedSymbols();
+            context.MessageEnqueuer.Setup(enqueuer => enqueuer.SendMessageAsync(It.IsAny<StagingPromotionMessage>())).ThrowsAsync(new TimeoutException());
+
+            await Assert.ThrowsAsync<TimeoutException>(() => context.Target.HandleAsync(context.Message));
+
+            Assert.Equal(PackageStatus.Available, context.Package.PackageStatusKey);
+            Assert.Equal(StagedPackageStatus.Succeeded, context.StagedPackage.Status);
+            Assert.Contains(context.StagedPackage, context.StagedPackages);
+            Assert.Null(symbols.PromotionMessageSentDate);
+            context.PackageFileStorageService.Verify(storage => storage.DeleteFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            context.MessageEnqueuer.Setup(enqueuer => enqueuer.SendMessageAsync(It.IsAny<StagingPromotionMessage>())).Returns(Task.CompletedTask);
+
+            Assert.True(await context.Target.HandleAsync(context.Message));
+
+            Assert.Empty(context.StagedPackages);
+            context.PackageFileStorageService.Verify(storage => storage.CopyFileAsync(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IAccessCondition>()), Times.Once);
+            context.MessageEnqueuer.Verify(enqueuer => enqueuer.SendMessageAsync(It.Is<StagingPromotionMessage>(message =>
+                message.TargetKey == symbols.Key && message.PromotionId == context.PromotionId)), Times.Exactly(2));
+        }
+
+        [Fact]
+        public async Task CleanupFailureAfterSymbolDispatchDoesNotCompensateThePublishedParent()
+        {
+            var context = new TestContext();
+            context.AddAcceptedSymbols();
+            context.StagedPackageRepository.SetupSequence(repository => repository.CommitChangesAsync())
+                .Returns(Task.CompletedTask)
+                .ThrowsAsync(new DbUpdateConcurrencyException());
+
+            await Assert.ThrowsAsync<DbUpdateConcurrencyException>(() => context.Target.HandleAsync(context.Message));
+
+            Assert.Equal(PackageStatus.Available, context.Package.PackageStatusKey);
+            context.MessageEnqueuer.Verify(enqueuer => enqueuer.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Once);
+            context.PackageFileStorageService.Verify(storage => storage.DeleteFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Theory]
+        [InlineData(StagedPackageStatus.Ready)]
+        [InlineData(StagedPackageStatus.Promoting)]
+        public async Task CompletedParentDoesNotDispatchSymbolsOutsideItsAcceptedPromotion(StagedPackageStatus symbolStatus)
+        {
+            var context = new TestContext();
+            var symbols = context.AddAcceptedSymbols();
+            symbols.Status = symbolStatus;
+            symbols.ActivePromotionId = null;
+            if (symbolStatus == StagedPackageStatus.Promoting)
+            {
+                symbols.ActivePromotionId = Guid.NewGuid();
+            }
+
+            context.Package.PackageStatusKey = PackageStatus.Available;
+            context.StagedPackage.Status = StagedPackageStatus.Succeeded;
+
+            Assert.True(await context.Target.HandleAsync(context.Message));
+
+            Assert.Equal(symbolStatus, symbols.Status);
+            Assert.Empty(context.StagedPackages);
+            context.MessageEnqueuer.Verify(enqueuer => enqueuer.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
+            context.PackageFileStorageService.Verify(storage => storage.CopyFileAsync(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IAccessCondition>()), Times.Never);
         }
 
         [Fact]
@@ -208,12 +307,15 @@ namespace NuGet.Services.Staging.Promotion.Tests
         public async Task MarksPromotionFailedWhenRequiredStateIsMissing(InvalidState state)
         {
             var context = new TestContext();
+            var symbols = context.AddAcceptedSymbols();
             context.Apply(state);
 
             var handled = await context.Target.HandleAsync(context.Message);
 
             Assert.True(handled);
             Assert.Equal(StagedPackageStatus.PromotionFailed, context.StagedPackage.Status);
+            Assert.Equal(StagedPackageStatus.PromotionFailed, symbols.Status);
+            context.MessageEnqueuer.Verify(enqueuer => enqueuer.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
             context.VerifyNotPublished();
             context.StagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
         }
@@ -498,10 +600,12 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 StagingGroupPromotionService
                     .Setup(x => x.TryFinalizeAsync(It.IsAny<int>(), It.IsAny<Guid>()))
                     .Returns(Task.CompletedTask);
+                MessageEnqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
                 Target = new StagedPackagePromotionMessageHandler(
                     StagedPackageRepository.Object,
                     StagedPackageIdentityRepository.Object,
                     StagingGroupPromotionService.Object,
+                    MessageEnqueuer.Object,
                     PackageService.Object,
                     StagingBlobService.Object,
                     PackageFileStorageService.Object,
@@ -509,6 +613,22 @@ namespace NuGet.Services.Staging.Promotion.Tests
                     LicenseFileService.Object,
                     ReadmeFileService.Object,
                     Mock.Of<ILogger<StagedPackagePromotionMessageHandler>>());
+            }
+
+            public StagedSymbolPackage AddAcceptedSymbols()
+            {
+                var symbols = new StagedSymbolPackage
+                {
+                    Key = 100,
+                    StagedPackageIdentity = StagedPackageIdentity,
+                    StagedPackageIdentityKey = StagedPackageIdentity.Key,
+                    SymbolPackage = new SymbolPackage { Package = Package, PackageKey = Package.Key, StatusKey = PackageStatus.Staged },
+                    Status = StagedPackageStatus.Promoting,
+                    ActivePromotionId = PromotionId,
+                };
+                StagedPackageIdentity.CurrentStagedSymbolPackageKey = symbols.Key;
+                StagedPackageIdentity.CurrentStagedSymbolPackage = symbols;
+                return symbols;
             }
 
             public void AddToGroup()
@@ -563,6 +683,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
             public Mock<IEntityRepository<StagedPackage>> StagedPackageRepository { get; }
             public Mock<IEntityRepository<StagedPackageIdentity>> StagedPackageIdentityRepository { get; }
             public Mock<IStagingGroupPromotionService> StagingGroupPromotionService { get; }
+            public Mock<IStagingPromotionMessageEnqueuer> MessageEnqueuer { get; }
             public Mock<ICorePackageService> PackageService { get; }
             public Mock<IStagingBlobService> StagingBlobService { get; }
             public Mock<ICoreFileStorageService> PackageFileStorageService { get; }
