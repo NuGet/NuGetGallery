@@ -237,6 +237,107 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             validators.VerifyNoOtherCalls();
         }
 
+        [Theory]
+        [InlineData("parent")]
+        [InlineData("owner")]
+        public async Task GroupedRejectionBeforeIngestionCompletesDurablyWithoutStartingValidators(string scenario)
+        {
+            var fixture = new Fixture();
+            fixture.AddToGroup();
+            fixture.Ingestion.ValidationStatus = ValidationStatus.NotStarted;
+            if (scenario == "parent")
+            {
+                fixture.Attempt.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Deleted;
+            }
+            else
+            {
+                fixture.Attempt.StagedPackageIdentity.Package.PackageRegistration.Owners.Clear();
+            }
+
+            var validators = new Mock<IValidationSetProcessor>(MockBehavior.Strict);
+            validators.Setup(service => service.ForceFailValidationSetAsync(fixture.Set))
+                .Callback(() => fixture.Ingestion.ValidationStatus = ValidationStatus.Failed)
+                .ReturnsAsync(new ValidationSetProcessorResult());
+
+            Assert.True(await fixture.CreateHandler(validators.Object).HandleAsync(fixture.CreateMessage("process")));
+
+            Assert.Equal(StagedPackageStatus.PromotionFailed, fixture.Attempt.Status);
+            Assert.Equal(ValidationSetStatus.Completed, fixture.Set.ValidationSetStatus);
+            Assert.Equal(new[] { "fail", "save-set", "delete-validation-blob", "cleanup" }, fixture.Calls);
+            validators.Verify(service => service.ForceFailValidationSetAsync(fixture.Set), Times.Once);
+            validators.VerifyNoOtherCalls();
+        }
+
+        [Fact]
+        public async Task EligibleGroupedIngestionStartsThroughTheExistingProcessor()
+        {
+            var fixture = new Fixture();
+            fixture.AddToGroup();
+            fixture.Ingestion.ValidationStatus = ValidationStatus.NotStarted;
+            var validators = new Mock<IValidationSetProcessor>(MockBehavior.Strict);
+            validators.Setup(service => service.ProcessValidationsAsync(fixture.Set))
+                .Callback(() => fixture.Ingestion.ValidationStatus = ValidationStatus.Incomplete)
+                .ReturnsAsync(new ValidationSetProcessorResult());
+
+            Assert.True(await fixture.CreateHandler(validators.Object).HandleAsync(fixture.CreateMessage("process")));
+
+            Assert.Equal(StagedPackageStatus.Promoting, fixture.Attempt.Status);
+            Assert.Equal(ValidationSetStatus.InProgress, fixture.Set.ValidationSetStatus);
+            Assert.Equal(new[] { "save-set" }, fixture.Calls);
+            validators.Verify(service => service.ProcessValidationsAsync(fixture.Set), Times.Once);
+            validators.VerifyNoOtherCalls();
+        }
+
+        [Theory]
+        [InlineData("parent")]
+        [InlineData("owner")]
+        public async Task GroupedInFlightRejectionRetainsAttemptUntilIngestionAndFileCleanupFinish(string scenario)
+        {
+            var fixture = new Fixture();
+            fixture.AddToGroup();
+            fixture.Ingestion.ValidationStatus = ValidationStatus.Incomplete;
+            if (scenario == "parent")
+            {
+                fixture.Attempt.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Deleted;
+            }
+            else
+            {
+                fixture.Attempt.StagedPackageIdentity.Package.PackageRegistration.Owners.Clear();
+            }
+
+            var validators = new Mock<IValidationSetProcessor>(MockBehavior.Strict);
+            validators.Setup(service => service.ProcessValidationsAsync(fixture.Set)).ReturnsAsync(new ValidationSetProcessorResult());
+            var handler = fixture.CreateHandler(validators.Object);
+
+            Assert.True(await handler.HandleAsync(fixture.CreateMessage("process")));
+
+            Assert.Equal(StagedPackageStatus.Promoting, fixture.Attempt.Status);
+            Assert.Equal(ValidationSetStatus.InProgress, fixture.Set.ValidationSetStatus);
+            Assert.Equal(fixture.PromotionId, fixture.Attempt.StagedPackageIdentity.StagingGroup.ActivePromotionId);
+            Assert.Equal(new[] { "save-set" }, fixture.Calls);
+            fixture.Ingestion.ValidationStatus = ValidationStatus.Succeeded;
+            fixture.Promotion.Setup(service => service.CompleteAsync(fixture.Attempt.Key, fixture.PromotionId))
+                .Callback(() => fixture.Calls.Add("reject-publication")).Returns(Task.CompletedTask);
+            fixture.Files.SetupSequence(service => service.DeletePackageForValidationSetAsync(fixture.Set))
+                .ThrowsAsync(new InvalidOperationException("Storage unavailable"))
+                .Returns(Task.CompletedTask);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => handler.HandleAsync(fixture.CreateMessage("process")));
+
+            Assert.Equal(StagedPackageStatus.Promoting, fixture.Attempt.Status);
+            Assert.Equal(ValidationSetStatus.Completed, fixture.Set.ValidationSetStatus);
+            fixture.Promotion.Verify(service => service.CleanUpAsync(It.IsAny<int>(), It.IsAny<Guid>()), Times.Never);
+
+            Assert.True(await handler.HandleAsync(fixture.CreateMessage("check")));
+
+            Assert.Equal(StagedPackageStatus.PromotionFailed, fixture.Attempt.Status);
+            fixture.Promotion.Verify(service => service.CompleteAsync(fixture.Attempt.Key, fixture.PromotionId), Times.Once);
+            fixture.Promotion.Verify(service => service.CleanUpAsync(fixture.Attempt.Key, fixture.PromotionId), Times.Once);
+            fixture.Files.Verify(service => service.DeletePackageForValidationSetAsync(fixture.Set), Times.Exactly(2));
+            validators.Verify(service => service.ProcessValidationsAsync(fixture.Set), Times.Once);
+            validators.VerifyNoOtherCalls();
+        }
+
         [Fact]
         public async Task StaleOutcomeCannotCompleteNewPromotion()
         {
@@ -253,14 +354,19 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         {
             public Fixture()
             {
-                var package = new Package { NormalizedVersion = "1.0.0", PackageRegistration = new PackageRegistration { Id = "PackageA" } };
+                var package = new Package
+                {
+                    NormalizedVersion = "1.0.0",
+                    PackageStatusKey = PackageStatus.Available,
+                    PackageRegistration = new PackageRegistration { Id = "PackageA", Owners = new List<User> { new User { Key = 7 } } },
+                };
                 Attempt = new StagedSymbolPackage
                 {
                     Key = 43,
                     Status = StagedPackageStatus.Promoting,
                     ActivePromotionId = PromotionId,
                     UploadedBlobETag = "etag",
-                    StagedPackageIdentity = new StagedPackageIdentity { Package = package, CurrentStagedSymbolPackageKey = 43 },
+                    StagedPackageIdentity = new StagedPackageIdentity { Package = package, OwnerKey = 7, CurrentStagedSymbolPackageKey = 43 },
                 };
                 Entity = new StagedSymbolPackageValidatingEntity(Attempt);
                 Ingestion = new PackageValidation { Key = Guid.NewGuid(), Type = ValidatorName.SymbolsIngester, ValidationStatus = ValidationStatus.Succeeded };

@@ -202,12 +202,12 @@ namespace NuGet.Services.Staging.Promotion.Tests
         }
 
         [Fact]
-        public async Task FailedGroupedDispatchRedeliveryRetriesFinalizationWithoutDispatch()
+        public async Task TerminalGroupedDispatchRedeliveryRetriesFinalizationWithoutDispatch()
         {
             var fixture = new Fixture();
             fixture.Attempt.StagedPackageIdentity.StagingGroupKey = 12;
             fixture.Attempt.StagedPackageIdentity.StagingGroup = new StagingGroup { Key = 12, ActivePromotionId = fixture.Message.PromotionId };
-            fixture.Attempt.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Deleted;
+            fixture.Attempt.Status = StagedPackageStatus.PromotionFailed;
             fixture.Groups.SetupSequence(service => service.TryFinalizeAsync(12, fixture.Message.PromotionId))
                 .ThrowsAsync(new InvalidOperationException("Finalization unavailable"))
                 .Returns(Task.CompletedTask);
@@ -218,8 +218,40 @@ namespace NuGet.Services.Staging.Promotion.Tests
             Assert.True(await fixture.Target.HandleAsync(fixture.Message));
 
             fixture.Groups.Verify(service => service.TryFinalizeAsync(12, fixture.Message.PromotionId), Times.Exactly(2));
-            fixture.Attempts.Verify(repository => repository.CommitChangesAsync(), Times.Once);
+            fixture.Attempts.Verify(repository => repository.CommitChangesAsync(), Times.Never);
             fixture.Orchestrator.Verify(service => service.SendMessageAsync(It.IsAny<PackageValidationMessageData>()), Times.Never);
+        }
+
+        [Theory]
+        [InlineData("parent")]
+        [InlineData("owner")]
+        public async Task GroupedRedeliveryAfterEligibilityLossLeavesCompletionToOrchestration(string scenario)
+        {
+            var fixture = new Fixture();
+            var identity = fixture.Attempt.StagedPackageIdentity;
+            identity.StagingGroupKey = 12;
+            identity.StagingGroup = new StagingGroup { Key = 12, ActivePromotionId = fixture.Message.PromotionId };
+            var messages = new List<PackageValidationMessageData>();
+            fixture.Orchestrator.Setup(service => service.SendMessageAsync(It.IsAny<PackageValidationMessageData>()))
+                .Callback<PackageValidationMessageData>(messages.Add).Returns(Task.CompletedTask);
+            Assert.True(await fixture.Target.HandleAsync(fixture.Message));
+            if (scenario == "parent")
+            {
+                identity.Package.PackageStatusKey = PackageStatus.Deleted;
+            }
+            else
+            {
+                identity.Package.PackageRegistration.Owners.Clear();
+            }
+
+            Assert.True(await fixture.Target.HandleAsync(fixture.Message));
+
+            Assert.Equal(StagedPackageStatus.Promoting, fixture.Attempt.Status);
+            Assert.Equal(fixture.Message.PromotionId, identity.StagingGroup.ActivePromotionId);
+            Assert.Equal(2, messages.Count);
+            Assert.Equal(messages[0].ProcessValidationSet.ValidationTrackingId, messages[1].ProcessValidationSet.ValidationTrackingId);
+            fixture.Attempts.Verify(repository => repository.CommitChangesAsync(), Times.Never);
+            fixture.Groups.Verify(service => service.TryFinalizeAsync(It.IsAny<int>(), It.IsAny<Guid>()), Times.Never);
         }
 
         /// <summary>

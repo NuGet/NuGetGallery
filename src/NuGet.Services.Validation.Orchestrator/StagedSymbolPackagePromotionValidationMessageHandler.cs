@@ -161,10 +161,10 @@ namespace NuGet.Services.Validation.Orchestrator
             var attempt = entity.EntityRecord;
             var isGrouped = attempt.StagedPackageIdentity.StagingGroupKey.HasValue;
             var isPublishedGroupSymbol = isGrouped && attempt.SymbolPackage.StatusKey == PackageStatus.Available;
+            var ingestionStatus = set.PackageValidations.Single().ValidationStatus;
             var hasTerminalGroupIngestion = false;
             if (isGrouped)
             {
-                var ingestionStatus = set.PackageValidations.Single().ValidationStatus;
                 hasTerminalGroupIngestion = ingestionStatus == ValidationStatus.Succeeded || ingestionStatus == ValidationStatus.Failed;
             }
 
@@ -180,8 +180,18 @@ namespace NuGet.Services.Validation.Orchestrator
                 throw new NotSupportedException("Staged symbol promotion is not enabled.");
             }
 
+            var rejectBeforeIngestion = false;
+            if (isGrouped && ingestionStatus == ValidationStatus.NotStarted)
+            {
+                rejectBeforeIngestion = !CanStartIngestion(attempt);
+                if (rejectBeforeIngestion)
+                {
+                    _logger.LogWarning("Grouped symbol promotion {PromotionId} lost eligibility before ingestion started.", attempt.ActivePromotionId);
+                }
+            }
+
             ValidationSetProcessorResult result;
-            if (message.Type == PackageValidationMessageType.FailValidationSet)
+            if (message.Type == PackageValidationMessageType.FailValidationSet || rejectBeforeIngestion)
             {
                 result = await _processor.ForceFailValidationSetAsync(set);
             }
@@ -193,6 +203,18 @@ namespace NuGet.Services.Validation.Orchestrator
             await _outcome.ProcessValidationOutcomeAsync(set, entity, result,
                 scheduleNextCheck: message.Type == PackageValidationMessageType.ProcessValidationSet);
             return true;
+        }
+
+        private static bool CanStartIngestion(StagedSymbolPackage attempt)
+        {
+            var identity = attempt.StagedPackageIdentity;
+            var package = identity.Package;
+            if (package.PackageStatusKey != PackageStatus.Available || attempt.SymbolPackage.StatusKey != PackageStatus.Staged)
+            {
+                return false;
+            }
+
+            return package.PackageRegistration.Owners.Any(owner => owner.Key == identity.OwnerKey);
         }
 
         private async Task<bool> WithLeaseAsync(PackageValidationMessageData message, string id, string version, Func<Task<bool>> process)

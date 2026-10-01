@@ -83,23 +83,18 @@ namespace NuGet.Services.Staging.Promotion
             }
 
             var package = identity.Package;
-            var isPublishedGroupSymbol = identity.StagingGroupKey.HasValue && attempt.SymbolPackage.StatusKey == PackageStatus.Available;
             var isEligible = package.PackageStatusKey == PackageStatus.Available && attempt.SymbolPackage.StatusKey == PackageStatus.Staged;
             if (isEligible)
             {
                 isEligible = package.PackageRegistration.Owners.Any(owner => owner.Key == identity.OwnerKey);
             }
 
-            if (!isPublishedGroupSymbol && !isEligible)
+            // Grouped rejection must not bypass the orchestrator's durable completion and cleanup.
+            if (!identity.StagingGroupKey.HasValue && !isEligible)
             {
                 _logger.LogWarning("Symbol promotion {PromotionId} is no longer eligible.", message.PromotionId);
                 attempt.Status = StagedPackageStatus.PromotionFailed;
                 await _attempts.CommitChangesAsync();
-                if (identity.StagingGroupKey.HasValue)
-                {
-                    await _groups.TryFinalizeAsync(identity.StagingGroupKey.Value, message.PromotionId);
-                }
-
                 return true;
             }
 
