@@ -158,6 +158,8 @@ namespace NuGetGallery
         [InlineData(PackageStatus.Staged, true, StagedPackageStatus.Ready, true, true, HttpStatusCode.OK, null, false, StagedPackageStatus.Ready, true, "Test.Package", true)]
         [InlineData(PackageStatus.Available, true, StagedPackageStatus.Ready, true, false, HttpStatusCode.OK, null, false, StagedPackageStatus.FailedValidation, false, "Test.Package", true)]
         [InlineData(PackageStatus.Staged, true, StagedPackageStatus.Ready, true, true, HttpStatusCode.OK, "new", false, StagedPackageStatus.Ready, false, "Test.Package", true)]
+        [InlineData(PackageStatus.Available, true, StagedPackageStatus.Ready, true, false, HttpStatusCode.OK, "release", false, StagedPackageStatus.Ready, false, "Test.Package", true)]
+        [InlineData(PackageStatus.Available, true, StagedPackageStatus.Ready, true, false, HttpStatusCode.OK, "new", false, StagedPackageStatus.Ready, false, "Test.Package", true)]
         [InlineData(PackageStatus.Deleted, true, StagedPackageStatus.Deleted, true, true, HttpStatusCode.OK, null, false, StagedPackageStatus.WaitingForParent)]
         [InlineData(PackageStatus.Deleted, true, StagedPackageStatus.Deleted, true, false, HttpStatusCode.OK, null, false, StagedPackageStatus.WaitingForParent, false, "Test.Package", true)]
         [InlineData(PackageStatus.Deleted, true, StagedPackageStatus.Deleted, true, false, HttpStatusCode.NotFound)]
@@ -243,6 +245,11 @@ namespace NuGetGallery
             repository.Setup(x => x.GetAll()).Returns(() => new[] { attempt }.AsQueryable());
             repository.Setup(x => x.CommitChangesAsync()).Returns(() =>
             {
+                if (identical && attempt == null && groupId != null)
+                {
+                    Assert.Equal(1, previousAttempt.MutationRevision);
+                }
+
                 if (attempt != null)
                 {
                     attempt.Key = 123;
@@ -293,6 +300,10 @@ namespace NuGetGallery
                 Assert.Equal(previousAttempt.Key, identity.CurrentStagedSymbolPackageKey);
                 Assert.Equal(previousStatus, previousAttempt.Status);
                 Assert.Equal(groupId ?? (grouped ? group.Id : null), identity.StagingGroup?.Id);
+                var reassigned = groupId != null && (!grouped || groupId != group.Id);
+                Assert.Equal(reassigned ? 1 : 0, previousAttempt.MutationRevision);
+                Assert.Equal(reassigned && parentStatus == PackageStatus.Staged ? 1 : 0, identity.CurrentStagedPackage.MutationRevision);
+                repository.Verify(x => x.CommitChangesAsync(), reassigned ? Times.Once() : Times.Never());
                 stagingBlobService.Verify(x => x.SaveSymbolPackageFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<System.IO.Stream>()), Times.Never);
                 repository.Verify(x => x.InsertOnCommit(It.IsAny<StagedSymbolPackage>()), Times.Never);
                 validationMessageEmitter.Verify(x => x.StartValidationAsync(It.IsAny<StagedSymbolPackage>()), Times.Never);
