@@ -898,6 +898,7 @@ public class Program
                     FailureBehavior = "MustSucceed",
                 }).ToArray(),
                 ValidationStorageConnectionString = storageConnectionString,
+                PackageStorageConnectionString = storageConnectionString,
                 StagingStorageConnectionString = storageConnectionString,
                 MissingPackageRetryCount = 5,
                 ValidationMessageRecheckPeriod = "00:00:05",
