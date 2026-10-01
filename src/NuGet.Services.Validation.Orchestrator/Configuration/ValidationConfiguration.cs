@@ -22,6 +22,11 @@ namespace NuGet.Services.Validation.Orchestrator
         public string ValidationStorageConnectionString { get; set; }
 
         /// <summary>
+        /// Connection string to Gallery's public package storage account, used for symbol promotion.
+        /// </summary>
+        public string PackageStorageConnectionString { get; set; }
+
+        /// <summary>
         /// Connection string to storage account with staged packages
         /// </summary>
         public string StagingStorageConnectionString { get; set; }

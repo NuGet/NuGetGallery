@@ -69,6 +69,7 @@ namespace NuGet.Services.Validation.Orchestrator
         private const string SymbolsScanBindingKey = "SymbolsScan";
         private const string OrchestratorBindingKey = "Orchestrator";
         private const string FlatContainerBindingKey = "FlatContainer";
+        private const string PackageStorageBindingKey = "PackageStorage";
         private const string StagingStorageBindingKey = "StagingStorage";
 
         private const string SymbolsValidatorSectionName = "SymbolsValidator";
@@ -240,6 +241,20 @@ namespace NuGet.Services.Validation.Orchestrator
             containerBuilder
                 .RegisterStorageAccount<ValidationConfiguration>(c => c.ValidationStorageConnectionString)
                 .As<ICloudBlobClient>();
+
+            containerBuilder
+                .RegisterStorageAccount<ValidationConfiguration>(c => c.PackageStorageConnectionString)
+                .Keyed<ICloudBlobClient>(PackageStorageBindingKey);
+
+            containerBuilder
+                .RegisterType<CloudBlobCoreFileStorageService>()
+                .WithKeyedParameter(typeof(ICloudBlobClient), PackageStorageBindingKey)
+                .Keyed<ICoreFileStorageService>(PackageStorageBindingKey);
+
+            containerBuilder
+                .RegisterType<StagedSymbolPackagePromotionService>()
+                .WithKeyedParameter(typeof(ICoreFileStorageService), PackageStorageBindingKey)
+                .As<IStagedSymbolPackagePromotionService>();
 
             containerBuilder
                 .RegisterStorageAccount<ValidationConfiguration>(c => c.StagingStorageConnectionString)
@@ -575,7 +590,6 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddTransient<IValidationOutcomeProcessor<StagedSymbolPackage>, ValidationOutcomeProcessor<StagedSymbolPackage>>();
             services.AddTransient<StagedSymbolPackageValidationOutcomeProcessor>();
             services.AddTransient<IStagedSymbolPackagePromotionValidationMessageHandler, StagedSymbolPackagePromotionValidationMessageHandler>();
-            services.AddTransient<IStagedSymbolPackagePromotionService, StagedSymbolPackagePromotionService>();
             services.AddTransient<IStatusProcessor<StagedSymbolPackage>, StagedSymbolPackageStatusProcessor>();
             services.AddTransient<IMessageService<StagedSymbolPackage>, StagedSymbolPackageMessageService>();
         }
