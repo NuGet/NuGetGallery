@@ -13,5 +13,6 @@ namespace NuGet.Services.Entities
         Promoting = 5,
         PromotionFailed = 6,
         Succeeded = 7,
+        WaitingForParent = 8,
     }
 }

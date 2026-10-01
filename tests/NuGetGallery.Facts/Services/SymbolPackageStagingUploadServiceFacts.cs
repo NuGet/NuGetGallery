@@ -158,6 +158,9 @@ namespace NuGetGallery
         [InlineData(PackageStatus.Staged, true, StagedPackageStatus.Ready, true, true, HttpStatusCode.OK, null, false, StagedPackageStatus.Ready, true, "Test.Package", true)]
         [InlineData(PackageStatus.Available, true, StagedPackageStatus.Ready, true, false, HttpStatusCode.OK, null, false, StagedPackageStatus.FailedValidation, false, "Test.Package", true)]
         [InlineData(PackageStatus.Staged, true, StagedPackageStatus.Ready, true, true, HttpStatusCode.OK, "new", false, StagedPackageStatus.Ready, false, "Test.Package", true)]
+        [InlineData(PackageStatus.Deleted, true, StagedPackageStatus.Deleted, true, true, HttpStatusCode.OK, null, false, StagedPackageStatus.WaitingForParent)]
+        [InlineData(PackageStatus.Deleted, true, StagedPackageStatus.Deleted, true, false, HttpStatusCode.OK, null, false, StagedPackageStatus.WaitingForParent, false, "Test.Package", true)]
+        [InlineData(PackageStatus.Deleted, true, StagedPackageStatus.Deleted, true, false, HttpStatusCode.NotFound)]
         public async Task StagesSymbolsForAccessibleParent(
             PackageStatus parentStatus,
             bool hasStagedParent,
@@ -313,7 +316,7 @@ namespace NuGetGallery
                         Assert.Equal("old-hash", previousSymbol.Hash);
                     }
                     Assert.Equal(PackageStatus.Staged, previousSymbol.StatusKey);
-                    Assert.Equal(StagedPackageStatus.Validating, attempt.Status);
+                    Assert.Equal(parentStatus == PackageStatus.Deleted ? StagedPackageStatus.WaitingForParent : StagedPackageStatus.Validating, attempt.Status);
                     Assert.Same(previousAttempt.StagedPackageIdentity, attempt.StagedPackageIdentity);
                     repository.Verify(x => x.DeleteOnCommit(It.IsAny<StagedSymbolPackage>()), Times.Never);
                 }
@@ -323,7 +326,7 @@ namespace NuGetGallery
                     Assert.Equal(parentStatus == PackageStatus.Staged ? 1 : 0, identity.CurrentStagedPackage.MutationRevision);
                 }
 
-                validationMessageEmitter.Verify(x => x.StartValidationAsync(attempt), Times.Once);
+                validationMessageEmitter.Verify(x => x.StartValidationAsync(attempt), parentStatus == PackageStatus.Deleted ? Times.Never() : Times.Once());
                 if (grouped || groupId != null)
                 {
                     Assert.Equal(groupId ?? group.Id, attempt.StagedPackageIdentity.StagingGroup.Id);
@@ -340,7 +343,7 @@ namespace NuGetGallery
                 var status = target.GetStatus(currentUser, scopes, "Test.Package", "1.0.0");
                 Assert.Equal("Test.Package", status.Id);
                 Assert.Equal("1.0.0", status.Version);
-                Assert.Equal(nameof(StagedPackageStatus.Validating), status.Status);
+                Assert.Equal(parentStatus == PackageStatus.Deleted ? nameof(StagedPackageStatus.WaitingForParent) : nameof(StagedPackageStatus.Validating), status.Status);
             }
             else
             {

@@ -150,11 +150,35 @@
     margin-top: 16px;
   }
 
+  .staging-package-identity {
+    align-items: center;
+    display: flex;
+    gap: 29px;
+
+    .package-icon {
+      flex: none;
+      margin: 0;
+      width: 2em;
+    }
+  }
+
+  .staging-package-identity-text {
+    min-width: 0;
+  }
+
+  .staging-package-icon {
+    height: 2em;
+  }
+
   .staging-packages-table {
     table-layout: fixed;
 
+    > tbody > tr.staging-package-continuation > td {
+      border-top: 0;
+    }
+
     .staging-package-id-column {
-      width: 25%;
+      width: 40%;
     }
 
     .staging-package-owner-column {
@@ -162,19 +186,19 @@
     }
 
     .staging-package-version-column {
-      width: 18%;
+      width: 12%;
     }
 
     .staging-package-status-column {
-      width: 22%;
-    }
-
-    .staging-package-uploaded-column {
       width: 18%;
     }
 
+    .staging-package-uploaded-column {
+      width: 15%;
+    }
+
     .staging-package-listed-column {
-      width: 10%;
+      width: 8%;
     }
 
     .staging-package-actions-column {
@@ -213,9 +237,14 @@
       width: 5px;
     }
 
-    .staging-package-owner,
-    .staging-package-version {
+    .staging-package-owner {
       .break-word;
+    }
+
+    .staging-package-version {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
   }
 

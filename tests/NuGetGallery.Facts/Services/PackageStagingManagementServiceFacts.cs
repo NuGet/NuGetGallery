@@ -499,6 +499,55 @@ namespace NuGetGallery
                 stagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
             }
 
+            [Fact]
+            public async Task ParentDeletionRetainsSymbolsInFreshWaitingAttempt()
+            {
+                var owner = new User("owner") { Key = 1 };
+                var parent = CreateStagedPackage(10, "Test.Package", "1.0.0", owner);
+                var identity = parent.StagedPackageIdentity;
+                var group = CreateStagingGroup(20, "release", "Release", owner);
+                identity.StagingGroup = group;
+                identity.StagingGroupKey = group.Key;
+                var previous = new StagedSymbolPackage
+                {
+                    Key = 50,
+                    StagedPackageIdentity = identity,
+                    SymbolPackage = new SymbolPackage { Key = 51, StatusKey = PackageStatus.Staged, Hash = "symbols-hash" },
+                    UploadedBlobPath = "symbols.snupkg",
+                    UploadedBlobETag = "etag",
+                    UploadedDate = DateTime.UtcNow.AddDays(-1),
+                    Status = StagedPackageStatus.Validating,
+                };
+                identity.CurrentStagedSymbolPackage = previous;
+                identity.CurrentStagedSymbolPackageKey = previous.Key;
+                StagedSymbolPackage waiting = null;
+                var symbols = new Mock<IEntityRepository<StagedSymbolPackage>>();
+                symbols.Setup(x => x.InsertOnCommit(It.IsAny<StagedSymbolPackage>())).Callback<StagedSymbolPackage>(value => waiting = value);
+                symbols.Setup(x => x.CommitChangesAsync()).Returns(() =>
+                {
+                    waiting.Key = 52;
+                    return Task.CompletedTask;
+                });
+                var emitter = new Mock<IStagedSymbolPackageValidationMessageEmitter>(MockBehavior.Strict);
+                var target = CreateService(new[] { parent }, user => true, stagedSymbolRepository: symbols, symbolValidationMessageEmitter: emitter.Object);
+
+                Assert.True(await target.DeletePackageAsync(parent));
+
+                Assert.Equal(StagedPackageStatus.Deleted, parent.Status);
+                Assert.Equal(StagedPackageStatus.Superseded, previous.Status);
+                Assert.Same(waiting, identity.CurrentStagedSymbolPackage);
+                Assert.Equal(waiting.Key, identity.CurrentStagedSymbolPackageKey);
+                Assert.Equal(StagedPackageStatus.WaitingForParent, waiting.Status);
+                Assert.Same(previous.SymbolPackage, waiting.SymbolPackage);
+                Assert.Equal(previous.UploadedBlobPath, waiting.UploadedBlobPath);
+                Assert.Equal(previous.UploadedBlobETag, waiting.UploadedBlobETag);
+                Assert.Equal(previous.UploadedDate, waiting.UploadedDate);
+                Assert.Equal(group.Key, identity.StagingGroupKey);
+                Assert.Equal(1, group.MutationRevision);
+                symbols.Verify(x => x.DeleteOnCommit(It.IsAny<StagedSymbolPackage>()), Times.Never);
+                emitter.VerifyNoOtherCalls();
+            }
+
             [Theory]
             [InlineData(true, false)]
             [InlineData(false, true)]
@@ -950,7 +999,7 @@ namespace NuGetGallery
             [Theory]
             [InlineData(true, false)]
             [InlineData(false, true)]
-            public async Task RejectsDeletingAnUngroupedPromotingPackageOrParentWithSymbols(bool promoting, bool hasSymbols)
+            public async Task RejectsDeletingAnUngroupedPromotingPackageOrSymbols(bool promoting, bool hasSymbols)
             {
                 var owner = new User("owner") { Key = 1 };
                 var stagedPackage = CreateStagedPackage(10, "Test.Package", "1.0.0", owner);
@@ -958,6 +1007,7 @@ namespace NuGetGallery
                 if (hasSymbols)
                 {
                     stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackageKey = 50;
+                    stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackage = new StagedSymbolPackage { Key = 50, Status = StagedPackageStatus.Promoting };
                 }
 
                 var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
@@ -1043,7 +1093,8 @@ namespace NuGetGallery
             [Theory]
             [InlineData(false)]
             [InlineData(true)]
-            public async Task DeletesGroupedSymbolsAndPreservesAvailableParents(bool stagedParent)
+            [InlineData(true, true)]
+            public async Task DeletesGroupedSymbolsAndPreservesAvailableParents(bool stagedParent, bool retainedContent = false)
             {
                 var owner = new User("owner") { Key = 1 };
                 var group = CreateStagingGroup(10, "release", "Release", owner);
@@ -1060,7 +1111,7 @@ namespace NuGetGallery
 
                 var symbolPackage = new SymbolPackage { Key = 60, StatusKey = PackageStatus.Staged, Package = identity.Package };
                 var symbols = new StagedSymbolPackage { Key = 50, StagedPackageIdentity = identity, SymbolPackage = symbolPackage, Status = StagedPackageStatus.Ready };
-                var previousSymbolPackage = new SymbolPackage { Key = 59, StatusKey = PackageStatus.Staged, Package = identity.Package };
+                var previousSymbolPackage = retainedContent ? symbolPackage : new SymbolPackage { Key = 59, StatusKey = PackageStatus.Staged, Package = identity.Package };
                 var previousSymbols = new StagedSymbolPackage { Key = 49, StagedPackageIdentity = identity, SymbolPackage = previousSymbolPackage, Status = StagedPackageStatus.Superseded };
                 identity.CurrentStagedSymbolPackage = symbols;
                 identity.CurrentStagedSymbolPackageKey = symbols.Key;
@@ -1151,7 +1202,8 @@ namespace NuGetGallery
                 IEnumerable<StagedSymbolPackage> stagedSymbols = null,
                 Mock<IEntityRepository<StagedSymbolPackage>> stagedSymbolRepository = null,
                 Mock<IEntityRepository<StagedPackageIdentity>> identityRepository = null,
-                Mock<IEntityRepository<SymbolPackage>> symbolRepository = null)
+                Mock<IEntityRepository<SymbolPackage>> symbolRepository = null,
+                IStagedSymbolPackageValidationMessageEmitter symbolValidationMessageEmitter = null)
             {
                 var stagedPackagesList = stagedPackages.ToList();
                 var stagedPackagesQuery = stagedPackagesList.AsQueryable();
@@ -1166,7 +1218,7 @@ namespace NuGetGallery
                     .Returns(stagedPackagesSet.Object);
                 stagedPackagesSet.Setup(x => x.Include("StagedPackageIdentity.Owner")).Returns(stagedPackagesSet.Object);
                 stagedPackagesSet.Setup(x => x.Include("StagedPackageIdentity.StagingGroup")).Returns(stagedPackagesSet.Object);
-                stagedPackagesSet.Setup(x => x.Include("StagedPackageIdentity.CurrentStagedSymbolPackage")).Returns(stagedPackagesSet.Object);
+                stagedPackagesSet.Setup(x => x.Include("StagedPackageIdentity.CurrentStagedSymbolPackage.SymbolPackage")).Returns(stagedPackagesSet.Object);
                 stagedPackageRepository = stagedPackageRepository ?? new Mock<IEntityRepository<StagedPackage>>();
                 stagedPackageRepository
                     .Setup(x => x.GetAll())
@@ -1219,7 +1271,8 @@ namespace NuGetGallery
                     stagingBlobService ?? Mock.Of<IStagingBlobService>(),
                     stagedSymbolRepository.Object,
                     (identityRepository ?? new Mock<IEntityRepository<StagedPackageIdentity>>()).Object,
-                    (symbolRepository ?? new Mock<IEntityRepository<SymbolPackage>>()).Object);
+                    (symbolRepository ?? new Mock<IEntityRepository<SymbolPackage>>()).Object,
+                    symbolValidationMessageEmitter ?? Mock.Of<IStagedSymbolPackageValidationMessageEmitter>());
             }
 
             private static StagingGroup CreateStagingGroup(int key, string id, string name, User owner)

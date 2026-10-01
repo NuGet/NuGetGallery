@@ -433,7 +433,7 @@ namespace NuGetGallery
                     ParentStatus = parentStatus,
                     ParentUrl = parentUrl,
                     Status = attempt.Status.ToString(),
-                    StatusClass = $"staging-status-{attempt.Status.ToString().ToLowerInvariant()}",
+                    StatusClass = attempt.Status == StagedPackageStatus.WaitingForParent ? "label-warning" : $"staging-status-{attempt.Status.ToString().ToLowerInvariant()}",
                     UploadedDate = attempt.UploadedDate,
                     ValidationIssues = issues ?? [],
                     CanManage = canManage,
@@ -449,6 +449,7 @@ namespace NuGetGallery
             model.PackageCount = model.Packages.Count;
             model.ReadyCount += stagedSymbols.Count(attempt => attempt.Status == StagedPackageStatus.Ready);
             model.ValidatingCount += stagedSymbols.Count(attempt => attempt.Status == StagedPackageStatus.Validating);
+            model.WaitingForParentCount += stagedSymbols.Count(attempt => attempt.Status == StagedPackageStatus.WaitingForParent);
             model.FailedCount += stagedSymbols.Count(attempt => attempt.Status == StagedPackageStatus.FailedValidation);
             if (stagedSymbols.Count > 0)
             {
@@ -700,10 +701,14 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
+            var identity = stagedPackage.StagedPackageIdentity;
+            var owner = identity.Owner.Username;
+            var groupId = identity.StagingGroup?.Id;
+            var returnUrl = groupId == null ? Url.ManageUngroupedStaging(owner) : Url.ManageStagingGroup(owner, groupId);
             if (packageFile == null || packageFile.ContentLength == 0)
             {
                 TempData["ErrorMessage"] = "Select a package file.";
-                return Redirect(Url.ManageMyPackages());
+                return Redirect(returnUrl);
             }
 
             var result = await _packageStagingUploadService.ReplacePackageAsync(
@@ -716,7 +721,7 @@ namespace NuGetGallery
                 TempData["ErrorMessage"] = result.ErrorMessage;
             }
 
-            return Redirect(Url.ManageMyPackages());
+            return Redirect(returnUrl);
         }
 
         [HttpPost]
@@ -747,19 +752,16 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
+            var identity = stagedPackage.StagedPackageIdentity;
+            var owner = identity.Owner.Username;
+            var groupId = identity.StagingGroup?.Id;
+            var returnUrl = groupId == null ? Url.ManageUngroupedStaging(owner) : Url.ManageStagingGroup(owner, groupId);
             if (!await _packageStagingManagementService.DeletePackageAsync(stagedPackage))
             {
-                if (stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackageKey.HasValue)
-                {
-                    TempData["ErrorMessage"] = "Remove the staged symbols before deleting their parent package.";
-                }
-                else
-                {
-                    TempData["ErrorMessage"] = "The staged package cannot be deleted while package promotion is active.";
-                }
+                TempData["ErrorMessage"] = "The staged package changed or promotion started. Refresh and try again.";
             }
 
-            return Redirect(Url.ManageMyPackages());
+            return Redirect(returnUrl);
         }
 
         /// <summary>

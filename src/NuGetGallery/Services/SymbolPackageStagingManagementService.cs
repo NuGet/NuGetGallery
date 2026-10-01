@@ -148,9 +148,9 @@ namespace NuGetGallery
                         _identityRepository.DeleteOnCommit(identity);
                     }
 
-                    foreach (var attempt in attempts)
+                    foreach (var symbols in attempts.Select(attempt => attempt.SymbolPackage).Distinct())
                     {
-                        _symbolPackageRepository.DeleteOnCommit(attempt.SymbolPackage);
+                        _symbolPackageRepository.DeleteOnCommit(symbols);
                     }
                     await _stagedSymbolPackageRepository.CommitChangesAsync();
                 });

@@ -45,6 +45,10 @@ namespace NuGetGallery
 
         private readonly IStagedPackageValidationMessageEmitter _stagedValidationMessageEmitter;
 
+        private readonly IEntityRepository<StagedSymbolPackage> _stagedSymbolPackageRepository;
+
+        private readonly IStagedSymbolPackageValidationMessageEmitter _symbolValidationMessageEmitter;
+
         public PackageStagingUploadService(
             IApiScopeEvaluator apiScopeEvaluator,
             IFeatureFlagService featureFlagService,
@@ -56,7 +60,9 @@ namespace NuGetGallery
             IStagingBlobService stagingBlobService,
             IEntityRepository<StagedPackage> stagedPackageRepository,
             IEntityRepository<StagingGroup> stagingGroupRepository,
-            IStagedPackageValidationMessageEmitter stagedValidationMessageEmitter)
+            IStagedPackageValidationMessageEmitter stagedValidationMessageEmitter,
+            IEntityRepository<StagedSymbolPackage> stagedSymbolPackageRepository,
+            IStagedSymbolPackageValidationMessageEmitter symbolValidationMessageEmitter)
         {
             _apiScopeEvaluator = apiScopeEvaluator ?? throw new ArgumentNullException(nameof(apiScopeEvaluator));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
@@ -69,6 +75,8 @@ namespace NuGetGallery
             _stagedPackageRepository = stagedPackageRepository ?? throw new ArgumentNullException(nameof(stagedPackageRepository));
             _stagingGroupRepository = stagingGroupRepository ?? throw new ArgumentNullException(nameof(stagingGroupRepository));
             _stagedValidationMessageEmitter = stagedValidationMessageEmitter ?? throw new ArgumentNullException(nameof(stagedValidationMessageEmitter));
+            _stagedSymbolPackageRepository = stagedSymbolPackageRepository ?? throw new ArgumentNullException(nameof(stagedSymbolPackageRepository));
+            _symbolValidationMessageEmitter = symbolValidationMessageEmitter ?? throw new ArgumentNullException(nameof(symbolValidationMessageEmitter));
         }
 
         public async Task<PackageStagingResult> StagePackageAsync(
@@ -374,6 +382,10 @@ namespace NuGetGallery
             }
 
             var canReplace = packageStatus == PackageStatus.Staged;
+            if (currentAttempt.StagedPackageIdentity.CurrentStagedSymbolPackage?.Status == StagedPackageStatus.Promoting)
+            {
+                return PackageStagingResult.Error(HttpStatusCode.Conflict, "The staged symbols are being promoted.");
+            }
 
             // A deleted Package can be restaged only when its latest staging attempt is also Deleted.
             // This proves the version was deleted from staging before promotion. Packages deleted after
@@ -434,11 +446,6 @@ namespace NuGetGallery
                 }
 
                 return PackageStagingResult.Ok();
-            }
-
-            if (target.CurrentAttempt?.StagedPackageIdentity.CurrentStagedSymbolPackageKey.HasValue == true)
-            {
-                return PackageStagingResult.Error(HttpStatusCode.Conflict, "Remove the staged symbol package before replacing its parent package.");
             }
 
             var beforeValidation = await _packageUploadService.ValidateBeforeGeneratePackageAsync(
@@ -591,6 +598,7 @@ namespace NuGetGallery
             return _stagedPackageRepository
                 .GetAll()
                 .Include(candidate => candidate.StagedPackageIdentity.StagingGroup)
+                .Include(candidate => candidate.StagedPackageIdentity.CurrentStagedSymbolPackage.SymbolPackage)
                 .SingleOrDefault(candidate => candidate.StagedPackageIdentityKey == packageKey && candidate.StagedPackageIdentity.CurrentStagedPackageKey == candidate.Key);
         }
 
@@ -742,6 +750,8 @@ namespace NuGetGallery
                     stagedPackageIdentity.CurrentStagedPackageKey = stagedPackage.Key;
                     stagedPackageIdentity.CurrentStagedPackage = stagedPackage;
                     await _stagedPackageRepository.CommitChangesAsync();
+
+                    await StagedSymbolPackageRevalidation.RenewAsync(stagedPackageIdentity, StagedPackageStatus.Validating, _stagedSymbolPackageRepository, _symbolValidationMessageEmitter);
 
                     var status = await _stagedValidationMessageEmitter.StartValidationAsync(stagedPackage);
                     if (status != stagedPackage.Status)

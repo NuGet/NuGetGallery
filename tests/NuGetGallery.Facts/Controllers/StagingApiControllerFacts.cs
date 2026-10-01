@@ -335,7 +335,8 @@ namespace NuGetGallery
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public void GetsStagingGroupWithPagedMembers(bool withSymbols)
+        [InlineData(true, StagedPackageStatus.WaitingForParent)]
+        public void GetsStagingGroupWithPagedMembers(bool withSymbols, StagedPackageStatus symbolStatus = StagedPackageStatus.Ready)
         {
             var currentUser = new User("current") { Key = 1 };
             var owner = new User("example-org") { Key = 2 };
@@ -345,7 +346,7 @@ namespace NuGetGallery
             package.UploadedDate = new DateTime(2026, 9, 2, 12, 0, 0, DateTimeKind.Utc);
             package.StagedPackageIdentity.StagingGroupKey = group.Key;
             package.StagedPackageIdentity.StagingGroup = group;
-            var symbols = new StagedSymbolPackage { Key = 50, StagedPackageIdentity = package.StagedPackageIdentity, Status = StagedPackageStatus.Ready, UploadedDate = package.UploadedDate.AddMinutes(-1) };
+            var symbols = new StagedSymbolPackage { Key = 50, StagedPackageIdentity = package.StagedPackageIdentity, Status = symbolStatus, UploadedDate = package.UploadedDate.AddMinutes(-1) };
             var target = GetController<StagingApiController>();
             ConfigureCreateGroupRequest(target, currentUser, owner);
             GetMock<IPackageStagingManagementService>()
@@ -362,7 +363,11 @@ namespace NuGetGallery
             {
                 Assert.Equal("SymbolPromotionUnavailable", (string)body["group"]["blockers"][0]["code"]);
                 Assert.Equal("symbols", (string)body["items"][1]["kind"]);
-                Assert.Equal("ready", (string)body["items"][1]["status"]);
+                Assert.Equal(symbolStatus == StagedPackageStatus.WaitingForParent ? "waitingForParent" : "ready", (string)body["items"][1]["status"]);
+                if (symbolStatus == StagedPackageStatus.WaitingForParent)
+                {
+                    Assert.Equal("ParentPackageMissing", (string)body["items"][1]["blockers"][0]["code"]);
+                }
                 Assert.Null(body["items"][1]["listed"].Value<bool?>());
                 Assert.False((bool)body["items"][1]["canPromote"]);
                 Assert.Equal("release", (string)body["items"][1]["group"]["id"]);
@@ -656,17 +661,12 @@ namespace NuGetGallery
             Assert.Equal(204, status.StatusCode);
         }
 
-        [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public async Task ReportsConflictWhenPromotionOrSymbolsPreventPackageDeletion(bool hasSymbols)
+        [Fact]
+        public async Task ReportsConflictWhenPackageDeletionIsRejected()
         {
             var currentUser = new User("current") { Key = 1 };
             var stagedPackage = CreateStagedPackage(currentUser);
-            if (hasSymbols)
-            {
-                stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackageKey = 100;
-            }
+            stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackageKey = 100;
 
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
@@ -684,12 +684,6 @@ namespace NuGetGallery
             target.SetCurrentUser(currentUser);
 
             var result = await target.DeleteStagedPackage("PackageA", "1.0.0");
-
-            if (hasSymbols)
-            {
-                AssertError(target, result, HttpStatusCode.Conflict, "PackageHasStagedSymbols");
-                return;
-            }
 
             var status = Assert.IsType<HttpStatusCodeResult>(result);
             Assert.Equal(409, status.StatusCode);

@@ -205,7 +205,7 @@ namespace NuGetGallery
                     OwnerKey = owner.Key,
                 };
                 var previousAttempt = identity.CurrentStagedSymbolPackage;
-                if ((previousAttempt?.Status == StagedPackageStatus.Validating || previousAttempt?.Status == StagedPackageStatus.Ready) && previousAttempt.SymbolPackage.Hash == hash)
+                if ((previousAttempt?.Status == StagedPackageStatus.Validating || previousAttempt?.Status == StagedPackageStatus.Ready || previousAttempt?.Status == StagedPackageStatus.WaitingForParent) && previousAttempt.SymbolPackage.Hash == hash)
                 {
                     if (group != null && identity.StagingGroupKey != group.Key)
                     {
@@ -244,7 +244,7 @@ namespace NuGetGallery
                     UploadedBlobPath = blob.Path,
                     UploadedBlobETag = blob.ETag,
                     UploadedDate = DateTime.UtcNow,
-                    Status = StagedPackageStatus.Validating,
+                    Status = package.PackageStatusKey == PackageStatus.Deleted ? StagedPackageStatus.WaitingForParent : StagedPackageStatus.Validating,
                 };
                 _stagedSymbolPackageRepository.InsertOnCommit(stagedSymbolPackage);
 
@@ -267,8 +267,11 @@ namespace NuGetGallery
                         identity.CurrentStagedSymbolPackageKey = stagedSymbolPackage.Key;
                         identity.CurrentStagedSymbolPackage = stagedSymbolPackage;
                         await _stagedSymbolPackageRepository.CommitChangesAsync();
-                        stagedSymbolPackage.Status = await _validationMessageEmitter.StartValidationAsync(stagedSymbolPackage);
-                        await _stagedSymbolPackageRepository.CommitChangesAsync();
+                        if (stagedSymbolPackage.Status == StagedPackageStatus.Validating)
+                        {
+                            stagedSymbolPackage.Status = await _validationMessageEmitter.StartValidationAsync(stagedSymbolPackage);
+                            await _stagedSymbolPackageRepository.CommitChangesAsync();
+                        }
                     });
                 }
                 catch (DbUpdateException exception)
@@ -372,7 +375,8 @@ namespace NuGetGallery
 
             var parent = identity?.CurrentStagedPackage;
             var stagedParent = package.PackageStatusKey == PackageStatus.Staged && parent != null && parent.Status != StagedPackageStatus.Deleted && parent.Status != StagedPackageStatus.Superseded;
-            if (package.PackageStatusKey != PackageStatus.Available && !stagedParent)
+            var retainedSymbols = package.PackageStatusKey == PackageStatus.Deleted && parent?.Status == StagedPackageStatus.Deleted && identity.CurrentStagedSymbolPackageKey.HasValue;
+            if (package.PackageStatusKey != PackageStatus.Available && !stagedParent && !retainedSymbols)
             {
                 return PackageStagingResult.Error(HttpStatusCode.NotFound, "The parent package was not found.");
             }

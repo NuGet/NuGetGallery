@@ -32,6 +32,8 @@ namespace NuGetGallery
 
         public int ValidatingCount { get; set; }
 
+        public int WaitingForParentCount { get; set; }
+
         public int PromotingCount { get; set; }
 
         public int FailedCount { get; set; }

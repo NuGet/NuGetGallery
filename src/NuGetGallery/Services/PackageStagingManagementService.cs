@@ -22,6 +22,7 @@ namespace NuGetGallery
         private readonly IEntityRepository<StagedSymbolPackage> _stagedSymbolPackageRepository;
         private readonly IEntityRepository<StagedPackageIdentity> _identityRepository;
         private readonly IEntityRepository<SymbolPackage> _symbolPackageRepository;
+        private readonly IStagedSymbolPackageValidationMessageEmitter _symbolValidationMessageEmitter;
 
         public PackageStagingManagementService(
             IPackageStagingAuthorizationService packageStagingAuthorizationService,
@@ -31,7 +32,8 @@ namespace NuGetGallery
             IStagingBlobService stagingBlobService,
             IEntityRepository<StagedSymbolPackage> stagedSymbolPackageRepository,
             IEntityRepository<StagedPackageIdentity> identityRepository,
-            IEntityRepository<SymbolPackage> symbolPackageRepository)
+            IEntityRepository<SymbolPackage> symbolPackageRepository,
+            IStagedSymbolPackageValidationMessageEmitter symbolValidationMessageEmitter)
         {
             _packageStagingAuthorizationService = packageStagingAuthorizationService ?? throw new ArgumentNullException(nameof(packageStagingAuthorizationService));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
@@ -41,6 +43,7 @@ namespace NuGetGallery
             _stagedSymbolPackageRepository = stagedSymbolPackageRepository ?? throw new ArgumentNullException(nameof(stagedSymbolPackageRepository));
             _identityRepository = identityRepository ?? throw new ArgumentNullException(nameof(identityRepository));
             _symbolPackageRepository = symbolPackageRepository ?? throw new ArgumentNullException(nameof(symbolPackageRepository));
+            _symbolValidationMessageEmitter = symbolValidationMessageEmitter ?? throw new ArgumentNullException(nameof(symbolValidationMessageEmitter));
         }
 
         public PackageStagingStatus GetPackageStatus(User currentUser, IEnumerable<Scope> scopes, string id, string version)
@@ -196,7 +199,7 @@ namespace NuGetGallery
                 await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
                 {
                     var group = stagedPackage.StagedPackageIdentity.StagingGroup;
-                    if (stagedPackage.Status == StagedPackageStatus.Promoting || group?.ActivePromotionId.HasValue == true || stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackageKey.HasValue)
+                    if (stagedPackage.Status == StagedPackageStatus.Promoting || group?.ActivePromotionId.HasValue == true || stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackage?.Status == StagedPackageStatus.Promoting)
                     {
                         return;
                     }
@@ -209,6 +212,7 @@ namespace NuGetGallery
                     stagedPackage.Status = StagedPackageStatus.Deleted;
                     stagedPackage.StagedPackageIdentity.Package.Listed = false;
                     await _packageService.UpdatePackageStatusAsync(stagedPackage.StagedPackageIdentity.Package, PackageStatus.Deleted, commitChanges: false);
+                    await StagedSymbolPackageRevalidation.RenewAsync(stagedPackage.StagedPackageIdentity, StagedPackageStatus.WaitingForParent, _stagedSymbolPackageRepository, _symbolValidationMessageEmitter);
                     await _stagedPackageRepository.CommitChangesAsync();
                     deleted = true;
                 });
@@ -427,9 +431,9 @@ namespace NuGetGallery
                             _identityRepository.DeleteOnCommit(identity);
                         }
                     }
-                    foreach (var member in symbolMembers)
+                    foreach (var symbolPackage in symbolMembers.Select(member => member.SymbolPackage).Distinct())
                     {
-                        _symbolPackageRepository.DeleteOnCommit(member.SymbolPackage);
+                        _symbolPackageRepository.DeleteOnCommit(symbolPackage);
                     }
 
                     var stagedPackageKeys = new HashSet<int>(stagedPackages.Select(package => package.Key));
@@ -749,7 +753,7 @@ namespace NuGetGallery
                 .GetAll()
                 .Include(stagedPackage => stagedPackage.StagedPackageIdentity.Owner)
                 .Include(stagedPackage => stagedPackage.StagedPackageIdentity.StagingGroup)
-                .Include(stagedPackage => stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackage)
+                .Include(stagedPackage => stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackage.SymbolPackage)
                 .SingleOrDefault(stagedPackage => stagedPackage.StagedPackageIdentityKey == packageKey && stagedPackage.StagedPackageIdentity.CurrentStagedPackageKey == stagedPackage.Key);
         }
 

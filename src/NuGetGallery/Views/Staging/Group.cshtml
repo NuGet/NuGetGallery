@@ -106,6 +106,10 @@
                 {
                     <span class="label staging-status staging-status-validating">@Model.ValidatingCount validating</span>
                 }
+                @if (Model.WaitingForParentCount > 0)
+                {
+                    <span class="label label-warning">@Model.WaitingForParentCount waiting for parent</span>
+                }
                 @if (Model.PromotingCount > 0)
                 {
                     <span class="label staging-status staging-status-promoting">@Model.PromotingCount promoting</span>
@@ -115,6 +119,10 @@
                     <span class="label staging-status staging-status-failedvalidation">@Model.FailedCount failed</span>
                 }
             </div>
+            @if (Model.WaitingForParentCount > 0)
+            {
+                @ViewHelpers.AlertInfo("Symbols marked \"Waiting for parent\" will be validated when you restage their parent package.")
+            }
             @if (Model.IsPromotionActive)
             {
                 @ViewHelpers.AlertInfo("Promotion is in progress. You can't change this group or its packages until it's done.")
@@ -125,15 +133,11 @@
             }
             else if (Model.PromotionFailedCount > 0)
             {
-                <p class="text-muted">Some packages failed promotion. Replace or remove them before promoting this group again.</p>
-            }
-            @if (!Model.IsUngrouped && Model.Packages.Any(package => package.IsSymbolPackage))
-            {
-                <p class="text-muted">Groups containing staged symbols cannot be promoted yet.</p>
+                @ViewHelpers.AlertDanger(@<text>Some packages failed promotion. Replace or remove them before promoting this group again.</text>)
             }
             @if (Model.IsUngrouped && Model.Packages.Any(package => package.CanResend))
             {
-                <p class="text-muted">A promotion is taking longer than expected. Retry requests another attempt at unfinished work; failed packages remain failed.</p>
+                @ViewHelpers.AlertWarning(@<text>A promotion is taking longer than expected. Retry requests another attempt at unfinished work; failed packages remain failed.</text>)
             }
 
             <hr class="breadcrumb-divider" />
@@ -200,23 +204,28 @@
                             </thead>
                             <tbody data-bind="foreach: Packages">
                                 <tr class="manage-package-listing"
-                                    data-bind="visible: Visible, css: { 'staging-package-busy': IsBusy }, attr: { 'aria-busy': IsBusy() ? 'true' : null }">
+                                    data-bind="visible: Visible, css: { 'staging-package-busy': IsBusy, 'staging-package-continuation': IsParentContinuation }, attr: { 'aria-busy': IsBusy() ? 'true' : null }">
                                     <td class="align-middle package-id">
-                                        <span data-bind="text: Id"></span>
-                                        <!-- ko if: IsSymbolPackage -->
-                                        <span class="text-muted">(.snupkg)</span>
-                                        <div class="text-muted">
-                                            Parent:
-                                            <!-- ko if: ParentUrl -->
-                                            <a data-bind="attr: { href: ParentUrl }, text: ParentStatus"></a>
-                                            <!-- /ko -->
-                                            <!-- ko ifnot: ParentUrl -->
-                                            <span data-bind="text: ParentStatus"></span>
-                                            <!-- /ko -->
+                                        <div class="staging-package-identity">
+                                            <span class="package-icon staging-package-icon" aria-hidden="true">
+                                                <!-- ko ifnot: IsSymbolPackage -->
+                                                <img class="package-icon img-responsive package-default-icon"
+                                                     src="@Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")"
+                                                     alt=""
+                                                     title="Package" />
+                                                <!-- /ko -->
+                                            </span>
+                                            <div class="staging-package-identity-text">
+                                                <span data-bind="text: Id"></span>
+                                                <!-- ko if: IsSymbolPackage -->
+                                                <div class="small text-muted staging-parent-context">
+                                                    Symbol package &bull; Parent <span class="text-lowercase" data-bind="text: ParentStatus"></span>
+                                                </div>
+                                                <!-- /ko -->
+                                            </div>
                                         </div>
-                                        <!-- /ko -->
                                     </td>
-                                    <td class="align-middle staging-package-version" data-bind="text: Version"></td>
+                                    <td class="align-middle staging-package-version" data-bind="text: Version, attr: { title: Version }"></td>
                                     <td class="align-middle">
                                         <div class="staging-status-content">
                                             <span class="label staging-status" data-bind="text: Status, css: StatusClass"></span>
@@ -382,6 +391,11 @@
 
     string GetStagedPackageStatus(string status)
     {
+        if (status == StagedPackageStatus.WaitingForParent.ToString())
+        {
+            return "Waiting for parent";
+        }
+
         if (status == StagedPackageStatus.FailedValidation.ToString())
         {
             return "Validation failed";
@@ -413,13 +427,20 @@
             replaceUrl = Url.ReplaceStagedPackage(package.Id, package.Version);
         }
 
+        var isParentContinuation = false;
+        if (package.IsSymbolPackage && index > 0)
+        {
+            var parent = Model.Packages[index - 1];
+            isParentContinuation = !parent.IsSymbolPackage && parent.Id == package.Id && parent.Version == package.Version;
+        }
+
         return new
         {
             package.Id,
             package.Version,
             package.IsSymbolPackage,
-            package.ParentStatus,
-            package.ParentUrl,
+            IsParentContinuation = isParentContinuation,
+            ParentStatus = GetStagedPackageStatus(package.ParentStatus),
             Status = GetStagedPackageStatus(package.Status),
             package.StatusClass,
             UploadedDate = package.UploadedDate.ToNuGetShortDateString(),
