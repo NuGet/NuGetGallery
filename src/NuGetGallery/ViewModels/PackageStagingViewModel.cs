@@ -37,6 +37,8 @@ namespace NuGetGallery
 
         public bool CanResend { get; set; }
 
+        public string PromotionBlocker { get; set; }
+
         public string MoveUrl { get; set; }
     }
 }

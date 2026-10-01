@@ -537,6 +537,11 @@ namespace NuGetGallery
                         identity.CurrentStagedPackage.MutationRevision++;
                     }
 
+                    if (identity.CurrentStagedSymbolPackage != null)
+                    {
+                        identity.CurrentStagedSymbolPackage.MutationRevision++;
+                    }
+
                     if (identity.StagingGroup != null)
                     {
                         identity.StagingGroup.MutationRevision++;
@@ -742,6 +747,7 @@ namespace NuGetGallery
                 .Include(symbol => symbol.StagedPackageIdentity.Owner)
                 .Include(symbol => symbol.StagedPackageIdentity.StagingGroup)
                 .Include(symbol => symbol.StagedPackageIdentity.Package.PackageRegistration)
+                .Include(symbol => symbol.StagedPackageIdentity.Package.SymbolPackages)
                 .Where(symbol => ownerKeys.Contains(symbol.StagedPackageIdentity.OwnerKey))
                 .Where(symbol => symbol.StagedPackageIdentity.CurrentStagedSymbolPackageKey == symbol.Key)
                 .Where(symbol => symbol.SymbolPackage.StatusKey == PackageStatus.Staged);

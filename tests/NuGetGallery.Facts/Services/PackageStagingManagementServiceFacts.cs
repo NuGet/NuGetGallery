@@ -1080,6 +1080,7 @@ namespace NuGetGallery
                 Assert.Equal(1, previousGroup.MutationRevision);
                 Assert.Equal(1, targetGroup.MutationRevision);
                 Assert.Equal(stagedParent ? 1 : 0, parent.MutationRevision);
+                Assert.Equal(1, symbols.MutationRevision);
                 Assert.Same(symbols, identity.CurrentStagedSymbolPackage);
                 Assert.Equal(StagedPackageStatus.Ready, symbols.Status);
 
@@ -1087,6 +1088,7 @@ namespace NuGetGallery
                 Assert.Null(identity.StagingGroupKey);
                 Assert.Null(identity.StagingGroup);
                 Assert.Equal(2, targetGroup.MutationRevision);
+                Assert.Equal(2, symbols.MutationRevision);
                 Assert.Equal(symbols.Key, identity.CurrentStagedSymbolPackageKey);
             }
 
