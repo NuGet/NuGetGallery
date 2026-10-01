@@ -100,11 +100,18 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 Times.Once);
         }
 
-        [Fact]
-        public async Task DispatchesAcceptedSymbolsOnlyAfterParentPublicationCommits()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task DispatchesAcceptedSymbolsOnlyAfterParentPublicationCommits(bool grouped)
         {
             var context = new TestContext();
             var symbols = context.AddAcceptedSymbols();
+            if (grouped)
+            {
+                context.AddToGroup();
+            }
+
             var transactionCompleted = false;
             context.StagedPackageRepository.Setup(repository => repository.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()))
                 .Returns(async (Func<Task> action) =>
@@ -126,18 +133,34 @@ namespace NuGet.Services.Staging.Promotion.Tests
 
             Assert.True(await context.Target.HandleAsync(context.Message));
 
-            Assert.Empty(context.StagedPackages);
-            Assert.Null(context.StagedPackageIdentity.CurrentStagedPackageKey);
+            if (grouped)
+            {
+                Assert.Same(context.StagedPackage, Assert.Single(context.StagedPackages));
+                Assert.Equal(context.StagedPackage.Key, context.StagedPackageIdentity.CurrentStagedPackageKey);
+            }
+            else
+            {
+                Assert.Empty(context.StagedPackages);
+                Assert.Null(context.StagedPackageIdentity.CurrentStagedPackageKey);
+            }
+
             Assert.Equal(StagedPackageStatus.Promoting, symbols.Status);
             Assert.NotNull(symbols.PromotionMessageSentDate);
             context.MessageEnqueuer.Verify(enqueuer => enqueuer.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Once);
         }
 
-        [Fact]
-        public async Task FailedSymbolDispatchRetriesWithoutRepublishingOrCompensatingTheParent()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task FailedSymbolDispatchRetriesWithoutRepublishingOrCompensatingTheParent(bool grouped)
         {
             var context = new TestContext();
             var symbols = context.AddAcceptedSymbols();
+            if (grouped)
+            {
+                context.AddToGroup();
+            }
+
             context.MessageEnqueuer.Setup(enqueuer => enqueuer.SendMessageAsync(It.IsAny<StagingPromotionMessage>())).ThrowsAsync(new TimeoutException());
 
             await Assert.ThrowsAsync<TimeoutException>(() => context.Target.HandleAsync(context.Message));
@@ -151,7 +174,16 @@ namespace NuGet.Services.Staging.Promotion.Tests
 
             Assert.True(await context.Target.HandleAsync(context.Message));
 
-            Assert.Empty(context.StagedPackages);
+            if (grouped)
+            {
+                Assert.Same(context.StagedPackage, Assert.Single(context.StagedPackages));
+                context.StagingGroupPromotionService.Verify(service => service.TryFinalizeAsync(context.StagingGroup.Key, context.PromotionId), Times.Once);
+            }
+            else
+            {
+                Assert.Empty(context.StagedPackages);
+            }
+
             context.PackageFileStorageService.Verify(storage => storage.CopyFileAsync(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IAccessCondition>()), Times.Once);
             context.MessageEnqueuer.Verify(enqueuer => enqueuer.SendMessageAsync(It.Is<StagingPromotionMessage>(message =>
                 message.TargetKey == symbols.Key && message.PromotionId == context.PromotionId)), Times.Exactly(2));
@@ -304,10 +336,16 @@ namespace NuGet.Services.Staging.Promotion.Tests
         [Theory]
         [InlineData(InvalidState.MissingValidatedBlob)]
         [InlineData(InvalidState.OwnerNoLongerOwnsPackage)]
-        public async Task MarksPromotionFailedWhenRequiredStateIsMissing(InvalidState state)
+        [InlineData(InvalidState.OwnerNoLongerOwnsPackage, true)]
+        public async Task MarksPromotionFailedWhenRequiredStateIsMissing(InvalidState state, bool grouped = false)
         {
             var context = new TestContext();
             var symbols = context.AddAcceptedSymbols();
+            if (grouped)
+            {
+                context.AddToGroup();
+            }
+
             context.Apply(state);
 
             var handled = await context.Target.HandleAsync(context.Message);

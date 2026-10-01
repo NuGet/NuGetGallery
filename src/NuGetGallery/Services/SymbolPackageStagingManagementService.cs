@@ -175,7 +175,10 @@ namespace NuGetGallery
                 .Include(attempt => attempt.StagedPackageIdentity.Package.PackageRegistration.Owners)
                 .Include(attempt => attempt.StagedPackageIdentity.Package.SymbolPackages)
                 .Where(attempt => attempt.StagedPackageIdentity.CurrentStagedSymbolPackageKey == attempt.Key)
-                .Where(attempt => attempt.SymbolPackage.StatusKey == PackageStatus.Staged);
+                .Where(attempt => attempt.SymbolPackage.StatusKey == PackageStatus.Staged
+                    || (attempt.StagedPackageIdentity.StagingGroupKey.HasValue && attempt.Status == StagedPackageStatus.Succeeded)
+                    || (attempt.StagedPackageIdentity.StagingGroupKey.HasValue
+                        && attempt.Status == StagedPackageStatus.Promoting && attempt.SymbolPackage.StatusKey == PackageStatus.Available));
         }
     }
 }

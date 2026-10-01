@@ -106,6 +106,11 @@ namespace NuGet.Services.Staging.Promotion
 
                 if (IsCompletedGroupPromotionAttempt(stagedPackage, message.PromotionId))
                 {
+                    if (stagedPackage.Status == StagedPackageStatus.Succeeded)
+                    {
+                        await SendSymbolFollowUpAsync(stagedPackage);
+                    }
+
                     _logger.LogInformation("Resuming staging group finalization for an already completed package.");
                     await _stagingGroupPromotionService.TryFinalizeAsync(stagedPackage.StagedPackageIdentity.StagingGroupKey.Value, message.PromotionId);
                     return true;
@@ -158,6 +163,7 @@ namespace NuGet.Services.Staging.Promotion
 
                     if (stagingGroupKey.HasValue)
                     {
+                        await SendSymbolFollowUpAsync(stagedPackage);
                         await _stagingGroupPromotionService.TryFinalizeAsync(stagingGroupKey.Value, message.PromotionId);
                     }
                     else if (stagedPackage.Status == StagedPackageStatus.Succeeded)
@@ -344,8 +350,12 @@ namespace NuGet.Services.Staging.Promotion
         {
             var identity = stagedPackage.StagedPackageIdentity;
             var symbols = identity.CurrentStagedSymbolPackage;
-            if (identity.StagingGroupKey.HasValue
-                || symbols?.Status != StagedPackageStatus.Promoting
+            if (identity.StagingGroupKey.HasValue && identity.StagingGroup?.ActivePromotionId != stagedPackage.ActivePromotionId)
+            {
+                return null;
+            }
+
+            if (symbols?.Status != StagedPackageStatus.Promoting
                 || symbols.ActivePromotionId != stagedPackage.ActivePromotionId
                 || identity.CurrentStagedSymbolPackageKey != symbols.Key)
             {
@@ -357,13 +367,7 @@ namespace NuGet.Services.Staging.Promotion
 
         private async Task SendSymbolFollowUpAndCleanUpAsync(StagedPackage stagedPackage)
         {
-            var symbols = FindAcceptedSymbols(stagedPackage);
-            if (symbols != null)
-            {
-                _logger.LogInformation("Dispatching accepted symbol attempt {AttemptKey} after parent publication.", symbols.Key);
-                await _messageEnqueuer.SendMessageAsync(StagingPromotionMessage.ForSymbolPackage(stagedPackage.ActivePromotionId.Value, symbols.Key));
-                symbols.PromotionMessageSentDate = DateTime.UtcNow;
-            }
+            await SendSymbolFollowUpAsync(stagedPackage);
 
             await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
             {
@@ -371,6 +375,22 @@ namespace NuGet.Services.Staging.Promotion
                 await _stagedPackageRepository.CommitChangesAsync();
                 await DeleteUnusedIdentityAsync(stagedPackage.StagedPackageIdentity);
             });
+        }
+
+        private async Task SendSymbolFollowUpAsync(StagedPackage stagedPackage)
+        {
+            var symbols = FindAcceptedSymbols(stagedPackage);
+            if (symbols != null)
+            {
+                _logger.LogInformation("Dispatching accepted symbol attempt {AttemptKey} after parent publication.", symbols.Key);
+                await _messageEnqueuer.SendMessageAsync(StagingPromotionMessage.ForSymbolPackage(stagedPackage.ActivePromotionId.Value, symbols.Key));
+                symbols.PromotionMessageSentDate = DateTime.UtcNow;
+
+                if (stagedPackage.StagedPackageIdentity.StagingGroupKey.HasValue)
+                {
+                    await _stagedPackageRepository.CommitChangesAsync();
+                }
+            }
         }
 
         private void RemoveStagedPackage(StagedPackage stagedPackage)

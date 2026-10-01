@@ -23,6 +23,7 @@ namespace NuGetGallery
         private readonly ICoreSymbolPackageService _symbolService;
         private readonly IStagingBlobService _stagingBlobs;
         private readonly ICoreFileStorageService _storage;
+        private readonly IStagingGroupPromotionService _groups;
         private readonly ILogger<StagedSymbolPackagePromotionService> _logger;
 
         public StagedSymbolPackagePromotionService(
@@ -32,6 +33,7 @@ namespace NuGetGallery
             ICoreSymbolPackageService symbolService,
             IStagingBlobService stagingBlobs,
             ICoreFileStorageService storage,
+            IStagingGroupPromotionService groups,
             ILogger<StagedSymbolPackagePromotionService> logger)
         {
             _attempts = attempts ?? throw new ArgumentNullException(nameof(attempts));
@@ -40,6 +42,7 @@ namespace NuGetGallery
             _symbolService = symbolService ?? throw new ArgumentNullException(nameof(symbolService));
             _stagingBlobs = stagingBlobs ?? throw new ArgumentNullException(nameof(stagingBlobs));
             _storage = storage ?? throw new ArgumentNullException(nameof(storage));
+            _groups = groups ?? throw new ArgumentNullException(nameof(groups));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -56,6 +59,12 @@ namespace NuGetGallery
             if (symbol.PackageKey != attempt.StagedPackageIdentity.Package.Key)
             {
                 throw new InvalidOperationException("The staged symbol does not belong to its staging identity's parent.");
+            }
+
+            if (attempt.StagedPackageIdentity.StagingGroupKey.HasValue && IsPublished(symbol))
+            {
+                _logger.LogInformation("Grouped symbol promotion {PromotionId} is already published; awaiting orchestration completion.", promotionId);
+                return;
             }
 
             if (!IsEligible(attempt))
@@ -131,8 +140,11 @@ namespace NuGetGallery
                         }
 
                         await _symbolService.UpdateStatusAsync(symbol, PackageStatus.Available, commitChanges: false);
-                        // Retain the attempt until the orchestrator durably records completion.
-                        attempt.Status = StagedPackageStatus.Succeeded;
+                        // Grouped attempts remain Promoting until orchestration completion is durable.
+                        if (!attempt.StagedPackageIdentity.StagingGroupKey.HasValue)
+                        {
+                            attempt.Status = StagedPackageStatus.Succeeded;
+                        }
                     }
                     else
                     {
@@ -142,7 +154,10 @@ namespace NuGetGallery
                             await _storage.DeleteFileAsync(folder, name);
                         }
 
-                        attempt.Status = StagedPackageStatus.PromotionFailed;
+                        if (!attempt.StagedPackageIdentity.StagingGroupKey.HasValue)
+                        {
+                            attempt.Status = StagedPackageStatus.PromotionFailed;
+                        }
                     }
 
                     await _attempts.CommitChangesAsync();
@@ -151,7 +166,7 @@ namespace NuGetGallery
             catch (Exception exception)
             {
                 _logger.LogError(exception, "Failed to publish staged symbols for promotion {PromotionId}.", promotionId);
-                var wasPublished = _symbols.GetAll().AsNoTracking().Any(candidate => candidate.Key == symbol.Key && candidate.StatusKey == PackageStatus.Available);
+                var wasPublished = IsPublished(symbol);
                 if (copied && !wasPublished)
                 {
                     await _storage.DeleteFileAsync(folder, name);
@@ -171,6 +186,12 @@ namespace NuGetGallery
             }
 
             _logger.LogWarning("Symbol promotion {PromotionId} failed; retaining staged content and leaving the parent unchanged.", promotionId);
+            if (attempt.StagedPackageIdentity.StagingGroupKey.HasValue)
+            {
+                // The orchestrator records its terminal outcome before group finalization can remove this attempt.
+                return;
+            }
+
             attempt.Status = StagedPackageStatus.PromotionFailed;
             await _attempts.CommitChangesAsync();
         }
@@ -178,6 +199,26 @@ namespace NuGetGallery
         public async Task CleanUpAsync(int stagedSymbolPackageKey, Guid promotionId)
         {
             var attempt = FindAttempt(stagedSymbolPackageKey, promotionId);
+            if (attempt?.StagedPackageIdentity.StagingGroupKey.HasValue == true)
+            {
+                if (attempt.Status == StagedPackageStatus.Promoting)
+                {
+                    if (IsPublished(attempt.SymbolPackage))
+                    {
+                        attempt.Status = StagedPackageStatus.Succeeded;
+                    }
+                    else
+                    {
+                        attempt.Status = StagedPackageStatus.PromotionFailed;
+                    }
+
+                    await _attempts.CommitChangesAsync();
+                }
+
+                await _groups.TryFinalizeAsync(attempt.StagedPackageIdentity.StagingGroupKey.Value, promotionId);
+                return;
+            }
+
             if (attempt == null || attempt.Status != StagedPackageStatus.Succeeded)
             {
                 _logger.LogInformation("No successful staged attempt to remove for symbol promotion {PromotionId}.", promotionId);
@@ -215,11 +256,15 @@ namespace NuGetGallery
             var attempt = _attempts.GetAll()
                 .Include(attempt => attempt.SymbolPackage)
                 .Include(attempt => attempt.StagedPackageIdentity.Package)
+                .Include(attempt => attempt.StagedPackageIdentity.StagingGroup)
                 .SingleOrDefault(attempt => attempt.Key == key && attempt.ActivePromotionId == promotionId
                     && attempt.StagedPackageIdentity.CurrentStagedSymbolPackageKey == attempt.Key);
-            if (attempt?.StagedPackageIdentity.StagingGroupKey.HasValue == true)
+            if (attempt?.Status == StagedPackageStatus.Promoting
+                && attempt.StagedPackageIdentity.StagingGroupKey.HasValue
+                && attempt.StagedPackageIdentity.StagingGroup?.ActivePromotionId != promotionId)
             {
-                throw new NotSupportedException("Grouped symbol promotion is not enabled yet.");
+                _logger.LogInformation("Ignoring inactive group symbol promotion {PromotionId}.", promotionId);
+                return null;
             }
 
             return attempt;
@@ -232,9 +277,15 @@ namespace NuGetGallery
                 && candidate.ActivePromotionId == attempt.ActivePromotionId
                 && candidate.Status == StagedPackageStatus.Promoting
                 && candidate.StagedPackageIdentity.CurrentStagedSymbolPackageKey == candidate.Key
+                && (!candidate.StagedPackageIdentity.StagingGroupKey.HasValue || candidate.StagedPackageIdentity.StagingGroup.ActivePromotionId == candidate.ActivePromotionId)
                 && candidate.SymbolPackage.StatusKey == PackageStatus.Staged
                 && candidate.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Available
                 && candidate.StagedPackageIdentity.Package.PackageRegistration.Owners.Any(owner => owner.Key == candidate.StagedPackageIdentity.OwnerKey));
+        }
+
+        private bool IsPublished(SymbolPackage symbol)
+        {
+            return _symbols.GetAll().AsNoTracking().Any(candidate => candidate.Key == symbol.Key && candidate.StatusKey == PackageStatus.Available);
         }
 
         private async Task<bool> MatchesPublicContentAsync(SymbolPackage symbol, string folder, string name)

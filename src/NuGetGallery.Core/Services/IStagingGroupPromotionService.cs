@@ -5,10 +5,10 @@ using System;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
 
-namespace NuGet.Services.Staging.Promotion
+namespace NuGetGallery
 {
     /// <summary>
-    /// Coordinates package completion within an active staging group promotion.
+    /// Coordinates package and symbol completion within an active staging group promotion.
     /// </summary>
     public interface IStagingGroupPromotionService
     {
@@ -19,7 +19,7 @@ namespace NuGet.Services.Staging.Promotion
         void MarkPackageSucceeded(StagedPackage stagedPackage);
 
         /// <summary>
-        /// Finalizes a group when all active package attempts have succeeded or failed, retaining the group for reuse.
+        /// Finalizes a group when all accepted artifacts have succeeded or failed, retaining the group for reuse.
         /// </summary>
         /// <param name="stagingGroupKey">The staging group key.</param>
         /// <param name="promotionId">The active promotion identifier.</param>

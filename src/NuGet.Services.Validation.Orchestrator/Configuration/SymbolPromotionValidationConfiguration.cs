@@ -46,8 +46,17 @@ namespace NuGet.Services.Validation.Orchestrator
             var isPromotionState = attempt.Status == StagedPackageStatus.Promoting
                 || attempt.Status == StagedPackageStatus.Succeeded
                 || attempt.Status == StagedPackageStatus.PromotionFailed;
+            var identity = attempt.StagedPackageIdentity;
+            var isActiveGroup = attempt.Status != StagedPackageStatus.Promoting
+                || !identity.StagingGroupKey.HasValue
+                || identity.StagingGroup?.ActivePromotionId == attempt.ActivePromotionId;
 
             if (!IsPromotion(validationSet) || !matchesAttempt || !isCurrentAttempt || !attempt.ActivePromotionId.HasValue || !isPromotionState)
+            {
+                return false;
+            }
+
+            if (!isActiveGroup)
             {
                 return false;
             }

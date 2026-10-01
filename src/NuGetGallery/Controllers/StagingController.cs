@@ -180,7 +180,7 @@ namespace NuGetGallery
         }
 
         /// <summary>
-        /// Begins asynchronous publication of every ready package in a staging group.
+        /// Begins asynchronous publication of every ready package and symbol artifact in a staging group.
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -206,14 +206,11 @@ namespace NuGetGallery
                     break;
                 case StagingGroupPromotionResult.Unauthorized:
                     return HttpNotFound();
-                case StagingGroupPromotionResult.SymbolsNotSupported:
-                    TempData["ErrorMessage"] = "Groups containing staged symbols cannot be promoted yet.";
-                    break;
                 case StagingGroupPromotionResult.Empty:
-                    TempData["ErrorMessage"] = "The staging group has no packages to promote.";
+                    TempData["ErrorMessage"] = "The staging group has no packages or symbols to promote.";
                     break;
                 case StagingGroupPromotionResult.NotReady:
-                    TempData["ErrorMessage"] = "Every package in the staging group must be ready before promotion can begin.";
+                    TempData["ErrorMessage"] = "Every package and symbol in the staging group must be ready and eligible before promotion can begin.";
                     break;
                 case StagingGroupPromotionResult.Conflict:
                     TempData["ErrorMessage"] = "The group promotion changed while processing your request. Refresh and check its status.";
@@ -464,10 +461,28 @@ namespace NuGetGallery
             model.FailedCount += stagedSymbols.Count(attempt => attempt.Status == StagedPackageStatus.FailedValidation || attempt.Status == StagedPackageStatus.PromotionFailed);
             model.PromotingCount += stagedSymbols.Count(attempt => attempt.Status == StagedPackageStatus.Promoting);
             model.PromotionFailedCount += stagedSymbols.Count(attempt => attempt.Status == StagedPackageStatus.PromotionFailed);
-            if (stagedSymbols.Count > 0)
+            if (model.IsUngrouped)
             {
-                model.CanPromote = false;
+                return;
             }
+
+            model.CanPromote = false;
+            if (model.IsPromotionActive || model.PackageCount == 0 || model.ReadyCount != model.PackageCount)
+            {
+                return;
+            }
+
+            foreach (var attempt in stagedSymbols)
+            {
+                var parent = attempt.StagedPackageIdentity.CurrentStagedPackage;
+                var blockers = StagedSymbolPackagePromotionEligibility.GetBlockers(attempt, parent, forGroup: true);
+                if (blockers.Count > 0)
+                {
+                    return;
+                }
+            }
+
+            model.CanPromote = true;
         }
 
         [HttpGet]

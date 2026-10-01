@@ -38,6 +38,9 @@ namespace NuGet.Services.Staging.Promotion.Tests
             builder.RegisterInstance(symbolsTopic.Object).Keyed<ITopicClient>("SymbolsOrchestratorTopic");
             builder.RegisterInstance(promotionTopic.Object).Keyed<ITopicClient>("PromotionTopic");
             builder.RegisterInstance(fixture.Attempts.Object).As<IEntityRepository<StagedSymbolPackage>>();
+            builder.RegisterInstance(Mock.Of<IEntityRepository<StagedPackage>>()).As<IEntityRepository<StagedPackage>>();
+            builder.RegisterInstance(Mock.Of<IEntityRepository<StagedPackageIdentity>>()).As<IEntityRepository<StagedPackageIdentity>>();
+            builder.RegisterInstance(Mock.Of<IEntityRepository<StagingGroup>>()).As<IEntityRepository<StagingGroup>>();
             builder.RegisterInstance(Mock.Of<IStagingPromotionMessageHandler<StagingGroup>>()).As<IStagingPromotionMessageHandler<StagingGroup>>();
             builder.RegisterInstance(Mock.Of<IStagingPromotionMessageHandler<StagedPackage>>()).As<IStagingPromotionMessageHandler<StagedPackage>>();
             using (var container = builder.Build())
@@ -178,15 +181,77 @@ namespace NuGet.Services.Staging.Promotion.Tests
             Assert.Equal(fixture.Message.PromotionId, fixture.Attempt.ActivePromotionId);
         }
 
-        [Fact]
-        public async Task GroupedPromotionIsNotEnabled()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task GroupedDispatchRequiresTheAcceptedGroupPromotion(bool active)
         {
             var fixture = new Fixture();
             fixture.Attempt.StagedPackageIdentity.StagingGroupKey = 12;
+            fixture.Attempt.StagedPackageIdentity.StagingGroup = new StagingGroup
+            {
+                Key = 12,
+                ActivePromotionId = active ? fixture.Message.PromotionId : Guid.NewGuid(),
+            };
 
-            await Assert.ThrowsAsync<NotSupportedException>(() => fixture.Target.HandleAsync(fixture.Message));
+            Assert.True(await fixture.Target.HandleAsync(fixture.Message));
 
+            var trackingId = SymbolPromotionValidationTrackingId.Create(fixture.Message.PromotionId, fixture.Attempt.Key);
+            fixture.Orchestrator.Verify(service => service.SendMessageAsync(It.Is<PackageValidationMessageData>(message =>
+                message.ProcessValidationSet.ValidationTrackingId == trackingId)), active ? Times.Once() : Times.Never());
+        }
+
+        [Fact]
+        public async Task TerminalGroupedDispatchRedeliveryRetriesFinalizationWithoutDispatch()
+        {
+            var fixture = new Fixture();
+            fixture.Attempt.StagedPackageIdentity.StagingGroupKey = 12;
+            fixture.Attempt.StagedPackageIdentity.StagingGroup = new StagingGroup { Key = 12, ActivePromotionId = fixture.Message.PromotionId };
+            fixture.Attempt.Status = StagedPackageStatus.PromotionFailed;
+            fixture.Groups.SetupSequence(service => service.TryFinalizeAsync(12, fixture.Message.PromotionId))
+                .ThrowsAsync(new InvalidOperationException("Finalization unavailable"))
+                .Returns(Task.CompletedTask);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.Target.HandleAsync(fixture.Message));
+            Assert.Equal(StagedPackageStatus.PromotionFailed, fixture.Attempt.Status);
+
+            Assert.True(await fixture.Target.HandleAsync(fixture.Message));
+
+            fixture.Groups.Verify(service => service.TryFinalizeAsync(12, fixture.Message.PromotionId), Times.Exactly(2));
+            fixture.Attempts.Verify(repository => repository.CommitChangesAsync(), Times.Never);
             fixture.Orchestrator.Verify(service => service.SendMessageAsync(It.IsAny<PackageValidationMessageData>()), Times.Never);
+        }
+
+        [Theory]
+        [InlineData("parent")]
+        [InlineData("owner")]
+        public async Task GroupedRedeliveryAfterEligibilityLossLeavesCompletionToOrchestration(string scenario)
+        {
+            var fixture = new Fixture();
+            var identity = fixture.Attempt.StagedPackageIdentity;
+            identity.StagingGroupKey = 12;
+            identity.StagingGroup = new StagingGroup { Key = 12, ActivePromotionId = fixture.Message.PromotionId };
+            var messages = new List<PackageValidationMessageData>();
+            fixture.Orchestrator.Setup(service => service.SendMessageAsync(It.IsAny<PackageValidationMessageData>()))
+                .Callback<PackageValidationMessageData>(messages.Add).Returns(Task.CompletedTask);
+            Assert.True(await fixture.Target.HandleAsync(fixture.Message));
+            if (scenario == "parent")
+            {
+                identity.Package.PackageStatusKey = PackageStatus.Deleted;
+            }
+            else
+            {
+                identity.Package.PackageRegistration.Owners.Clear();
+            }
+
+            Assert.True(await fixture.Target.HandleAsync(fixture.Message));
+
+            Assert.Equal(StagedPackageStatus.Promoting, fixture.Attempt.Status);
+            Assert.Equal(fixture.Message.PromotionId, identity.StagingGroup.ActivePromotionId);
+            Assert.Equal(2, messages.Count);
+            Assert.Equal(messages[0].ProcessValidationSet.ValidationTrackingId, messages[1].ProcessValidationSet.ValidationTrackingId);
+            fixture.Attempts.Verify(repository => repository.CommitChangesAsync(), Times.Never);
+            fixture.Groups.Verify(service => service.TryFinalizeAsync(It.IsAny<int>(), It.IsAny<Guid>()), Times.Never);
         }
 
         /// <summary>
@@ -231,7 +296,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 };
                 Attempts.Setup(repository => repository.GetAll()).Returns(new[] { Attempt }.AsQueryable());
                 Attempts.Setup(repository => repository.CommitChangesAsync()).Returns(Task.CompletedTask);
-                Target = new StagedSymbolPackagePromotionMessageHandler(Attempts.Object, Orchestrator.Object,
+                Target = new StagedSymbolPackagePromotionMessageHandler(Attempts.Object, Groups.Object, Orchestrator.Object,
                     Mock.Of<ILogger<StagedSymbolPackagePromotionMessageHandler>>());
             }
 
@@ -240,6 +305,8 @@ namespace NuGet.Services.Staging.Promotion.Tests
             public StagedSymbolPackage Attempt { get; }
 
             public Mock<IEntityRepository<StagedSymbolPackage>> Attempts { get; } = new Mock<IEntityRepository<StagedSymbolPackage>>();
+
+            public Mock<IStagingGroupPromotionService> Groups { get; } = new Mock<IStagingGroupPromotionService>();
 
             public Mock<IPackageValidationEnqueuer> Orchestrator { get; } = new Mock<IPackageValidationEnqueuer>();
 

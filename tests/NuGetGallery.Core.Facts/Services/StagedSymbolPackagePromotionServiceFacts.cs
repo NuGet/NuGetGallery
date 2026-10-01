@@ -15,21 +15,56 @@ namespace NuGetGallery
 {
     public class StagedSymbolPackagePromotionServiceFacts
     {
-        [Fact]
-        public async Task PublishesImmutableSymbolsAndRetainsAttemptUntilOrchestrationCompletes()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task PublishesImmutableSymbolsAndRetainsAttemptUntilOrchestrationCompletes(bool grouped)
         {
             var fixture = new Fixture();
+            if (grouped)
+            {
+                fixture.AddToGroup();
+            }
 
             await fixture.Target.CompleteAsync(fixture.Attempt.Key, fixture.PromotionId);
             await fixture.Target.CompleteAsync(fixture.Attempt.Key, fixture.PromotionId);
 
             Assert.Equal(PackageStatus.Available, fixture.Symbol.StatusKey);
-            Assert.Equal(StagedPackageStatus.Succeeded, fixture.Attempt.Status);
+            Assert.Equal(grouped ? StagedPackageStatus.Promoting : StagedPackageStatus.Succeeded, fixture.Attempt.Status);
             Assert.Equal(PackageStatus.Available, fixture.Parent.PackageStatusKey);
             fixture.Blobs.Verify(service => service.GetPackageReadUriAsync("symbols/43", "etag"), Times.Once);
             fixture.Files.Verify(service => service.CopyFileAsync(Fixture.UploadUri, CoreConstants.Folders.SymbolPackagesFolderName,
                 Fixture.FileName, It.Is<IAccessCondition>(condition => condition.IfNoneMatchETag == "*")), Times.Once);
             fixture.Attempts.Verify(repository => repository.DeleteOnCommit(It.IsAny<StagedSymbolPackage>()), Times.Never);
+
+            if (grouped)
+            {
+                fixture.Groups.Verify(service => service.TryFinalizeAsync(It.IsAny<int>(), It.IsAny<Guid>()), Times.Never);
+                await fixture.Target.CleanUpAsync(fixture.Attempt.Key, fixture.PromotionId);
+
+                Assert.Equal(StagedPackageStatus.Succeeded, fixture.Attempt.Status);
+                Assert.Equal(fixture.Attempt.Key, fixture.Identity.CurrentStagedSymbolPackageKey);
+                fixture.Groups.Verify(service => service.TryFinalizeAsync(fixture.Identity.StagingGroupKey.Value, fixture.PromotionId), Times.Once);
+            }
+        }
+
+        [Fact]
+        public async Task GroupedIngestionFailureBecomesTerminalOnlyAtOrchestrationCleanup()
+        {
+            var fixture = new Fixture();
+            fixture.AddToGroup();
+
+            await fixture.Target.FailAsync(fixture.Attempt.Key, fixture.PromotionId);
+
+            Assert.Equal(StagedPackageStatus.Promoting, fixture.Attempt.Status);
+            fixture.Groups.Verify(service => service.TryFinalizeAsync(It.IsAny<int>(), It.IsAny<Guid>()), Times.Never);
+            await fixture.Target.CleanUpAsync(fixture.Attempt.Key, fixture.PromotionId);
+
+            Assert.Equal(StagedPackageStatus.PromotionFailed, fixture.Attempt.Status);
+            Assert.Equal(PackageStatus.Available, fixture.Parent.PackageStatusKey);
+            Assert.Equal(PackageStatus.Staged, fixture.Symbol.StatusKey);
+            fixture.Attempts.Verify(repository => repository.DeleteOnCommit(It.IsAny<StagedSymbolPackage>()), Times.Never);
+            fixture.Groups.Verify(service => service.TryFinalizeAsync(fixture.Identity.StagingGroupKey.Value, fixture.PromotionId), Times.Once);
         }
 
         [Theory]
@@ -349,7 +384,7 @@ namespace NuGetGallery
                     .Callback<SymbolPackage, PackageStatus, bool>((symbol, status, commit) => symbol.StatusKey = status).Returns(Task.CompletedTask);
                 Blobs.Setup(service => service.GetPackageReadUriAsync("symbols/43", "etag")).ReturnsAsync(UploadUri);
                 Target = new StagedSymbolPackagePromotionService(Attempts.Object, Identities.Object, Symbols.Object, SymbolService.Object,
-                    Blobs.Object, Files.Object, Mock.Of<ILogger<StagedSymbolPackagePromotionService>>());
+                    Blobs.Object, Files.Object, Groups.Object, Mock.Of<ILogger<StagedSymbolPackagePromotionService>>());
             }
 
             public Guid PromotionId { get; } = Guid.NewGuid();
@@ -388,7 +423,15 @@ namespace NuGetGallery
 
             public Mock<ICoreFileStorageService> Files { get; } = new Mock<ICoreFileStorageService>();
 
+            public Mock<IStagingGroupPromotionService> Groups { get; } = new Mock<IStagingGroupPromotionService>();
+
             public StagedSymbolPackagePromotionService Target { get; }
+
+            public void AddToGroup()
+            {
+                Identity.StagingGroupKey = 7;
+                Identity.StagingGroup = new StagingGroup { Key = 7, ActivePromotionId = PromotionId };
+            }
 
             public void AddPublicSymbols(bool identical = false)
             {
