@@ -12,12 +12,13 @@ using NuGetGallery;
 namespace NuGet.Services.Staging.Promotion
 {
     /// <summary>
-    /// Fans out an active staging group promotion to its current package attempts.
+    /// Fans out accepted artifacts, deferring symbols until their staged parent finishes publication.
     /// </summary>
     public class StagingGroupPromotionMessageHandler : IStagingPromotionMessageHandler<StagingGroup>
     {
         private readonly IEntityRepository<StagingGroup> _stagingGroupRepository;
         private readonly IEntityRepository<StagedPackage> _stagedPackageRepository;
+        private readonly IEntityRepository<StagedSymbolPackage> _stagedSymbolPackageRepository;
         private readonly IStagingPromotionMessageEnqueuer _messageEnqueuer;
         private readonly IStagingGroupPromotionService _groupPromotionService;
         private readonly ILogger<StagingGroupPromotionMessageHandler> _logger;
@@ -27,18 +28,21 @@ namespace NuGet.Services.Staging.Promotion
         /// </summary>
         /// <param name="stagingGroupRepository">The staging group repository.</param>
         /// <param name="stagedPackageRepository">The staged package repository.</param>
+        /// <param name="stagedSymbolPackageRepository">The staged symbol repository.</param>
         /// <param name="messageEnqueuer">The staging promotion message enqueuer.</param>
         /// <param name="groupPromotionService">The group finalization service.</param>
         /// <param name="logger">The logger.</param>
         public StagingGroupPromotionMessageHandler(
             IEntityRepository<StagingGroup> stagingGroupRepository,
             IEntityRepository<StagedPackage> stagedPackageRepository,
+            IEntityRepository<StagedSymbolPackage> stagedSymbolPackageRepository,
             IStagingPromotionMessageEnqueuer messageEnqueuer,
             IStagingGroupPromotionService groupPromotionService,
             ILogger<StagingGroupPromotionMessageHandler> logger)
         {
             _stagingGroupRepository = stagingGroupRepository ?? throw new ArgumentNullException(nameof(stagingGroupRepository));
             _stagedPackageRepository = stagedPackageRepository ?? throw new ArgumentNullException(nameof(stagedPackageRepository));
+            _stagedSymbolPackageRepository = stagedSymbolPackageRepository ?? throw new ArgumentNullException(nameof(stagedSymbolPackageRepository));
             _messageEnqueuer = messageEnqueuer ?? throw new ArgumentNullException(nameof(messageEnqueuer));
             _groupPromotionService = groupPromotionService ?? throw new ArgumentNullException(nameof(groupPromotionService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -95,9 +99,24 @@ namespace NuGet.Services.Staging.Promotion
                     await _messageEnqueuer.SendMessageAsync(StagingPromotionMessage.ForPackage(message.PromotionId, stagedPackage.Key));
                 }
 
-                if (stagedPackages.Count == 0)
+                var stagedSymbols = _stagedSymbolPackageRepository.GetAll()
+                    .Where(candidate => candidate.StagedPackageIdentity.StagingGroupKey == group.Key)
+                    .Where(candidate => candidate.StagedPackageIdentity.CurrentStagedSymbolPackageKey == candidate.Key)
+                    .Where(candidate => candidate.Status == StagedPackageStatus.Promoting && candidate.ActivePromotionId == message.PromotionId)
+                    .Where(candidate => !candidate.StagedPackageIdentity.CurrentStagedPackageKey.HasValue
+                        || candidate.StagedPackageIdentity.CurrentStagedPackage.Status != StagedPackageStatus.Promoting)
+                    .OrderBy(candidate => candidate.Key)
+                    .ToList();
+                foreach (var symbols in stagedSymbols)
                 {
-                    _logger.LogInformation("No promoting packages remain; checking group finalization.");
+                    await _messageEnqueuer.SendMessageAsync(StagingPromotionMessage.ForSymbolPackage(message.PromotionId, symbols.Key));
+                    symbols.PromotionMessageSentDate = DateTime.UtcNow;
+                    await _stagedSymbolPackageRepository.CommitChangesAsync();
+                }
+
+                if (stagedPackages.Count == 0 && stagedSymbols.Count == 0)
+                {
+                    _logger.LogInformation("No artifacts to dispatch; checking group finalization.");
                     await _groupPromotionService.TryFinalizeAsync(group.Key, message.PromotionId);
                 }
 

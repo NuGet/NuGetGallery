@@ -78,11 +78,6 @@ namespace NuGet.Services.Validation.Orchestrator
                 {
                     throw new NotSupportedException("Staged symbol promotion is not enabled.");
                 }
-
-                if (attempt.StagedPackageIdentity.StagingGroupKey.HasValue)
-                {
-                    throw new NotSupportedException("Grouped symbol promotion is not enabled yet.");
-                }
             }
 
             PackageValidationSet validationSet;
@@ -165,7 +160,11 @@ namespace NuGet.Services.Validation.Orchestrator
 
             if (IsPromotionState(attempt.Status))
             {
+                var isActiveGroup = attempt.Status != StagedPackageStatus.Promoting
+                    || !identity.StagingGroupKey.HasValue
+                    || identity.StagingGroup?.ActivePromotionId == attempt.ActivePromotionId;
                 return attempt.ActivePromotionId.HasValue
+                    && isActiveGroup
                     && message.ValidationTrackingId == SymbolPromotionValidationTrackingId.Create(attempt.ActivePromotionId.Value, attempt.Key);
             }
 

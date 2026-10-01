@@ -105,6 +105,65 @@ namespace NuGet.Services.Staging.Promotion.Tests
         }
 
         [Fact]
+        public async Task RetainsPublishedArtifactsUntilSymbolOrchestrationCompletes()
+        {
+            var context = new TestContext();
+            var symbols = context.AddSymbols(StagedPackageStatus.Promoting);
+            context.Target.MarkPackageSucceeded(context.StagedPackage);
+
+            await context.Target.TryFinalizeAsync(context.StagingGroup.Key, context.PromotionId);
+
+            Assert.Equal(context.PromotionId, context.StagingGroup.ActivePromotionId);
+            Assert.Single(context.StagedPackages);
+            Assert.Single(context.StagedSymbols);
+            context.StagedPackageRepository.Verify(repository => repository.CommitChangesAsync(), Times.Never);
+            symbols.Status = StagedPackageStatus.Succeeded;
+
+            await context.Target.TryFinalizeAsync(context.StagingGroup.Key, context.PromotionId);
+
+            Assert.Empty(context.StagedPackages);
+            Assert.Empty(context.StagedSymbols);
+            Assert.Null(context.StagingGroup.ActivePromotionId);
+            Assert.Null(symbols.StagedPackageIdentity.CurrentStagedSymbolPackageKey);
+            context.StagedPackageIdentityRepository.Verify(repository => repository.DeleteOnCommit(symbols.StagedPackageIdentity), Times.Once);
+        }
+
+        [Fact]
+        public async Task FailedSymbolsKeepTheirIdentityWithoutKeepingTheSuccessfulPackageAttempt()
+        {
+            var context = new TestContext();
+            var symbols = context.AddSymbols(StagedPackageStatus.PromotionFailed);
+            context.Target.MarkPackageSucceeded(context.StagedPackage);
+
+            await context.Target.TryFinalizeAsync(context.StagingGroup.Key, context.PromotionId);
+
+            Assert.Empty(context.StagedPackages);
+            Assert.Same(symbols, Assert.Single(context.StagedSymbols));
+            Assert.Null(context.StagingGroup.ActivePromotionId);
+            Assert.Null(symbols.StagedPackageIdentity.CurrentStagedPackageKey);
+            Assert.Equal(symbols.Key, symbols.StagedPackageIdentity.CurrentStagedSymbolPackageKey);
+            Assert.Equal(context.StagingGroup.Key, symbols.StagedPackageIdentity.StagingGroupKey);
+            Assert.Equal(context.PromotionId, symbols.ActivePromotionId);
+            context.StagedPackageIdentityRepository.Verify(repository => repository.DeleteOnCommit(It.IsAny<StagedPackageIdentity>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task FinalizesASymbolOnlyGroup()
+        {
+            var context = new TestContext();
+            var symbols = context.AddSymbols(StagedPackageStatus.Succeeded);
+            context.StagedPackages.Clear();
+            symbols.StagedPackageIdentity.CurrentStagedPackageKey = null;
+            symbols.StagedPackageIdentity.CurrentStagedPackage = null;
+
+            await context.Target.TryFinalizeAsync(context.StagingGroup.Key, context.PromotionId);
+
+            Assert.Empty(context.StagedSymbols);
+            Assert.Null(context.StagingGroup.ActivePromotionId);
+            context.StagedPackageIdentityRepository.Verify(repository => repository.DeleteOnCommit(symbols.StagedPackageIdentity), Times.Once);
+        }
+
+        [Fact]
         public async Task UnlocksGroupWhenEveryMemberFailed()
         {
             var context = new TestContext();
@@ -188,6 +247,9 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 StagedPackageRepository
                     .Setup(x => x.GetAll())
                     .Returns(() => StagedPackages.AsQueryable());
+                StagedSymbolPackageRepository.Setup(repository => repository.GetAll()).Returns(() => StagedSymbols.AsQueryable());
+                StagedSymbolPackageRepository.Setup(repository => repository.DeleteOnCommit(It.IsAny<StagedSymbolPackage>()))
+                    .Callback<StagedSymbolPackage>(symbols => PendingStagedSymbolDeletes.Add(symbols));
                 StagedPackageRepository
                     .Setup(x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()))
                     .Returns((Func<Task> action) => action());
@@ -208,6 +270,11 @@ namespace NuGet.Services.Staging.Promotion.Tests
                             StagingGroups.Remove(stagingGroup);
                         }
 
+                        foreach (var symbols in PendingStagedSymbolDeletes)
+                        {
+                            StagedSymbols.Remove(symbols);
+                        }
+
                         return Task.CompletedTask;
                     });
                 StagingGroupRepository = new Mock<IEntityRepository<StagingGroup>>();
@@ -220,6 +287,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
 
                 Target = new StagingGroupPromotionService(
                     StagedPackageRepository.Object,
+                    StagedSymbolPackageRepository.Object,
                     StagedPackageIdentityRepository.Object,
                     StagingGroupRepository.Object,
                     Mock.Of<ILogger<StagingGroupPromotionService>>());
@@ -235,6 +303,24 @@ namespace NuGet.Services.Staging.Promotion.Tests
                         StagingGroup.ActivePromotionId = null;
                         return Task.FromException(new DbUpdateConcurrencyException());
                     });
+            }
+
+            public StagedSymbolPackage AddSymbols(StagedPackageStatus status)
+            {
+                var identity = StagedPackage.StagedPackageIdentity;
+                var symbols = new StagedSymbolPackage
+                {
+                    Key = 100,
+                    StagedPackageIdentity = identity,
+                    StagedPackageIdentityKey = identity.Key,
+                    ActivePromotionId = PromotionId,
+                    Status = status,
+                    SymbolPackage = new SymbolPackage { StatusKey = PackageStatus.Available },
+                };
+                identity.CurrentStagedSymbolPackageKey = symbols.Key;
+                identity.CurrentStagedSymbolPackage = symbols;
+                StagedSymbols.Add(symbols);
+                return symbols;
             }
 
             public StagedPackage AddMember(int key, StagedPackageStatus status)
@@ -264,9 +350,17 @@ namespace NuGet.Services.Staging.Promotion.Tests
             public StagedPackage StagedPackage { get; }
             public List<StagingGroup> StagingGroups { get; }
             public List<StagedPackage> StagedPackages { get; }
+
+            public List<StagedSymbolPackage> StagedSymbols { get; } = new List<StagedSymbolPackage>();
+
+            public List<StagedSymbolPackage> PendingStagedSymbolDeletes { get; } = new List<StagedSymbolPackage>();
+
             public List<StagingGroup> PendingStagingGroupDeletes { get; } = new List<StagingGroup>();
             public List<StagedPackage> PendingStagedPackageDeletes { get; } = new List<StagedPackage>();
             public Mock<IEntityRepository<StagedPackage>> StagedPackageRepository { get; }
+
+            public Mock<IEntityRepository<StagedSymbolPackage>> StagedSymbolPackageRepository { get; } = new Mock<IEntityRepository<StagedSymbolPackage>>();
+
             public Mock<IEntityRepository<StagedPackageIdentity>> StagedPackageIdentityRepository { get; }
             public Mock<IEntityRepository<StagingGroup>> StagingGroupRepository { get; }
             public StagingGroupPromotionService Target { get; }
