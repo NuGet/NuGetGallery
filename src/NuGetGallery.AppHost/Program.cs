@@ -27,6 +27,7 @@ public class Program
     private const string SymbolsOrchestratorResourceName = "symbols-orchestrator";
     private const string SymbolsValidatorResourceName = "symbols-validator";
     private const string GalleryResourceName = "gallery";
+    private const string GalleryMaintenanceResourceName = "gallery-maintenance";
 
     public static void Main(string[] args)
     {
@@ -124,6 +125,21 @@ public class Program
             "--migrations-config", "MigrationsConfiguration",
             "--config", webConfig)
             .WithParentRelationship(infraGroup);
+
+        var maintenanceConfigPath = GenerateJsonConfig(builder.AppHostDirectory, "gallery-maintenance-dev.json", new
+        {
+            GalleryDb = new { ConnectionString = config.GalleryDb.ConnectionString },
+        });
+
+        var maintenance = builder.AddProject<Projects.Gallery_Maintenance>(GalleryMaintenanceResourceName)
+            .WithArgs("-Configuration", maintenanceConfigPath, "-Sleep", "60000")
+            .WaitForCompletion(dbMigrateGallery)
+            .WithParentRelationship(infraGroup);
+
+        if (profile == "ci-gallery")
+        {
+            maintenance.WithExplicitStart();
+        }
 
         dbMigrateGallery.WithCommand(
             name: "drop-gallery-db",
@@ -730,12 +746,13 @@ public class Program
                 var logger = context.ServiceProvider.GetRequiredService<ILogger<Program>>();
                 var commandService = context.ServiceProvider.GetRequiredService<ResourceCommandService>();
 
-                // 1. Stop all V3 resources + Gallery
+                // 1. Stop pipeline, maintenance, and Gallery resources
                 var allStoppable = allV3Resources.Concat(new[]
                 {
                     ValidationOrchestratorResourceName,
                     SymbolsOrchestratorResourceName,
                     SymbolsValidatorResourceName,
+                    GalleryMaintenanceResourceName,
                     GalleryResourceName,
                 }).ToArray();
                 foreach (var name in allStoppable)
