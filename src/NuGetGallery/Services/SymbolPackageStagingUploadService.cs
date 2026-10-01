@@ -219,6 +219,7 @@ namespace NuGetGallery
                                     identity.CurrentStagedPackage.MutationRevision++;
                                 }
 
+                                previousAttempt.MutationRevision++;
                                 StagingGroupAssignment.Update(identity, group, _stagingGroupRepository);
                                 await _stagedSymbolPackageRepository.CommitChangesAsync();
                             });
