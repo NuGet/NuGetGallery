@@ -69,16 +69,29 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 It.IsAny<DateTimeOffset>()), scheduleNextCheck ? Times.Once() : Times.Never());
         }
 
-        [Fact]
-        public async Task ValidationDatabaseFailureRetainsSucceededAttemptForRetry()
+        [Theory]
+        [InlineData(false, true)]
+        [InlineData(true, true)]
+        [InlineData(true, false)]
+        public async Task ValidationDatabaseFailureRetainsAttemptForCompletionRetry(bool grouped, bool succeeded)
         {
             var fixture = new Fixture();
+            if (grouped)
+            {
+                fixture.AddToGroup();
+            }
+
+            if (!succeeded)
+            {
+                fixture.Ingestion.ValidationStatus = ValidationStatus.Failed;
+            }
+
             fixture.Storage.Setup(service => service.UpdateValidationSetAsync(fixture.Set))
                 .ThrowsAsync(new InvalidOperationException("Validation database unavailable"));
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.ProcessAsync());
 
-            Assert.Equal(StagedPackageStatus.Succeeded, fixture.Attempt.Status);
+            Assert.Equal(grouped ? StagedPackageStatus.Promoting : StagedPackageStatus.Succeeded, fixture.Attempt.Status);
             fixture.Promotion.Verify(service => service.CleanUpAsync(It.IsAny<int>(), It.IsAny<Guid>()), Times.Never);
 
             fixture.Set.ValidationSetStatus = ValidationSetStatus.InProgress;
@@ -87,7 +100,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             Assert.True(await fixture.CreateHandler(validators.Object).HandleAsync(fixture.CreateMessage("process")));
 
             Assert.Equal(ValidationSetStatus.Completed, fixture.Set.ValidationSetStatus);
-            fixture.Promotion.Verify(service => service.CompleteAsync(fixture.Attempt.Key, fixture.PromotionId), Times.Once);
+            Assert.Equal(succeeded ? StagedPackageStatus.Succeeded : StagedPackageStatus.PromotionFailed, fixture.Attempt.Status);
+            fixture.Promotion.Verify(service => service.CompleteAsync(fixture.Attempt.Key, fixture.PromotionId), succeeded ? Times.Once() : Times.Never());
             fixture.Promotion.Verify(service => service.CleanUpAsync(fixture.Attempt.Key, fixture.PromotionId), Times.Once);
             validators.VerifyNoOtherCalls();
         }
@@ -139,10 +153,20 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         [Theory]
         [InlineData("check")]
         [InlineData("fail")]
-        public async Task StaleCallbackIsDroppedBeforeReadingOrChangingValidatorStatus(string messageType)
+        [InlineData("check", true)]
+        public async Task StaleCallbackIsDroppedBeforeReadingOrChangingValidatorStatus(string messageType, bool inactiveGroup = false)
         {
             var fixture = new Fixture();
-            fixture.Attempt.ActivePromotionId = Guid.NewGuid();
+            if (inactiveGroup)
+            {
+                fixture.AddToGroup();
+                fixture.Attempt.StagedPackageIdentity.StagingGroup.ActivePromotionId = Guid.NewGuid();
+            }
+            else
+            {
+                fixture.Attempt.ActivePromotionId = Guid.NewGuid();
+            }
+
             var validators = new Mock<IValidationSetProcessor>(MockBehavior.Strict);
 
             Assert.True(await fixture.CreateHandler(validators.Object).HandleAsync(fixture.CreateMessage(messageType)));
@@ -310,6 +334,33 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             public Mock<IFeatureFlagService> Features { get; } = new Mock<IFeatureFlagService>();
 
             public StagedSymbolPackageValidationOutcomeProcessor Target { get; set; }
+
+            public void AddToGroup()
+            {
+                Attempt.StagedPackageIdentity.StagingGroupKey = 7;
+                Attempt.StagedPackageIdentity.StagingGroup = new StagingGroup { Key = 7, ActivePromotionId = PromotionId };
+                Attempt.SymbolPackage = new SymbolPackage { StatusKey = PackageStatus.Staged };
+                Promotion.Setup(service => service.CompleteAsync(Attempt.Key, PromotionId)).Callback(() =>
+                {
+                    Calls.Add("publish");
+                    Attempt.SymbolPackage.StatusKey = PackageStatus.Available;
+                }).Returns(Task.CompletedTask);
+                Promotion.Setup(service => service.FailAsync(Attempt.Key, PromotionId))
+                    .Callback(() => Calls.Add("fail")).Returns(Task.CompletedTask);
+                Promotion.Setup(service => service.CleanUpAsync(Attempt.Key, PromotionId)).Callback(() =>
+                {
+                    Assert.Equal(ValidationSetStatus.Completed, Set.ValidationSetStatus);
+                    Calls.Add("cleanup");
+                    if (Attempt.SymbolPackage.StatusKey == PackageStatus.Available)
+                    {
+                        Attempt.Status = StagedPackageStatus.Succeeded;
+                    }
+                    else
+                    {
+                        Attempt.Status = StagedPackageStatus.PromotionFailed;
+                    }
+                }).Returns(Task.CompletedTask);
+            }
 
             public Task ProcessAsync(bool scheduleNextCheck = true)
             {

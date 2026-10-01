@@ -184,7 +184,7 @@
             return false;
         };
         this.PromoteGroup = function () {
-            const message = `Promote all staged packages in ${data.Name}?`;
+            const message = `Promote all staged packages and symbols in ${data.Name}? Symbols will be promoted after their parent packages are published.`;
             if (!self.IsPromotingGroup() && window.nuget.confirmEvent(message)) {
                 self.IsPromotingGroup(true);
                 return true;

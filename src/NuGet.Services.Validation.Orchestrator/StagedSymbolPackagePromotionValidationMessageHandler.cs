@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -157,7 +158,18 @@ namespace NuGet.Services.Validation.Orchestrator
                 return true;
             }
 
-            if (set.ValidationSetStatus == ValidationSetStatus.Completed || entity.EntityRecord.Status != StagedPackageStatus.Promoting)
+            var attempt = entity.EntityRecord;
+            var isGrouped = attempt.StagedPackageIdentity.StagingGroupKey.HasValue;
+            var isPublishedGroupSymbol = isGrouped && attempt.SymbolPackage.StatusKey == PackageStatus.Available;
+            var hasTerminalGroupIngestion = false;
+            if (isGrouped)
+            {
+                var ingestionStatus = set.PackageValidations.Single().ValidationStatus;
+                hasTerminalGroupIngestion = ingestionStatus == ValidationStatus.Succeeded || ingestionStatus == ValidationStatus.Failed;
+            }
+
+            var isCompleting = set.ValidationSetStatus == ValidationSetStatus.Completed || attempt.Status != StagedPackageStatus.Promoting;
+            if (isCompleting || isPublishedGroupSymbol || hasTerminalGroupIngestion)
             {
                 await _outcome.ProcessValidationOutcomeAsync(set, entity, new ValidationSetProcessorResult(), scheduleNextCheck: false);
                 return true;

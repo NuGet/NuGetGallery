@@ -275,20 +275,44 @@ namespace NuGetGallery
             AssertError(target, result, HttpStatusCode.Conflict, "GroupAlreadyExists", "id");
         }
 
-        [Fact]
-        public void GetsPagedStagingGroups()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        [InlineData(true, PackageStatus.Deleted)]
+        public void GetsPagedStagingGroups(bool withSymbols, PackageStatus parentStatus = PackageStatus.Available)
         {
             var currentUser = new User("current") { Key = 1 };
             var owner = new User("example-org") { Key = 2 };
             var olderGroup = CreateStagingGroup(10, "older", "Older", owner, new DateTime(2026, 9, 1));
             var newerGroup = CreateStagingGroup(11, "newer", "Newer", owner, new DateTime(2026, 9, 2));
+            var parent = CreateStagedPackage(owner);
+            var identity = parent.StagedPackageIdentity;
+            identity.Package.PackageStatusKey = parentStatus;
+            identity.CurrentStagedPackageKey = null;
+            identity.CurrentStagedPackage = null;
+            identity.StagingGroupKey = newerGroup.Key;
+            identity.StagingGroup = newerGroup;
+            var symbols = new StagedSymbolPackage
+            {
+                Key = 50,
+                StagedPackageIdentity = identity,
+                StagedPackageIdentityKey = identity.Key,
+                SymbolPackage = new SymbolPackage { StatusKey = PackageStatus.Staged },
+                Status = StagedPackageStatus.Ready,
+            };
+            identity.CurrentStagedSymbolPackageKey = symbols.Key;
+            var groupSymbols = Array.Empty<StagedSymbolPackage>();
+            if (withSymbols)
+            {
+                groupSymbols = new[] { symbols };
+            }
+
+            var summary = new StagingGroupSummary(newerGroup, Array.Empty<StagedPackage>(), groupSymbols);
             var target = GetController<StagingApiController>();
             ConfigureCreateGroupRequest(target, currentUser, owner);
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.GetStagingGroupSummaryPage(owner, 1, 1))
-                .Returns(new StagingGroupSummaryPage(
-                    new[] { new StagingGroupSummary(newerGroup, Array.Empty<StagedPackage>()) },
-                    totalCount: 2));
+                .Returns(new StagingGroupSummaryPage(new[] { summary }, totalCount: 2));
 
             var result = target.GetStagingGroups(page: 1, pageSize: 1);
 
@@ -297,6 +321,7 @@ namespace NuGetGallery
             Assert.Equal(1, (int)body["pageSize"]);
             Assert.Equal(2, (int)body["totalCount"]);
             Assert.Equal("newer", (string)body["items"][0]["id"]);
+            Assert.Equal(withSymbols && parentStatus == PackageStatus.Available, (bool)body["items"][0]["canPromote"]);
             Assert.EndsWith("Z", (string)body["items"][0]["created"]);
             Assert.EndsWith("Z", (string)body["items"][0]["expires"]);
         }
@@ -349,19 +374,35 @@ namespace NuGetGallery
             var symbols = new StagedSymbolPackage { Key = 50, StagedPackageIdentity = package.StagedPackageIdentity, SymbolPackage = new SymbolPackage { StatusKey = PackageStatus.Staged }, Status = symbolStatus, UploadedDate = package.UploadedDate.AddMinutes(-1) };
             var target = GetController<StagingApiController>();
             ConfigureCreateGroupRequest(target, currentUser, owner);
+            var groupSymbols = Array.Empty<StagedSymbolPackage>();
+            if (withSymbols)
+            {
+                groupSymbols = new[] { symbols };
+            }
+
+            var itemCount = 1 + groupSymbols.Length;
+            var allReady = !withSymbols || symbolStatus == StagedPackageStatus.Ready;
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.GetStagingGroupPackagePage(owner, "RELEASE", 1, 100))
-                .Returns(new StagingGroupPackagePage(group, new[] { package }, withSymbols ? 2 : 1, true, withSymbols ? new[] { symbols } : Array.Empty<StagedSymbolPackage>(), withSymbols ? 1 : 0));
+                .Returns(new StagingGroupPackagePage(group, new[] { package }, itemCount, allReady, groupSymbols, groupSymbols.Length));
 
             var result = target.GetStagingGroup("RELEASE");
 
             var body = ParseJsonContent(result);
             Assert.Equal("release", (string)body["group"]["id"]);
             Assert.Equal(withSymbols ? 2 : 1, (int)body["group"]["itemCount"]);
-            Assert.Equal(!withSymbols, (bool)body["group"]["canPromote"]);
+            Assert.Equal(!withSymbols || symbolStatus == StagedPackageStatus.Ready, (bool)body["group"]["canPromote"]);
             if (withSymbols)
             {
-                Assert.Equal("SymbolPromotionUnavailable", (string)body["group"]["blockers"][0]["code"]);
+                if (symbolStatus != StagedPackageStatus.Ready)
+                {
+                    Assert.Equal("GroupNotReady", (string)body["group"]["blockers"][0]["code"]);
+                }
+                else
+                {
+                    Assert.Empty(body["group"]["blockers"]);
+                }
+
                 Assert.Equal("symbols", (string)body["items"][1]["kind"]);
                 Assert.Equal(symbolStatus == StagedPackageStatus.WaitingForParent ? "waitingForParent" : "ready", (string)body["items"][1]["status"]);
                 if (symbolStatus == StagedPackageStatus.WaitingForParent)

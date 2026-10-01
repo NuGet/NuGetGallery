@@ -252,6 +252,10 @@ namespace NuGet.Services.Validation.Orchestrator
                 .Keyed<ICoreFileStorageService>(PackageStorageBindingKey);
 
             containerBuilder
+                .RegisterType<StagingGroupPromotionService>()
+                .As<IStagingGroupPromotionService>();
+
+            containerBuilder
                 .RegisterType<StagedSymbolPackagePromotionService>()
                 .WithKeyedParameter(typeof(ICoreFileStorageService), PackageStorageBindingKey)
                 .As<IStagedSymbolPackagePromotionService>();

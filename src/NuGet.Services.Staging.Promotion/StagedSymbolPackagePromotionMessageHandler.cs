@@ -19,15 +19,18 @@ namespace NuGet.Services.Staging.Promotion
     public class StagedSymbolPackagePromotionMessageHandler : IStagingPromotionMessageHandler<StagedSymbolPackage>
     {
         private readonly IEntityRepository<StagedSymbolPackage> _attempts;
+        private readonly IStagingGroupPromotionService _groups;
         private readonly IPackageValidationEnqueuer _symbolsOrchestrator;
         private readonly ILogger<StagedSymbolPackagePromotionMessageHandler> _logger;
 
         public StagedSymbolPackagePromotionMessageHandler(
             IEntityRepository<StagedSymbolPackage> attempts,
+            IStagingGroupPromotionService groups,
             IPackageValidationEnqueuer symbolsOrchestrator,
             ILogger<StagedSymbolPackagePromotionMessageHandler> logger)
         {
             _attempts = attempts ?? throw new ArgumentNullException(nameof(attempts));
+            _groups = groups ?? throw new ArgumentNullException(nameof(groups));
             _symbolsOrchestrator = symbolsOrchestrator ?? throw new ArgumentNullException(nameof(symbolsOrchestrator));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -46,9 +49,9 @@ namespace NuGet.Services.Staging.Promotion
 
             var attempt = _attempts.GetAll().Include(candidate => candidate.SymbolPackage)
                 .Include(candidate => candidate.StagedPackageIdentity.Package.PackageRegistration.Owners)
+                .Include(candidate => candidate.StagedPackageIdentity.StagingGroup)
                 .SingleOrDefault(candidate => candidate.Key == message.TargetKey);
             if (attempt == null
-                || attempt.Status != StagedPackageStatus.Promoting
                 || attempt.ActivePromotionId != message.PromotionId
                 || attempt.StagedPackageIdentity.CurrentStagedSymbolPackageKey != attempt.Key)
             {
@@ -57,19 +60,46 @@ namespace NuGet.Services.Staging.Promotion
             }
 
             var identity = attempt.StagedPackageIdentity;
-            if (identity.StagingGroupKey.HasValue)
+            if (identity.StagingGroupKey.HasValue && identity.StagingGroup?.ActivePromotionId != message.PromotionId)
             {
-                throw new NotSupportedException("Grouped symbol promotion is not enabled yet.");
+                _logger.LogInformation("Ignoring inactive group symbol promotion {PromotionId}.", message.PromotionId);
+                return true;
+            }
+
+            if (attempt.Status != StagedPackageStatus.Promoting)
+            {
+                var isTerminal = attempt.Status == StagedPackageStatus.Succeeded || attempt.Status == StagedPackageStatus.PromotionFailed;
+                if (identity.StagingGroupKey.HasValue && isTerminal)
+                {
+                    _logger.LogInformation("Resuming staging group finalization for an already completed symbol.");
+                    await _groups.TryFinalizeAsync(identity.StagingGroupKey.Value, message.PromotionId);
+                }
+                else
+                {
+                    _logger.LogInformation("Ignoring inactive symbol promotion {PromotionId} for attempt {AttemptKey}.", message.PromotionId, message.TargetKey);
+                }
+
+                return true;
             }
 
             var package = identity.Package;
-            if (package.PackageStatusKey != PackageStatus.Available
-                || attempt.SymbolPackage.StatusKey != PackageStatus.Staged
-                || !package.PackageRegistration.Owners.Any(owner => owner.Key == identity.OwnerKey))
+            var isPublishedGroupSymbol = identity.StagingGroupKey.HasValue && attempt.SymbolPackage.StatusKey == PackageStatus.Available;
+            var isEligible = package.PackageStatusKey == PackageStatus.Available && attempt.SymbolPackage.StatusKey == PackageStatus.Staged;
+            if (isEligible)
+            {
+                isEligible = package.PackageRegistration.Owners.Any(owner => owner.Key == identity.OwnerKey);
+            }
+
+            if (!isPublishedGroupSymbol && !isEligible)
             {
                 _logger.LogWarning("Symbol promotion {PromotionId} is no longer eligible.", message.PromotionId);
                 attempt.Status = StagedPackageStatus.PromotionFailed;
                 await _attempts.CommitChangesAsync();
+                if (identity.StagingGroupKey.HasValue)
+                {
+                    await _groups.TryFinalizeAsync(identity.StagingGroupKey.Value, message.PromotionId);
+                }
+
                 return true;
             }
 

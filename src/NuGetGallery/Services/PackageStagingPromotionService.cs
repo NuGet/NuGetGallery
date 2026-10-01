@@ -251,16 +251,15 @@ namespace NuGetGallery
                 .Where(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Staged)
                 .Where(stagedPackage => stagedPackage.Status != StagedPackageStatus.Superseded && stagedPackage.Status != StagedPackageStatus.Deleted)
                 .ToList();
-            var containsSymbols = _stagedSymbolPackageRepository.GetAll()
+            var stagedSymbols = _stagedSymbolPackageRepository.GetAll()
+                .Include(symbol => symbol.SymbolPackage)
+                .Include(symbol => symbol.StagedPackageIdentity.Package.PackageRegistration.Owners)
+                .Include(symbol => symbol.StagedPackageIdentity.Owner)
                 .Where(symbol => symbol.StagedPackageIdentity.StagingGroupKey == group.Key)
                 .Where(symbol => symbol.StagedPackageIdentity.CurrentStagedSymbolPackageKey == symbol.Key)
-                .Any(symbol => symbol.SymbolPackage.StatusKey == PackageStatus.Staged);
-            if (containsSymbols)
-            {
-                return StagingGroupPromotionResult.SymbolsNotSupported;
-            }
+                .ToList();
 
-            if (stagedPackages.Count == 0)
+            if (stagedPackages.Count + stagedSymbols.Count == 0)
             {
                 return StagingGroupPromotionResult.Empty;
             }
@@ -270,9 +269,24 @@ namespace NuGetGallery
                 return StagingGroupPromotionResult.Unauthorized;
             }
 
+            if (stagedSymbols.Any(symbol => !_authorizationService.CanManage(currentUser, symbol)))
+            {
+                return StagingGroupPromotionResult.Unauthorized;
+            }
+
             if (stagedPackages.Any(stagedPackage => stagedPackage.Status != StagedPackageStatus.Ready))
             {
                 return StagingGroupPromotionResult.NotReady;
+            }
+
+            foreach (var symbol in stagedSymbols)
+            {
+                var parent = stagedPackages.SingleOrDefault(package => package.StagedPackageIdentityKey == symbol.StagedPackageIdentityKey);
+                var blockers = StagedSymbolPackagePromotionEligibility.GetBlockers(symbol, parent, forGroup: true);
+                if (blockers.Count > 0)
+                {
+                    return StagingGroupPromotionResult.NotReady;
+                }
             }
 
             if (group.ActivePromotionId.HasValue)
@@ -289,6 +303,13 @@ namespace NuGetGallery
                 {
                     stagedPackage.ActivePromotionId = promotionId;
                     stagedPackage.Status = StagedPackageStatus.Promoting;
+                }
+
+                foreach (var symbol in stagedSymbols)
+                {
+                    symbol.ActivePromotionId = promotionId;
+                    symbol.Status = StagedPackageStatus.Promoting;
+                    symbol.PromotionMessageSentDate = null;
                 }
 
                 await _stagedPackageRepository.CommitChangesAsync();

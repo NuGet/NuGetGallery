@@ -8,14 +8,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Entities;
-using NuGetGallery;
 
-namespace NuGet.Services.Staging.Promotion
+namespace NuGetGallery
 {
     /// <inheritdoc />
     public class StagingGroupPromotionService : IStagingGroupPromotionService
     {
         private readonly IEntityRepository<StagedPackage> _stagedPackageRepository;
+        private readonly IEntityRepository<StagedSymbolPackage> _stagedSymbolPackageRepository;
         private readonly IEntityRepository<StagedPackageIdentity> _stagedPackageIdentityRepository;
         private readonly IEntityRepository<StagingGroup> _stagingGroupRepository;
         private readonly ILogger<StagingGroupPromotionService> _logger;
@@ -24,16 +24,19 @@ namespace NuGet.Services.Staging.Promotion
         /// Initializes a new instance of the <see cref="StagingGroupPromotionService"/> class.
         /// </summary>
         /// <param name="stagedPackageRepository">The staged package repository.</param>
+        /// <param name="stagedSymbolPackageRepository">The staged symbol repository.</param>
         /// <param name="stagedPackageIdentityRepository">The staging identity repository.</param>
         /// <param name="stagingGroupRepository">The staging group repository.</param>
         /// <param name="logger">The logger.</param>
         public StagingGroupPromotionService(
             IEntityRepository<StagedPackage> stagedPackageRepository,
+            IEntityRepository<StagedSymbolPackage> stagedSymbolPackageRepository,
             IEntityRepository<StagedPackageIdentity> stagedPackageIdentityRepository,
             IEntityRepository<StagingGroup> stagingGroupRepository,
             ILogger<StagingGroupPromotionService> logger)
         {
             _stagedPackageRepository = stagedPackageRepository ?? throw new ArgumentNullException(nameof(stagedPackageRepository));
+            _stagedSymbolPackageRepository = stagedSymbolPackageRepository ?? throw new ArgumentNullException(nameof(stagedSymbolPackageRepository));
             _stagedPackageIdentityRepository = stagedPackageIdentityRepository ?? throw new ArgumentNullException(nameof(stagedPackageIdentityRepository));
             _stagingGroupRepository = stagingGroupRepository ?? throw new ArgumentNullException(nameof(stagingGroupRepository));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -101,17 +104,21 @@ namespace NuGet.Services.Staging.Promotion
                             .Where(candidate => candidate.ActivePromotionId == promotionId)
                             .ToList();
 
-                        var remainingPackageCount = activeMembers.Count(candidate => candidate.Status != StagedPackageStatus.Succeeded && candidate.Status != StagedPackageStatus.PromotionFailed);
-                        if (activeMembers.Count == 0 || remainingPackageCount > 0)
+                        var activeSymbols = _stagedSymbolPackageRepository.GetAll()
+                            .Include(candidate => candidate.StagedPackageIdentity)
+                            .Where(candidate => candidate.StagedPackageIdentity.StagingGroupKey == stagingGroupKey)
+                            .Where(candidate => candidate.StagedPackageIdentity.CurrentStagedSymbolPackageKey == candidate.Key)
+                            .Where(candidate => candidate.ActivePromotionId == promotionId)
+                            .ToList();
+
+                        var remainingCount = activeMembers.Count(candidate => !IsTerminal(candidate.Status));
+                        remainingCount += activeSymbols.Count(candidate => !IsTerminal(candidate.Status));
+                        if (activeMembers.Count + activeSymbols.Count == 0 || remainingCount > 0)
                         {
-                            _logger.LogInformation("Group finalization is not ready while {RemainingPackageCount} packages remain.", remainingPackageCount);
+                            _logger.LogInformation("Group finalization is not ready while {RemainingCount} artifacts remain.", remainingCount);
                             return;
                         }
 
-                        var completedIdentities = activeMembers
-                            .Where(x => x.Status == StagedPackageStatus.Succeeded && !x.StagedPackageIdentity.CurrentStagedSymbolPackageKey.HasValue)
-                            .Select(x => x.StagedPackageIdentity)
-                            .ToList();
                         foreach (var activeMember in activeMembers)
                         {
                             if (activeMember.Status == StagedPackageStatus.Succeeded)
@@ -120,11 +127,6 @@ namespace NuGet.Services.Staging.Promotion
                                 identity.CurrentStagedPackageKey = null;
                                 identity.CurrentStagedPackage = null;
                                 _stagedPackageRepository.DeleteOnCommit(activeMember);
-                                if (!identity.CurrentStagedSymbolPackageKey.HasValue)
-                                {
-                                    identity.StagingGroupKey = null;
-                                    identity.StagingGroup = null;
-                                }
                             }
                             else
                             {
@@ -132,7 +134,27 @@ namespace NuGet.Services.Staging.Promotion
                             }
                         }
 
+                        foreach (var symbols in activeSymbols.Where(candidate => candidate.Status == StagedPackageStatus.Succeeded))
+                        {
+                            var identity = symbols.StagedPackageIdentity;
+                            identity.CurrentStagedSymbolPackageKey = null;
+                            identity.CurrentStagedSymbolPackage = null;
+                            _stagedSymbolPackageRepository.DeleteOnCommit(symbols);
+                        }
+
+                        var completedIdentities = activeMembers.Select(candidate => candidate.StagedPackageIdentity)
+                            .Concat(activeSymbols.Select(candidate => candidate.StagedPackageIdentity))
+                            .Distinct()
+                            .Where(identity => !identity.CurrentStagedPackageKey.HasValue && !identity.CurrentStagedSymbolPackageKey.HasValue)
+                            .ToList();
+                        foreach (var identity in completedIdentities)
+                        {
+                            identity.StagingGroupKey = null;
+                            identity.StagingGroup = null;
+                        }
+
                         stagingGroup.ActivePromotionId = null;
+                        stagingGroup.PromotionMessageSentDate = null;
                         await _stagedPackageRepository.CommitChangesAsync();
 
                         if (completedIdentities.Count > 0)
@@ -146,10 +168,14 @@ namespace NuGet.Services.Staging.Promotion
                             await _stagedPackageRepository.CommitChangesAsync();
                         }
 
+                        var succeededCount = activeMembers.Count(candidate => candidate.Status == StagedPackageStatus.Succeeded);
+                        succeededCount += activeSymbols.Count(candidate => candidate.Status == StagedPackageStatus.Succeeded);
+                        var failedCount = activeMembers.Count(candidate => candidate.Status == StagedPackageStatus.PromotionFailed);
+                        failedCount += activeSymbols.Count(candidate => candidate.Status == StagedPackageStatus.PromotionFailed);
                         _logger.LogInformation(
-                            "Completed staging group promotion with {SucceededCount} successful and {FailedCount} failed packages; retained the group.",
-                            activeMembers.Count(candidate => candidate.Status == StagedPackageStatus.Succeeded),
-                            activeMembers.Count(candidate => candidate.Status == StagedPackageStatus.PromotionFailed));
+                            "Completed staging group promotion with {SucceededCount} successful and {FailedCount} failed artifacts; retained the group.",
+                            succeededCount,
+                            failedCount);
                     });
                 }
                 catch (DbUpdateConcurrencyException)
@@ -167,6 +193,11 @@ namespace NuGet.Services.Staging.Promotion
                     throw;
                 }
             }
+        }
+
+        private static bool IsTerminal(StagedPackageStatus status)
+        {
+            return status == StagedPackageStatus.Succeeded || status == StagedPackageStatus.PromotionFailed;
         }
     }
 }
