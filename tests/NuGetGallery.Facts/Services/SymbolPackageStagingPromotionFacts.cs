@@ -14,10 +14,20 @@ namespace NuGetGallery
 {
     public class SymbolPackageStagingPromotionFacts
     {
-        [Fact]
-        public async Task CommitsExactSymbolAttemptBeforeDispatchWithoutPublishingItsEntities()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task CommitsExactSymbolAttemptBeforeDispatchWithoutPublishingItsEntities(bool hasPublicSymbols)
         {
             var fixture = new Fixture();
+            if (hasPublicSymbols)
+            {
+                fixture.Attempt.StagedPackageIdentity.Package.SymbolPackages.Add(new SymbolPackage { StatusKey = PackageStatus.Available });
+            }
+
+            var response = StagingArtifactResponse.FromSymbolPackage(fixture.Attempt, DateTime.UtcNow.AddDays(30), "management");
+            Assert.True(response.CanPromote);
+            Assert.Empty(response.Blockers);
             var committed = new TaskCompletionSource<bool>();
             fixture.Repository.Setup(x => x.CommitChangesAsync()).Returns(committed.Task);
             StagingPromotionMessage message = null;
@@ -42,10 +52,9 @@ namespace NuGetGallery
 
         [Theory]
         [InlineData("validating", PackageStagingPromotionResult.NotReady)]
-        [InlineData("failed", PackageStagingPromotionResult.NotReady)]
+        [InlineData("validation-failed", PackageStagingPromotionResult.NotReady)]
         [InlineData("private-parent", PackageStagingPromotionResult.NotReady)]
         [InlineData("deleted-parent", PackageStagingPromotionResult.NotReady)]
-        [InlineData("public-symbols", PackageStagingPromotionResult.NotReady)]
         [InlineData("stale-attempt", PackageStagingPromotionResult.NotReady)]
         [InlineData("published-attempt", PackageStagingPromotionResult.NotReady)]
         [InlineData("grouped", PackageStagingPromotionResult.Grouped)]
@@ -58,17 +67,14 @@ namespace NuGetGallery
                 case "validating":
                     fixture.Attempt.Status = StagedPackageStatus.Validating;
                     break;
-                case "failed":
-                    fixture.Attempt.Status = StagedPackageStatus.PromotionFailed;
+                case "validation-failed":
+                    fixture.Attempt.Status = StagedPackageStatus.FailedValidation;
                     break;
                 case "private-parent":
                     identity.Package.PackageStatusKey = PackageStatus.Staged;
                     break;
                 case "deleted-parent":
                     identity.Package.PackageStatusKey = PackageStatus.Deleted;
-                    break;
-                case "public-symbols":
-                    identity.Package.SymbolPackages.Add(new SymbolPackage { StatusKey = PackageStatus.Available });
                     break;
                 case "stale-attempt":
                     identity.CurrentStagedSymbolPackageKey++;
@@ -154,6 +160,28 @@ namespace NuGetGallery
         }
 
         [Fact]
+        public async Task FailedPromotionCannotBePromotedOrResent()
+        {
+            var fixture = new Fixture();
+            fixture.Attempt.Status = StagedPackageStatus.PromotionFailed;
+            var promotionId = Guid.NewGuid();
+            fixture.Attempt.ActivePromotionId = promotionId;
+            fixture.Attempt.PromotionMessageSentDate = DateTime.UtcNow.AddHours(-2);
+            fixture.Attempt.StagedPackageIdentity.Package.SymbolPackages.Add(new SymbolPackage { StatusKey = PackageStatus.Available });
+
+            var response = StagingArtifactResponse.FromSymbolPackage(fixture.Attempt, DateTime.UtcNow.AddDays(30), "management");
+            Assert.False(response.CanPromote);
+            Assert.Contains(response.Blockers, blocker => blocker.Code == "SymbolsNotReady");
+            Assert.Equal(PackageStagingPromotionResult.NotReady, await fixture.Service.PromoteSymbolPackageAsync(fixture.Owner, fixture.Attempt));
+            Assert.Equal(PackageStagingPromotionResult.NotReady, await fixture.Service.ResendSymbolPackageAsync(fixture.Owner, fixture.Attempt));
+
+            Assert.Equal(StagedPackageStatus.PromotionFailed, fixture.Attempt.Status);
+            Assert.Equal(promotionId, fixture.Attempt.ActivePromotionId);
+            fixture.Repository.Verify(x => x.CommitChangesAsync(), Times.Never);
+            fixture.Enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
+        }
+
+        [Fact]
         public async Task ResendsPreexistingActivePromotionWithoutASentDate()
         {
             var fixture = new Fixture();
@@ -171,9 +199,8 @@ namespace NuGetGallery
 
         [Theory]
         [InlineData(StagedPackageStatus.Promoting, -59, true)]
-        [InlineData(StagedPackageStatus.PromotionFailed, -120, true)]
         [InlineData(StagedPackageStatus.Promoting, -120, false)]
-        public async Task DoesNotResendRecentFailedOrUncorrelatedPromotions(StagedPackageStatus status, int minutesAgo, bool correlated)
+        public async Task DoesNotResendRecentOrUncorrelatedPromotions(StagedPackageStatus status, int minutesAgo, bool correlated)
         {
             var fixture = new Fixture();
             fixture.Attempt.Status = status;
