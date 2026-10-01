@@ -20,6 +20,8 @@ namespace NuGetGallery
         DbSet<UserSecurityPolicy> UserSecurityPolicies { get; set; }
         DbSet<ReservedNamespace> ReservedNamespaces { get; set; }
         DbSet<UserCertificate> UserCertificates { get; set; }
+        DbSet<DurableIdentityValue> DurableIdentityValues { get; set; }
+        DbSet<UserDurableIdentityValue> UserDurableIdentityValues { get; set; }
         DbSet<SymbolPackage> SymbolPackages { get; set; }
         DbSet<PackageVulnerability> Vulnerabilities { get; set; }
         DbSet<VulnerablePackageVersionRange> VulnerableRanges { get; set; }

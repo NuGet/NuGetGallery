@@ -2,7 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
+using NuGetGallery.Features;
 
 namespace NuGet.Jobs.Validation
 {
@@ -36,6 +38,14 @@ namespace NuGet.Jobs.Validation
         {
             return _featureFlagClient.IsEnabled(
                 ValidationPrefix + "DerOrderingEnforcement",
+                defaultValue: false);
+        }
+
+        public bool IsArtifactSigningDurableIdentityEnabled(User account)
+        {
+            return _featureFlagClient.IsEnabled(
+                ValidationPrefix + "ArtifactSigningDurableIdentity",
+                account,
                 defaultValue: false);
         }
     }

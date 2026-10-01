@@ -52,6 +52,7 @@ namespace NuGet.Services.Entities
             Roles = new List<Role>();
             Username = username;
             UserCertificates = new List<UserCertificate>();
+            UserDurableIdentityValues = new List<UserDurableIdentityValue>();
         }
 
         /// <summary>
@@ -140,6 +141,11 @@ namespace NuGet.Services.Entities
         /// Gets or sets the collection of user certificates.
         /// </summary>
         public virtual ICollection<UserCertificate> UserCertificates { get; set; }
+
+        /// <summary>
+        /// Gets or sets the collection of durable identity values linked to this user.
+        /// </summary>
+        public virtual ICollection<UserDurableIdentityValue> UserDurableIdentityValues { get; set; }
 
         public void ConfirmEmailAddress()
         {

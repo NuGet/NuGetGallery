@@ -37,6 +37,8 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
         private readonly ISignaturePartsExtractor _signaturePartsExtractor;
         private readonly IProcessorPackageFileService _packageFileService;
         private readonly ICorePackageService _corePackageService;
+        private readonly IArtifactSigningCertificateReader _artifactSigningCertificateReader;
+        private readonly IDurableIdentityValueService _durableIdentityValueService;
         private readonly IOptionsSnapshot<ProcessSignatureConfiguration> _configuration;
         private readonly SasDefinitionConfiguration _sasDefinitionConfiguration;
         private readonly IFeatureFlagService _featureFlagService;
@@ -49,6 +51,8 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             ISignaturePartsExtractor signaturePartsExtractor,
             IProcessorPackageFileService packageFileService,
             ICorePackageService corePackageService,
+            IArtifactSigningCertificateReader artifactSigningCertificateReader,
+            IDurableIdentityValueService durableIdentityValueService,
             IOptionsSnapshot<ProcessSignatureConfiguration> configuration,
             IOptionsSnapshot<SasDefinitionConfiguration> sasDefinitionConfigurationAccessor,
             IFeatureFlagService featureFlagService,
@@ -60,6 +64,8 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             _signaturePartsExtractor = signaturePartsExtractor ?? throw new ArgumentNullException(nameof(signaturePartsExtractor));
             _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
             _corePackageService = corePackageService ?? throw new ArgumentNullException(nameof(corePackageService));
+            _artifactSigningCertificateReader = artifactSigningCertificateReader ?? throw new ArgumentNullException(nameof(artifactSigningCertificateReader));
+            _durableIdentityValueService = durableIdentityValueService ?? throw new ArgumentNullException(nameof(durableIdentityValueService));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _sasDefinitionConfiguration = (sasDefinitionConfigurationAccessor == null || sasDefinitionConfigurationAccessor.Value == null) ? new SasDefinitionConfiguration() : sasDefinitionConfigurationAccessor.Value;
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
@@ -694,6 +700,20 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
 
             if (context.Signature.Type == SignatureType.Author)
             {
+                // The durable identity value is only set when the package is not yet available, so revalidation never
+                // changes account links. This must run before the package certificate is updated because a rotated
+                // Artifact Signing certificate may not have a certificate record yet.
+                if (context.DurableIdentityValue != null)
+                {
+                    await _durableIdentityValueService.ProcessAsync(
+                        context.Message,
+                        packageRegistration,
+                        signingCertificate,
+                        signingFingerprint,
+                        context.DurableIdentityValue,
+                        context.Signature.Timestamps.Single().GeneralizedTime);
+                }
+
                 await _corePackageService.UpdatePackageSigningCertificateAsync(
                     context.Message.PackageId,
                     context.Message.PackageVersion,
@@ -743,8 +763,10 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                 var signingCertificate = context.Signature.SignerInfo.Certificate;
                 var signingFingerprint = signingCertificate.ComputeSHA256Thumbprint();
 
+                context.DurableIdentityValue = GetDurableIdentityValue(context, packageRegistration);
+
                 // Block packages with any unknown signing certificates.
-                if (!packageRegistration.IsAcceptableSigningCertificate(signingFingerprint))
+                if (!packageRegistration.IsAcceptableSigningCertificate(signingFingerprint, context.DurableIdentityValue))
                 {
                     _logger.LogWarning(
                         "Signed package {PackageId} {PackageVersion} is blocked for validation {ValidationId} since it has an unknown certificate fingerprint: {UnknownFingerprint}",
@@ -760,6 +782,31 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             }
 
             return null;
+        }
+
+        private string GetDurableIdentityValue(Context context, PackageRegistration packageRegistration)
+        {
+            // Only inspect the certificate chain when a durable identity value could matter for this package.
+            var signingAccounts = packageRegistration.GetSigningAccounts();
+            if (!signingAccounts.Any(account => account.UserDurableIdentityValues.Any()
+                || _featureFlagService.IsArtifactSigningDurableIdentityEnabled(account)))
+            {
+                return null;
+            }
+
+            if (!_artifactSigningCertificateReader.TryGetDurableIdentityValue(context.Signature, out var durableIdentityValue))
+            {
+                return null;
+            }
+
+            _logger.LogInformation(
+                "Signed package {PackageId} {PackageVersion} for validation {ValidationId} has durable identity value {DurableIdentityValue}.",
+                context.Message.PackageId,
+                context.Message.PackageVersion,
+                context.Message.ValidationId,
+                durableIdentityValue);
+
+            return durableIdentityValue;
         }
 
         private async Task<SignatureValidatorResult> GetVerifyResult(
@@ -891,6 +938,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             public Stream PackageStream { get; set; }
             public SignedPackageArchive PackageReader { get; set; }
             public PrimarySignature Signature { get; set; }
+            public string DurableIdentityValue { get; set; }
             public SignatureValidationMessage Message { get; }
             public CancellationToken CancellationToken { get; }
 

@@ -18,6 +18,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.Telemetry
         private const string MessageEnqueueLag = Prefix + "MessageEnqueueLag";
         private const string MessageHandlerDurationSeconds = Prefix + "MessageHandlerDurationSeconds";
         private const string MessageLockLost = Prefix + "MessageLockLost";
+        private const string DurableIdentityValueLinked = Prefix + "DurableIdentityValueLinked";
 
         private const string PackageId = "PackageId";
         private const string NormalizedVersion = "NormalizedVersion";
@@ -85,6 +86,23 @@ namespace NuGet.Jobs.Validation.PackageSigning.Telemetry
                 DurationToStripRepositorySignaturesSeconds,
                 duration.TotalSeconds,
                 properties);
+        }
+
+        public void TrackDurableIdentityValueLinked(
+            string packageId,
+            string normalizedVersion,
+            Guid validationId,
+            int linkedAccountCount)
+        {
+            _telemetryClient.TrackMetric(
+                DurableIdentityValueLinked,
+                linkedAccountCount,
+                new Dictionary<string, string>
+                {
+                    { PackageId, packageId },
+                    { NormalizedVersion, normalizedVersion },
+                    { ValidationId, validationId.ToString() },
+                });
         }
 
         public void TrackMessageDeliveryLag<TMessage>(TimeSpan deliveryLag)
