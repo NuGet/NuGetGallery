@@ -13,7 +13,7 @@ using NuGet.Services.Staging;
 namespace NuGetGallery
 {
     /// <summary>
-    /// Accepts and enqueues package and staging group promotion requests.
+    /// Accepts and enqueues package, symbol, and staging group promotion requests.
     /// </summary>
     public class PackageStagingPromotionService : IPackageStagingPromotionService
     {
@@ -142,6 +142,70 @@ namespace NuGetGallery
             }
 
             return PackageStagingPromotionResult.Accepted;
+        }
+
+        /// <inheritdoc />
+        public async Task<PackageStagingPromotionResult> PromoteSymbolPackageAsync(User currentUser, StagedSymbolPackage stagedSymbolPackage)
+        {
+            if (currentUser == null)
+            {
+                throw new ArgumentNullException(nameof(currentUser));
+            }
+
+            if (stagedSymbolPackage == null)
+            {
+                throw new ArgumentNullException(nameof(stagedSymbolPackage));
+            }
+
+            if (!_authorizationService.CanManage(currentUser, stagedSymbolPackage))
+            {
+                return PackageStagingPromotionResult.Unauthorized;
+            }
+
+            if (stagedSymbolPackage.StagedPackageIdentity.StagingGroupKey.HasValue)
+            {
+                return PackageStagingPromotionResult.Grouped;
+            }
+
+            if (StagedSymbolPackagePromotionEligibility.GetBlockers(stagedSymbolPackage).Count > 0)
+            {
+                return PackageStagingPromotionResult.NotReady;
+            }
+
+            stagedSymbolPackage.ActivePromotionId = Guid.NewGuid();
+            stagedSymbolPackage.Status = StagedPackageStatus.Promoting;
+            return await SendSymbolPromotionAsync(stagedSymbolPackage);
+        }
+
+        /// <inheritdoc />
+        public async Task<PackageStagingPromotionResult> ResendSymbolPackageAsync(User currentUser, StagedSymbolPackage stagedSymbolPackage)
+        {
+            if (currentUser == null)
+            {
+                throw new ArgumentNullException(nameof(currentUser));
+            }
+
+            if (stagedSymbolPackage == null)
+            {
+                throw new ArgumentNullException(nameof(stagedSymbolPackage));
+            }
+
+            if (!_authorizationService.CanManage(currentUser, stagedSymbolPackage))
+            {
+                return PackageStagingPromotionResult.Unauthorized;
+            }
+
+            if (stagedSymbolPackage.StagedPackageIdentity.StagingGroupKey.HasValue)
+            {
+                return PackageStagingPromotionResult.Grouped;
+            }
+
+            if (!StagedSymbolPackagePromotionEligibility.CanResend(stagedSymbolPackage))
+            {
+                return PackageStagingPromotionResult.NotReady;
+            }
+
+            return await SendSymbolPromotionAsync(stagedSymbolPackage);
         }
 
         /// <inheritdoc />
@@ -291,6 +355,39 @@ namespace NuGetGallery
             }
 
             return false;
+        }
+
+        private async Task<PackageStagingPromotionResult> SendSymbolPromotionAsync(StagedSymbolPackage attempt)
+        {
+            var promotionId = attempt.ActivePromotionId.Value;
+            try
+            {
+                attempt.PromotionMessageSentDate = DateTime.UtcNow;
+                await _stagedSymbolPackageRepository.CommitChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException exception)
+            {
+                exception.Log();
+                return PackageStagingPromotionResult.Conflict;
+            }
+
+            if (await TrySendMessageAsync(StagingPromotionMessage.ForSymbolPackage(promotionId, attempt.Key)))
+            {
+                return PackageStagingPromotionResult.Accepted;
+            }
+
+            try
+            {
+                attempt.PromotionMessageSentDate = StagingPromotionResendPolicy.GetRetryableSentDate();
+                await _stagedSymbolPackageRepository.CommitChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException exception)
+            {
+                exception.Log();
+                return PackageStagingPromotionResult.Conflict;
+            }
+
+            return PackageStagingPromotionResult.DispatchFailed;
         }
 
         private async Task<PackageStagingPromotionResult> MakePackageImmediatelyRetryableAsync(StagedPackage stagedPackage)
