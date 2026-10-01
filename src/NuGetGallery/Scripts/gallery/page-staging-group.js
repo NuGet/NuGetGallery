@@ -38,6 +38,7 @@
         this.CanDelete = packageItem.CanDelete;
         this.DeleteDisabledReasonId = packageItem.DeleteDisabledReasonId;
         this.CanPromote = packageItem.CanPromote;
+        this.ReplacesPublishedSymbols = packageItem.ReplacesPublishedSymbols;
         this.CanResend = packageItem.CanResend;
         this.PromotionBlocker = packageItem.PromotionBlocker;
         this.MoveUrl = packageItem.MoveUrl;
@@ -108,7 +109,10 @@
             event.preventDefault();
             const trigger = $(event.currentTarget);
             const artifact = self.IsSymbolPackage ? 'symbols' : 'package';
-            const message = `Promote staged ${artifact} ${self.Id} ${self.Version}?`;
+            let message = `Promote staged ${artifact} ${self.Id} ${self.Version}?`;
+            if (self.ReplacesPublishedSymbols) {
+                message += ' This will replace the currently published symbols if promotion succeeds.';
+            }
             if (!self.IsBusy() && window.nuget.confirmEvent(message)) {
                 self.IsBusy(true);
                 trigger.siblings('.staging-promote-form')[0].submit();

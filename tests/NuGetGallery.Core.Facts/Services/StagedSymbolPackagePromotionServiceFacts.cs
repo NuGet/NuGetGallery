@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Data.Entity;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -51,6 +52,7 @@ namespace NuGetGallery
         public async Task FailureRetainsPrivateSymbolsAndDoesNotChangeParent()
         {
             var fixture = new Fixture();
+            fixture.AddPublicSymbols();
 
             await fixture.Target.FailAsync(fixture.Attempt.Key, fixture.PromotionId);
             await fixture.Target.CleanUpAsync(fixture.Attempt.Key, fixture.PromotionId);
@@ -58,6 +60,8 @@ namespace NuGetGallery
             Assert.Equal(StagedPackageStatus.PromotionFailed, fixture.Attempt.Status);
             Assert.Equal(PackageStatus.Staged, fixture.Symbol.StatusKey);
             Assert.Equal(PackageStatus.Available, fixture.Parent.PackageStatusKey);
+            Assert.Equal(PackageStatus.Available, fixture.StoredPreviousSymbol.StatusKey);
+            Assert.Equal(Fixture.PreviousContent, fixture.PublicContent);
             fixture.Attempts.Verify(repository => repository.DeleteOnCommit(It.IsAny<StagedSymbolPackage>()), Times.Never);
             fixture.Files.Verify(service => service.CopyFileAsync(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IAccessCondition>()), Times.Never);
         }
@@ -84,26 +88,41 @@ namespace NuGetGallery
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public async Task LostEligibilityDuringCopyFailsAndRemovesNewPublicBlob(bool loseOwnership)
+        [InlineData(true, true)]
+        public async Task LostEligibilityDuringCopyFailsAndRemovesNewPublicBlob(bool loseOwnership, bool hasPublicSymbols = false)
         {
             var fixture = new Fixture();
-            fixture.Files.Setup(service => service.CopyFileAsync(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IAccessCondition>()))
-                .Callback(() =>
+            Action loseEligibility = () =>
+            {
+                if (loseOwnership)
                 {
-                    if (loseOwnership)
-                    {
-                        fixture.Parent.PackageRegistration.Owners.Clear();
-                    }
-                    else
-                    {
-                        fixture.Parent.PackageStatusKey = PackageStatus.Deleted;
-                    }
-                }).Returns(Task.CompletedTask);
+                    fixture.Parent.PackageRegistration.Owners.Clear();
+                }
+                else
+                {
+                    fixture.Parent.PackageStatusKey = PackageStatus.Deleted;
+                }
+            };
+            if (hasPublicSymbols)
+            {
+                fixture.AddPublicSymbols();
+                fixture.AfterReplacement = loseEligibility;
+            }
+            else
+            {
+                fixture.Files.Setup(service => service.CopyFileAsync(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IAccessCondition>()))
+                    .Callback(loseEligibility).Returns(Task.CompletedTask);
+            }
 
             await fixture.Target.CompleteAsync(fixture.Attempt.Key, fixture.PromotionId);
 
             Assert.Equal(StagedPackageStatus.PromotionFailed, fixture.Attempt.Status);
             Assert.Equal(PackageStatus.Staged, fixture.Symbol.StatusKey);
+            if (hasPublicSymbols)
+            {
+                Assert.Equal(PackageStatus.Available, fixture.StoredPreviousSymbol.StatusKey);
+                Assert.Null(fixture.PublicContent);
+            }
             fixture.Files.Verify(service => service.DeleteFileAsync(CoreConstants.Folders.SymbolPackagesFolderName, Fixture.FileName), Times.Once);
         }
 
@@ -187,16 +206,93 @@ namespace NuGetGallery
             fixture.Files.Verify(service => service.DeleteFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
-        [Fact]
-        public async Task DoesNotRetireOrReplaceExistingPublicSymbols()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task ReplacesPublishedSymbolsAndRecoversAnInterruptedFileSwap(bool interrupted)
         {
             var fixture = new Fixture();
-            fixture.Symbols.Setup(repository => repository.GetAll())
-                .Returns(new[] { new SymbolPackage { Key = 99, PackageKey = fixture.Parent.Key, StatusKey = PackageStatus.Available } }.AsQueryable());
+            fixture.AddPublicSymbols();
+            if (interrupted)
+            {
+                fixture.PublicContent = Fixture.SymbolContent;
+            }
 
-            await Assert.ThrowsAsync<NotSupportedException>(() => fixture.Target.CompleteAsync(fixture.Attempt.Key, fixture.PromotionId));
+            await fixture.Target.CompleteAsync(fixture.Attempt.Key, fixture.PromotionId);
+            await fixture.Target.CompleteAsync(fixture.Attempt.Key, fixture.PromotionId);
 
-            fixture.Files.Verify(service => service.CopyFileAsync(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IAccessCondition>()), Times.Never);
+            Assert.Equal(PackageStatus.Available, fixture.StoredSymbol.StatusKey);
+            Assert.Equal(PackageStatus.Deleted, fixture.StoredPreviousSymbol.StatusKey);
+            Assert.Equal(StagedPackageStatus.Succeeded, fixture.Attempt.Status);
+            Assert.Equal(PackageStatus.Available, fixture.Parent.PackageStatusKey);
+            Assert.Equal(Fixture.SymbolContent, fixture.PublicContent);
+            Assert.Equal(interrupted ? 0 : 1, fixture.ReplacementWrites);
+            fixture.Blobs.Verify(service => service.GetPackageReadUriAsync("symbols/43", "etag"), interrupted ? Times.Never() : Times.Once());
+            fixture.SymbolService.Verify(service => service.UpdateStatusAsync(fixture.PreviousSymbol, PackageStatus.Deleted, false), Times.Once);
+        }
+
+        [Fact]
+        public async Task DifferentPublicContentCannotReplacePublishedSymbols()
+        {
+            var fixture = new Fixture();
+            fixture.AddPublicSymbols();
+            fixture.PublicContent = new byte[] { 7, 8, 9 };
+            var publicContent = fixture.PublicContent;
+
+            await fixture.Target.CompleteAsync(fixture.Attempt.Key, fixture.PromotionId);
+
+            Assert.Equal(StagedPackageStatus.PromotionFailed, fixture.Attempt.Status);
+            Assert.Equal(PackageStatus.Staged, fixture.StoredSymbol.StatusKey);
+            Assert.Equal(PackageStatus.Available, fixture.StoredPreviousSymbol.StatusKey);
+            Assert.Equal(publicContent, fixture.PublicContent);
+            Assert.Equal(0, fixture.ReplacementWrites);
+        }
+
+        [Fact]
+        public async Task IdenticalPublishedSymbolsAreNotDeletedWhenTheCommitFails()
+        {
+            var fixture = new Fixture();
+            fixture.AddPublicSymbols(identical: true);
+            fixture.Attempts.Setup(repository => repository.CommitChangesAsync()).ThrowsAsync(new InvalidOperationException("Database unavailable"));
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.Target.CompleteAsync(fixture.Attempt.Key, fixture.PromotionId));
+
+            Assert.Equal(Fixture.SymbolContent, fixture.PublicContent);
+            Assert.Equal(PackageStatus.Available, fixture.StoredPreviousSymbol.StatusKey);
+            Assert.Equal(0, fixture.ReplacementWrites);
+            fixture.Files.Verify(service => service.DeleteFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task ReplacementRetryRecreatesTheFileRemovedByCommitFailureCompensation()
+        {
+            var fixture = new Fixture();
+            fixture.AddPublicSymbols();
+            fixture.Attempts.Setup(repository => repository.CommitChangesAsync()).ThrowsAsync(new InvalidOperationException("Database unavailable"));
+            await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.Target.CompleteAsync(fixture.Attempt.Key, fixture.PromotionId));
+            Assert.Null(fixture.PublicContent);
+            Assert.Equal(PackageStatus.Staged, fixture.StoredSymbol.StatusKey);
+            Assert.Equal(PackageStatus.Available, fixture.StoredPreviousSymbol.StatusKey);
+            Assert.Equal(1, fixture.ReplacementWrites);
+            fixture.Files.Verify(service => service.DeleteFileAsync(CoreConstants.Folders.SymbolPackagesFolderName, Fixture.FileName), Times.Once);
+
+            // Reload the uncommitted Gallery state for the next delivery.
+            fixture.Attempt.Status = StagedPackageStatus.Promoting;
+            fixture.Symbol.StatusKey = PackageStatus.Staged;
+            fixture.PreviousSymbol.StatusKey = PackageStatus.Available;
+            fixture.Attempts.Setup(repository => repository.CommitChangesAsync()).Callback(() =>
+            {
+                fixture.StoredSymbol.StatusKey = fixture.Symbol.StatusKey;
+                fixture.StoredPreviousSymbol.StatusKey = fixture.PreviousSymbol.StatusKey;
+            }).Returns(Task.CompletedTask);
+
+            await fixture.Target.CompleteAsync(fixture.Attempt.Key, fixture.PromotionId);
+
+            Assert.Equal(StagedPackageStatus.Succeeded, fixture.Attempt.Status);
+            Assert.Equal(Fixture.SymbolContent, fixture.PublicContent);
+            Assert.Equal(PackageStatus.Deleted, fixture.StoredPreviousSymbol.StatusKey);
+            Assert.Equal(PackageStatus.Available, fixture.StoredSymbol.StatusKey);
+            Assert.Equal(2, fixture.ReplacementWrites);
         }
 
         private class Fixture
@@ -206,6 +302,8 @@ namespace NuGetGallery
             public static readonly Uri UploadUri = new Uri("https://example.test/staged-symbols");
 
             public static readonly byte[] SymbolContent = new byte[] { 1, 2, 3 };
+
+            public static readonly byte[] PreviousContent = new byte[] { 4, 5, 6 };
 
             public Fixture()
             {
@@ -238,13 +336,19 @@ namespace NuGetGallery
                 StoredSymbol = new SymbolPackage { Key = Symbol.Key, PackageKey = Parent.Key, StatusKey = PackageStatus.Staged };
                 Attempts.Setup(repository => repository.GetAll()).Returns(new[] { Attempt }.AsQueryable());
                 Attempts.Setup(repository => repository.ExecuteInTransactionAsync(It.IsAny<Func<Task>>())).Returns((Func<Task> action) => action());
-                Attempts.Setup(repository => repository.CommitChangesAsync()).Callback(() => StoredSymbol.StatusKey = Symbol.StatusKey).Returns(Task.CompletedTask);
+                Attempts.Setup(repository => repository.CommitChangesAsync()).Callback(() =>
+                {
+                    StoredSymbol.StatusKey = Symbol.StatusKey;
+                    if (PreviousSymbol != null)
+                    {
+                        StoredPreviousSymbol.StatusKey = PreviousSymbol.StatusKey;
+                    }
+                }).Returns(Task.CompletedTask);
                 Symbols.Setup(repository => repository.GetAll()).Returns(new[] { StoredSymbol }.AsQueryable());
-                var symbolService = new Mock<ICoreSymbolPackageService>();
-                symbolService.Setup(service => service.UpdateStatusAsync(Symbol, It.IsAny<PackageStatus>(), false))
+                SymbolService.Setup(service => service.UpdateStatusAsync(It.IsAny<SymbolPackage>(), It.IsAny<PackageStatus>(), false))
                     .Callback<SymbolPackage, PackageStatus, bool>((symbol, status, commit) => symbol.StatusKey = status).Returns(Task.CompletedTask);
                 Blobs.Setup(service => service.GetPackageReadUriAsync("symbols/43", "etag")).ReturnsAsync(UploadUri);
-                Target = new StagedSymbolPackagePromotionService(Attempts.Object, Identities.Object, Symbols.Object, symbolService.Object,
+                Target = new StagedSymbolPackagePromotionService(Attempts.Object, Identities.Object, Symbols.Object, SymbolService.Object,
                     Blobs.Object, Files.Object, Mock.Of<ILogger<StagedSymbolPackagePromotionService>>());
             }
 
@@ -260,6 +364,20 @@ namespace NuGetGallery
 
             public StagedSymbolPackage Attempt { get; }
 
+            public SymbolPackage PreviousSymbol { get; private set; }
+
+            public SymbolPackage StoredPreviousSymbol { get; private set; }
+
+            public byte[] PublicContent { get; set; }
+
+            public string PublicETag { get; set; } = "public-etag";
+
+            public int ReplacementWrites { get; private set; }
+
+            public Action AfterReplacement { get; set; }
+
+            public Mock<ICoreSymbolPackageService> SymbolService { get; } = new Mock<ICoreSymbolPackageService>();
+
             public Mock<IEntityRepository<StagedSymbolPackage>> Attempts { get; } = new Mock<IEntityRepository<StagedSymbolPackage>>();
 
             public Mock<IEntityRepository<StagedPackageIdentity>> Identities { get; } = new Mock<IEntityRepository<StagedPackageIdentity>>();
@@ -271,6 +389,58 @@ namespace NuGetGallery
             public Mock<ICoreFileStorageService> Files { get; } = new Mock<ICoreFileStorageService>();
 
             public StagedSymbolPackagePromotionService Target { get; }
+
+            public void AddPublicSymbols(bool identical = false)
+            {
+                var previousContent = identical ? SymbolContent : PreviousContent;
+                PreviousSymbol = new SymbolPackage { Key = 99, PackageKey = Parent.Key, StatusKey = PackageStatus.Available, FileSize = previousContent.Length, HashAlgorithm = CoreConstants.Sha512HashAlgorithmId };
+                using (var content = new MemoryStream(previousContent))
+                {
+                    PreviousSymbol.Hash = CryptographyService.GenerateHash(content, PreviousSymbol.HashAlgorithm);
+                }
+                StoredPreviousSymbol = new SymbolPackage { Key = PreviousSymbol.Key, PackageKey = Parent.Key, StatusKey = PackageStatus.Available };
+                var tracked = CreateQuery(new[] { PreviousSymbol, Symbol }.AsQueryable());
+                var persisted = CreateQuery(new[] { StoredPreviousSymbol, StoredSymbol }.AsQueryable());
+                tracked.Setup(query => query.AsNoTracking()).Returns(persisted.Object);
+                Symbols.Setup(repository => repository.GetAll()).Returns(tracked.Object);
+                PublicContent = previousContent;
+                Files.Setup(service => service.FileExistsAsync(CoreConstants.Folders.SymbolPackagesFolderName, FileName)).ReturnsAsync(() => PublicContent != null);
+                Files.Setup(service => service.GetFileReferenceAsync(CoreConstants.Folders.SymbolPackagesFolderName, FileName, null))
+                    .ReturnsAsync(() => PublicContent == null ? null : CloudFileReference.Modified(new MemoryStream(PublicContent), PublicETag));
+                Files.Setup(service => service.GetFileAsync(CoreConstants.Folders.SymbolPackagesFolderName, FileName))
+                    .ReturnsAsync(() => PublicContent == null ? null : new MemoryStream(PublicContent));
+                Files.Setup(service => service.CopyFileAsync(UploadUri, CoreConstants.Folders.SymbolPackagesFolderName, FileName, It.IsAny<IAccessCondition>()))
+                    .Callback<Uri, string, string, IAccessCondition>((uri, folder, name, condition) =>
+                    {
+                        if (PublicContent == null)
+                        {
+                            Assert.Equal("*", condition.IfNoneMatchETag);
+                        }
+                        else
+                        {
+                            Assert.Equal(PublicETag, condition.IfMatchETag);
+                        }
+                        PublicContent = SymbolContent;
+                        ReplacementWrites++;
+                        PublicETag = "public-etag-" + ReplacementWrites;
+                        if (ReplacementWrites == 1)
+                        {
+                            AfterReplacement?.Invoke();
+                        }
+                    }).Returns(Task.CompletedTask);
+                Files.Setup(service => service.DeleteFileAsync(CoreConstants.Folders.SymbolPackagesFolderName, FileName))
+                    .Callback(() => PublicContent = null).Returns(Task.CompletedTask);
+            }
+
+            private static Mock<DbSet<SymbolPackage>> CreateQuery(IQueryable<SymbolPackage> symbols)
+            {
+                var query = new Mock<DbSet<SymbolPackage>>();
+                query.As<IQueryable<SymbolPackage>>().Setup(set => set.Provider).Returns(symbols.Provider);
+                query.As<IQueryable<SymbolPackage>>().Setup(set => set.Expression).Returns(symbols.Expression);
+                query.As<IQueryable<SymbolPackage>>().Setup(set => set.ElementType).Returns(symbols.ElementType);
+                query.As<IQueryable<SymbolPackage>>().Setup(set => set.GetEnumerator()).Returns(() => symbols.GetEnumerator());
+                return query;
+            }
 
             public void SetExistingPublicCopy(byte[] content, bool existed = true)
             {
