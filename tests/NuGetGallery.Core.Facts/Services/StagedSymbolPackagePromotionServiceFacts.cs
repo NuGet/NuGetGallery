@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -127,15 +128,62 @@ namespace NuGetGallery
         }
 
         [Fact]
-        public async Task PublicBlobConflictFailsWithoutDeletingExistingContent()
+        public async Task IdenticalPublicCopyCompletesPromotionWithoutBlobMetadata()
         {
             var fixture = new Fixture();
-            fixture.Files.Setup(service => service.CopyFileAsync(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IAccessCondition>()))
-                .ThrowsAsync(new FileAlreadyExistsException());
+            fixture.SetExistingPublicCopy(Fixture.SymbolContent);
+
+            await fixture.Target.CompleteAsync(fixture.Attempt.Key, fixture.PromotionId);
+
+            Assert.Equal(PackageStatus.Available, fixture.Symbol.StatusKey);
+            Assert.Equal(StagedPackageStatus.Succeeded, fixture.Attempt.Status);
+            Assert.Equal(PackageStatus.Available, fixture.Parent.PackageStatusKey);
+            fixture.Files.Verify(service => service.GetFileAsync(CoreConstants.Folders.SymbolPackagesFolderName, Fixture.FileName), Times.Once);
+            fixture.Files.Verify(service => service.DeleteFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task MatchedCopyIsNotDeletedWhenPublicationCommitFailsAfterAnInitialAbsenceCheck()
+        {
+            var fixture = new Fixture();
+            fixture.SetExistingPublicCopy(Fixture.SymbolContent, existed: false);
+            fixture.Attempts.Setup(repository => repository.CommitChangesAsync()).ThrowsAsync(new InvalidOperationException("Database unavailable"));
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.Target.CompleteAsync(fixture.Attempt.Key, fixture.PromotionId));
+
+            Assert.Equal(PackageStatus.Staged, fixture.StoredSymbol.StatusKey);
+            fixture.Files.Verify(service => service.DeleteFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task MissingPublicContentAfterAConflictLeavesPromotionRetryable()
+        {
+            var fixture = new Fixture();
+            fixture.SetExistingPublicCopy(Fixture.SymbolContent);
+            fixture.Files.Setup(service => service.GetFileAsync(CoreConstants.Folders.SymbolPackagesFolderName, Fixture.FileName)).ReturnsAsync((Stream)null);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.Target.CompleteAsync(fixture.Attempt.Key, fixture.PromotionId));
+
+            Assert.Equal(StagedPackageStatus.Promoting, fixture.Attempt.Status);
+            Assert.Equal(PackageStatus.Staged, fixture.Symbol.StatusKey);
+            fixture.Attempts.Verify(repository => repository.CommitChangesAsync(), Times.Never);
+            fixture.Files.Verify(service => service.DeleteFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task DifferentPublicContentFailsWithoutDeletingExistingContent(bool differentSize)
+        {
+            var fixture = new Fixture();
+            var content = differentSize ? new byte[] { 1, 2, 3, 4 } : new byte[] { 1, 2, 4 };
+            fixture.SetExistingPublicCopy(content);
 
             await fixture.Target.CompleteAsync(fixture.Attempt.Key, fixture.PromotionId);
 
             Assert.Equal(StagedPackageStatus.PromotionFailed, fixture.Attempt.Status);
+            Assert.Equal(PackageStatus.Staged, fixture.Symbol.StatusKey);
+            Assert.Equal(PackageStatus.Available, fixture.Parent.PackageStatusKey);
             fixture.Files.Verify(service => service.DeleteFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
@@ -157,6 +205,8 @@ namespace NuGetGallery
 
             public static readonly Uri UploadUri = new Uri("https://example.test/staged-symbols");
 
+            public static readonly byte[] SymbolContent = new byte[] { 1, 2, 3 };
+
             public Fixture()
             {
                 Parent = new Package
@@ -168,6 +218,12 @@ namespace NuGetGallery
                 };
                 Identity = new StagedPackageIdentity { Key = Parent.Key, Package = Parent, OwnerKey = 7, CurrentStagedSymbolPackageKey = 43 };
                 Symbol = new SymbolPackage { Key = 44, PackageKey = Parent.Key, Package = Parent, StatusKey = PackageStatus.Staged };
+                Symbol.FileSize = SymbolContent.LongLength;
+                Symbol.HashAlgorithm = CoreConstants.Sha512HashAlgorithmId;
+                using (var content = new MemoryStream(SymbolContent))
+                {
+                    Symbol.Hash = CryptographyService.GenerateHash(content, Symbol.HashAlgorithm);
+                }
                 Attempt = new StagedSymbolPackage
                 {
                     Key = 43,
@@ -215,6 +271,15 @@ namespace NuGetGallery
             public Mock<ICoreFileStorageService> Files { get; } = new Mock<ICoreFileStorageService>();
 
             public StagedSymbolPackagePromotionService Target { get; }
+
+            public void SetExistingPublicCopy(byte[] content, bool existed = true)
+            {
+                Files.Setup(service => service.FileExistsAsync(CoreConstants.Folders.SymbolPackagesFolderName, FileName)).ReturnsAsync(existed);
+                Files.Setup(service => service.CopyFileAsync(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IAccessCondition>()))
+                    .ThrowsAsync(new FileAlreadyExistsException());
+                Files.Setup(service => service.GetFileAsync(CoreConstants.Folders.SymbolPackagesFolderName, FileName))
+                    .ReturnsAsync(() => new MemoryStream(content));
+            }
         }
     }
 }

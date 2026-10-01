@@ -80,9 +80,15 @@ namespace NuGetGallery
             }
             catch (FileAlreadyExistsException exception)
             {
-                _logger.LogWarning(exception, "Different public symbols already occupy the destination for promotion {PromotionId}.", promotionId);
-                await FailAsync(stagedSymbolPackageKey, promotionId);
-                return;
+                existed = true;
+                if (!await MatchesPublicContentAsync(symbol, folder, name))
+                {
+                    _logger.LogWarning(exception, "Different public symbols already occupy the destination for promotion {PromotionId}.", promotionId);
+                    await FailAsync(stagedSymbolPackageKey, promotionId);
+                    return;
+                }
+
+                _logger.LogInformation("Resuming symbol promotion {PromotionId} with an identical existing public copy.", promotionId);
             }
 
             try
@@ -197,6 +203,19 @@ namespace NuGetGallery
                 && candidate.SymbolPackage.StatusKey == PackageStatus.Staged
                 && candidate.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Available
                 && candidate.StagedPackageIdentity.Package.PackageRegistration.Owners.Any(owner => owner.Key == candidate.StagedPackageIdentity.OwnerKey));
+        }
+
+        private async Task<bool> MatchesPublicContentAsync(SymbolPackage symbol, string folder, string name)
+        {
+            using (var content = await _storage.GetFileAsync(folder, name))
+            {
+                if (content == null)
+                {
+                    throw new InvalidOperationException($"The public symbol package '{folder}/{name}' disappeared while checking the promotion copy.");
+                }
+
+                return content.Length == symbol.FileSize && CryptographyService.GenerateHash(content, symbol.HashAlgorithm) == symbol.Hash;
+            }
         }
 
         private Task SetCacheControlAsync(string folder, string name)
