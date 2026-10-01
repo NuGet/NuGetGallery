@@ -12,7 +12,7 @@ namespace NuGetGallery
     /// </summary>
     internal static class StagedSymbolPackagePromotionEligibility
     {
-        internal static IReadOnlyList<StagingBlockerResponse> GetBlockers(StagedSymbolPackage attempt)
+        internal static IReadOnlyList<StagingBlockerResponse> GetBlockers(StagedSymbolPackage attempt, StagedPackage parentAttempt = null)
         {
             if (attempt == null)
             {
@@ -40,7 +40,12 @@ namespace NuGetGallery
                 blockers.Add(new StagingBlockerResponse("SymbolsChanged", "The staged symbols changed. Refresh to check their status."));
             }
 
-            if (identity.Package.PackageStatusKey != PackageStatus.Available)
+            var includesStagedParent = parentAttempt != null
+                && parentAttempt.StagedPackageIdentity.Key == identity.Key
+                && identity.CurrentStagedPackageKey == parentAttempt.Key
+                && parentAttempt.Status == StagedPackageStatus.Ready
+                && identity.Package.PackageStatusKey == PackageStatus.Staged;
+            if (identity.Package.PackageStatusKey != PackageStatus.Available && !includesStagedParent)
             {
                 blockers.Add(new StagingBlockerResponse("ParentPackageNotAvailable", "Publish the parent package before promoting these symbols."));
             }
@@ -56,7 +61,7 @@ namespace NuGetGallery
             }
 
             var identity = attempt.StagedPackageIdentity;
-            if (identity.StagingGroupKey.HasValue)
+            if (identity.StagingGroupKey.HasValue || identity.Package.PackageStatusKey != PackageStatus.Available)
             {
                 return false;
             }

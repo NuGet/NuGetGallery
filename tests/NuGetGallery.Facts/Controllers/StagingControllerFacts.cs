@@ -830,13 +830,24 @@ namespace NuGetGallery
                 error => error.ErrorMessage == "The staging group cannot be deleted while package promotion is active.");
         }
 
-        [Fact]
-        public void DisplaysUngroupedPackagesForAnOwner()
+        [Theory]
+        [InlineData(StagedPackageStatus.Ready, true)]
+        [InlineData(StagedPackageStatus.Validating, false)]
+        public void DisplaysUngroupedPackagesForAnOwner(StagedPackageStatus symbolStatus, bool includesSymbols)
         {
             var currentUser = new User("Current") { Key = 1 };
             var ungroupedPackage = CreateStagedPackage(42, "Ungrouped.Package", "1.0.0", currentUser, StagedPackageStatus.Ready);
             var groupedPackage = CreateStagedPackage(43, "Grouped.Package", "2.0.0", currentUser, StagedPackageStatus.Ready);
             groupedPackage.StagedPackageIdentity.StagingGroupKey = 10;
+            var identity = ungroupedPackage.StagedPackageIdentity;
+            identity.CurrentStagedSymbolPackageKey = 100;
+            identity.CurrentStagedSymbolPackage = new StagedSymbolPackage
+            {
+                Key = 100,
+                StagedPackageIdentity = identity,
+                SymbolPackage = new SymbolPackage { StatusKey = PackageStatus.Staged },
+                Status = symbolStatus,
+            };
             GetMock<IPackageStagingAuthorizationService>()
                 .Setup(x => x.GetEnabledOwner(currentUser, "current"))
                 .Returns(currentUser);
@@ -858,6 +869,7 @@ namespace NuGetGallery
             Assert.Equal("Ungrouped", model.Name);
             Assert.Equal("Staged packages not in any group", model.Description);
             Assert.Equal("Ungrouped.Package", Assert.Single(model.Packages).Id);
+            Assert.Equal(includesSymbols, Assert.Single(model.Packages).IncludesStagedSymbols);
         }
 
         [Fact]

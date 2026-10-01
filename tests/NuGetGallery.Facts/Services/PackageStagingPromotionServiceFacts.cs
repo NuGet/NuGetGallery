@@ -18,16 +18,27 @@ namespace NuGetGallery
     {
         private const int StagedPackageKey = 456;
 
-        [Fact]
-        public async Task CommitsAuthorizedReadyPackageBeforeSendingMessage()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task CommitsAuthorizedReadyPackageBeforeSendingMessage(bool includesSymbols)
         {
             var events = new List<string>();
             var stagedPackage = CreateStagedPackage(StagedPackageStatus.Ready);
+            var symbols = includesSymbols ? CreateStagedSymbols(stagedPackage) : null;
             var repository = new Mock<IEntityRepository<StagedPackage>>();
             var saveCompleted = new TaskCompletionSource<bool>();
             repository
                 .Setup(x => x.CommitChangesAsync())
-                .Callback(() => events.Add($"Commit:{stagedPackage.Status}"))
+                .Callback(() =>
+                {
+                    events.Add($"Commit:{stagedPackage.Status}");
+                    if (symbols != null)
+                    {
+                        Assert.Equal(StagedPackageStatus.Promoting, symbols.Status);
+                        Assert.Equal(stagedPackage.ActivePromotionId, symbols.ActivePromotionId);
+                    }
+                })
                 .Returns(saveCompleted.Task);
             StagingPromotionMessage message = null;
             var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
@@ -39,7 +50,7 @@ namespace NuGetGallery
                     message = value;
                 })
                 .Returns(Task.CompletedTask);
-            var target = CreateService(repository, enqueuer);
+            var target = CreateService(repository, enqueuer, stagedSymbols: symbols == null ? null : new[] { symbols });
 
             var promotion = target.PromotePackageAsync(new User("owner"), stagedPackage);
             enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
@@ -52,6 +63,35 @@ namespace NuGetGallery
             Assert.Equal(StagingPromotionTargetType.StagedPackage, message.TargetType);
             Assert.Equal(StagedPackageKey, message.TargetKey);
             Assert.Equal(new[] { "Commit:Promoting", "Send" }, events);
+            if (symbols != null)
+            {
+                Assert.Equal(StagedPackageStatus.Promoting, symbols.Status);
+                Assert.Equal(stagedPackage.ActivePromotionId, symbols.ActivePromotionId);
+                Assert.Null(symbols.PromotionMessageSentDate);
+            }
+        }
+
+        [Theory]
+        [InlineData(StagedPackageStatus.Validating, true)]
+        [InlineData(StagedPackageStatus.PromotionFailed, true)]
+        [InlineData(StagedPackageStatus.Ready, false)]
+        public async Task LeavesIneligibleSymbolsOutsideParentPromotion(StagedPackageStatus status, bool authorized)
+        {
+            var package = CreateStagedPackage(StagedPackageStatus.Ready);
+            var symbols = CreateStagedSymbols(package);
+            symbols.Status = status;
+            var repository = new Mock<IEntityRepository<StagedPackage>>();
+            repository.Setup(x => x.CommitChangesAsync()).Returns(Task.CompletedTask);
+            var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
+            var target = CreateService(repository, enqueuer, stagedSymbols: new[] { symbols }, authorizedSymbols: authorized);
+
+            Assert.Equal(PackageStagingPromotionResult.Accepted, await target.PromotePackageAsync(package.StagedPackageIdentity.Owner, package));
+
+            Assert.Equal(status, symbols.Status);
+            Assert.Null(symbols.ActivePromotionId);
+            Assert.Equal(StagedPackageStatus.Promoting, package.Status);
+            enqueuer.Verify(x => x.SendMessageAsync(It.Is<StagingPromotionMessage>(message =>
+                message.TargetType == StagingPromotionTargetType.StagedPackage && message.TargetKey == package.Key)), Times.Once);
         }
 
         [Fact]
@@ -183,12 +223,13 @@ namespace NuGetGallery
         public async Task ReturnsConflictWhenMembershipChangeWinsTheRace()
         {
             var stagedPackage = CreateStagedPackage(StagedPackageStatus.Ready);
+            var symbols = CreateStagedSymbols(stagedPackage);
             var repository = new Mock<IEntityRepository<StagedPackage>>();
             repository
                 .Setup(x => x.CommitChangesAsync())
                 .ThrowsAsync(new DbUpdateConcurrencyException());
             var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
-            var target = CreateService(repository, enqueuer);
+            var target = CreateService(repository, enqueuer, stagedSymbols: new[] { symbols });
 
             var result = await target.PromotePackageAsync(new User("owner"), stagedPackage);
 
@@ -502,7 +543,8 @@ namespace NuGetGallery
             Mock<IStagingPromotionMessageEnqueuer> enqueuer,
             bool authorized = true,
             int? authorizedPackageKey = null,
-            IEnumerable<StagedSymbolPackage> stagedSymbols = null)
+            IEnumerable<StagedSymbolPackage> stagedSymbols = null,
+            bool authorizedSymbols = true)
         {
             var authorizationService = new Mock<IPackageStagingAuthorizationService>();
             authorizationService
@@ -512,12 +554,29 @@ namespace NuGetGallery
             authorizationService
                 .Setup(x => x.GetEnabledOwners(It.IsAny<User>()))
                 .Returns<User>(currentUser => new[] { currentUser });
+            authorizationService.Setup(x => x.CanManage(It.IsAny<User>(), It.IsAny<StagedSymbolPackage>())).Returns(authorizedSymbols);
 
             return new PackageStagingPromotionService(
                 authorizationService.Object,
                 enqueuer.Object,
                 repository.Object,
                 Mock.Of<IEntityRepository<StagedSymbolPackage>>(x => x.GetAll() == (stagedSymbols ?? Array.Empty<StagedSymbolPackage>()).AsQueryable()));
+        }
+
+        private static StagedSymbolPackage CreateStagedSymbols(StagedPackage parent)
+        {
+            var identity = parent.StagedPackageIdentity;
+            var symbols = new StagedSymbolPackage
+            {
+                Key = 1000,
+                StagedPackageIdentityKey = identity.Key,
+                StagedPackageIdentity = identity,
+                SymbolPackage = new SymbolPackage { PackageKey = identity.Key, StatusKey = PackageStatus.Staged },
+                Status = StagedPackageStatus.Ready,
+            };
+            identity.CurrentStagedSymbolPackageKey = symbols.Key;
+            identity.CurrentStagedSymbolPackage = symbols;
+            return symbols;
         }
 
         private static StagedPackage CreateStagedPackage(StagedPackageStatus status, int key = StagedPackageKey, StagingGroup group = null)
