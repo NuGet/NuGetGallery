@@ -119,6 +119,12 @@ namespace NuGetGallery
                             return;
                         }
 
+                        // EF clears deleted attempts' navigation properties, so capture their identities first.
+                        var activeIdentities = activeMembers.Select(candidate => candidate.StagedPackageIdentity)
+                            .Concat(activeSymbols.Select(candidate => candidate.StagedPackageIdentity))
+                            .Distinct()
+                            .ToList();
+
                         foreach (var activeMember in activeMembers)
                         {
                             if (activeMember.Status == StagedPackageStatus.Succeeded)
@@ -142,9 +148,7 @@ namespace NuGetGallery
                             _stagedSymbolPackageRepository.DeleteOnCommit(symbols);
                         }
 
-                        var completedIdentities = activeMembers.Select(candidate => candidate.StagedPackageIdentity)
-                            .Concat(activeSymbols.Select(candidate => candidate.StagedPackageIdentity))
-                            .Distinct()
+                        var completedIdentities = activeIdentities
                             .Where(identity => !identity.CurrentStagedPackageKey.HasValue && !identity.CurrentStagedSymbolPackageKey.HasValue)
                             .ToList();
                         foreach (var identity in completedIdentities)
