@@ -163,6 +163,48 @@ namespace NuGet.Services.Staging.Promotion.Tests
             context.StagedPackageIdentityRepository.Verify(repository => repository.DeleteOnCommit(symbols.StagedPackageIdentity), Times.Once);
         }
 
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task FinalizesWhenDeletingSuccessfulAttemptsClearsTheirIdentityNavigation(bool symbolOnly)
+        {
+            var context = new TestContext();
+            var symbols = context.AddSymbols(StagedPackageStatus.Succeeded);
+            var identity = symbols.StagedPackageIdentity;
+            context.Target.MarkPackageSucceeded(context.StagedPackage);
+            if (symbolOnly)
+            {
+                context.StagedPackages.Clear();
+                identity.CurrentStagedPackageKey = null;
+                identity.CurrentStagedPackage = null;
+            }
+
+            context.StagedPackageRepository
+                .Setup(repository => repository.DeleteOnCommit(It.IsAny<StagedPackage>()))
+                .Callback<StagedPackage>(package =>
+                {
+                    context.PendingStagedPackageDeletes.Add(package);
+                    package.StagedPackageIdentity = null;
+                });
+            context.StagedSymbolPackageRepository
+                .Setup(repository => repository.DeleteOnCommit(It.IsAny<StagedSymbolPackage>()))
+                .Callback<StagedSymbolPackage>(attempt =>
+                {
+                    context.PendingStagedSymbolDeletes.Add(attempt);
+                    attempt.StagedPackageIdentity = null;
+                });
+
+            await context.Target.TryFinalizeAsync(context.StagingGroup.Key, context.PromotionId);
+
+            Assert.Empty(context.StagedPackages);
+            Assert.Empty(context.StagedSymbols);
+            Assert.Null(identity.CurrentStagedPackageKey);
+            Assert.Null(identity.CurrentStagedSymbolPackageKey);
+            Assert.Null(identity.StagingGroupKey);
+            Assert.Null(context.StagingGroup.ActivePromotionId);
+            context.StagedPackageIdentityRepository.Verify(repository => repository.DeleteOnCommit(identity), Times.Once);
+        }
+
         [Fact]
         public async Task UnlocksGroupWhenEveryMemberFailed()
         {
