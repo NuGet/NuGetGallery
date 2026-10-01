@@ -3,6 +3,7 @@
 
 using System;
 using System.Data.Entity;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -12,7 +13,7 @@ using NuGetGallery.Packaging;
 namespace NuGetGallery
 {
     /// <summary>
-    /// Completes symbol promotion without changing parent publication or replacing public symbols.
+    /// Completes symbol promotion and replaces older symbols without changing parent publication.
     /// </summary>
     public class StagedSymbolPackagePromotionService : IStagedSymbolPackagePromotionService
     {
@@ -63,32 +64,58 @@ namespace NuGetGallery
                 return;
             }
 
-            var hasPublicSymbols = _symbols.GetAll().Any(candidate =>
-                candidate.PackageKey == symbol.PackageKey && candidate.Key != symbol.Key && candidate.StatusKey == PackageStatus.Available);
-            if (hasPublicSymbols)
-            {
-                throw new NotSupportedException("Replacing public symbols is not enabled yet.");
-            }
-
+            var publicSymbols = _symbols.GetAll()
+                .Where(candidate => candidate.PackageKey == symbol.PackageKey && candidate.Key != symbol.Key && candidate.StatusKey == PackageStatus.Available)
+                .ToList();
             var folder = CoreConstants.Folders.SymbolPackagesFolderName;
             var name = FileNameHelper.BuildFileName(attempt.StagedPackageIdentity.Package, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetSymbolPackageFileExtension);
             var existed = await _storage.FileExistsAsync(folder, name);
-            var uri = await _stagingBlobs.GetPackageReadUriAsync(attempt.UploadedBlobPath, attempt.UploadedBlobETag);
-            try
+            var condition = AccessConditionWrapper.GenerateIfNotExistsCondition();
+            var matched = false;
+            if (publicSymbols.Count > 0)
             {
-                await _storage.CopyFileAsync(uri, folder, name, AccessConditionWrapper.GenerateIfNotExistsCondition());
-            }
-            catch (FileAlreadyExistsException exception)
-            {
-                existed = true;
-                if (!await MatchesPublicContentAsync(symbol, folder, name))
+                var current = await _storage.GetFileReferenceAsync(folder, name);
+                if (current != null)
                 {
-                    _logger.LogWarning(exception, "Different public symbols already occupy the destination for promotion {PromotionId}.", promotionId);
-                    await FailAsync(stagedSymbolPackageKey, promotionId);
-                    return;
-                }
+                    using (var content = current.OpenRead())
+                    {
+                        matched = MatchesContent(symbol, content);
+                        if (!matched && !publicSymbols.Any(previous => MatchesContent(previous, content)))
+                        {
+                            _logger.LogWarning("The public symbol file no longer matches the published symbol rows for promotion {PromotionId}.", promotionId);
+                            await FailAsync(stagedSymbolPackageKey, promotionId);
+                            return;
+                        }
+                    }
 
-                _logger.LogInformation("Resuming symbol promotion {PromotionId} with an identical existing public copy.", promotionId);
+                    condition = AccessConditionWrapper.GenerateIfMatchCondition(current.ContentId);
+                }
+                else
+                {
+                    _logger.LogInformation("Recreating the missing public symbol file for replacement promotion {PromotionId}.", promotionId);
+                }
+            }
+
+            var copied = false;
+            if (!matched)
+            {
+                var uri = await _stagingBlobs.GetPackageReadUriAsync(attempt.UploadedBlobPath, attempt.UploadedBlobETag);
+                try
+                {
+                    await _storage.CopyFileAsync(uri, folder, name, condition);
+                    copied = publicSymbols.Count > 0 || !existed;
+                }
+                catch (FileAlreadyExistsException exception)
+                {
+                    if (!await MatchesPublicContentAsync(symbol, folder, name))
+                    {
+                        _logger.LogWarning(exception, "Different public symbols already occupy the destination for promotion {PromotionId}.", promotionId);
+                        await FailAsync(stagedSymbolPackageKey, promotionId);
+                        return;
+                    }
+
+                    _logger.LogInformation("Resuming symbol promotion {PromotionId} with an identical existing public copy.", promotionId);
+                }
             }
 
             try
@@ -98,6 +125,11 @@ namespace NuGetGallery
                 {
                     if (IsEligible(attempt))
                     {
+                        foreach (var publicSymbol in publicSymbols)
+                        {
+                            await _symbolService.UpdateStatusAsync(publicSymbol, PackageStatus.Deleted, commitChanges: false);
+                        }
+
                         await _symbolService.UpdateStatusAsync(symbol, PackageStatus.Available, commitChanges: false);
                         // Retain the attempt until the orchestrator durably records completion.
                         attempt.Status = StagedPackageStatus.Succeeded;
@@ -105,6 +137,11 @@ namespace NuGetGallery
                     else
                     {
                         _logger.LogWarning("Symbol promotion {PromotionId} lost eligibility during publication.", promotionId);
+                        if (copied)
+                        {
+                            await _storage.DeleteFileAsync(folder, name);
+                        }
+
                         attempt.Status = StagedPackageStatus.PromotionFailed;
                     }
 
@@ -115,17 +152,12 @@ namespace NuGetGallery
             {
                 _logger.LogError(exception, "Failed to publish staged symbols for promotion {PromotionId}.", promotionId);
                 var wasPublished = _symbols.GetAll().AsNoTracking().Any(candidate => candidate.Key == symbol.Key && candidate.StatusKey == PackageStatus.Available);
-                if (!existed && !wasPublished)
+                if (copied && !wasPublished)
                 {
                     await _storage.DeleteFileAsync(folder, name);
                 }
 
                 throw;
-            }
-
-            if (attempt.Status == StagedPackageStatus.PromotionFailed && !existed)
-            {
-                await _storage.DeleteFileAsync(folder, name);
             }
         }
 
@@ -214,8 +246,14 @@ namespace NuGetGallery
                     throw new InvalidOperationException($"The public symbol package '{folder}/{name}' disappeared while checking the promotion copy.");
                 }
 
-                return content.Length == symbol.FileSize && CryptographyService.GenerateHash(content, symbol.HashAlgorithm) == symbol.Hash;
+                return MatchesContent(symbol, content);
             }
+        }
+
+        private static bool MatchesContent(SymbolPackage symbol, Stream content)
+        {
+            content.Position = 0;
+            return content.Length == symbol.FileSize && CryptographyService.GenerateHash(content, symbol.HashAlgorithm) == symbol.Hash;
         }
 
         private Task SetCacheControlAsync(string folder, string name)

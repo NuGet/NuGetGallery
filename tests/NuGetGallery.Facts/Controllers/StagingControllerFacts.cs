@@ -272,13 +272,18 @@ namespace NuGetGallery
         [InlineData(StagedPackageStatus.Promoting, false)]
         [InlineData(StagedPackageStatus.Promoting, true)]
         [InlineData(StagedPackageStatus.PromotionFailed, false)]
-        public void DisplaysSymbolPromotionControlsAndStatus(StagedPackageStatus status, bool resendDue)
+        [InlineData(StagedPackageStatus.Ready, false, true)]
+        public void DisplaysSymbolPromotionControlsAndStatus(StagedPackageStatus status, bool resendDue, bool hasPublicSymbols = false)
         {
             var owner = new User("owner") { Key = 1 };
             var attempt = CreateStagedSymbolPackage(owner);
             attempt.Status = status;
             attempt.ActivePromotionId = Guid.NewGuid();
             attempt.PromotionMessageSentDate = DateTime.UtcNow.AddMinutes(resendDue ? -61 : -59);
+            if (hasPublicSymbols)
+            {
+                attempt.StagedPackageIdentity.Package.SymbolPackages.Add(new SymbolPackage { StatusKey = PackageStatus.Available });
+            }
             GetMock<IPackageStagingAuthorizationService>().Setup(x => x.GetEnabledOwner(owner, owner.Username)).Returns(owner);
             GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagedPackages(owner)).Returns(new List<StagedPackage>());
             GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagingGroups(owner)).Returns(new List<StagingGroup>());
@@ -290,6 +295,7 @@ namespace NuGetGallery
 
             var symbols = Assert.Single(model.Packages);
             Assert.Equal(status == StagedPackageStatus.Ready, symbols.CanPromote);
+            Assert.Equal(hasPublicSymbols, symbols.ReplacesPublishedSymbols);
             Assert.Equal(status == StagedPackageStatus.Promoting && resendDue, symbols.CanResend);
             Assert.Equal(status != StagedPackageStatus.Promoting, symbols.CanManage);
             Assert.Equal(status == StagedPackageStatus.Promoting ? 1 : 0, model.PromotingCount);

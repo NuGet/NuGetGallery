@@ -426,7 +426,7 @@ namespace NuGetGallery
                 string promotionBlocker = null;
                 if (attempt.Status == StagedPackageStatus.Ready && !identity.StagingGroupKey.HasValue)
                 {
-                    promotionBlocker = blockers.FirstOrDefault(blocker => blocker.Code != "PublicSymbolsExist" && blocker.Code != "ParentPackageNotAvailable")?.Message;
+                    promotionBlocker = blockers.FirstOrDefault(blocker => blocker.Code != "ParentPackageNotAvailable")?.Message;
                 }
 
                 var hasMoveTarget = identity.StagingGroupKey.HasValue || stagingGroups.Any(group => group.Key != identity.StagingGroupKey);
@@ -445,6 +445,7 @@ namespace NuGetGallery
                     ValidationIssues = issues ?? [],
                     CanManage = canManage,
                     CanPromote = canManage && blockers.Count == 0,
+                    ReplacesPublishedSymbols = package.SymbolPackages.Any(symbols => symbols.StatusKey == PackageStatus.Available),
                     CanResend = StagedSymbolPackagePromotionEligibility.CanResend(attempt),
                     PromotionBlocker = promotionBlocker,
                     MoveUrl = moveUrl,
