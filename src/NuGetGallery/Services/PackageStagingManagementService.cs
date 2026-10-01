@@ -734,6 +734,7 @@ namespace NuGetGallery
                 .Include(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageRegistration)
                 .Include(stagedPackage => stagedPackage.StagedPackageIdentity.Owner)
                 .Include(stagedPackage => stagedPackage.StagedPackageIdentity.StagingGroup)
+                .Include(stagedPackage => stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackage.SymbolPackage)
                 .Where(stagedPackage => ownerKeys.Contains(stagedPackage.StagedPackageIdentity.OwnerKey))
                 .Where(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Staged)
                 .Where(stagedPackage => stagedPackage.Status != StagedPackageStatus.Superseded && stagedPackage.Status != StagedPackageStatus.Deleted)
