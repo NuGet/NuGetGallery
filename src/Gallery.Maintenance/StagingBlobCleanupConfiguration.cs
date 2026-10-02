@@ -4,7 +4,7 @@
 namespace Gallery.Maintenance
 {
     /// <summary>
-    /// Configures cleanup of terminal private staging content. Disabled unless explicitly enabled.
+    /// Configures terminal and orphaned private staging cleanup. Disabled unless explicitly enabled.
     /// </summary>
     public class StagingBlobCleanupConfiguration
     {

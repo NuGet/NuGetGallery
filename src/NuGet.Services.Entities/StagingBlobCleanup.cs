@@ -15,8 +15,9 @@ namespace NuGet.Services.Entities
 
         /// <summary>
         /// Snapshots the identity key without a foreign key so cleanup survives identity deletion.
+        /// Orphaned files that have no staging identity leave this unset.
         /// </summary>
-        public int StagedPackageIdentityKey { get; set; }
+        public int? StagedPackageIdentityKey { get; set; }
 
         [Required]
         [StringLength(256)]

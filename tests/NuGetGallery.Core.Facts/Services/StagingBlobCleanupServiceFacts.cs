@@ -76,7 +76,7 @@ namespace NuGetGallery
                 ValidatedBlobPath = "validated.nupkg",
             });
 
-            var livePaths = await context.Target.GetLiveReferencedPathsAsync(new[] { new StagingBlobCleanup { StagedPackageIdentityKey = 42, BlobPath = "validated.nupkg", BlobETag = "etag" } });
+            var livePaths = await context.Target.GetLiveReferencedPathsAsync(new[] { new StagingBlobCleanup { BlobPath = "validated.nupkg", BlobETag = "etag" } });
 
             Assert.Equal(expected, livePaths.Contains("validated.nupkg"));
         }
@@ -109,7 +109,7 @@ namespace NuGetGallery
                 UploadedBlobPath = "shared.snupkg",
             });
 
-            var livePaths = await context.Target.GetLiveReferencedPathsAsync(new[] { new StagingBlobCleanup { StagedPackageIdentityKey = 42, BlobPath = "shared.snupkg", BlobETag = "etag" } });
+            var livePaths = await context.Target.GetLiveReferencedPathsAsync(new[] { new StagingBlobCleanup { BlobPath = "shared.snupkg", BlobETag = "etag" } });
 
             Assert.Equal(expected, livePaths.Contains("shared.snupkg"));
         }

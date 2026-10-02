@@ -64,7 +64,10 @@ namespace NuGetGallery
                     throw new ArgumentException("The cleanup collection contains a null request.", nameof(cleanups));
                 }
 
-                ValidateIdentityKey(cleanup.StagedPackageIdentityKey);
+                if (cleanup.StagedPackageIdentityKey.HasValue)
+                {
+                    ValidateIdentityKey(cleanup.StagedPackageIdentityKey.Value);
+                }
                 if (string.IsNullOrWhiteSpace(cleanup.BlobPath) || string.IsNullOrWhiteSpace(cleanup.BlobETag))
                 {
                     throw new ArgumentException("The staging file reference is incomplete.", nameof(cleanups));
@@ -78,8 +81,8 @@ namespace NuGetGallery
             }
 
             var paths = cleanups.Select(cleanup => cleanup.BlobPath).Distinct().ToList();
-            var parentIdentityKeys = cleanups.Where(cleanup => cleanup.BlobPath.EndsWith(CoreConstants.NuGetPackageFileExtension, StringComparison.OrdinalIgnoreCase))
-                .Select(cleanup => cleanup.StagedPackageIdentityKey).Distinct().ToList();
+            var parentIdentityKeys = cleanups.Where(cleanup => cleanup.StagedPackageIdentityKey.HasValue && cleanup.BlobPath.EndsWith(CoreConstants.NuGetPackageFileExtension, StringComparison.OrdinalIgnoreCase))
+                .Select(cleanup => cleanup.StagedPackageIdentityKey.Value).Distinct().ToList();
             var packages = await _entities.StagedPackages
                 .Where(attempt => attempt.StagedPackageIdentity.CurrentStagedPackageKey == attempt.Key)
                 .Where(attempt => attempt.Status != StagedPackageStatus.Deleted && attempt.Status != StagedPackageStatus.Superseded && attempt.Status != StagedPackageStatus.Succeeded)
@@ -106,7 +109,8 @@ namespace NuGetGallery
             var validatingIdentityKeys = new HashSet<int>(symbols.Where(attempt => attempt.Status == StagedPackageStatus.Validating).Select(attempt => attempt.StagedPackageIdentityKey));
             foreach (var cleanup in cleanups)
             {
-                if (cleanup.BlobPath.EndsWith(CoreConstants.NuGetPackageFileExtension, StringComparison.OrdinalIgnoreCase) && validatingIdentityKeys.Contains(cleanup.StagedPackageIdentityKey))
+                if (cleanup.StagedPackageIdentityKey.HasValue && cleanup.BlobPath.EndsWith(CoreConstants.NuGetPackageFileExtension, StringComparison.OrdinalIgnoreCase)
+                    && validatingIdentityKeys.Contains(cleanup.StagedPackageIdentityKey.Value))
                 {
                     livePaths.Add(cleanup.BlobPath);
                 }

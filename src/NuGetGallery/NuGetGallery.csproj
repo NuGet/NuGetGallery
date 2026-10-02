@@ -451,6 +451,10 @@
     <Compile Include="Migrations\20261001004643032_AddStagedSymbolPromotionControls.Designer.cs">
       <DependentUpon>20261001004643032_AddStagedSymbolPromotionControls.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202610020305202_AllowOrphanedStagingBlobCleanups.cs" />
+    <Compile Include="Migrations\202610020305202_AllowOrphanedStagingBlobCleanups.Designer.cs">
+      <DependentUpon>202610020305202_AllowOrphanedStagingBlobCleanups.cs</DependentUpon>
+    </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
     <Compile Include="RequestModels\UpdateListedRequest.cs" />
@@ -1925,6 +1929,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\20261001004643032_AddStagedSymbolPromotionControls.resx">
       <DependentUpon>20261001004643032_AddStagedSymbolPromotionControls.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202610020305202_AllowOrphanedStagingBlobCleanups.resx">
+      <DependentUpon>202610020305202_AllowOrphanedStagingBlobCleanups.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
