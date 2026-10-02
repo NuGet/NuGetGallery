@@ -6,6 +6,7 @@ validation-orchestrator-dev.json
 symbols-orchestrator-dev.json
 symbols-validator-dev.json
 staging-promotion-dev.json
+gallery-maintenance-dev.json
 azurite-data/
 # Generated Gallery config (also gitignored in src/NuGetGallery/)
 appsettings.Aspire.config
