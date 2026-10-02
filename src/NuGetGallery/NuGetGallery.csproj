@@ -443,6 +443,10 @@
     <Compile Include="Migrations\202609302029038_AddStagedSymbolPromotion.Designer.cs">
       <DependentUpon>202609302029038_AddStagedSymbolPromotion.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202610012106230_AddStagingBlobCleanups.cs" />
+    <Compile Include="Migrations\202610012106230_AddStagingBlobCleanups.Designer.cs">
+      <DependentUpon>202610012106230_AddStagingBlobCleanups.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\20261001004643032_AddStagedSymbolPromotionControls.cs" />
     <Compile Include="Migrations\20261001004643032_AddStagedSymbolPromotionControls.Designer.cs">
       <DependentUpon>20261001004643032_AddStagedSymbolPromotionControls.cs</DependentUpon>
@@ -1915,6 +1919,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202609302029038_AddStagedSymbolPromotion.resx">
       <DependentUpon>202609302029038_AddStagedSymbolPromotion.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202610012106230_AddStagingBlobCleanups.resx">
+      <DependentUpon>202610012106230_AddStagingBlobCleanups.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\20261001004643032_AddStagedSymbolPromotionControls.resx">
       <DependentUpon>20261001004643032_AddStagedSymbolPromotionControls.cs</DependentUpon>

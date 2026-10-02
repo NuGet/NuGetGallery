@@ -35,6 +35,8 @@ namespace NuGet.Services.Staging.Promotion.Tests
             context.StagedPackageRepository.Verify(x => x.DeleteOnCommit(It.IsAny<StagedPackage>()), Times.Never);
             context.StagingGroupRepository.Verify(x => x.DeleteOnCommit(It.IsAny<StagingGroup>()), Times.Never);
             context.StagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
+            context.BlobCleanup.Verify(service => service.QueuePackageFiles(It.IsAny<int>()), Times.Never);
+            context.BlobCleanup.Verify(service => service.QueueSymbolFiles(It.IsAny<int>()), Times.Never);
         }
 
         [Fact]
@@ -58,6 +60,10 @@ namespace NuGet.Services.Staging.Promotion.Tests
             context.StagedPackageIdentityRepository.Verify(x => x.DeleteOnCommit(completedMember.StagedPackageIdentity), Times.Once);
             context.StagingGroupRepository.Verify(x => x.DeleteOnCommit(It.IsAny<StagingGroup>()), Times.Never);
             context.StagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Exactly(2));
+            context.BlobCleanup.Verify(service => service.QueuePackageFiles(42), Times.Once);
+            context.BlobCleanup.Verify(service => service.QueueSymbolFiles(42), Times.Once);
+            context.BlobCleanup.Verify(service => service.QueuePackageFiles(43), Times.Once);
+            context.BlobCleanup.Verify(service => service.QueueSymbolFiles(43), Times.Once);
         }
 
         [Fact]
@@ -79,6 +85,8 @@ namespace NuGet.Services.Staging.Promotion.Tests
             Assert.Null(failedMember.ActivePromotionId);
             context.StagedPackageRepository.Verify(x => x.DeleteOnCommit(context.StagedPackage), Times.Once);
             context.StagedPackageRepository.Verify(x => x.DeleteOnCommit(failedMember), Times.Never);
+            context.BlobCleanup.Verify(service => service.QueuePackageFiles(failedMember.StagedPackageIdentityKey), Times.Never);
+            context.BlobCleanup.Verify(service => service.QueueSymbolFiles(failedMember.StagedPackageIdentityKey), Times.Never);
             context.StagedPackageIdentityRepository.Verify(x => x.DeleteOnCommit(context.StagedPackage.StagedPackageIdentity), Times.Once);
             context.StagedPackageIdentityRepository.Verify(x => x.DeleteOnCommit(failedMember.StagedPackageIdentity), Times.Never);
             context.StagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Exactly(2));
@@ -332,6 +340,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
                     StagedSymbolPackageRepository.Object,
                     StagedPackageIdentityRepository.Object,
                     StagingGroupRepository.Object,
+                    BlobCleanup.Object,
                     Mock.Of<ILogger<StagingGroupPromotionService>>());
             }
 
@@ -405,6 +414,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
 
             public Mock<IEntityRepository<StagedPackageIdentity>> StagedPackageIdentityRepository { get; }
             public Mock<IEntityRepository<StagingGroup>> StagingGroupRepository { get; }
+            public Mock<IStagingBlobCleanupService> BlobCleanup { get; } = new Mock<IStagingBlobCleanupService>();
             public StagingGroupPromotionService Target { get; }
         }
     }

@@ -29,6 +29,7 @@ namespace NuGet.Services.Staging.Promotion
         private readonly IFileMetadataService _packageFileMetadataService;
         private readonly ICoreLicenseFileService _licenseFileService;
         private readonly ICoreReadmeFileService _readmeFileService;
+        private readonly IStagingBlobCleanupService _blobCleanup;
         private readonly ILogger<StagedPackagePromotionMessageHandler> _logger;
 
         /// <summary>
@@ -44,6 +45,7 @@ namespace NuGet.Services.Staging.Promotion
         /// <param name="packageFileMetadataService">The public package file naming metadata.</param>
         /// <param name="licenseFileService">The public embedded-license file service.</param>
         /// <param name="readmeFileService">The public embedded-readme file service.</param>
+        /// <param name="blobCleanup">The transactional private-file cleanup queue.</param>
         /// <param name="logger">The logger.</param>
         public StagedPackagePromotionMessageHandler(
             IEntityRepository<StagedPackage> stagedPackageRepository,
@@ -56,6 +58,7 @@ namespace NuGet.Services.Staging.Promotion
             IFileMetadataService packageFileMetadataService,
             ICoreLicenseFileService licenseFileService,
             ICoreReadmeFileService readmeFileService,
+            IStagingBlobCleanupService blobCleanup,
             ILogger<StagedPackagePromotionMessageHandler> logger)
         {
             _stagedPackageRepository = stagedPackageRepository ?? throw new ArgumentNullException(nameof(stagedPackageRepository));
@@ -68,6 +71,7 @@ namespace NuGet.Services.Staging.Promotion
             _packageFileMetadataService = packageFileMetadataService ?? throw new ArgumentNullException(nameof(packageFileMetadataService));
             _licenseFileService = licenseFileService ?? throw new ArgumentNullException(nameof(licenseFileService));
             _readmeFileService = readmeFileService ?? throw new ArgumentNullException(nameof(readmeFileService));
+            _blobCleanup = blobCleanup ?? throw new ArgumentNullException(nameof(blobCleanup));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -371,9 +375,10 @@ namespace NuGet.Services.Staging.Promotion
 
             await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
             {
+                var identity = stagedPackage.StagedPackageIdentity;
                 RemoveStagedPackage(stagedPackage);
                 await _stagedPackageRepository.CommitChangesAsync();
-                await DeleteUnusedIdentityAsync(stagedPackage.StagedPackageIdentity);
+                await DeleteUnusedIdentityAsync(identity);
             });
         }
 
@@ -396,6 +401,12 @@ namespace NuGet.Services.Staging.Promotion
         private void RemoveStagedPackage(StagedPackage stagedPackage)
         {
             var identity = stagedPackage.StagedPackageIdentity;
+            _blobCleanup.QueuePackageFiles(identity.Key);
+            if (!identity.CurrentStagedSymbolPackageKey.HasValue)
+            {
+                _blobCleanup.QueueSymbolFiles(identity.Key);
+            }
+
             identity.CurrentStagedPackageKey = null;
             identity.CurrentStagedPackage = null;
             _stagedPackageRepository.DeleteOnCommit(stagedPackage);

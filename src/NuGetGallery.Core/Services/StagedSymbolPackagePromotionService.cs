@@ -24,6 +24,7 @@ namespace NuGetGallery
         private readonly IStagingBlobService _stagingBlobs;
         private readonly ICoreFileStorageService _storage;
         private readonly IStagingGroupPromotionService _groups;
+        private readonly IStagingBlobCleanupService _blobCleanup;
         private readonly ILogger<StagedSymbolPackagePromotionService> _logger;
 
         public StagedSymbolPackagePromotionService(
@@ -34,6 +35,7 @@ namespace NuGetGallery
             IStagingBlobService stagingBlobs,
             ICoreFileStorageService storage,
             IStagingGroupPromotionService groups,
+            IStagingBlobCleanupService blobCleanup,
             ILogger<StagedSymbolPackagePromotionService> logger)
         {
             _attempts = attempts ?? throw new ArgumentNullException(nameof(attempts));
@@ -43,6 +45,7 @@ namespace NuGetGallery
             _stagingBlobs = stagingBlobs ?? throw new ArgumentNullException(nameof(stagingBlobs));
             _storage = storage ?? throw new ArgumentNullException(nameof(storage));
             _groups = groups ?? throw new ArgumentNullException(nameof(groups));
+            _blobCleanup = blobCleanup ?? throw new ArgumentNullException(nameof(blobCleanup));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -228,6 +231,12 @@ namespace NuGetGallery
             await _attempts.ExecuteInTransactionAsync(async () =>
             {
                 var identity = attempt.StagedPackageIdentity;
+                _blobCleanup.QueueSymbolFiles(identity.Key);
+                if (!identity.CurrentStagedPackageKey.HasValue)
+                {
+                    _blobCleanup.QueuePackageFiles(identity.Key);
+                }
+
                 identity.CurrentStagedSymbolPackageKey = null;
                 identity.CurrentStagedSymbolPackage = null;
                 _attempts.DeleteOnCommit(attempt);

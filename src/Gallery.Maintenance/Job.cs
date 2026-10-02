@@ -6,10 +6,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
+using Azure.Storage.Blobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NuGet.Jobs;
+using NuGetGallery;
 
 namespace Gallery.Maintenance
 {
@@ -83,6 +86,24 @@ namespace Gallery.Maintenance
 
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
+            services.Configure<StagingBlobCleanupConfiguration>(configurationRoot.GetSection("StagingBlobCleanup"));
+        }
+
+        internal StagingBlobCleanupConfiguration GetStagingBlobCleanupConfiguration()
+        {
+            return _serviceProvider.GetRequiredService<IOptionsSnapshot<StagingBlobCleanupConfiguration>>().Value;
+        }
+
+        internal BlobContainerClient CreateStagingBlobContainerClient(StagingBlobCleanupConfiguration configuration)
+        {
+            if (string.IsNullOrWhiteSpace(configuration.StorageConnectionString))
+            {
+                throw new InvalidOperationException("Enabled staging blob cleanup requires a storage connection string.");
+            }
+
+            var storageMsi = _serviceProvider.GetRequiredService<IOptionsSnapshot<StorageMsiConfiguration>>().Value;
+            return StorageAccountHelper.CreateBlobServiceClient(storageMsi, configuration.StorageConnectionString)
+                .GetBlobContainerClient(CoreConstants.Folders.StagingFolderName);
         }
     }
 }

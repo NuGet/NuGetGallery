@@ -18,6 +18,7 @@ namespace NuGetGallery
         private readonly IEntityRepository<StagedSymbolPackage> _stagedSymbolPackageRepository;
         private readonly IEntityRepository<StagedPackageIdentity> _stagedPackageIdentityRepository;
         private readonly IEntityRepository<StagingGroup> _stagingGroupRepository;
+        private readonly IStagingBlobCleanupService _blobCleanup;
         private readonly ILogger<StagingGroupPromotionService> _logger;
 
         /// <summary>
@@ -27,18 +28,21 @@ namespace NuGetGallery
         /// <param name="stagedSymbolPackageRepository">The staged symbol repository.</param>
         /// <param name="stagedPackageIdentityRepository">The staging identity repository.</param>
         /// <param name="stagingGroupRepository">The staging group repository.</param>
+        /// <param name="blobCleanup">The transactional private-file cleanup queue.</param>
         /// <param name="logger">The logger.</param>
         public StagingGroupPromotionService(
             IEntityRepository<StagedPackage> stagedPackageRepository,
             IEntityRepository<StagedSymbolPackage> stagedSymbolPackageRepository,
             IEntityRepository<StagedPackageIdentity> stagedPackageIdentityRepository,
             IEntityRepository<StagingGroup> stagingGroupRepository,
+            IStagingBlobCleanupService blobCleanup,
             ILogger<StagingGroupPromotionService> logger)
         {
             _stagedPackageRepository = stagedPackageRepository ?? throw new ArgumentNullException(nameof(stagedPackageRepository));
             _stagedSymbolPackageRepository = stagedSymbolPackageRepository ?? throw new ArgumentNullException(nameof(stagedSymbolPackageRepository));
             _stagedPackageIdentityRepository = stagedPackageIdentityRepository ?? throw new ArgumentNullException(nameof(stagedPackageIdentityRepository));
             _stagingGroupRepository = stagingGroupRepository ?? throw new ArgumentNullException(nameof(stagingGroupRepository));
+            _blobCleanup = blobCleanup ?? throw new ArgumentNullException(nameof(blobCleanup));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -124,6 +128,20 @@ namespace NuGetGallery
                             .Concat(activeSymbols.Select(candidate => candidate.StagedPackageIdentity))
                             .Distinct()
                             .ToList();
+
+                        foreach (var identity in activeIdentities)
+                        {
+                            var removesPackage = activeMembers.Any(candidate => candidate.StagedPackageIdentityKey == identity.Key && candidate.Status == StagedPackageStatus.Succeeded);
+                            var removesSymbols = activeSymbols.Any(candidate => candidate.StagedPackageIdentityKey == identity.Key && candidate.Status == StagedPackageStatus.Succeeded);
+                            if (removesPackage || (removesSymbols && !identity.CurrentStagedPackageKey.HasValue))
+                            {
+                                _blobCleanup.QueuePackageFiles(identity.Key);
+                            }
+                            if (removesSymbols || (removesPackage && !identity.CurrentStagedSymbolPackageKey.HasValue))
+                            {
+                                _blobCleanup.QueueSymbolFiles(identity.Key);
+                            }
+                        }
 
                         foreach (var activeMember in activeMembers)
                         {

@@ -405,19 +405,24 @@ namespace NuGetGallery
                     .Returns(Task.CompletedTask);
                 var stagingGroupRepository = new Mock<IEntityRepository<StagingGroup>>();
                 var includedPaths = new List<string>();
+                var blobCleanup = new Mock<IStagingBlobCleanupService>();
                 var target = CreateService(
                     new[] { firstPackage, secondPackage, deletedPackage, unrelatedPackage },
                     owner => true,
                     packageService: packageService.Object,
                     stagingGroups: new[] { group },
                     stagingGroupRepository: stagingGroupRepository,
-                    includedPath: includedPaths.Add);
+                    includedPath: includedPaths.Add,
+                    blobCleanup: blobCleanup.Object);
 
                 var result = await target.DeleteStagingGroupAsync(currentUser, group);
 
                 Assert.Equal(StagingGroupDeletionResultType.Deleted, result.Type);
                 Assert.Contains("StagedPackageIdentity.Package.PackageRegistration", includedPaths);
                 Assert.Equal(2, result.AffectedPackageCount);
+                blobCleanup.Verify(service => service.QueuePackageFiles(100), Times.Once);
+                blobCleanup.Verify(service => service.QueuePackageFiles(101), Times.Once);
+                blobCleanup.Verify(service => service.QueuePackageFiles(103), Times.Never);
                 Assert.All(new[] { firstPackage, secondPackage }, stagedPackage =>
                 {
                     Assert.Equal(StagedPackageStatus.Deleted, stagedPackage.Status);
@@ -968,11 +973,13 @@ namespace NuGetGallery
                     .Callback(() => stagedPackage.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Deleted)
                     .Returns(Task.CompletedTask);
                 var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
+                var blobCleanup = new Mock<IStagingBlobCleanupService>();
                 var target = CreateService(
                     new[] { stagedPackage },
                     user => true,
                     packageService: packageService.Object,
-                    stagedPackageRepository: stagedPackageRepository);
+                    stagedPackageRepository: stagedPackageRepository,
+                    blobCleanup: blobCleanup.Object);
 
                 var result = await target.DeletePackageAsync(stagedPackage);
 
@@ -981,6 +988,8 @@ namespace NuGetGallery
                 Assert.Equal(PackageStatus.Deleted, stagedPackage.StagedPackageIdentity.Package.PackageStatusKey);
                 Assert.False(stagedPackage.StagedPackageIdentity.Package.Listed);
                 stagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
+                blobCleanup.Verify(service => service.QueuePackageFiles(stagedPackage.StagedPackageIdentityKey), Times.Once);
+                blobCleanup.Verify(service => service.QueueSymbolFiles(It.IsAny<int>()), Times.Never);
             }
 
             [Fact]
@@ -1261,7 +1270,8 @@ namespace NuGetGallery
                 Mock<IEntityRepository<StagedSymbolPackage>> stagedSymbolRepository = null,
                 Mock<IEntityRepository<StagedPackageIdentity>> identityRepository = null,
                 Mock<IEntityRepository<SymbolPackage>> symbolRepository = null,
-                IStagedSymbolPackageValidationMessageEmitter symbolValidationMessageEmitter = null)
+                IStagedSymbolPackageValidationMessageEmitter symbolValidationMessageEmitter = null,
+                IStagingBlobCleanupService blobCleanup = null)
             {
                 var stagedPackagesList = stagedPackages.ToList();
                 var stagedPackagesQuery = stagedPackagesList.AsQueryable();
@@ -1330,7 +1340,8 @@ namespace NuGetGallery
                     stagedSymbolRepository.Object,
                     (identityRepository ?? new Mock<IEntityRepository<StagedPackageIdentity>>()).Object,
                     (symbolRepository ?? new Mock<IEntityRepository<SymbolPackage>>()).Object,
-                    symbolValidationMessageEmitter ?? Mock.Of<IStagedSymbolPackageValidationMessageEmitter>());
+                    symbolValidationMessageEmitter ?? Mock.Of<IStagedSymbolPackageValidationMessageEmitter>(),
+                    blobCleanup ?? Mock.Of<IStagingBlobCleanupService>());
             }
 
             private static StagingGroup CreateStagingGroup(int key, string id, string name, User owner)

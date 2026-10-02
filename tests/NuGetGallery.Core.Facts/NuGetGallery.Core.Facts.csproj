@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\NuGetGallery.Core\NuGetGallery.Core.csproj" />
+    <ProjectReference Include="..\..\src\NuGet.Services.Testing.Entities\NuGet.Services.Testing.Entities.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Moq" />
