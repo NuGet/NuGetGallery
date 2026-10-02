@@ -2,8 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Threading.Tasks;
 using NuGet.Services.Entities;
 
 namespace NuGetGallery
@@ -48,35 +50,70 @@ namespace NuGetGallery
             }
         }
 
-        public bool HasLiveReference(StagingBlobCleanup cleanup)
+        public async Task<HashSet<string>> GetLiveReferencedPathsAsync(IReadOnlyCollection<StagingBlobCleanup> cleanups)
         {
-            if (cleanup == null)
+            if (cleanups == null)
             {
-                throw new ArgumentNullException(nameof(cleanup));
+                throw new ArgumentNullException(nameof(cleanups));
             }
 
-            ValidateIdentityKey(cleanup.StagedPackageIdentityKey);
-            if (string.IsNullOrWhiteSpace(cleanup.BlobPath) || string.IsNullOrWhiteSpace(cleanup.BlobETag))
+            foreach (var cleanup in cleanups)
             {
-                throw new ArgumentException("The staging file reference is incomplete.", nameof(cleanup));
+                if (cleanup == null)
+                {
+                    throw new ArgumentException("The cleanup collection contains a null request.", nameof(cleanups));
+                }
+
+                ValidateIdentityKey(cleanup.StagedPackageIdentityKey);
+                if (string.IsNullOrWhiteSpace(cleanup.BlobPath) || string.IsNullOrWhiteSpace(cleanup.BlobETag))
+                {
+                    throw new ArgumentException("The staging file reference is incomplete.", nameof(cleanups));
+                }
             }
 
-            var packages = _entities.StagedPackages.Where(attempt => attempt.StagedPackageIdentity.CurrentStagedPackageKey == attempt.Key)
-                .Where(attempt => attempt.Status != StagedPackageStatus.Deleted && attempt.Status != StagedPackageStatus.Superseded && attempt.Status != StagedPackageStatus.Succeeded);
-            if (packages.Any(attempt => attempt.UploadedBlobPath == cleanup.BlobPath || attempt.ValidatedBlobPath == cleanup.BlobPath))
+            var livePaths = new HashSet<string>(StringComparer.Ordinal);
+            if (cleanups.Count == 0)
             {
-                return true;
+                return livePaths;
             }
 
-            var symbols = _entities.StagedSymbolPackages.Where(attempt => attempt.StagedPackageIdentity.CurrentStagedSymbolPackageKey == attempt.Key)
-                .Where(attempt => attempt.Status != StagedPackageStatus.Deleted && attempt.Status != StagedPackageStatus.Superseded && attempt.Status != StagedPackageStatus.Succeeded);
-            if (symbols.Any(attempt => attempt.UploadedBlobPath == cleanup.BlobPath))
+            var paths = cleanups.Select(cleanup => cleanup.BlobPath).Distinct().ToList();
+            var parentIdentityKeys = cleanups.Where(cleanup => cleanup.BlobPath.EndsWith(CoreConstants.NuGetPackageFileExtension, StringComparison.OrdinalIgnoreCase))
+                .Select(cleanup => cleanup.StagedPackageIdentityKey).Distinct().ToList();
+            var packages = await _entities.StagedPackages
+                .Where(attempt => attempt.StagedPackageIdentity.CurrentStagedPackageKey == attempt.Key)
+                .Where(attempt => attempt.Status != StagedPackageStatus.Deleted && attempt.Status != StagedPackageStatus.Superseded && attempt.Status != StagedPackageStatus.Succeeded)
+                .Where(attempt => paths.Contains(attempt.UploadedBlobPath) || paths.Contains(attempt.ValidatedBlobPath))
+                .Select(attempt => new { attempt.UploadedBlobPath, attempt.ValidatedBlobPath })
+                .ToListAsync();
+            foreach (var package in packages)
             {
-                return true;
+                livePaths.Add(package.UploadedBlobPath);
+                if (package.ValidatedBlobPath != null)
+                {
+                    livePaths.Add(package.ValidatedBlobPath);
+                }
             }
 
-            return cleanup.BlobPath.EndsWith(CoreConstants.NuGetPackageFileExtension, StringComparison.OrdinalIgnoreCase)
-                && symbols.Any(attempt => attempt.StagedPackageIdentityKey == cleanup.StagedPackageIdentityKey && attempt.Status == StagedPackageStatus.Validating);
+            var symbols = await _entities.StagedSymbolPackages
+                .Where(attempt => attempt.StagedPackageIdentity.CurrentStagedSymbolPackageKey == attempt.Key)
+                .Where(attempt => attempt.Status != StagedPackageStatus.Deleted && attempt.Status != StagedPackageStatus.Superseded && attempt.Status != StagedPackageStatus.Succeeded)
+                .Where(attempt => paths.Contains(attempt.UploadedBlobPath)
+                    || (attempt.Status == StagedPackageStatus.Validating && parentIdentityKeys.Contains(attempt.StagedPackageIdentityKey)))
+                .Select(attempt => new { attempt.UploadedBlobPath, attempt.StagedPackageIdentityKey, attempt.Status })
+                .ToListAsync();
+            livePaths.UnionWith(symbols.Select(attempt => attempt.UploadedBlobPath));
+            var validatingIdentityKeys = new HashSet<int>(symbols.Where(attempt => attempt.Status == StagedPackageStatus.Validating).Select(attempt => attempt.StagedPackageIdentityKey));
+            foreach (var cleanup in cleanups)
+            {
+                if (cleanup.BlobPath.EndsWith(CoreConstants.NuGetPackageFileExtension, StringComparison.OrdinalIgnoreCase) && validatingIdentityKeys.Contains(cleanup.StagedPackageIdentityKey))
+                {
+                    livePaths.Add(cleanup.BlobPath);
+                }
+            }
+
+            livePaths.IntersectWith(paths);
+            return livePaths;
         }
 
         private void QueueFile(int identityKey, string path, string etag)
