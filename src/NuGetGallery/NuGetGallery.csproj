@@ -444,6 +444,10 @@
       <DependentUpon>202609302029038_AddStagedSymbolPromotion.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\202610012106230_AddStagingBlobCleanups.cs" />
+    <Compile Include="Migrations\202610020725065_AddStagingExpirationDates.cs" />
+    <Compile Include="Migrations\202610020725065_AddStagingExpirationDates.Designer.cs">
+      <DependentUpon>202610020725065_AddStagingExpirationDates.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\202610012106230_AddStagingBlobCleanups.Designer.cs">
       <DependentUpon>202610012106230_AddStagingBlobCleanups.cs</DependentUpon>
     </Compile>
@@ -683,6 +687,7 @@
     <Compile Include="Services\SymbolPackageStagingStatus.cs" />
     <Compile Include="Services\StagingGroupSummary.cs" />
     <Compile Include="Services\StagingGroupAssignment.cs" />
+    <Compile Include="Services\StagingExpirationPolicy.cs" />
     <Compile Include="Services\StagedSymbolPackageRevalidation.cs" />
     <Compile Include="ViewModels\CreateStagingGroupViewModel.cs" />
     <Compile Include="ViewModels\DeleteStagingGroupViewModel.cs" />
@@ -1922,6 +1927,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202610012106230_AddStagingBlobCleanups.resx">
       <DependentUpon>202610012106230_AddStagingBlobCleanups.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202610020725065_AddStagingExpirationDates.resx">
+      <DependentUpon>202610020725065_AddStagingExpirationDates.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\20261001004643032_AddStagedSymbolPromotionControls.resx">
       <DependentUpon>20261001004643032_AddStagedSymbolPromotionControls.cs</DependentUpon>

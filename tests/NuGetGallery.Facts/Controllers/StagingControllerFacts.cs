@@ -582,6 +582,45 @@ namespace NuGetGallery
         }
 
         [Fact]
+        public void ExpiredGroupOverridesArtifactDeadlinesAndKeepsDeletionAvailable()
+        {
+            var owner = new User("current") { Key = 1 };
+            var group = new StagingGroup { Key = 10, Owner = owner, OwnerKey = owner.Key, Id = "release", Name = "Release", ExpirationDate = System.DateTime.UtcNow };
+            var parent = CreateStagedPackage(42, "PackageA", "1.0.0", owner, StagedPackageStatus.Ready);
+            parent.StagedPackageIdentity.StagingGroup = group;
+            parent.StagedPackageIdentity.StagingGroupKey = group.Key;
+            var symbols = CreateStagedSymbolPackage(owner);
+            symbols.StagedPackageIdentity = parent.StagedPackageIdentity;
+            symbols.StagedPackageIdentityKey = parent.StagedPackageIdentity.Key;
+            symbols.Status = StagedPackageStatus.Ready;
+            parent.StagedPackageIdentity.CurrentStagedSymbolPackage = symbols;
+            parent.StagedPackageIdentity.CurrentStagedSymbolPackageKey = symbols.Key;
+            GetMock<IPackageStagingAuthorizationService>().Setup(x => x.GetEnabledOwner(owner, owner.Username)).Returns(owner);
+            GetMock<IPackageStagingManagementService>().Setup(x => x.FindStagingGroup(owner, group.Id)).Returns(group);
+            GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagedPackages(owner)).Returns(new[] { parent });
+            GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagingGroups(owner)).Returns(new[] { group });
+            GetMock<ISymbolPackageStagingManagementService>().Setup(x => x.GetStagedSymbolPackages(owner)).Returns(new[] { symbols });
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(owner);
+
+            var model = ResultAssert.IsView<StagingGroupDetailViewModel>(target.Group(owner.Username, group.Id), viewName: "Group");
+
+            Assert.True(model.IsExpired);
+            Assert.Equal(group.ExpirationDate, model.ExpirationDate);
+            Assert.False(model.CanPromote);
+            Assert.Equal(2, model.PackageCount);
+            Assert.All(model.Packages, package =>
+            {
+                Assert.True(package.IsExpired);
+                Assert.Equal(group.ExpirationDate, package.ExpirationDate);
+                Assert.Equal("Expired - awaiting cleanup", package.Status);
+                Assert.True(package.CanManage);
+                Assert.False(package.CanPromote);
+                Assert.Null(package.MoveUrl);
+            });
+        }
+
+        [Fact]
         public void DisplaysRetainedMembersAndFreezesAnActiveGroup()
         {
             var currentUser = new User("current") { Key = 1 };
@@ -1200,7 +1239,7 @@ namespace NuGetGallery
             Assert.Equal(group.Id, model.GroupId);
             Assert.Contains(
                 target.ModelState[string.Empty].Errors,
-                error => error.ErrorMessage == "The staged package and symbols cannot be moved while promotion is active.");
+                error => error.ErrorMessage == "The staging changed, expired, or is being promoted. Refresh before trying again; delete staging that has expired.");
         }
 
         [Fact]

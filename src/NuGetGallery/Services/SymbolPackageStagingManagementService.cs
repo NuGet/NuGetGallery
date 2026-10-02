@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
@@ -24,6 +25,7 @@ namespace NuGetGallery
         private readonly IEntityRepository<SymbolPackage> _symbolPackageRepository;
         private readonly IStagingBlobService _stagingBlobService;
         private readonly IStagingBlobCleanupService _blobCleanup;
+        private readonly IAppConfiguration _configuration;
 
         public SymbolPackageStagingManagementService(
             IPackageStagingAuthorizationService authorizationService,
@@ -32,7 +34,8 @@ namespace NuGetGallery
             IEntityRepository<StagedPackageIdentity> identityRepository,
             IEntityRepository<SymbolPackage> symbolPackageRepository,
             IStagingBlobService stagingBlobService,
-            IStagingBlobCleanupService blobCleanup)
+            IStagingBlobCleanupService blobCleanup,
+            IAppConfiguration configuration)
         {
             _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
@@ -41,6 +44,7 @@ namespace NuGetGallery
             _symbolPackageRepository = symbolPackageRepository ?? throw new ArgumentNullException(nameof(symbolPackageRepository));
             _stagingBlobService = stagingBlobService ?? throw new ArgumentNullException(nameof(stagingBlobService));
             _blobCleanup = blobCleanup ?? throw new ArgumentNullException(nameof(blobCleanup));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
         public IReadOnlyList<StagedSymbolPackage> GetStagedSymbolPackages(User currentUser)
@@ -132,6 +136,7 @@ namespace NuGetGallery
                     }
 
                     _blobCleanup.QueueSymbolFiles(identity.Key);
+                    StagingExpirationPolicy.RefreshGroup(group, StagingExpirationPolicy.CreateDeadline(_configuration));
                     if (!identity.CurrentStagedPackageKey.HasValue)
                     {
                         _blobCleanup.QueuePackageFiles(identity.Key);
