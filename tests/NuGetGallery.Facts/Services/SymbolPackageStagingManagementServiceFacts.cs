@@ -108,6 +108,8 @@ namespace NuGetGallery
             context.IdentityRepository.Verify(x => x.DeleteOnCommit(identity), hasStagedPackage ? Times.Never() : Times.Once());
             context.AttemptRepository.Verify(x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()), Times.Once);
             context.AttemptRepository.Verify(x => x.CommitChangesAsync(), Times.Exactly(2));
+            context.BlobCleanup.Verify(service => service.QueueSymbolFiles(identity.Key), Times.Once);
+            context.BlobCleanup.Verify(service => service.QueuePackageFiles(identity.Key), hasStagedPackage ? Times.Never() : Times.Once());
             context.BlobService.VerifyNoOtherCalls();
         }
 
@@ -175,7 +177,8 @@ namespace NuGetGallery
                     AttemptRepository.Object,
                     IdentityRepository.Object,
                     SymbolRepository.Object,
-                    BlobService.Object);
+                    BlobService.Object,
+                    BlobCleanup.Object);
             }
 
             public StagedSymbolPackage AddAttempt(int key)
@@ -208,6 +211,8 @@ namespace NuGetGallery
             }
 
             public User Owner { get; } = new User("owner") { Key = 10 };
+
+            public Mock<IStagingBlobCleanupService> BlobCleanup { get; } = new Mock<IStagingBlobCleanupService>();
 
             public List<StagedSymbolPackage> Attempts { get; } = new List<StagedSymbolPackage>();
 

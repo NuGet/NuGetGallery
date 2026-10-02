@@ -23,6 +23,7 @@ namespace NuGetGallery
         private readonly IEntityRepository<StagedPackageIdentity> _identityRepository;
         private readonly IEntityRepository<SymbolPackage> _symbolPackageRepository;
         private readonly IStagedSymbolPackageValidationMessageEmitter _symbolValidationMessageEmitter;
+        private readonly IStagingBlobCleanupService _blobCleanup;
 
         public PackageStagingManagementService(
             IPackageStagingAuthorizationService packageStagingAuthorizationService,
@@ -33,7 +34,8 @@ namespace NuGetGallery
             IEntityRepository<StagedSymbolPackage> stagedSymbolPackageRepository,
             IEntityRepository<StagedPackageIdentity> identityRepository,
             IEntityRepository<SymbolPackage> symbolPackageRepository,
-            IStagedSymbolPackageValidationMessageEmitter symbolValidationMessageEmitter)
+            IStagedSymbolPackageValidationMessageEmitter symbolValidationMessageEmitter,
+            IStagingBlobCleanupService blobCleanup)
         {
             _packageStagingAuthorizationService = packageStagingAuthorizationService ?? throw new ArgumentNullException(nameof(packageStagingAuthorizationService));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
@@ -44,6 +46,7 @@ namespace NuGetGallery
             _identityRepository = identityRepository ?? throw new ArgumentNullException(nameof(identityRepository));
             _symbolPackageRepository = symbolPackageRepository ?? throw new ArgumentNullException(nameof(symbolPackageRepository));
             _symbolValidationMessageEmitter = symbolValidationMessageEmitter ?? throw new ArgumentNullException(nameof(symbolValidationMessageEmitter));
+            _blobCleanup = blobCleanup ?? throw new ArgumentNullException(nameof(blobCleanup));
         }
 
         public PackageStagingStatus GetPackageStatus(User currentUser, IEnumerable<Scope> scopes, string id, string version)
@@ -209,6 +212,7 @@ namespace NuGetGallery
                         group.MutationRevision++;
                     }
 
+                    _blobCleanup.QueuePackageFiles(stagedPackage.StagedPackageIdentityKey);
                     stagedPackage.Status = StagedPackageStatus.Deleted;
                     stagedPackage.StagedPackageIdentity.Package.Listed = false;
                     await _packageService.UpdatePackageStatusAsync(stagedPackage.StagedPackageIdentity.Package, PackageStatus.Deleted, commitChanges: false);
@@ -409,6 +413,21 @@ namespace NuGetGallery
                             Identity = symbol.StagedPackageIdentity,
                             SymbolPackage = symbol.SymbolPackage,
                         }).ToList();
+
+                    foreach (var identity in symbolMembers.Select(member => member.Identity).Distinct())
+                    {
+                        _blobCleanup.QueueSymbolFiles(identity.Key);
+                        if (!identity.CurrentStagedPackageKey.HasValue)
+                        {
+                            _blobCleanup.QueuePackageFiles(identity.Key);
+                        }
+                    }
+
+                    foreach (var stagedPackage in stagedPackages)
+                    {
+                        _blobCleanup.QueuePackageFiles(stagedPackage.StagedPackageIdentityKey);
+                    }
+
                     foreach (var member in symbolMembers)
                     {
                         var identity = member.Identity;
@@ -424,6 +443,7 @@ namespace NuGetGallery
                     {
                         await _stagingGroupRepository.CommitChangesAsync();
                     }
+
                     foreach (var identity in symbolMembers.Select(member => member.Identity).Distinct())
                     {
                         if (!identity.CurrentStagedPackageKey.HasValue)
@@ -431,6 +451,7 @@ namespace NuGetGallery
                             _identityRepository.DeleteOnCommit(identity);
                         }
                     }
+
                     foreach (var symbolPackage in symbolMembers.Select(member => member.SymbolPackage).Distinct())
                     {
                         _symbolPackageRepository.DeleteOnCommit(symbolPackage);

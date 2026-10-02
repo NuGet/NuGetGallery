@@ -112,6 +112,9 @@ namespace NuGet.Services.Staging.Promotion
                 .WithKeyedParameter(typeof(ICoreFileStorageService), FlatContainerStorageKey)
                 .As<ICoreReadmeFileService>();
             containerBuilder
+                .RegisterType<StagingBlobCleanupService>()
+                .As<IStagingBlobCleanupService>();
+            containerBuilder
                 .RegisterType<StagingGroupPromotionService>()
                 .As<IStagingGroupPromotionService>();
             containerBuilder
