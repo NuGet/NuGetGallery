@@ -16,6 +16,7 @@ using NuGet.Packaging.Core;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Authentication;
+using NuGetGallery.Configuration;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 
@@ -49,6 +50,8 @@ namespace NuGetGallery
 
         private readonly IStagedSymbolPackageValidationMessageEmitter _symbolValidationMessageEmitter;
 
+        private readonly IAppConfiguration _configuration;
+
         public PackageStagingUploadService(
             IApiScopeEvaluator apiScopeEvaluator,
             IFeatureFlagService featureFlagService,
@@ -62,7 +65,8 @@ namespace NuGetGallery
             IEntityRepository<StagingGroup> stagingGroupRepository,
             IStagedPackageValidationMessageEmitter stagedValidationMessageEmitter,
             IEntityRepository<StagedSymbolPackage> stagedSymbolPackageRepository,
-            IStagedSymbolPackageValidationMessageEmitter symbolValidationMessageEmitter)
+            IStagedSymbolPackageValidationMessageEmitter symbolValidationMessageEmitter,
+            IAppConfiguration configuration)
         {
             _apiScopeEvaluator = apiScopeEvaluator ?? throw new ArgumentNullException(nameof(apiScopeEvaluator));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
@@ -77,6 +81,7 @@ namespace NuGetGallery
             _stagedValidationMessageEmitter = stagedValidationMessageEmitter ?? throw new ArgumentNullException(nameof(stagedValidationMessageEmitter));
             _stagedSymbolPackageRepository = stagedSymbolPackageRepository ?? throw new ArgumentNullException(nameof(stagedSymbolPackageRepository));
             _symbolValidationMessageEmitter = symbolValidationMessageEmitter ?? throw new ArgumentNullException(nameof(symbolValidationMessageEmitter));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
         public async Task<PackageStagingResult> StagePackageAsync(
@@ -126,6 +131,7 @@ namespace NuGetGallery
                             Id = groupId,
                             Name = groupId,
                             CreatedDate = DateTime.UtcNow,
+                            ExpirationDate = StagingExpirationPolicy.CreateDeadline(_configuration),
                         };
                     }
 
@@ -141,6 +147,11 @@ namespace NuGetGallery
             {
                 exception.Log();
                 return PackageStagingResult.Error(HttpStatusCode.BadRequest, exception.Message);
+            }
+            catch (StagingExpiredException exception)
+            {
+                exception.Log();
+                return PackageStagingResult.Error(HttpStatusCode.Conflict, exception.Message);
             }
         }
 
@@ -172,6 +183,11 @@ namespace NuGetGallery
             {
                 exception.Log();
                 return PackageStagingResult.Error(HttpStatusCode.BadRequest, exception.Message);
+            }
+            catch (StagingExpiredException exception)
+            {
+                exception.Log();
+                return PackageStagingResult.Error(HttpStatusCode.Conflict, exception.Message);
             }
         }
 
@@ -409,6 +425,15 @@ namespace NuGetGallery
             StagingGroup requestedGroup,
             bool? listed)
         {
+            if (target.CurrentAttempt != null)
+            {
+                StagingExpirationPolicy.EnsureMutable(target.CurrentAttempt.StagedPackageIdentity, requestedGroup, includeSymbols: false);
+            }
+            else if (StagingExpirationPolicy.HasExpired(requestedGroup))
+            {
+                throw new StagingExpiredException();
+            }
+
             var streamMetadata = new PackageStreamMetadata
             {
                 HashAlgorithm = CoreConstants.Sha512HashAlgorithmId,
@@ -428,8 +453,9 @@ namespace NuGetGallery
                     {
                         await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
                         {
+                            StagingExpirationPolicy.EnsureMutable(identity, requestedGroup, includeSymbols: false);
                             target.CurrentAttempt.MutationRevision++;
-                            UpdateGroupAssignment(identity, requestedGroup);
+                            UpdateGroupAssignment(identity, requestedGroup, StagingExpirationPolicy.CreateDeadline(_configuration));
                             if (listed.HasValue)
                             {
                                 identity.Package.Listed = listed.Value;
@@ -720,6 +746,7 @@ namespace NuGetGallery
                 UploadHash = uploadHash,
                 Status = StagedPackageStatus.Validating,
                 UploadedDate = DateTime.UtcNow,
+                ExpirationDate = StagingExpirationPolicy.CreateDeadline(_configuration),
             };
 
             _stagedPackageRepository.InsertOnCommit(stagedPackage);
@@ -733,12 +760,14 @@ namespace NuGetGallery
             {
                 await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
                 {
+                    StagingExpirationPolicy.EnsureMutable(stagedPackageIdentity, requestedGroup, includeSymbols: false);
                     if (previousAttempt != null)
                     {
                         previousAttempt.MutationRevision++;
                     }
 
-                    UpdateGroupAssignment(stagedPackageIdentity, requestedGroup);
+                    UpdateGroupAssignment(stagedPackageIdentity, requestedGroup, stagedPackage.ExpirationDate);
+                    StagingExpirationPolicy.RefreshGroup(stagedPackageIdentity.StagingGroup, stagedPackage.ExpirationDate);
                     if (listed.HasValue)
                     {
                         package.Listed = listed.Value;
@@ -771,9 +800,9 @@ namespace NuGetGallery
             return PackageCommitResult.Success;
         }
 
-        private void UpdateGroupAssignment(StagedPackageIdentity identity, StagingGroup requestedGroup)
+        private void UpdateGroupAssignment(StagedPackageIdentity identity, StagingGroup requestedGroup, DateTime deadline)
         {
-            StagingGroupAssignment.Update(identity, requestedGroup, _stagingGroupRepository);
+            StagingGroupAssignment.Update(identity, requestedGroup, _stagingGroupRepository, deadline);
         }
 
         private static bool IsConflict(Exception exception)

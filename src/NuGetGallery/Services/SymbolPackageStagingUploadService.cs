@@ -14,6 +14,7 @@ using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Services.Entities;
 using NuGetGallery.Authentication;
+using NuGetGallery.Configuration;
 using NuGetGallery.Helpers;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
@@ -37,6 +38,7 @@ namespace NuGetGallery
         private readonly IStagedSymbolPackageValidationMessageEmitter _validationMessageEmitter;
         private readonly IPackageStagingManagementService _managementService;
         private readonly IEntityRepository<StagingGroup> _stagingGroupRepository;
+        private readonly IAppConfiguration _configuration;
 
         public SymbolPackageStagingUploadService(
             IApiScopeEvaluator apiScopeEvaluator,
@@ -50,7 +52,8 @@ namespace NuGetGallery
             IEntityRepository<StagedSymbolPackage> stagedSymbolPackageRepository,
             IStagedSymbolPackageValidationMessageEmitter validationMessageEmitter,
             IPackageStagingManagementService managementService,
-            IEntityRepository<StagingGroup> stagingGroupRepository)
+            IEntityRepository<StagingGroup> stagingGroupRepository,
+            IAppConfiguration configuration)
         {
             _apiScopeEvaluator = apiScopeEvaluator ?? throw new ArgumentNullException(nameof(apiScopeEvaluator));
             _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
@@ -64,6 +67,7 @@ namespace NuGetGallery
             _validationMessageEmitter = validationMessageEmitter ?? throw new ArgumentNullException(nameof(validationMessageEmitter));
             _managementService = managementService ?? throw new ArgumentNullException(nameof(managementService));
             _stagingGroupRepository = stagingGroupRepository ?? throw new ArgumentNullException(nameof(stagingGroupRepository));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
         public async Task<PackageStagingResult> StageSymbolPackageAsync(
@@ -177,6 +181,7 @@ namespace NuGetGallery
                         Id = groupId,
                         Name = groupId,
                         CreatedDate = DateTime.UtcNow,
+                        ExpirationDate = StagingExpirationPolicy.CreateDeadline(_configuration),
                     };
                     if (group.ActivePromotionId.HasValue)
                     {
@@ -205,6 +210,7 @@ namespace NuGetGallery
                     OwnerKey = owner.Key,
                 };
                 var previousAttempt = identity.CurrentStagedSymbolPackage;
+                StagingExpirationPolicy.EnsureMutable(identity, group, includePackage: false);
                 if ((previousAttempt?.Status == StagedPackageStatus.Validating || previousAttempt?.Status == StagedPackageStatus.Ready || previousAttempt?.Status == StagedPackageStatus.WaitingForParent) && previousAttempt.SymbolPackage.Hash == hash)
                 {
                     if (group != null && identity.StagingGroupKey != group.Key)
@@ -213,13 +219,14 @@ namespace NuGetGallery
                         {
                             await _stagedSymbolPackageRepository.ExecuteInTransactionAsync(async () =>
                             {
+                                StagingExpirationPolicy.EnsureMutable(identity, group, includePackage: false);
                                 if (package.PackageStatusKey == PackageStatus.Staged)
                                 {
                                     identity.CurrentStagedPackage.MutationRevision++;
                                 }
 
                                 previousAttempt.MutationRevision++;
-                                StagingGroupAssignment.Update(identity, group, _stagingGroupRepository);
+                                StagingGroupAssignment.Update(identity, group, _stagingGroupRepository, StagingExpirationPolicy.CreateDeadline(_configuration));
                                 await _stagedSymbolPackageRepository.CommitChangesAsync();
                             });
                         }
@@ -245,6 +252,7 @@ namespace NuGetGallery
                     UploadedBlobPath = blob.Path,
                     UploadedBlobETag = blob.ETag,
                     UploadedDate = DateTime.UtcNow,
+                    ExpirationDate = StagingExpirationPolicy.CreateDeadline(_configuration),
                     Status = package.PackageStatusKey == PackageStatus.Deleted ? StagedPackageStatus.WaitingForParent : StagedPackageStatus.Validating,
                 };
                 _stagedSymbolPackageRepository.InsertOnCommit(stagedSymbolPackage);
@@ -253,6 +261,7 @@ namespace NuGetGallery
                 {
                     await _stagedSymbolPackageRepository.ExecuteInTransactionAsync(async () =>
                     {
+                        StagingExpirationPolicy.EnsureMutable(identity, group, includePackage: false);
                         if (previousAttempt != null)
                         {
                             previousAttempt.Status = StagedPackageStatus.Superseded;
@@ -263,7 +272,8 @@ namespace NuGetGallery
                             identity.CurrentStagedPackage.MutationRevision++;
                         }
 
-                        StagingGroupAssignment.Update(identity, group, _stagingGroupRepository);
+                        StagingGroupAssignment.Update(identity, group, _stagingGroupRepository, stagedSymbolPackage.ExpirationDate);
+                        StagingExpirationPolicy.RefreshGroup(identity.StagingGroup, stagedSymbolPackage.ExpirationDate);
                         await _stagedSymbolPackageRepository.CommitChangesAsync();
                         identity.CurrentStagedSymbolPackageKey = stagedSymbolPackage.Key;
                         identity.CurrentStagedSymbolPackage = stagedSymbolPackage;
@@ -292,6 +302,11 @@ namespace NuGetGallery
             {
                 exception.Log();
                 return PackageStagingResult.Error(HttpStatusCode.BadRequest, exception.Message);
+            }
+            catch (StagingExpiredException exception)
+            {
+                exception.Log();
+                return PackageStagingResult.Error(HttpStatusCode.Conflict, exception.Message);
             }
         }
 
@@ -347,7 +362,8 @@ namespace NuGetGallery
             {
                 Id = package.Id,
                 Version = package.NormalizedVersion,
-                Status = stagedSymbolPackage.Status.ToString(),
+                Status = StagingExpirationPolicy.HasExpired(stagedSymbolPackage) ? "Expired" : stagedSymbolPackage.Status.ToString(),
+                Expires = StagingExpirationPolicy.GetDeadline(stagedSymbolPackage).ToUtcIso8601String(),
             };
         }
 

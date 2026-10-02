@@ -161,6 +161,31 @@ namespace NuGetGallery
             context.SymbolRepository.Verify(x => x.DeleteOnCommit(It.IsAny<SymbolPackage>()), Times.Never);
         }
 
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task DeletionRefreshesOnlyAnUnexpiredGroup(bool expired)
+        {
+            var context = new TestContext();
+            var group = new StagingGroup { Key = 10, ExpirationDate = DateTime.UtcNow.AddDays(expired ? -1 : 1) };
+            var deadline = group.ExpirationDate;
+            var identity = context.Attempt.StagedPackageIdentity;
+            identity.StagingGroup = group;
+            identity.StagingGroupKey = group.Key;
+
+            Assert.True(await context.Target.DeletePackageAsync(context.Attempt));
+
+            Assert.Null(identity.CurrentStagedSymbolPackageKey);
+            if (expired)
+            {
+                Assert.Equal(deadline, group.ExpirationDate);
+            }
+            else
+            {
+                Assert.True(group.ExpirationDate > deadline);
+            }
+        }
+
         private class TestContext
         {
             public TestContext()
@@ -178,7 +203,8 @@ namespace NuGetGallery
                     IdentityRepository.Object,
                     SymbolRepository.Object,
                     BlobService.Object,
-                    BlobCleanup.Object);
+                    BlobCleanup.Object,
+                    new Configuration.AppConfiguration());
             }
 
             public StagedSymbolPackage AddAttempt(int key)
