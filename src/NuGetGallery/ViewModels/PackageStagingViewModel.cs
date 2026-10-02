@@ -27,6 +27,16 @@ namespace NuGetGallery
 
         public DateTime UploadedDate { get; set; }
 
+        /// <summary>
+        /// Gets or sets the effective artifact or group expiration deadline.
+        /// </summary>
+        public DateTime ExpirationDate { get; set; }
+
+        /// <summary>
+        /// Gets or sets whether the artifact is logically expired and awaiting cleanup.
+        /// </summary>
+        public bool IsExpired { get; set; }
+
         public IReadOnlyList<ValidationIssue> ValidationIssues { get; set; }
 
         public bool Listed { get; set; }

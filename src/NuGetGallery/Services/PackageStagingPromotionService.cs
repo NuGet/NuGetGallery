@@ -64,7 +64,7 @@ namespace NuGetGallery
                 return PackageStagingPromotionResult.Grouped;
             }
 
-            if (stagedPackage.Status != StagedPackageStatus.Ready)
+            if (stagedPackage.Status != StagedPackageStatus.Ready || StagingExpirationPolicy.HasExpired(stagedPackage))
             {
                 return PackageStagingPromotionResult.NotReady;
             }
@@ -81,10 +81,15 @@ namespace NuGetGallery
             var promotionId = Guid.NewGuid();
             try
             {
+                if (StagingExpirationPolicy.HasExpired(stagedPackage))
+                {
+                    return PackageStagingPromotionResult.NotReady;
+                }
+
                 stagedPackage.ActivePromotionId = promotionId;
                 stagedPackage.PromotionMessageSentDate = DateTime.UtcNow;
                 stagedPackage.Status = StagedPackageStatus.Promoting;
-                if (symbols != null)
+                if (symbols != null && !StagingExpirationPolicy.HasExpired(symbols))
                 {
                     symbols.ActivePromotionId = promotionId;
                     symbols.Status = StagedPackageStatus.Promoting;
@@ -188,6 +193,11 @@ namespace NuGetGallery
                 return PackageStagingPromotionResult.NotReady;
             }
 
+            if (StagingExpirationPolicy.HasExpired(stagedSymbolPackage))
+            {
+                return PackageStagingPromotionResult.NotReady;
+            }
+
             stagedSymbolPackage.ActivePromotionId = Guid.NewGuid();
             stagedSymbolPackage.Status = StagedPackageStatus.Promoting;
             return await SendSymbolPromotionAsync(stagedSymbolPackage);
@@ -240,6 +250,11 @@ namespace NuGetGallery
             if (!_authorizationService.GetEnabledOwners(currentUser).Any(owner => owner.Key == group.OwnerKey))
             {
                 return StagingGroupPromotionResult.Unauthorized;
+            }
+
+            if (StagingExpirationPolicy.HasExpired(group))
+            {
+                return StagingGroupPromotionResult.NotReady;
             }
 
             var stagedPackages = _stagedPackageRepository
@@ -297,6 +312,11 @@ namespace NuGetGallery
             var promotionId = Guid.NewGuid();
             try
             {
+                if (StagingExpirationPolicy.HasExpired(group))
+                {
+                    return StagingGroupPromotionResult.NotReady;
+                }
+
                 group.ActivePromotionId = promotionId;
                 group.PromotionMessageSentDate = DateTime.UtcNow;
                 foreach (var stagedPackage in stagedPackages)

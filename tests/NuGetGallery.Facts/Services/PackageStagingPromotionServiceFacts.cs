@@ -588,6 +588,54 @@ namespace NuGetGallery
             enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
         }
 
+        [Fact]
+        public async Task RejectsPackageExpiringWhileReadingSymbols()
+        {
+            var attempt = CreateStagedPackage(StagedPackageStatus.Ready);
+            var repository = new Mock<IEntityRepository<StagedPackage>>();
+            var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
+            var symbols = new Mock<IEntityRepository<StagedSymbolPackage>>();
+            var target = new PackageStagingPromotionService(
+                Mock.Of<IPackageStagingAuthorizationService>(x => x.CanManage(It.IsAny<User>(), attempt) == true),
+                enqueuer.Object,
+                repository.Object,
+                symbols.Object);
+            symbols.Setup(x => x.GetAll()).Returns(() =>
+            {
+                attempt.ExpirationDate = DateTime.UtcNow;
+                return Array.Empty<StagedSymbolPackage>().AsQueryable();
+            });
+
+            Assert.Equal(PackageStagingPromotionResult.NotReady, await target.PromotePackageAsync(attempt.StagedPackageIdentity.Owner, attempt));
+
+            Assert.Equal(StagedPackageStatus.Ready, attempt.Status);
+            repository.Verify(x => x.CommitChangesAsync(), Times.Never);
+            enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task RejectsGroupExpiringWhileReadingMembers()
+        {
+            var owner = new User("owner") { Key = 1 };
+            var group = new StagingGroup { Key = 10, Owner = owner, OwnerKey = owner.Key };
+            var attempt = CreateStagedPackage(StagedPackageStatus.Ready, group: group);
+            var repository = new Mock<IEntityRepository<StagedPackage>>();
+            repository.Setup(x => x.GetAll()).Returns(() =>
+            {
+                group.ExpirationDate = DateTime.UtcNow;
+                return new[] { attempt }.AsQueryable();
+            });
+            var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
+            var target = CreateService(repository, enqueuer);
+
+            Assert.Equal(StagingGroupPromotionResult.NotReady, await target.PromoteGroupAsync(owner, group));
+
+            Assert.Null(group.ActivePromotionId);
+            Assert.Equal(StagedPackageStatus.Ready, attempt.Status);
+            repository.Verify(x => x.CommitChangesAsync(), Times.Never);
+            enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
+        }
+
         private static PackageStagingPromotionService CreateService(
             Mock<IEntityRepository<StagedPackage>> repository,
             Mock<IStagingPromotionMessageEnqueuer> enqueuer,

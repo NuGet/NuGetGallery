@@ -4,6 +4,7 @@
 using System;
 using System.Net;
 using NuGet.Services.Entities;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
@@ -12,7 +13,7 @@ namespace NuGetGallery
     /// </summary>
     internal static class StagingGroupAssignment
     {
-        internal static PackageStagingResult ResolveForUpload(User owner, string groupId, IPackageStagingManagementService managementService, out StagingGroup group)
+        internal static PackageStagingResult ResolveForUpload(User owner, string groupId, IPackageStagingManagementService managementService, IAppConfiguration configuration, out StagingGroup group)
         {
             group = null;
             if (groupId == null)
@@ -30,6 +31,7 @@ namespace NuGetGallery
                     Id = groupId,
                     Name = groupId,
                     CreatedDate = DateTime.UtcNow,
+                    ExpirationDate = StagingExpirationPolicy.CreateDeadline(configuration),
                 };
             }
 
@@ -41,7 +43,7 @@ namespace NuGetGallery
             return null;
         }
 
-        internal static void Update(StagedPackageIdentity identity, StagingGroup requestedGroup, IEntityRepository<StagingGroup> groups)
+        internal static void Update(StagedPackageIdentity identity, StagingGroup requestedGroup, IEntityRepository<StagingGroup> groups, DateTime membershipDeadline)
         {
             var previousGroup = identity.StagingGroup;
             if (previousGroup != null)
@@ -51,6 +53,10 @@ namespace NuGetGallery
 
             if (requestedGroup != null && requestedGroup.Key != previousGroup?.Key)
             {
+                StagingExpirationPolicy.EnsureMutable(identity, requestedGroup);
+                StagingExpirationPolicy.RefreshGroup(previousGroup, membershipDeadline);
+                StagingExpirationPolicy.RefreshGroup(requestedGroup, membershipDeadline);
+
                 if (requestedGroup.Key == 0)
                 {
                     groups.InsertOnCommit(requestedGroup);

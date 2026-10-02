@@ -607,7 +607,8 @@ namespace NuGetGallery
                             groupPackages ?? [],
                             isUngrouped: false,
                             url: Url.ManageStagingGroup(group.Owner.Username, group.Id),
-                            symbols: symbolsByGroup[group.Key].ToList());
+                            symbols: symbolsByGroup[group.Key].ToList(),
+                            group: group);
                     })
                     .Concat(stagedPackageEntities
                         .Where(stagedPackage => !stagedPackage.StagedPackageIdentity.StagingGroupKey.HasValue)
@@ -666,7 +667,8 @@ namespace NuGetGallery
             IReadOnlyList<StagedPackage> packages,
             bool isUngrouped,
             string url = null,
-            IReadOnlyList<StagedSymbolPackage> symbols = null)
+            IReadOnlyList<StagedSymbolPackage> symbols = null,
+            StagingGroup group = null)
         {
             var statuses = packages.Select(package => package.Status).ToList();
             if (symbols != null)
@@ -703,6 +705,17 @@ namespace NuGetGallery
             {
                 status = "Ready";
                 statusClass = "staging-status-ready";
+            }
+
+            if (StagingExpirationPolicy.HasExpired(group))
+            {
+                status = "Expired - awaiting cleanup";
+                statusClass = "label-warning";
+            }
+            else if (group == null && (packages.Any(StagingExpirationPolicy.HasExpired) || symbols.Any(StagingExpirationPolicy.HasExpired)))
+            {
+                status = "Contains expired staging";
+                statusClass = "label-warning";
             }
 
             return new StagingGroupViewModel

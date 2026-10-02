@@ -160,6 +160,7 @@ namespace NuGetGallery
                 Owner = owner,
                 OwnerKey = owner.Key,
                 CreatedDate = created,
+                ExpirationDate = new DateTime(2026, 10, 25, 20, 0, 0, DateTimeKind.Utc),
             };
             var target = GetController<StagingApiController>();
             ConfigureCreateGroupRequest(target, currentUser, owner);
@@ -185,7 +186,7 @@ namespace NuGetGallery
             Assert.Equal(".NET 10 Preview", (string)body["name"]);
             Assert.Equal("example-org", (string)body["owner"]);
             Assert.Equal("2026-09-11T20:00:00.0000000Z", (string)body["created"]);
-            Assert.Equal("2026-10-11T20:00:00.0000000Z", (string)body["expires"]);
+            Assert.Equal("2026-10-25T20:00:00.0000000Z", (string)body["expires"]);
             Assert.Equal(0, (int)body["itemCount"]);
             Assert.False((bool)body["canPromote"]);
             Assert.Equal("GroupEmpty", (string)body["blockers"][0]["code"]);

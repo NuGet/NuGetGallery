@@ -341,6 +341,9 @@ namespace NuGetGallery
             var stagingGroups = _packageStagingManagementService.GetStagingGroups(currentUser, group.OwnerKey);
 
             var model = CreateGroupViewModel(group.Owner.Username, group.Id, group.Name, null, stagedPackages, stagingGroups, group.ActivePromotionId.HasValue, group.PromotionMessageSentDate);
+            model.ExpirationDate = group.ExpirationDate;
+            model.IsExpired = StagingExpirationPolicy.HasExpired(group);
+            model.CanPromote = model.CanPromote && !model.IsExpired;
             var stagedSymbols = _symbolPackageStagingManagementService.GetStagedSymbolPackages(currentUser, group.OwnerKey, group.Key);
             AddSymbolPackages(model, stagedSymbols, stagingGroups);
             return View(nameof(Group), model);
@@ -400,6 +403,7 @@ namespace NuGetGallery
 
                 findings.TryGetValue(attempt.Key, out var issues);
                 var canManage = !model.IsPromotionActive && attempt.Status != StagedPackageStatus.Promoting;
+                var isExpired = StagingExpirationPolicy.HasExpired(attempt);
                 var blockers = StagedSymbolPackagePromotionEligibility.GetBlockers(attempt);
                 string promotionBlocker = null;
                 if (attempt.Status == StagedPackageStatus.Ready && !identity.StagingGroupKey.HasValue)
@@ -408,7 +412,7 @@ namespace NuGetGallery
                 }
 
                 var hasMoveTarget = identity.StagingGroupKey.HasValue || stagingGroups.Any(group => group.Key != identity.StagingGroupKey);
-                var moveUrl = canManage && hasMoveTarget ? Url.MoveStagedPackage(identity.Owner.Username, package.Id, package.NormalizedVersion) : null;
+                var moveUrl = canManage && !isExpired && hasMoveTarget ? Url.MoveStagedPackage(identity.Owner.Username, package.Id, package.NormalizedVersion) : null;
                 return new PackageStagingViewModel
                 {
                     Id = package.PackageRegistration.Id,
@@ -417,9 +421,11 @@ namespace NuGetGallery
                     IsSymbolPackage = true,
                     ParentStatus = parentStatus,
                     ParentUrl = parentUrl,
-                    Status = attempt.Status.ToString(),
-                    StatusClass = attempt.Status == StagedPackageStatus.WaitingForParent ? "label-warning" : $"staging-status-{attempt.Status.ToString().ToLowerInvariant()}",
+                    Status = isExpired ? "Expired - awaiting cleanup" : attempt.Status.ToString(),
+                    StatusClass = isExpired || attempt.Status == StagedPackageStatus.WaitingForParent ? "label-warning" : $"staging-status-{attempt.Status.ToString().ToLowerInvariant()}",
                     UploadedDate = attempt.UploadedDate,
+                    ExpirationDate = StagingExpirationPolicy.GetDeadline(attempt),
+                    IsExpired = isExpired,
                     ValidationIssues = issues ?? [],
                     CanManage = canManage,
                     CanDelete = canManage,
@@ -449,7 +455,7 @@ namespace NuGetGallery
             }
 
             model.CanPromote = false;
-            if (model.IsPromotionActive || model.PackageCount == 0 || model.ReadyCount != model.PackageCount)
+            if (model.IsPromotionActive || model.IsExpired || model.PackageCount == 0 || model.ReadyCount != model.PackageCount)
             {
                 return;
             }
@@ -528,7 +534,7 @@ namespace NuGetGallery
                         ? Redirect(Url.ManageUngroupedStaging(stagingOwner.Username))
                         : Redirect(Url.ManageStagingGroup(group.Owner.Username, group.Id));
                 case StagingGroupMembershipResult.Conflict:
-                    ModelState.AddModelError(string.Empty, "The staged package and symbols cannot be moved while promotion is active.");
+                    ModelState.AddModelError(string.Empty, "The staging changed, expired, or is being promoted. Refresh before trying again; delete staging that has expired.");
                     var viewModel = CreateMovePackageViewModel(currentUser, identity);
                     viewModel.GroupId = groupId;
                     return View(viewModel);
@@ -569,6 +575,7 @@ namespace NuGetGallery
             var groups = _packageStagingManagementService
                 .GetStagingGroups(currentUser)
                 .Where(group => group.OwnerKey == identity.OwnerKey && group.Key != identity.StagingGroupKey)
+                .Where(group => !StagingExpirationPolicy.HasExpired(group) && !group.ActivePromotionId.HasValue)
                 .OrderBy(group => group.Name)
                 .ThenBy(group => group.Id)
                 .Select(group => new StagingGroupAssignmentViewModel
@@ -632,22 +639,25 @@ namespace NuGetGallery
                     validationIssues.TryGetValue(stagedPackage.Key, out var issues);
                     var identity = stagedPackage.StagedPackageIdentity;
                     var package = identity.Package;
+                    var isExpired = StagingExpirationPolicy.HasExpired(stagedPackage);
                     var hasMoveTarget = identity.StagingGroupKey.HasValue || stagingGroups.Any(group => group.Key != identity.StagingGroupKey);
-                    var moveUrl = hasMoveTarget && !isPromotionActive ? Url.MoveStagedPackage(identity.Owner.Username, package.PackageRegistration.Id, package.NormalizedVersion) : null;
+                    var moveUrl = hasMoveTarget && !isPromotionActive && !isExpired ? Url.MoveStagedPackage(identity.Owner.Username, package.PackageRegistration.Id, package.NormalizedVersion) : null;
 
                     return new PackageStagingViewModel
                     {
                         Id = package.PackageRegistration.Id,
                         Version = package.NormalizedVersion,
                         Owner = identity.Owner.Username,
-                        Status = stagedPackage.Status.ToString(),
-                        StatusClass = $"staging-status-{stagedPackage.Status.ToString().ToLowerInvariant()}",
+                        Status = isExpired ? "Expired - awaiting cleanup" : stagedPackage.Status.ToString(),
+                        StatusClass = isExpired ? "label-warning" : $"staging-status-{stagedPackage.Status.ToString().ToLowerInvariant()}",
                         UploadedDate = stagedPackage.UploadedDate,
+                        ExpirationDate = StagingExpirationPolicy.GetDeadline(stagedPackage),
+                        IsExpired = isExpired,
                         ValidationIssues = issues ?? [],
                         Listed = package.Listed,
                         CanManage = !isPromotionActive,
                         CanDelete = !isPromotionActive && stagedPackage.Status != StagedPackageStatus.Promoting && identity.CurrentStagedSymbolPackage?.Status != StagedPackageStatus.Promoting,
-                        CanPromote = stagedPackage.Status == StagedPackageStatus.Ready && !identity.StagingGroupKey.HasValue,
+                        CanPromote = stagedPackage.Status == StagedPackageStatus.Ready && !identity.StagingGroupKey.HasValue && !isExpired,
                         IncludesStagedSymbols = identity.CurrentStagedSymbolPackage != null
                             && StagedSymbolPackagePromotionEligibility.GetBlockers(identity.CurrentStagedSymbolPackage, stagedPackage).Count == 0,
                         CanResend = !identity.StagingGroupKey.HasValue
@@ -670,7 +680,7 @@ namespace NuGetGallery
                 CanPromote = id != null
                     && !isPromotionActive
                     && orderedStagedPackages.Count > 0
-                    && orderedStagedPackages.All(stagedPackage => stagedPackage.Status == StagedPackageStatus.Ready),
+                    && orderedStagedPackages.All(stagedPackage => stagedPackage.Status == StagedPackageStatus.Ready && !StagingExpirationPolicy.HasExpired(stagedPackage)),
                 CanResend = id != null && isPromotionActive && StagingPromotionResendPolicy.IsDue(promotionMessageSentDate),
                 PackageCount = packageViewModels.Count,
                 ReadyCount = orderedStagedPackages.Count(stagedPackage => stagedPackage.Status == StagedPackageStatus.Ready),
@@ -810,7 +820,14 @@ namespace NuGetGallery
                 case PackageStagingPromotionResult.Unauthorized:
                     return HttpNotFound();
                 case PackageStagingPromotionResult.NotReady:
-                    TempData["ErrorMessage"] = "The staged package is not ready for promotion.";
+                    if (StagingExpirationPolicy.HasExpired(stagedPackage))
+                    {
+                        TempData["ErrorMessage"] = "The staged package has expired. Delete the expired staging before uploading new content.";
+                    }
+                    else
+                    {
+                        TempData["ErrorMessage"] = "The staged package is not ready for promotion.";
+                    }
                     return Redirect(Url.ManageMyPackages());
                 case PackageStagingPromotionResult.Grouped:
                     TempData["ErrorMessage"] = "Promote this package with its staging group.";

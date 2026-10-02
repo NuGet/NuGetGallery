@@ -21,6 +21,11 @@ namespace NuGetGallery
 
             var identity = attempt.StagedPackageIdentity;
             var blockers = new List<StagingBlockerResponse>();
+            if (StagingExpirationPolicy.HasExpired(attempt))
+            {
+                blockers.Add(new StagingBlockerResponse("StagingExpired", "The staged symbols have expired. Delete the expired staging before uploading new content."));
+            }
+
             if (attempt.Status == StagedPackageStatus.WaitingForParent)
             {
                 blockers.Add(new StagingBlockerResponse("ParentPackageMissing", "Restage the parent package to validate these symbols."));

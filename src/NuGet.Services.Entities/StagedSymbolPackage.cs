@@ -31,6 +31,11 @@ namespace NuGet.Services.Entities
 
         public StagedPackageStatus Status { get; set; }
 
+        /// <summary>
+        /// Gets or sets the ungrouped expiration deadline; grouped attempts use their group's deadline.
+        /// </summary>
+        public DateTime ExpirationDate { get; set; } = DateTime.UtcNow.AddDays(30);
+
         public DateTime UploadedDate { get; set; }
 
         /// <summary>
