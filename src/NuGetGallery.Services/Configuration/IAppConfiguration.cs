@@ -26,6 +26,7 @@ namespace NuGetGallery.Configuration
         /// <summary>
         /// Gets or sets the lifetime in days granted by a staging content or membership change.
         /// </summary>
+        /// <value>A lifetime from 1 to 365 days, defaulting to 30 days.</value>
         int StagingExpirationDays { get; set; }
 
         /// <summary>

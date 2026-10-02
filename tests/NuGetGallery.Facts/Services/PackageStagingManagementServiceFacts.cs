@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Data.SqlClient;
@@ -1297,17 +1298,43 @@ namespace NuGetGallery
                 Assert.Equal(parentStatus == PackageStatus.Available, page.AllPackagesReady);
             }
 
-            [Fact]
-            public async Task CreatesConfiguredExpirationDeadline()
+            [Theory]
+            [InlineData(1)]
+            [InlineData(14)]
+            [InlineData(365)]
+            public async Task CreatesConfiguredExpirationDeadline(int expirationDays)
             {
                 var owner = new User("owner") { Key = 1 };
-                var target = CreateService(Array.Empty<StagedPackage>(), user => true, configuration: new Configuration.AppConfiguration { StagingExpirationDays = 14 });
-                var earliestDeadline = DateTime.UtcNow.AddDays(14);
+                var configuration = new Configuration.AppConfiguration { StagingExpirationDays = expirationDays };
+                var validationContext = new ValidationContext(configuration) { MemberName = nameof(Configuration.AppConfiguration.StagingExpirationDays) };
+                Validator.ValidateProperty(expirationDays, validationContext);
+                var target = CreateService(Array.Empty<StagedPackage>(), user => true, configuration: configuration);
+                var earliestDeadline = DateTime.UtcNow.AddDays(expirationDays);
 
                 var result = await target.CreateStagingGroupAsync(owner, "release", "Release");
 
                 Assert.Equal(CreateStagingGroupResultType.Created, result.Type);
-                Assert.InRange(result.Group.ExpirationDate, earliestDeadline, DateTime.UtcNow.AddDays(14));
+                Assert.InRange(result.Group.ExpirationDate, earliestDeadline, DateTime.UtcNow.AddDays(expirationDays));
+            }
+
+            [Theory]
+            [InlineData(0)]
+            [InlineData(366)]
+            [InlineData(int.MaxValue)]
+            public async Task RejectsInvalidExpirationConfigurationBeforeCreatingGroup(int expirationDays)
+            {
+                var owner = new User("owner") { Key = 1 };
+                var configuration = new Configuration.AppConfiguration { StagingExpirationDays = expirationDays };
+                var validationContext = new ValidationContext(configuration) { MemberName = nameof(Configuration.AppConfiguration.StagingExpirationDays) };
+                Assert.Throws<ValidationException>(() => Validator.ValidateProperty(expirationDays, validationContext));
+                var repository = new Mock<IEntityRepository<StagingGroup>>();
+                var target = CreateService(Array.Empty<StagedPackage>(), user => true, stagingGroupRepository: repository, configuration: configuration);
+
+                var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => target.CreateStagingGroupAsync(owner, "release", "Release"));
+
+                Assert.Equal("StagingExpirationDays must be between 1 and 365.", exception.Message);
+                repository.Verify(x => x.InsertOnCommit(It.IsAny<StagingGroup>()), Times.Never);
+                repository.Verify(x => x.CommitChangesAsync(), Times.Never);
             }
 
             [Theory]

@@ -14,12 +14,13 @@ namespace NuGetGallery
     {
         internal static DateTime CreateDeadline(IAppConfiguration configuration)
         {
-            if (configuration.StagingExpirationDays <= 0)
+            var expirationDays = configuration.StagingExpirationDays;
+            if (expirationDays < 1 || expirationDays > AppConfiguration.MaxStagingExpirationDays)
             {
-                throw new InvalidOperationException("StagingExpirationDays must be positive.");
+                throw new InvalidOperationException($"StagingExpirationDays must be between 1 and {AppConfiguration.MaxStagingExpirationDays}.");
             }
 
-            return DateTime.UtcNow.AddDays(configuration.StagingExpirationDays);
+            return DateTime.UtcNow.AddDays(expirationDays);
         }
 
         internal static DateTime GetDeadline(StagedPackage attempt)
