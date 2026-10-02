@@ -11,6 +11,11 @@ namespace NuGetGallery.Configuration
 {
     public class AppConfiguration : IAppConfiguration
     {
+        /// <summary>
+        /// The maximum configurable staging lifetime in days.
+        /// </summary>
+        public const int MaxStagingExpirationDays = 365;
+
         private string _ExternalBrandingMessage;
 
         [DefaultValue(ServicesConstants.DevelopmentEnvironment)]
@@ -22,8 +27,9 @@ namespace NuGetGallery.Configuration
         /// <summary>
         /// Gets or sets the lifetime in days granted by a staging content or membership change.
         /// </summary>
+        /// <value>A lifetime from 1 to 365 days, defaulting to 30 days.</value>
         [DefaultValue(30)]
-        [Range(1, int.MaxValue)]
+        [Range(1, MaxStagingExpirationDays)]
         public int StagingExpirationDays { get; set; } = 30;
 
         /// <summary>
