@@ -81,6 +81,8 @@ namespace NuGetGallery
             Assert.Null(fixture.Identity.CurrentStagedSymbolPackageKey);
             fixture.Attempts.Verify(repository => repository.DeleteOnCommit(fixture.Attempt), Times.Once);
             fixture.Identities.Verify(repository => repository.DeleteOnCommit(fixture.Identity), hasPrivateParent ? Times.Never() : Times.Once());
+            fixture.BlobCleanup.Verify(service => service.QueueSymbolFiles(fixture.Identity.Key), Times.Once);
+            fixture.BlobCleanup.Verify(service => service.QueuePackageFiles(fixture.Identity.Key), hasPrivateParent ? Times.Never() : Times.Once());
         }
 
         [Fact]
@@ -97,6 +99,8 @@ namespace NuGetGallery
             Assert.Equal(PackageStatus.Available, fixture.Parent.PackageStatusKey);
             Assert.Equal(PackageStatus.Available, fixture.StoredPreviousSymbol.StatusKey);
             Assert.Equal(Fixture.PreviousContent, fixture.PublicContent);
+            fixture.BlobCleanup.Verify(service => service.QueuePackageFiles(It.IsAny<int>()), Times.Never);
+            fixture.BlobCleanup.Verify(service => service.QueueSymbolFiles(It.IsAny<int>()), Times.Never);
             fixture.Attempts.Verify(repository => repository.DeleteOnCommit(It.IsAny<StagedSymbolPackage>()), Times.Never);
             fixture.Files.Verify(service => service.CopyFileAsync(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IAccessCondition>()), Times.Never);
         }
@@ -384,10 +388,12 @@ namespace NuGetGallery
                     .Callback<SymbolPackage, PackageStatus, bool>((symbol, status, commit) => symbol.StatusKey = status).Returns(Task.CompletedTask);
                 Blobs.Setup(service => service.GetPackageReadUriAsync("symbols/43", "etag")).ReturnsAsync(UploadUri);
                 Target = new StagedSymbolPackagePromotionService(Attempts.Object, Identities.Object, Symbols.Object, SymbolService.Object,
-                    Blobs.Object, Files.Object, Groups.Object, Mock.Of<ILogger<StagedSymbolPackagePromotionService>>());
+                    Blobs.Object, Files.Object, Groups.Object, BlobCleanup.Object, Mock.Of<ILogger<StagedSymbolPackagePromotionService>>());
             }
 
             public Guid PromotionId { get; } = Guid.NewGuid();
+
+            public Mock<IStagingBlobCleanupService> BlobCleanup { get; } = new Mock<IStagingBlobCleanupService>();
 
             public Package Parent { get; }
 

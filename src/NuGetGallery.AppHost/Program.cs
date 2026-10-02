@@ -133,11 +133,13 @@ public class Program
         var maintenanceConfigPath = GenerateJsonConfig(builder.AppHostDirectory, GalleryMaintenanceConfigurationFileName, new
         {
             GalleryDb = new { ConnectionString = config.GalleryDb.ConnectionString },
+            StagingBlobCleanup = new { Enabled = true, StorageConnectionString = azuriteConnStr },
         });
 
         var maintenance = builder.AddProject<Projects.Gallery_Maintenance>(GalleryMaintenanceResourceName)
             .WithArgs(JobConfigurationArgument, maintenanceConfigPath, JobSleepArgument, GalleryMaintenanceSleepMilliseconds)
             .WaitForCompletion(dbMigrateGallery)
+            .WaitFor(storage)
             .WithParentRelationship(infraGroup);
 
         if (profile == "ci-gallery")

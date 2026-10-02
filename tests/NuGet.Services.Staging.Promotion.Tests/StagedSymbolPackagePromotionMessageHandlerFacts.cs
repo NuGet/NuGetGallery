@@ -41,6 +41,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
             builder.RegisterInstance(Mock.Of<IEntityRepository<StagedPackage>>()).As<IEntityRepository<StagedPackage>>();
             builder.RegisterInstance(Mock.Of<IEntityRepository<StagedPackageIdentity>>()).As<IEntityRepository<StagedPackageIdentity>>();
             builder.RegisterInstance(Mock.Of<IEntityRepository<StagingGroup>>()).As<IEntityRepository<StagingGroup>>();
+            builder.RegisterInstance(Mock.Of<IStagingBlobCleanupService>()).As<IStagingBlobCleanupService>();
             builder.RegisterInstance(Mock.Of<IStagingPromotionMessageHandler<StagingGroup>>()).As<IStagingPromotionMessageHandler<StagingGroup>>();
             builder.RegisterInstance(Mock.Of<IStagingPromotionMessageHandler<StagedPackage>>()).As<IStagingPromotionMessageHandler<StagedPackage>>();
             using (var container = builder.Build())

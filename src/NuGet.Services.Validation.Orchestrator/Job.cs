@@ -252,6 +252,9 @@ namespace NuGet.Services.Validation.Orchestrator
                 .Keyed<ICoreFileStorageService>(PackageStorageBindingKey);
 
             containerBuilder
+                .RegisterType<StagingBlobCleanupService>()
+                .As<IStagingBlobCleanupService>();
+            containerBuilder
                 .RegisterType<StagingGroupPromotionService>()
                 .As<IStagingGroupPromotionService>();
 

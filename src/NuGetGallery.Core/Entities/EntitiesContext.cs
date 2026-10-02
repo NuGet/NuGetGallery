@@ -85,6 +85,7 @@ namespace NuGetGallery
         public DbSet<StagedSymbolPackage> StagedSymbolPackages { get; set; }
         public DbSet<StagedPackageIdentity> StagedPackageIdentities { get; set; }
         public DbSet<StagingGroup> StagingGroups { get; set; }
+        public DbSet<StagingBlobCleanup> StagingBlobCleanups { get; set; }
         public DbSet<PackageVulnerability> Vulnerabilities { get; set; }
         public DbSet<VulnerablePackageVersionRange> VulnerableRanges { get; set; }
         public DbSet<PackageRename> PackageRenames { get; set; }
@@ -480,6 +481,13 @@ namespace NuGetGallery
 
             modelBuilder.Entity<StagedPackage>()
                 .HasKey(s => s.Key);
+
+            modelBuilder.Entity<StagingBlobCleanup>()
+                .HasKey(cleanup => cleanup.Key);
+
+            modelBuilder.Entity<StagingBlobCleanup>()
+                .Property(cleanup => cleanup.QueuedDate)
+                .HasColumnType("datetime2");
 
             modelBuilder.Entity<StagedPackage>()
                 .HasRequired(s => s.StagedPackageIdentity)
