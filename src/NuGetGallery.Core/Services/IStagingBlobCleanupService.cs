@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using NuGet.Services.Entities;
 
 namespace NuGetGallery
@@ -21,8 +23,8 @@ namespace NuGetGallery
         void QueueSymbolFiles(int stagedPackageIdentityKey);
 
         /// <summary>
-        /// Determines whether a retained current attempt still needs a requested file.
+        /// Gets requested file paths still needed by retained current attempts using page-scoped queries.
         /// </summary>
-        bool HasLiveReference(StagingBlobCleanup cleanup);
+        Task<HashSet<string>> GetLiveReferencedPathsAsync(IReadOnlyCollection<StagingBlobCleanup> cleanups);
     }
 }

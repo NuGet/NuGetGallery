@@ -76,10 +76,11 @@ namespace Gallery.Maintenance
                     return;
                 }
 
+                var livePaths = await cleanupService.GetLiveReferencedPathsAsync(requests);
                 foreach (var request in requests)
                 {
                     lastKey = request.Key;
-                    if (cleanupService.HasLiveReference(request))
+                    if (livePaths.Contains(request.BlobPath))
                     {
                         _logger.LogInformation("Deferring cleanup request {CleanupKey}: retained content at {BlobPath}.", request.Key, request.BlobPath);
                         continue;
