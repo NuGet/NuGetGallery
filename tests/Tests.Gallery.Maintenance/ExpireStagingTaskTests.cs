@@ -44,10 +44,8 @@ namespace Tests.Gallery.Maintenance
             Assert.Equal(PackageStatus.Available, publishedSymbols.SymbolPackage.StatusKey);
             Assert.Contains(publishedSymbols, context.Symbols);
             Assert.Null(published.StagedPackageIdentity.StagingGroupKey);
-            context.Cleanup.Verify(service => service.QueuePackageFiles(1), Times.Once);
-            context.Cleanup.Verify(service => service.QueueSymbolFiles(1), Times.Once);
-            context.Cleanup.Verify(service => service.QueuePackageFiles(2), Times.Never);
-            context.Cleanup.Verify(service => service.QueueSymbolFiles(2), Times.Never);
+            context.AssertQueuedFiles(1, packages: 1, symbols: 1);
+            context.AssertQueuedFiles(2, packages: 0, symbols: 0);
         }
 
         [Fact]
@@ -68,13 +66,12 @@ namespace Tests.Gallery.Maintenance
             Assert.Equal(StagedPackageStatus.WaitingForParent, waiting.Status);
             Assert.Equal(deadline, waiting.ExpirationDate);
             Assert.Contains(previous.SymbolPackage, context.SymbolPackages);
-            context.Cleanup.Verify(service => service.QueuePackageFiles(1), Times.Once);
-            context.Cleanup.Verify(service => service.QueueSymbolFiles(1), Times.Never);
+            context.AssertQueuedFiles(1, packages: 1, symbols: 0);
 
             await context.RunAsync();
 
             Assert.Same(waiting, parent.StagedPackageIdentity.CurrentStagedSymbolPackage);
-            context.Cleanup.Verify(service => service.QueuePackageFiles(1), Times.Once);
+            context.AssertQueuedFiles(1, packages: 1, symbols: 0);
         }
 
         [Theory]
@@ -101,8 +98,7 @@ namespace Tests.Gallery.Maintenance
             Assert.DoesNotContain(symbols.SymbolPackage, context.SymbolPackages);
             Assert.Null(parent.StagedPackageIdentity.CurrentStagedSymbolPackageKey);
             Assert.Equal(stagedParent, context.Identities.Contains(parent.StagedPackageIdentity));
-            context.Cleanup.Verify(service => service.QueueSymbolFiles(1), Times.Once);
-            context.PackageService.Verify(service => service.UpdatePackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), It.IsAny<bool>()), Times.Never);
+            context.AssertQueuedFiles(1, packages: stagedParent ? 0 : 1, symbols: 1);
         }
 
         [Fact]
@@ -118,8 +114,7 @@ namespace Tests.Gallery.Maintenance
             Assert.Empty(context.Symbols);
             Assert.Empty(context.SymbolPackages);
             Assert.Null(parent.StagedPackageIdentity.CurrentStagedSymbolPackageKey);
-            context.Cleanup.Verify(service => service.QueuePackageFiles(1), Times.Once);
-            context.Cleanup.Verify(service => service.QueueSymbolFiles(1), Times.Once);
+            context.AssertQueuedFiles(1, packages: 1, symbols: 2);
         }
 
         [Theory]
@@ -150,9 +145,8 @@ namespace Tests.Gallery.Maintenance
             Assert.Equal(PackageStatus.Staged, parent.StagedPackageIdentity.Package.PackageStatusKey);
             Assert.Contains(symbols, context.Symbols);
             Assert.Contains(symbols.SymbolPackage, context.SymbolPackages);
-            context.Cleanup.VerifyNoOtherCalls();
-            context.PackageRepository.Verify(repository => repository.CommitChangesAsync(), Times.Never);
-            context.SymbolRepository.Verify(repository => repository.CommitChangesAsync(), Times.Never);
+            Assert.Empty(context.Cleanups);
+            Assert.All(context.Contexts, entities => entities.Verify(value => value.SaveChangesAsync(), Times.Never));
         }
 
         [Fact]
@@ -172,7 +166,7 @@ namespace Tests.Gallery.Maintenance
             Assert.Equal(StagedPackageStatus.Ready, parent.Status);
             Assert.Contains(symbols, context.Symbols);
             Assert.Equal(StagedPackageStatus.Superseded, retired.Status);
-            context.Cleanup.VerifyNoOtherCalls();
+            Assert.Empty(context.Cleanups);
         }
 
         [Fact]
@@ -192,8 +186,8 @@ namespace Tests.Gallery.Maintenance
             Assert.Equal(100, context.Groups.Count);
             Assert.DoesNotContain(eligible, context.Groups);
             Assert.Equal(StagedPackageStatus.Deleted, parent.Status);
-            context.Cleanup.Verify(service => service.QueuePackageFiles(101), Times.Once);
-            context.Cleanup.VerifyNoOtherCalls();
+            context.AssertQueuedFiles(101, packages: 1, symbols: 0);
+            Assert.Single(context.Cleanups);
         }
 
         [Fact]
@@ -201,44 +195,48 @@ namespace Tests.Gallery.Maintenance
         {
             var context = new TestContext();
             var parent = context.AddPackage(1, expired: true);
-            context.PackageRepository.Setup(repository => repository.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()))
-                .Returns<Func<Task>>(action =>
-                {
-                    parent.Status = StagedPackageStatus.Promoting;
-                    return action();
-                });
+            context.BeforeTransaction = () =>
+            {
+                context.Packages.Remove(parent);
+                context.Identities.Remove(parent.StagedPackageIdentity);
+                context.AddPackage(1, expired: true).Status = StagedPackageStatus.Promoting;
+            };
 
             await context.RunAsync();
 
-            Assert.Equal(StagedPackageStatus.Promoting, parent.Status);
-            Assert.Equal(PackageStatus.Staged, parent.StagedPackageIdentity.Package.PackageStatusKey);
-            context.Cleanup.VerifyNoOtherCalls();
+            var current = Assert.Single(context.Packages);
+            Assert.NotSame(parent, current);
+            Assert.Equal(StagedPackageStatus.Promoting, current.Status);
+            Assert.Equal(PackageStatus.Staged, current.StagedPackageIdentity.Package.PackageStatusKey);
+            Assert.Empty(context.Cleanups);
+        }
+
+        [Fact]
+        public async Task DisposesEachCandidateContextAcrossPagesAndAllThreeScans()
+        {
+            var context = new TestContext();
+            for (var key = 1; key <= 101; key++)
+            {
+                context.AddGroup(key, expired: true);
+            }
+            var expiredParent = context.AddPackage(102, expired: true);
+            var liveParent = context.AddPackage(103);
+            context.AddSymbols(liveParent.StagedPackageIdentity, 103, expired: true);
+
+            await context.RunAsync();
+
+            Assert.Empty(context.Groups);
+            Assert.Equal(StagedPackageStatus.Deleted, expiredParent.Status);
+            Assert.Empty(context.Symbols);
+            Assert.Equal(PackageStatus.Staged, liveParent.StagedPackageIdentity.Package.PackageStatusKey);
+            Assert.Equal(110, context.Contexts.Count);
+            Assert.Equal(1, context.MaxActiveContexts);
+            Assert.Equal(0, context.ActiveContexts);
+            Assert.All(context.Contexts, entities => entities.Verify(value => value.Dispose(), Times.Once));
         }
 
         private class TestContext
         {
-            public TestContext()
-            {
-                GroupRepository = CreateRepository(Groups);
-                PackageRepository = CreateRepository(Packages);
-                SymbolRepository = CreateRepository(Symbols);
-                var identities = CreateRepository(Identities);
-                var symbolPackages = CreateRepository(SymbolPackages);
-                SymbolRepository.Setup(repository => repository.InsertOnCommit(It.IsAny<StagedSymbolPackage>()))
-                    .Callback<StagedSymbolPackage>(attempt =>
-                    {
-                        attempt.Key = Symbols.Max(symbol => symbol.Key) + 1;
-                        attempt.StagedPackageIdentityKey = attempt.StagedPackageIdentity.Key;
-                        Symbols.Add(attempt);
-                    });
-                PackageService.Setup(service => service.UpdatePackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), false))
-                    .Callback<Package, PackageStatus, bool>((package, status, commit) => package.PackageStatusKey = status)
-                    .Returns(Task.CompletedTask);
-                Deletion = new StagingDeletionService(
-                    PackageRepository.Object, SymbolRepository.Object, identities.Object,
-                    symbolPackages.Object, GroupRepository.Object, PackageService.Object, Cleanup.Object);
-            }
-
             public List<StagingGroup> Groups { get; } = new List<StagingGroup>();
 
             public List<StagedPackage> Packages { get; } = new List<StagedPackage>();
@@ -249,17 +247,15 @@ namespace Tests.Gallery.Maintenance
 
             public List<SymbolPackage> SymbolPackages { get; } = new List<SymbolPackage>();
 
-            public Mock<IEntityRepository<StagingGroup>> GroupRepository { get; }
+            public List<StagingBlobCleanup> Cleanups { get; } = new List<StagingBlobCleanup>();
 
-            public Mock<IEntityRepository<StagedPackage>> PackageRepository { get; }
+            public List<Mock<IEntitiesContext>> Contexts { get; } = new List<Mock<IEntitiesContext>>();
 
-            public Mock<IEntityRepository<StagedSymbolPackage>> SymbolRepository { get; }
+            public Action BeforeTransaction { get; set; }
 
-            public Mock<ICorePackageService> PackageService { get; } = new Mock<ICorePackageService>();
+            public int ActiveContexts { get; private set; }
 
-            public Mock<IStagingBlobCleanupService> Cleanup { get; } = new Mock<IStagingBlobCleanupService>();
-
-            public StagingDeletionService Deletion { get; }
+            public int MaxActiveContexts { get; private set; }
 
             public StagingGroup AddGroup(int key, bool expired = false)
             {
@@ -286,6 +282,8 @@ namespace Tests.Gallery.Maintenance
                     StagedPackageIdentity = identity,
                     Status = StagedPackageStatus.Ready,
                     ExpirationDate = DateTime.UtcNow.AddDays(expired ? -1 : 1),
+                    UploadedBlobPath = $"parent-{key}.nupkg",
+                    UploadedBlobETag = $"parent-etag-{key}",
                 };
                 identity.CurrentStagedPackage = attempt;
                 Identities.Add(identity);
@@ -317,19 +315,68 @@ namespace Tests.Gallery.Maintenance
             public Task RunAsync()
             {
                 return new ExpireStagingTask(Mock.Of<ILogger<ExpireStagingTask>>())
-                    .ProcessAsync(GroupRepository.Object, PackageRepository.Object, SymbolRepository.Object, Deletion);
+                    .ProcessAsync(CreateContextAsync);
             }
 
-            private static Mock<IEntityRepository<T>> CreateRepository<T>(List<T> items) where T : class, new()
+            public void AssertQueuedFiles(int identityKey, int packages, int symbols)
+            {
+                Assert.Equal(packages, Cleanups.Count(request => request.StagedPackageIdentityKey == identityKey && request.BlobPath.EndsWith(".nupkg", StringComparison.Ordinal)));
+                Assert.Equal(symbols, Cleanups.Count(request => request.StagedPackageIdentityKey == identityKey && request.BlobPath.EndsWith(".snupkg", StringComparison.Ordinal)));
+            }
+
+            private Task<IEntitiesContext> CreateContextAsync()
+            {
+                var entities = new Mock<IEntitiesContext>();
+                var pendingDeletes = new List<Action>();
+                var groups = CreateSet(Groups, pendingDeletes);
+                var packages = CreateSet(Packages, pendingDeletes);
+                var symbols = CreateSet(Symbols, pendingDeletes);
+                var identities = CreateSet(Identities, pendingDeletes);
+                var symbolPackages = CreateSet(SymbolPackages, pendingDeletes);
+                var cleanups = CreateSet(Cleanups, pendingDeletes);
+                entities.Setup(value => value.StagingGroups).Returns(groups.Object);
+                entities.Setup(value => value.StagedPackages).Returns(packages.Object);
+                entities.Setup(value => value.StagedSymbolPackages).Returns(symbols.Object);
+                entities.Setup(value => value.Set<StagingGroup>()).Returns(groups.Object);
+                entities.Setup(value => value.Set<StagedPackage>()).Returns(packages.Object);
+                entities.Setup(value => value.Set<StagedSymbolPackage>()).Returns(symbols.Object);
+                entities.Setup(value => value.Set<StagedPackageIdentity>()).Returns(identities.Object);
+                entities.Setup(value => value.Set<SymbolPackage>()).Returns(symbolPackages.Object);
+                entities.Setup(value => value.Set<StagingBlobCleanup>()).Returns(cleanups.Object);
+                symbols.Setup(value => value.Add(It.IsAny<StagedSymbolPackage>()))
+                    .Callback<StagedSymbolPackage>(attempt =>
+                    {
+                        attempt.Key = Symbols.Max(symbol => symbol.Key) + 1;
+                        attempt.StagedPackageIdentityKey = attempt.StagedPackageIdentity.Key;
+                        Symbols.Add(attempt);
+                    }).Returns<StagedSymbolPackage>(attempt => attempt);
+                entities.Setup(value => value.SaveChangesAsync()).Callback(() =>
+                {
+                    foreach (var delete in pendingDeletes)
+                    {
+                        delete();
+                    }
+                    pendingDeletes.Clear();
+                }).ReturnsAsync(1);
+                var database = new Mock<IDatabase>();
+                database.Setup(value => value.BeginTransaction()).Callback(() => BeforeTransaction?.Invoke())
+                    .Returns(() => Mock.Of<IDbContextTransaction>());
+                entities.Setup(value => value.GetDatabase()).Returns(database.Object);
+                ActiveContexts++;
+                MaxActiveContexts = Math.Max(MaxActiveContexts, ActiveContexts);
+                entities.Setup(value => value.Dispose()).Callback(() => ActiveContexts--);
+                Contexts.Add(entities);
+                return Task.FromResult(entities.Object);
+            }
+
+            private static Mock<DbSet<T>> CreateSet<T>(List<T> items, List<Action> pendingDeletes) where T : class
             {
                 var set = new Mock<DbSet<T>>().SetupDbSet(items);
                 set.Setup(value => value.Include(It.IsAny<string>())).Returns(set.Object);
-                var repository = new Mock<IEntityRepository<T>>();
-                repository.Setup(value => value.GetAll()).Returns(set.Object);
-                repository.Setup(value => value.ExecuteInTransactionAsync(It.IsAny<Func<Task>>())).Returns<Func<Task>>(action => action());
-                repository.Setup(value => value.CommitChangesAsync()).Returns(Task.CompletedTask);
-                repository.Setup(value => value.DeleteOnCommit(It.IsAny<T>())).Callback<T>(item => items.Remove(item));
-                return repository;
+                set.Setup(value => value.AsNoTracking()).Returns(set.Object);
+                set.Setup(value => value.Add(It.IsAny<T>())).Callback<T>(items.Add).Returns<T>(item => item);
+                set.Setup(value => value.Remove(It.IsAny<T>())).Callback<T>(item => pendingDeletes.Add(() => items.Remove(item))).Returns<T>(item => item);
+                return set;
             }
         }
     }
