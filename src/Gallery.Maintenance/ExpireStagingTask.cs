@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -53,12 +54,14 @@ namespace Gallery.Maintenance
             var cutoff = DateTime.UtcNow;
             await ProcessPagesAsync(
                 createContext,
+                "staging group",
                 (entities, lastKey) => entities.StagingGroups.AsNoTracking()
                     .Where(group => group.Key > lastKey && group.ExpirationDate <= cutoff && !group.ActivePromotionId.HasValue)
                     .Select(group => group.Key),
                 (entities, key) => ExpireGroupAsync(entities, key, cutoff));
             await ProcessPagesAsync(
                 createContext,
+                "staged package",
                 (entities, lastKey) => entities.StagedPackages.AsNoTracking()
                     .Where(attempt => attempt.Key > lastKey && attempt.ExpirationDate <= cutoff)
                     .Where(attempt => !attempt.StagedPackageIdentity.StagingGroupKey.HasValue)
@@ -69,6 +72,7 @@ namespace Gallery.Maintenance
                 (entities, key) => ExpirePackageAsync(entities, key, cutoff));
             await ProcessPagesAsync(
                 createContext,
+                "staged symbols",
                 (entities, lastKey) => entities.StagedSymbolPackages.AsNoTracking()
                     .Where(attempt => attempt.Key > lastKey && attempt.ExpirationDate <= cutoff)
                     .Where(attempt => !attempt.StagedPackageIdentity.StagingGroupKey.HasValue)
@@ -79,8 +83,9 @@ namespace Gallery.Maintenance
                 (entities, key) => ExpireSymbolsAsync(entities, key, cutoff));
         }
 
-        private static async Task ProcessPagesAsync(
+        private async Task ProcessPagesAsync(
             Func<Task<IEntitiesContext>> createContext,
+            string candidateType,
             Func<IEntitiesContext, int, IQueryable<int>> getKeys,
             Func<IEntitiesContext, int, Task> expire)
         {
@@ -101,9 +106,18 @@ namespace Gallery.Maintenance
                 foreach (var key in keys)
                 {
                     lastKey = key;
-                    using (var entities = await createContext())
+                    try
                     {
-                        await expire(entities, key);
+                        using (var entities = await createContext())
+                        {
+                            await expire(entities, key);
+                        }
+                    }
+                    catch (DbUpdateConcurrencyException exception)
+                    {
+                        _logger.LogWarning(exception,
+                            "Skipping expiration of {CandidateType} {CandidateKey} after a concurrency conflict. Later runs will recheck eligibility.",
+                            candidateType, key);
                     }
                 }
             }
