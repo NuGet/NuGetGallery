@@ -688,6 +688,10 @@
     <Compile Include="Services\StagingGroupSummary.cs" />
     <Compile Include="Services\StagingGroupAssignment.cs" />
     <Compile Include="Services\StagingExpirationPolicy.cs" />
+    <Compile Include="Services\IStagingQuotaService.cs" />
+    <Compile Include="Services\StagingQuotaService.cs" />
+    <Compile Include="Services\StagingQuotaUsage.cs" />
+    <Compile Include="Services\StagingQuotaExceededException.cs" />
     <Compile Include="Services\StagedSymbolPackageRevalidation.cs" />
     <Compile Include="ViewModels\CreateStagingGroupViewModel.cs" />
     <Compile Include="ViewModels\DeleteStagingGroupViewModel.cs" />

@@ -42,6 +42,8 @@ namespace NuGetGallery
         private readonly IFederatedCredentialService _federatedCredentialService;
         private readonly IPackageStagingManagementService _packageStagingManagementService;
         private readonly ISymbolPackageStagingManagementService _symbolPackageStagingManagementService;
+        private readonly IPackageStagingAuthorizationService _packageStagingAuthorizationService;
+        private readonly IStagingQuotaService _stagingQuotaService;
 
         public UsersController(
             IUserService userService,
@@ -66,7 +68,9 @@ namespace NuGetGallery
             IFederatedCredentialService federatedCredentialService,
             IFederatedCredentialRepository federatedCredentialRepository,
             IPackageStagingManagementService packageStagingManagementService,
-            ISymbolPackageStagingManagementService symbolPackageStagingManagementService)
+            ISymbolPackageStagingManagementService symbolPackageStagingManagementService,
+            IPackageStagingAuthorizationService packageStagingAuthorizationService,
+            IStagingQuotaService stagingQuotaService)
             : base(
                   authService,
                   packageService,
@@ -92,6 +96,8 @@ namespace NuGetGallery
             _federatedCredentialService = federatedCredentialService ?? throw new ArgumentNullException(nameof(federatedCredentialService));
             _packageStagingManagementService = packageStagingManagementService ?? throw new ArgumentNullException(nameof(packageStagingManagementService));
             _symbolPackageStagingManagementService = symbolPackageStagingManagementService ?? throw new ArgumentNullException(nameof(symbolPackageStagingManagementService));
+            _packageStagingAuthorizationService = packageStagingAuthorizationService ?? throw new ArgumentNullException(nameof(packageStagingAuthorizationService));
+            _stagingQuotaService = stagingQuotaService ?? throw new ArgumentNullException(nameof(stagingQuotaService));
 
             _listPackageItemRequiredSignerViewModelFactory = new ListPackageItemRequiredSignerViewModelFactory(
                 securityPolicyService, iconUrlProvider, packageVulnerabilitiesService, frameworkCompatibilityFactory, featureFlagService);
@@ -583,8 +589,13 @@ namespace NuGetGallery
 
             var isPackageStagingEnabled = _packageStagingManagementService.IsEnabled(currentUser);
             var stagingGroups = new List<StagingGroupViewModel>();
+            var stagingQuotas = new List<StagingQuotaUsage>();
             if (isPackageStagingEnabled)
             {
+                stagingQuotas = _packageStagingAuthorizationService.GetEnabledOwners(currentUser)
+                    .OrderBy(owner => owner.Username)
+                    .Select(owner => _stagingQuotaService.GetUsage(owner))
+                    .ToList();
                 var stagedPackageEntities = _packageStagingManagementService.GetStagedPackages(currentUser).ToList();
                 var stagedSymbols = _symbolPackageStagingManagementService.GetStagedSymbolPackages(currentUser);
                 var ungroupedSymbols = stagedSymbols.Where(attempt => !attempt.StagedPackageIdentity.StagingGroupKey.HasValue).ToList();
@@ -654,6 +665,7 @@ namespace NuGetGallery
                 IsManagePackagesVulnerabilitiesEnabled = _featureFlagService.IsManagePackagesVulnerabilitiesEnabled(),
                 IsPackageStagingEnabled = isPackageStagingEnabled,
                 StagingGroups = stagingGroups,
+                StagingQuotas = stagingQuotas,
             };
 
             return View(model);
