@@ -21,30 +21,24 @@ namespace NuGetGallery
         private readonly IPackageStagingAuthorizationService _authorizationService;
         private readonly IPackageService _packageService;
         private readonly IEntityRepository<StagedSymbolPackage> _stagedSymbolPackageRepository;
-        private readonly IEntityRepository<StagedPackageIdentity> _identityRepository;
-        private readonly IEntityRepository<SymbolPackage> _symbolPackageRepository;
         private readonly IStagingBlobService _stagingBlobService;
-        private readonly IStagingBlobCleanupService _blobCleanup;
         private readonly IAppConfiguration _configuration;
+        private readonly StagingDeletionService _deletionService;
 
         public SymbolPackageStagingManagementService(
             IPackageStagingAuthorizationService authorizationService,
             IPackageService packageService,
             IEntityRepository<StagedSymbolPackage> stagedSymbolPackageRepository,
-            IEntityRepository<StagedPackageIdentity> identityRepository,
-            IEntityRepository<SymbolPackage> symbolPackageRepository,
             IStagingBlobService stagingBlobService,
-            IStagingBlobCleanupService blobCleanup,
+            StagingDeletionService deletionService,
             IAppConfiguration configuration)
         {
             _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _stagedSymbolPackageRepository = stagedSymbolPackageRepository ?? throw new ArgumentNullException(nameof(stagedSymbolPackageRepository));
-            _identityRepository = identityRepository ?? throw new ArgumentNullException(nameof(identityRepository));
-            _symbolPackageRepository = symbolPackageRepository ?? throw new ArgumentNullException(nameof(symbolPackageRepository));
             _stagingBlobService = stagingBlobService ?? throw new ArgumentNullException(nameof(stagingBlobService));
-            _blobCleanup = blobCleanup ?? throw new ArgumentNullException(nameof(blobCleanup));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _deletionService = deletionService ?? throw new ArgumentNullException(nameof(deletionService));
         }
 
         public IReadOnlyList<StagedSymbolPackage> GetStagedSymbolPackages(User currentUser)
@@ -135,38 +129,8 @@ namespace NuGetGallery
                         group.MutationRevision++;
                     }
 
-                    _blobCleanup.QueueSymbolFiles(identity.Key);
                     StagingExpirationPolicy.RefreshGroup(group, StagingExpirationPolicy.CreateDeadline(_configuration));
-                    if (!identity.CurrentStagedPackageKey.HasValue)
-                    {
-                        _blobCleanup.QueuePackageFiles(identity.Key);
-                    }
-
-                    identity.CurrentStagedSymbolPackageKey = null;
-                    identity.CurrentStagedSymbolPackage = null;
-                    var attempts = _stagedSymbolPackageRepository.GetAll()
-                        .Include(attempt => attempt.SymbolPackage)
-                        .Where(attempt => attempt.StagedPackageIdentityKey == identity.Key && attempt.SymbolPackage.StatusKey == PackageStatus.Staged)
-                        .Select(attempt => new { Attempt = attempt, SymbolPackage = attempt.SymbolPackage })
-                        .ToList();
-                    foreach (var attempt in attempts)
-                    {
-                        _stagedSymbolPackageRepository.DeleteOnCommit(attempt.Attempt);
-                    }
-
-                    // Save first to break the circular reference between the identity and its current attempt.
-                    await _stagedSymbolPackageRepository.CommitChangesAsync();
-
-                    if (!identity.CurrentStagedPackageKey.HasValue)
-                    {
-                        _identityRepository.DeleteOnCommit(identity);
-                    }
-
-                    foreach (var symbols in attempts.Select(attempt => attempt.SymbolPackage).Distinct())
-                    {
-                        _symbolPackageRepository.DeleteOnCommit(symbols);
-                    }
-                    await _stagedSymbolPackageRepository.CommitChangesAsync();
+                    await _deletionService.DeleteSymbolPackageAsync(stagedSymbolPackage);
                 });
             }
             catch (DbUpdateConcurrencyException exception)
