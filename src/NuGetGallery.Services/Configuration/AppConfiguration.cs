@@ -33,6 +33,20 @@ namespace NuGetGallery.Configuration
         public int StagingExpirationDays { get; set; } = 30;
 
         /// <summary>
+        /// Gets or sets the default number of private artifacts allowed per staging owner.
+        /// </summary>
+        [DefaultValue(350)]
+        [Range(1, int.MaxValue)]
+        public int StagingQuotaLimit { get; set; } = 350;
+
+        /// <summary>
+        /// Gets or sets a JSON object mapping staging owner usernames to positive artifact limits.
+        /// </summary>
+        [DefaultValue("{}")]
+        [Required]
+        public string StagingQuotaOwnerOverrides { get; set; } = "{}";
+
+        /// <summary>
         /// Gets a setting indicating if SSL is required for all operations once logged in.
         /// </summary>
         [DefaultValue(false)]

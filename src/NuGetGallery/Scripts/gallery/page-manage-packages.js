@@ -69,6 +69,20 @@
             });
         }
 
+        function StagingQuotaViewModel(managePackagesViewModel, quota) {
+            const self = this;
+
+            this.Owner = quota.owner;
+            this.UsedPackages = quota.usedPackages;
+            this.UsedSymbols = quota.usedSymbols;
+            this.UsedArtifacts = quota.usedArtifacts;
+            this.Limit = quota.limit;
+            this.Visible = ko.pureComputed(function () {
+                const owner = managePackagesViewModel.OwnerFilter().Username;
+                return owner === 'All packages' || owner === self.Owner;
+            });
+        }
+
         function PackageListItemViewModel(packagesListViewModel, packageItem) {
             var self = this;
 
@@ -406,6 +420,9 @@
             this.ListedPackages = new PackagesListViewModel(this, "published", initialData.ListedPackages);
             this.UnlistedPackages = new PackagesListViewModel(this, "unlisted", initialData.UnlistedPackages);
             this.StagingGroups = new StagingGroupsListViewModel(this, initialData.StagingGroups);
+            this.StagingQuotas = $.map(initialData.StagingQuotas, function (quota) {
+                return new StagingQuotaViewModel(self, quota);
+            });
             this.ReservedNamespaces = new ReservedNamespaceListViewModel(this, initialData.ReservedNamespaces);
             this.RequestsReceived = new OwnerRequestsListViewModel(this, initialData.RequestsReceived, true, false);
             this.RequestsSent = new OwnerRequestsListViewModel(this, initialData.RequestsSent, false, true);

@@ -59,7 +59,8 @@ namespace NuGetGallery
                 new Mock<IStagedSymbolPackageValidationMessageEmitter>(MockBehavior.Strict).Object,
                 Mock.Of<IPackageStagingManagementService>(),
                 Mock.Of<IEntityRepository<StagingGroup>>(),
-                new Configuration.AppConfiguration());
+                new Configuration.AppConfiguration(),
+                Mock.Of<IStagingQuotaService>());
             using var file = TestPackage.CreateTestSymbolPackageStream("Test.Package", "1.0.0");
 
             var result = await target.ReplaceSymbolPackageAsync(owner, Mock.Of<HttpContextBase>(), attempt, file);
@@ -127,7 +128,8 @@ namespace NuGetGallery
                 validationMessageEmitter.Object,
                 Mock.Of<IPackageStagingManagementService>(),
                 Mock.Of<IEntityRepository<StagingGroup>>(),
-                new Configuration.AppConfiguration());
+                new Configuration.AppConfiguration(),
+                Mock.Of<IStagingQuotaService>());
 
             using var file = TestPackage.CreateTestSymbolPackageStream("Test.Package", "1.0.0");
             var result = await target.StageSymbolPackageAsync(currentUser, scopes, Mock.Of<HttpContextBase>(), file);
@@ -166,6 +168,8 @@ namespace NuGetGallery
         [InlineData(PackageStatus.Deleted, true, StagedPackageStatus.Deleted, true, false, HttpStatusCode.OK, null, false, StagedPackageStatus.WaitingForParent, false, "Test.Package", true)]
         [InlineData(PackageStatus.Deleted, true, StagedPackageStatus.Deleted, true, false, HttpStatusCode.NotFound)]
         [InlineData(PackageStatus.Available, true, StagedPackageStatus.Ready, true, false, HttpStatusCode.Conflict, null, false, StagedPackageStatus.Ready, false, "Test.Package", false, true)]
+        [InlineData(PackageStatus.Available, false, StagedPackageStatus.Ready, true, false, HttpStatusCode.Conflict, null, false, null, false, "Test.Package", false, false, true)]
+        [InlineData(PackageStatus.Available, true, StagedPackageStatus.Ready, true, false, HttpStatusCode.OK, null, false, StagedPackageStatus.Ready, true, "Test.Package", false, false, true)]
         public async Task StagesSymbolsForAccessibleParent(
             PackageStatus parentStatus,
             bool hasStagedParent,
@@ -179,7 +183,8 @@ namespace NuGetGallery
             bool uiReplacement = false,
             string replacementId = "Test.Package",
             bool identical = false,
-            bool expired = false)
+            bool expired = false,
+            bool quotaReached = false)
         {
             var currentUser = new User("uploader") { Key = 10 };
             var owner = new User("owner") { Key = 20, EmailAddress = "owner@example.test" };
@@ -269,6 +274,12 @@ namespace NuGetGallery
             var managementService = new Mock<IPackageStagingManagementService>();
             managementService.Setup(x => x.FindStagingGroup(owner, "release")).Returns(group);
             var groupRepository = new Mock<IEntityRepository<StagingGroup>>();
+            var quota = new Mock<IStagingQuotaService>();
+            quota.Setup(service => service.EnsureCapacityAsync(owner)).Returns(Task.CompletedTask);
+            if (quotaReached)
+            {
+                quota.Setup(service => service.EnsureCapacityAsync(owner)).ThrowsAsync(new StagingQuotaExceededException());
+            }
             var target = new SymbolPackageStagingUploadService(
                 apiScopeEvaluator.Object,
                 contentObjectService.Object,
@@ -282,7 +293,8 @@ namespace NuGetGallery
                 validationMessageEmitter.Object,
                 managementService.Object,
                 groupRepository.Object,
-                new Configuration.AppConfiguration());
+                new Configuration.AppConfiguration(),
+                quota.Object);
 
             using var file = TestPackage.CreateTestSymbolPackageStream(replacementId, "1.0.0");
             if (identical)
@@ -301,6 +313,18 @@ namespace NuGetGallery
             }
 
             Assert.Equal(expectedStatus, result.StatusCode);
+            if (quotaReached && expectedStatus == HttpStatusCode.Conflict)
+            {
+                quota.Verify(service => service.EnsureCapacityAsync(owner), Times.Once);
+                Assert.Null(attempt);
+                repository.Verify(service => service.CommitChangesAsync(), Times.Never);
+                stagingBlobService.Verify(service => service.SaveSymbolPackageFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<System.IO.Stream>()), Times.Never);
+                return;
+            }
+            if (quotaReached && expectedStatus == HttpStatusCode.OK)
+            {
+                quota.Verify(service => service.EnsureCapacityAsync(It.IsAny<User>()), Times.Never);
+            }
             securityPolicyService.Verify(x => x.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackagePush, currentUser, It.IsAny<HttpContextBase>()), uiReplacement ? Times.Never() : Times.Once());
             if (expired)
             {
