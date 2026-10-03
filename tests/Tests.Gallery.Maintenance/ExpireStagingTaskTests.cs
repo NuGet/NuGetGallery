@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Threading.Tasks;
 using Gallery.Maintenance;
@@ -235,6 +236,70 @@ namespace Tests.Gallery.Maintenance
             Assert.All(context.Contexts, entities => entities.Verify(value => value.Dispose(), Times.Once));
         }
 
+        [Fact]
+        public async Task ConcurrencyConflictDiscardsFailedContextAndContinuesLaterCandidatesAndScans()
+        {
+            var context = new TestContext();
+            var conflicted = context.AddGroup(1, expired: true);
+            var laterGroup = context.AddGroup(2, expired: true);
+            var groupedParent = context.AddPackage(2, laterGroup);
+            var expiredParent = context.AddPackage(3, expired: true);
+            var liveParent = context.AddPackage(4);
+            context.AddSymbols(liveParent.StagedPackageIdentity, 4, expired: true);
+            var exception = new DbUpdateConcurrencyException("The candidate changed during expiration.");
+            IEntitiesContext failedContext = null;
+            context.BeforeSaveChanges = entities =>
+            {
+                if (failedContext == null)
+                {
+                    failedContext = entities;
+                    throw exception;
+                }
+            };
+
+            await context.RunAsync();
+
+            Assert.Same(conflicted, Assert.Single(context.Groups));
+            Assert.Equal(StagedPackageStatus.Deleted, groupedParent.Status);
+            Assert.Equal(StagedPackageStatus.Deleted, expiredParent.Status);
+            Assert.Empty(context.Symbols);
+            Assert.Equal(PackageStatus.Staged, liveParent.StagedPackageIdentity.Package.PackageStatusKey);
+            Mock.Get(failedContext).Verify(entities => entities.SaveChangesAsync(), Times.Once);
+            Mock.Get(failedContext).Verify(entities => entities.Dispose(), Times.Once);
+            context.Transactions[failedContext].Verify(transaction => transaction.Commit(), Times.Never);
+            context.Transactions[failedContext].Verify(transaction => transaction.Dispose(), Times.Once);
+            Assert.Equal(1, context.MaxActiveContexts);
+            Assert.Equal(0, context.ActiveContexts);
+            var warning = Assert.Single(context.Logger.Invocations.Where(invocation => Equals(invocation.Arguments[0], LogLevel.Warning)));
+            Assert.Same(exception, warning.Arguments[3]);
+            var state = Assert.IsAssignableFrom<IEnumerable<KeyValuePair<string, object>>>(warning.Arguments[2]);
+            Assert.Contains(state, value => value.Key == "CandidateType" && Equals(value.Value, "staging group"));
+            Assert.Contains(state, value => value.Key == "CandidateKey" && Equals(value.Value, conflicted.Key));
+        }
+
+        [Fact]
+        public async Task OtherDatabaseFailuresAbortRemainingWorkInsteadOfBeingTreatedAsConflicts()
+        {
+            var context = new TestContext();
+            context.AddGroup(1, expired: true);
+            var laterGroup = context.AddGroup(2, expired: true);
+            var parent = context.AddPackage(3, expired: true);
+            var symbols = context.AddSymbols(parent.StagedPackageIdentity, 3, expired: true);
+            var exception = new DbUpdateException("Database failure unrelated to concurrency.");
+            context.BeforeSaveChanges = entities => throw exception;
+
+            var actual = await Assert.ThrowsAsync<DbUpdateException>(context.RunAsync);
+
+            Assert.Same(exception, actual);
+            Assert.Contains(laterGroup, context.Groups);
+            Assert.Equal(StagedPackageStatus.Ready, parent.Status);
+            Assert.Contains(symbols, context.Symbols);
+            Assert.Empty(context.Cleanups);
+            Assert.Equal(0, context.ActiveContexts);
+            Assert.All(context.Contexts, entities => entities.Verify(value => value.Dispose(), Times.Once));
+            Assert.DoesNotContain(context.Logger.Invocations, invocation => Equals(invocation.Arguments[0], LogLevel.Warning));
+        }
+
         private class TestContext
         {
             public List<StagingGroup> Groups { get; } = new List<StagingGroup>();
@@ -251,7 +316,13 @@ namespace Tests.Gallery.Maintenance
 
             public List<Mock<IEntitiesContext>> Contexts { get; } = new List<Mock<IEntitiesContext>>();
 
+            public Dictionary<IEntitiesContext, Mock<IDbContextTransaction>> Transactions { get; } = new Dictionary<IEntitiesContext, Mock<IDbContextTransaction>>();
+
+            public Mock<ILogger<ExpireStagingTask>> Logger { get; } = new Mock<ILogger<ExpireStagingTask>>();
+
             public Action BeforeTransaction { get; set; }
+
+            public Action<IEntitiesContext> BeforeSaveChanges { get; set; }
 
             public int ActiveContexts { get; private set; }
 
@@ -314,7 +385,7 @@ namespace Tests.Gallery.Maintenance
 
             public Task RunAsync()
             {
-                return new ExpireStagingTask(Mock.Of<ILogger<ExpireStagingTask>>())
+                return new ExpireStagingTask(Logger.Object)
                     .ProcessAsync(CreateContextAsync);
             }
 
@@ -352,15 +423,18 @@ namespace Tests.Gallery.Maintenance
                     }).Returns<StagedSymbolPackage>(attempt => attempt);
                 entities.Setup(value => value.SaveChangesAsync()).Callback(() =>
                 {
+                    BeforeSaveChanges?.Invoke(entities.Object);
                     foreach (var delete in pendingDeletes)
                     {
                         delete();
                     }
                     pendingDeletes.Clear();
                 }).ReturnsAsync(1);
+                var transaction = new Mock<IDbContextTransaction>();
+                Transactions.Add(entities.Object, transaction);
                 var database = new Mock<IDatabase>();
                 database.Setup(value => value.BeginTransaction()).Callback(() => BeforeTransaction?.Invoke())
-                    .Returns(() => Mock.Of<IDbContextTransaction>());
+                    .Returns(transaction.Object);
                 entities.Setup(value => value.GetDatabase()).Returns(database.Object);
                 ActiveContexts++;
                 MaxActiveContexts = Math.Max(MaxActiveContexts, ActiveContexts);
