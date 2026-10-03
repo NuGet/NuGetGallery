@@ -340,6 +340,7 @@ namespace NuGetGallery
             builder.RegisterType<PackageService>()
                 .AsSelf()
                 .As<IPackageService>()
+                .As<ICorePackageService>()
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<PackageFilter>()
@@ -417,6 +418,10 @@ namespace NuGetGallery
 
             builder.RegisterType<StagingBlobCleanupService>()
                 .As<IStagingBlobCleanupService>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<StagingDeletionService>()
+                .AsSelf()
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<PackageStagingPromotionService>()

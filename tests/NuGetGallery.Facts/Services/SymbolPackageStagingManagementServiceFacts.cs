@@ -196,14 +196,16 @@ namespace NuGetGallery
                 AttemptRepository.Setup(x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task>>())).Returns<Func<Task>>(action => action());
                 AttemptRepository.Setup(x => x.CommitChangesAsync()).Returns(Task.CompletedTask);
                 Attempt = AddAttempt(1);
+                var packageService = Mock.Of<IPackageService>();
+                var deletion = new StagingDeletionService(
+                    Mock.Of<IEntityRepository<StagedPackage>>(), AttemptRepository.Object, IdentityRepository.Object,
+                    SymbolRepository.Object, Mock.Of<IEntityRepository<StagingGroup>>(), packageService, BlobCleanup.Object);
                 Target = new SymbolPackageStagingManagementService(
                     AuthorizationService.Object,
-                    Mock.Of<IPackageService>(),
+                    packageService,
                     AttemptRepository.Object,
-                    IdentityRepository.Object,
-                    SymbolRepository.Object,
                     BlobService.Object,
-                    BlobCleanup.Object,
+                    deletion,
                     new Configuration.AppConfiguration());
             }
 

@@ -113,6 +113,7 @@ public class Program
         {
             GalleryDb = new { ConnectionString = config.GalleryDb.ConnectionString },
             StagingBlobCleanup = new { Enabled = true, StorageConnectionString = azuriteConnStr },
+            StagingExpiration = new { Enabled = true },
         });
 
         var maintenance = builder.AddProject<Projects.Gallery_Maintenance>("gallery-maintenance")
