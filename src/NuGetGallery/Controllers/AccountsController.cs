@@ -230,7 +230,8 @@ namespace NuGetGallery
             await UserService.ChangeEmailSubscriptionAsync(
                 account,
                 model.ChangeNotifications.EmailAllowed,
-                model.ChangeNotifications.NotifyPackagePushed);
+                model.ChangeNotifications.NotifyPackagePushed,
+                model.ChangeNotifications.NotifyPackageStaged);
 
             TempData["Message"] = Messages.EmailPreferencesUpdated;
 
@@ -450,6 +451,7 @@ namespace NuGetGallery
             model.IsCertificatesUIEnabled = ContentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false;
             model.WasMultiFactorAuthenticated = User.WasMultiFactorAuthenticated();
             model.IsNewAccount2FAEnforcementEnabled = FeatureFlagService.IsNewAccount2FAEnforcementEnabled();
+            model.IsPackageStagingEnabled = FeatureFlagService.IsPackageStagingEnabled(account);
 
             model.HasPassword = account.Credentials.Any(c => c.IsPassword());
             model.CurrentEmailAddress = account.UnconfirmedEmailAddress ?? account.EmailAddress;
@@ -461,6 +463,7 @@ namespace NuGetGallery
             model.ChangeNotifications = model.ChangeNotifications ?? new ChangeNotificationsViewModel();
             model.ChangeNotifications.EmailAllowed = account.EmailAllowed;
             model.ChangeNotifications.NotifyPackagePushed = account.NotifyPackagePushed;
+            model.ChangeNotifications.NotifyPackageStaged = account.NotifyPackageStaged;
         }
 
         [HttpPost]

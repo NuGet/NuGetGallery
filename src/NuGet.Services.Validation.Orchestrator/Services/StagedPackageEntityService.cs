@@ -83,6 +83,7 @@ namespace NuGet.Services.Validation.Orchestrator
         private IQueryable<StagedPackage> GetAll()
         {
             return _entitiesContext.StagedPackages
+                .Include(candidate => candidate.StagedPackageIdentity.Owner)
                 .Include(candidate => candidate.StagedPackageIdentity.Package.PackageRegistration);
         }
     }

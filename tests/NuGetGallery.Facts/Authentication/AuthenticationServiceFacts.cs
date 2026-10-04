@@ -1294,6 +1294,7 @@ namespace NuGetGallery.Authentication
                 Assert.True(auth.Entities.Users.Contains(authUser.User));
                 auth.Entities.VerifyCommitChanges();
                 Assert.Equal("theEmailAddress", authUser.User.UnconfirmedEmailAddress);
+                Assert.True(authUser.User.NotifyPackageStaged);
                 Assert.NotNull(authUser.User.EmailConfirmationToken);
                 Assert.False(authUser.User.Confirmed);
             }
