@@ -44,6 +44,9 @@ namespace NuGet.Services.Validation.Orchestrator
         public string GalleryPackageUrl(string packageId, string packageNormalizedVersion) => string.Format(EmailConfiguration.PackageUrlTemplate, packageId, packageNormalizedVersion);
         public string PackageSupportUrl(string packageId, string packageNormalizedVersion) => string.Format(EmailConfiguration.PackageSupportTemplate, packageId, packageNormalizedVersion);
 
+        public string StagedPackageUrl(string packageId, string packageNormalizedVersion) => string.Format(EmailConfiguration.StagedPackageUrlTemplate, Uri.EscapeDataString(packageId), Uri.EscapeDataString(packageNormalizedVersion));
+        public string StagedSymbolPackageUrl(string packageId, string packageNormalizedVersion) => string.Format(EmailConfiguration.StagedSymbolPackageUrlTemplate, Uri.EscapeDataString(packageId), Uri.EscapeDataString(packageNormalizedVersion));
+
         public MailAddress GalleryOwner { get; set; }
 
         /// <summary>

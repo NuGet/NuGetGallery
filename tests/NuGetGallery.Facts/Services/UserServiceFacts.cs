@@ -1424,41 +1424,49 @@ namespace NuGetGallery
             [Fact]
             public async Task SavesEmailSettings()
             {
-                var user = new User { EmailAddress = "old@example.org", EmailAllowed = true, NotifyPackagePushed = true};
+                var user = new User { EmailAddress = "old@example.org", EmailAllowed = true, NotifyPackagePushed = true, NotifyPackageStaged = true };
                 var service = new TestableUserService();
                 service.MockUserRepository
                        .Setup(r => r.GetAll())
                        .Returns(new[] { user }.AsQueryable());
                 
                 // Disable notifications
-                await service.ChangeEmailSubscriptionAsync(user, false, false);
+                await service.ChangeEmailSubscriptionAsync(user, false, false, false);
                 Assert.False(user.EmailAllowed);
                 Assert.False(user.NotifyPackagePushed);
+                Assert.False(user.NotifyPackageStaged);
                 
                 // Enable contact notifications
-                await service.ChangeEmailSubscriptionAsync(user, true, false);
+                await service.ChangeEmailSubscriptionAsync(user, true, false, false);
                 Assert.True(user.EmailAllowed);
                 Assert.False(user.NotifyPackagePushed);
 
                 // Disable notifications
-                await service.ChangeEmailSubscriptionAsync(user, false, false);
+                await service.ChangeEmailSubscriptionAsync(user, false, false, false);
                 Assert.False(user.EmailAllowed);
                 Assert.False(user.NotifyPackagePushed);
 
                 // Enable package pushed notifications
-                await service.ChangeEmailSubscriptionAsync(user, false, true);
+                await service.ChangeEmailSubscriptionAsync(user, false, true, false);
                 Assert.False(user.EmailAllowed);
                 Assert.True(user.NotifyPackagePushed);
+                Assert.False(user.NotifyPackageStaged);
 
                 // Disable notifications
-                await service.ChangeEmailSubscriptionAsync(user, false, false);
+                await service.ChangeEmailSubscriptionAsync(user, false, false, false);
                 Assert.False(user.EmailAllowed);
                 Assert.False(user.NotifyPackagePushed);
 
+                await service.ChangeEmailSubscriptionAsync(user, false, false, true);
+                Assert.False(user.EmailAllowed);
+                Assert.False(user.NotifyPackagePushed);
+                Assert.True(user.NotifyPackageStaged);
+
                 // Enable all notifications
-                await service.ChangeEmailSubscriptionAsync(user, true, true);
+                await service.ChangeEmailSubscriptionAsync(user, true, true, true);
                 Assert.True(user.EmailAllowed);
                 Assert.True(user.NotifyPackagePushed);
+                Assert.True(user.NotifyPackageStaged);
 
                 service.MockUserRepository
                        .Verify(r => r.CommitChangesAsync());
@@ -1469,7 +1477,7 @@ namespace NuGetGallery
             {
                 var service = new TestableUserService();
 
-                await ContractAssert.ThrowsArgNullAsync(async () => await service.ChangeEmailSubscriptionAsync(null, emailAllowed: true, notifyPackagePushed: true), "user");
+                await ContractAssert.ThrowsArgNullAsync(async () => await service.ChangeEmailSubscriptionAsync(null, emailAllowed: true, notifyPackagePushed: true, notifyPackageStaged: true), "user");
             }
         }
 
@@ -2145,6 +2153,7 @@ namespace NuGetGallery
                 Assert.Equal(OrgCreatedUtc, org.CreatedUtc);
                 Assert.True(org.EmailAllowed);
                 Assert.True(org.NotifyPackagePushed);
+                Assert.True(org.NotifyPackageStaged);
 
                 // Both the organization and the admin must have a membership to each other.
                 Func<Membership, bool> hasMembership = m => m.Member.Username == AdminName && m.Organization.Username == OrgName && m.IsAdmin;

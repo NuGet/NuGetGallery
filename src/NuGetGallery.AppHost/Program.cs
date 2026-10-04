@@ -204,6 +204,7 @@ public class Program
         // ─── NuGetGallery web app (IIS Express) ──────────────────────────────────────
 
         var galleryPath = Path.Combine(srcDir, "NuGetGallery");
+        Directory.CreateDirectory(Path.Combine(galleryPath, "App_Data", "Mail"));
         var iisUserHome = Path.Combine(repoRoot, ".vs");
         var iisExpressConfigSource = Path.Combine(iisUserHome, "config", "applicationhost.config");
 
@@ -983,6 +984,8 @@ public class Program
                 ServiceBus = new { ConnectionString = "", TopicPath = emailTopicName },
                 GalleryOwner = "NuGet Gallery <support@localhost>",
                 GalleryNoReplyAddress = "NuGet Gallery <noreply@localhost>",
+                StagedPackageUrlTemplate = "https://localhost/account/staging/package/{0}/{1}",
+                StagedSymbolPackageUrlTemplate = "https://localhost/account/staging/symbols/{0}/{1}",
                 PackageUrlTemplate = "https://localhost/packages/{0}/{1}",
                 PackageSupportTemplate = "https://localhost/packages/{0}/{1}/contactowners",
                 EmailSettingsUrl = "https://localhost/account",
