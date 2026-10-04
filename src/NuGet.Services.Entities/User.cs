@@ -103,7 +103,7 @@ namespace NuGet.Services.Entities
         /// Gets or sets whether the account receives optional staging notifications.
         /// </summary>
         [DefaultValue(true)]
-        public bool NotifyPackageStaged { get; set; }
+        public bool NotifyPackageStaged { get; set; } = true;
 
         public bool Confirmed
         {
