@@ -36,6 +36,11 @@ namespace NuGet.Services.Entities
         /// </summary>
         public DateTime ExpirationDate { get; set; } = DateTime.UtcNow.AddDays(30);
 
+        /// <summary>
+        /// Gets or sets the ungrouped expiration deadline for which an owner warning was requested.
+        /// </summary>
+        public DateTime? WarnedExpirationDate { get; set; }
+
         public DateTime UploadedDate { get; set; }
 
         /// <summary>

@@ -12,6 +12,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Jobs;
+using NuGet.Services.Messaging;
+using NuGet.Services.Messaging.Email;
+using NuGet.Services.ServiceBus;
 using NuGetGallery;
 
 namespace Gallery.Maintenance
@@ -82,12 +85,43 @@ namespace Gallery.Maintenance
 
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
+            containerBuilder.Register(context =>
+                {
+                    var configuration = context.Resolve<IOptionsSnapshot<MaintenanceEmailConfiguration>>().Value.ServiceBus;
+                    if (configuration == null)
+                    {
+                        throw new InvalidOperationException("Email.ServiceBus configuration is required for staging expiration notifications.");
+                    }
+
+                    return new TopicClientWrapper(configuration.ConnectionString, configuration.TopicPath);
+                })
+                .Keyed<ITopicClient>("EmailTopic")
+                .SingleInstance()
+                .OnRelease(client => _ = client.CloseAsync());
+            containerBuilder.RegisterType<EmailMessageEnqueuer>()
+                .WithParameter((parameter, context) => parameter.ParameterType == typeof(ITopicClient),
+                    (parameter, context) => context.ResolveKeyed<ITopicClient>("EmailTopic"))
+                .As<IEmailMessageEnqueuer>();
         }
 
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             services.Configure<StagingBlobCleanupConfiguration>(configurationRoot.GetSection("StagingBlobCleanup"));
             services.Configure<StagingExpirationConfiguration>(configurationRoot.GetSection("StagingExpiration"));
+            services.Configure<MaintenanceEmailConfiguration>(configurationRoot.GetSection("Email"));
+            services.AddTransient<IMessageServiceConfiguration>(provider => provider.GetRequiredService<IOptionsSnapshot<MaintenanceEmailConfiguration>>().Value);
+            services.AddTransient<IMessageService, AsynchronousEmailMessageService>();
+            services.AddTransient<IServiceBusMessageSerializer, ServiceBusMessageSerializer>();
+        }
+
+        internal MaintenanceEmailConfiguration GetEmailConfiguration()
+        {
+            return _serviceProvider.GetRequiredService<IOptionsSnapshot<MaintenanceEmailConfiguration>>().Value;
+        }
+
+        internal IMessageService GetMessageService()
+        {
+            return _serviceProvider.GetRequiredService<IMessageService>();
         }
 
         internal StagingBlobCleanupConfiguration GetStagingBlobCleanupConfiguration()

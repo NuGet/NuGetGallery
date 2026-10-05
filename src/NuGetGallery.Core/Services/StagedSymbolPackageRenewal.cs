@@ -44,6 +44,7 @@ namespace NuGetGallery
                 UploadedBlobETag = previous.UploadedBlobETag,
                 UploadedDate = previous.UploadedDate,
                 ExpirationDate = previous.ExpirationDate,
+                WarnedExpirationDate = previous.WarnedExpirationDate,
                 Status = status,
             };
 
