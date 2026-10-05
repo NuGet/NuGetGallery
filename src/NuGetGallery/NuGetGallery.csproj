@@ -452,6 +452,10 @@
     <Compile Include="Migrations\202610040443441_AddNotifyPackageStaged.Designer.cs">
       <DependentUpon>202610040443441_AddNotifyPackageStaged.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202610052230414_AddStagingExpirationWarnings.cs" />
+    <Compile Include="Migrations\202610052230414_AddStagingExpirationWarnings.Designer.cs">
+      <DependentUpon>202610052230414_AddStagingExpirationWarnings.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\202610012106230_AddStagingBlobCleanups.Designer.cs">
       <DependentUpon>202610012106230_AddStagingBlobCleanups.cs</DependentUpon>
     </Compile>
@@ -1941,6 +1945,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202610040443441_AddNotifyPackageStaged.resx">
       <DependentUpon>202610040443441_AddNotifyPackageStaged.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202610052230414_AddStagingExpirationWarnings.resx">
+      <DependentUpon>202610052230414_AddStagingExpirationWarnings.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\20261001004643032_AddStagedSymbolPromotionControls.resx">
       <DependentUpon>20261001004643032_AddStagedSymbolPromotionControls.cs</DependentUpon>

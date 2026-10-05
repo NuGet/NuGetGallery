@@ -33,6 +33,11 @@ namespace NuGet.Services.Entities
         public DateTime ExpirationDate { get; set; } = DateTime.UtcNow.AddDays(30);
 
         /// <summary>
+        /// Gets or sets the expiration deadline for which an owner warning was requested.
+        /// </summary>
+        public DateTime? WarnedExpirationDate { get; set; }
+
+        /// <summary>
         /// Advances RowVersion when an edit changes a member without changing this group.
         /// </summary>
         public long MutationRevision { get; set; }

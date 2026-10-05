@@ -113,7 +113,15 @@ public class Program
         {
             GalleryDb = new { ConnectionString = config.GalleryDb.ConnectionString },
             StagingBlobCleanup = new { Enabled = true, StorageConnectionString = azuriteConnStr },
-            StagingExpiration = new { Enabled = true },
+            StagingExpiration = new { Enabled = serviceBus != null },
+            Email = new
+            {
+                ServiceBus = new { ConnectionString = "", TopicPath = emailTopicName },
+                GalleryOwner = "NuGet Gallery <support@localhost>",
+                GalleryNoReplyAddress = "NuGet Gallery <noreply@localhost>",
+                ManagePackagesUrl = "https://localhost/account/Packages",
+                EmailSettingsUrl = "https://localhost/account",
+            },
         });
 
         var maintenance = builder.AddProject<Projects.Gallery_Maintenance>("gallery-maintenance")
@@ -276,7 +284,8 @@ public class Program
                     orchestratorConfigPath,
                     promotionConfigPath,
                     symbolsOrchestratorConfigPath,
-                    symbolsValidatorConfigPath)
+                    symbolsValidatorConfigPath,
+                    maintenanceConfigPath)
                 .WithEnvironment(
                     "SERVICE_BUS_HOST_NAME",
                     new BicepOutputReference("serviceBusHostName", serviceBus.Resource))
@@ -284,6 +293,7 @@ public class Program
                 .WithParentRelationship(infraGroup);
 
             gallery.WaitForCompletion(configureValidation);
+            maintenance.WaitForCompletion(configureValidation).WaitFor(serviceBus);
 
             builder.AddProject<Projects.NuGet_Services_Validation_Orchestrator>("validation-orchestrator")
                 .WithArgs("-Configuration", orchestratorConfigPath)
