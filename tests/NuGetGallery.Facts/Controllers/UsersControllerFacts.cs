@@ -4123,6 +4123,12 @@ namespace NuGetGallery
                 _testUser.IsDeleted = false;
                 _testUser.Key = 1;
                 _testController.SetCurrentUser(_testUser);
+                GetMock<IPackageStagingAuthorizationService>()
+                    .Setup(service => service.GetEnabledOwners(_testUser))
+                    .Returns(new[] { _testUser });
+                GetMock<IStagingQuotaService>()
+                    .Setup(service => service.GetUsage(It.IsAny<User>()))
+                    .Returns<User>(owner => new StagingQuotaUsage { Owner = owner.Username, Limit = 350 });
             }
 
             private PackageRegistration CreatePackageRegistration(string Id, int Key, string Version, string Description)
@@ -4176,10 +4182,13 @@ namespace NuGetGallery
                 GetMock<IValidationService>()
                     .Setup(service => service.GetStagedPackageValidationIssues(It.IsAny<IReadOnlyCollection<int>>()))
                     .Returns(new Dictionary<int, IReadOnlyList<ValidationIssue>>());
+                var usage = new StagingQuotaUsage { Owner = _testUser.Username, UsedPackages = 2, UsedSymbols = 1, Limit = 350 };
+                GetMock<IStagingQuotaService>().Setup(service => service.GetUsage(_testUser)).Returns(usage);
 
                 var model = ResultAssert.IsView<ManagePackagesViewModel>(_testController.Packages());
 
                 var result = Assert.Single(model.StagingGroups);
+                Assert.Same(usage, Assert.Single(model.StagingQuotas));
                 Assert.Equal(_testUser.Username, result.Owner);
                 Assert.Equal("test-group", result.Id);
                 Assert.Equal("Test group", result.Name);
