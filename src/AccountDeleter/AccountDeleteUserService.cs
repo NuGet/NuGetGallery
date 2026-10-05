@@ -66,7 +66,7 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
-        public Task ChangeEmailSubscriptionAsync(User user, bool emailAllowed, bool notifyPackagePushed)
+        public Task ChangeEmailSubscriptionAsync(User user, bool emailAllowed, bool notifyPackagePushed, bool notifyPackageStaged)
         {
             throw new NotImplementedException();
         }

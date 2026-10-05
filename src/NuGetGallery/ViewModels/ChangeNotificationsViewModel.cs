@@ -8,5 +8,7 @@ namespace NuGetGallery
         public bool EmailAllowed { get; set; }
 
         public bool NotifyPackagePushed { get; set; }
+
+        public bool NotifyPackageStaged { get; set; }
     }
 }

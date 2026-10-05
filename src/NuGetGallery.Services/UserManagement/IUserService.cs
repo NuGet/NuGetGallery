@@ -21,7 +21,7 @@ namespace NuGetGallery
 
         Task<User> DeleteMemberAsync(Organization organization, string memberName);
 
-        Task ChangeEmailSubscriptionAsync(User user, bool emailAllowed, bool notifyPackagePushed);
+        Task ChangeEmailSubscriptionAsync(User user, bool emailAllowed, bool notifyPackagePushed, bool notifyPackageStaged);
 
         User FindByEmailAddress(string emailAddress);
 

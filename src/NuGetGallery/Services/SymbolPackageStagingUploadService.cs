@@ -13,9 +13,11 @@ using System.Web;
 using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Services.Entities;
+using NuGet.Services.Messaging.Email;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Helpers;
+using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 
@@ -40,6 +42,7 @@ namespace NuGetGallery
         private readonly IEntityRepository<StagingGroup> _stagingGroupRepository;
         private readonly IAppConfiguration _configuration;
         private readonly IStagingQuotaService _quotaService;
+        private readonly IMessageService _messageService;
 
         public SymbolPackageStagingUploadService(
             IApiScopeEvaluator apiScopeEvaluator,
@@ -55,7 +58,8 @@ namespace NuGetGallery
             IPackageStagingManagementService managementService,
             IEntityRepository<StagingGroup> stagingGroupRepository,
             IAppConfiguration configuration,
-            IStagingQuotaService quotaService)
+            IStagingQuotaService quotaService,
+            IMessageService messageService)
         {
             _apiScopeEvaluator = apiScopeEvaluator ?? throw new ArgumentNullException(nameof(apiScopeEvaluator));
             _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
@@ -71,6 +75,7 @@ namespace NuGetGallery
             _stagingGroupRepository = stagingGroupRepository ?? throw new ArgumentNullException(nameof(stagingGroupRepository));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _quotaService = quotaService ?? throw new ArgumentNullException(nameof(quotaService));
+            _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
         }
 
         public async Task<PackageStagingResult> StageSymbolPackageAsync(
@@ -297,6 +302,15 @@ namespace NuGetGallery
                 {
                     exception.Log();
                     return PackageStagingResult.Error(HttpStatusCode.Conflict, "The staged symbol package changed during upload. Retry the upload.");
+                }
+
+                var siteRoot = new Uri(_configuration.SiteRoot.TrimEnd('/') + "/");
+                var stagingUrl = new Uri(siteRoot, $"account/staging/symbols/{Uri.EscapeDataString(package.Id)}/{Uri.EscapeDataString(package.NormalizedVersion)}").AbsoluteUri;
+                var emailSettingsUrl = new Uri(siteRoot, "account").AbsoluteUri;
+                await _messageService.SendMessageAsync(new StagedPackageUploadedMessage(_configuration, owner, package, symbols: true, stagingUrl, emailSettingsUrl));
+                if (stagedSymbolPackage.Status == StagedPackageStatus.Ready)
+                {
+                    await _messageService.SendMessageAsync(new StagedPackageValidationSucceededMessage(_configuration, owner, package, symbols: true, stagingUrl, emailSettingsUrl));
                 }
 
                 if (previousAttempt != null)

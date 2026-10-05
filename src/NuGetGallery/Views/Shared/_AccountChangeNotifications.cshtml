@@ -6,6 +6,9 @@
     ViewBag.NotifyPackagePushedEnabled = "Receiving package push notifications";
     ViewBag.NotifyPackagePushedNotEnabled = "Not receiving package push notifications";
 
+    ViewBag.NotifyPackageStagedEnabled = "Receiving staging notifications";
+    ViewBag.NotifyPackageStagedNotEnabled = "Not receiving staging notifications";
+
     ViewBag.NotifyPackagePushedLabel = "Notify when a package is published to " + Config.Current.Brand;
     ViewBag.NotifyPackagePushedDescription = "This setting enables notifications whenever a package is published "
         + "to your account. We recommend enabling this setting so that you can inspect whether a package was "
@@ -45,6 +48,10 @@
         @<text>
             @(Model.ChangeNotifications.EmailAllowed ? ViewBag.EmailAllowedEnabled : ViewBag.EmailAllowedNotEnabled) |
             @(Model.ChangeNotifications.NotifyPackagePushed ? ViewBag.NotifyPackagePushedEnabled : ViewBag.NotifyPackagePushedNotEnabled)
+            @if (Model.IsPackageStagingEnabled)
+            {
+                <text> | @(Model.ChangeNotifications.NotifyPackageStaged ? ViewBag.NotifyPackageStagedEnabled : ViewBag.NotifyPackageStagedNotEnabled)</text>
+            }
         </text>,
         @<text>
             @using (Html.BeginForm("ChangeEmailSubscription", controllerName, FormMethod.Post, new { aria_label = "Change email subscription settings" }))
@@ -68,6 +75,22 @@
                     <div class="label-sibling">@ViewBag.NotifyPackagePushedDescription</div>
                     @Html.ShowValidationMessagesFor(x => x.ChangeNotifications.NotifyPackagePushed)
                 </div>
+
+                if (Model.IsPackageStagingEnabled)
+                {
+                    <div>
+                        <label class="brand-checkbox">
+                            @Html.ShowCheckboxFor(x => x.ChangeNotifications.NotifyPackageStaged)
+                            <span><b id="notifypackagestaged-label">Receive staging notifications</b></span>
+                        </label>
+                        <div class="label-sibling">Receive notifications for staged uploads and successful or delayed validation. Validation failures are always sent.</div>
+                        @Html.ShowValidationMessagesFor(x => x.ChangeNotifications.NotifyPackageStaged)
+                    </div>
+                }
+                else
+                {
+                    @Html.HiddenFor(x => x.ChangeNotifications.NotifyPackageStaged)
+                }
 
                 <p><strong>Note: </strong>@ViewBag.PrivacyNotice</p>
 
