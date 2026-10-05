@@ -28,6 +28,14 @@ namespace NuGet.Services.Validation.Orchestrator
             {
                 throw new ArgumentException($"{nameof(emailConfigurationAccessor.Value)}.{nameof(EmailConfiguration.PackageSupportTemplate)} cannot be empty", nameof(emailConfigurationAccessor));
             }
+            if (string.IsNullOrWhiteSpace(EmailConfiguration.StagedPackageUrlTemplate))
+            {
+                throw new ArgumentException($"{nameof(emailConfigurationAccessor.Value)}.{nameof(EmailConfiguration.StagedPackageUrlTemplate)} cannot be empty", nameof(emailConfigurationAccessor));
+            }
+            if (string.IsNullOrWhiteSpace(EmailConfiguration.StagedSymbolPackageUrlTemplate))
+            {
+                throw new ArgumentException($"{nameof(emailConfigurationAccessor.Value)}.{nameof(EmailConfiguration.StagedSymbolPackageUrlTemplate)} cannot be empty", nameof(emailConfigurationAccessor));
+            }
             if (string.IsNullOrWhiteSpace(EmailConfiguration.EmailSettingsUrl))
             {
                 throw new ArgumentException($"{nameof(emailConfigurationAccessor.Value)}.{nameof(EmailConfiguration.EmailSettingsUrl)} cannot be empty", nameof(emailConfigurationAccessor));
