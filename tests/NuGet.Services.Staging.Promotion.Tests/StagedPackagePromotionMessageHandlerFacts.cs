@@ -104,17 +104,33 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 It.Is<StagingPromotionArtifact>(artifact => artifact.Succeeded && !artifact.Symbols)), Times.Once);
         }
 
-        [Fact]
-        public async Task NotificationFailureDoesNotCompensateCommittedPublication()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task NotificationFailureDoesNotCompensateCommittedPublication(bool grouped)
         {
             var context = new TestContext();
+            if (grouped)
+            {
+                context.AddToGroup();
+            }
+
             context.Notifications.Setup(service => service.SendAsync(It.IsAny<User>(), It.IsAny<StagingPromotionArtifact>()))
                 .ThrowsAsync(new InvalidOperationException("Email transport unavailable"));
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => context.Target.HandleAsync(context.Message));
 
             Assert.Equal(PackageStatus.Available, context.Package.PackageStatusKey);
-            Assert.Empty(context.StagedPackages);
+            if (grouped)
+            {
+                Assert.Same(context.StagedPackage, Assert.Single(context.StagedPackages));
+                Assert.Equal(StagedPackageStatus.Succeeded, context.StagedPackage.Status);
+            }
+            else
+            {
+                Assert.Empty(context.StagedPackages);
+            }
+
             context.PackageFileStorageService.Verify(service => service.DeleteFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
@@ -191,6 +207,12 @@ namespace NuGet.Services.Staging.Promotion.Tests
             Assert.Equal(StagedPackageStatus.Succeeded, context.StagedPackage.Status);
             Assert.Contains(context.StagedPackage, context.StagedPackages);
             Assert.Null(symbols.PromotionMessageSentDate);
+            if (grouped)
+            {
+                context.Notifications.Verify(service => service.SendAsync(context.StagedPackageIdentity.Owner,
+                    It.Is<StagingPromotionArtifact>(artifact => artifact.Succeeded && !artifact.Symbols)), Times.Once);
+            }
+
             context.PackageFileStorageService.Verify(storage => storage.DeleteFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
             context.MessageEnqueuer.Setup(enqueuer => enqueuer.SendMessageAsync(It.IsAny<StagingPromotionMessage>())).Returns(Task.CompletedTask);
 
@@ -200,6 +222,8 @@ namespace NuGet.Services.Staging.Promotion.Tests
             {
                 Assert.Same(context.StagedPackage, Assert.Single(context.StagedPackages));
                 context.StagingGroupPromotionService.Verify(service => service.TryFinalizeAsync(context.StagingGroup.Key, context.PromotionId), Times.Once);
+                context.Notifications.Verify(service => service.SendAsync(context.StagedPackageIdentity.Owner,
+                    It.Is<StagingPromotionArtifact>(artifact => artifact.Succeeded && !artifact.Symbols)), Times.Once);
             }
             else
             {
@@ -353,6 +377,44 @@ namespace NuGet.Services.Staging.Promotion.Tests
             context.StagingGroupPromotionService.Verify(
                 x => x.TryFinalizeAsync(context.StagingGroup.Key, context.PromotionId),
                 Times.Once);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task GroupFinalizationFailureDoesNotLoseOrRepeatArtifactNotifications(bool succeeded)
+        {
+            var context = new TestContext();
+            context.AddToGroup();
+            var symbols = context.AddAcceptedSymbols();
+            if (!succeeded)
+            {
+                context.Apply(InvalidState.MissingValidatedBlob);
+            }
+
+            context.Notifications.Setup(service => service.SendAsync(context.StagedPackageIdentity.Owner, It.IsAny<StagingPromotionArtifact>()))
+                .Callback(() => context.StagedPackageRepository.Verify(repository => repository.CommitChangesAsync(), Times.AtLeastOnce()))
+                .Returns(Task.CompletedTask);
+            context.StagingGroupPromotionService.Setup(service => service.TryFinalizeAsync(context.StagingGroup.Key, context.PromotionId))
+                .ThrowsAsync(new TimeoutException());
+
+            await Assert.ThrowsAsync<TimeoutException>(() => context.Target.HandleAsync(context.Message));
+
+            context.Notifications.Verify(service => service.SendAsync(context.StagedPackageIdentity.Owner,
+                It.Is<StagingPromotionArtifact>(artifact => !artifact.Symbols && artifact.Succeeded == succeeded)), Times.Once);
+            context.Notifications.Verify(service => service.SendAsync(context.StagedPackageIdentity.Owner,
+                It.Is<StagingPromotionArtifact>(artifact => artifact.Symbols && !artifact.Succeeded)), succeeded ? Times.Never() : Times.Once());
+            Assert.Equal(succeeded ? StagedPackageStatus.Succeeded : StagedPackageStatus.PromotionFailed, context.StagedPackage.Status);
+            Assert.Equal(succeeded ? StagedPackageStatus.Promoting : StagedPackageStatus.PromotionFailed, symbols.Status);
+            context.StagingGroupPromotionService.Setup(service => service.TryFinalizeAsync(context.StagingGroup.Key, context.PromotionId))
+                .Returns(Task.CompletedTask);
+
+            Assert.True(await context.Target.HandleAsync(context.Message));
+
+            context.Notifications.Verify(service => service.SendAsync(It.IsAny<User>(), It.IsAny<StagingPromotionArtifact>()),
+                Times.Exactly(succeeded ? 1 : 2));
+            context.StagingGroupPromotionService.Verify(service => service.TryFinalizeAsync(context.StagingGroup.Key, context.PromotionId), Times.Exactly(2));
+            context.PackageFileStorageService.Verify(service => service.DeleteFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
         [Theory]

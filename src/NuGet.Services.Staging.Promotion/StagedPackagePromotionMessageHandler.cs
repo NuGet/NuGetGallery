@@ -143,15 +143,15 @@ namespace NuGet.Services.Staging.Promotion
                         await MarkPromotionFailedAsync(stagedPackage);
 
                         var failedGroupKey = stagedPackage.StagedPackageIdentity.StagingGroupKey;
-                        if (failedGroupKey.HasValue)
-                        {
-                            await _stagingGroupPromotionService.TryFinalizeAsync(failedGroupKey.Value, message.PromotionId);
-                        }
-
                         await _notifications.SendAsync(owner, artifact);
                         if (symbols != null)
                         {
                             await _notifications.SendAsync(owner, new StagingPromotionArtifact(package, true, false));
+                        }
+
+                        if (failedGroupKey.HasValue)
+                        {
+                            await _stagingGroupPromotionService.TryFinalizeAsync(failedGroupKey.Value, message.PromotionId);
                         }
 
                         return true;
@@ -182,16 +182,21 @@ namespace NuGet.Services.Staging.Promotion
 
                     if (stagingGroupKey.HasValue)
                     {
+                        await _notifications.SendAsync(stagingOwner, publishedArtifact);
                         await SendSymbolFollowUpAsync(stagedPackage);
                         await _stagingGroupPromotionService.TryFinalizeAsync(stagingGroupKey.Value, message.PromotionId);
                     }
-                    else if (stagedPackage.Status == StagedPackageStatus.Succeeded)
+                    else
                     {
-                        // Publication has committed. Dispatch failures must not compensate the public package.
-                        await SendSymbolFollowUpAndCleanUpAsync(stagedPackage);
+                        if (stagedPackage.Status == StagedPackageStatus.Succeeded)
+                        {
+                            // Publication has committed. Dispatch failures must not compensate the public package.
+                            await SendSymbolFollowUpAndCleanUpAsync(stagedPackage);
+                        }
+
+                        await _notifications.SendAsync(stagingOwner, publishedArtifact);
                     }
 
-                    await _notifications.SendAsync(stagingOwner, publishedArtifact);
                     _logger.LogInformation("Completed staged package promotion.");
                     return true;
                 }
