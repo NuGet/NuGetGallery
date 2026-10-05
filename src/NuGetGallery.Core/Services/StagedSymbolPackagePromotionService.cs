@@ -224,12 +224,12 @@ namespace NuGetGallery
                     await _attempts.CommitChangesAsync();
                 }
 
-                await _groups.TryFinalizeAsync(attempt.StagedPackageIdentity.StagingGroupKey.Value, promotionId);
                 if (artifact != null)
                 {
                     await _notifications.SendAsync(owner, artifact);
                 }
 
+                await _groups.TryFinalizeAsync(attempt.StagedPackageIdentity.StagingGroupKey.Value, promotionId);
                 return;
             }
 

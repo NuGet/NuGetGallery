@@ -340,7 +340,9 @@ namespace NuGetGallery
         [InlineData(false, true)]
         [InlineData(true, false)]
         [InlineData(true, true)]
-        public async Task NotifiesOnlyTheSymbolResultAfterDurableCleanupAndNotAgainOnReplay(bool grouped, bool succeeded)
+        [InlineData(true, false, true)]
+        [InlineData(true, true, true)]
+        public async Task NotifiesOnlyTheSymbolResultAfterTerminalCommitAndNotAgainOnReplay(bool grouped, bool succeeded, bool finalizationFails = false)
         {
             var fixture = new Fixture();
             if (grouped)
@@ -366,13 +368,33 @@ namespace NuGetGallery
             fixture.Notifications.Setup(service => service.SendAsync(It.IsAny<User>(), It.IsAny<StagingPromotionArtifact>()))
                 .Callback(() => Assert.True(completionCommitted)).Returns(Task.CompletedTask);
 
-            await fixture.Target.CleanUpAsync(fixture.Attempt.Key, fixture.PromotionId);
+            if (finalizationFails)
+            {
+                fixture.Groups.SetupSequence(service => service.TryFinalizeAsync(fixture.Identity.StagingGroupKey.Value, fixture.PromotionId))
+                    .ThrowsAsync(new TimeoutException())
+                    .Returns(Task.CompletedTask);
+
+                await Assert.ThrowsAsync<TimeoutException>(() => fixture.Target.CleanUpAsync(fixture.Attempt.Key, fixture.PromotionId));
+
+                fixture.Notifications.Verify(service => service.SendAsync(fixture.Identity.Owner,
+                    It.Is<StagingPromotionArtifact>(artifact => artifact.Symbols && artifact.Succeeded == succeeded)), Times.Once);
+            }
+            else
+            {
+                await fixture.Target.CleanUpAsync(fixture.Attempt.Key, fixture.PromotionId);
+            }
+
             await fixture.Target.CleanUpAsync(fixture.Attempt.Key, fixture.PromotionId);
 
             fixture.Notifications.Verify(service => service.SendAsync(fixture.Identity.Owner,
                 It.Is<StagingPromotionArtifact>(artifact => artifact.Symbols && artifact.Succeeded == succeeded
                     && artifact.PackageId == "PackageA" && artifact.Version == "1.0.0")), Times.Once);
             Assert.Equal(PackageStatus.Available, fixture.Parent.PackageStatusKey);
+            if (grouped)
+            {
+                fixture.Groups.Verify(service => service.TryFinalizeAsync(fixture.Identity.StagingGroupKey.Value, fixture.PromotionId), Times.Exactly(2));
+            }
+
             if (!grouped && !succeeded)
             {
                 Assert.Null(fixture.Attempt.ActivePromotionId);
