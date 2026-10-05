@@ -25,6 +25,7 @@ namespace NuGetGallery
         private readonly ICoreFileStorageService _storage;
         private readonly IStagingGroupPromotionService _groups;
         private readonly IStagingBlobCleanupService _blobCleanup;
+        private readonly IStagingPromotionNotificationService _notifications;
         private readonly ILogger<StagedSymbolPackagePromotionService> _logger;
 
         public StagedSymbolPackagePromotionService(
@@ -36,6 +37,7 @@ namespace NuGetGallery
             ICoreFileStorageService storage,
             IStagingGroupPromotionService groups,
             IStagingBlobCleanupService blobCleanup,
+            IStagingPromotionNotificationService notifications,
             ILogger<StagedSymbolPackagePromotionService> logger)
         {
             _attempts = attempts ?? throw new ArgumentNullException(nameof(attempts));
@@ -46,6 +48,7 @@ namespace NuGetGallery
             _storage = storage ?? throw new ArgumentNullException(nameof(storage));
             _groups = groups ?? throw new ArgumentNullException(nameof(groups));
             _blobCleanup = blobCleanup ?? throw new ArgumentNullException(nameof(blobCleanup));
+            _notifications = notifications ?? throw new ArgumentNullException(nameof(notifications));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -204,6 +207,8 @@ namespace NuGetGallery
             var attempt = FindAttempt(stagedSymbolPackageKey, promotionId);
             if (attempt?.StagedPackageIdentity.StagingGroupKey.HasValue == true)
             {
+                var owner = attempt.StagedPackageIdentity.Owner;
+                StagingPromotionArtifact artifact = null;
                 if (attempt.Status == StagedPackageStatus.Promoting)
                 {
                     if (IsPublished(attempt.SymbolPackage))
@@ -215,16 +220,33 @@ namespace NuGetGallery
                         attempt.Status = StagedPackageStatus.PromotionFailed;
                     }
 
+                    artifact = new StagingPromotionArtifact(attempt.StagedPackageIdentity.Package, true, attempt.Status == StagedPackageStatus.Succeeded);
                     await _attempts.CommitChangesAsync();
+                }
+
+                if (artifact != null)
+                {
+                    await _notifications.SendAsync(owner, artifact);
                 }
 
                 await _groups.TryFinalizeAsync(attempt.StagedPackageIdentity.StagingGroupKey.Value, promotionId);
                 return;
             }
 
-            if (attempt == null || attempt.Status != StagedPackageStatus.Succeeded)
+            if (attempt == null || (attempt.Status != StagedPackageStatus.Succeeded && attempt.Status != StagedPackageStatus.PromotionFailed))
             {
-                _logger.LogInformation("No successful staged attempt to remove for symbol promotion {PromotionId}.", promotionId);
+                _logger.LogInformation("No terminal staged attempt to finalize for symbol promotion {PromotionId}.", promotionId);
+                return;
+            }
+
+            var stagingOwner = attempt.StagedPackageIdentity.Owner;
+            var result = new StagingPromotionArtifact(attempt.StagedPackageIdentity.Package, true, attempt.Status == StagedPackageStatus.Succeeded);
+            if (attempt.Status == StagedPackageStatus.PromotionFailed)
+            {
+                attempt.ActivePromotionId = null;
+                attempt.PromotionMessageSentDate = null;
+                await _attempts.CommitChangesAsync();
+                await _notifications.SendAsync(stagingOwner, result);
                 return;
             }
 
@@ -248,6 +270,7 @@ namespace NuGetGallery
                     await _attempts.CommitChangesAsync();
                 }
             });
+            await _notifications.SendAsync(stagingOwner, result);
         }
 
         private StagedSymbolPackage FindAttempt(int key, Guid promotionId)
@@ -264,7 +287,8 @@ namespace NuGetGallery
 
             var attempt = _attempts.GetAll()
                 .Include(attempt => attempt.SymbolPackage)
-                .Include(attempt => attempt.StagedPackageIdentity.Package)
+                .Include(attempt => attempt.StagedPackageIdentity.Package.PackageRegistration)
+                .Include(attempt => attempt.StagedPackageIdentity.Owner)
                 .Include(attempt => attempt.StagedPackageIdentity.StagingGroup)
                 .SingleOrDefault(attempt => attempt.Key == key && attempt.ActivePromotionId == promotionId
                     && attempt.StagedPackageIdentity.CurrentStagedSymbolPackageKey == attempt.Key);

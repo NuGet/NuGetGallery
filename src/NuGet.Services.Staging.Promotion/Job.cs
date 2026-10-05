@@ -9,6 +9,8 @@ using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
 using NuGet.Jobs.Validation;
 using NuGet.Services.Entities;
+using NuGet.Services.Messaging;
+using NuGet.Services.Messaging.Email;
 using NuGet.Services.ServiceBus;
 using NuGet.Services.Staging;
 using NuGet.Services.Validation;
@@ -27,10 +29,12 @@ namespace NuGet.Services.Staging.Promotion
         private const string FlatContainerStorageKey = "FlatContainerStorage";
         private const string PromotionTopicKey = "PromotionTopic";
         private const string SymbolsOrchestratorTopicKey = "SymbolsOrchestratorTopic";
+        private const string EmailTopicKey = "EmailTopic";
 
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             services.Configure<PromotionConfiguration>(configurationRoot.GetSection(PromotionConfigurationSectionName));
+            services.Configure<PromotionEmailConfiguration>(configurationRoot.GetSection("Email"));
             services.Configure<PackageValidationServiceBusConfiguration>(configurationRoot.GetSection("PackageValidationServiceBus"));
             SetupDefaultSubscriptionProcessorConfiguration(services, configurationRoot);
             services.Configure<SubscriptionProcessorConfiguration>(configuration => configuration.MaxConcurrentCalls = 1);
@@ -43,9 +47,12 @@ namespace NuGet.Services.Staging.Promotion
             });
             services.Add(ServiceDescriptor.Transient(typeof(IEntityRepository<>), typeof(EntityRepository<>)));
             services.AddTransient<ICorePackageService, CorePackageService>();
+            services.AddTransient<IMessageServiceConfiguration>(provider => provider.GetRequiredService<IOptionsSnapshot<PromotionEmailConfiguration>>().Value);
+            services.AddTransient<IMessageService, AsynchronousEmailMessageService>();
             services.AddTransient<IFileMetadataService, PackageFileMetadataService>();
             services.AddTransient<IBrokeredMessageSerializer<StagingPromotionMessage>, StagingPromotionMessageSerializer>();
-            services.AddTransient<IServiceBusMessageSerializer, ServiceBusMessageSerializer>();
+            services.AddTransient<NuGet.Services.Validation.IServiceBusMessageSerializer, NuGet.Services.Validation.ServiceBusMessageSerializer>();
+            services.AddTransient<NuGet.Services.Messaging.IServiceBusMessageSerializer, NuGet.Services.Messaging.ServiceBusMessageSerializer>();
             services.AddTransient<ISubscriptionProcessorTelemetryService, SubscriptionProcessorNoTelemetryService>();
             services.AddTransient<ICloudBlobContainerInformationProvider, GalleryCloudBlobContainerInformationProvider>();
         }
@@ -81,6 +88,31 @@ namespace NuGet.Services.Staging.Promotion
                 .RegisterType<PackageValidationEnqueuer>()
                 .WithKeyedParameter(typeof(ITopicClient), SymbolsOrchestratorTopicKey)
                 .As<IPackageValidationEnqueuer>();
+
+            containerBuilder
+                .Register(context =>
+                {
+                    var configuration = context.Resolve<IOptionsSnapshot<PromotionEmailConfiguration>>().Value.ServiceBus;
+                    if (configuration == null)
+                    {
+                        throw new System.InvalidOperationException("Email.ServiceBus configuration is required.");
+                    }
+
+                    return new TopicClientWrapper(configuration.ConnectionString, configuration.TopicPath);
+                })
+                .Keyed<ITopicClient>(EmailTopicKey)
+                .SingleInstance()
+                .OnRelease(client => _ = client.CloseAsync());
+            containerBuilder.RegisterType<EmailMessageEnqueuer>()
+                .WithKeyedParameter(typeof(ITopicClient), EmailTopicKey)
+                .As<IEmailMessageEnqueuer>();
+            containerBuilder.Register(context =>
+                {
+                    var email = context.Resolve<IOptionsSnapshot<PromotionEmailConfiguration>>().Value;
+                    return new StagingPromotionNotificationService(context.Resolve<IMessageService>(), context.Resolve<IMessageServiceConfiguration>(),
+                        email.PackageUrlTemplate, email.ManagePackagesUrl, email.EmailSettingsUrl);
+                })
+                .As<IStagingPromotionNotificationService>();
 
             containerBuilder
                 .RegisterStorageAccount<PromotionConfiguration>(configuration => configuration.PackageStorageConnectionString)

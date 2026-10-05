@@ -42,6 +42,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
             builder.RegisterInstance(Mock.Of<IEntityRepository<StagedPackageIdentity>>()).As<IEntityRepository<StagedPackageIdentity>>();
             builder.RegisterInstance(Mock.Of<IEntityRepository<StagingGroup>>()).As<IEntityRepository<StagingGroup>>();
             builder.RegisterInstance(Mock.Of<IStagingBlobCleanupService>()).As<IStagingBlobCleanupService>();
+            builder.RegisterInstance(Mock.Of<IStagingPromotionNotificationService>()).As<IStagingPromotionNotificationService>();
             builder.RegisterInstance(Mock.Of<IStagingPromotionMessageHandler<StagingGroup>>()).As<IStagingPromotionMessageHandler<StagingGroup>>();
             builder.RegisterInstance(Mock.Of<IStagingPromotionMessageHandler<StagedPackage>>()).As<IStagingPromotionMessageHandler<StagedPackage>>();
             using (var container = builder.Build())
@@ -62,6 +63,41 @@ namespace NuGet.Services.Staging.Promotion.Tests
 
                 promotionTopic.Verify(topic => topic.SendAsync(It.IsAny<IBrokeredMessage>()), Times.Once);
                 symbolsTopic.Verify(topic => topic.SendAsync(It.IsAny<IBrokeredMessage>()), Times.Once);
+            }
+        }
+
+        [Fact]
+        public async Task JobDeliversPromotionResultThroughConfiguredEmailTopic()
+        {
+            IBrokeredMessage emailMessage = null;
+            var emailTopic = new Mock<ITopicClient>();
+            emailTopic.Setup(topic => topic.SendAsync(It.IsAny<IBrokeredMessage>()))
+                .Callback<IBrokeredMessage>(message => emailMessage = message).Returns(Task.CompletedTask);
+            var builder = new ContainerBuilder();
+            new JobHarness().Configure(builder, new Dictionary<string, string>
+            {
+                ["Email:PackageUrlTemplate"] = "https://gallery.test/packages/{0}/{1}",
+                ["Email:ManagePackagesUrl"] = "https://gallery.test/account/Packages",
+                ["Email:EmailSettingsUrl"] = "https://gallery.test/account",
+            });
+            builder.RegisterInstance(emailTopic.Object).Keyed<ITopicClient>("EmailTopic");
+            var owner = new User("owner") { EmailAddress = "owner@example.test", NotifyPackageStaged = true };
+            var package = new Package { PackageRegistration = new PackageRegistration { Id = "PackageA" }, NormalizedVersion = "1.0.0" };
+            using (var container = builder.Build())
+            {
+                await container.Resolve<IStagingPromotionNotificationService>()
+                    .SendAsync(owner, new StagingPromotionArtifact(package, false, true));
+
+                Assert.NotNull(emailMessage);
+                var received = new Mock<IReceivedBrokeredMessage>();
+                received.Setup(message => message.GetBody()).Returns(emailMessage.GetBody());
+                received.SetupGet(message => message.Properties).Returns(new Dictionary<string, object>(emailMessage.Properties));
+                var email = container.Resolve<NuGet.Services.Messaging.IServiceBusMessageSerializer>().DeserializeEmailMessageData(received.Object);
+                Assert.Equal(owner.EmailAddress, Assert.Single(email.To));
+                Assert.Contains("promotion succeeded", email.Subject);
+                Assert.Contains("https://gallery.test/packages/PackageA/1.0.0", email.PlainTextBody);
+                Assert.Contains("https://gallery.test/account/Packages", email.PlainTextBody);
+                emailTopic.Verify(topic => topic.SendAsync(It.IsAny<IBrokeredMessage>()), Times.Once);
             }
         }
 
@@ -162,11 +198,14 @@ namespace NuGet.Services.Staging.Promotion.Tests
 
             var parentStatus = parent.PackageStatusKey;
             await fixture.Target.HandleAsync(fixture.Message);
+            await fixture.Target.HandleAsync(fixture.Message);
 
             Assert.Equal(StagedPackageStatus.PromotionFailed, fixture.Attempt.Status);
             Assert.Equal(parentStatus, parent.PackageStatusKey);
             fixture.Attempts.Verify(repository => repository.CommitChangesAsync(), Times.Once);
             fixture.Orchestrator.Verify(service => service.SendMessageAsync(It.IsAny<PackageValidationMessageData>()), Times.Never);
+            fixture.Notifications.Verify(service => service.SendAsync(fixture.Attempt.StagedPackageIdentity.Owner,
+                It.Is<StagingPromotionArtifact>(artifact => artifact.Symbols && !artifact.Succeeded)), Times.Once);
         }
 
         [Fact]
@@ -260,9 +299,9 @@ namespace NuGet.Services.Staging.Promotion.Tests
         /// </summary>
         private class JobHarness : Job
         {
-            public void Configure(ContainerBuilder builder)
+            public void Configure(ContainerBuilder builder, IDictionary<string, string> settings = null)
             {
-                var configuration = new ConfigurationBuilder().Build();
+                var configuration = new ConfigurationBuilder().AddInMemoryCollection(settings ?? new Dictionary<string, string>()).Build();
                 var services = new ServiceCollection();
                 services.AddLogging();
                 ConfigureJobServices(services, configuration);
@@ -296,8 +335,9 @@ namespace NuGet.Services.Staging.Promotion.Tests
                     },
                 };
                 Attempts.Setup(repository => repository.GetAll()).Returns(new[] { Attempt }.AsQueryable());
+                Attempt.StagedPackageIdentity.Owner = Attempt.StagedPackageIdentity.Package.PackageRegistration.Owners.Single();
                 Attempts.Setup(repository => repository.CommitChangesAsync()).Returns(Task.CompletedTask);
-                Target = new StagedSymbolPackagePromotionMessageHandler(Attempts.Object, Groups.Object, Orchestrator.Object,
+                Target = new StagedSymbolPackagePromotionMessageHandler(Attempts.Object, Groups.Object, Orchestrator.Object, Notifications.Object,
                     Mock.Of<ILogger<StagedSymbolPackagePromotionMessageHandler>>());
             }
 
@@ -310,6 +350,8 @@ namespace NuGet.Services.Staging.Promotion.Tests
             public Mock<IStagingGroupPromotionService> Groups { get; } = new Mock<IStagingGroupPromotionService>();
 
             public Mock<IPackageValidationEnqueuer> Orchestrator { get; } = new Mock<IPackageValidationEnqueuer>();
+
+            public Mock<IStagingPromotionNotificationService> Notifications { get; } = new Mock<IStagingPromotionNotificationService>();
 
             public StagedSymbolPackagePromotionMessageHandler Target { get; }
         }

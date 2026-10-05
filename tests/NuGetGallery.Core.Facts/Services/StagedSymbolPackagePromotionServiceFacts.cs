@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.IO;
 using System.Linq;
@@ -334,6 +335,73 @@ namespace NuGetGallery
             Assert.Equal(2, fixture.ReplacementWrites);
         }
 
+        [Theory]
+        [InlineData(false, false)]
+        [InlineData(false, true)]
+        [InlineData(true, false)]
+        [InlineData(true, true)]
+        [InlineData(true, false, true)]
+        [InlineData(true, true, true)]
+        public async Task NotifiesOnlyTheSymbolResultAfterTerminalCommitAndNotAgainOnReplay(bool grouped, bool succeeded, bool finalizationFails = false)
+        {
+            var fixture = new Fixture();
+            if (grouped)
+            {
+                fixture.AddToGroup();
+            }
+
+            var attempts = new List<StagedSymbolPackage> { fixture.Attempt };
+            fixture.Attempts.Setup(repository => repository.GetAll()).Returns(attempts.AsQueryable());
+            fixture.Attempts.Setup(repository => repository.DeleteOnCommit(fixture.Attempt)).Callback(() => attempts.Remove(fixture.Attempt));
+            if (succeeded)
+            {
+                await fixture.Target.CompleteAsync(fixture.Attempt.Key, fixture.PromotionId);
+            }
+            else
+            {
+                await fixture.Target.FailAsync(fixture.Attempt.Key, fixture.PromotionId);
+            }
+
+            fixture.Notifications.Verify(service => service.SendAsync(It.IsAny<User>(), It.IsAny<StagingPromotionArtifact>()), Times.Never);
+            var completionCommitted = false;
+            fixture.Attempts.Setup(repository => repository.CommitChangesAsync()).Callback(() => completionCommitted = true).Returns(Task.CompletedTask);
+            fixture.Notifications.Setup(service => service.SendAsync(It.IsAny<User>(), It.IsAny<StagingPromotionArtifact>()))
+                .Callback(() => Assert.True(completionCommitted)).Returns(Task.CompletedTask);
+
+            if (finalizationFails)
+            {
+                fixture.Groups.SetupSequence(service => service.TryFinalizeAsync(fixture.Identity.StagingGroupKey.Value, fixture.PromotionId))
+                    .ThrowsAsync(new TimeoutException())
+                    .Returns(Task.CompletedTask);
+
+                await Assert.ThrowsAsync<TimeoutException>(() => fixture.Target.CleanUpAsync(fixture.Attempt.Key, fixture.PromotionId));
+
+                fixture.Notifications.Verify(service => service.SendAsync(fixture.Identity.Owner,
+                    It.Is<StagingPromotionArtifact>(artifact => artifact.Symbols && artifact.Succeeded == succeeded)), Times.Once);
+            }
+            else
+            {
+                await fixture.Target.CleanUpAsync(fixture.Attempt.Key, fixture.PromotionId);
+            }
+
+            await fixture.Target.CleanUpAsync(fixture.Attempt.Key, fixture.PromotionId);
+
+            fixture.Notifications.Verify(service => service.SendAsync(fixture.Identity.Owner,
+                It.Is<StagingPromotionArtifact>(artifact => artifact.Symbols && artifact.Succeeded == succeeded
+                    && artifact.PackageId == "PackageA" && artifact.Version == "1.0.0")), Times.Once);
+            Assert.Equal(PackageStatus.Available, fixture.Parent.PackageStatusKey);
+            if (grouped)
+            {
+                fixture.Groups.Verify(service => service.TryFinalizeAsync(fixture.Identity.StagingGroupKey.Value, fixture.PromotionId), Times.Exactly(2));
+            }
+
+            if (!grouped && !succeeded)
+            {
+                Assert.Null(fixture.Attempt.ActivePromotionId);
+                Assert.Equal(fixture.Attempt.Key, fixture.Identity.CurrentStagedSymbolPackageKey);
+            }
+        }
+
         private class Fixture
         {
             public const string FileName = "packagea.1.0.0.snupkg";
@@ -353,7 +421,14 @@ namespace NuGetGallery
                     PackageStatusKey = PackageStatus.Available,
                     PackageRegistration = new PackageRegistration { Id = "PackageA", Owners = new[] { new User { Key = 7 } }.ToList() },
                 };
-                Identity = new StagedPackageIdentity { Key = Parent.Key, Package = Parent, OwnerKey = 7, CurrentStagedSymbolPackageKey = 43 };
+                Identity = new StagedPackageIdentity
+                {
+                    Key = Parent.Key,
+                    Package = Parent,
+                    OwnerKey = 7,
+                    Owner = Parent.PackageRegistration.Owners.Single(),
+                    CurrentStagedSymbolPackageKey = 43,
+                };
                 Symbol = new SymbolPackage { Key = 44, PackageKey = Parent.Key, Package = Parent, StatusKey = PackageStatus.Staged };
                 Symbol.FileSize = SymbolContent.LongLength;
                 Symbol.HashAlgorithm = CoreConstants.Sha512HashAlgorithmId;
@@ -388,12 +463,14 @@ namespace NuGetGallery
                     .Callback<SymbolPackage, PackageStatus, bool>((symbol, status, commit) => symbol.StatusKey = status).Returns(Task.CompletedTask);
                 Blobs.Setup(service => service.GetPackageReadUriAsync("symbols/43", "etag")).ReturnsAsync(UploadUri);
                 Target = new StagedSymbolPackagePromotionService(Attempts.Object, Identities.Object, Symbols.Object, SymbolService.Object,
-                    Blobs.Object, Files.Object, Groups.Object, BlobCleanup.Object, Mock.Of<ILogger<StagedSymbolPackagePromotionService>>());
+                    Blobs.Object, Files.Object, Groups.Object, BlobCleanup.Object, Notifications.Object, Mock.Of<ILogger<StagedSymbolPackagePromotionService>>());
             }
 
             public Guid PromotionId { get; } = Guid.NewGuid();
 
             public Mock<IStagingBlobCleanupService> BlobCleanup { get; } = new Mock<IStagingBlobCleanupService>();
+
+            public Mock<IStagingPromotionNotificationService> Notifications { get; } = new Mock<IStagingPromotionNotificationService>();
 
             public Package Parent { get; }
 
