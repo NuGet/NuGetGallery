@@ -38,6 +38,18 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             }
         }
 
+        [Fact]
+        public void DoesNotNotifyDeletedOwnerOfValidationFailure()
+        {
+            var owner = CreateOwner(false);
+            owner.IsDeleted = true;
+            owner.EmailAddress = null;
+            owner.UnconfirmedEmailAddress = null;
+            var message = CreateFailed(owner, CreatePackage(), false, ValidationIssueCode.Unknown);
+
+            Assert.Empty(message.GetRecipients().To);
+        }
+
         [Theory]
         [InlineData(false)]
         [InlineData(true)]

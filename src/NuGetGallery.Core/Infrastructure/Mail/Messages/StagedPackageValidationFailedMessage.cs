@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Net.Mail;
 using System.Text;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
@@ -11,7 +12,7 @@ using NuGet.Services.Validation;
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
     /// <summary>
-    /// Reports private artifact validation failures to the staging owner.
+    /// Reports private artifact validation failures to non-deleted staging owners.
     /// </summary>
     public class StagedPackageValidationFailedMessage : StagedPackageMessage
     {
@@ -30,6 +31,11 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
         public override IEmailRecipients GetRecipients()
         {
+            if (Owner.IsDeleted)
+            {
+                return new EmailRecipients(Array.Empty<MailAddress>());
+            }
+
             return new EmailRecipients(new[] { Owner.ToMailAddress() });
         }
 
