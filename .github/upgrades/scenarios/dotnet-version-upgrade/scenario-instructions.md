@@ -37,3 +37,4 @@
 - **NuGetGallery.Core.csproj / NuGetGallery.Services.csproj**: `dotnet build` for targeted iteration (SDK-style; validate both `net472` and `netstandard2.1`).
 - **NuGetGallery.net10.csproj / NuGetGallery.net10.Facts.csproj**: `dotnet build` / `dotnet test` (SDK-style, `net10.0`, no Visual Studio-only build features).
 - **NuGetGallery.sln / NuGet.Server.Common.sln / NuGet.Jobs.sln / AccountDeleter.csproj**: Visual Studio MSBuild 18 (legacy web project and .NET Framework build surfaces). Use a short mapped repository drive for `NuGet.Jobs.sln` in this worktree to avoid Windows `MAX_PATH` failures in `Validation.PackageSigning.RevalidateCertificate.Tests`.
+- **Long Paths**: Resolve worktree path-length failures through a shorter checkout/worktree root or mapped drive. Do not add per-project path-shortening overrides.
