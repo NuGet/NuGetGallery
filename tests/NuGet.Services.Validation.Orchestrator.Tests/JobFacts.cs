@@ -81,6 +81,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             builder.RegisterInstance(Mock.Of<IEntityRepository<StagedPackage>>()).As<IEntityRepository<StagedPackage>>();
             builder.RegisterInstance(Mock.Of<IEntityRepository<StagingGroup>>()).As<IEntityRepository<StagingGroup>>();
             builder.RegisterInstance(Mock.Of<IStagingBlobCleanupService>()).As<IStagingBlobCleanupService>();
+            builder.RegisterInstance(Mock.Of<IStagingPromotionNotificationService>()).As<IStagingPromotionNotificationService>();
             builder.RegisterInstance(Mock.Of<ILogger<StagingGroupPromotionService>>()).As<ILogger<StagingGroupPromotionService>>();
             builder.RegisterInstance(symbolService.Object).As<ICoreSymbolPackageService>();
             builder.RegisterInstance(stagingBlobs.Object).As<IStagingBlobService>();
