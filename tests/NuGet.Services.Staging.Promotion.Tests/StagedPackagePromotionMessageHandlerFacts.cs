@@ -100,6 +100,22 @@ namespace NuGet.Services.Staging.Promotion.Tests
             context.StagedPackageRepository.Verify(
                 x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()),
                 Times.Once);
+            context.Notifications.Verify(service => service.SendAsync(context.StagedPackageIdentity.Owner,
+                It.Is<StagingPromotionArtifact>(artifact => artifact.Succeeded && !artifact.Symbols)), Times.Once);
+        }
+
+        [Fact]
+        public async Task NotificationFailureDoesNotCompensateCommittedPublication()
+        {
+            var context = new TestContext();
+            context.Notifications.Setup(service => service.SendAsync(It.IsAny<User>(), It.IsAny<StagingPromotionArtifact>()))
+                .ThrowsAsync(new InvalidOperationException("Email transport unavailable"));
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => context.Target.HandleAsync(context.Message));
+
+            Assert.Equal(PackageStatus.Available, context.Package.PackageStatusKey);
+            Assert.Empty(context.StagedPackages);
+            context.PackageFileStorageService.Verify(service => service.DeleteFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
         [Theory]
@@ -147,6 +163,10 @@ namespace NuGet.Services.Staging.Promotion.Tests
             }
 
             Assert.Equal(StagedPackageStatus.Promoting, symbols.Status);
+            context.Notifications.Verify(service => service.SendAsync(context.StagedPackageIdentity.Owner,
+                It.Is<StagingPromotionArtifact>(artifact => artifact.Succeeded && !artifact.Symbols)), Times.Once);
+            context.Notifications.Verify(service => service.SendAsync(It.IsAny<User>(),
+                It.Is<StagingPromotionArtifact>(artifact => artifact.Symbols)), Times.Never);
             Assert.NotNull(symbols.PromotionMessageSentDate);
             context.MessageEnqueuer.Verify(enqueuer => enqueuer.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Once);
         }
@@ -358,6 +378,10 @@ namespace NuGet.Services.Staging.Promotion.Tests
             context.MessageEnqueuer.Verify(enqueuer => enqueuer.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
             context.VerifyNotPublished();
             context.StagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
+            context.Notifications.Verify(service => service.SendAsync(context.StagedPackageIdentity.Owner,
+                It.Is<StagingPromotionArtifact>(artifact => !artifact.Symbols && !artifact.Succeeded)), Times.Once);
+            context.Notifications.Verify(service => service.SendAsync(context.StagedPackageIdentity.Owner,
+                It.Is<StagingPromotionArtifact>(artifact => artifact.Symbols && !artifact.Succeeded)), Times.Once);
         }
 
         [Fact]
@@ -653,6 +677,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
                     LicenseFileService.Object,
                     ReadmeFileService.Object,
                     BlobCleanup.Object,
+                    Notifications.Object,
                     Mock.Of<ILogger<StagedPackagePromotionMessageHandler>>());
             }
 
@@ -673,6 +698,8 @@ namespace NuGet.Services.Staging.Promotion.Tests
             }
 
             public Mock<IStagingBlobCleanupService> BlobCleanup { get; } = new Mock<IStagingBlobCleanupService>();
+
+            public Mock<IStagingPromotionNotificationService> Notifications { get; } = new Mock<IStagingPromotionNotificationService>();
 
             public void AddToGroup()
             {

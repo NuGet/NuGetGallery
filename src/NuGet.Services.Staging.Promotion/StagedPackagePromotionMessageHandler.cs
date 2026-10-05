@@ -30,6 +30,7 @@ namespace NuGet.Services.Staging.Promotion
         private readonly ICoreLicenseFileService _licenseFileService;
         private readonly ICoreReadmeFileService _readmeFileService;
         private readonly IStagingBlobCleanupService _blobCleanup;
+        private readonly IStagingPromotionNotificationService _notifications;
         private readonly ILogger<StagedPackagePromotionMessageHandler> _logger;
 
         /// <summary>
@@ -46,6 +47,7 @@ namespace NuGet.Services.Staging.Promotion
         /// <param name="licenseFileService">The public embedded-license file service.</param>
         /// <param name="readmeFileService">The public embedded-readme file service.</param>
         /// <param name="blobCleanup">The transactional private-file cleanup queue.</param>
+        /// <param name="notifications">The per-artifact promotion notification service.</param>
         /// <param name="logger">The logger.</param>
         public StagedPackagePromotionMessageHandler(
             IEntityRepository<StagedPackage> stagedPackageRepository,
@@ -59,6 +61,7 @@ namespace NuGet.Services.Staging.Promotion
             ICoreLicenseFileService licenseFileService,
             ICoreReadmeFileService readmeFileService,
             IStagingBlobCleanupService blobCleanup,
+            IStagingPromotionNotificationService notifications,
             ILogger<StagedPackagePromotionMessageHandler> logger)
         {
             _stagedPackageRepository = stagedPackageRepository ?? throw new ArgumentNullException(nameof(stagedPackageRepository));
@@ -72,6 +75,7 @@ namespace NuGet.Services.Staging.Promotion
             _licenseFileService = licenseFileService ?? throw new ArgumentNullException(nameof(licenseFileService));
             _readmeFileService = readmeFileService ?? throw new ArgumentNullException(nameof(readmeFileService));
             _blobCleanup = blobCleanup ?? throw new ArgumentNullException(nameof(blobCleanup));
+            _notifications = notifications ?? throw new ArgumentNullException(nameof(notifications));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -133,6 +137,9 @@ namespace NuGet.Services.Staging.Promotion
                     {
                         _logger.LogWarning("Staged package has invalid promotion state. Marking promotion as failed.");
 
+                        var owner = stagedPackage.StagedPackageIdentity.Owner;
+                        var artifact = new StagingPromotionArtifact(package, false, false);
+                        var symbols = FindAcceptedSymbols(stagedPackage);
                         await MarkPromotionFailedAsync(stagedPackage);
 
                         var failedGroupKey = stagedPackage.StagedPackageIdentity.StagingGroupKey;
@@ -141,10 +148,18 @@ namespace NuGet.Services.Staging.Promotion
                             await _stagingGroupPromotionService.TryFinalizeAsync(failedGroupKey.Value, message.PromotionId);
                         }
 
+                        await _notifications.SendAsync(owner, artifact);
+                        if (symbols != null)
+                        {
+                            await _notifications.SendAsync(owner, new StagingPromotionArtifact(package, true, false));
+                        }
+
                         return true;
                     }
 
                     var stagingGroupKey = stagedPackage.StagedPackageIdentity.StagingGroupKey;
+                    var stagingOwner = stagedPackage.StagedPackageIdentity.Owner;
+                    var publishedArtifact = new StagingPromotionArtifact(package, false, true);
                     var streamMetadata = await GetStreamMetadataAsync(stagedPackage);
                     var packageFileName = await CopyPackageAsync(package, stagedPackage);
 
@@ -176,6 +191,7 @@ namespace NuGet.Services.Staging.Promotion
                         await SendSymbolFollowUpAndCleanUpAsync(stagedPackage);
                     }
 
+                    await _notifications.SendAsync(stagingOwner, publishedArtifact);
                     _logger.LogInformation("Completed staged package promotion.");
                     return true;
                 }

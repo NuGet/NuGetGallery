@@ -21,17 +21,20 @@ namespace NuGet.Services.Staging.Promotion
         private readonly IEntityRepository<StagedSymbolPackage> _attempts;
         private readonly IStagingGroupPromotionService _groups;
         private readonly IPackageValidationEnqueuer _symbolsOrchestrator;
+        private readonly IStagingPromotionNotificationService _notifications;
         private readonly ILogger<StagedSymbolPackagePromotionMessageHandler> _logger;
 
         public StagedSymbolPackagePromotionMessageHandler(
             IEntityRepository<StagedSymbolPackage> attempts,
             IStagingGroupPromotionService groups,
             IPackageValidationEnqueuer symbolsOrchestrator,
+            IStagingPromotionNotificationService notifications,
             ILogger<StagedSymbolPackagePromotionMessageHandler> logger)
         {
             _attempts = attempts ?? throw new ArgumentNullException(nameof(attempts));
             _groups = groups ?? throw new ArgumentNullException(nameof(groups));
             _symbolsOrchestrator = symbolsOrchestrator ?? throw new ArgumentNullException(nameof(symbolsOrchestrator));
+            _notifications = notifications ?? throw new ArgumentNullException(nameof(notifications));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -49,6 +52,7 @@ namespace NuGet.Services.Staging.Promotion
 
             var attempt = _attempts.GetAll().Include(candidate => candidate.SymbolPackage)
                 .Include(candidate => candidate.StagedPackageIdentity.Package.PackageRegistration.Owners)
+                .Include(candidate => candidate.StagedPackageIdentity.Owner)
                 .Include(candidate => candidate.StagedPackageIdentity.StagingGroup)
                 .SingleOrDefault(candidate => candidate.Key == message.TargetKey);
             if (attempt == null
@@ -95,6 +99,7 @@ namespace NuGet.Services.Staging.Promotion
                 _logger.LogWarning("Symbol promotion {PromotionId} is no longer eligible.", message.PromotionId);
                 attempt.Status = StagedPackageStatus.PromotionFailed;
                 await _attempts.CommitChangesAsync();
+                await _notifications.SendAsync(identity.Owner, new StagingPromotionArtifact(package, true, false));
                 return true;
             }
 

@@ -57,6 +57,11 @@ namespace NuGet.Services.Validation.Orchestrator
         public string EmailSettingsUrl { get; set; }
 
         /// <summary>
+        /// Required Manage Packages URL for terminal staging promotion summaries.
+        /// </summary>
+        public string ManagePackagesUrl { get; set; }
+
+        /// <summary>
         /// Url for the announcements github page
         /// </summary>
         public string AnnouncementsUrl { get; set; }
