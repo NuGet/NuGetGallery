@@ -111,6 +111,7 @@ namespace NuGetGallery
             ConfigureCreateGroupRequest(target, currentUser, owner);
             var request = Mock.Get(target.Request);
             request.SetupGet(x => x.ContentType).Returns("multipart/form-data; boundary=test");
+            request.SetupGet(x => x.Form).Returns(groupId == null ? new NameValueCollection() : new NameValueCollection { { "groupId", groupId } });
             var files = new Mock<HttpFileCollectionBase>();
             files.SetupGet(x => x.Count).Returns(1);
             files.Setup(x => x.GetKey(0)).Returns("package");
@@ -162,22 +163,101 @@ namespace NuGetGallery
                 Times.Never);
         }
 
-        [Fact]
-        public async Task RejectsEmptyGroupIdBeforeUpload()
+        [Theory]
+        [InlineData(false, "")]
+        [InlineData(true, " ")]
+        public async Task RejectsEmptyGroupIdBeforeUpload(bool symbols, string groupId)
         {
             var target = GetController<StagingApiController>();
             ConfigureCreateGroupRequest(target, new User("current") { Key = 1 }, owner: null);
             var request = Mock.Get(target.Request);
             request.SetupGet(x => x.ContentType).Returns("multipart/form-data; boundary=test");
-            request.SetupGet(x => x.Form).Returns(new NameValueCollection { { "groupId", "" } });
+            request.SetupGet(x => x.Form).Returns(new NameValueCollection { { "groupId", groupId } });
             var files = new Mock<HttpFileCollectionBase>();
             files.SetupGet(x => x.Count).Returns(1);
             files.Setup(x => x.GetKey(0)).Returns("package");
             request.SetupGet(x => x.Files).Returns(files.Object);
 
-            var result = await target.StagePackage(new StagePackageRequest { Package = Mock.Of<HttpPostedFileBase>() });
+            var file = Mock.Of<HttpPostedFileBase>();
+            var result = symbols
+                ? await target.StageSymbolPackage(new StageSymbolPackageRequest { Package = file })
+                : await target.StagePackage(new StagePackageRequest { Package = file });
 
             AssertError(target, result, HttpStatusCode.BadRequest, "InvalidRequest", "groupid");
+            VerifyNoUpload();
+        }
+
+        [Theory]
+        [InlineData(false, "extra")]
+        [InlineData(true, "extra")]
+        [InlineData(true, "listed")]
+        public async Task RejectsUnknownUploadFieldWithoutUploading(bool symbols, string field)
+        {
+            var target = GetController<StagingApiController>();
+            var file = ConfigureUploadRequest(target, new NameValueCollection { { field, "false" } });
+
+            var result = symbols
+                ? await target.StageSymbolPackage(new StageSymbolPackageRequest { Package = file })
+                : await target.StagePackage(new StagePackageRequest { Package = file });
+
+            AssertError(target, result, HttpStatusCode.BadRequest, "InvalidRequest", field);
+            VerifyNoUpload();
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData(" true ")]
+        public async Task RejectsMalformedListedIntentWithoutUploading(string listed)
+        {
+            var target = GetController<StagingApiController>();
+            var file = ConfigureUploadRequest(target, new NameValueCollection { { "listed", listed } });
+
+            var result = await target.StagePackage(new StagePackageRequest { Package = file });
+
+            AssertError(target, result, HttpStatusCode.BadRequest, "InvalidRequest", "listed");
+            VerifyNoUpload();
+        }
+
+        [Theory]
+        [InlineData(false, HttpStatusCode.Conflict)]
+        [InlineData(true, HttpStatusCode.Forbidden)]
+        public async Task PreservesUploadServiceFailureInErrorEnvelope(bool symbols, HttpStatusCode statusCode)
+        {
+            var target = GetController<StagingApiController>();
+            var file = ConfigureUploadRequest(target, new NameValueCollection());
+            const string message = "The upload was rejected by the existing policy.";
+            GetMock<IPackageStagingUploadService>()
+                .Setup(x => x.StagePackageAsync(It.IsAny<User>(), It.IsAny<IReadOnlyCollection<Scope>>(), target.HttpContext, file.InputStream, null, null))
+                .ReturnsAsync(PackageStagingResult.Error(statusCode, message));
+            GetMock<ISymbolPackageStagingUploadService>()
+                .Setup(x => x.StageSymbolPackageAsync(It.IsAny<User>(), It.IsAny<IReadOnlyCollection<Scope>>(), target.HttpContext, file.InputStream, null))
+                .ReturnsAsync(PackageStagingResult.Error(statusCode, message));
+
+            var result = symbols
+                ? await target.StageSymbolPackage(new StageSymbolPackageRequest { Package = file })
+                : await target.StagePackage(new StagePackageRequest { Package = file });
+
+            AssertError(target, result, statusCode, symbols ? "SymbolPackageUploadFailed" : "PackageUploadFailed");
+            Assert.Equal(message, (string)JObject.FromObject(Assert.IsType<JsonResult>(result).Data)["error"]["message"]);
+            Mock.Get(target.Response).Verify(x => x.AppendHeader("Location", It.IsAny<string>()), Times.Never);
+        }
+
+        [Theory]
+        [InlineData(false, true)]
+        [InlineData(true, false)]
+        public async Task ReturnsStructuredUploadTransportError(bool symbols, bool tooLarge)
+        {
+            var target = GetController<StagingApiController>();
+            var file = ConfigureUploadRequest(target, new NameValueCollection());
+            Mock.Get(file).SetupGet(x => x.InputStream).Throws(new HttpException(tooLarge ? "Maximum request length exceeded." : "The connection was closed."));
+            Mock.Get(target.Response).SetupGet(x => x.IsClientConnected).Returns(tooLarge);
+
+            var result = symbols
+                ? await target.StageSymbolPackage(new StageSymbolPackageRequest { Package = file })
+                : await target.StagePackage(new StagePackageRequest { Package = file });
+
+            AssertError(target, result, tooLarge ? HttpStatusCode.RequestEntityTooLarge : HttpStatusCode.BadRequest, tooLarge ? "PackageFileTooLarge" : "PackageUploadCancelled");
+            VerifyNoUpload();
         }
 
         [Theory]
@@ -1175,6 +1255,29 @@ namespace NuGetGallery
             var result = await target.DeleteStagingGroup(group.Id);
 
             AssertError(target, result, HttpStatusCode.Conflict, "GroupPromotionInProgress");
+        }
+
+        private HttpPostedFileBase ConfigureUploadRequest(StagingApiController target, NameValueCollection form)
+        {
+            ConfigureCreateGroupRequest(target, new User("current") { Key = 1 }, owner: null);
+            var request = Mock.Get(target.Request);
+            request.SetupGet(x => x.ContentType).Returns("multipart/form-data; boundary=test");
+            request.SetupGet(x => x.Form).Returns(form);
+            var files = new Mock<HttpFileCollectionBase>();
+            files.SetupGet(x => x.Count).Returns(1);
+            files.Setup(x => x.GetKey(0)).Returns("package");
+            request.SetupGet(x => x.Files).Returns(files.Object);
+            var file = new Mock<HttpPostedFileBase>();
+            file.SetupGet(x => x.InputStream).Returns(Stream.Null);
+            return file.Object;
+        }
+
+        private void VerifyNoUpload()
+        {
+            GetMock<IPackageStagingUploadService>().Verify(
+                x => x.StagePackageAsync(It.IsAny<User>(), It.IsAny<IReadOnlyCollection<Scope>>(), It.IsAny<HttpContextBase>(), It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<bool?>()), Times.Never);
+            GetMock<ISymbolPackageStagingUploadService>().Verify(
+                x => x.StageSymbolPackageAsync(It.IsAny<User>(), It.IsAny<IReadOnlyCollection<Scope>>(), It.IsAny<HttpContextBase>(), It.IsAny<Stream>(), It.IsAny<string>()), Times.Never);
         }
 
         private void ConfigureCreateGroupRequest(StagingApiController target, User currentUser, User owner)
