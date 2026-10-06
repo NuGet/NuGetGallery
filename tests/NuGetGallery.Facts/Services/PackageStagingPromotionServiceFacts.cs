@@ -672,7 +672,9 @@ namespace NuGetGallery
             if (grouped)
             {
                 Assert.Equal(StagingGroupPromotionResult.NotReady, await target.PromoteGroupAsync(identity.Owner, group));
-                Assert.False(StagingGroupResponse.FromGroup(group, packages, deadline, "management", new[] { symbols }).CanPromote);
+                var response = StagingGroupResponse.FromGroup(group, packages, deadline, "management", new[] { symbols });
+                Assert.False(response.CanPromote);
+                Assert.Equal("RegistrationOwnershipLost", Assert.Single(response.Blockers).Code);
                 Assert.Null(group.ActivePromotionId);
                 Assert.Equal(StagedPackageStatus.Ready, symbols.Status);
             }
@@ -694,7 +696,9 @@ namespace NuGetGallery
             identity.Package.PackageRegistration.Owners.Add(identity.Owner);
             if (grouped)
             {
-                Assert.True(StagingGroupResponse.FromGroup(group, packages, deadline, "management", new[] { symbols }).CanPromote);
+                var response = StagingGroupResponse.FromGroup(group, packages, deadline, "management", new[] { symbols });
+                Assert.True(response.CanPromote);
+                Assert.Empty(response.Blockers);
                 Assert.Equal(StagingGroupPromotionResult.Accepted, await target.PromoteGroupAsync(identity.Owner, group));
                 Assert.Equal(deadline, group.ExpirationDate);
             }

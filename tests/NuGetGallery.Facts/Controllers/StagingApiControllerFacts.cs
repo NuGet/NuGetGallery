@@ -428,6 +428,46 @@ namespace NuGetGallery
             Assert.Equal((string)body["group"]["expires"], (string)body["items"][0]["expires"]);
         }
 
+        [Theory]
+        [InlineData("RegistrationOwnershipLost")]
+        [InlineData("GroupPromotionInProgress")]
+        [InlineData("StagingExpired")]
+        public void ReportsOffPageOwnershipLossWithExistingGroupBlockerPrecedence(string expectedBlocker)
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var owner = new User("example-org") { Key = 2 };
+            var group = CreateStagingGroup(10, "release", "Release", owner, DateTime.UtcNow);
+            if (expectedBlocker == "GroupPromotionInProgress")
+            {
+                group.ActivePromotionId = Guid.NewGuid();
+            }
+            else if (expectedBlocker == "StagingExpired")
+            {
+                group.ExpirationDate = DateTime.UtcNow.AddMinutes(-1);
+            }
+
+            var package = CreateStagedPackage(owner);
+            package.Status = StagedPackageStatus.Ready;
+            package.StagedPackageIdentity.StagingGroupKey = group.Key;
+            package.StagedPackageIdentity.StagingGroup = group;
+            var target = GetController<StagingApiController>();
+            ConfigureCreateGroupRequest(target, currentUser, owner);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagingGroupPackagePage(owner, "release", 1, 1))
+                .Returns(new StagingGroupPackagePage(group, new[] { package }, totalCount: 2, allPackagesReady: false, hasRegistrationOwnershipLoss: true));
+
+            var body = ParseJsonContent(target.GetStagingGroup("release", page: 1, pageSize: 1));
+
+            Assert.False((bool)body["group"]["canPromote"]);
+            Assert.Equal(expectedBlocker, (string)Assert.Single(body["group"]["blockers"])["code"]);
+            Assert.Single(body["items"]);
+            Assert.DoesNotContain(body["items"][0]["blockers"], blocker => (string)blocker["code"] == "RegistrationOwnershipLost");
+            if (expectedBlocker == "RegistrationOwnershipLost")
+            {
+                Assert.Contains("Restore registration ownership", (string)body["group"]["blockers"][0]["message"]);
+            }
+        }
+
         [Fact]
         public void ReportsActiveGroupProgress()
         {

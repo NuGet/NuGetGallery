@@ -625,24 +625,21 @@ namespace NuGetGallery
                 .Where(symbol => symbol.StagedPackageIdentity.StagingGroupKey == group.Key);
             var symbolCount = symbolsQuery.Count();
             var totalCount = packagesQuery.Count() + symbolCount;
-            var allPackagesReady = !packagesQuery.Any(package => package.Status != StagedPackageStatus.Ready);
-            if (allPackagesReady)
-            {
-                allPackagesReady = !packagesQuery.Any(package => !package.StagedPackageIdentity.Package.PackageRegistration.Owners.Any(owner => owner.Key == package.StagedPackageIdentity.OwnerKey));
-            }
+            var hasRegistrationOwnershipLoss = packagesQuery.Any(package => !package.StagedPackageIdentity.Package.PackageRegistration.Owners.Any(owner => owner.Key == package.StagedPackageIdentity.OwnerKey))
+                || symbolsQuery.Any(symbol => !symbol.StagedPackageIdentity.Package.PackageRegistration.Owners.Any(owner => owner.Key == symbol.StagedPackageIdentity.OwnerKey));
+            var allPackagesReady = !hasRegistrationOwnershipLoss && !packagesQuery.Any(package => package.Status != StagedPackageStatus.Ready);
 
             if (allPackagesReady)
             {
                 var symbolReadiness = symbolsQuery.Select(symbol => new
                 {
                     IsReady = symbol.Status == StagedPackageStatus.Ready && symbol.SymbolPackage.StatusKey == PackageStatus.Staged,
-                    OwnerCanPublish = symbol.StagedPackageIdentity.Package.PackageRegistration.Owners.Any(owner => owner.Key == symbol.StagedPackageIdentity.OwnerKey),
                     ParentIsAvailable = symbol.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Available,
                     ParentIsReady = symbol.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Staged
                         && symbol.StagedPackageIdentity.CurrentStagedPackageKey.HasValue
                         && symbol.StagedPackageIdentity.CurrentStagedPackage.Status == StagedPackageStatus.Ready,
                 });
-                allPackagesReady = !symbolReadiness.Any(symbol => !symbol.IsReady || !symbol.OwnerCanPublish || (!symbol.ParentIsAvailable && !symbol.ParentIsReady));
+                allPackagesReady = !symbolReadiness.Any(symbol => !symbol.IsReady || (!symbol.ParentIsAvailable && !symbol.ParentIsReady));
             }
 
             var skip = ((long)page - 1) * pageSize;
@@ -665,7 +662,7 @@ namespace NuGetGallery
                 symbols = symbolsQuery.Where(symbol => symbolKeys.Contains(symbol.Key)).OrderByDescending(symbol => symbol.UploadedDate).ThenByDescending(symbol => symbol.Key).ToList();
             }
 
-            return new StagingGroupPackagePage(group, packages, totalCount, allPackagesReady, symbols, symbolCount);
+            return new StagingGroupPackagePage(group, packages, totalCount, allPackagesReady, symbols, symbolCount, hasRegistrationOwnershipLoss);
         }
 
         public IReadOnlyList<PackageStagingStatus> GetPackages(User currentUser, IEnumerable<Scope> scopes)

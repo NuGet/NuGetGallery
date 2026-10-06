@@ -1269,12 +1269,14 @@ namespace NuGetGallery
             [Theory]
             [InlineData(false)]
             [InlineData(true)]
-            public void GroupReadinessIncludesOwnershipOfArtifactsOutsideTheCurrentPage(bool symbolOnly)
+            [InlineData(false, false)]
+            [InlineData(true, false)]
+            public void GroupReadinessIncludesOwnershipOfArtifactsOutsideTheCurrentPage(bool symbolOnly, bool visibleReady = true)
             {
                 var owner = new User("owner") { Key = 1 };
                 var group = CreateStagingGroup(10, "release", "Release", owner);
                 var visible = CreateStagedPackage(100, "Owned.Package", "1.0.0", owner);
-                visible.Status = StagedPackageStatus.Ready;
+                visible.Status = visibleReady ? StagedPackageStatus.Ready : StagedPackageStatus.Validating;
                 visible.UploadedDate = DateTime.UtcNow;
                 visible.StagedPackageIdentity.StagingGroup = group;
                 visible.StagedPackageIdentity.StagingGroupKey = group.Key;
@@ -1305,8 +1307,10 @@ namespace NuGetGallery
                 var first = target.GetStagingGroupPackagePage(owner, group.Id, 1, 1);
                 Assert.Same(visible, Assert.Single(first.Items));
                 Assert.False(first.AllPackagesReady);
-                var response = StagingGroupResponse.FromGroup(group, first.TotalCount, first.AllPackagesReady, group.ExpirationDate, "management", first.SymbolCount);
+                Assert.True(first.HasRegistrationOwnershipLoss);
+                var response = StagingGroupResponse.FromGroup(group, first.TotalCount, first.AllPackagesReady, group.ExpirationDate, "management", first.SymbolCount, first.HasRegistrationOwnershipLoss);
                 Assert.False(response.CanPromote);
+                Assert.Equal("RegistrationOwnershipLost", Assert.Single(response.Blockers).Code);
                 Assert.Equal(2, response.ItemCount);
                 var second = target.GetStagingGroupPackagePage(owner, group.Id, 2, 1);
                 if (symbolOnly)
@@ -1319,7 +1323,19 @@ namespace NuGetGallery
                 }
 
                 identity.Package.PackageRegistration.Owners.Add(owner);
-                Assert.True(target.GetStagingGroupPackagePage(owner, group.Id, 1, 1).AllPackagesReady);
+                var restored = target.GetStagingGroupPackagePage(owner, group.Id, 1, 1);
+                Assert.False(restored.HasRegistrationOwnershipLoss);
+                Assert.Equal(visibleReady, restored.AllPackagesReady);
+                var restoredResponse = StagingGroupResponse.FromGroup(group, restored.TotalCount, restored.AllPackagesReady, group.ExpirationDate, "management", restored.SymbolCount, restored.HasRegistrationOwnershipLoss);
+                Assert.Equal(visibleReady, restoredResponse.CanPromote);
+                if (visibleReady)
+                {
+                    Assert.Empty(restoredResponse.Blockers);
+                }
+                else
+                {
+                    Assert.Equal("GroupNotReady", Assert.Single(restoredResponse.Blockers).Code);
+                }
             }
 
             [Theory]
