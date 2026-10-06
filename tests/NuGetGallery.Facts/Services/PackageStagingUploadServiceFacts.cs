@@ -225,6 +225,7 @@ namespace NuGetGallery
 
                     Assert.True(result.Success, result.ErrorMessage);
                     Assert.Equal(HttpStatusCode.Created, result.StatusCode);
+                    Assert.Same(stagedPackage, result.StagedPackage);
                 }
 
                 Assert.Equal(PackageStatus.Staged, package.PackageStatusKey);
@@ -537,6 +538,10 @@ namespace NuGetGallery
                 Assert.Equal(assignGroup && expectedStatusCode == HttpStatusCode.OK ? (createGroup ? createdGroup.Key : requestedGroup.Key) : originalGroup.Key, stagedPackage.StagedPackageIdentity.StagingGroupKey);
                 Assert.Equal(!assignGroup || expectedStatusCode == HttpStatusCode.Conflict, package.Listed);
                 var createsSuccessor = expectedStatusCode == HttpStatusCode.OK && !isActiveNoOp;
+                if (result.Success)
+                {
+                    Assert.Same(createsSuccessor ? successor : stagedPackage, result.StagedPackage);
+                }
                 messages.Verify(service => service.SendMessageAsync(It.IsAny<StagedPackageUploadedMessage>(), It.IsAny<bool>(), It.IsAny<bool>()),
                     createsSuccessor ? Times.Once() : Times.Never());
                 messages.Verify(service => service.SendMessageAsync(It.IsAny<StagedPackageValidationSucceededMessage>(), It.IsAny<bool>(), It.IsAny<bool>()),

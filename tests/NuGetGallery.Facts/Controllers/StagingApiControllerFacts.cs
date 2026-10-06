@@ -32,11 +32,21 @@ namespace NuGetGallery
             Assert.NotEmpty(typeof(StagingApiController).GetCustomAttributes(typeof(ApiScopeRequiredAttribute), inherit: true));
         }
 
-        [Fact]
-        public async Task StagesMultipartPackageWithGroupAndListingIntent()
+        [Theory]
+        [InlineData(HttpStatusCode.Created)]
+        [InlineData(HttpStatusCode.OK)]
+        public async Task StagesMultipartPackageWithGroupAndListingIntent(HttpStatusCode statusCode)
         {
             var currentUser = new User("current") { Key = 1 };
             var owner = new User("example-org") { Key = 2 };
+            var package = CreateStagedPackage(owner);
+            package.UploadedDate = DateTime.UtcNow;
+            package.ExpirationDate = DateTime.UtcNow.AddDays(30);
+            package.StagedPackageIdentity.Package.Listed = false;
+            var group = CreateStagingGroup(10, "release", "Release", owner, package.UploadedDate);
+            package.StagedPackageIdentity.StagingGroupKey = group.Key;
+            package.StagedPackageIdentity.StagingGroup = group;
+            var warnings = new IValidationMessage[] { new PlainTextOnlyValidationMessage("Package warning"), new PlainTextOnlyValidationMessage(" ") };
             var target = GetController<StagingApiController>();
             ConfigureCreateGroupRequest(target, currentUser, owner);
             var request = Mock.Get(target.Request);
@@ -51,24 +61,54 @@ namespace NuGetGallery
             file.SetupGet(x => x.InputStream).Returns(stream);
             GetMock<IPackageStagingUploadService>()
                 .Setup(x => x.StagePackageAsync(currentUser, It.IsAny<IReadOnlyCollection<Scope>>(), target.HttpContext, stream, "release", false))
-                .ReturnsAsync(PackageStagingResult.Ok());
+                .ReturnsAsync(statusCode == HttpStatusCode.Created
+                    ? PackageStagingResult.Created(warnings, stagedPackage: package)
+                    : PackageStagingResult.Ok(warnings, stagedPackage: package));
 
             var result = await target.StagePackage(new StagePackageRequest { Package = file.Object, GroupId = "release", Listed = false });
 
-            Assert.Equal((int)HttpStatusCode.OK, Assert.IsType<HttpStatusCodeWithServerWarningResult>(result).StatusCode);
+            Assert.Equal((int)statusCode, target.Response.StatusCode);
+            var expected = StagingArtifactResponse.FromPackage(
+                package, StagingExpirationPolicy.GetDeadline(package), target.Url.ManageStagingGroup(owner.Username, group.Id, relativeUrl: false));
+            var content = Assert.IsType<ContentResult>(result);
+            Assert.Equal(JsonConvert.SerializeObject(expected), content.Content);
+            Assert.Equal("application/json", content.ContentType);
+            Mock.Get(target.Response).Verify(
+                x => x.AppendHeader("Location", TestUtility.GallerySiteRootHttps + "api/v3/staging/package/PackageA/1.0.0/status"),
+                statusCode == HttpStatusCode.Created ? Times.Once() : Times.Never());
+            Mock.Get(target.Response).Verify(x => x.AppendHeader("Location", It.IsAny<string>()), statusCode == HttpStatusCode.Created ? Times.Once() : Times.Never());
+            Mock.Get(target.Response).Verify(x => x.AppendHeader(GalleryConstants.WarningHeaderName, "Package warning"), Times.Once);
+            Mock.Get(target.Response).Verify(x => x.AppendHeader(GalleryConstants.WarningHeaderName, It.IsAny<string>()), Times.Once);
             GetMock<IPackageStagingUploadService>().Verify(
                 x => x.StagePackageAsync(currentUser, It.IsAny<IReadOnlyCollection<Scope>>(), target.HttpContext, stream, "release", false),
                 Times.Once);
         }
 
         [Theory]
-        [InlineData(null)]
-        [InlineData("release")]
-        public async Task StagesMultipartSymbolPackage(string groupId)
+        [InlineData(null, HttpStatusCode.Created)]
+        [InlineData("release", HttpStatusCode.Created)]
+        [InlineData(null, HttpStatusCode.OK)]
+        public async Task StagesMultipartSymbolPackage(string groupId, HttpStatusCode statusCode)
         {
             var currentUser = new User("current") { Key = 1 };
+            var owner = new User("owner") { Key = 2 };
+            var package = CreateStagedPackage(owner);
+            package.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Staged;
+            if (groupId != null)
+            {
+                var group = CreateStagingGroup(10, groupId, "Release", owner, DateTime.UtcNow);
+                package.StagedPackageIdentity.StagingGroupKey = group.Key;
+                package.StagedPackageIdentity.StagingGroup = group;
+            }
+            var symbol = new StagedSymbolPackage
+            {
+                StagedPackageIdentity = package.StagedPackageIdentity,
+                SymbolPackage = new SymbolPackage { StatusKey = PackageStatus.Staged },
+                UploadedDate = DateTime.UtcNow,
+                ExpirationDate = DateTime.UtcNow.AddDays(30),
+            };
             var target = GetController<StagingApiController>();
-            ConfigureCreateGroupRequest(target, currentUser, owner: null);
+            ConfigureCreateGroupRequest(target, currentUser, owner);
             var request = Mock.Get(target.Request);
             request.SetupGet(x => x.ContentType).Returns("multipart/form-data; boundary=test");
             var files = new Mock<HttpFileCollectionBase>();
@@ -80,11 +120,25 @@ namespace NuGetGallery
             file.SetupGet(x => x.InputStream).Returns(stream);
             GetMock<ISymbolPackageStagingUploadService>()
                 .Setup(x => x.StageSymbolPackageAsync(currentUser, It.IsAny<IReadOnlyCollection<Scope>>(), target.HttpContext, stream, groupId))
-                .ReturnsAsync(PackageStagingResult.Created(warnings: null));
+                .ReturnsAsync(statusCode == HttpStatusCode.Created
+                    ? PackageStagingResult.Created(warnings: null, stagedSymbolPackage: symbol)
+                    : PackageStagingResult.Ok(stagedSymbolPackage: symbol));
 
             var result = await target.StageSymbolPackage(new StageSymbolPackageRequest { Package = file.Object, GroupId = groupId });
 
-            Assert.Equal((int)HttpStatusCode.Created, Assert.IsType<HttpStatusCodeWithServerWarningResult>(result).StatusCode);
+            Assert.Equal((int)statusCode, target.Response.StatusCode);
+            var managementUrl = groupId == null
+                ? target.Url.ManageUngroupedStaging(owner.Username, relativeUrl: false)
+                : target.Url.ManageStagingGroup(owner.Username, groupId, relativeUrl: false);
+            var expected = StagingArtifactResponse.FromSymbolPackage(symbol, StagingExpirationPolicy.GetDeadline(symbol), managementUrl);
+            var content = Assert.IsType<ContentResult>(result);
+            Assert.Equal(JsonConvert.SerializeObject(expected), content.Content);
+            Assert.Equal("application/json", content.ContentType);
+            Mock.Get(target.Response).Verify(
+                x => x.AppendHeader("Location", TestUtility.GallerySiteRootHttps + "api/v3/staging/symbols/PackageA/1.0.0/status"),
+                statusCode == HttpStatusCode.Created ? Times.Once() : Times.Never());
+            Mock.Get(target.Response).Verify(x => x.AppendHeader("Location", It.IsAny<string>()), statusCode == HttpStatusCode.Created ? Times.Once() : Times.Never());
+            Mock.Get(target.Response).Verify(x => x.AppendHeader(GalleryConstants.WarningHeaderName, It.IsAny<string>()), Times.Never);
             GetMock<ISymbolPackageStagingUploadService>().Verify(
                 x => x.StageSymbolPackageAsync(currentUser, It.IsAny<IReadOnlyCollection<Scope>>(), target.HttpContext, stream, groupId),
                 Times.Once);

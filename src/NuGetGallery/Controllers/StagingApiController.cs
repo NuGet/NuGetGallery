@@ -95,6 +95,11 @@ namespace NuGetGallery
             }
         }
 
+        /// <summary>
+        /// Creates or replaces a staged package and returns its artifact resource.
+        /// </summary>
+        /// <param name="request">The package file, optional group, and listed intent.</param>
+        /// <returns>The accepted artifact with upload warnings and a status Location on creation, or an upload error.</returns>
         [HttpPut]
         public virtual async Task<ActionResult> StagePackage(StagePackageRequest request)
         {
@@ -129,7 +134,10 @@ namespace NuGetGallery
                     return new HttpStatusCodeWithBodyResult(result.StatusCode, result.ErrorMessage);
                 }
 
-                return new HttpStatusCodeWithServerWarningResult(result.StatusCode, result.Warnings);
+                var package = result.StagedPackage;
+                var response = StagingArtifactResponse.FromPackage(
+                    package, StagingExpirationPolicy.GetDeadline(package), GetManagementUrl(package.StagedPackageIdentity));
+                return UploadResponse(result, response, RouteName.GetStagedPackageStatus);
             }
             catch (HttpException exception) when (exception.IsMaxRequestLengthExceeded())
             {
@@ -142,6 +150,11 @@ namespace NuGetGallery
             }
         }
 
+        /// <summary>
+        /// Creates or replaces staged symbols and returns their artifact resource.
+        /// </summary>
+        /// <param name="request">The symbol package file and optional group.</param>
+        /// <returns>The accepted artifact with upload warnings and a status Location on creation, or an upload error.</returns>
         [HttpPut]
         public virtual async Task<ActionResult> StageSymbolPackage(StageSymbolPackageRequest request)
         {
@@ -171,7 +184,10 @@ namespace NuGetGallery
                     return new HttpStatusCodeWithBodyResult(result.StatusCode, result.ErrorMessage);
                 }
 
-                return new HttpStatusCodeWithServerWarningResult(result.StatusCode, result.Warnings);
+                var symbolPackage = result.StagedSymbolPackage;
+                var response = StagingArtifactResponse.FromSymbolPackage(
+                    symbolPackage, StagingExpirationPolicy.GetDeadline(symbolPackage), GetManagementUrl(symbolPackage.StagedPackageIdentity));
+                return UploadResponse(result, response, RouteName.GetStagedSymbolPackageStatus);
             }
             catch (HttpException exception) when (exception.IsMaxRequestLengthExceeded())
             {
@@ -348,6 +364,28 @@ namespace NuGetGallery
                 symbol, StagingExpirationPolicy.GetDeadline(symbol), GetManagementUrl(symbol.StagedPackageIdentity))).ToList();
             var quota = _stagingQuotaService.GetUsage(stagingOwner);
             return JsonContent(new StagingArtifactPagedResponse(artifacts, page, pageSize, symbolPage.TotalCount, quota));
+        }
+
+        private ActionResult UploadResponse(PackageStagingResult result, StagingArtifactResponse response, string statusRoute)
+        {
+            Response.StatusCode = (int)result.StatusCode;
+            if (result.StatusCode == HttpStatusCode.Created)
+            {
+                Response.AppendHeader("Location", Url.RouteUrl(statusRoute, new { id = response.Id, version = response.Version }, Request.Url.Scheme));
+            }
+
+            if (!Response.HeadersWritten)
+            {
+                foreach (var warning in result.Warnings)
+                {
+                    if (!string.IsNullOrWhiteSpace(warning.PlainTextMessage))
+                    {
+                        Response.AppendHeader(GalleryConstants.WarningHeaderName, warning.PlainTextMessage);
+                    }
+                }
+            }
+
+            return JsonContent(response);
         }
 
         private string GetManagementUrl(StagedPackageIdentity identity)
