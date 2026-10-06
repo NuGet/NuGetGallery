@@ -461,6 +461,37 @@ namespace NuGetGallery
             return File(content, CoreConstants.OctetStreamContentType, fileName);
         }
 
+        /// <summary>
+        /// Deletes the current private symbols visible to the API-key owner.
+        /// </summary>
+        /// <param name="id">The package ID.</param>
+        /// <param name="version">The package version.</param>
+        /// <returns>No content on success, or an owner-availability, private-resource, or state-conflict error.</returns>
+        [HttpDelete]
+        public virtual async Task<ActionResult> DeleteStagedSymbolPackage(string id, string version)
+        {
+            var currentUser = GetCurrentUser();
+            var scopes = User.Identity.GetScopesFromClaim();
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledApiKeyOwner(currentUser, scopes);
+            if (stagingOwner == null)
+            {
+                return Error(HttpStatusCode.Forbidden, "StagingOwnerUnavailable", "Staging is not available for the API key owner.");
+            }
+
+            var symbolPackage = _packageStagingManagementService.GetStagedSymbolPackage(stagingOwner, scopes, id, version);
+            if (symbolPackage == null)
+            {
+                return Error(HttpStatusCode.NotFound, "SymbolPackageNotFound", "The staged symbol package was not found.");
+            }
+
+            if (!await _symbolPackageStagingManagementService.DeletePackageAsync(symbolPackage))
+            {
+                return Error(HttpStatusCode.Conflict, "SymbolPackageDeletionConflict", "The staged symbols could not be deleted because promotion is active or their staging state changed. Refresh and try again.");
+            }
+
+            return new HttpStatusCodeResult(HttpStatusCode.NoContent);
+        }
+
         [AcceptVerbs(HttpVerbs.Patch)]
         public virtual async Task<ActionResult> UpdateStagedPackageListed(string id, string version, UpdateStagedPackageRequest request)
         {
