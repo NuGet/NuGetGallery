@@ -15,7 +15,7 @@ namespace NuGetGallery
         /// Gets or sets the symbol package file to stage.
         /// </summary>
         [Required]
-        public HttpPostedFileBase Package { get; set; }
+        public HttpPostedFileBase Symbols { get; set; }
 
         /// <summary>
         /// Gets or sets the group for the shared package and symbol identity.
