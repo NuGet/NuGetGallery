@@ -39,6 +39,7 @@
         this.CanManage = packageItem.CanManage;
         this.CanDelete = packageItem.CanDelete;
         this.DeleteDisabledReasonId = packageItem.DeleteDisabledReasonId;
+        this.CanReplace = packageItem.CanReplace;
         this.CanPromote = packageItem.CanPromote;
         this.ReplacesPublishedSymbols = packageItem.ReplacesPublishedSymbols;
         this.IncludesStagedSymbols = packageItem.IncludesStagedSymbols;

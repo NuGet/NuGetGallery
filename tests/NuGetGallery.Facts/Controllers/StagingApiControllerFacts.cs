@@ -875,6 +875,7 @@ namespace NuGetGallery
                 NormalizedVersion = "1.0.0",
                 PackageRegistration = new PackageRegistration { Id = "PackageA" },
             };
+            package.PackageRegistration.Owners.Add(owner);
             var identity = new StagedPackageIdentity
             {
                 Key = package.Key,

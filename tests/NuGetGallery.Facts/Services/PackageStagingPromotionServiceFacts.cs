@@ -102,6 +102,7 @@ namespace NuGetGallery
             stagedPackage.ActivePromotionId = Guid.NewGuid();
             var previousSentDate = DateTime.UtcNow.AddMinutes(-61);
             stagedPackage.PromotionMessageSentDate = previousSentDate;
+            stagedPackage.StagedPackageIdentity.Package.PackageRegistration.Owners.Clear();
             var repository = new Mock<IEntityRepository<StagedPackage>>();
             repository.Setup(x => x.CommitChangesAsync())
                 .Callback(() => events.Add("Commit"))
@@ -636,6 +637,78 @@ namespace NuGetGallery
             enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
         }
 
+        [Theory]
+        [InlineData(false, false)]
+        [InlineData(true, false)]
+        [InlineData(true, true)]
+        public async Task OwnershipLossBlocksAcceptanceWithoutMutationAndRestorationAllowsPromotion(bool grouped, bool symbolOnly)
+        {
+            var group = grouped ? CreateStagingGroup() : null;
+            var parent = CreateStagedPackage(StagedPackageStatus.Ready, group: group);
+            var identity = parent.StagedPackageIdentity;
+            var deadline = DateTime.UtcNow.AddDays(3);
+            parent.ExpirationDate = deadline;
+            if (group != null)
+            {
+                group.ExpirationDate = deadline;
+            }
+
+            var symbols = grouped ? CreateStagedSymbols(parent) : null;
+            if (symbolOnly)
+            {
+                identity.Package.PackageStatusKey = PackageStatus.Available;
+                identity.CurrentStagedPackageKey = null;
+                identity.CurrentStagedPackage = null;
+            }
+
+            var packages = symbolOnly ? Array.Empty<StagedPackage>() : new[] { parent };
+            var repository = new Mock<IEntityRepository<StagedPackage>>();
+            repository.Setup(service => service.GetAll()).Returns(packages.AsQueryable());
+            repository.Setup(service => service.CommitChangesAsync()).Returns(Task.CompletedTask);
+            var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
+            var target = CreateService(repository, enqueuer, stagedSymbols: symbols == null ? null : new[] { symbols });
+            identity.Package.PackageRegistration.Owners.Clear();
+
+            if (grouped)
+            {
+                Assert.Equal(StagingGroupPromotionResult.NotReady, await target.PromoteGroupAsync(identity.Owner, group));
+                Assert.False(StagingGroupResponse.FromGroup(group, packages, deadline, "management", new[] { symbols }).CanPromote);
+                Assert.Null(group.ActivePromotionId);
+                Assert.Equal(StagedPackageStatus.Ready, symbols.Status);
+            }
+            else
+            {
+                Assert.Equal(PackageStagingPromotionResult.NotReady, await target.PromotePackageAsync(identity.Owner, parent));
+                var response = StagingArtifactResponse.FromPackage(parent, deadline, "management");
+                Assert.False(response.CanPromote);
+                Assert.Equal("RegistrationOwnershipLost", Assert.Single(response.Blockers).Code);
+                Assert.Null(response.Group);
+            }
+
+            Assert.Equal(StagedPackageStatus.Ready, parent.Status);
+            Assert.Null(parent.ActivePromotionId);
+            Assert.Equal(deadline, parent.ExpirationDate);
+            repository.Verify(service => service.CommitChangesAsync(), Times.Never);
+            enqueuer.Verify(service => service.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
+
+            identity.Package.PackageRegistration.Owners.Add(identity.Owner);
+            if (grouped)
+            {
+                Assert.True(StagingGroupResponse.FromGroup(group, packages, deadline, "management", new[] { symbols }).CanPromote);
+                Assert.Equal(StagingGroupPromotionResult.Accepted, await target.PromoteGroupAsync(identity.Owner, group));
+                Assert.Equal(deadline, group.ExpirationDate);
+            }
+            else
+            {
+                Assert.True(StagingArtifactResponse.FromPackage(parent, deadline, "management").CanPromote);
+                Assert.Equal(PackageStagingPromotionResult.Accepted, await target.PromotePackageAsync(identity.Owner, parent));
+            }
+
+            Assert.Equal(deadline, parent.ExpirationDate);
+            repository.Verify(service => service.CommitChangesAsync(), Times.Once);
+            enqueuer.Verify(service => service.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Once);
+        }
+
         private static PackageStagingPromotionService CreateService(
             Mock<IEntityRepository<StagedPackage>> repository,
             Mock<IStagingPromotionMessageEnqueuer> enqueuer,
@@ -680,7 +753,9 @@ namespace NuGetGallery
         private static StagedPackage CreateStagedPackage(StagedPackageStatus status, int key = StagedPackageKey, StagingGroup group = null)
         {
             var owner = new User("owner") { Key = 1 };
-            var package = new Package { Key = key + 1, PackageStatusKey = PackageStatus.Staged };
+            var registration = new PackageRegistration { Id = "PackageA" };
+            registration.Owners.Add(owner);
+            var package = new Package { Key = key + 1, PackageStatusKey = PackageStatus.Staged, PackageRegistration = registration };
             var identity = new StagedPackageIdentity
             {
                 Key = package.Key,
