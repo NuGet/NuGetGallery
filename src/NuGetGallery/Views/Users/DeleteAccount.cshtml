@@ -35,7 +35,11 @@
                             <li>Remove you as the owner for any packages you own.</li>
                             <li>Remove your ownership from any ID prefix reservations and delete any ID prefix reservations that you were the only owner of.</li>
                             <li>Remove you from any organizations that you are a member of.</li>
-                            <li>Not delete the NuGet packages associated with the account.</li>
+                            <li>Not delete the published NuGet packages associated with the account.</li>
+                            @if (Model.IsPackageStagingEnabled)
+                            {
+                                <li>Delete your account's private staged packages and symbols, including any pending promotions.</li>
+                            }
                         </ul>
                     </p>
                     if (Model.HasPackagesThatWillBeOrphaned)

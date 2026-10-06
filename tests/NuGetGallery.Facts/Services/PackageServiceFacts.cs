@@ -2614,6 +2614,38 @@ namespace NuGetGallery
                 Assert.False(result);
             }
 
+            [Theory]
+            [InlineData(PackageStatus.Staged, StagedPackageStatus.Ready, false, false)]
+            [InlineData(PackageStatus.Deleted, StagedPackageStatus.Deleted, false, false)]
+            [InlineData(PackageStatus.Deleted, null, false, true)]
+            [InlineData(PackageStatus.Staged, StagedPackageStatus.Ready, true, true)]
+            public void AccountDeletionOnlyCountsVersionsThatWillRemain(PackageStatus status, StagedPackageStatus? stagedStatus, bool withPublicVersion, bool expectedOrphan)
+            {
+                var owner = new User("owner") { Key = 1 };
+                var registration = new PackageRegistration { Key = 10 };
+                registration.Owners.Add(owner);
+                var package = new Package { Key = 100, PackageRegistration = registration, PackageRegistrationKey = registration.Key, PackageStatusKey = status };
+                registration.Packages.Add(package);
+                if (withPublicVersion)
+                {
+                    registration.Packages.Add(new Package { Key = 101, PackageRegistration = registration, PackageStatusKey = PackageStatus.Available });
+                }
+
+                var entities = new FakeEntitiesContext();
+                var identity = new StagedPackageIdentity { Key = package.Key, Package = package, Owner = owner, OwnerKey = owner.Key };
+                if (stagedStatus.HasValue)
+                {
+                    identity.CurrentStagedPackage = new StagedPackage { Key = 200, Status = stagedStatus.Value };
+                }
+
+                entities.StagedPackageIdentities.Add(identity);
+                var context = new Mock<IEntitiesContext>();
+                context.Setup(value => value.StagedPackageIdentities).Returns(entities.StagedPackageIdentities);
+                var service = CreateService(context: context);
+
+                Assert.Equal(expectedOrphan, service.WillPackageBeOrphanedIfOwnerRemoved(registration, owner));
+            }
+
             private void AddMemberToOrganization(Organization organization, User member)
             {
                 var membership = new Membership() { Member = member, Organization = organization };
