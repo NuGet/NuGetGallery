@@ -105,6 +105,12 @@ Perform the final dependency-order validation: foundations remain independently 
 
 **Done when**: All affected solutions restore and build through their established toolchains without new warnings, all targeted and applicable repository tests pass, no EF Core/schema/Aspire/deployment changes are present, and the side-by-side host satisfies the approved completion criteria.
 
+### 10-auth-context-diagnostic: Add a development-only authentication diagnostic controller
+
+Add a test controller/action to the .NET 10 Gallery that allows a developer signed in through the legacy Gallery to inspect the shared authentication context. Inspect existing identity, claims, local routing, and test patterns before implementation. Make the diagnostic endpoint available only in Development, prevent response caching, expose only the identity details needed to compare authentication in the two hosts, and never return cookies, tokens, or secrets. Register controller services and routes so the diagnostic action takes precedence over the YARP fallback without migrating existing controllers or changing the legacy application. Document exact local validation URLs and steps using existing legacy authentication surfaces. Cover anonymous and authenticated requests, local-route precedence, and non-Development unavailability with focused tests. Preserve legacy-only sign-in and renewal ownership.
+
+**Done when**: The new controller can be exercised locally after legacy sign-in, the response reports the expected shared identity, targeted host tests pass, and the endpoint does not expose diagnostic information outside Development.
+
 ## Execution constraints
 
 - Execute tasks strictly in numeric order and commit after each task.

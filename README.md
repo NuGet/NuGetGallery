@@ -33,6 +33,60 @@ Let's focus on running the gallery web app locally, first.
 
 Refer to [our documentation](./docs/) for information on how to develop the frontend, use AAD, and more.
 
+### Validate shared authentication in the .NET 10 host (local Development only)
+
+The side-by-side `src/NuGetGallery.net10` project requires the .NET 10 SDK and the
+running legacy Gallery above. The legacy Gallery remains the only sign-in and
+cookie-renewal authority; this diagnostic reads its shared cookie without refreshing it.
+Keep the development host bound to localhost, not a public/shared environment.
+
+1. Start the legacy Gallery at `https://localhost` with its local HTTPS certificate
+   trusted. Both hosts must use the same Data Protection key ring and application
+   name (`NuGetGallery`). The legacy filesystem default is
+   `src/NuGetGallery/App_Data/Files` (`Gallery.FileStorageDirectory`); Core's default
+   `.data` is **not** that same directory. Use the actual configured legacy directory
+   if yours differs. Do not copy/export cookies or keys to compare them.
+2. From the repository root run (substitute an absolute directory for `<shared-key-directory>`):
+   ```text
+   dotnet run --project src/NuGetGallery.net10/NuGetGallery.net10.csproj --launch-profile NuGetGallery.net10 -- --DataProtection:StorageLocation "<shared-key-directory>"
+   ```
+   The checked-in Development profile uses `https://localhost:7150` and
+   `http://localhost:5150`; use **HTTPS** for the shared Secure cookie. The proxy
+   origin defaults to `https://localhost`. If your legacy origin differs, also set
+   `--LegacyProxy:Origin` to its HTTPS origin. Retain the same hostname for browser
+   cookie sharing (ports do not scope cookies; `localhost` and `127.0.0.1` differ).
+3. In a fresh browser session, visit
+   `https://localhost:7150/_local/auth-context`. Expect HTTP 200 and:
+   ```json
+   {"host":"NuGetGallery.net10","isAuthenticated":false,"authenticationType":null,"name":null,"nameIdentifier":null,"roles":[]}
+   ```
+4. In that same browser sign in through the existing legacy page,
+   `https://localhost/users/account/LogOn`. Visit `https://localhost/account`
+   directly and confirm the signed-in username in the existing header/account UI.
+   Then revisit `https://localhost:7150/_local/auth-context`. Expect:
+   ```json
+   {"host":"NuGetGallery.net10","isAuthenticated":true,"authenticationType":"LocalUser","name":"your-username","nameIdentifier":"your-username","roles":[]}
+   ```
+   `roles` contains your sorted, distinct role names if assigned. Compare `name`
+   to the username shown by legacy. This checks Core's `HttpContext.User` against
+   the **existing legacy auth surface**, not a new legacy diagnostic endpoint.
+   The legacy `/account` page is protected, unlike a public profile page.
+5. Visit `https://localhost:7150/account` too: it should still be served through
+   the legacy fallback with the same identity. Sign out using the existing legacy
+   UI and reload the diagnostic; it should return the anonymous shape again.
+
+The real controller action is **GET `/_local/auth-context`**, with camel-case JSON
+limited to the six fields shown above. It sends `Cache-Control: no-store` and no
+authentication cookies. It never dumps other claims, emails, external credential
+identities, ticket properties, request headers, tokens, or secrets. Use the browser
+Network panel to verify response headers without copying cookie/token values.
+Outside Development the reserved diagnostic path returns a local, empty HTTP 404
+with `no-store` (never forwarded to legacy). Production startup still requires its
+normal encrypted Data Protection configuration; do not relax that to test the URL.
+If Core remains anonymous after legacy sign-in, check the shared key directory,
+app name, hostname/HTTPS, cookie name `.AspNet.LocalUser`, and cookie-format cutover;
+an old-format cookie may require signing out and signing in again.
+
 ### Shared libraries
 
 There are a set of shared libraries used across the NuGet server repositories, including:

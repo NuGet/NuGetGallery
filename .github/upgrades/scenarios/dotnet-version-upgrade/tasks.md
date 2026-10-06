@@ -1,6 +1,6 @@
 # Migration Progress
 
-**Progress**: 9/9 tasks complete <progress value="100" max="100"></progress> 100%
+**Progress**: 10/10 tasks complete <progress value="100" max="100"></progress> 100%
 **Status**: Complete
 
 ## Tasks
@@ -14,5 +14,6 @@
 - ✅ 07-legacy-cookie-cutover: Apply the minimal legacy LocalUser cookie change ([Content](tasks/07-legacy-cookie-cutover/task.md), [Progress](tasks/07-legacy-cookie-cutover/progress-details.md))
 - ✅ 08-cross-host-regression-tests: Complete focused .NET 10 and cross-framework coverage ([Content](tasks/08-cross-host-regression-tests/task.md), [Progress](tasks/08-cross-host-regression-tests/progress-details.md))
 - ✅ 09-build-integration: Validate repository build boundaries and release readiness ([Content](tasks/09-build-integration/task.md), [Progress](tasks/09-build-integration/progress-details.md))
+- ✅ 10-auth-context-diagnostic: Add a development-only authentication diagnostic controller ([Content](tasks/10-auth-context-diagnostic/task.md), [Progress](tasks/10-auth-context-diagnostic/progress-details.md))
 
 **Legend**: ✅ Complete | 🔄 In Progress | 🔲 Pending | ⚠️ Blocked | ❌ Failed

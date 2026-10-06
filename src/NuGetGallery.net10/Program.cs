@@ -93,6 +93,11 @@ public static class Program
             builder.Configuration,
             builder.Environment.IsProduction());
         builder.Services.AddAuthorization();
+        if (builder.Environment.IsDevelopment())
+        {
+            builder.Services.AddControllers()
+                .AddApplicationPart(typeof(AuthContextController).Assembly);
+        }
         builder.Services.AddHealthChecks();
         builder.Services.AddHttpForwarder();
         builder.Services.TryAddSingleton<ILegacyProxyHttpClient, LegacyProxyHttpClient>();
@@ -125,6 +130,7 @@ public static class Program
             hostOptions.HealthPath,
             new HealthCheckOptions { Predicate = _ => false });
         application.MapHealthChecks(hostOptions.ReadinessPath);
+        MapAuthContextEndpoints(application);
         application
             .Map("/{**catch-all}", async context =>
             {
@@ -137,6 +143,24 @@ public static class Program
             .WithOrder(int.MaxValue);
 
         return application;
+    }
+
+    internal static void MapAuthContextEndpoints(WebApplication application)
+    {
+        if (application.Environment.IsDevelopment())
+        {
+            application.MapControllers();
+        }
+        else
+        {
+            // Reserve the diagnostic URL even when MVC is disabled. Never proxy it to legacy.
+            application.Map(AuthContextController.Route, context =>
+            {
+                context.Response.Headers.CacheControl = "no-store";
+                context.Response.StatusCode = StatusCodes.Status404NotFound;
+                return Task.CompletedTask;
+            }).AllowAnonymous();
+        }
     }
 
     private static void ConfigureSecretInjectedConfiguration(

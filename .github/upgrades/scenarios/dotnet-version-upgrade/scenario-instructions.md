@@ -38,3 +38,11 @@
 - **NuGetGallery.net10.csproj / NuGetGallery.net10.Facts.csproj**: `dotnet build` / `dotnet test` (SDK-style, `net10.0`, no Visual Studio-only build features).
 - **NuGetGallery.sln / NuGet.Server.Common.sln / NuGet.Jobs.sln / AccountDeleter.csproj**: Visual Studio MSBuild 18 (legacy web project and .NET Framework build surfaces). Use a short mapped repository drive for `NuGet.Jobs.sln` in this worktree to avoid Windows `MAX_PATH` failures in `Validation.PackageSigning.RevalidateCertificate.Tests`.
 - **Long Paths**: Resolve worktree path-length failures through a shorter checkout/worktree root or mapped drive. Do not add per-project path-shortening overrides.
+
+## User Preferences
+
+### Custom Instructions
+
+#### 10-auth-context-diagnostic
+- User requested a test controller/action in the .NET 10 Gallery to validate that authentication context is available in both projects.
+- This is a local authentication diagnostic, not a migration of existing legacy controllers. Preserve the other existing scope exclusions.
