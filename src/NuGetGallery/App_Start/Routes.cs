@@ -1090,6 +1090,12 @@ namespace NuGetGallery
                 new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
+                RouteName.GetStagedSymbolPackages,
+                "api/v3/staging/symbols",
+                new { controller = "StagingApi", action = nameof(StagingApiController.GetStagedSymbolPackages) },
+                new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
                 RouteName.StageSymbolPackage,
                 "api/v3/staging/symbols",
                 new { controller = "StagingApi", action = nameof(StagingApiController.StageSymbolPackage) },

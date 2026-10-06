@@ -44,7 +44,7 @@ namespace NuGetGallery
         [JsonProperty("expires")]
         public string Expires { get; private set; }
 
-        [JsonProperty("listed")]
+        [JsonProperty("listed", NullValueHandling = NullValueHandling.Ignore)]
         public bool? Listed { get; private set; }
 
         [JsonProperty("canPromote")]

@@ -30,17 +30,20 @@ namespace NuGetGallery
         private readonly IPackageStagingManagementService _packageStagingManagementService;
         private readonly IPackageStagingUploadService _packageStagingUploadService;
         private readonly ISymbolPackageStagingUploadService _symbolPackageStagingUploadService;
+        private readonly IStagingQuotaService _stagingQuotaService;
 
         public StagingApiController(
             IPackageStagingAuthorizationService packageStagingAuthorizationService,
             IPackageStagingManagementService packageStagingManagementService,
             IPackageStagingUploadService packageStagingUploadService,
-            ISymbolPackageStagingUploadService symbolPackageStagingUploadService)
+            ISymbolPackageStagingUploadService symbolPackageStagingUploadService,
+            IStagingQuotaService stagingQuotaService)
         {
             _packageStagingAuthorizationService = packageStagingAuthorizationService ?? throw new ArgumentNullException(nameof(packageStagingAuthorizationService));
             _packageStagingManagementService = packageStagingManagementService ?? throw new ArgumentNullException(nameof(packageStagingManagementService));
             _packageStagingUploadService = packageStagingUploadService ?? throw new ArgumentNullException(nameof(packageStagingUploadService));
             _symbolPackageStagingUploadService = symbolPackageStagingUploadService ?? throw new ArgumentNullException(nameof(symbolPackageStagingUploadService));
+            _stagingQuotaService = stagingQuotaService ?? throw new ArgumentNullException(nameof(stagingQuotaService));
         }
 
         [HttpPost]
@@ -284,14 +287,74 @@ namespace NuGetGallery
             }
         }
 
+        /// <summary>
+        /// Lists one page of current staged packages visible to the API-key owner.
+        /// </summary>
+        /// <param name="page">The one-based page number.</param>
+        /// <param name="pageSize">The number of packages per page.</param>
+        /// <returns>The artifact page and owner-wide quota metadata.</returns>
         [HttpGet]
-        public virtual ActionResult GetStagedPackages()
+        public virtual ActionResult GetStagedPackages(int page = 1, int pageSize = DefaultPageSize)
         {
+            var pagingError = ValidatePaging(page, pageSize);
+            if (pagingError != null)
+            {
+                return pagingError;
+            }
+
             var currentUser = GetCurrentUser();
             var scopes = User.Identity.GetScopesFromClaim();
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledApiKeyOwner(currentUser, scopes);
+            if (stagingOwner == null)
+            {
+                return Error(HttpStatusCode.Forbidden, "StagingOwnerUnavailable", "Staging is not available for the API key owner.");
+            }
 
-            var packages = _packageStagingManagementService.GetPackages(currentUser, scopes);
-            return Json(packages, JsonRequestBehavior.AllowGet);
+            var packagePage = _packageStagingManagementService.GetStagedPackagePage(stagingOwner, scopes, page, pageSize);
+            var artifacts = packagePage.Items.Select(package => StagingArtifactResponse.FromPackage(
+                package, StagingExpirationPolicy.GetDeadline(package), GetManagementUrl(package.StagedPackageIdentity))).ToList();
+            var quota = _stagingQuotaService.GetUsage(stagingOwner);
+            return JsonContent(new StagingArtifactPagedResponse(artifacts, page, pageSize, packagePage.TotalCount, quota));
+        }
+
+        /// <summary>
+        /// Lists one page of current staged symbols visible to the API-key owner.
+        /// </summary>
+        /// <param name="page">The one-based page number.</param>
+        /// <param name="pageSize">The number of symbol packages per page.</param>
+        /// <returns>The artifact page and owner-wide quota metadata.</returns>
+        [HttpGet]
+        public virtual ActionResult GetStagedSymbolPackages(int page = 1, int pageSize = DefaultPageSize)
+        {
+            var pagingError = ValidatePaging(page, pageSize);
+            if (pagingError != null)
+            {
+                return pagingError;
+            }
+
+            var currentUser = GetCurrentUser();
+            var scopes = User.Identity.GetScopesFromClaim();
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledApiKeyOwner(currentUser, scopes);
+            if (stagingOwner == null)
+            {
+                return Error(HttpStatusCode.Forbidden, "StagingOwnerUnavailable", "Staging is not available for the API key owner.");
+            }
+
+            var symbolPage = _packageStagingManagementService.GetStagedSymbolPackagePage(stagingOwner, scopes, page, pageSize);
+            var artifacts = symbolPage.Items.Select(symbol => StagingArtifactResponse.FromSymbolPackage(
+                symbol, StagingExpirationPolicy.GetDeadline(symbol), GetManagementUrl(symbol.StagedPackageIdentity))).ToList();
+            var quota = _stagingQuotaService.GetUsage(stagingOwner);
+            return JsonContent(new StagingArtifactPagedResponse(artifacts, page, pageSize, symbolPage.TotalCount, quota));
+        }
+
+        private string GetManagementUrl(StagedPackageIdentity identity)
+        {
+            if (identity.StagingGroupKey.HasValue)
+            {
+                return Url.ManageStagingGroup(identity.Owner.Username, identity.StagingGroup.Id, relativeUrl: false);
+            }
+
+            return Url.ManageUngroupedStaging(identity.Owner.Username, relativeUrl: false);
         }
 
         [HttpGet]
