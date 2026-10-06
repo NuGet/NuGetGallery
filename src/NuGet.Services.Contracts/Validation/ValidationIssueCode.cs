@@ -62,6 +62,11 @@ namespace NuGet.Services.Validation
         /// </summary>
         PackageIsSignedWithUnauthorizedCertificate = 9,
 
+        /// <summary>
+        /// The author signature's signed attributes are not in canonical DER order.
+        /// </summary>
+        AuthorSignedAttributesNotCanonical = 10,
+
         #region SymbolErrorCodes - reserved 200 - 299 segment
         /// <summary>
         /// Symbol checksum does not match with the binary assembly.

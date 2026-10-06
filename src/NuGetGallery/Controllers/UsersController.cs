@@ -1205,7 +1205,7 @@ namespace NuGetGallery
 
             var validationResult = await _federatedCredentialService.UpdatePolicyAsync(result.policy, policyCriteria, policyName, policyScopes: policyScopes, policySubjects: policySubjects);
 
-            return await ProcessUpdatePolicyValidationResultAsync(currentUser, validationResult);
+            return ProcessUpdatePolicyValidationResultAsync(currentUser, validationResult);
         }
 
         [HttpPost]
@@ -1230,10 +1230,10 @@ namespace NuGetGallery
             // Updating temp GitHub Actions policy will reset ValidateBy date.
             var validationResult = await _federatedCredentialService.UpdatePolicyAsync(result.policy, result.policy.Criteria, result.policy.PolicyName, result.policy.Scopes);
 
-            return await ProcessUpdatePolicyValidationResultAsync(currentUser, validationResult);
+            return ProcessUpdatePolicyValidationResultAsync(currentUser, validationResult);
         }
 
-        private async Task<JsonResult> ProcessUpdatePolicyValidationResultAsync(User currentUser, FederatedCredentialPolicyValidationResult validationResult)
+        private JsonResult ProcessUpdatePolicyValidationResultAsync(User currentUser, FederatedCredentialPolicyValidationResult validationResult)
         {
             if (validationResult.Type == FederatedCredentialPolicyValidationResultType.Unauthorized)
             {

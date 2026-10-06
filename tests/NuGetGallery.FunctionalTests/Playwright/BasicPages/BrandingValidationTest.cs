@@ -8,11 +8,13 @@ using Xunit;
 
 namespace NuGetGallery.FunctionalTests.Playwright.BasicPages
 {
+    [Collection(GalleryTestCollection.Definition)]
     public class BrandingValidationTest : NuGetPageTest
     {
         [Fact]
         [Priority(0)]
         [Category("P0Tests")]
+        [Category("PlaywrightTests")]
         public async Task HomePage_ContainsBrandingElements()
         {
             // Act

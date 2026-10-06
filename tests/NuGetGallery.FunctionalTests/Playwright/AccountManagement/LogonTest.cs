@@ -6,12 +6,14 @@ using Xunit;
 
 namespace NuGetGallery.FunctionalTests.Playwright.AccountManagement
 {
+	[Collection(GalleryTestCollection.Definition)]
 	public class LogonTest : NuGetPageTest
 	{
 		[Fact]
 		[Priority(0)]
 		[Category("P0Tests")]
-		public async Task Login_DisplaysLoggedInUsername()
+        [Category("PlaywrightTests")]
+        public async Task Login_DisplaysLoggedInUsername()
 		{
 			// Act
 			await SignInAsync();

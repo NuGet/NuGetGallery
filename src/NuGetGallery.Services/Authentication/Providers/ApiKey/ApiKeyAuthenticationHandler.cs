@@ -119,7 +119,8 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                                 AuthenticationTypes.ApiKey,
                                 // In cases where the apikey in the DB differs from the user provided
                                 // value (like apikey.v4) this will hold the hashed value
-                                new Claim(NuGetClaims.ApiKey, credential.Value), 
+                                new Claim(NuGetClaims.ApiKey, credential.Value),
+                                new Claim(NuGetClaims.CredentialType, credential.Type ?? string.Empty),
                                 new Claim(NuGetClaims.Scope, scopes),
                                 new Claim(NuGetClaims.CredentialKey, credential.Key.ToString())),
                             new AuthenticationProperties());

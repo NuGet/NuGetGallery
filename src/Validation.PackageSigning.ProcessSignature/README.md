@@ -15,8 +15,9 @@ stripped. Any author signature is validated. The enqueuer in the orchestrator is
 This mode is executed before repository signing to prepare the package for signing and to quickly reject any bad author
 signatures.
 
-**Second**, it is treated as an `INuGetValidator`, meaning the package is not allowed to be modified. All of the same validations
-as the first mode are run. Additionally, a repository signature is now required. The enqueuer in the orchestrator is
+**Second**, it is treated as an `INuGetValidator`, meaning the package is not allowed to be modified. The applicable signature
+validations are run again, except for policies that apply only before repository signing. Additionally, a repository signature
+is now required. The enqueuer in the orchestrator is
 [`PackageSignatureValidator`](https://github.com/NuGet/NuGet.Jobs/blob/master/src/NuGet.Services.Validation.Orchestrator/PackageSigning/ProcessSignature/PackageSignatureValidator.cs).
 This mode is executed after the package has been repository signed so that the whole signature, as it will be seen by
 package consumers, can be validated.
@@ -63,6 +64,7 @@ words, this job does not have to be a singleton.
 ### Algorithm for signed packages
 
 1. ❌ If the signature is unreadable, reject the package.
+1. ❌ Before repository signing (`RequireRepositorySignature` is `false`), when `Validation.DerOrderingEnforcement` is enabled, reject a primary author signature whose signed attributes in the original raw `.signature.p7s` are not canonically DER ordered, unless the package is already `Available`.
 1. ❌ If the package has author counter signatures, reject the package.
 1. Strip unacceptable repository signatures (e.g. signatures from another repository).
     1. A repository signature is unacceptable is:
