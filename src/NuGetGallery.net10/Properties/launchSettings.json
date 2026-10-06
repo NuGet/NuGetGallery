@@ -8,7 +8,10 @@
       "applicationUrl": "https://localhost:7150;http://localhost:5150",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "DataProtection__StorageLocation": "../NuGetGallery/App_Data/Files"
+        "DataProtection__StorageLocation": "../NuGetGallery/App_Data/Files",
+        "Kestrel__Certificates__Default__Subject": "localhost",
+        "Kestrel__Certificates__Default__Store": "My",
+        "Kestrel__Certificates__Default__Location": "LocalMachine"
       }
     }
   }
