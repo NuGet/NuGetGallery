@@ -1003,57 +1003,83 @@ namespace NuGetGallery
         public async Task DeletesAuthorizedPackage()
         {
             var currentUser = new User("current") { Key = 1 };
-            var stagedPackage = CreateStagedPackage(currentUser);
+            var owner = new User("owner") { Key = 2 };
+            var stagedPackage = CreateStagedPackage(owner);
+            stagedPackage.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Staged;
+            var target = GetController<StagingApiController>();
+            ConfigureCreateGroupRequest(target, currentUser, owner);
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
+                .Setup(x => x.GetStagedPackage(owner, It.IsAny<IReadOnlyCollection<Scope>>(), "packagea", "1.0"))
                 .Returns(stagedPackage);
-            GetMock<IPackageStagingAuthorizationService>()
-                .Setup(x => x.CanManageWithApiKey(
-                    currentUser,
-                    It.IsAny<IEnumerable<Scope>>(),
-                    stagedPackage))
-                .Returns(true);
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.DeletePackageAsync(stagedPackage))
                 .ReturnsAsync(true);
-            GetMock<HttpContextBase>()
-                .SetupGet(x => x.User)
-                .Returns(Fakes.ToPrincipal(currentUser));
-            var target = GetController<StagingApiController>();
-            target.SetCurrentUser(currentUser);
 
-            var result = await target.DeleteStagedPackage("PackageA", "1.0.0");
+            var result = await target.DeleteStagedPackage("packagea", "1.0");
 
             var status = Assert.IsType<HttpStatusCodeResult>(result);
             Assert.Equal(204, status.StatusCode);
+            GetMock<IPackageStagingManagementService>().Verify(x => x.DeletePackageAsync(stagedPackage), Times.Once);
         }
 
         [Fact]
         public async Task ReportsConflictWhenPackageDeletionIsRejected()
         {
-            var currentUser = new User("current") { Key = 1 };
-            var stagedPackage = CreateStagedPackage(currentUser);
-            stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackageKey = 100;
-
+            var owner = new User("owner") { Key = 1 };
+            var stagedPackage = CreateStagedPackage(owner);
+            stagedPackage.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Staged;
+            var target = GetController<StagingApiController>();
+            ConfigureCreateGroupRequest(target, owner, owner);
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
+                .Setup(x => x.GetStagedPackage(owner, It.IsAny<IReadOnlyCollection<Scope>>(), "PackageA", "1.0.0"))
                 .Returns(stagedPackage);
-            GetMock<IPackageStagingAuthorizationService>()
-                .Setup(x => x.CanManageWithApiKey(currentUser, It.IsAny<IEnumerable<Scope>>(), stagedPackage))
-                .Returns(true);
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.DeletePackageAsync(stagedPackage))
                 .ReturnsAsync(false);
-            GetMock<HttpContextBase>()
-                .SetupGet(x => x.User)
-                .Returns(Fakes.ToPrincipal(currentUser));
-            var target = GetController<StagingApiController>();
-            target.SetCurrentUser(currentUser);
 
             var result = await target.DeleteStagedPackage("PackageA", "1.0.0");
 
-            var status = Assert.IsType<HttpStatusCodeResult>(result);
-            Assert.Equal(409, status.StatusCode);
+            AssertError(target, result, HttpStatusCode.Conflict, "PackageDeletionConflict");
+        }
+
+        [Fact]
+        public async Task RejectsPackageDeletionWithoutEnabledApiKeyOwner()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var target = GetController<StagingApiController>();
+            ConfigureCreateGroupRequest(target, currentUser, owner: null);
+
+            var result = await target.DeleteStagedPackage("PackageA", "1.0.0");
+
+            AssertError(target, result, HttpStatusCode.Forbidden, "StagingOwnerUnavailable");
+            GetMock<IPackageStagingManagementService>().Verify(
+                x => x.GetStagedPackage(It.IsAny<User>(), It.IsAny<IReadOnlyCollection<Scope>>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            GetMock<IPackageStagingManagementService>().Verify(x => x.DeletePackageAsync(It.IsAny<StagedPackage>()), Times.Never);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task HidesUnavailableOrPublishedPackageDeletionWithoutMutating(bool published)
+        {
+            var owner = new User("owner") { Key = 1 };
+            var target = GetController<StagingApiController>();
+            ConfigureCreateGroupRequest(target, owner, owner);
+            if (published)
+            {
+                var stagedPackage = CreateStagedPackage(owner);
+                stagedPackage.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Available;
+                stagedPackage.Status = StagedPackageStatus.Succeeded;
+                stagedPackage.StagedPackageIdentity.StagingGroupKey = 10;
+                GetMock<IPackageStagingManagementService>()
+                    .Setup(x => x.GetStagedPackage(owner, It.IsAny<IReadOnlyCollection<Scope>>(), "PackageA", "1.0.0"))
+                    .Returns(stagedPackage);
+            }
+
+            var result = await target.DeleteStagedPackage("PackageA", "1.0.0");
+
+            AssertError(target, result, HttpStatusCode.NotFound, "PackageNotFound");
+            GetMock<IPackageStagingManagementService>().Verify(x => x.DeletePackageAsync(It.IsAny<StagedPackage>()), Times.Never);
         }
 
         [Fact]
