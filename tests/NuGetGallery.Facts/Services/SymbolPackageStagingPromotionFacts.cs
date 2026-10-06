@@ -217,7 +217,8 @@ namespace NuGetGallery
 
             var response = StagingArtifactResponse.FromSymbolPackage(fixture.Attempt, DateTime.UtcNow.AddDays(30), "management");
             Assert.False(response.CanPromote);
-            Assert.Contains(response.Blockers, blocker => blocker.Code == "SymbolsNotReady");
+            Assert.Contains(response.Blockers, blocker => blocker.Code == "SymbolPromotionFailed"
+                && blocker.Message == "Symbol promotion failed. Its parent package is unchanged. Replace or remove the staged symbols before trying again.");
             Assert.Equal(PackageStagingPromotionResult.NotReady, await fixture.Service.PromoteSymbolPackageAsync(fixture.Owner, fixture.Attempt));
             Assert.Equal(PackageStagingPromotionResult.NotReady, await fixture.Service.ResendSymbolPackageAsync(fixture.Owner, fixture.Attempt));
 

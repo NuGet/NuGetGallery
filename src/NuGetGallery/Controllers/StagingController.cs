@@ -425,7 +425,8 @@ namespace NuGetGallery
                 var isExpired = StagingExpirationPolicy.HasExpired(attempt);
                 var blockers = StagedSymbolPackagePromotionEligibility.GetBlockers(attempt);
                 var ownershipBlocker = StagingOwnershipPolicy.GetBlocker(identity);
-                var promotionBlocker = ownershipBlocker?.Message;
+                var promotionBlocker = ownershipBlocker?.Message
+                    ?? StagingPromotionFailure.GetBlocker(attempt.Status, symbols: true, identity.StagingGroupKey.HasValue)?.Message;
                 if (promotionBlocker == null && attempt.Status == StagedPackageStatus.Ready && !identity.StagingGroupKey.HasValue)
                 {
                     promotionBlocker = blockers.FirstOrDefault(blocker => blocker.Code != "ParentPackageNotAvailable")?.Message;
@@ -684,7 +685,8 @@ namespace NuGetGallery
                         CanManage = !isPromotionActive,
                         CanReplace = !isPromotionActive && !isExpired && ownershipBlocker == null,
                         CanPromote = stagedPackage.Status == StagedPackageStatus.Ready && !identity.StagingGroupKey.HasValue && !isExpired && ownershipBlocker == null,
-                        PromotionBlocker = ownershipBlocker?.Message,
+                        PromotionBlocker = ownershipBlocker?.Message
+                            ?? StagingPromotionFailure.GetBlocker(stagedPackage.Status, symbols: false, identity.StagingGroupKey.HasValue)?.Message,
                         IncludesStagedSymbols = identity.CurrentStagedSymbolPackage != null
                             && StagedSymbolPackagePromotionEligibility.GetBlockers(identity.CurrentStagedSymbolPackage, stagedPackage).Count == 0,
                         CanResend = !identity.StagingGroupKey.HasValue

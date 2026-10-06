@@ -688,6 +688,7 @@
     <Compile Include="Services\StagedSymbolPackagePromotionEligibility.cs" />
     <Compile Include="Services\StagingOwnershipPolicy.cs" />
     <Compile Include="Services\StagingPromotionResendPolicy.cs" />
+    <Compile Include="Services\StagingPromotionFailure.cs" />
     <Compile Include="Services\PackageStagingStatus.cs" />
     <Compile Include="Services\PackageStagingUploadService.cs" />
     <Compile Include="Services\SymbolPackageStagingUploadService.cs" />

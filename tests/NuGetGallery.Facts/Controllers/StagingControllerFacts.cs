@@ -418,6 +418,16 @@ namespace NuGetGallery
             Assert.Equal(status == StagedPackageStatus.Promoting ? 1 : 0, model.PromotingCount);
             Assert.Equal(status == StagedPackageStatus.PromotionFailed ? 1 : 0, model.PromotionFailedCount);
             Assert.Equal(model.PromotionFailedCount, model.FailedCount);
+            var response = StagingArtifactResponse.FromSymbolPackage(attempt, StagingExpirationPolicy.GetDeadline(attempt), "management");
+            if (status == StagedPackageStatus.PromotionFailed)
+            {
+                Assert.Equal(symbols.PromotionBlocker, Assert.Single(response.Blockers).Message);
+                Assert.Equal("SymbolPromotionFailed", Assert.Single(response.Blockers).Code);
+            }
+            else
+            {
+                Assert.Null(symbols.PromotionBlocker);
+            }
             Assert.Equal("/account/staging/symbols/PackageA/1.0.0/promote", target.Url.PromoteStagedSymbolPackage(symbols.Id, symbols.Version));
             Assert.Equal("/account/staging/symbols/PackageA/1.0.0/resend", target.Url.ResendStagedSymbolPackage(symbols.Id, symbols.Version));
         }
@@ -732,6 +742,7 @@ namespace NuGetGallery
             promotingPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
             var failedPackage = CreateStagedPackage(43, "Failed.Package", "1.0.0", currentUser, StagedPackageStatus.PromotionFailed);
             failedPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
+            failedPackage.StagedPackageIdentity.StagingGroup = group;
             var succeededPackage = CreateStagedPackage(44, "Succeeded.Package", "1.0.0", currentUser, StagedPackageStatus.Succeeded);
             succeededPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
             succeededPackage.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Available;
@@ -767,6 +778,10 @@ namespace NuGetGallery
             Assert.Equal(1, model.PromotionFailedCount);
             Assert.Equal(4, model.PackageCount);
             Assert.Equal(2, model.Packages.Count(package => package.Status == StagedPackageStatus.Succeeded.ToString()));
+            var failedArtifact = model.Packages.Single(package => package.Status == StagedPackageStatus.PromotionFailed.ToString());
+            var failedResponse = StagingArtifactResponse.FromPackage(failedPackage, group.ExpirationDate, "management");
+            Assert.Contains(failedResponse.Blockers, blocker => blocker.Code == "PackagePromotionFailed"
+                && blocker.Message == failedArtifact.PromotionBlocker);
             Assert.All(model.Packages, package =>
             {
                 Assert.False(package.CanManage);

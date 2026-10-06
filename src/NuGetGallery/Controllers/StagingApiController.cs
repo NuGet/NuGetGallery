@@ -13,6 +13,7 @@ using System.Web;
 using System.Web.Mvc;
 using Newtonsoft.Json;
 using NuGet.Services.Entities;
+using NuGet.Services.Validation.Issues;
 using NuGetGallery.Authentication;
 using NuGetGallery.Filters;
 
@@ -32,6 +33,7 @@ namespace NuGetGallery
         private readonly ISymbolPackageStagingUploadService _symbolPackageStagingUploadService;
         private readonly ISymbolPackageStagingManagementService _symbolPackageStagingManagementService;
         private readonly IStagingQuotaService _stagingQuotaService;
+        private readonly IValidationService _validationService;
 
         public StagingApiController(
             IPackageStagingAuthorizationService packageStagingAuthorizationService,
@@ -39,7 +41,8 @@ namespace NuGetGallery
             IPackageStagingUploadService packageStagingUploadService,
             ISymbolPackageStagingUploadService symbolPackageStagingUploadService,
             ISymbolPackageStagingManagementService symbolPackageStagingManagementService,
-            IStagingQuotaService stagingQuotaService)
+            IStagingQuotaService stagingQuotaService,
+            IValidationService validationService)
         {
             _packageStagingAuthorizationService = packageStagingAuthorizationService ?? throw new ArgumentNullException(nameof(packageStagingAuthorizationService));
             _packageStagingManagementService = packageStagingManagementService ?? throw new ArgumentNullException(nameof(packageStagingManagementService));
@@ -47,6 +50,7 @@ namespace NuGetGallery
             _symbolPackageStagingUploadService = symbolPackageStagingUploadService ?? throw new ArgumentNullException(nameof(symbolPackageStagingUploadService));
             _symbolPackageStagingManagementService = symbolPackageStagingManagementService ?? throw new ArgumentNullException(nameof(symbolPackageStagingManagementService));
             _stagingQuotaService = stagingQuotaService ?? throw new ArgumentNullException(nameof(stagingQuotaService));
+            _validationService = validationService ?? throw new ArgumentNullException(nameof(validationService));
         }
 
         [HttpPost]
@@ -136,8 +140,7 @@ namespace NuGetGallery
                 }
 
                 var package = result.StagedPackage;
-                var response = StagingArtifactResponse.FromPackage(
-                    package, StagingExpirationPolicy.GetDeadline(package), GetManagementUrl(package.StagedPackageIdentity));
+                var response = GetPackageResponses(new[] { package })[package.Key];
                 return UploadResponse(result, response, RouteName.GetStagedPackageStatus);
             }
             catch (HttpException exception) when (exception.IsMaxRequestLengthExceeded())
@@ -166,9 +169,9 @@ namespace NuGetGallery
                     return Error(HttpStatusCode.UnsupportedMediaType, "UnsupportedMediaType", $"The request must have a Content-Type of '{MultipartContentType}'.");
                 }
 
-                if (request == null || request.Package == null || Request.Files.Count != 1 || !string.Equals(Request.Files.GetKey(0), "package", StringComparison.OrdinalIgnoreCase))
+                if (request == null || request.Symbols == null || Request.Files.Count != 1 || !string.Equals(Request.Files.GetKey(0), "symbols", StringComparison.OrdinalIgnoreCase))
                 {
-                    return Error(HttpStatusCode.BadRequest, "InvalidRequest", "The request must contain one symbol package file.", "package");
+                    return Error(HttpStatusCode.BadRequest, "InvalidRequest", "The request must contain one symbol package file in the symbols field.", "symbols");
                 }
 
                 var fieldError = ValidateUploadFields(symbols: true);
@@ -185,15 +188,14 @@ namespace NuGetGallery
 
                 var currentUser = GetCurrentUser();
                 var scopes = User.Identity.GetScopesFromClaim();
-                var result = await _symbolPackageStagingUploadService.StageSymbolPackageAsync(currentUser, scopes, HttpContext, request.Package.InputStream, request.GroupId);
+                var result = await _symbolPackageStagingUploadService.StageSymbolPackageAsync(currentUser, scopes, HttpContext, request.Symbols.InputStream, request.GroupId);
                 if (!result.Success)
                 {
                     return Error(result.StatusCode, "SymbolPackageUploadFailed", result.ErrorMessage);
                 }
 
                 var symbolPackage = result.StagedSymbolPackage;
-                var response = StagingArtifactResponse.FromSymbolPackage(
-                    symbolPackage, StagingExpirationPolicy.GetDeadline(symbolPackage), GetManagementUrl(symbolPackage.StagedPackageIdentity));
+                var response = GetSymbolResponses(new[] { symbolPackage })[symbolPackage.Key];
                 return UploadResponse(result, response, RouteName.GetStagedSymbolPackageStatus);
             }
             catch (HttpException exception) when (exception.IsMaxRequestLengthExceeded())
@@ -267,9 +269,11 @@ namespace NuGetGallery
             var group = packagePage.Group;
             var managementUrl = Url.ManageStagingGroup(group.Owner.Username, group.Id, relativeUrl: false);
             var expirationDate = group.ExpirationDate;
+            var packageResponses = GetPackageResponses(packagePage.Items);
+            var symbolResponses = GetSymbolResponses(packagePage.Symbols);
             var artifacts = packagePage.Items
-                .Select(package => new { package.Key, package.UploadedDate, IsSymbol = false, Artifact = StagingArtifactResponse.FromPackage(package, expirationDate, managementUrl) })
-                .Concat(packagePage.Symbols.Select(symbol => new { symbol.Key, symbol.UploadedDate, IsSymbol = true, Artifact = StagingArtifactResponse.FromSymbolPackage(symbol, expirationDate, managementUrl) }))
+                .Select(package => new { package.Key, package.UploadedDate, IsSymbol = false, Artifact = packageResponses[package.Key] })
+                .Concat(packagePage.Symbols.Select(symbol => new { symbol.Key, symbol.UploadedDate, IsSymbol = true, Artifact = symbolResponses[symbol.Key] }))
                 .OrderByDescending(item => item.UploadedDate)
                 .ThenByDescending(item => item.Key)
                 .ThenBy(item => item.IsSymbol)
@@ -337,8 +341,8 @@ namespace NuGetGallery
             }
 
             var packagePage = _packageStagingManagementService.GetStagedPackagePage(stagingOwner, scopes, page, pageSize);
-            var artifacts = packagePage.Items.Select(package => StagingArtifactResponse.FromPackage(
-                package, StagingExpirationPolicy.GetDeadline(package), GetManagementUrl(package.StagedPackageIdentity))).ToList();
+            var responses = GetPackageResponses(packagePage.Items);
+            var artifacts = packagePage.Items.Select(package => responses[package.Key]).ToList();
             var quota = _stagingQuotaService.GetUsage(stagingOwner);
             return JsonContent(new StagingArtifactPagedResponse(artifacts, page, pageSize, packagePage.TotalCount, quota));
         }
@@ -367,10 +371,44 @@ namespace NuGetGallery
             }
 
             var symbolPage = _packageStagingManagementService.GetStagedSymbolPackagePage(stagingOwner, scopes, page, pageSize);
-            var artifacts = symbolPage.Items.Select(symbol => StagingArtifactResponse.FromSymbolPackage(
-                symbol, StagingExpirationPolicy.GetDeadline(symbol), GetManagementUrl(symbol.StagedPackageIdentity))).ToList();
+            var responses = GetSymbolResponses(symbolPage.Items);
+            var artifacts = symbolPage.Items.Select(symbol => responses[symbol.Key]).ToList();
             var quota = _stagingQuotaService.GetUsage(stagingOwner);
             return JsonContent(new StagingArtifactPagedResponse(artifacts, page, pageSize, symbolPage.TotalCount, quota));
+        }
+
+        private IReadOnlyDictionary<int, StagingArtifactResponse> GetPackageResponses(IReadOnlyCollection<StagedPackage> packages)
+        {
+            var failedKeys = packages.Where(package => package.Status == StagedPackageStatus.FailedValidation).Select(package => package.Key).ToList();
+            IReadOnlyDictionary<int, IReadOnlyList<ValidationIssue>> issues = new Dictionary<int, IReadOnlyList<ValidationIssue>>();
+            if (failedKeys.Count > 0)
+            {
+                issues = _validationService.GetStagedPackageValidationIssues(failedKeys);
+            }
+
+            return packages.ToDictionary(package => package.Key, package =>
+            {
+                issues.TryGetValue(package.Key, out var validationIssues);
+                return StagingArtifactResponse.FromPackage(
+                    package, StagingExpirationPolicy.GetDeadline(package), GetManagementUrl(package.StagedPackageIdentity), validationIssues);
+            });
+        }
+
+        private IReadOnlyDictionary<int, StagingArtifactResponse> GetSymbolResponses(IReadOnlyCollection<StagedSymbolPackage> symbols)
+        {
+            var failedKeys = symbols.Where(symbol => symbol.Status == StagedPackageStatus.FailedValidation).Select(symbol => symbol.Key).ToList();
+            IReadOnlyDictionary<int, IReadOnlyList<ValidationIssue>> issues = new Dictionary<int, IReadOnlyList<ValidationIssue>>();
+            if (failedKeys.Count > 0)
+            {
+                issues = _validationService.GetStagedSymbolPackageValidationIssues(failedKeys);
+            }
+
+            return symbols.ToDictionary(symbol => symbol.Key, symbol =>
+            {
+                issues.TryGetValue(symbol.Key, out var validationIssues);
+                return StagingArtifactResponse.FromSymbolPackage(
+                    symbol, StagingExpirationPolicy.GetDeadline(symbol), GetManagementUrl(symbol.StagedPackageIdentity), validationIssues);
+            });
         }
 
         private ActionResult ValidateUploadFields(bool symbols)
@@ -485,8 +523,7 @@ namespace NuGetGallery
                 return Error(HttpStatusCode.NotFound, "PackageNotFound", "The staged package was not found.");
             }
 
-            return JsonContent(StagingArtifactResponse.FromPackage(
-                package, StagingExpirationPolicy.GetDeadline(package), GetManagementUrl(package.StagedPackageIdentity)));
+            return JsonContent(GetPackageResponses(new[] { package })[package.Key]);
         }
 
         /// <summary>
@@ -512,8 +549,7 @@ namespace NuGetGallery
                 return Error(HttpStatusCode.NotFound, "SymbolPackageNotFound", "The staged symbol package was not found.");
             }
 
-            return JsonContent(StagingArtifactResponse.FromSymbolPackage(
-                symbolPackage, StagingExpirationPolicy.GetDeadline(symbolPackage), GetManagementUrl(symbolPackage.StagedPackageIdentity)));
+            return JsonContent(GetSymbolResponses(new[] { symbolPackage })[symbolPackage.Key]);
         }
 
         /// <summary>

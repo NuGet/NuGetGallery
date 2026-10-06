@@ -16,6 +16,7 @@ using Moq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Entities;
+using NuGet.Services.Validation.Issues;
 using NuGetGallery.Authentication;
 using NuGetGallery.Filters;
 using NuGetGallery.Framework;
@@ -114,7 +115,7 @@ namespace NuGetGallery
             request.SetupGet(x => x.Form).Returns(groupId == null ? new NameValueCollection() : new NameValueCollection { { "groupId", groupId } });
             var files = new Mock<HttpFileCollectionBase>();
             files.SetupGet(x => x.Count).Returns(1);
-            files.Setup(x => x.GetKey(0)).Returns("package");
+            files.Setup(x => x.GetKey(0)).Returns("symbols");
             request.SetupGet(x => x.Files).Returns(files.Object);
             using var stream = new MemoryStream(new byte[] { 1, 2, 3 });
             var file = new Mock<HttpPostedFileBase>();
@@ -125,7 +126,7 @@ namespace NuGetGallery
                     ? PackageStagingResult.Created(warnings: null, stagedSymbolPackage: symbol)
                     : PackageStagingResult.Ok(stagedSymbolPackage: symbol));
 
-            var result = await target.StageSymbolPackage(new StageSymbolPackageRequest { Package = file.Object, GroupId = groupId });
+            var result = await target.StageSymbolPackage(new StageSymbolPackageRequest { Symbols = file.Object, GroupId = groupId });
 
             Assert.Equal((int)statusCode, target.Response.StatusCode);
             var managementUrl = groupId == null
@@ -175,12 +176,12 @@ namespace NuGetGallery
             request.SetupGet(x => x.Form).Returns(new NameValueCollection { { "groupId", groupId } });
             var files = new Mock<HttpFileCollectionBase>();
             files.SetupGet(x => x.Count).Returns(1);
-            files.Setup(x => x.GetKey(0)).Returns("package");
+            files.Setup(x => x.GetKey(0)).Returns(symbols ? "symbols" : "package");
             request.SetupGet(x => x.Files).Returns(files.Object);
 
             var file = Mock.Of<HttpPostedFileBase>();
             var result = symbols
-                ? await target.StageSymbolPackage(new StageSymbolPackageRequest { Package = file })
+                ? await target.StageSymbolPackage(new StageSymbolPackageRequest { Symbols = file })
                 : await target.StagePackage(new StagePackageRequest { Package = file });
 
             AssertError(target, result, HttpStatusCode.BadRequest, "InvalidRequest", "groupid");
@@ -194,10 +195,10 @@ namespace NuGetGallery
         public async Task RejectsUnknownUploadFieldWithoutUploading(bool symbols, string field)
         {
             var target = GetController<StagingApiController>();
-            var file = ConfigureUploadRequest(target, new NameValueCollection { { field, "false" } });
+            var file = ConfigureUploadRequest(target, new NameValueCollection { { field, "false" } }, symbols);
 
             var result = symbols
-                ? await target.StageSymbolPackage(new StageSymbolPackageRequest { Package = file })
+                ? await target.StageSymbolPackage(new StageSymbolPackageRequest { Symbols = file })
                 : await target.StagePackage(new StagePackageRequest { Package = file });
 
             AssertError(target, result, HttpStatusCode.BadRequest, "InvalidRequest", field);
@@ -224,7 +225,7 @@ namespace NuGetGallery
         public async Task PreservesUploadServiceFailureInErrorEnvelope(bool symbols, HttpStatusCode statusCode)
         {
             var target = GetController<StagingApiController>();
-            var file = ConfigureUploadRequest(target, new NameValueCollection());
+            var file = ConfigureUploadRequest(target, new NameValueCollection(), symbols);
             const string message = "The upload was rejected by the existing policy.";
             GetMock<IPackageStagingUploadService>()
                 .Setup(x => x.StagePackageAsync(It.IsAny<User>(), It.IsAny<IReadOnlyCollection<Scope>>(), target.HttpContext, file.InputStream, null, null))
@@ -234,7 +235,7 @@ namespace NuGetGallery
                 .ReturnsAsync(PackageStagingResult.Error(statusCode, message));
 
             var result = symbols
-                ? await target.StageSymbolPackage(new StageSymbolPackageRequest { Package = file })
+                ? await target.StageSymbolPackage(new StageSymbolPackageRequest { Symbols = file })
                 : await target.StagePackage(new StagePackageRequest { Package = file });
 
             AssertError(target, result, statusCode, symbols ? "SymbolPackageUploadFailed" : "PackageUploadFailed");
@@ -248,12 +249,12 @@ namespace NuGetGallery
         public async Task ReturnsStructuredUploadTransportError(bool symbols, bool tooLarge)
         {
             var target = GetController<StagingApiController>();
-            var file = ConfigureUploadRequest(target, new NameValueCollection());
+            var file = ConfigureUploadRequest(target, new NameValueCollection(), symbols);
             Mock.Get(file).SetupGet(x => x.InputStream).Throws(new HttpException(tooLarge ? "Maximum request length exceeded." : "The connection was closed."));
             Mock.Get(target.Response).SetupGet(x => x.IsClientConnected).Returns(tooLarge);
 
             var result = symbols
-                ? await target.StageSymbolPackage(new StageSymbolPackageRequest { Package = file })
+                ? await target.StageSymbolPackage(new StageSymbolPackageRequest { Symbols = file })
                 : await target.StagePackage(new StagePackageRequest { Package = file });
 
             AssertError(target, result, tooLarge ? HttpStatusCode.RequestEntityTooLarge : HttpStatusCode.BadRequest, tooLarge ? "PackageFileTooLarge" : "PackageUploadCancelled");
@@ -497,6 +498,7 @@ namespace NuGetGallery
         [InlineData(false)]
         [InlineData(true)]
         [InlineData(true, StagedPackageStatus.WaitingForParent)]
+        [InlineData(true, StagedPackageStatus.FailedValidation)]
         public void GetsStagingGroupWithPagedMembers(bool withSymbols, StagedPackageStatus symbolStatus = StagedPackageStatus.Ready)
         {
             var currentUser = new User("current") { Key = 1 };
@@ -510,6 +512,15 @@ namespace NuGetGallery
             var symbols = new StagedSymbolPackage { Key = 50, StagedPackageIdentity = package.StagedPackageIdentity, SymbolPackage = new SymbolPackage { StatusKey = PackageStatus.Staged }, Status = symbolStatus, UploadedDate = package.UploadedDate.AddMinutes(-1) };
             var target = GetController<StagingApiController>();
             ConfigureCreateGroupRequest(target, currentUser, owner);
+            if (symbolStatus == StagedPackageStatus.FailedValidation)
+            {
+                package.Status = StagedPackageStatus.FailedValidation;
+                GetMock<IValidationService>().Setup(x => x.GetStagedPackageValidationIssues(It.IsAny<IReadOnlyCollection<int>>()))
+                    .Returns(new Dictionary<int, IReadOnlyList<ValidationIssue>> { { package.Key, new[] { ValidationIssue.PackageIsZip64 } } });
+                GetMock<IValidationService>().Setup(x => x.GetStagedSymbolPackageValidationIssues(It.IsAny<IReadOnlyCollection<int>>()))
+                    .Returns(new Dictionary<int, IReadOnlyList<ValidationIssue>> { { symbols.Key, new[] { ValidationIssue.SymbolErrorCode_PdbIsNotPortable } } });
+            }
+
             var groupSymbols = Array.Empty<StagedSymbolPackage>();
             if (withSymbols)
             {
@@ -540,7 +551,17 @@ namespace NuGetGallery
                 }
 
                 Assert.Equal("symbols", (string)body["items"][1]["kind"]);
-                Assert.Equal(symbolStatus == StagedPackageStatus.WaitingForParent ? "waitingForParent" : "ready", (string)body["items"][1]["status"]);
+                var expectedSymbolStatus = "ready";
+                if (symbolStatus == StagedPackageStatus.WaitingForParent)
+                {
+                    expectedSymbolStatus = "waitingForParent";
+                }
+                else if (symbolStatus == StagedPackageStatus.FailedValidation)
+                {
+                    expectedSymbolStatus = "validationFailed";
+                }
+
+                Assert.Equal(expectedSymbolStatus, (string)body["items"][1]["status"]);
                 if (symbolStatus == StagedPackageStatus.WaitingForParent)
                 {
                     Assert.Equal("ParentPackageMissing", (string)body["items"][1]["blockers"][0]["code"]);
@@ -557,10 +578,17 @@ namespace NuGetGallery
             Assert.Equal(withSymbols ? 2 : 1, (int)body["totalCount"]);
             Assert.Equal("PackageA", (string)body["items"][0]["id"]);
             Assert.Equal("package", (string)body["items"][0]["kind"]);
-            Assert.Equal("ready", (string)body["items"][0]["status"]);
+            Assert.Equal(symbolStatus == StagedPackageStatus.FailedValidation ? "validationFailed" : "ready", (string)body["items"][0]["status"]);
             Assert.Equal("release", (string)body["items"][0]["group"]["id"]);
-            Assert.Null(body["items"][0]["validated"].Value<string>());
+            Assert.Null(body["items"][0]["validated"]);
             Assert.Equal((string)body["group"]["expires"], (string)body["items"][0]["expires"]);
+            if (symbolStatus == StagedPackageStatus.FailedValidation)
+            {
+                Assert.Contains(body["items"][0]["blockers"], blocker => (string)blocker["message"] == "Zip64 packages are not supported.");
+                Assert.Contains(body["items"][1]["blockers"], blocker => (string)blocker["message"] == "The uploaded symbols package contains one or more pdbs that are not portable.");
+                GetMock<IValidationService>().Verify(x => x.GetStagedPackageValidationIssues(It.Is<IReadOnlyCollection<int>>(keys => keys.SequenceEqual(new[] { package.Key }))), Times.Once);
+                GetMock<IValidationService>().Verify(x => x.GetStagedSymbolPackageValidationIssues(It.Is<IReadOnlyCollection<int>>(keys => keys.SequenceEqual(new[] { symbols.Key }))), Times.Once);
+            }
         }
 
         [Theory]
@@ -785,6 +813,7 @@ namespace NuGetGallery
             Assert.Equal(symbols ? "symbols" : "package", (string)item["kind"]);
             Assert.Equal("ready", (string)item["status"]);
             Assert.Equal(package.UploadedDate.ToUtcIso8601String(), (string)item["uploaded"]);
+            Assert.Null(item["validated"]);
             if (grouped)
             {
                 Assert.Equal("release", (string)item["group"]["id"]);
@@ -1056,6 +1085,86 @@ namespace NuGetGallery
 
             ParseJsonContent(result);
             Assert.Equal(JsonConvert.SerializeObject(expected), Assert.IsType<ContentResult>(result).Content);
+            GetMock<IValidationService>().Verify(x => x.GetStagedPackageValidationIssues(It.IsAny<IReadOnlyCollection<int>>()), Times.Never);
+            GetMock<IValidationService>().Verify(x => x.GetStagedSymbolPackageValidationIssues(It.IsAny<IReadOnlyCollection<int>>()), Times.Never);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void ReadsCurrentAttemptFindingsAndBatchesOnlyFailedPageMembers(bool symbols)
+        {
+            var owner = new User("owner") { Key = 1 };
+            var packages = new[] { CreateStagedPackage(owner), CreateStagedPackage(owner), CreateStagedPackage(owner) };
+            var attempts = new List<StagedSymbolPackage>();
+            for (var index = 0; index < packages.Length; index++)
+            {
+                var package = packages[index];
+                package.Key += index;
+                package.Status = index < 2 ? StagedPackageStatus.FailedValidation : StagedPackageStatus.Ready;
+                package.UploadedDate = DateTime.UtcNow;
+                package.StagedPackageIdentity.CurrentStagedPackageKey = package.Key;
+                var attempt = new StagedSymbolPackage
+                {
+                    Key = package.Key,
+                    StagedPackageIdentity = package.StagedPackageIdentity,
+                    SymbolPackage = new SymbolPackage { StatusKey = PackageStatus.Staged },
+                    Status = package.Status,
+                    UploadedDate = package.UploadedDate,
+                };
+                package.StagedPackageIdentity.CurrentStagedSymbolPackageKey = attempt.Key;
+                attempts.Add(attempt);
+            }
+
+            var findings = new Dictionary<int, IReadOnlyList<ValidationIssue>>
+            {
+                { 43, new[] { new ClientSigningVerificationFailure("NU3004", "The signature is invalid.") } },
+                { 44, new[] { ValidationIssue.PackageIsZip64 } },
+                { 45, new[] { ValidationIssue.PackageIsNotSigned } },
+            };
+            var target = GetController<StagingApiController>();
+            ConfigureCreateGroupRequest(target, owner, owner);
+            var validation = GetMock<IValidationService>();
+            GetMock<IStagingQuotaService>().Setup(x => x.GetUsage(owner)).Returns(new StagingQuotaUsage { Limit = 350 });
+            if (symbols)
+            {
+                GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagedSymbolPackage(owner, It.IsAny<IReadOnlyCollection<Scope>>(), "PackageA", "1.0.0")).Returns(attempts[0]);
+                GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagedSymbolPackagePage(owner, It.IsAny<IReadOnlyCollection<Scope>>(), 1, 100))
+                    .Returns(new StagingArtifactPage<StagedSymbolPackage>(attempts, attempts.Count));
+                validation.Setup(x => x.GetStagedSymbolPackageValidationIssues(It.IsAny<IReadOnlyCollection<int>>())).Returns(findings);
+            }
+            else
+            {
+                GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagedPackage(owner, It.IsAny<IReadOnlyCollection<Scope>>(), "PackageA", "1.0.0")).Returns(packages[0]);
+                GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagedPackagePage(owner, It.IsAny<IReadOnlyCollection<Scope>>(), 1, 100))
+                    .Returns(new StagingArtifactPage<StagedPackage>(packages, packages.Length));
+                validation.Setup(x => x.GetStagedPackageValidationIssues(It.IsAny<IReadOnlyCollection<int>>())).Returns(findings);
+            }
+
+            var status = ParseJsonContent(symbols ? target.GetStagedSymbolPackageStatus("PackageA", "1.0.0") : target.GetStagedPackageStatus("PackageA", "1.0.0"));
+            var page = ParseJsonContent(symbols ? target.GetStagedSymbolPackages() : target.GetStagedPackages());
+
+            Assert.Equal("validationFailed", (string)status["status"]);
+            Assert.Null(status["validated"]);
+            Assert.False((bool)status["canPromote"]);
+            Assert.Equal(status["blockers"].ToString(), page["items"][0]["blockers"].ToString());
+            Assert.Contains(status["blockers"], blocker => (string)blocker["code"] == "ValidationClientSigningVerificationFailure" && (string)blocker["message"] == "NU3004: The signature is invalid.");
+            Assert.Contains(page["items"][1]["blockers"], blocker => (string)blocker["code"] == "ValidationPackageIsZip64");
+            Assert.DoesNotContain(page["items"][2]["blockers"], blocker => ((string)blocker["code"]).StartsWith("Validation", StringComparison.Ordinal));
+            if (symbols)
+            {
+                validation.Verify(x => x.GetStagedSymbolPackageValidationIssues(It.Is<IReadOnlyCollection<int>>(keys => keys.SequenceEqual(new[] { 43 }))), Times.Once);
+                validation.Verify(x => x.GetStagedSymbolPackageValidationIssues(It.Is<IReadOnlyCollection<int>>(keys => keys.SequenceEqual(new[] { 43, 44 }))), Times.Once);
+                validation.Verify(x => x.GetStagedSymbolPackageValidationIssues(It.IsAny<IReadOnlyCollection<int>>()), Times.Exactly(2));
+                validation.Verify(x => x.GetStagedPackageValidationIssues(It.IsAny<IReadOnlyCollection<int>>()), Times.Never);
+            }
+            else
+            {
+                validation.Verify(x => x.GetStagedPackageValidationIssues(It.Is<IReadOnlyCollection<int>>(keys => keys.SequenceEqual(new[] { 43 }))), Times.Once);
+                validation.Verify(x => x.GetStagedPackageValidationIssues(It.Is<IReadOnlyCollection<int>>(keys => keys.SequenceEqual(new[] { 43, 44 }))), Times.Once);
+                validation.Verify(x => x.GetStagedPackageValidationIssues(It.IsAny<IReadOnlyCollection<int>>()), Times.Exactly(2));
+                validation.Verify(x => x.GetStagedSymbolPackageValidationIssues(It.IsAny<IReadOnlyCollection<int>>()), Times.Never);
+            }
         }
 
         [Theory]
@@ -1257,7 +1366,7 @@ namespace NuGetGallery
             AssertError(target, result, HttpStatusCode.Conflict, "GroupPromotionInProgress");
         }
 
-        private HttpPostedFileBase ConfigureUploadRequest(StagingApiController target, NameValueCollection form)
+        private HttpPostedFileBase ConfigureUploadRequest(StagingApiController target, NameValueCollection form, bool symbols = false)
         {
             ConfigureCreateGroupRequest(target, new User("current") { Key = 1 }, owner: null);
             var request = Mock.Get(target.Request);
@@ -1265,7 +1374,7 @@ namespace NuGetGallery
             request.SetupGet(x => x.Form).Returns(form);
             var files = new Mock<HttpFileCollectionBase>();
             files.SetupGet(x => x.Count).Returns(1);
-            files.Setup(x => x.GetKey(0)).Returns("package");
+            files.Setup(x => x.GetKey(0)).Returns(symbols ? "symbols" : "package");
             request.SetupGet(x => x.Files).Returns(files.Object);
             var file = new Mock<HttpPostedFileBase>();
             file.SetupGet(x => x.InputStream).Returns(Stream.Null);
