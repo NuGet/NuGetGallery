@@ -9,9 +9,9 @@ static class ConfigureValidationTool
 {
 	public static int Run(string[] args)
 	{
-		if (args.Length != 5)
+		if (args.Length != 6)
 		{
-			throw new ArgumentException("Expected Gallery, package orchestrator, staging promotion, symbol orchestrator, and symbol validator configuration paths.");
+			throw new ArgumentException("Expected Gallery, package orchestrator, staging promotion, symbol orchestrator, symbol validator, and maintenance configuration paths.");
 		}
 
 		var serviceBusHostName = Environment.GetEnvironmentVariable("SERVICE_BUS_HOST_NAME");
@@ -26,6 +26,7 @@ static class ConfigureValidationTool
 		UpdatePromotionConfiguration(args[2], serviceBusHostName);
 		UpdateOrchestratorConfiguration(args[3], serviceBusHostName, symbols: true);
 		UpdateSymbolsValidatorConfiguration(args[4], serviceBusHostName);
+		UpdateMaintenanceConfiguration(args[5], serviceBusHostName);
 		return 0;
 	}
 
@@ -86,6 +87,14 @@ static class ConfigureValidationTool
 			?? throw new InvalidOperationException("The symbol validator configuration is empty.");
 		SetJsonValue(root, "ServiceBus", "ConnectionString", serviceBusHostName);
 		SetJsonValue(root, "PackageValidationServiceBus", "ConnectionString", serviceBusHostName);
+		File.WriteAllText(path, root.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+	}
+
+	private static void UpdateMaintenanceConfiguration(string path, string serviceBusHostName)
+	{
+		var root = JsonNode.Parse(File.ReadAllText(path))
+			?? throw new InvalidOperationException("The maintenance configuration is empty.");
+		SetJsonValue(root, "Email", "ServiceBus", "ConnectionString", serviceBusHostName);
 		File.WriteAllText(path, root.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
 	}
 
