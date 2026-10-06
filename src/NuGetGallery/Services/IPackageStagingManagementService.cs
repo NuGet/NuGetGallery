@@ -30,7 +30,7 @@ namespace NuGetGallery
         /// <param name="scopes">The credential scopes used to filter package IDs.</param>
         /// <param name="page">The one-based page number.</param>
         /// <param name="pageSize">The number of artifacts per page.</param>
-        /// <returns>The visible symbol page and total matching count.</returns>
+        /// <returns>The visible symbol page and total matching count, or an empty page when the owner is unconfirmed or locked.</returns>
         StagingArtifactPage<StagedSymbolPackage> GetStagedSymbolPackagePage(User stagingOwner, IReadOnlyCollection<Scope> scopes, int page, int pageSize);
 
         /// <summary>
