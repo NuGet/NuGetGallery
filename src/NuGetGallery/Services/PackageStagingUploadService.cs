@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
+using System.Data.SqlTypes;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -479,7 +480,7 @@ namespace NuGetGallery
                     }
                 }
 
-                return PackageStagingResult.Ok();
+                return PackageStagingResult.Ok(stagedPackage: target.CurrentAttempt);
             }
 
             if (target.ExistingPackage?.PackageStatusKey != PackageStatus.Staged)
@@ -592,10 +593,10 @@ namespace NuGetGallery
             var warnings = CreateWarnings(beforeValidation, afterValidation, packagePolicyResult);
             if (target.ExistingPackage == null)
             {
-                return PackageStagingResult.Created(warnings);
+                return PackageStagingResult.Created(warnings, stagedPackage: commitResult.Attempt);
             }
 
-            return PackageStagingResult.Ok(warnings);
+            return PackageStagingResult.Ok(warnings, stagedPackage: commitResult.Attempt);
         }
 
         private async Task<PackageArchiveReader> ValidatePackageAsync(Stream packageFile)
@@ -764,6 +765,7 @@ namespace NuGetGallery
             var stagedPackageIdentity = previousAttempt?.StagedPackageIdentity ?? new StagedPackageIdentity
             {
                 Package = package,
+                Owner = owner,
                 OwnerKey = owner.Key,
             };
 
@@ -774,7 +776,7 @@ namespace NuGetGallery
                 UploadedBlobETag = file.ETag,
                 UploadHash = uploadHash,
                 Status = StagedPackageStatus.Validating,
-                UploadedDate = DateTime.UtcNow,
+                UploadedDate = new SqlDateTime(DateTime.UtcNow).Value,
                 ExpirationDate = StagingExpirationPolicy.CreateDeadline(_configuration),
             };
 

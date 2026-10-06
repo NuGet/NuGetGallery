@@ -459,6 +459,7 @@ namespace NuGetGallery
             }
             else if (identical && previousStatus != StagedPackageStatus.FailedValidation)
             {
+                Assert.Same(previousAttempt, result.StagedSymbolPackage);
                 Assert.Equal(previousAttempt.Key, identity.CurrentStagedSymbolPackageKey);
                 Assert.Equal(previousDeadline, previousAttempt.ExpirationDate);
                 Assert.Equal(previousStatus, previousAttempt.Status);
@@ -474,6 +475,7 @@ namespace NuGetGallery
             else if (expectedStatus == HttpStatusCode.Created || expectedStatus == HttpStatusCode.OK)
             {
                 Assert.True(result.Success, result.ErrorMessage);
+                Assert.Same(attempt, result.StagedSymbolPackage);
                 Assert.Equal(PackageStatus.Staged, symbolPackage.StatusKey);
                 Assert.Equal(package, attempt.StagedPackageIdentity.Package);
                 Assert.Equal(owner, attempt.StagedPackageIdentity.Owner);
