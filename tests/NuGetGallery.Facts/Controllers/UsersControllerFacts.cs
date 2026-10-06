@@ -2688,6 +2688,37 @@ namespace NuGetGallery
                 Assert.Equal(isPackageOrphaned, model.HasPackagesThatWillBeOrphaned);
                 Assert.Equal(withPendingIssues, model.HasPendingRequests);
                 Assert.Equal(stagingEnabled, model.IsPackageStagingEnabled);
+                Assert.False(model.HasStagingEnabledOrganizationsToDelete);
+            }
+
+            [Theory]
+            [InlineData(true, true, true)]
+            [InlineData(false, true, false)]
+            [InlineData(true, false, false)]
+            public void WarnsAboutOrganizationStagingOnlyWhenTheOrganizationWillBeDeleted(bool lastMember, bool organizationStagingEnabled, bool expectedWarning)
+            {
+                var controller = GetController<UsersController>();
+                var user = Get<Fakes>().User;
+                controller.SetCurrentUser(user);
+                var organization = new Organization("organization") { Key = 100 };
+                var membership = new Membership { Member = user, MemberKey = user.Key, Organization = organization, OrganizationKey = organization.Key };
+                user.Organizations.Add(membership);
+                organization.Members.Add(membership);
+                if (!lastMember)
+                {
+                    organization.Members.Add(new Membership { Member = new User("other") { Key = 200 } });
+                }
+
+                GetMock<IPackageService>().Setup(service => service.FindPackagesForAccountDeletion(user)).Returns(Array.Empty<Package>());
+                GetMock<ISupportRequestService>().Setup(service => service.GetIssues(null, null, null, null)).Returns(Array.Empty<Issue>());
+                GetMock<IFeatureFlagService>().Setup(service => service.IsPackageStagingEnabled(user)).Returns(false);
+                GetMock<IFeatureFlagService>().Setup(service => service.IsPackageStagingEnabled(organization)).Returns(organizationStagingEnabled);
+
+                var result = controller.DeleteRequest();
+                var model = ResultAssert.IsView<DeleteUserViewModel>(result, "DeleteAccount");
+
+                Assert.False(model.IsPackageStagingEnabled);
+                Assert.Equal(expectedWarning, model.HasStagingEnabledOrganizationsToDelete);
             }
         }
 

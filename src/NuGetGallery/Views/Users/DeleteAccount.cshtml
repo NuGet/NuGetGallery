@@ -40,6 +40,10 @@
                             {
                                 <li>Delete your account's private staged packages and symbols, including any pending promotions.</li>
                             }
+                            @if (Model.HasStagingEnabledOrganizationsToDelete)
+                            {
+                                <li>Delete organizations where you are the only member, including their private staged packages, symbols, and pending promotions.</li>
+                            }
                         </ul>
                     </p>
                     if (Model.HasPackagesThatWillBeOrphaned)
