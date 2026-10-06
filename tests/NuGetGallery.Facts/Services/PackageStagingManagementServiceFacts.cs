@@ -1457,6 +1457,164 @@ namespace NuGetGallery
                 repository.Verify(x => x.CommitChangesAsync(), Times.Never);
             }
 
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void PagesApiInventoriesByUploadThenDescendingArtifactKey(bool symbols)
+            {
+                var owner = new User("owner") { Key = 1 };
+                var uploaded = new DateTime(2026, 10, 1, 0, 0, 0, DateTimeKind.Utc);
+                var packages = new[]
+                {
+                    CreateStagedPackage(10, "Newest", "1.0.0", owner),
+                    CreateStagedPackage(11, "Alpha", "9.0.0", owner),
+                    CreateStagedPackage(12, "Alpha", "1.0.0", owner),
+                    CreateStagedPackage(13, "Beta", "1.0.0", owner),
+                    CreateStagedPackage(14, "Oldest", "1.0.0", owner),
+                };
+                foreach (var package in packages)
+                {
+                    package.UploadedDate = uploaded;
+                }
+
+                packages[0].UploadedDate = uploaded.AddMinutes(1);
+                packages[4].UploadedDate = uploaded.AddMinutes(-1);
+                var stagedSymbols = packages.Select(package => CreateInventorySymbols(package)).ToArray();
+                var target = CreateService(packages, user => true, stagedSymbols: stagedSymbols);
+                var scopes = new[] { new Scope(owner.Key, "*", NuGetScopes.PackageStage) };
+                var keys = new List<int>();
+                for (var page = 1; page <= 3; page++)
+                {
+                    var result = GetInventoryPage(target, owner, scopes, symbols, page, 2);
+                    Assert.Equal(5, result.TotalCount);
+                    Assert.InRange(result.Items.Count, 1, 2);
+                    keys.AddRange(result.Items);
+                }
+
+                Assert.Equal(new[] { 10, 13, 12, 11, 14 }, keys);
+                var empty = GetInventoryPage(target, owner, scopes, symbols, int.MaxValue, 500);
+                Assert.Empty(empty.Items);
+                Assert.Equal(5, empty.TotalCount);
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void FiltersApiInventoryByOwnerActionAndPackagePatternBeforePaging(bool symbols)
+            {
+                var owner = new User("owner") { Key = 1 };
+                var otherOwner = new User("other") { Key = 2 };
+                var packages = new[]
+                {
+                    CreateStagedPackage(10, "Allowed.First", "1.0.0", owner),
+                    CreateStagedPackage(11, "Allowed.Second", "1.0.0", owner),
+                    CreateStagedPackage(12, "Hidden.Package", "1.0.0", owner),
+                    CreateStagedPackage(13, "Allowed.OtherOwner", "1.0.0", otherOwner),
+                };
+                foreach (var package in packages)
+                {
+                    package.UploadedDate = new DateTime(2026, 10, 1, 0, 0, 0, DateTimeKind.Utc);
+                }
+
+                packages[0].StagedPackageIdentity.StagingGroupKey = 20;
+                var stagedSymbols = packages.Select(package => CreateInventorySymbols(package)).ToArray();
+                var target = CreateService(packages, user => true, stagedSymbols: stagedSymbols);
+                var scopes = new[]
+                {
+                    new Scope(owner.Key, "Allowed.*", NuGetScopes.PackageStage),
+                    new Scope(owner.Key, "*", NuGetScopes.PackagePush),
+                    new Scope(otherOwner.Key, "*", NuGetScopes.PackageStage),
+                };
+
+                var first = GetInventoryPage(target, owner, scopes, symbols, 1, 1);
+                var second = GetInventoryPage(target, owner, scopes, symbols, 2, 1);
+
+                Assert.Equal(2, first.TotalCount);
+                Assert.Equal(2, second.TotalCount);
+                Assert.Equal(new[] { 11 }, first.Items);
+                Assert.Equal(new[] { 10 }, second.Items);
+
+                var noMatchingScopes = new[] { new Scope(owner.Key, "Other.*", NuGetScopes.PackageStage) };
+                var empty = GetInventoryPage(target, owner, noMatchingScopes, symbols, 1, 1);
+                Assert.Empty(empty.Items);
+                Assert.Equal(0, empty.TotalCount);
+            }
+
+            [Fact]
+            public void ListsOnlyCurrentLiveApiSymbolsIncludingRetainedGroupSuccess()
+            {
+                var owner = new User("owner") { Key = 1 };
+                var ready = CreateStagedPackage(10, "Ready", "1.0.0", owner);
+                var deleted = CreateStagedPackage(11, "Deleted", "1.0.0", owner);
+                deleted.Status = StagedPackageStatus.Deleted;
+                var superseded = CreateStagedPackage(12, "Superseded", "1.0.0", owner);
+                superseded.Status = StagedPackageStatus.Superseded;
+                var old = CreateStagedPackage(13, "Old", "1.0.0", owner);
+                old.StagedPackageIdentity.CurrentStagedPackageKey = 99;
+                var published = CreateStagedPackage(14, "Published", "1.0.0", owner);
+                published.Status = StagedPackageStatus.Succeeded;
+                published.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Available;
+                var retained = CreateStagedPackage(15, "Retained", "1.0.0", owner);
+                retained.Status = StagedPackageStatus.Succeeded;
+                retained.StagedPackageIdentity.StagingGroupKey = 20;
+                retained.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Available;
+                var packages = new[] { ready, deleted, superseded, old, published, retained };
+                foreach (var package in packages)
+                {
+                    package.UploadedDate = new DateTime(2026, 10, 1, 0, 0, 0, DateTimeKind.Utc);
+                }
+
+                var stagedSymbols = packages.Select(package => CreateInventorySymbols(package)).ToArray();
+                stagedSymbols[1].Status = StagedPackageStatus.Deleted;
+                stagedSymbols[2].Status = StagedPackageStatus.Superseded;
+                old.StagedPackageIdentity.CurrentStagedSymbolPackageKey = 99;
+                stagedSymbols[4].Status = StagedPackageStatus.Succeeded;
+                stagedSymbols[4].SymbolPackage.StatusKey = PackageStatus.Available;
+                stagedSymbols[5].Status = StagedPackageStatus.Succeeded;
+                stagedSymbols[5].SymbolPackage.StatusKey = PackageStatus.Available;
+                var target = CreateService(packages, user => true, stagedSymbols: stagedSymbols);
+                var scopes = new[] { new Scope(owner.Key, "*", NuGetScopes.PackageStage) };
+
+                var result = GetInventoryPage(target, owner, scopes, symbols: true, page: 1, pageSize: 100);
+
+                Assert.Equal(2, result.TotalCount);
+                Assert.Equal(new[] { 15, 10 }, result.Items);
+                retained.StagedPackageIdentity.CurrentStagedPackageKey = null;
+                retained.StagedPackageIdentity.CurrentStagedSymbolPackageKey = null;
+                var afterCleanup = GetInventoryPage(target, owner, scopes, symbols: true, page: 1, pageSize: 100);
+                Assert.Equal(1, afterCleanup.TotalCount);
+                Assert.Equal(new[] { 10 }, afterCleanup.Items);
+            }
+
+            private static StagedSymbolPackage CreateInventorySymbols(StagedPackage package)
+            {
+                var symbols = new StagedSymbolPackage
+                {
+                    Key = package.Key,
+                    StagedPackageIdentity = package.StagedPackageIdentity,
+                    StagedPackageIdentityKey = package.StagedPackageIdentityKey,
+                    UploadedDate = package.UploadedDate,
+                    Status = StagedPackageStatus.Ready,
+                    SymbolPackage = new SymbolPackage { StatusKey = PackageStatus.Staged },
+                };
+                package.StagedPackageIdentity.CurrentStagedSymbolPackageKey = symbols.Key;
+                package.StagedPackageIdentity.CurrentStagedSymbolPackage = symbols;
+                return symbols;
+            }
+
+            private static StagingArtifactPage<int> GetInventoryPage(
+                PackageStagingManagementService service, User owner, IReadOnlyCollection<Scope> scopes, bool symbols, int page, int pageSize)
+            {
+                if (symbols)
+                {
+                    var result = service.GetStagedSymbolPackagePage(owner, scopes, page, pageSize);
+                    return new StagingArtifactPage<int>(result.Items.Select(item => item.Key).ToList(), result.TotalCount);
+                }
+
+                var packages = service.GetStagedPackagePage(owner, scopes, page, pageSize);
+                return new StagingArtifactPage<int>(packages.Items.Select(item => item.Key).ToList(), packages.TotalCount);
+            }
+
             private static PackageStagingManagementService CreateService(
                 IEnumerable<StagedPackage> stagedPackages,
                 Func<User, bool> isEnabled,

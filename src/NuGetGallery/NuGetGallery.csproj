@@ -695,6 +695,7 @@
     <Compile Include="Services\SymbolPackageStagingManagementService.cs" />
     <Compile Include="Services\SymbolPackageStagingStatus.cs" />
     <Compile Include="Services\StagingGroupSummary.cs" />
+    <Compile Include="Services\StagingArtifactPage.cs" />
     <Compile Include="Services\StagingGroupAssignment.cs" />
     <Compile Include="Services\StagingExpirationPolicy.cs" />
     <Compile Include="Services\IStagingQuotaService.cs" />

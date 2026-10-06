@@ -11,6 +11,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.Routing;
 using Moq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -410,7 +411,7 @@ namespace NuGetGallery
                 {
                     Assert.Equal("ParentPackageMissing", (string)body["items"][1]["blockers"][0]["code"]);
                 }
-                Assert.Null(body["items"][1]["listed"].Value<bool?>());
+                Assert.Null(body["items"][1]["listed"]);
                 Assert.False((bool)body["items"][1]["canPromote"]);
                 Assert.Equal("release", (string)body["items"][1]["group"]["id"]);
             }
@@ -525,24 +526,178 @@ namespace NuGetGallery
                 Times.Never);
         }
 
-        [Fact]
-        public void GetsStagedPackages()
+        [Theory]
+        [InlineData(false, true)]
+        [InlineData(true, false)]
+        public void GetsPagedArtifactsForApiKeyOwner(bool symbols, bool grouped)
         {
             var currentUser = new User("current") { Key = 1 };
-            var packages = new[] { new PackageStagingStatus { Id = "PackageA" } };
-            GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetPackages(currentUser, It.IsAny<IEnumerable<Scope>>()))
-                .Returns(packages);
-            GetMock<HttpContextBase>()
-                .SetupGet(x => x.User)
-                .Returns(Fakes.ToPrincipal(currentUser));
+            var owner = new Organization("owner") { Key = 2 };
+            var package = CreateStagedPackage(owner);
+            package.Status = StagedPackageStatus.Ready;
+            package.UploadedDate = new DateTime(2026, 10, 1, 0, 0, 0, DateTimeKind.Utc);
+            if (grouped)
+            {
+                var group = CreateStagingGroup(10, "release", "Release", owner, package.UploadedDate);
+                package.StagedPackageIdentity.StagingGroupKey = group.Key;
+                package.StagedPackageIdentity.StagingGroup = group;
+            }
+
             var target = GetController<StagingApiController>();
-            target.SetCurrentUser(currentUser);
+            ConfigureCreateGroupRequest(target, currentUser, owner);
+            if (symbols)
+            {
+                package.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Available;
+                var symbol = new StagedSymbolPackage
+                {
+                    Key = 44,
+                    StagedPackageIdentity = package.StagedPackageIdentity,
+                    SymbolPackage = new SymbolPackage { StatusKey = PackageStatus.Staged },
+                    Status = StagedPackageStatus.Ready,
+                    UploadedDate = package.UploadedDate,
+                };
+                GetMock<IPackageStagingManagementService>()
+                    .Setup(x => x.GetStagedSymbolPackagePage(owner, It.IsAny<IReadOnlyCollection<Scope>>(), 2, 1))
+                    .Returns(new StagingArtifactPage<StagedSymbolPackage>(new[] { symbol }, 21));
+            }
+            else
+            {
+                GetMock<IPackageStagingManagementService>()
+                    .Setup(x => x.GetStagedPackagePage(owner, It.IsAny<IReadOnlyCollection<Scope>>(), 2, 1))
+                    .Returns(new StagingArtifactPage<StagedPackage>(new[] { package }, 21));
+            }
+
+            GetMock<IStagingQuotaService>().Setup(x => x.GetUsage(owner))
+                .Returns(new StagingQuotaUsage { UsedPackages = 7, UsedSymbols = 3, Limit = 42 });
+
+            var result = symbols ? target.GetStagedSymbolPackages(2, 1) : target.GetStagedPackages(2, 1);
+
+            var body = ParseJsonContent(result);
+            Assert.Equal(2, (int)body["page"]);
+            Assert.Equal(1, (int)body["pageSize"]);
+            Assert.Equal(21, (int)body["totalCount"]);
+            Assert.Equal(10, (int)body["quota"]["usedArtifacts"]);
+            Assert.Equal(42, (int)body["quota"]["limit"]);
+            Assert.Equal(2, ((JObject)body["quota"]).Count);
+            var item = Assert.Single((JArray)body["items"]);
+            Assert.Equal("PackageA", (string)item["id"]);
+            Assert.Equal("1.0.0", (string)item["version"]);
+            Assert.Equal("owner", (string)item["owner"]);
+            Assert.Equal(symbols ? "symbols" : "package", (string)item["kind"]);
+            Assert.Equal("ready", (string)item["status"]);
+            Assert.Equal(package.UploadedDate.ToUtcIso8601String(), (string)item["uploaded"]);
+            if (grouped)
+            {
+                Assert.Equal("release", (string)item["group"]["id"]);
+            }
+            else
+            {
+                Assert.Equal(JTokenType.Null, item["group"].Type);
+            }
+            Assert.Contains(grouped ? "/account/staging/owner/groups/release" : "/account/staging/owner/ungrouped", (string)item["managementUrl"]);
+            if (symbols)
+            {
+                Assert.Null(item["listed"]);
+            }
+            else
+            {
+                Assert.NotNull(item["listed"]);
+            }
+
+            GetMock<IStagingQuotaService>().Verify(x => x.GetUsage(owner), Times.Once);
+            GetMock<IStagingQuotaService>().Verify(x => x.GetUsage(currentUser), Times.Never);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void ReturnsEmptyArtifactPageWithDefaultsAndOwnerQuota(bool symbols)
+        {
+            var owner = new User("owner") { Key = 1 };
+            var target = GetController<StagingApiController>();
+            ConfigureCreateGroupRequest(target, owner, owner);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagedPackagePage(owner, It.IsAny<IReadOnlyCollection<Scope>>(), 1, 100))
+                .Returns(new StagingArtifactPage<StagedPackage>(Array.Empty<StagedPackage>(), 0));
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagedSymbolPackagePage(owner, It.IsAny<IReadOnlyCollection<Scope>>(), 1, 100))
+                .Returns(new StagingArtifactPage<StagedSymbolPackage>(Array.Empty<StagedSymbolPackage>(), 0));
+            GetMock<IStagingQuotaService>().Setup(x => x.GetUsage(owner))
+                .Returns(new StagingQuotaUsage { UsedPackages = 4, UsedSymbols = 1, Limit = 350 });
+
+            var result = symbols ? target.GetStagedSymbolPackages() : target.GetStagedPackages();
+
+            var body = ParseJsonContent(result);
+            Assert.Empty((JArray)body["items"]);
+            Assert.Equal(1, (int)body["page"]);
+            Assert.Equal(100, (int)body["pageSize"]);
+            Assert.Equal(0, (int)body["totalCount"]);
+            Assert.Equal(5, (int)body["quota"]["usedArtifacts"]);
+        }
+
+        [Theory]
+        [InlineData(false, 0, 100, "page")]
+        [InlineData(true, 1, 501, "pageSize")]
+        public void RejectsInvalidArtifactPaging(bool symbols, int page, int pageSize, string errorTarget)
+        {
+            var target = GetController<StagingApiController>();
+
+            var result = symbols ? target.GetStagedSymbolPackages(page, pageSize) : target.GetStagedPackages(page, pageSize);
+
+            AssertError(target, result, HttpStatusCode.BadRequest, "InvalidPaging", errorTarget);
+            GetMock<IPackageStagingManagementService>().Verify(
+                x => x.GetStagedPackagePage(It.IsAny<User>(), It.IsAny<IReadOnlyCollection<Scope>>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+            GetMock<IPackageStagingManagementService>().Verify(
+                x => x.GetStagedSymbolPackagePage(It.IsAny<User>(), It.IsAny<IReadOnlyCollection<Scope>>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+        }
+
+        [Fact]
+        public void RejectsMalformedArtifactPaging()
+        {
+            var target = GetController<StagingApiController>();
+            target.ModelState.AddModelError("page", "The paging value is not an integer.");
 
             var result = target.GetStagedPackages();
 
-            var json = Assert.IsType<JsonResult>(result);
-            Assert.Same(packages, json.Data);
+            AssertError(target, result, HttpStatusCode.BadRequest, "InvalidPaging", "page");
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void RejectsArtifactListWithoutEnabledApiKeyOwner(bool symbols)
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var target = GetController<StagingApiController>();
+            ConfigureCreateGroupRequest(target, currentUser, owner: null);
+
+            var result = symbols ? target.GetStagedSymbolPackages() : target.GetStagedPackages();
+
+            AssertError(target, result, HttpStatusCode.Forbidden, "StagingOwnerUnavailable");
+            GetMock<IStagingQuotaService>().Verify(x => x.GetUsage(It.IsAny<User>()), Times.Never);
+            GetMock<IPackageStagingManagementService>().Verify(
+                x => x.GetStagedPackagePage(It.IsAny<User>(), It.IsAny<IReadOnlyCollection<Scope>>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+            GetMock<IPackageStagingManagementService>().Verify(
+                x => x.GetStagedSymbolPackagePage(It.IsAny<User>(), It.IsAny<IReadOnlyCollection<Scope>>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+        }
+
+        [Theory]
+        [InlineData("GET", nameof(StagingApiController.GetStagedSymbolPackages))]
+        [InlineData("PUT", nameof(StagingApiController.StageSymbolPackage))]
+        public void MapsSymbolInventoryWithoutChangingSymbolUploadRoute(string method, string action)
+        {
+            var routes = new RouteCollection();
+            Routes.RegisterStagingApiRoutes(routes);
+            var context = new Mock<HttpContextBase>();
+            context.SetupGet(x => x.Request.AppRelativeCurrentExecutionFilePath).Returns("~/api/v3/staging/symbols");
+            context.SetupGet(x => x.Request.PathInfo).Returns(string.Empty);
+            context.SetupGet(x => x.Request.HttpMethod).Returns(method);
+
+            var route = routes.GetRouteData(context.Object);
+
+            Assert.NotNull(route);
+            Assert.Equal("StagingApi", route.Values["controller"]);
+            Assert.Equal(action, route.Values["action"]);
         }
 
         [Fact]
@@ -825,7 +980,7 @@ namespace NuGetGallery
                     currentUser,
                     new[]
                     {
-                        new Scope(owner, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.PackagePush)
+                        new Scope(owner, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.PackageStage)
                         {
                             OwnerKey = owner.Key,
                         },

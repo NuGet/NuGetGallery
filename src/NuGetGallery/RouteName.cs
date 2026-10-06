@@ -59,6 +59,7 @@ namespace NuGetGallery
         public const string StagePackage = "StagePackage";
         public const string StageSymbolPackage = "StageSymbolPackage";
         public const string GetStagedPackages = "GetStagedPackages";
+        public const string GetStagedSymbolPackages = "GetStagedSymbolPackages";
         public const string GetStagedPackageStatus = "GetStagedPackageStatus";
         public const string GetStagedSymbolPackage = "GetStagedSymbolPackage";
         public const string DownloadStagedPackage = "DownloadStagedPackage";
