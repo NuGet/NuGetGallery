@@ -732,6 +732,90 @@ namespace NuGetGallery
             Assert.Equal("PackageA.1.0.0.nupkg", file.FileDownloadName);
         }
 
+        [Theory]
+        [InlineData(false, true)]
+        [InlineData(true, false)]
+        public void GetsArtifactResourceMatchingInventory(bool symbols, bool grouped)
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var owner = new Organization("owner") { Key = 2 };
+            var package = CreateStagedPackage(owner);
+            package.Status = StagedPackageStatus.Ready;
+            package.UploadedDate = DateTime.UtcNow;
+            if (grouped)
+            {
+                var group = CreateStagingGroup(10, "release", "Release", owner, package.UploadedDate);
+                package.StagedPackageIdentity.StagingGroupKey = group.Key;
+                package.StagedPackageIdentity.StagingGroup = group;
+            }
+
+            var target = GetController<StagingApiController>();
+            ConfigureCreateGroupRequest(target, currentUser, owner);
+            StagingArtifactResponse expected;
+            if (symbols)
+            {
+                package.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Available;
+                var symbol = new StagedSymbolPackage
+                {
+                    Key = 44,
+                    StagedPackageIdentity = package.StagedPackageIdentity,
+                    SymbolPackage = new SymbolPackage { StatusKey = PackageStatus.Staged },
+                    Status = StagedPackageStatus.Ready,
+                    UploadedDate = package.UploadedDate,
+                };
+                GetMock<IPackageStagingManagementService>()
+                    .Setup(x => x.GetStagedSymbolPackage(owner, It.IsAny<IReadOnlyCollection<Scope>>(), "packagea", "1.0"))
+                    .Returns(symbol);
+                expected = StagingArtifactResponse.FromSymbolPackage(
+                    symbol, StagingExpirationPolicy.GetDeadline(symbol), target.Url.ManageUngroupedStaging(owner.Username, relativeUrl: false));
+            }
+            else
+            {
+                GetMock<IPackageStagingManagementService>()
+                    .Setup(x => x.GetStagedPackage(owner, It.IsAny<IReadOnlyCollection<Scope>>(), "packagea", "1.0"))
+                    .Returns(package);
+                expected = StagingArtifactResponse.FromPackage(
+                    package, StagingExpirationPolicy.GetDeadline(package), target.Url.ManageStagingGroup(owner.Username, "release", relativeUrl: false));
+            }
+
+            var result = symbols ? target.GetStagedSymbolPackage("packagea", "1.0") : target.GetStagedPackageStatus("packagea", "1.0");
+
+            ParseJsonContent(result);
+            Assert.Equal(JsonConvert.SerializeObject(expected), Assert.IsType<ContentResult>(result).Content);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void RejectsArtifactReadWithoutEnabledApiKeyOwner(bool symbols)
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var target = GetController<StagingApiController>();
+            ConfigureCreateGroupRequest(target, currentUser, owner: null);
+
+            var result = symbols ? target.GetStagedSymbolPackage("PackageA", "1.0.0") : target.GetStagedPackageStatus("PackageA", "1.0.0");
+
+            AssertError(target, result, HttpStatusCode.Forbidden, "StagingOwnerUnavailable");
+            GetMock<IPackageStagingManagementService>().Verify(
+                x => x.GetStagedPackage(It.IsAny<User>(), It.IsAny<IReadOnlyCollection<Scope>>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            GetMock<IPackageStagingManagementService>().Verify(
+                x => x.GetStagedSymbolPackage(It.IsAny<User>(), It.IsAny<IReadOnlyCollection<Scope>>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void ReturnsStructuredNotFoundForUnavailableArtifact(bool symbols)
+        {
+            var owner = new User("owner") { Key = 1 };
+            var target = GetController<StagingApiController>();
+            ConfigureCreateGroupRequest(target, owner, owner);
+
+            var result = symbols ? target.GetStagedSymbolPackage("PackageA", "1.0.0") : target.GetStagedPackageStatus("PackageA", "1.0.0");
+
+            AssertError(target, result, HttpStatusCode.NotFound, symbols ? "SymbolPackageNotFound" : "PackageNotFound");
+        }
+
         [Fact]
         public async Task HidesUnauthorizedPackageDownload()
         {
