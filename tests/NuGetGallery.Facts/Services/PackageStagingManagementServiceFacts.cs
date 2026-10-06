@@ -1462,7 +1462,7 @@ namespace NuGetGallery
             [InlineData(true)]
             public void PagesApiInventoriesByUploadThenDescendingArtifactKey(bool symbols)
             {
-                var owner = new User("owner") { Key = 1 };
+                var owner = new User("owner") { Key = 1, EmailAddress = "owner@example.test" };
                 var uploaded = new DateTime(2026, 10, 1, 0, 0, 0, DateTimeKind.Utc);
                 var packages = new[]
                 {
@@ -1502,7 +1502,7 @@ namespace NuGetGallery
             [InlineData(true)]
             public void FiltersApiInventoryByOwnerActionAndPackagePatternBeforePaging(bool symbols)
             {
-                var owner = new User("owner") { Key = 1 };
+                var owner = new User("owner") { Key = 1, EmailAddress = "owner@example.test" };
                 var otherOwner = new User("other") { Key = 2 };
                 var packages = new[]
                 {
@@ -1543,7 +1543,7 @@ namespace NuGetGallery
             [Fact]
             public void ListsOnlyCurrentLiveApiSymbolsIncludingRetainedGroupSuccess()
             {
-                var owner = new User("owner") { Key = 1 };
+                var owner = new User("owner") { Key = 1, EmailAddress = "owner@example.test" };
                 var ready = CreateStagedPackage(10, "Ready", "1.0.0", owner);
                 var deleted = CreateStagedPackage(11, "Deleted", "1.0.0", owner);
                 deleted.Status = StagedPackageStatus.Deleted;
@@ -1584,6 +1584,39 @@ namespace NuGetGallery
                 var afterCleanup = GetInventoryPage(target, owner, scopes, symbols: true, page: 1, pageSize: 100);
                 Assert.Equal(1, afterCleanup.TotalCount);
                 Assert.Equal(new[] { 10 }, afterCleanup.Items);
+            }
+
+            [Theory]
+            [InlineData(false, false, 0)]
+            [InlineData(true, true, 0)]
+            [InlineData(false, true, 0)]
+            [InlineData(true, false, 1)]
+            public void FiltersApiSymbolInventoryByOwnerState(bool confirmed, bool locked, int expectedCount)
+            {
+                var owner = new User("owner") { Key = 1, EmailAddress = "owner@example.test" };
+                if (!confirmed)
+                {
+                    owner.EmailAddress = null;
+                }
+
+                if (locked)
+                {
+                    owner.UserStatusKey = UserStatus.Locked;
+                }
+
+                var package = CreateStagedPackage(10, "PackageA", "1.0.0", owner);
+                var symbol = CreateInventorySymbols(package);
+                var target = CreateService(new[] { package }, user => true, stagedSymbols: new[] { symbol });
+                var scopes = new[] { new Scope(owner.Key, "*", NuGetScopes.PackageStage) };
+
+                var result = target.GetStagedSymbolPackagePage(owner, scopes, 1, 100);
+
+                Assert.Equal(expectedCount, result.TotalCount);
+                Assert.Equal(expectedCount, result.Items.Count);
+                if (expectedCount > 0)
+                {
+                    Assert.Same(symbol, result.Items[0]);
+                }
             }
 
             private static StagedSymbolPackage CreateInventorySymbols(StagedPackage package)

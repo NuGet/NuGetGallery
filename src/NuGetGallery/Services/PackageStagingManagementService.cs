@@ -697,6 +697,11 @@ namespace NuGetGallery
         public StagingArtifactPage<StagedSymbolPackage> GetStagedSymbolPackagePage(User stagingOwner, IReadOnlyCollection<Scope> scopes, int page, int pageSize)
         {
             ValidateArtifactPaging(stagingOwner, scopes, page, pageSize);
+            if (!stagingOwner.Confirmed || stagingOwner.IsLocked)
+            {
+                return new StagingArtifactPage<StagedSymbolPackage>(Array.Empty<StagedSymbolPackage>(), 0);
+            }
+
             var query = GetCurrentStagedSymbols(new[] { stagingOwner.Key })
                 .Where(symbol => symbol.Status != StagedPackageStatus.Deleted && symbol.Status != StagedPackageStatus.Superseded);
             var matchingScopes = GetInventoryScopes(stagingOwner, scopes);
