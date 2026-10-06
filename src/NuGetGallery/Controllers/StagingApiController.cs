@@ -360,17 +360,33 @@ namespace NuGetGallery
             return Url.ManageUngroupedStaging(identity.Owner.Username, relativeUrl: false);
         }
 
+        /// <summary>
+        /// Downloads the selected staged package content visible to the API-key owner.
+        /// </summary>
+        /// <param name="id">The package ID.</param>
+        /// <param name="version">The package version.</param>
+        /// <returns>The package attachment, or an owner-availability or private-resource error.</returns>
         [HttpGet]
         public virtual async Task<ActionResult> DownloadStagedPackage(string id, string version)
         {
-            var stagedPackage = FindAuthorizedStagedPackage(id, version);
+            var currentUser = GetCurrentUser();
+            var scopes = User.Identity.GetScopesFromClaim();
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledApiKeyOwner(currentUser, scopes);
+            if (stagingOwner == null)
+            {
+                return Error(HttpStatusCode.Forbidden, "StagingOwnerUnavailable", "Staging is not available for the API key owner.");
+            }
+
+            var stagedPackage = _packageStagingManagementService.GetStagedPackage(stagingOwner, scopes, id, version);
             if (stagedPackage == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+                return Error(HttpStatusCode.NotFound, "PackageNotFound", "The staged package was not found.");
             }
 
             var content = await _packageStagingManagementService.OpenPackageContentAsync(stagedPackage);
-            return File(content, CoreConstants.PackageContentType, $"{id}.{version}{CoreConstants.NuGetPackageFileExtension}");
+            var package = stagedPackage.StagedPackageIdentity.Package;
+            var fileName = $"{package.PackageRegistration.Id}.{package.NormalizedVersion}{CoreConstants.NuGetPackageFileExtension}";
+            return File(content, CoreConstants.OctetStreamContentType, fileName);
         }
 
         /// <summary>
