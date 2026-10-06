@@ -733,6 +733,88 @@ namespace NuGetGallery
         }
 
         [Theory]
+        [InlineData("", nameof(StagingApiController.DownloadStagedSymbolPackage))]
+        [InlineData("/status", nameof(StagingApiController.GetStagedSymbolPackageStatus))]
+        public void MapsSymbolContentAndStatusRoutes(string suffix, string action)
+        {
+            var routes = new RouteCollection();
+            Routes.RegisterStagingApiRoutes(routes);
+            var context = new Mock<HttpContextBase>();
+            context.SetupGet(x => x.Request.AppRelativeCurrentExecutionFilePath).Returns($"~/api/v3/staging/symbols/PackageA/1.0.0{suffix}");
+            context.SetupGet(x => x.Request.PathInfo).Returns(string.Empty);
+            context.SetupGet(x => x.Request.HttpMethod).Returns("GET");
+
+            var route = routes.GetRouteData(context.Object);
+
+            Assert.NotNull(route);
+            Assert.Equal("StagingApi", route.Values["controller"]);
+            Assert.Equal(action, route.Values["action"]);
+        }
+
+        [Fact]
+        public async Task DownloadsAuthorizedSymbolsWithCanonicalFilename()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var owner = new User("owner") { Key = 2 };
+            var symbol = new StagedSymbolPackage { StagedPackageIdentity = CreateStagedPackage(owner).StagedPackageIdentity };
+            using var content = new MemoryStream(new byte[] { 1, 2, 3 });
+            var target = GetController<StagingApiController>();
+            ConfigureCreateGroupRequest(target, currentUser, owner);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagedSymbolPackage(owner, It.IsAny<IReadOnlyCollection<Scope>>(), "packagea", "1.0"))
+                .Returns(symbol);
+            GetMock<ISymbolPackageStagingManagementService>()
+                .Setup(x => x.OpenPackageContentAsync(symbol))
+                .ReturnsAsync(content);
+
+            var result = await target.DownloadStagedSymbolPackage("packagea", "1.0");
+
+            var file = Assert.IsType<FileStreamResult>(result);
+            Assert.Same(content, file.FileStream);
+            Assert.Equal(CoreConstants.OctetStreamContentType, file.ContentType);
+            Assert.Equal("PackageA.1.0.0.snupkg", file.FileDownloadName);
+        }
+
+        [Fact]
+        public async Task RejectsSymbolDownloadWithoutEnabledApiKeyOwner()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var target = GetController<StagingApiController>();
+            ConfigureCreateGroupRequest(target, currentUser, owner: null);
+
+            var result = await target.DownloadStagedSymbolPackage("PackageA", "1.0.0");
+
+            AssertError(target, result, HttpStatusCode.Forbidden, "StagingOwnerUnavailable");
+            GetMock<IPackageStagingManagementService>().Verify(
+                x => x.GetStagedSymbolPackage(It.IsAny<User>(), It.IsAny<IReadOnlyCollection<Scope>>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            GetMock<ISymbolPackageStagingManagementService>().Verify(x => x.OpenPackageContentAsync(It.IsAny<StagedSymbolPackage>()), Times.Never);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task ReturnsNotFoundForUnavailableSymbolDownload(bool hasAttempt)
+        {
+            var owner = new User("owner") { Key = 1 };
+            var target = GetController<StagingApiController>();
+            ConfigureCreateGroupRequest(target, owner, owner);
+            if (hasAttempt)
+            {
+                var symbol = new StagedSymbolPackage { StagedPackageIdentity = CreateStagedPackage(owner).StagedPackageIdentity };
+                GetMock<IPackageStagingManagementService>()
+                    .Setup(x => x.GetStagedSymbolPackage(owner, It.IsAny<IReadOnlyCollection<Scope>>(), "PackageA", "1.0.0"))
+                    .Returns(symbol);
+                GetMock<ISymbolPackageStagingManagementService>().Setup(x => x.OpenPackageContentAsync(symbol)).ReturnsAsync((Stream)null);
+            }
+
+            var result = await target.DownloadStagedSymbolPackage("PackageA", "1.0.0");
+
+            AssertError(target, result, HttpStatusCode.NotFound, "SymbolPackageNotFound");
+            GetMock<ISymbolPackageStagingManagementService>().Verify(
+                x => x.OpenPackageContentAsync(It.IsAny<StagedSymbolPackage>()), hasAttempt ? Times.Once() : Times.Never());
+        }
+
+        [Theory]
         [InlineData(false, true)]
         [InlineData(true, false)]
         public void GetsArtifactResourceMatchingInventory(bool symbols, bool grouped)
@@ -778,7 +860,7 @@ namespace NuGetGallery
                     package, StagingExpirationPolicy.GetDeadline(package), target.Url.ManageStagingGroup(owner.Username, "release", relativeUrl: false));
             }
 
-            var result = symbols ? target.GetStagedSymbolPackage("packagea", "1.0") : target.GetStagedPackageStatus("packagea", "1.0");
+            var result = symbols ? target.GetStagedSymbolPackageStatus("packagea", "1.0") : target.GetStagedPackageStatus("packagea", "1.0");
 
             ParseJsonContent(result);
             Assert.Equal(JsonConvert.SerializeObject(expected), Assert.IsType<ContentResult>(result).Content);
@@ -793,7 +875,7 @@ namespace NuGetGallery
             var target = GetController<StagingApiController>();
             ConfigureCreateGroupRequest(target, currentUser, owner: null);
 
-            var result = symbols ? target.GetStagedSymbolPackage("PackageA", "1.0.0") : target.GetStagedPackageStatus("PackageA", "1.0.0");
+            var result = symbols ? target.GetStagedSymbolPackageStatus("PackageA", "1.0.0") : target.GetStagedPackageStatus("PackageA", "1.0.0");
 
             AssertError(target, result, HttpStatusCode.Forbidden, "StagingOwnerUnavailable");
             GetMock<IPackageStagingManagementService>().Verify(
@@ -811,7 +893,7 @@ namespace NuGetGallery
             var target = GetController<StagingApiController>();
             ConfigureCreateGroupRequest(target, owner, owner);
 
-            var result = symbols ? target.GetStagedSymbolPackage("PackageA", "1.0.0") : target.GetStagedPackageStatus("PackageA", "1.0.0");
+            var result = symbols ? target.GetStagedSymbolPackageStatus("PackageA", "1.0.0") : target.GetStagedPackageStatus("PackageA", "1.0.0");
 
             AssertError(target, result, HttpStatusCode.NotFound, symbols ? "SymbolPackageNotFound" : "PackageNotFound");
         }

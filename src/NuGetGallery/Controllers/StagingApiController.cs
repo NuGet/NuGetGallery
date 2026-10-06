@@ -30,6 +30,7 @@ namespace NuGetGallery
         private readonly IPackageStagingManagementService _packageStagingManagementService;
         private readonly IPackageStagingUploadService _packageStagingUploadService;
         private readonly ISymbolPackageStagingUploadService _symbolPackageStagingUploadService;
+        private readonly ISymbolPackageStagingManagementService _symbolPackageStagingManagementService;
         private readonly IStagingQuotaService _stagingQuotaService;
 
         public StagingApiController(
@@ -37,12 +38,14 @@ namespace NuGetGallery
             IPackageStagingManagementService packageStagingManagementService,
             IPackageStagingUploadService packageStagingUploadService,
             ISymbolPackageStagingUploadService symbolPackageStagingUploadService,
+            ISymbolPackageStagingManagementService symbolPackageStagingManagementService,
             IStagingQuotaService stagingQuotaService)
         {
             _packageStagingAuthorizationService = packageStagingAuthorizationService ?? throw new ArgumentNullException(nameof(packageStagingAuthorizationService));
             _packageStagingManagementService = packageStagingManagementService ?? throw new ArgumentNullException(nameof(packageStagingManagementService));
             _packageStagingUploadService = packageStagingUploadService ?? throw new ArgumentNullException(nameof(packageStagingUploadService));
             _symbolPackageStagingUploadService = symbolPackageStagingUploadService ?? throw new ArgumentNullException(nameof(symbolPackageStagingUploadService));
+            _symbolPackageStagingManagementService = symbolPackageStagingManagementService ?? throw new ArgumentNullException(nameof(symbolPackageStagingManagementService));
             _stagingQuotaService = stagingQuotaService ?? throw new ArgumentNullException(nameof(stagingQuotaService));
         }
 
@@ -404,7 +407,7 @@ namespace NuGetGallery
         /// <param name="version">The package version.</param>
         /// <returns>The artifact resource, or an owner-availability or private-resource error.</returns>
         [HttpGet]
-        public virtual ActionResult GetStagedSymbolPackage(string id, string version)
+        public virtual ActionResult GetStagedSymbolPackageStatus(string id, string version)
         {
             var currentUser = GetCurrentUser();
             var scopes = User.Identity.GetScopesFromClaim();
@@ -422,6 +425,40 @@ namespace NuGetGallery
 
             return JsonContent(StagingArtifactResponse.FromSymbolPackage(
                 symbolPackage, StagingExpirationPolicy.GetDeadline(symbolPackage), GetManagementUrl(symbolPackage.StagedPackageIdentity)));
+        }
+
+        /// <summary>
+        /// Downloads the immutable uploaded symbols visible to the API-key owner.
+        /// </summary>
+        /// <param name="id">The package ID.</param>
+        /// <param name="version">The package version.</param>
+        /// <returns>The symbol package attachment, or an owner-availability or private-resource error.</returns>
+        [HttpGet]
+        public virtual async Task<ActionResult> DownloadStagedSymbolPackage(string id, string version)
+        {
+            var currentUser = GetCurrentUser();
+            var scopes = User.Identity.GetScopesFromClaim();
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledApiKeyOwner(currentUser, scopes);
+            if (stagingOwner == null)
+            {
+                return Error(HttpStatusCode.Forbidden, "StagingOwnerUnavailable", "Staging is not available for the API key owner.");
+            }
+
+            var symbolPackage = _packageStagingManagementService.GetStagedSymbolPackage(stagingOwner, scopes, id, version);
+            if (symbolPackage == null)
+            {
+                return Error(HttpStatusCode.NotFound, "SymbolPackageNotFound", "The staged symbol package was not found.");
+            }
+
+            var content = await _symbolPackageStagingManagementService.OpenPackageContentAsync(symbolPackage);
+            if (content == null)
+            {
+                return Error(HttpStatusCode.NotFound, "SymbolPackageNotFound", "The staged symbol package content was not found.");
+            }
+
+            var package = symbolPackage.StagedPackageIdentity.Package;
+            var fileName = $"{package.PackageRegistration.Id}.{package.NormalizedVersion}{CoreConstants.NuGetSymbolPackageFileExtension}";
+            return File(content, CoreConstants.OctetStreamContentType, fileName);
         }
 
         [AcceptVerbs(HttpVerbs.Patch)]
