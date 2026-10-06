@@ -1602,6 +1602,105 @@ namespace NuGetGallery
                 return symbols;
             }
 
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void FiltersApiArtifactReadsByOwnerActionAndPackagePattern(bool symbols)
+            {
+                var owner = new User("owner") { Key = 1, EmailAddress = "owner@example.test" };
+                var otherOwner = new User("other") { Key = 2 };
+                var package = CreateStagedPackage(10, "Allowed.Package", "1.0.0", owner);
+                var symbol = CreateInventorySymbols(package);
+                var packageService = new Mock<IPackageService>();
+                packageService.Setup(x => x.FindPackageByIdAndVersionStrict("allowed.package", "1.0"))
+                    .Returns(package.StagedPackageIdentity.Package);
+                var target = CreateService(new[] { package }, user => true, packageService: packageService.Object, stagedSymbols: new[] { symbol });
+                var scopes = new[]
+                {
+                    new Scope(owner.Key, "Allowed.*", NuGetScopes.PackageStage),
+                    new Scope(owner.Key, "*", NuGetScopes.PackagePush),
+                    new Scope(otherOwner.Key, "*", NuGetScopes.PackageStage),
+                };
+
+                object expected = package;
+                if (symbols)
+                {
+                    expected = symbol;
+                }
+
+                Assert.Same(expected, GetArtifact(owner, "allowed.package"));
+                Assert.Null(GetArtifact(otherOwner, "allowed.package"));
+
+                scopes[0] = new Scope(owner.Key, "Other.*", NuGetScopes.PackageStage);
+                Assert.Null(GetArtifact(owner, "allowed.package"));
+                Assert.Null(GetArtifact(owner, "Missing"));
+                if (symbols)
+                {
+                    scopes[0] = new Scope(owner.Key, "Allowed.*", NuGetScopes.PackageStage);
+                    owner.UserStatusKey = UserStatus.Locked;
+                    Assert.Null(GetArtifact(owner, "allowed.package"));
+                    owner.UserStatusKey = UserStatus.Unlocked;
+                    owner.EmailAddress = null;
+                    Assert.Null(GetArtifact(owner, "allowed.package"));
+                }
+
+                object GetArtifact(User stagingOwner, string id)
+                {
+                    if (symbols)
+                    {
+                        return target.GetStagedSymbolPackage(stagingOwner, scopes, id, "1.0");
+                    }
+
+                    return target.GetStagedPackage(stagingOwner, scopes, id, "1.0");
+                }
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void GetsOnlyCurrentLiveApiArtifactsUntilGroupCleanup(bool symbols)
+            {
+                var owner = new User("owner") { Key = 1, EmailAddress = "owner@example.test" };
+                var package = CreateStagedPackage(10, "PackageA", "1.0.0", owner);
+                var symbol = CreateInventorySymbols(package);
+                var packageService = new Mock<IPackageService>();
+                packageService.Setup(x => x.FindPackageByIdAndVersionStrict("PackageA", "1.0.0"))
+                    .Returns(package.StagedPackageIdentity.Package);
+                var target = CreateService(new[] { package }, user => true, packageService: packageService.Object, stagedSymbols: new[] { symbol });
+                var scopes = new[] { new Scope(owner.Key, "*", NuGetScopes.PackageStage) };
+
+                foreach (var status in new[] { StagedPackageStatus.Ready, StagedPackageStatus.Deleted, StagedPackageStatus.Superseded, StagedPackageStatus.Succeeded })
+                {
+                    package.Status = status;
+                    symbol.Status = status;
+                    var published = status == StagedPackageStatus.Succeeded;
+                    package.StagedPackageIdentity.Package.PackageStatusKey = published ? PackageStatus.Available : PackageStatus.Staged;
+                    symbol.SymbolPackage.StatusKey = published ? PackageStatus.Available : PackageStatus.Staged;
+                    AssertAvailability(status == StagedPackageStatus.Ready);
+                }
+
+                package.StagedPackageIdentity.StagingGroupKey = 20;
+                AssertAvailability(true);
+                package.StagedPackageIdentity.CurrentStagedPackageKey = null;
+                package.StagedPackageIdentity.CurrentStagedSymbolPackageKey = null;
+                AssertAvailability(false);
+
+                void AssertAvailability(bool visible)
+                {
+                    object artifact;
+                    if (symbols)
+                    {
+                        artifact = target.GetStagedSymbolPackage(owner, scopes, "PackageA", "1.0.0");
+                    }
+                    else
+                    {
+                        artifact = target.GetStagedPackage(owner, scopes, "PackageA", "1.0.0");
+                    }
+
+                    Assert.Equal(visible, artifact != null);
+                }
+            }
+
             private static StagingArtifactPage<int> GetInventoryPage(
                 PackageStagingManagementService service, User owner, IReadOnlyCollection<Scope> scopes, bool symbols, int page, int pageSize)
             {

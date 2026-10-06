@@ -34,6 +34,26 @@ namespace NuGetGallery
         StagingArtifactPage<StagedSymbolPackage> GetStagedSymbolPackagePage(User stagingOwner, IReadOnlyCollection<Scope> scopes, int page, int pageSize);
 
         /// <summary>
+        /// Gets a current package visible to an authorized API owner and credential.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="scopes">The credential scopes used to filter package IDs.</param>
+        /// <param name="id">The package ID.</param>
+        /// <param name="version">The package version.</param>
+        /// <returns>The visible current attempt, or <see langword="null"/> when it is unavailable.</returns>
+        StagedPackage GetStagedPackage(User stagingOwner, IReadOnlyCollection<Scope> scopes, string id, string version);
+
+        /// <summary>
+        /// Gets current symbols visible to an authorized API owner and credential.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="scopes">The credential scopes used to filter package IDs.</param>
+        /// <param name="id">The package ID.</param>
+        /// <param name="version">The package version.</param>
+        /// <returns>The visible current attempt, or <see langword="null"/> when it is unavailable.</returns>
+        StagedSymbolPackage GetStagedSymbolPackage(User stagingOwner, IReadOnlyCollection<Scope> scopes, string id, string version);
+
+        /// <summary>
         /// Gets staged packages visible to the API credential.
         /// </summary>
         /// <param name="currentUser">The user associated with the staging credential.</param>

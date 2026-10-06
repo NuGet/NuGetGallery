@@ -370,34 +370,58 @@ namespace NuGetGallery
             return File(content, CoreConstants.PackageContentType, $"{id}.{version}{CoreConstants.NuGetPackageFileExtension}");
         }
 
+        /// <summary>
+        /// Gets the current package artifact visible to the API-key owner.
+        /// </summary>
+        /// <param name="id">The package ID.</param>
+        /// <param name="version">The package version.</param>
+        /// <returns>The artifact resource, or an owner-availability or private-resource error.</returns>
         [HttpGet]
         public virtual ActionResult GetStagedPackageStatus(string id, string version)
         {
             var currentUser = GetCurrentUser();
             var scopes = User.Identity.GetScopesFromClaim();
-
-            var package = _packageStagingManagementService.GetPackageStatus(currentUser, scopes, id, version);
-            if (package == null)
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledApiKeyOwner(currentUser, scopes);
+            if (stagingOwner == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+                return Error(HttpStatusCode.Forbidden, "StagingOwnerUnavailable", "Staging is not available for the API key owner.");
             }
 
-            return Json(package, JsonRequestBehavior.AllowGet);
+            var package = _packageStagingManagementService.GetStagedPackage(stagingOwner, scopes, id, version);
+            if (package == null)
+            {
+                return Error(HttpStatusCode.NotFound, "PackageNotFound", "The staged package was not found.");
+            }
+
+            return JsonContent(StagingArtifactResponse.FromPackage(
+                package, StagingExpirationPolicy.GetDeadline(package), GetManagementUrl(package.StagedPackageIdentity)));
         }
 
+        /// <summary>
+        /// Gets the current symbol artifact visible to the API-key owner.
+        /// </summary>
+        /// <param name="id">The package ID.</param>
+        /// <param name="version">The package version.</param>
+        /// <returns>The artifact resource, or an owner-availability or private-resource error.</returns>
         [HttpGet]
         public virtual ActionResult GetStagedSymbolPackage(string id, string version)
         {
             var currentUser = GetCurrentUser();
             var scopes = User.Identity.GetScopesFromClaim();
-
-            var symbolPackage = _symbolPackageStagingUploadService.GetStatus(currentUser, scopes, id, version);
-            if (symbolPackage == null)
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledApiKeyOwner(currentUser, scopes);
+            if (stagingOwner == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+                return Error(HttpStatusCode.Forbidden, "StagingOwnerUnavailable", "Staging is not available for the API key owner.");
             }
 
-            return Json(symbolPackage, JsonRequestBehavior.AllowGet);
+            var symbolPackage = _packageStagingManagementService.GetStagedSymbolPackage(stagingOwner, scopes, id, version);
+            if (symbolPackage == null)
+            {
+                return Error(HttpStatusCode.NotFound, "SymbolPackageNotFound", "The staged symbol package was not found.");
+            }
+
+            return JsonContent(StagingArtifactResponse.FromSymbolPackage(
+                symbolPackage, StagingExpirationPolicy.GetDeadline(symbolPackage), GetManagementUrl(symbolPackage.StagedPackageIdentity)));
         }
 
         [AcceptVerbs(HttpVerbs.Patch)]

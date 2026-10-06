@@ -721,6 +721,64 @@ namespace NuGetGallery
             return new StagingArtifactPage<StagedSymbolPackage>(items, totalCount);
         }
 
+        /// <inheritdoc />
+        public StagedPackage GetStagedPackage(User stagingOwner, IReadOnlyCollection<Scope> scopes, string id, string version)
+        {
+            var package = FindApiPackage(stagingOwner, scopes, id, version);
+            if (package == null)
+            {
+                return null;
+            }
+
+            return GetCurrentStagedPackages(new[] { stagingOwner.Key })
+                .SingleOrDefault(attempt => attempt.StagedPackageIdentityKey == package.Key);
+        }
+
+        /// <inheritdoc />
+        public StagedSymbolPackage GetStagedSymbolPackage(User stagingOwner, IReadOnlyCollection<Scope> scopes, string id, string version)
+        {
+            var package = FindApiPackage(stagingOwner, scopes, id, version);
+            if (package == null || !stagingOwner.Confirmed || stagingOwner.IsLocked)
+            {
+                return null;
+            }
+
+            return GetCurrentStagedSymbols(new[] { stagingOwner.Key })
+                .Where(symbol => symbol.Status != StagedPackageStatus.Deleted && symbol.Status != StagedPackageStatus.Superseded)
+                .SingleOrDefault(attempt => attempt.StagedPackageIdentityKey == package.Key);
+        }
+
+        private Package FindApiPackage(User stagingOwner, IReadOnlyCollection<Scope> scopes, string id, string version)
+        {
+            if (stagingOwner == null)
+            {
+                throw new ArgumentNullException(nameof(stagingOwner));
+            }
+
+            if (scopes == null)
+            {
+                throw new ArgumentNullException(nameof(scopes));
+            }
+
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(id));
+            }
+
+            if (string.IsNullOrWhiteSpace(version))
+            {
+                throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(version));
+            }
+
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
+            if (package == null || !GetInventoryScopes(stagingOwner, scopes).Any(scope => scope.AllowsSubject(package.PackageRegistration.Id)))
+            {
+                return null;
+            }
+
+            return package;
+        }
+
         private static List<Scope> GetInventoryScopes(User stagingOwner, IReadOnlyCollection<Scope> scopes)
         {
             return scopes.Where(scope => scope.OwnerKey == stagingOwner.Key && scope.AllowsActions(NuGetScopes.PackageStage)).ToList();
