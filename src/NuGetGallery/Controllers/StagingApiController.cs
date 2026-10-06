@@ -508,28 +508,6 @@ namespace NuGetGallery
             return new HttpStatusCodeResult(HttpStatusCode.NoContent);
         }
 
-        [AcceptVerbs(HttpVerbs.Patch)]
-        public virtual async Task<ActionResult> UpdateStagedPackageListed(string id, string version, UpdateStagedPackageRequest request)
-        {
-            if (request == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-
-            var stagedPackage = FindAuthorizedStagedPackage(id, version);
-            if (stagedPackage == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
-            }
-
-            if (!await _packageStagingManagementService.UpdateListedAsync(stagedPackage, request.Listed))
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.Conflict);
-            }
-
-            return Json(_packageStagingManagementService.GetStatus(stagedPackage));
-        }
-
         [HttpDelete]
         public virtual async Task<ActionResult> DeleteStagedPackage(string id, string version)
         {

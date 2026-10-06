@@ -668,7 +668,6 @@
     <Compile Include="RequestModels\StagePackageRequest.cs" />
     <Compile Include="RequestModels\StageSymbolPackageRequest.cs" />
     <Compile Include="RequestModels\SimulatedErrorType.cs" />
-    <Compile Include="RequestModels\UpdateStagedPackageRequest.cs" />
     <Compile Include="ResponseModels\StagingGroupResponse.cs" />
     <Compile Include="ResponseModels\StagingArtifactResponse.cs" />
     <Compile Include="ResponseModels\StagingPagedResponse.cs" />

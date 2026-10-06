@@ -1060,12 +1060,6 @@ namespace NuGetGallery
                 new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
-                RouteName.UpdateStagedPackageListed,
-                "api/v3/staging/package/{id}/{version}/listed",
-                new { controller = "StagingApi", action = nameof(StagingApiController.UpdateStagedPackageListed) },
-                new { httpMethod = new HttpMethodConstraint("PATCH") });
-
-            routes.MapRoute(
                 RouteName.DeleteStagedPackage,
                 "api/v3/staging/package/{id}/{version}",
                 new { controller = "StagingApi", action = nameof(StagingApiController.DeleteStagedPackage) },

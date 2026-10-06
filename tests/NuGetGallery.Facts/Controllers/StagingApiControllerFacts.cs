@@ -987,111 +987,16 @@ namespace NuGetGallery
         }
 
         [Fact]
-        public async Task UpdatesListedIntentForAuthorizedPackage()
+        public void DoesNotExposePublicListedIntentUpdateRoute()
         {
-            var currentUser = new User("current") { Key = 1 };
-            var stagedPackage = CreateStagedPackage(currentUser);
-            var status = new PackageStagingStatus { Listed = true };
-            GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
-                .Returns(stagedPackage);
-            GetMock<IPackageStagingAuthorizationService>()
-                .Setup(x => x.CanManageWithApiKey(
-                    currentUser,
-                    It.IsAny<IEnumerable<Scope>>(),
-                    stagedPackage))
-                .Returns(true);
-            GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.UpdateListedAsync(stagedPackage, true))
-                .ReturnsAsync(true);
-            GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStatus(stagedPackage))
-                .Returns(status);
-            GetMock<HttpContextBase>()
-                .SetupGet(x => x.User)
-                .Returns(Fakes.ToPrincipal(currentUser));
-            var target = GetController<StagingApiController>();
-            target.SetCurrentUser(currentUser);
+            var routes = new RouteCollection();
+            Routes.RegisterStagingApiRoutes(routes);
+            var context = new Mock<HttpContextBase>();
+            context.SetupGet(x => x.Request.AppRelativeCurrentExecutionFilePath).Returns("~/api/v3/staging/package/PackageA/1.0.0/listed");
+            context.SetupGet(x => x.Request.PathInfo).Returns(string.Empty);
+            context.SetupGet(x => x.Request.HttpMethod).Returns("PATCH");
 
-            var result = await target.UpdateStagedPackageListed(
-                "PackageA",
-                "1.0.0",
-                new UpdateStagedPackageRequest { Listed = true });
-
-            var json = Assert.IsType<JsonResult>(result);
-            Assert.Same(status, json.Data);
-        }
-
-        [Fact]
-        public async Task ReportsConflictWhenPromotionPreventsListedUpdate()
-        {
-            var currentUser = new User("current") { Key = 1 };
-            var stagedPackage = CreateStagedPackage(currentUser);
-            GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
-                .Returns(stagedPackage);
-            GetMock<IPackageStagingAuthorizationService>()
-                .Setup(x => x.CanManageWithApiKey(currentUser, It.IsAny<IEnumerable<Scope>>(), stagedPackage))
-                .Returns(true);
-            GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.UpdateListedAsync(stagedPackage, true))
-                .ReturnsAsync(false);
-            GetMock<HttpContextBase>()
-                .SetupGet(x => x.User)
-                .Returns(Fakes.ToPrincipal(currentUser));
-            var target = GetController<StagingApiController>();
-            target.SetCurrentUser(currentUser);
-
-            var result = await target.UpdateStagedPackageListed(
-                "PackageA",
-                "1.0.0",
-                new UpdateStagedPackageRequest { Listed = true });
-
-            var status = Assert.IsType<HttpStatusCodeResult>(result);
-            Assert.Equal(409, status.StatusCode);
-        }
-
-        [Fact]
-        public async Task RejectsMissingUpdateRequest()
-        {
-            var target = GetController<StagingApiController>();
-
-            var result = await target.UpdateStagedPackageListed("PackageA", "1.0.0", request: null);
-
-            var status = Assert.IsType<HttpStatusCodeResult>(result);
-            Assert.Equal(400, status.StatusCode);
-        }
-
-        [Fact]
-        public async Task HidesUnauthorizedPackageUpdate()
-        {
-            var currentUser = new User("current") { Key = 1 };
-            var stagedPackage = CreateStagedPackage(currentUser);
-            GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
-                .Returns(stagedPackage);
-            GetMock<IPackageStagingAuthorizationService>()
-                .Setup(x => x.CanManageWithApiKey(
-                    currentUser,
-                    It.IsAny<IEnumerable<Scope>>(),
-                    stagedPackage))
-                .Returns(false);
-            GetMock<HttpContextBase>()
-                .SetupGet(x => x.User)
-                .Returns(Fakes.ToPrincipal(currentUser));
-            var target = GetController<StagingApiController>();
-            target.SetCurrentUser(currentUser);
-
-            var result = await target.UpdateStagedPackageListed(
-                "PackageA",
-                "1.0.0",
-                new UpdateStagedPackageRequest { Listed = true });
-
-            var status = Assert.IsType<HttpStatusCodeResult>(result);
-            Assert.Equal(404, status.StatusCode);
-            GetMock<IPackageStagingManagementService>().Verify(
-                x => x.UpdateListedAsync(It.IsAny<StagedPackage>(), It.IsAny<bool>()),
-                Times.Never);
+            Assert.Null(routes.GetRouteData(context.Object));
         }
 
         [Fact]
