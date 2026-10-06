@@ -1,0 +1,56 @@
+.page-admin-namespace-reservations {
+    .namespace-reservation-results {
+        width: 100%;
+        max-height: 70vh;
+        overflow: auto;
+        border: 1px solid var(--neutralStroke1Rest);
+        border-radius: 4px;
+
+        &:focus {
+            outline: 2px solid var(--neutralStrokeFocus2Rest);
+            outline-offset: 2px;
+        }
+    }
+
+    .namespace-reservation-table {
+        table-layout: fixed;
+        width: 100%;
+        min-width: 1500px;
+        max-width: 1500px;
+        margin-bottom: 0;
+
+        .request-column { width: 7%; }
+        .date-column { width: 10%; }
+        .submitter-column { width: 9%; }
+        .namespace-column { width: 11%; }
+        .owners-column { width: 12%; }
+        .justification-column { width: 16%; }
+        .status-column { width: 6%; }
+        .reason-column { width: 19%; }
+
+        thead {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            background-color: var(--neutralBackground1Rest);
+        }
+
+        th,
+        td {
+            padding: 12px;
+            vertical-align: top;
+            white-space: normal;
+            word-wrap: break-word;
+            overflow-wrap: anywhere;
+        }
+
+        th {
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+
+        .request-text {
+            white-space: pre-wrap;
+        }
+    }
+}

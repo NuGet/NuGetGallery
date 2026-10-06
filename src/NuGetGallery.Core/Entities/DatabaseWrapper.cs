@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Data;
 using System.Data.Entity;
 using System.IO;
 using System.Reflection;
@@ -26,6 +27,11 @@ namespace NuGetGallery
         public IDbContextTransaction BeginTransaction()
         {
             return new DbContextTransactionWrapper(_database.BeginTransaction());
+        }
+
+        public IDbContextTransaction BeginTransaction(IsolationLevel isolationLevel)
+        {
+            return new DbContextTransactionWrapper(_database.BeginTransaction(isolationLevel));
         }
 
         /// <summary>

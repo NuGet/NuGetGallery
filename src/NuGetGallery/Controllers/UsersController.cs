@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
 using System.Globalization;
 using System.Linq;
 using System.Net;
@@ -39,6 +41,7 @@ namespace NuGetGallery
         private readonly IFeatureFlagService _featureFlagService;
         private readonly IPackageVulnerabilitiesService _packageVulnerabilitiesService;
         private readonly IFederatedCredentialService _federatedCredentialService;
+        private readonly INamespaceReservationRequestService _namespaceReservationRequestService;
 
         public UsersController(
             IUserService userService,
@@ -61,7 +64,8 @@ namespace NuGetGallery
             IGravatarProxyService gravatarProxy,
             IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory,
             IFederatedCredentialService federatedCredentialService,
-            IFederatedCredentialRepository federatedCredentialRepository)
+            IFederatedCredentialRepository federatedCredentialRepository,
+            INamespaceReservationRequestService namespaceReservationRequestService)
             : base(
                   authService,
                   packageService,
@@ -85,6 +89,7 @@ namespace NuGetGallery
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _packageVulnerabilitiesService = packageVulnerabilitiesService ?? throw new ArgumentNullException(nameof(packageVulnerabilitiesService));
             _federatedCredentialService = federatedCredentialService ?? throw new ArgumentNullException(nameof(federatedCredentialService));
+            _namespaceReservationRequestService = namespaceReservationRequestService ?? throw new ArgumentNullException(nameof(namespaceReservationRequestService));
 
             _listPackageItemRequiredSignerViewModelFactory = new ListPackageItemRequiredSignerViewModelFactory(
                 securityPolicyService, iconUrlProvider, packageVulnerabilitiesService, frameworkCompatibilityFactory, featureFlagService);
@@ -535,6 +540,106 @@ namespace NuGetGallery
         [UIAuthorize]
         public virtual ActionResult Packages()
         {
+            var model = CreateManagePackagesViewModel();
+            model.NamespaceRequestMessage = TempData["NamespaceRequestMessage"] as string;
+            model.NamespaceRequestWarning = TempData["NamespaceRequestWarning"] as bool? ?? false;
+            model.ExpandNamespaceRequest = !string.IsNullOrEmpty(model.NamespaceRequestMessage);
+            return View(model);
+        }
+
+        [HttpGet]
+        [UIAuthorize]
+        [OutputCache(NoStore = true, Duration = 0, VaryByParam = "*")]
+        public virtual ActionResult NamespaceReservationStatuses()
+        {
+            // No caller-supplied user key. Return only this customer's own requests and
+            // the reservations already visible to their account on Manage Packages.
+            var namespaces = CreateNamespaceListViewModel(GetCurrentUser());
+            var searchTemplate = Url.SearchTemplate();
+            var userTemplate = Url.UserTemplate();
+            return Json(namespaces.ReservedNamespaces.Select(item => new
+            {
+                Pattern = item.GetPattern(),
+                SearchUrl = searchTemplate.Resolve(item.Value),
+                Owners = item.Owners.Select(owner => new
+                {
+                    owner.Username,
+                    ProfileUrl = userTemplate.Resolve(owner),
+                    IsOrganization = owner is Organization
+                }).ToArray(),
+                item.IsPublic,
+                item.Status,
+                item.RejectionReason
+            }).ToArray(), JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        [UIAuthorize]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> RequestNamespaceReservation(
+            [Bind(Prefix = "NamespaceRequest")] NamespaceReservationRequestInput input)
+        {
+            input = input ?? new NamespaceReservationRequestInput();
+
+            if (_config.ReadOnlyMode)
+            {
+                ModelState.AddModelError(string.Empty, "Namespace requests cannot be saved while the Gallery is in read-only mode. Please try again later.");
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var submission = await _namespaceReservationRequestService.SubmitAsync(GetCurrentUser(), input);
+                    foreach (var error in submission.Errors)
+                    {
+                        foreach (var member in error.MemberNames.DefaultIfEmpty(string.Empty))
+                        {
+                            ModelState.AddModelError(string.IsNullOrEmpty(member) ? string.Empty : "NamespaceRequest." + member, error.ErrorMessage);
+                        }
+                    }
+
+                    if (ModelState.IsValid)
+                    {
+                        var message = submission.IsWarning ? submission.Message : NamespaceReservationSubmissionResult.SubmittedMessage;
+                        if (Request.IsAjaxRequest())
+                        {
+                            return Json(new { Success = true, Message = message, IsWarning = submission.IsWarning });
+                        }
+
+                        TempData["NamespaceRequestMessage"] = message;
+                        TempData["NamespaceRequestWarning"] = submission.IsWarning;
+                        return RedirectToAction(nameof(Packages));
+                    }
+                }
+                catch (Exception ex) when (ex is DataException || ex is DbException || ex is ReadOnlyModeException)
+                {
+                    TelemetryService.TrackException(ex, properties => properties["Operation"] = "SubmitNamespaceReservationRequest");
+                    ModelState.AddModelError(string.Empty, "We could not confirm that your namespace request was saved. Please try again later.");
+                }
+            }
+
+            if (Request.IsAjaxRequest())
+            {
+                return Json(new
+                {
+                    Success = false,
+                    Errors = ModelState.Where(entry => entry.Value.Errors.Count > 0).Select(entry => new
+                    {
+                        Key = entry.Key,
+                        Messages = entry.Value.Errors.Select(error => string.IsNullOrEmpty(error.ErrorMessage)
+                            ? "The supplied value is invalid." : error.ErrorMessage).ToArray()
+                    }).ToArray()
+                });
+            }
+
+            var model = CreateManagePackagesViewModel(input);
+            model.ExpandNamespaceRequest = true;
+            return View("Packages", model);
+        }
+
+        private ManagePackagesViewModel CreateManagePackagesViewModel(NamespaceReservationRequestInput namespaceRequest = null)
+        {
             var currentUser = GetCurrentUser();
 
             var owners = new List<ListPackageOwnerViewModel> {
@@ -571,11 +676,6 @@ namespace NuGetGallery
 
             var ownerRequests = CreateOwnerRequestsViewModel(received, sent, currentUser);
 
-            var userReservedNamespaces = currentUser.ReservedNamespaces;
-            var organizationsReservedNamespaces = currentUser.Organizations.SelectMany(m => m.Organization.ReservedNamespaces);
-
-            var reservedPrefixes = new ReservedNamespaceListViewModel(userReservedNamespaces.Union(organizationsReservedNamespaces).ToArray());
-
             var model = new ManagePackagesViewModel
             {
                 User = currentUser,
@@ -583,13 +683,24 @@ namespace NuGetGallery
                 ListedPackages = listedPackages,
                 UnlistedPackages = unlistedPackages,
                 OwnerRequests = ownerRequests,
-                ReservedNamespaces = reservedPrefixes,
+                ReservedNamespaces = CreateNamespaceListViewModel(currentUser),
+                NamespaceRequest = namespaceRequest ?? new NamespaceReservationRequestInput(),
                 WasMultiFactorAuthenticated = User.WasMultiFactorAuthenticated(),
                 IsCertificatesUIEnabled = ContentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false,
                 IsManagePackagesVulnerabilitiesEnabled = _featureFlagService.IsManagePackagesVulnerabilitiesEnabled()
             };
 
-            return View(model);
+            return model;
+        }
+
+        private ReservedNamespaceListViewModel CreateNamespaceListViewModel(User currentUser)
+        {
+            var organizations = currentUser.Organizations.Select(membership => membership.Organization).ToArray();
+            var reservations = currentUser.ReservedNamespaces
+                .Union(organizations.SelectMany(organization => organization.ReservedNamespaces)).ToArray();
+            var requests = _namespaceReservationRequestService.GetRequestsForUser(currentUser);
+            return new ReservedNamespaceListViewModel(reservations, requests,
+                new[] { currentUser }.Concat(organizations));
         }
 
         /// <summary>
@@ -1205,7 +1316,7 @@ namespace NuGetGallery
 
             var validationResult = await _federatedCredentialService.UpdatePolicyAsync(result.policy, policyCriteria, policyName, policyScopes: policyScopes, policySubjects: policySubjects);
 
-            return await ProcessUpdatePolicyValidationResultAsync(currentUser, validationResult);
+            return ProcessUpdatePolicyValidationResult(currentUser, validationResult);
         }
 
         [HttpPost]
@@ -1230,10 +1341,10 @@ namespace NuGetGallery
             // Updating temp GitHub Actions policy will reset ValidateBy date.
             var validationResult = await _federatedCredentialService.UpdatePolicyAsync(result.policy, result.policy.Criteria, result.policy.PolicyName, result.policy.Scopes);
 
-            return await ProcessUpdatePolicyValidationResultAsync(currentUser, validationResult);
+            return ProcessUpdatePolicyValidationResult(currentUser, validationResult);
         }
 
-        private async Task<JsonResult> ProcessUpdatePolicyValidationResultAsync(User currentUser, FederatedCredentialPolicyValidationResult validationResult)
+        private JsonResult ProcessUpdatePolicyValidationResult(User currentUser, FederatedCredentialPolicyValidationResult validationResult)
         {
             if (validationResult.Type == FederatedCredentialPolicyValidationResultType.Unauthorized)
             {

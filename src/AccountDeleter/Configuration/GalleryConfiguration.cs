@@ -22,6 +22,16 @@ namespace NuGetGallery.AccountDeleter
         public LuceneIndexLocation LuceneIndexLocation { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string Environment { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string WarningBanner { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public bool NamespaceReservationFoundryEnabled { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string NamespaceReservationFoundryEndpoint { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string NamespaceReservationFoundryDeploymentName { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string NamespaceReservationFoundryTenantId { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string NamespaceReservationFoundryCredential { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public int NamespaceReservationFoundryMaxOutputTokens { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public int NamespaceReservationFoundryTimeoutSeconds { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public bool NamespaceReservationTracingEnabled { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public bool NamespaceReservationTracingCaptureContent { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string NamespaceReservationTracingProjectEndpoint { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public bool RequireSSL { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public int SSLPort { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string[] ForceSslExclusion { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }

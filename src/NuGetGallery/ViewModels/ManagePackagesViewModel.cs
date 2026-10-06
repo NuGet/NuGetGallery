@@ -20,6 +20,14 @@ namespace NuGetGallery
 
         public ReservedNamespaceListViewModel ReservedNamespaces { get; set; }
 
+        public NamespaceReservationRequestInput NamespaceRequest { get; set; }
+
+        public string NamespaceRequestMessage { get; set; }
+
+        public bool NamespaceRequestWarning { get; set; }
+
+        public bool ExpandNamespaceRequest { get; set; }
+
         public bool WasMultiFactorAuthenticated { get; set; }
 
         public bool IsCertificatesUIEnabled { get; set; }

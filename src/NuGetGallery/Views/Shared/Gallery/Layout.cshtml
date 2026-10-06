@@ -29,7 +29,7 @@
     }
 
     @Styles.Render("~/Content/gallery/css/site.min.css")
-    @Styles.Render("~/Content/gallery/css/bootstrap.min.css")
+    @Styles.Render("~/Content/gallery/css/bootstrap.min.css?v=" + File.GetLastWriteTimeUtc(Server.MapPath("~/Content/gallery/css/bootstrap.min.css")).Ticks)
 
     <script nonce="@Html.GetCSPNonce()">
         // Check the browser preferred color scheme

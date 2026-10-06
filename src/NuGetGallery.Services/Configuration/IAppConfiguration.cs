@@ -24,6 +24,34 @@ namespace NuGetGallery.Configuration
         string WarningBanner { get; set; }
 
         /// <summary>
+        /// Enables the local POC model client, not automatic processing of namespace requests.
+        /// </summary>
+        bool NamespaceReservationFoundryEnabled { get; set; }
+
+        /// <summary>The Azure model API base URL ending in /openai/v1/.</summary>
+        string NamespaceReservationFoundryEndpoint { get; set; }
+
+        string NamespaceReservationFoundryDeploymentName { get; set; }
+
+        string NamespaceReservationFoundryTenantId { get; set; }
+
+        /// <summary>Explicit local credential: VisualStudio or AzureCli. No fallback chain.</summary>
+        string NamespaceReservationFoundryCredential { get; set; }
+
+        int NamespaceReservationFoundryMaxOutputTokens { get; set; }
+
+        int NamespaceReservationFoundryTimeoutSeconds { get; set; }
+
+        /// <summary>Development-only, isolated tracing. Never changes Gallery telemetry.</summary>
+        bool NamespaceReservationTracingEnabled { get; set; }
+
+        /// <summary>Opt in to bounded, best-effort sanitized assessment content.</summary>
+        bool NamespaceReservationTracingCaptureContent { get; set; }
+
+        /// <summary>Exact Azure Foundry HTTPS /api/projects/name endpoint.</summary>
+        string NamespaceReservationTracingProjectEndpoint { get; set; }
+
+        /// <summary>
         /// Gets a setting indicating if SSL is required for all operations once logged in.
         /// </summary>
         bool RequireSSL { get; set; }

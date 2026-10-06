@@ -83,4 +83,54 @@
     width: 100%;
     max-width: 90%;
   }
+
+  // Both shared alerts fill the same form container, independently of field width.
+  #namespace-request-guidelines .alert,
+  #namespace-request-feedback .alert {
+    display: flex;
+    align-items: flex-start;
+
+    > .ms-Icon {
+      flex: 0 0 auto;
+      margin-right: 8px;
+    }
+
+    > .namespace-request-guidelines-content,
+    [data-feedback-message] {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  .namespace-request-guidelines-content {
+    p {
+      margin: 0 0 6px;
+    }
+
+    ul {
+      margin-bottom: 0;
+      padding-left: 20px;
+    }
+  }
+
+  .namespace-request-fields {
+    @media (min-width: @screen-md-min) {
+      width: percentage((8 / 12));
+    }
+  }
+
+  .namespace-status {
+    width: 40%;
+  }
+
+  .manage-package-listing.namespace-request-rejected > td {
+    vertical-align: top;
+  }
+
+  .namespace-rejection-reason {
+    margin: 6px 0 0;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+    white-space: pre-line;
+  }
 }

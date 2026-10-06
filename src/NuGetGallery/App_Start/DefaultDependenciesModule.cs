@@ -218,6 +218,29 @@ namespace NuGetGallery
                 .As<IEntityRepository<ReservedNamespace>>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<EntityRepository<NamespaceReservationRequest>>()
+                .As<IEntityRepository<NamespaceReservationRequest>>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<NamespaceReservationRequestService>()
+                .As<INamespaceReservationRequestService>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<NamespaceReservationEvidenceFactory>()
+                .As<INamespaceReservationEvidenceFactory>()
+                .InstancePerLifetimeScope();
+
+            // Resolve lazily after saving Pending. Evidence is passed per assessment; this singleton
+            // must not capture the scoped evidence factory, session, or database context.
+            // Autofac owns disposal of this separate provider. Existing App Insights stays unchanged.
+            builder.Register(c => NamespaceReservationTracing.Create(c.Resolve<IAppConfiguration>()))
+                .AsSelf()
+                .SingleInstance();
+
+            builder.Register(c => NamespaceReservationFoundryClient.Create(c.Resolve<IAppConfiguration>(), c.Resolve<NamespaceReservationTracing>()))
+                .As<INamespaceReservationFoundryClient>()
+                .SingleInstance();
+
             builder.RegisterType<EntityRepository<PackageRegistration>>()
                 .AsSelf()
                 .As<IEntityRepository<PackageRegistration>>()

@@ -1,0 +1,106 @@
+@using System.Globalization
+@model NamespaceReservationRequestsViewModel
+@{
+    ViewBag.Title = "Get Namespace Reservations";
+}
+
+<section role="main" class="container main-container page-admin-namespace-reservations">
+    <h1>Get Namespace Reservations</h1>
+    <p><a href="@Url.Action("Index", "ReservedNamespace")">Back to namespace management</a></p>
+    <p>View submitted namespace reservation requests and their saved assessment outcomes.</p>
+
+    @Html.ValidationSummary(false, "", new { @class = "text-danger", role = "alert" })
+    <form method="get" action="@Url.Action("Index", "NamespaceReservationRequests")">
+        <div class="row">
+            <div class="col-sm-4 form-group">
+                <label for="fromDate">Submitted from (UTC)</label>
+                <input type="date" id="fromDate" name="fromDate" class="form-control" value="@Model.FromDate" required aria-describedby="date-filter-help" />
+            </div>
+            <div class="col-sm-4 form-group">
+                <label for="toDate">Submitted through (UTC)</label>
+                <input type="date" id="toDate" name="toDate" class="form-control" value="@Model.ToDate" required aria-describedby="date-filter-help" />
+            </div>
+        </div>
+        <p id="date-filter-help" class="text-muted">Both dates are inclusive. Defaults to the last seven UTC calendar days.</p>
+        <button type="submit" class="btn btn-brand">Get Namespace Reservations</button>
+    </form>
+
+    @if (Model.HasResults)
+    {
+        <hr />
+        if (Model.Requests.Count == 0)
+        {
+            <p>No namespace reservation requests found on this page for the selected dates.</p>
+        }
+        else
+        {
+            <div class="namespace-reservation-results" role="region" aria-label="Namespace reservation results, scroll to see all columns and rows" tabindex="0">
+                <table class="table table-striped namespace-reservation-table" aria-label="Namespace reservation requests">
+                    <colgroup>
+                        <col class="request-column" />
+                        <col class="date-column" />
+                        <col class="submitter-column" />
+                        <col class="namespace-column" />
+                        <col class="owners-column" />
+                        <col class="justification-column" />
+                        <col class="status-column" />
+                        <col class="reason-column" />
+                        <col class="date-column" />
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th scope="col">Request ID</th>
+                            <th scope="col" title="Submission time in UTC">SubmittedAt</th>
+                            <th scope="col">Submitted By</th>
+                            <th scope="col">Namespace</th>
+                            <th scope="col">Requested Owners</th>
+                            <th scope="col">Justification</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Reason</th>
+                            <th scope="col" title="Completion time in UTC">CompletedAt</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var request in Model.Requests)
+                        {
+                            var requestedOwners = request.RequestedOwners;
+                            <tr>
+                                <td>@request.Key</td>
+                                <td>@request.CreatedTimestamp.ToString("dd MMM yyyy, HH:mm", CultureInfo.InvariantCulture)</td>
+                                <td>@request.SubmittedBy</td>
+                                <td>@request.Namespace</td>
+                                <td>
+                                    @if (requestedOwners.Count == 0)
+                                    {
+                                        <span class="text-muted">None recorded</span>
+                                    }
+                                    else
+                                    {
+                                        @(string.Join(", ", requestedOwners))
+                                    }
+                                </td>
+                                <td><div class="request-text">@request.Justification</div></td>
+                                <td>@request.Status</td>
+                                <td><div class="request-text">@request.Reason</div></td>
+                                <td>@(request.CompletedTimestamp.HasValue ? request.CompletedTimestamp.Value.ToString("dd MMM yyyy, HH:mm", CultureInfo.InvariantCulture) : "Not completed")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        <nav aria-label="Namespace reservation request pages">
+            <ul class="pager">
+                @if (Model.Page > 1)
+                {
+                    <li><a href="@Url.Action("Index", new { fromDate = Model.FromDate, toDate = Model.ToDate, page = Model.Page - 1 })" rel="prev">Previous</a></li>
+                }
+                <li><span>Page @Model.Page</span></li>
+                @if (Model.HasNextPage)
+                {
+                    <li><a href="@Url.Action("Index", new { fromDate = Model.FromDate, toDate = Model.ToDate, page = Model.Page + 1 })" rel="next">Next</a></li>
+                }
+            </ul>
+        </nav>
+    }
+</section>

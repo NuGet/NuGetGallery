@@ -143,6 +143,13 @@ namespace NuGetGallery
 #pragma warning disable 618 // TODO: remove Package.Authors completely once production services definitely no longer need it
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<NamespaceReservationRequest>()
+                .ToTable("NamespaceReservationRequests")
+                .HasRequired(r => r.SubmittedByUser)
+                .WithMany()
+                .HasForeignKey(r => r.SubmittedByUserKey)
+                .WillCascadeOnDelete(false);
+
             modelBuilder.Entity<Credential>()
                 .HasKey(c => c.Key)
                 .HasRequired(c => c.User)

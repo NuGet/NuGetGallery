@@ -218,6 +218,8 @@
             this.SearchUrl = namespaceItem.SearchUrl;
             this.Owners = namespaceItem.Owners;
             this.IsPublic = namespaceItem.IsPublic;
+            this.Status = namespaceItem.Status;
+            this.RejectionReason = namespaceItem.RejectionReason;
 
             this.Visible = ko.observable(true);
 
@@ -239,24 +241,34 @@
             var self = this;
 
             this.ManagePackagesViewModel = managePackagesViewModel;
-            this.Namespaces = $.map(namespaces, function (data) {
+            this.Namespaces = ko.observableArray($.map(namespaces, function (data) {
                 return new ReservedNamespaceListItemViewModel(self, data);
-            });
-            this.VisibleNamespacesCount = ko.observable();
+            }));
+            this.VisibleNamespacesCount = ko.observable(namespaces.length);
             this.VisibleNamespacesHeading = ko.pureComputed(function () {
                 return formatReservedNamespacesData(ko.unwrap(self.VisibleNamespacesCount()));
             });
 
-            this.ManagePackagesViewModel.OwnerFilter.subscribe(function (newOwner) {
+            this.UpdateVisibility = function (newOwner) {
                 var namespacesCount = 0;
-                for (var i in self.Namespaces) {
-                    self.Namespaces[i].UpdateVisibility(newOwner.Username);
-                    if (self.Namespaces[i].Visible()) {
+                var rows = self.Namespaces();
+                for (var i = 0; i < rows.length; i++) {
+                    rows[i].UpdateVisibility(newOwner ? newOwner.Username : 'All packages');
+                    if (rows[i].Visible()) {
                         namespacesCount++;
                     }
                 }
-                this.VisibleNamespacesCount(namespacesCount);
-            }, this);
+                self.VisibleNamespacesCount(namespacesCount);
+            };
+
+            this.Replace = function (items) {
+                self.Namespaces($.map(items, function (data) {
+                    return new ReservedNamespaceListItemViewModel(self, data);
+                }));
+                self.UpdateVisibility(managePackagesViewModel.OwnerFilter());
+            };
+
+            this.ManagePackagesViewModel.OwnerFilter.subscribe(this.UpdateVisibility);
         }
 
         function showInitialOwnerRequestsData(dataSelector, requestsList) {
@@ -410,6 +422,144 @@
         // Set up the data binding.
         var managePackagesViewModel = new ManagePackagesViewModel(initialData);
         ko.applyBindings(managePackagesViewModel, document.body);
+
+        // The POST still awaits assessment on the server. Only the authenticated read
+        // feed supplies table rows: never invent a persisted Pending or Reserved state.
+        var namespaceForm = $('#namespace-request-form');
+        var namespaceFeedback = $('#namespace-request-feedback');
+        var namespaceSubmitting = false;
+        var namespaceRefreshing = false;
+        var namespaceRefreshAgain = false;
+        var namespaceRefreshTimer;
+        var namespaceRefreshBudget = 40;
+        var submittedNamespacePattern;
+        var namespaceRowsBeforeSubmission = 0;
+
+        function showNamespaceFeedback(message, kind) {
+            namespaceFeedback.find('[data-feedback-kind]').addClass('hidden');
+            namespaceFeedback.find('[data-feedback-message]').text('');
+            namespaceFeedback.find('[data-feedback-kind="' + kind + '"]').removeClass('hidden')
+                .find('[data-feedback-message]').text(message);
+            namespaceFeedback.removeClass('hidden');
+        }
+
+        function countSubmittedNamespaceRows(items) {
+            return items.filter(function (row) {
+                return row.Pattern.toLowerCase() === submittedNamespacePattern;
+            }).length;
+        }
+
+        function scheduleNamespaceRefresh() {
+            window.clearTimeout(namespaceRefreshTimer);
+            var hasUnreservedRequests = managePackagesViewModel.ReservedNamespaces.Namespaces().some(function (row) {
+                return row.Status === 'Pending' || row.Status === 'Approved';
+            });
+            if (namespaceRefreshBudget > 0 && (namespaceSubmitting || hasUnreservedRequests)) {
+                namespaceRefreshTimer = window.setTimeout(refreshNamespaces, namespaceSubmitting ? 1500 : 15000);
+            }
+        }
+
+        function refreshNamespaces() {
+            window.clearTimeout(namespaceRefreshTimer);
+            if (!initialData.NamespaceReservationStatusesUrl) {
+                return;
+            }
+            if (namespaceRefreshing) {
+                namespaceRefreshAgain = true;
+                return;
+            }
+            if (document.hidden || !$('#namespaces-container').is(':visible')) {
+                scheduleNamespaceRefresh();
+                return;
+            }
+            namespaceRefreshing = true;
+            namespaceRefreshBudget--;
+            $.ajax({
+                url: initialData.NamespaceReservationStatusesUrl,
+                dataType: 'json',
+                cache: false,
+                timeout: 10000
+            }).done(function (items) {
+                if ($.isArray(items)) {
+                    managePackagesViewModel.ReservedNamespaces.Replace(items);
+                    // Confirm submission while assessment is still running only after
+                    // a new matching row appears in the authenticated, saved-state feed.
+                    // An existing request with the same name is not a new submission.
+                    if (namespaceSubmitting && countSubmittedNamespaceRows(items) > namespaceRowsBeforeSubmission) {
+                        showNamespaceFeedback(namespaceFeedback.attr('data-submitted-message'), 'success');
+                    }
+                }
+            }).always(function () {
+                namespaceRefreshing = false;
+                if (namespaceRefreshAgain) {
+                    namespaceRefreshAgain = false;
+                    refreshNamespaces();
+                } else {
+                    scheduleNamespaceRefresh();
+                }
+            });
+        }
+
+        $('#namespaces-container').on('shown.bs.collapse', function () {
+            namespaceRefreshBudget = 40;
+            refreshNamespaces();
+        });
+
+        namespaceForm.on('submit', function (event) {
+            event.preventDefault();
+            if (namespaceSubmitting || ($.fn.valid && !namespaceForm.valid())) {
+                return;
+            }
+
+            namespaceSubmitting = true;
+            namespaceRefreshBudget = 120;
+            submittedNamespacePattern = $.trim($('#namespace-request-namespace').val()).toLowerCase();
+            namespaceRowsBeforeSubmission = countSubmittedNamespaceRows(managePackagesViewModel.ReservedNamespaces.Namespaces());
+            var button = namespaceForm.find('button[type=submit]');
+            var summary = namespaceForm.find('[data-valmsg-summary=true]');
+            // MVC can omit an empty, global-errors-only validation summary. Create a
+            // safe target so account/read-only/save errors are still visible via AJAX.
+            if (!summary.length) {
+                summary = $('<div>').attr({ 'data-valmsg-summary': 'true', role: 'alert' })
+                    .addClass('text-danger').append($('<ul>')).prependTo(namespaceForm);
+            }
+            button.prop('disabled', true);
+            summary.removeClass('validation-summary-errors').addClass('validation-summary-valid').find('ul').empty();
+            namespaceForm.find('[data-valmsg-for]').empty().removeClass('field-validation-error').addClass('field-validation-valid');
+            namespaceFeedback.addClass('hidden').find('[data-feedback-message]').text('');
+            refreshNamespaces();
+
+            $.ajax({
+                url: namespaceForm.attr('action'),
+                type: 'POST',
+                data: namespaceForm.serialize(),
+                dataType: 'json'
+            }).done(function (result) {
+                if (result.Success) {
+                    showNamespaceFeedback(result.IsWarning ? result.Message : namespaceFeedback.attr('data-submitted-message'),
+                        result.IsWarning ? 'warning' : 'success');
+                } else {
+                    showNamespaceFeedback('Please review the request errors.', 'danger');
+                    summary.removeClass('validation-summary-valid').addClass('validation-summary-errors');
+                    $.each(result.Errors || [], function (_, error) {
+                        $.each(error.Messages, function (_, message) {
+                            $('<li>').text(message).appendTo(summary.find('ul'));
+                        });
+                        namespaceForm.find('[data-valmsg-for]').filter(function () {
+                            return $(this).attr('data-valmsg-for') === error.Key;
+                        }).removeClass('field-validation-valid').addClass('field-validation-error').text(error.Messages.join(' '));
+                    });
+                }
+            }).fail(function () {
+                showNamespaceFeedback('We could not confirm the result of your submission. Check the table or refresh the page before retrying; your request may already have been saved.', 'warning');
+            }).always(function () {
+                namespaceSubmitting = false;
+                button.prop('disabled', false);
+                refreshNamespaces();
+            });
+        });
+
+        scheduleNamespaceRefresh();
 
         setupColumnSorting();
 

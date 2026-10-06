@@ -10,6 +10,14 @@ namespace NuGetGallery
     public interface IReservedNamespaceService
     {
         /// <summary>
+        /// Atomically allocates a private exact namespace and its dotted prefix after revalidating
+        /// the saved approval and current owner permissions against the host's original key scope.
+        /// The assessment record is not changed. Failures propagate without retry or compensation;
+        /// an audit failure can occur after allocation is durable. Discard the unit of work on failure.
+        /// </summary>
+        Task ReserveNamespaceForRequestAsync(int requestKey, string namespaceValue, int submitterKey, IReadOnlyCollection<int> ownerKeys);
+
+        /// <summary>
         /// Create a new namespace with the given prefix
         /// </summary>
         /// <param name="prefix">The reserved namespace to be created</param>

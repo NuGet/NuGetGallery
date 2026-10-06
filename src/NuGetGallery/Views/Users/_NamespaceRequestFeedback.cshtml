@@ -1,0 +1,24 @@
+@model ManagePackagesViewModel
+
+<div id="namespace-request-feedback"
+     class="@(string.IsNullOrEmpty(Model.NamespaceRequestMessage) ? "hidden" : null)"
+     data-submitted-message="@NamespaceReservationSubmissionResult.SubmittedMessage">
+    <div data-feedback-kind="success" class="@(Model.NamespaceRequestWarning ? "hidden" : null)">
+        @ViewHelpers.AlertSuccess(
+            @<text>
+                <span data-feedback-message role="status" aria-live="polite" aria-atomic="true">@(!Model.NamespaceRequestWarning ? Model.NamespaceRequestMessage : null)</span>
+            </text>)
+    </div>
+    <div data-feedback-kind="warning" class="@(!Model.NamespaceRequestWarning ? "hidden" : null)">
+        @ViewHelpers.AlertWarning(
+            @<text>
+                <span data-feedback-message role="alert" aria-live="assertive" aria-atomic="true">@(Model.NamespaceRequestWarning ? Model.NamespaceRequestMessage : null)</span>
+            </text>)
+    </div>
+    <div data-feedback-kind="danger" class="hidden">
+        @ViewHelpers.AlertDanger(
+            @<text>
+                <span data-feedback-message></span>
+            </text>)
+    </div>
+</div>

@@ -2,14 +2,19 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.Entity;
+using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Globalization;
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using NuGetGallery.Auditing;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NuGet.Services.Entities;
+using NuGetGallery.Auditing;
+using NuGetGallery.Packaging;
 
 namespace NuGetGallery
 {
@@ -40,6 +45,209 @@ namespace NuGetGallery
             UserService = userService;
             PackageService = packageService;
             AuditingService = auditing;
+        }
+
+        public async Task ReserveNamespaceForRequestAsync(
+            int requestKey,
+            string namespaceValue,
+            int submitterKey,
+            IReadOnlyCollection<int> ownerKeys)
+        {
+            if (requestKey <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(requestKey));
+            }
+
+            if (submitterKey <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(submitterKey));
+            }
+
+            if (ownerKeys == null)
+            {
+                throw new ArgumentNullException(nameof(ownerKeys));
+            }
+
+            // Never retain a caller-owned collection across an await or use model-resolved owners.
+            var originalOwnerKeys = ownerKeys.Distinct().ToArray();
+            if (originalOwnerKeys.Length == 0 || originalOwnerKeys.Any(key => key <= 0))
+            {
+                throw new ArgumentException("At least one owner with a positive key is required.", nameof(ownerKeys));
+            }
+
+            if (string.IsNullOrWhiteSpace(namespaceValue)
+                || namespaceValue.Length > NamespaceReservationRequestInput.MaxNamespaceLength
+                || namespaceValue.Any(char.IsWhiteSpace)
+                || !PackageIdValidator.IsValidPackageId(namespaceValue))
+            {
+                throw new ArgumentException("A valid base namespace without a wildcard or trailing dot is required.", nameof(namespaceValue));
+            }
+
+            using (new SuspendDbExecutionStrategy())
+            using (var transaction = EntitiesContext.GetDatabase().BeginTransaction(IsolationLevel.Serializable))
+            {
+                // Tracking queries can return pre-assessment instances. Authorize only from fresh
+                // database values read inside this transaction, never from their navigation properties.
+                var request = EntitiesContext.Set<NamespaceReservationRequest>().AsNoTracking()
+                    .SingleOrDefault(candidate => candidate.Key == requestKey);
+                if (request == null
+                    || !string.Equals(request.Status, "Approved", StringComparison.Ordinal)
+                    || request.CompletedTimestamp == null
+                    || request.SubmittedByUserKey != submitterKey
+                    || !string.Equals(request.Namespace, namespaceValue, StringComparison.Ordinal)
+                    || !ReadRequestedOwnerKeys(request.RequestedOwnersJson).SetEquals(originalOwnerKeys))
+                {
+                    throw new InvalidOperationException("The saved approval does not match the original request scope.");
+                }
+
+                var accountKeys = originalOwnerKeys.Concat(new[] { submitterKey }).Distinct().ToArray();
+                var freshUsers = EntitiesContext.Users.AsNoTracking()
+                    .Where(user => accountKeys.Contains(user.Key))
+                    .ToDictionary(user => user.Key);
+                var adminOrganizationKeys = EntitiesContext.Set<Membership>().AsNoTracking()
+                    .Where(membership => membership.MemberKey == submitterKey
+                        && originalOwnerKeys.Contains(membership.OrganizationKey)
+                        && membership.IsAdmin)
+                    .Select(membership => membership.OrganizationKey)
+                    .ToList();
+
+                if (!freshUsers.TryGetValue(submitterKey, out var submitter)
+                    || !submitter.Confirmed || submitter.IsLocked || submitter.IsDeleted)
+                {
+                    throw new InvalidOperationException("The submitter is no longer eligible to reserve a namespace.");
+                }
+
+                foreach (var ownerKey in originalOwnerKeys)
+                {
+                    if (!freshUsers.TryGetValue(ownerKey, out var owner)
+                        || owner.IsLocked || owner.IsDeleted
+                        || (ownerKey != submitterKey
+                            && (!(owner is Organization) || !adminOrganizationKeys.Contains(ownerKey))))
+                    {
+                        throw new InvalidOperationException("The submitter no longer has access to a requested owner.");
+                    }
+                }
+
+                // Deliberately match the conservative assessment guard, including raw descendants
+                // (e.g. ContosoExtra) and shared/same-owner reservations. Serializable protects both
+                // query ranges until the exact namespace and dotted prefix have been committed.
+                var descendants = FindAllReservedNamespacesForPrefix(namespaceValue, getExactMatches: false);
+                var parents = GetReservedNamespacesForId(namespaceValue);
+                if (descendants.Any() || parents.Any())
+                {
+                    throw new InvalidOperationException(ServicesStrings.ReservedNamespace_NamespaceNotAvailable);
+                }
+
+                // Use tracked entities only to create relationships, after fresh key-based authorization.
+                var trackedOwners = EntitiesContext.Users
+                    .Where(user => originalOwnerKeys.Contains(user.Key))
+                    .ToDictionary(user => user.Key);
+                if (trackedOwners.Count != originalOwnerKeys.Length)
+                {
+                    throw new InvalidOperationException("A requested owner is no longer available.");
+                }
+
+                var namespaces = new[]
+                {
+                    new ReservedNamespace(namespaceValue, isSharedNamespace: false, isPrefix: false),
+                    new ReservedNamespace(namespaceValue + ".", isSharedNamespace: false, isPrefix: true)
+                };
+                var ownerPackages = new Dictionary<ReservedNamespace, Dictionary<int, List<PackageRegistration>>>();
+                foreach (var reservedNamespace in namespaces)
+                {
+                    ReservedNamespaceRepository.InsertOnCommit(reservedNamespace);
+                    var matchesByOwner = new Dictionary<int, List<PackageRegistration>>();
+                    ownerPackages.Add(reservedNamespace, matchesByOwner);
+                    foreach (var ownerKey in originalOwnerKeys)
+                    {
+                        var owner = trackedOwners[ownerKey];
+                        Expression<Func<PackageRegistration, bool>> predicate;
+                        if (reservedNamespace.IsPrefix)
+                        {
+                            predicate = registration => registration.Id.StartsWith(reservedNamespace.Value);
+                        }
+                        else
+                        {
+                            predicate = registration => registration.Id.Equals(reservedNamespace.Value);
+                        }
+
+                        var matches = PackageService.FindPackageRegistrationsByOwner(owner)
+                            .AsQueryable().Where(predicate).ToList()
+                            .GroupBy(registration => registration.Key).Select(group => group.First()).ToList();
+                        matchesByOwner.Add(ownerKey, matches);
+                        reservedNamespace.Owners.Add(owner);
+                    }
+
+                    foreach (var registration in matchesByOwner.Values.SelectMany(matches => matches)
+                        .GroupBy(registration => registration.Key).Select(group => group.First()))
+                    {
+                        reservedNamespace.PackageRegistrations.Add(registration);
+                    }
+                }
+
+                var packages = namespaces.SelectMany(reservedNamespace => reservedNamespace.PackageRegistrations)
+                    .GroupBy(registration => registration.Key).Select(group => group.First()).ToArray();
+                if (packages.Length > 0)
+                {
+                    await PackageService.UpdatePackageVerifiedStatusAsync(packages, isVerified: true, commitChanges: false);
+                }
+
+                // One shared-context save for both reservations, relationships and verified flags.
+                // Do not modify the approval or retry/compensate this unit of work on any failure.
+                await ReservedNamespaceRepository.CommitChangesAsync();
+                transaction.Commit();
+
+                foreach (var reservedNamespace in namespaces)
+                {
+                    await AuditingService.SaveAuditRecordAsync(
+                        new ReservedNamespaceAuditRecord(reservedNamespace, AuditedReservedNamespaceAction.ReserveNamespace));
+                    foreach (var ownerKey in originalOwnerKeys)
+                    {
+                        await AuditingService.SaveAuditRecordAsync(
+                            new ReservedNamespaceAuditRecord(reservedNamespace, AuditedReservedNamespaceAction.AddOwner,
+                                freshUsers[ownerKey].Username, ownerPackages[reservedNamespace][ownerKey]));
+                    }
+                }
+            }
+        }
+
+        private static HashSet<int> ReadRequestedOwnerKeys(string json)
+        {
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                throw new InvalidOperationException("The saved owner scope is invalid.");
+            }
+
+            JArray owners;
+            try
+            {
+                owners = JArray.Parse(json, new JsonLoadSettings { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error });
+            }
+            catch (JsonException ex)
+            {
+                throw new InvalidOperationException("The saved owner scope is invalid.", ex);
+            }
+
+            var keys = new HashSet<int>();
+            foreach (var owner in owners)
+            {
+                var key = (owner as JObject)?["Key"];
+                if (key == null || key.Type != JTokenType.Integer
+                    || !int.TryParse(key.ToString(), NumberStyles.None, CultureInfo.InvariantCulture, out var ownerKey)
+                    || ownerKey <= 0)
+                {
+                    throw new InvalidOperationException("The saved owner scope is invalid.");
+                }
+
+                keys.Add(ownerKey);
+            }
+
+            if (keys.Count == 0)
+            {
+                throw new InvalidOperationException("The saved owner scope is empty.");
+            }
+
+            return keys;
         }
 
         public async Task AddReservedNamespaceAsync(ReservedNamespace newNamespace)

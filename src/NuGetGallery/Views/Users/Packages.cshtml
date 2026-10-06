@@ -1,4 +1,6 @@
 ﻿@model ManagePackagesViewModel
+@using System.IO;
+@using System.Web.Optimization;
 @using Newtonsoft.Json;
 @{
     ViewBag.Title = "Manage My Package";
@@ -46,19 +48,70 @@
                     </div>
                 </text>, expanded: false)
 
-            @if (Model.ReservedNamespaces.ReservedNamespaces.Any())
-            {
-                @ViewHelpers.Section(this, "namespaces",
-                        @<text>Reserved Namespaces</text>,
-                        @<text>
-                            <span id="namespaces-data" data-bind="text: ReservedNamespaces.VisibleNamespacesHeading()"></span>
-                        </text>,
-                        @<text>
-                            <div class="row user-package-list">
-                                <div data-bind="template: { name: 'manage-namespaces', data: ReservedNamespaces }"></div>
-                            </div>
-                        </text>, expanded: false)
-            }
+            @ViewHelpers.Section(this, "namespaces", @<text>Namespace Reservation</text>,
+                @<text>
+                    <span id="namespaces-data" data-bind="text: ReservedNamespaces.VisibleNamespacesHeading()"></span>
+                </text>,
+                @<text>
+                    <div class="row user-package-list">
+                        <div data-bind="template: { name: 'manage-namespaces', data: ReservedNamespaces }"></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h3>Request a namespace reservation</h3>
+                            @using (Html.BeginForm("RequestNamespaceReservation", "Users", FormMethod.Post, new { id = "namespace-request-form" }))
+                            {
+                            @Html.AntiForgeryToken()
+                            @Html.Partial("_NamespaceRequestGuidelines")
+                            <p>All fields are required.</p>
+                            @Html.ValidationSummary(true, "", new { @class = "text-danger", role = "alert" })
+                            <fieldset class="namespace-request-fields">
+                                <legend class="sr-only">Namespace reservation request</legend>
+                                <div class="form-group @Html.HasErrorFor(m => m.NamespaceRequest.Namespace)">
+                                    <label for="namespace-request-namespace">Namespace</label>
+                                    @Html.TextBoxFor(m => m.NamespaceRequest.Namespace, new {
+                                        id = "namespace-request-namespace", @class = "form-control input-brand",
+                                        maxlength = NamespaceReservationRequestInput.MaxNamespaceLength, required = "required",
+                                        aria_describedby = "namespace-request-namespace-help namespace-request-namespace-error"
+                                    })
+                                    @Html.ValidationMessageFor(m => m.NamespaceRequest.Namespace, "", new { id = "namespace-request-namespace-error", @class = "text-danger", role = "alert" })
+                                    <p id="namespace-request-namespace-help" class="help-block">
+                                        Enter a base name such as <code>Contoso</code> to request <code>Contoso</code> and <code>Contoso.*</code>. Maximum 127 characters; do not include a wildcard or trailing dot.
+                                    </p>
+                                </div>
+                                <div class="form-group @Html.HasErrorFor(m => m.NamespaceRequest.Owner)">
+                                    <label for="namespace-request-owner">Owners</label>
+                                    @Html.TextBoxFor(m => m.NamespaceRequest.Owner, new {
+                                        id = "namespace-request-owner", @class = "form-control input-brand",
+                                        maxlength = NamespaceReservationRequestInput.MaxOwnerLength, required = "required",
+                                        aria_describedby = "namespace-request-owner-help namespace-request-owner-error"
+                                    })
+                                    @Html.ValidationMessageFor(m => m.NamespaceRequest.Owner, "", new { id = "namespace-request-owner-error", @class = "text-danger", role = "alert" })
+                                    <p id="namespace-request-owner-help" class="help-block">
+                                        Enter your username or organizations you administer, separated by commas.
+                                    </p>
+                                </div>
+                                <div class="form-group @Html.HasErrorFor(m => m.NamespaceRequest.Justification)">
+                                    <label for="namespace-request-justification">Justification</label>
+                                    @Html.TextAreaFor(m => m.NamespaceRequest.Justification, new {
+                                        id = "namespace-request-justification", @class = "form-control textarea-brand", rows = 5,
+                                        maxlength = NamespaceReservationRequestInput.MaxJustificationLength, required = "required",
+                                        aria_describedby = "namespace-request-justification-help namespace-request-justification-error"
+                                    })
+                                    @Html.ValidationMessageFor(m => m.NamespaceRequest.Justification, "", new { id = "namespace-request-justification-error", @class = "text-danger", role = "alert" })
+                                    <p id="namespace-request-justification-help" class="help-block">
+                                        Explain your connection to this namespace and why you need it reserved. Include relevant website or repository links.
+                                    </p>
+                                </div>
+                                <div class="form-group">
+                                    <button type="submit" class="btn btn-brand">Submit request</button>
+                                </div>
+                            </fieldset>
+                                     @Html.Partial("_NamespaceRequestFeedback", Model)
+                            }
+                        </div>
+                    </div>
+                </text>, expanded: Model.ExpandNamespaceRequest)
 
             @if (Model.OwnerRequests.Received.Requests.Any())
             {
@@ -216,13 +269,14 @@
                         <th class="hidden-xs"><span class="hidden">Reserved Namespace Icon</span></th>
                         <th>Package ID or Prefix</th>
                         <th>Owners</th>
+                        <th class="namespace-status">Status</th>
                         <th>Upload Restrictions</th>
                     </tr>
                 </thead>
                 <tbody data-bind="foreach: Namespaces">
-                    <tr class="manage-package-listing" data-bind="visible: Visible">
+                    <tr class="manage-package-listing" data-bind="visible: Visible, css: { 'namespace-request-rejected': $data.Status === 'Rejected' }">
                         <td class="align-middle hidden-xs">
-                            <i class="ms-Icon ms-Icon--SkypeCircleCheck reserved-indicator" title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" alt="Reserved namespace icon"></i>
+                            <i class="ms-Icon ms-Icon--SkypeCircleCheck reserved-indicator" data-bind="visible: $data.Status === 'Reserved'" title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" aria-hidden="true"></i>
                         </td>
                         <td class="align-middle reserved-id">
                             <a data-bind="text: Pattern, attr: { href: SearchUrl, target: '_blank' }"></a>
@@ -233,13 +287,22 @@
                                 <a data-bind="attr: { href: ProfileUrl }"><span data-bind="text: Username"></span></a><!-- ko if: ($index() < ($parent.Owners.length - 1)) -->,&nbsp;<!-- /ko -->
                             </span>
                         </td>
-                        <td class="align-middle" data-bind="text: IsPublic ? 'Any NuGet.org Account' : 'Prefix or ID Owners Only' "></td>
+                        <td class="align-middle namespace-status">
+                            <!-- ko if: $data.Status === 'Rejected' -->
+                            <a href="@Url.Contact()">Rejected</a>
+                            <p class="namespace-rejection-reason" data-bind="text: $data.RejectionReason || 'No rejection reason was provided.'"></p>
+                            <!-- /ko -->
+                            <!-- ko ifnot: $data.Status === 'Rejected' -->
+                            <span data-bind="text: $data.Status || 'Unavailable'"></span>
+                            <!-- /ko -->
+                        </td>
+                        <td class="align-middle" data-bind="text: $data.Status === 'Reserved' ? (IsPublic ? 'Any NuGet.org Account' : 'Prefix or ID Owners Only') : ''"></td>
                     </tr>
                 </tbody>
             </table>
             <!-- /ko -->
             <!-- ko ifnot: VisibleNamespacesCount -->
-            <span>There are no reserved namespaces that fit this criteria.</span>
+            <span>You do not have any reserved namespaces</span>
             <!-- /ko -->
         </div>
     </div>
@@ -381,7 +444,9 @@
             Pattern = n.GetPattern(),
             SearchUrl = searchUrlTemplate.Resolve(n.Value),
             Owners = GetSerializableOwners(n.Owners),
-            n.IsPublic
+            n.IsPublic,
+            n.Status,
+            n.RejectionReason
         };
     }
 
@@ -505,6 +570,7 @@
                             .Select(p => GetSerializablePackage(p)),
                          ReservedNamespaces = Model.ReservedNamespaces.ReservedNamespaces
                             .Select(n => GetSerializableNamespace(n)),
+                             NamespaceReservationStatusesUrl = Url.Action("NamespaceReservationStatuses", "Users"),
                          RequestsReceived = Model.OwnerRequests.Received.Requests
                             .Select(r => GetSerializableOwnerRequest(r)),
                          RequestsSent = Model.OwnerRequests.Sent.Requests
@@ -513,5 +579,12 @@
                      });
     </script>
     @ViewHelpers.SectionsScript(this)
-    @Scripts.Render("~/Scripts/gallery/page-manage-packages.min.js")
+    @{
+        // Optimized bundles already include a content hash. Debug rendering otherwise
+        // emits an unversioned source URL that can retain an older row model in the browser.
+        var scriptVersion = BundleTable.EnableOptimizations
+            ? string.Empty
+            : "?v=" + File.GetLastWriteTimeUtc(Server.MapPath("~/Scripts/gallery/page-manage-packages.js")).Ticks;
+    }
+    @Scripts.RenderFormat("<script src=\"{0}" + scriptVersion + "\" nonce=\"" + Html.GetCSPNonce().ToString() + "\"></script>", "~/Scripts/gallery/page-manage-packages.min.js")
 }

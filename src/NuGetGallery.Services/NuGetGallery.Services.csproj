@@ -34,6 +34,8 @@
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
     <Reference Include="System.Configuration" />
     <Reference Include="System.Web.Extensions" />
+    <EmbeddedResource Include="PackageManagement\Skills\namespace-reservation\SKILL.md"
+                      LogicalName="NuGetGallery.NamespaceReservation.Skill.md" />
   </ItemGroup>
 
   <ItemGroup>
@@ -49,6 +51,10 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+    <PackageReference Include="Azure.Core" />
+    <PackageReference Include="Azure.Identity" />
+    <PackageReference Include="Azure.Monitor.OpenTelemetry.Exporter" />
+    <PackageReference Include="OpenTelemetry" />
     <PackageReference Include="Microsoft.AspNet.Mvc" />
     <PackageReference Include="Microsoft.AspNetCore.Cryptography.KeyDerivation" />
     <PackageReference Include="Microsoft.Owin" />

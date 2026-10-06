@@ -19,6 +19,33 @@ namespace NuGetGallery.Configuration
         [DefaultValue("")]
         public string WarningBanner { get; set; }
 
+        [DefaultValue(false)]
+        public bool NamespaceReservationFoundryEnabled { get; set; }
+
+        public string NamespaceReservationFoundryEndpoint { get; set; }
+
+        public string NamespaceReservationFoundryDeploymentName { get; set; }
+
+        public string NamespaceReservationFoundryTenantId { get; set; }
+
+        [DefaultValue("VisualStudio")]
+        public string NamespaceReservationFoundryCredential { get; set; } = "VisualStudio";
+
+        [DefaultValue(1024)]
+        public int NamespaceReservationFoundryMaxOutputTokens { get; set; } = 1024;
+
+        [DefaultValue(60)]
+        public int NamespaceReservationFoundryTimeoutSeconds { get; set; } = 60;
+
+        [DefaultValue(false)]
+        public bool NamespaceReservationTracingEnabled { get; set; }
+
+        [DefaultValue(false)]
+        public bool NamespaceReservationTracingCaptureContent { get; set; }
+
+        [DefaultValue(null)]
+        public string NamespaceReservationTracingProjectEndpoint { get; set; }
+
         /// <summary>
         /// Gets a setting indicating if SSL is required for all operations once logged in.
         /// </summary>
