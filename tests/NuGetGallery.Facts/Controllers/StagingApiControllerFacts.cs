@@ -766,34 +766,26 @@ namespace NuGetGallery
         }
 
         [Fact]
-        public async Task DownloadsAuthorizedPackage()
+        public async Task DownloadsAuthorizedPackageWithCanonicalFilename()
         {
             var currentUser = new User("current") { Key = 1 };
-            var stagedPackage = CreateStagedPackage(currentUser);
-            var content = new MemoryStream();
+            var owner = new User("owner") { Key = 2 };
+            var stagedPackage = CreateStagedPackage(owner);
+            using var content = new MemoryStream(new byte[] { 1, 2, 3 });
+            var target = GetController<StagingApiController>();
+            ConfigureCreateGroupRequest(target, currentUser, owner);
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
+                .Setup(x => x.GetStagedPackage(owner, It.IsAny<IReadOnlyCollection<Scope>>(), "packagea", "1.0"))
                 .Returns(stagedPackage);
-            GetMock<IPackageStagingAuthorizationService>()
-                .Setup(x => x.CanManageWithApiKey(
-                    currentUser,
-                    It.IsAny<IEnumerable<Scope>>(),
-                    stagedPackage))
-                .Returns(true);
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.OpenPackageContentAsync(stagedPackage))
                 .ReturnsAsync(content);
-            GetMock<HttpContextBase>()
-                .SetupGet(x => x.User)
-                .Returns(Fakes.ToPrincipal(currentUser));
-            var target = GetController<StagingApiController>();
-            target.SetCurrentUser(currentUser);
 
-            var result = await target.DownloadStagedPackage("PackageA", "1.0.0");
+            var result = await target.DownloadStagedPackage("packagea", "1.0");
 
             var file = Assert.IsType<FileStreamResult>(result);
             Assert.Same(content, file.FileStream);
-            Assert.Equal(CoreConstants.PackageContentType, file.ContentType);
+            Assert.Equal(CoreConstants.OctetStreamContentType, file.ContentType);
             Assert.Equal("PackageA.1.0.0.nupkg", file.FileDownloadName);
         }
 
@@ -965,32 +957,33 @@ namespace NuGetGallery
         }
 
         [Fact]
-        public async Task HidesUnauthorizedPackageDownload()
+        public async Task HidesUnavailablePackageDownloadWithoutOpeningContent()
         {
-            var currentUser = new User("current") { Key = 1 };
-            var stagedPackage = CreateStagedPackage(currentUser);
-            GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
-                .Returns(stagedPackage);
-            GetMock<IPackageStagingAuthorizationService>()
-                .Setup(x => x.CanManageWithApiKey(
-                    currentUser,
-                    It.IsAny<IEnumerable<Scope>>(),
-                    stagedPackage))
-                .Returns(false);
-            GetMock<HttpContextBase>()
-                .SetupGet(x => x.User)
-                .Returns(Fakes.ToPrincipal(currentUser));
+            var owner = new User("owner") { Key = 1 };
             var target = GetController<StagingApiController>();
-            target.SetCurrentUser(currentUser);
+            ConfigureCreateGroupRequest(target, owner, owner);
 
             var result = await target.DownloadStagedPackage("PackageA", "1.0.0");
 
-            var status = Assert.IsType<HttpStatusCodeResult>(result);
-            Assert.Equal(404, status.StatusCode);
+            AssertError(target, result, HttpStatusCode.NotFound, "PackageNotFound");
             GetMock<IPackageStagingManagementService>().Verify(
                 x => x.OpenPackageContentAsync(It.IsAny<StagedPackage>()),
                 Times.Never);
+        }
+
+        [Fact]
+        public async Task RejectsPackageDownloadWithoutEnabledApiKeyOwner()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var target = GetController<StagingApiController>();
+            ConfigureCreateGroupRequest(target, currentUser, owner: null);
+
+            var result = await target.DownloadStagedPackage("PackageA", "1.0.0");
+
+            AssertError(target, result, HttpStatusCode.Forbidden, "StagingOwnerUnavailable");
+            GetMock<IPackageStagingManagementService>().Verify(
+                x => x.GetStagedPackage(It.IsAny<User>(), It.IsAny<IReadOnlyCollection<Scope>>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            GetMock<IPackageStagingManagementService>().Verify(x => x.OpenPackageContentAsync(It.IsAny<StagedPackage>()), Times.Never);
         }
 
         [Fact]
