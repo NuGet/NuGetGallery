@@ -396,11 +396,9 @@ namespace NuGetGallery
                 .Select(ToOrganizationMemberViewModel)
                 .ToList();
 
-            return new DeleteOrganizationViewModel(
-                account,
-                GetOwnedPackagesViewModels(account),
-                members,
-                additionalMembers);
+            var model = new DeleteOrganizationViewModel(account, GetOwnedPackagesViewModels(account), members, additionalMembers);
+            model.IsPackageStagingEnabled = FeatureFlagService.IsPackageStagingEnabled(account);
+            return model;
         }
 
         [HttpPost]
