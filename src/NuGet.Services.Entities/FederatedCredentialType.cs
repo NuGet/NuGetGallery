@@ -31,5 +31,12 @@ namespace NuGet.Services.Entities
         /// is identified by namespace path, project path, and optionally a ref and environment.
         /// </summary>
         GitLab = 3,
+
+        /// <summary>
+        /// This credential type applies to Azure Pipelines runs using an Entra-issued Federated Managed Identity
+        /// access token. The pipeline is identified by Azure DevOps organization, project, pipeline definition,
+        /// repository, and repository ref attributes.
+        /// </summary>
+        AzurePipelines = 4,
     }
 }

@@ -307,6 +307,39 @@ namespace NuGetGallery.Services.Authentication
                 Assert.Equal(FederatedCredentialPolicyValidationResultType.Success, result.Type);
                 // The fact that we get Success indicates base.ValidatePolicy() was called and succeeded
             }
+
+            [Fact]
+            public void AcceptsAzurePipelinesPolicyWithoutTenantAllowList()
+            {
+                var policy = CreateAzurePipelinesPolicy();
+                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
+                AllowedTenantIds = [];
+
+                var result = Target.ValidatePolicy(policy);
+
+                Assert.Equal(FederatedCredentialPolicyValidationResultType.Success, result.Type);
+                Assert.Equal(AzurePipelinesCriteriaJson, policy.Criteria);
+            }
+
+            [Fact]
+            public void RejectsAzurePipelinesPolicyWithMissingCriteria()
+            {
+                var policy = CreateAzurePipelinesPolicy();
+                policy.Criteria = new AzurePipelinesCriteria
+                {
+                    OrganizationId = OrganizationId,
+                    ProjectId = ProjectId,
+                    DefinitionId = DefinitionId,
+                    RepositoryId = RepositoryId,
+                }.ToDatabaseJson();
+                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
+
+                var result = Target.ValidatePolicy(policy);
+
+                Assert.Equal(FederatedCredentialPolicyValidationResultType.BadRequest, result.Type);
+                Assert.Equal("The Azure Pipelines repository ref is required.", result.UserMessage);
+                Assert.Equal(nameof(FederatedCredentialPolicy.Criteria), result.PolicyPropertyName);
+            }
         }
 
         public class TheValidateAsyncMethod : EntraIdTokenValidatorFacts
@@ -834,6 +867,160 @@ namespace NuGetGallery.Services.Authentication
                 // Act & Assert
                 await Assert.ThrowsAnyAsync<Exception>(() => Target.EvaluatePolicyAsync(policy, token));
             }
+
+            [Fact]
+            public async Task ReturnsSuccessForMatchingAzurePipelinesPolicy()
+            {
+                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
+
+                var result = await Target.EvaluatePolicyAsync(CreateAzurePipelinesPolicy(), CreateAzurePipelinesToken());
+
+                Assert.Equal(FederatedCredentialPolicyResultType.Success, result.Type);
+            }
+
+            [Theory]
+            [InlineData(AzurePipelinesCriteria.OrganizationIdClaim)]
+            [InlineData(AzurePipelinesCriteria.ProjectIdClaim)]
+            [InlineData(AzurePipelinesCriteria.DefinitionIdClaim)]
+            [InlineData(AzurePipelinesCriteria.RepositoryIdClaim)]
+            [InlineData(AzurePipelinesCriteria.RepositoryRefClaim)]
+            public async Task RejectsMismatchingAzurePipelinesAttribute(string claim)
+            {
+                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
+                var attributes = CreateAzurePipelinesAttributes();
+                attributes[claim] = "different";
+
+                var result = await Target.EvaluatePolicyAsync(
+                    CreateAzurePipelinesPolicy(),
+                    CreateAzurePipelinesToken(attributes: attributes));
+
+                Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
+                Assert.Equal(
+                    $"The JSON Web Token claim 'xms_attr.{claim}' has value 'different' which does not match the policy.",
+                    result.Error);
+            }
+
+            [Theory]
+            [InlineData(AzurePipelinesCriteria.OrganizationIdClaim)]
+            [InlineData(AzurePipelinesCriteria.ProjectIdClaim)]
+            [InlineData(AzurePipelinesCriteria.DefinitionIdClaim)]
+            [InlineData(AzurePipelinesCriteria.RepositoryIdClaim)]
+            [InlineData(AzurePipelinesCriteria.RepositoryRefClaim)]
+            public async Task RejectsMissingAzurePipelinesAttribute(string claim)
+            {
+                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
+                var attributes = CreateAzurePipelinesAttributes();
+                attributes.Remove(claim);
+
+                var result = await Target.EvaluatePolicyAsync(
+                    CreateAzurePipelinesPolicy(),
+                    CreateAzurePipelinesToken(attributes: attributes));
+
+                Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
+                Assert.Equal($"The JSON Web Token is missing the required claim 'xms_attr.{claim}'.", result.Error);
+            }
+
+            [Fact]
+            public async Task RejectsAzurePipelinesTokenWithoutAttributes()
+            {
+                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
+
+                var result = await Target.EvaluatePolicyAsync(
+                    CreateAzurePipelinesPolicy(),
+                    CreateAzurePipelinesToken(includeXmsAttr: false));
+
+                Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
+                Assert.Equal("The JSON Web Token is missing the required claim 'xms_attr'.", result.Error);
+            }
+
+            [Fact]
+            public async Task RejectsAzurePipelinesTokenWithoutAzureDevOpsNamespace()
+            {
+                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
+                var claims = CreateAzurePipelinesClaims();
+                claims["xms_attr"] = new Dictionary<string, object>
+                {
+                    { "another-attribute-provider", CreateAzurePipelinesAttributes() },
+                };
+
+                var result = await Target.EvaluatePolicyAsync(
+                    CreateAzurePipelinesPolicy(),
+                    CreateToken(claims));
+
+                Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
+                Assert.Equal(
+                    "The JSON Web Token claim 'xms_attr' is missing the Azure DevOps attribute namespace.",
+                    result.Error);
+            }
+
+            [Fact]
+            public async Task RejectsNonFmiAzurePipelinesToken()
+            {
+                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
+                var claims = CreateAzurePipelinesClaims();
+                claims["idtyp"] = "app";
+
+                var result = await Target.EvaluatePolicyAsync(
+                    CreateAzurePipelinesPolicy(),
+                    CreateToken(claims));
+
+                Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
+                Assert.Equal(
+                    "The JSON Web Token claim 'idtyp' has value 'app' which does not match the policy.",
+                    result.Error);
+            }
+
+            [Fact]
+            public async Task RejectsAzurePipelinesTokenWithoutSubject()
+            {
+                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
+                var claims = CreateAzurePipelinesClaims();
+                claims.Remove("sub");
+
+                var result = await Target.EvaluatePolicyAsync(
+                    CreateAzurePipelinesPolicy(),
+                    CreateToken(claims));
+
+                Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
+                Assert.Equal("The JSON Web Token is missing the required claim 'sub'.", result.Error);
+            }
+
+            [Theory]
+            [InlineData("not-an-fmi-subject")]
+            [InlineData("/EID1/c/prod/t/tenant/a/app/pl/h/organization/d/definition")]
+            [InlineData("/eid1/c/prod/t/tenant/a/app/pl/h/organization")]
+            [InlineData("/eid1/c/prod/t/tenant/a/app/pl/h/organization/d/definition/extra")]
+            [InlineData("/eid1/c/prod/t/tenant/a/app/pl/h/organization/d/invalid definition")]
+            public async Task RejectsAzurePipelinesTokenWithInvalidSubject(string subject)
+            {
+                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
+                var claims = CreateAzurePipelinesClaims();
+                claims["sub"] = subject;
+
+                var result = await Target.EvaluatePolicyAsync(
+                    CreateAzurePipelinesPolicy(),
+                    CreateToken(claims));
+
+                Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
+                Assert.Equal(
+                    "The JSON web token sub claim must be a structured Federated Managed Identity subject.",
+                    result.Error);
+            }
+
+            [Fact]
+            public async Task AcceptsAdditionalAzurePipelinesAttributes()
+            {
+                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
+                var attributes = CreateAzurePipelinesAttributes();
+                attributes["run_id"] = "42";
+                attributes["future_attribute"] = "future-value";
+
+                var result = await Target.EvaluatePolicyAsync(
+                    CreateAzurePipelinesPolicy(),
+                    CreateAzurePipelinesToken(attributes: attributes));
+
+                Assert.Equal(FederatedCredentialPolicyResultType.Success, result.Type);
+            }
         }
 
         public EntraIdTokenValidatorFacts()
@@ -852,6 +1039,12 @@ namespace NuGetGallery.Services.Authentication
             AllowedTenantIds = [TenantId.ToString()];
 
             PackageOwner = new User("test-user");
+
+            OrganizationId = "organization";
+            ProjectId = "project";
+            DefinitionId = "definition";
+            RepositoryId = "repository";
+            RepositoryRef = "refs/heads/main";
 
             Configuration.Setup(x => x.EntraIdAudience).Returns("nuget-audience");
             Configuration.Setup(x => x.AllowedEntraIdTenants).Returns(() => AllowedTenantIds);
@@ -874,6 +1067,20 @@ namespace NuGetGallery.Services.Authentication
         public string Issuer { get; set; }
         public string[] AllowedTenantIds { get; set; }
         public User PackageOwner { get; }
+        public string OrganizationId { get; }
+        public string ProjectId { get; }
+        public string DefinitionId { get; }
+        public string RepositoryId { get; }
+        public string RepositoryRef { get; }
+
+        public string AzurePipelinesCriteriaJson => new AzurePipelinesCriteria
+        {
+            OrganizationId = OrganizationId,
+            ProjectId = ProjectId,
+            DefinitionId = DefinitionId,
+            RepositoryId = RepositoryId,
+            RepositoryRef = RepositoryRef,
+        }.ToDatabaseJson();
 
         public JsonWebToken Token
         {
@@ -902,6 +1109,56 @@ namespace NuGetGallery.Services.Authentication
             {
                 Claims = claims
             }));
+        }
+
+        private FederatedCredentialPolicy CreateAzurePipelinesPolicy()
+        {
+            return new FederatedCredentialPolicy
+            {
+                Type = FederatedCredentialType.AzurePipelines,
+                Criteria = AzurePipelinesCriteriaJson,
+                PackageOwner = PackageOwner,
+            };
+        }
+
+        private JsonWebToken CreateAzurePipelinesToken(
+            Dictionary<string, object>? attributes = null,
+            bool includeXmsAttr = true)
+        {
+            return CreateToken(CreateAzurePipelinesClaims(attributes, includeXmsAttr));
+        }
+
+        private Dictionary<string, object> CreateAzurePipelinesClaims(
+            Dictionary<string, object>? attributes = null,
+            bool includeXmsAttr = true)
+        {
+            var claims = new Dictionary<string, object>
+            {
+                { "idtyp", "fmi" },
+                { "sub", "/eid1/c/prod/t/tenant/a/app/pl/h/organization/d/definition" },
+            };
+
+            if (includeXmsAttr)
+            {
+                claims["xms_attr"] = new Dictionary<string, object>
+                {
+                    { EntraIdTokenPolicyValidator.AzureDevOpsAttributeNamespace, attributes ?? CreateAzurePipelinesAttributes() },
+                };
+            }
+
+            return claims;
+        }
+
+        private Dictionary<string, object> CreateAzurePipelinesAttributes()
+        {
+            return new Dictionary<string, object>
+            {
+                { AzurePipelinesCriteria.OrganizationIdClaim, OrganizationId },
+                { AzurePipelinesCriteria.ProjectIdClaim, ProjectId },
+                { AzurePipelinesCriteria.DefinitionIdClaim, DefinitionId },
+                { AzurePipelinesCriteria.RepositoryIdClaim, RepositoryId },
+                { AzurePipelinesCriteria.RepositoryRefClaim, RepositoryRef },
+            };
         }
     }
 }

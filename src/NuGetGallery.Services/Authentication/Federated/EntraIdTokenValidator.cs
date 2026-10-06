@@ -4,6 +4,7 @@
 using System;
 using System.Linq;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Identity.Web;
 using Microsoft.IdentityModel.JsonWebTokens;
@@ -22,6 +23,16 @@ namespace NuGetGallery.Services.Authentication
         public const string Authority = "login.microsoftonline.com";
         public const string Issuer = $"https://{Authority}/common/v2.0";
         public const string MetadataAddress = $"{Issuer}/.well-known/openid-configuration";
+        public const string AzureDevOpsAttributeNamespace = "rISbSSETf0KqFyZ8ppdXmA";
+
+        private const string IdentityTypeClaim = "idtyp";
+        private const string FederatedManagedIdentityType = "fmi";
+        private const string AzurePipelinesAttributesClaim = "xms_attr";
+        private const string FederatedManagedIdentitySubjectPattern =
+            "^/eid1/c/[^/\\s]+/t/[^/\\s]+/a/[^/\\s]+/pl/h/[^/\\s]+/d/[^/\\s]+$";
+
+        private static readonly Regex FederatedManagedIdentitySubjectRegex =
+            RegexEx.CreateWithTimeout(FederatedManagedIdentitySubjectPattern, RegexOptions.CultureInvariant);
 
         private readonly IFeatureFlagService _featureFlagService;
 
@@ -40,9 +51,9 @@ namespace NuGetGallery.Services.Authentication
 
         public override FederatedCredentialPolicyValidationResult ValidatePolicy(FederatedCredentialPolicy policy)
         {
-            if (policy.Type != FederatedCredentialType.EntraIdServicePrincipal)
+            if (policy.Type != FederatedCredentialType.EntraIdServicePrincipal
+                && policy.Type != FederatedCredentialType.AzurePipelines)
             {
-                // We do not expect callers to pass non-Entra ID policies to this validator.
                 return FederatedCredentialPolicyValidationResult.BadRequest(
                     $"Invalid policy type '{policy.Type}' for Entra ID validation.",
                     policyPropertyName: null);
@@ -58,23 +69,38 @@ namespace NuGetGallery.Services.Authentication
             if (string.IsNullOrWhiteSpace(policy.Criteria))
             {
                 return FederatedCredentialPolicyValidationResult.BadRequest(
-                    "Criteria must be provided for Entra ID service principal policies.",
+                    $"Criteria must be provided for {GetPolicyTypeDisplayName(policy.Type)} policies.",
                     nameof(FederatedCredentialPolicy.Criteria));
             }
 
-            var criteria = JsonSerializer.Deserialize<EntraIdServicePrincipalCriteria>(policy.Criteria);
-            if (criteria is null)
+            if (policy.Type == FederatedCredentialType.AzurePipelines)
             {
-                return FederatedCredentialPolicyValidationResult.BadRequest(
-                    "Invalid criteria format for Entra ID service principal policy.",
-                    nameof(FederatedCredentialPolicy.Criteria));
-            }
+                var criteria = AzurePipelinesCriteria.FromDatabaseJson(policy.Criteria);
+                policy.Criteria = criteria.ToDatabaseJson();
 
-            if (!IsTenantAllowed(criteria.TenantId))
+                if (criteria.Validate() is string error)
+                {
+                    return FederatedCredentialPolicyValidationResult.BadRequest(
+                        error,
+                        nameof(FederatedCredentialPolicy.Criteria));
+                }
+            }
+            else
             {
-                return FederatedCredentialPolicyValidationResult.Unauthorized(
-                    $"The Entra ID tenant '{criteria.TenantId}' is not in the allow list.",
-                    nameof(FederatedCredentialPolicy.Criteria));
+                var criteria = JsonSerializer.Deserialize<EntraIdServicePrincipalCriteria>(policy.Criteria);
+                if (criteria is null)
+                {
+                    return FederatedCredentialPolicyValidationResult.BadRequest(
+                        "Invalid criteria format for Entra ID service principal policy.",
+                        nameof(FederatedCredentialPolicy.Criteria));
+                }
+
+                if (!IsTenantAllowed(criteria.TenantId))
+                {
+                    return FederatedCredentialPolicyValidationResult.Unauthorized(
+                        $"The Entra ID tenant '{criteria.TenantId}' is not in the allow list.",
+                        nameof(FederatedCredentialPolicy.Criteria));
+                }
             }
 
             return base.ValidatePolicy(policy);
@@ -103,12 +129,20 @@ namespace NuGetGallery.Services.Authentication
 
         public override Task<FederatedCredentialPolicyResult> EvaluatePolicyAsync(FederatedCredentialPolicy policy, JsonWebToken jwt)
         {
-            if (policy.Type != FederatedCredentialType.EntraIdServicePrincipal)
+            string? error;
+            switch (policy.Type)
             {
-                return Task.FromResult(FederatedCredentialPolicyResult.NotApplicable);
+                case FederatedCredentialType.EntraIdServicePrincipal:
+                    error = EvaluateEntraIdServicePrincipal(policy, jwt);
+                    break;
+                case FederatedCredentialType.AzurePipelines:
+                    error = EvaluateAzurePipelines(policy, jwt);
+                    break;
+                default:
+                    return Task.FromResult(FederatedCredentialPolicyResult.NotApplicable);
             }
 
-            if (EvaluateEntraIdServicePrincipal(policy, jwt) is string error)
+            if (error is not null)
             {
                 return Task.FromResult(FederatedCredentialPolicyResult.Unauthorized(error));
             }
@@ -129,7 +163,6 @@ namespace NuGetGallery.Services.Authentication
             // See https://learn.microsoft.com/en-us/entra/identity-platform/access-token-claims-reference
             const string ClientCredentialTypeClaim = "azpacr";
             const string ClientCertificateType = "2"; // 2 indicates a client certificate (or managed identity) was used
-            const string IdentityTypeClaim = "idtyp";
             const string AppIdentityType = "app";
             const string VersionClaim = "ver";
             const string Version2 = "2.0";
@@ -211,6 +244,85 @@ namespace NuGetGallery.Services.Authentication
             }
 
             return null;
+        }
+
+        private string? EvaluateAzurePipelines(FederatedCredentialPolicy policy, JsonWebToken jwt)
+        {
+            if (!_featureFlagService.CanUseFederatedCredentials(policy.PackageOwner))
+            {
+                return $"The package owner '{policy.PackageOwner.Username}' is not enabled to use federated credentials.";
+            }
+
+            if (ValidateClaimExactMatch(
+                jwt,
+                IdentityTypeClaim,
+                FederatedManagedIdentityType,
+                StringComparison.Ordinal) is string error)
+            {
+                return error;
+            }
+
+            if (TryGetRequiredClaim(jwt, ClaimConstants.Sub, out var subject) is string subjectError)
+            {
+                return subjectError;
+            }
+
+            if (!FederatedManagedIdentitySubjectRegex.IsMatch(subject))
+            {
+                return $"The JSON web token {ClaimConstants.Sub} claim must be a structured Federated Managed Identity subject.";
+            }
+
+            var criteria = AzurePipelinesCriteria.FromDatabaseJson(policy.Criteria);
+            if (criteria.Validate() is string criteriaError)
+            {
+                return criteriaError;
+            }
+
+            if (!jwt.TryGetPayloadValue<JsonElement>(AzurePipelinesAttributesClaim, out var attributes)
+                || attributes.ValueKind != JsonValueKind.Object)
+            {
+                return string.Format(MissingClaimError, AzurePipelinesAttributesClaim);
+            }
+
+            if (!attributes.TryGetProperty(AzureDevOpsAttributeNamespace, out var azureDevOpsAttributes)
+                || azureDevOpsAttributes.ValueKind != JsonValueKind.Object)
+            {
+                return $"The JSON Web Token claim '{AzurePipelinesAttributesClaim}' is missing the Azure DevOps attribute namespace.";
+            }
+
+            return ValidateAzurePipelinesAttribute(azureDevOpsAttributes, AzurePipelinesCriteria.OrganizationIdClaim, criteria.OrganizationId)
+                ?? ValidateAzurePipelinesAttribute(azureDevOpsAttributes, AzurePipelinesCriteria.ProjectIdClaim, criteria.ProjectId)
+                ?? ValidateAzurePipelinesAttribute(azureDevOpsAttributes, AzurePipelinesCriteria.DefinitionIdClaim, criteria.DefinitionId)
+                ?? ValidateAzurePipelinesAttribute(azureDevOpsAttributes, AzurePipelinesCriteria.RepositoryIdClaim, criteria.RepositoryId)
+                ?? ValidateAzurePipelinesAttribute(azureDevOpsAttributes, AzurePipelinesCriteria.RepositoryRefClaim, criteria.RepositoryRef);
+        }
+
+        private static string? ValidateAzurePipelinesAttribute(JsonElement attributes, string claim, string expectedValue)
+        {
+            if (!attributes.TryGetProperty(claim, out var value)
+                || value.ValueKind != JsonValueKind.String
+                || string.IsNullOrWhiteSpace(value.GetString()))
+            {
+                return string.Format(MissingClaimError, $"{AzurePipelinesAttributesClaim}.{claim}");
+            }
+
+            var actualValue = value.GetString()!;
+            if (!actualValue.Equals(expectedValue, StringComparison.Ordinal))
+            {
+                return string.Format(ClaimMismatchError, $"{AzurePipelinesAttributesClaim}.{claim}", actualValue);
+            }
+
+            return null;
+        }
+
+        private static string GetPolicyTypeDisplayName(FederatedCredentialType type)
+        {
+            return type switch
+            {
+                FederatedCredentialType.EntraIdServicePrincipal => "Entra ID service principal",
+                FederatedCredentialType.AzurePipelines => "Azure Pipelines",
+                _ => type.ToString(),
+            };
         }
 
         private bool IsTenantAllowed(Guid tenantId)

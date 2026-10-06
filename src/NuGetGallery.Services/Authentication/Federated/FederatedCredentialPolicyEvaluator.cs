@@ -67,6 +67,7 @@ namespace NuGetGallery.Services.Authentication
             FederatedCredentialIssuerType issuerType = policy.Type switch
             {
                 FederatedCredentialType.EntraIdServicePrincipal => FederatedCredentialIssuerType.EntraId,
+                FederatedCredentialType.AzurePipelines => FederatedCredentialIssuerType.EntraId,
                 FederatedCredentialType.GitHubActions => FederatedCredentialIssuerType.GitHubActions,
                 FederatedCredentialType.GitLab => FederatedCredentialIssuerType.GitLab,
                 _ => throw new ArgumentException($"Unsupported {policy.Type}"),

@@ -49,6 +49,34 @@ namespace NuGetGallery.Services.Authentication
             }
 
             [Fact]
+            public void DelegatesToEntraIdValidatorForAzurePipelinesPolicy()
+            {
+                var user = new User("test-user");
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = FederatedCredentialType.AzurePipelines,
+                    PackageOwner = user,
+                    Criteria = new AzurePipelinesCriteria
+                    {
+                        OrganizationId = "organization",
+                        ProjectId = "project",
+                        DefinitionId = "definition",
+                        RepositoryId = "repository",
+                        RepositoryRef = "refs/heads/main",
+                    }.ToDatabaseJson(),
+                };
+
+                var expectedResult = FederatedCredentialPolicyValidationResult.Success(policy);
+                var entraIdValidator = TokenValidators.First(v => v.Object.IssuerType == FederatedCredentialIssuerType.EntraId);
+                entraIdValidator.Setup(x => x.ValidatePolicy(policy)).Returns(expectedResult);
+
+                var result = Target.ValidatePolicy(policy);
+
+                Assert.Same(expectedResult, result);
+                entraIdValidator.Verify(x => x.ValidatePolicy(policy), Times.Once);
+            }
+
+            [Fact]
             public void DelegatesToGitHubValidatorForGitHubActionsPolicy()
             {
                 // Arrange
