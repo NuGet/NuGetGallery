@@ -115,9 +115,10 @@ namespace NuGetGallery
                     return Error(HttpStatusCode.BadRequest, "InvalidRequest", "The request must contain one package file.", "package");
                 }
 
-                if (Request.Form.AllKeys.Any(key => string.Equals(key, "groupId", StringComparison.OrdinalIgnoreCase)) && string.IsNullOrWhiteSpace(Request.Form["groupId"]))
+                var fieldError = ValidateUploadFields(symbols: false);
+                if (fieldError != null)
                 {
-                    return Error(HttpStatusCode.BadRequest, "InvalidRequest", "The group ID must not be empty.", "groupid");
+                    return fieldError;
                 }
 
                 if (!ModelState.IsValid)
@@ -131,7 +132,7 @@ namespace NuGetGallery
                 var result = await _packageStagingUploadService.StagePackageAsync(currentUser, scopes, HttpContext, request.Package.InputStream, request.GroupId, request.Listed);
                 if (!result.Success)
                 {
-                    return new HttpStatusCodeWithBodyResult(result.StatusCode, result.ErrorMessage);
+                    return Error(result.StatusCode, "PackageUploadFailed", result.ErrorMessage);
                 }
 
                 var package = result.StagedPackage;
@@ -141,12 +142,12 @@ namespace NuGetGallery
             }
             catch (HttpException exception) when (exception.IsMaxRequestLengthExceeded())
             {
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.RequestEntityTooLarge, Strings.PackageFileTooLarge);
+                return Error(HttpStatusCode.RequestEntityTooLarge, "PackageFileTooLarge", Strings.PackageFileTooLarge);
             }
             catch (HttpException exception) when (!Response.IsClientConnected)
             {
                 QuietLog.LogHandledException(exception);
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, Strings.PackageUploadCancelled);
+                return Error(HttpStatusCode.BadRequest, "PackageUploadCancelled", Strings.PackageUploadCancelled);
             }
         }
 
@@ -170,6 +171,12 @@ namespace NuGetGallery
                     return Error(HttpStatusCode.BadRequest, "InvalidRequest", "The request must contain one symbol package file.", "package");
                 }
 
+                var fieldError = ValidateUploadFields(symbols: true);
+                if (fieldError != null)
+                {
+                    return fieldError;
+                }
+
                 if (!ModelState.IsValid)
                 {
                     var target = ModelState.First(entry => entry.Value.Errors.Count > 0).Key;
@@ -181,7 +188,7 @@ namespace NuGetGallery
                 var result = await _symbolPackageStagingUploadService.StageSymbolPackageAsync(currentUser, scopes, HttpContext, request.Package.InputStream, request.GroupId);
                 if (!result.Success)
                 {
-                    return new HttpStatusCodeWithBodyResult(result.StatusCode, result.ErrorMessage);
+                    return Error(result.StatusCode, "SymbolPackageUploadFailed", result.ErrorMessage);
                 }
 
                 var symbolPackage = result.StagedSymbolPackage;
@@ -191,12 +198,12 @@ namespace NuGetGallery
             }
             catch (HttpException exception) when (exception.IsMaxRequestLengthExceeded())
             {
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.RequestEntityTooLarge, Strings.PackageFileTooLarge);
+                return Error(HttpStatusCode.RequestEntityTooLarge, "PackageFileTooLarge", Strings.PackageFileTooLarge);
             }
             catch (HttpException exception) when (!Response.IsClientConnected)
             {
                 QuietLog.LogHandledException(exception);
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, Strings.PackageUploadCancelled);
+                return Error(HttpStatusCode.BadRequest, "PackageUploadCancelled", Strings.PackageUploadCancelled);
             }
         }
 
@@ -364,6 +371,34 @@ namespace NuGetGallery
                 symbol, StagingExpirationPolicy.GetDeadline(symbol), GetManagementUrl(symbol.StagedPackageIdentity))).ToList();
             var quota = _stagingQuotaService.GetUsage(stagingOwner);
             return JsonContent(new StagingArtifactPagedResponse(artifacts, page, pageSize, symbolPage.TotalCount, quota));
+        }
+
+        private ActionResult ValidateUploadFields(bool symbols)
+        {
+            foreach (var field in Request.Form.AllKeys)
+            {
+                if (string.Equals(field, "groupId", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (string.IsNullOrWhiteSpace(Request.Form[field]))
+                    {
+                        return Error(HttpStatusCode.BadRequest, "InvalidRequest", "The group ID must not be empty.", "groupid");
+                    }
+                }
+                else if (!symbols && string.Equals(field, "listed", StringComparison.OrdinalIgnoreCase))
+                {
+                    var value = Request.Form[field];
+                    if (!string.Equals(value, "true", StringComparison.OrdinalIgnoreCase) && !string.Equals(value, "false", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return Error(HttpStatusCode.BadRequest, "InvalidRequest", "The listed value must be true or false.", "listed");
+                    }
+                }
+                else
+                {
+                    return Error(HttpStatusCode.BadRequest, "InvalidRequest", "The multipart field is not supported.", field?.ToLowerInvariant());
+                }
+            }
+
+            return null;
         }
 
         private ActionResult UploadResponse(PackageStagingResult result, StagingArtifactResponse response, string statusRoute)
