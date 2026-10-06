@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
+using System.Data.SqlTypes;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -245,7 +246,7 @@ namespace NuGetGallery
                         }
                     }
 
-                    return PackageStagingResult.Ok();
+                    return PackageStagingResult.Ok(stagedSymbolPackage: previousAttempt);
                 }
 
                 if (previousAttempt?.SymbolPackage.StatusKey != PackageStatus.Staged)
@@ -264,7 +265,7 @@ namespace NuGetGallery
                     StagedPackageIdentity = identity,
                     UploadedBlobPath = blob.Path,
                     UploadedBlobETag = blob.ETag,
-                    UploadedDate = DateTime.UtcNow,
+                    UploadedDate = new SqlDateTime(DateTime.UtcNow).Value,
                     ExpirationDate = StagingExpirationPolicy.CreateDeadline(_configuration),
                     Status = package.PackageStatusKey == PackageStatus.Deleted ? StagedPackageStatus.WaitingForParent : StagedPackageStatus.Validating,
                 };
@@ -305,7 +306,7 @@ namespace NuGetGallery
                 }
 
                 var siteRoot = new Uri(_configuration.SiteRoot.TrimEnd('/') + "/");
-                var stagingUrl = new Uri(siteRoot, $"account/staging/symbols/{Uri.EscapeDataString(package.Id)}/{Uri.EscapeDataString(package.NormalizedVersion)}").AbsoluteUri;
+                var stagingUrl = new Uri(siteRoot, $"account/staging/symbols/{Uri.EscapeDataString(package.Id)}/{Uri.EscapeDataString(package.NormalizedVersion)}/manage").AbsoluteUri;
                 var emailSettingsUrl = new Uri(siteRoot, "account").AbsoluteUri;
                 await _messageService.SendMessageAsync(new StagedPackageUploadedMessage(_configuration, owner, package, symbols: true, stagingUrl, emailSettingsUrl));
                 if (stagedSymbolPackage.Status == StagedPackageStatus.Ready)
@@ -315,10 +316,10 @@ namespace NuGetGallery
 
                 if (previousAttempt != null)
                 {
-                    return PackageStagingResult.Ok();
+                    return PackageStagingResult.Ok(stagedSymbolPackage: stagedSymbolPackage);
                 }
 
-                return PackageStagingResult.Created(warnings: null);
+                return PackageStagingResult.Created(warnings: null, stagedSymbolPackage: stagedSymbolPackage);
             }
             catch (Exception exception) when (IsInvalidPackage(exception))
             {

@@ -197,6 +197,18 @@ namespace NuGetGallery
                 new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
+                RouteName.ManageStagedPackage,
+                "account/staging/package/{id}/{version}/manage",
+                new { controller = "Staging", action = nameof(StagingController.ManagePackage) },
+                new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
+                RouteName.ManageStagedSymbolPackage,
+                "account/staging/symbols/{id}/{version}/manage",
+                new { controller = "Staging", action = nameof(StagingController.ManageSymbolPackage) },
+                new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
                 RouteName.DownloadManagedStagedPackage,
                 "account/staging/package/{id}/{version}/content",
                 new { controller = "Staging", action = nameof(StagingController.DownloadPackage) },
@@ -1048,12 +1060,6 @@ namespace NuGetGallery
                 new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
-                RouteName.UpdateStagedPackageListed,
-                "api/v3/staging/package/{id}/{version}/listed",
-                new { controller = "StagingApi", action = nameof(StagingApiController.UpdateStagedPackageListed) },
-                new { httpMethod = new HttpMethodConstraint("PATCH") });
-
-            routes.MapRoute(
                 RouteName.DeleteStagedPackage,
                 "api/v3/staging/package/{id}/{version}",
                 new { controller = "StagingApi", action = nameof(StagingApiController.DeleteStagedPackage) },
@@ -1072,9 +1078,27 @@ namespace NuGetGallery
                 new { httpMethod = new HttpMethodConstraint("PUT") });
 
             routes.MapRoute(
-                RouteName.GetStagedSymbolPackage,
+                RouteName.DeleteStagedSymbolPackage,
                 "api/v3/staging/symbols/{id}/{version}",
-                new { controller = "StagingApi", action = nameof(StagingApiController.GetStagedSymbolPackage) },
+                new { controller = "StagingApi", action = nameof(StagingApiController.DeleteStagedSymbolPackage) },
+                new { httpMethod = new HttpMethodConstraint("DELETE") });
+
+            routes.MapRoute(
+                RouteName.DownloadStagedSymbolPackage,
+                "api/v3/staging/symbols/{id}/{version}",
+                new { controller = "StagingApi", action = nameof(StagingApiController.DownloadStagedSymbolPackage) },
+                new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
+                RouteName.GetStagedSymbolPackageStatus,
+                "api/v3/staging/symbols/{id}/{version}/status",
+                new { controller = "StagingApi", action = nameof(StagingApiController.GetStagedSymbolPackageStatus) },
+                new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
+                RouteName.GetStagedSymbolPackages,
+                "api/v3/staging/symbols",
+                new { controller = "StagingApi", action = nameof(StagingApiController.GetStagedSymbolPackages) },
                 new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(

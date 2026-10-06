@@ -21,6 +21,11 @@ namespace NuGetGallery
 
             var identity = attempt.StagedPackageIdentity;
             var blockers = new List<StagingBlockerResponse>();
+            var promotionBlocker = StagingPromotionFailure.GetBlocker(attempt.Status, symbols: true, identity.StagingGroupKey.HasValue);
+            if (promotionBlocker != null)
+            {
+                blockers.Add(promotionBlocker);
+            }
             var ownershipBlocker = StagingOwnershipPolicy.GetBlocker(identity);
             if (ownershipBlocker != null)
             {
@@ -36,7 +41,7 @@ namespace NuGetGallery
             {
                 blockers.Add(new StagingBlockerResponse("ParentPackageMissing", "Restage the parent package to validate these symbols."));
             }
-            else if (attempt.Status != StagedPackageStatus.Ready)
+            else if (attempt.Status != StagedPackageStatus.Ready && promotionBlocker == null)
             {
                 blockers.Add(new StagingBlockerResponse("SymbolsNotReady", "The staged symbols are not ready for promotion."));
             }

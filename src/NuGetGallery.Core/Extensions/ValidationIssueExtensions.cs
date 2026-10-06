@@ -7,7 +7,10 @@ using NuGet.Services.Validation.Issues;
 
 namespace NuGetGallery
 {
-    internal static class ValidationIssueExtensions
+    /// <summary>
+    /// Formats validation findings for mail and artifact responses.
+    /// </summary>
+    public static class ValidationIssueExtensions
     {
         /// <summary>
         /// Returns a Markdown representation describing the <see cref="ValidationIssue"/> in a user-friendly way.
@@ -38,6 +41,35 @@ namespace NuGetGallery
                     return clientIssue != null
                         ? $"**{clientIssue.ClientCode}**: {clientIssue.ClientMessage}"
                         : "This package's signature was unable to get verified.";
+                case ValidationIssueCode.OnlySignatureFormatVersion1Supported:
+                    return "**NU3007:** Package signatures must have format version 1.";
+                case ValidationIssueCode.PackageIsNotSigned:
+                    return "This package must be signed with a registered certificate. [Read more...](https://aka.ms/nuget-signed-ref)";
+                case ValidationIssueCode.PackageIsSignedWithUnauthorizedCertificate:
+                    var certIssue = (UnauthorizedCertificateFailure)validationIssue;
+                    return $"The package was signed, but the signing certificate {(certIssue != null ? $"(SHA-256 thumbprint {certIssue.Sha256Thumbprint})" : "")} is not associated with your account. You must register this certificate to publish signed packages. [Read more...](https://aka.ms/nuget-signed-ref)";
+                default:
+                    return validationIssue.ToPlainTextString();
+            }
+        }
+
+        /// <summary>
+        /// Describes a validation finding without HTML or Markdown formatting.
+        /// </summary>
+        public static string ToPlainTextString(this ValidationIssue validationIssue)
+        {
+            if (validationIssue == null)
+            {
+                throw new ArgumentNullException(nameof(validationIssue));
+            }
+
+            switch (validationIssue.IssueCode)
+            {
+                case ValidationIssueCode.PackageIsSigned:
+                    return "We do not accept signed packages at this moment. To be notified about package signing and more, watch our Announcements page or follow us on Twitter.";
+                case ValidationIssueCode.ClientSigningVerificationFailure:
+                    var clientIssue = (ClientSigningVerificationFailure)validationIssue;
+                    return $"{clientIssue.ClientCode}: {clientIssue.ClientMessage}";
                 case ValidationIssueCode.PackageIsZip64:
                     return "Zip64 packages are not supported.";
                 case ValidationIssueCode.OnlyAuthorSignaturesSupported:
@@ -45,14 +77,14 @@ namespace NuGetGallery
                 case ValidationIssueCode.AuthorAndRepositoryCounterSignaturesNotSupported:
                     return "Author countersignatures and repository countersignatures are not supported.";
                 case ValidationIssueCode.OnlySignatureFormatVersion1Supported:
-                    return "**NU3007:** Package signatures must have format version 1.";
+                    return "NU3007: Package signatures must have format version 1.";
                 case ValidationIssueCode.AuthorCounterSignaturesNotSupported:
                     return "Author countersignatures are not supported.";
                 case ValidationIssueCode.PackageIsNotSigned:
-                    return "This package must be signed with a registered certificate. [Read more...](https://aka.ms/nuget-signed-ref)";
+                    return "This package must be signed with a registered certificate.";
                 case ValidationIssueCode.PackageIsSignedWithUnauthorizedCertificate:
-                    var certIssue = (UnauthorizedCertificateFailure)validationIssue;
-                    return $"The package was signed, but the signing certificate {(certIssue != null ? $"(SHA-256 thumbprint {certIssue.Sha256Thumbprint})" : "")} is not associated with your account. You must register this certificate to publish signed packages. [Read more...](https://aka.ms/nuget-signed-ref)";
+                    var certificateIssue = (UnauthorizedCertificateFailure)validationIssue;
+                    return $"The package was signed, but the signing certificate (SHA-256 thumbprint {certificateIssue.Sha256Thumbprint}) is not associated with your account. You must register this certificate to publish signed packages.";
                 case ValidationIssueCode.SymbolErrorCode_ChecksumDoesNotMatch:
                     return "The checksum does not match for the dll(s) and corresponding pdb(s).";
                 case ValidationIssueCode.SymbolErrorCode_MatchingAssemblyNotFound:

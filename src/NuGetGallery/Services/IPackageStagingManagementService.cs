@@ -14,6 +14,46 @@ namespace NuGetGallery
     public interface IPackageStagingManagementService
     {
         /// <summary>
+        /// Gets one ordered page of current packages for an authorized API owner.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="scopes">The credential scopes used to filter package IDs.</param>
+        /// <param name="page">The one-based page number.</param>
+        /// <param name="pageSize">The number of artifacts per page.</param>
+        /// <returns>The visible package page and total matching count.</returns>
+        StagingArtifactPage<StagedPackage> GetStagedPackagePage(User stagingOwner, IReadOnlyCollection<Scope> scopes, int page, int pageSize);
+
+        /// <summary>
+        /// Gets one ordered page of current symbols for an authorized API owner.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="scopes">The credential scopes used to filter package IDs.</param>
+        /// <param name="page">The one-based page number.</param>
+        /// <param name="pageSize">The number of artifacts per page.</param>
+        /// <returns>The visible symbol page and total matching count, or an empty page when the owner is unconfirmed or locked.</returns>
+        StagingArtifactPage<StagedSymbolPackage> GetStagedSymbolPackagePage(User stagingOwner, IReadOnlyCollection<Scope> scopes, int page, int pageSize);
+
+        /// <summary>
+        /// Gets a current package visible to an authorized API owner and credential.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="scopes">The credential scopes used to filter package IDs.</param>
+        /// <param name="id">The package ID.</param>
+        /// <param name="version">The package version.</param>
+        /// <returns>The visible current attempt, or <see langword="null"/> when it is unavailable.</returns>
+        StagedPackage GetStagedPackage(User stagingOwner, IReadOnlyCollection<Scope> scopes, string id, string version);
+
+        /// <summary>
+        /// Gets current symbols visible to an authorized API owner and credential.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="scopes">The credential scopes used to filter package IDs.</param>
+        /// <param name="id">The package ID.</param>
+        /// <param name="version">The package version.</param>
+        /// <returns>The visible current attempt, or <see langword="null"/> when it is unavailable.</returns>
+        StagedSymbolPackage GetStagedSymbolPackage(User stagingOwner, IReadOnlyCollection<Scope> scopes, string id, string version);
+
+        /// <summary>
         /// Gets staged packages visible to the API credential.
         /// </summary>
         /// <param name="currentUser">The user associated with the staging credential.</param>

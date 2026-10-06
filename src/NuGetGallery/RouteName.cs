@@ -59,11 +59,13 @@ namespace NuGetGallery
         public const string StagePackage = "StagePackage";
         public const string StageSymbolPackage = "StageSymbolPackage";
         public const string GetStagedPackages = "GetStagedPackages";
+        public const string GetStagedSymbolPackages = "GetStagedSymbolPackages";
         public const string GetStagedPackageStatus = "GetStagedPackageStatus";
-        public const string GetStagedSymbolPackage = "GetStagedSymbolPackage";
+        public const string GetStagedSymbolPackageStatus = "GetStagedSymbolPackageStatus";
         public const string DownloadStagedPackage = "DownloadStagedPackage";
-        public const string UpdateStagedPackageListed = "UpdateStagedPackageListed";
+        public const string DownloadStagedSymbolPackage = "DownloadStagedSymbolPackage";
         public const string DeleteStagedPackage = "DeleteStagedPackage";
+        public const string DeleteStagedSymbolPackage = "DeleteStagedSymbolPackage";
         public const string CreateStagingGroup = "CreateStagingGroup";
         public const string CreateStagingGroupApi = "CreateStagingGroupApi";
         public const string RenameStagingGroup = "RenameStagingGroup";
@@ -76,6 +78,8 @@ namespace NuGetGallery
         public const string GetStagingGroupsApi = "GetStagingGroupsApi";
         public const string ManageStagingGroup = "ManageStagingGroup";
         public const string ManageUngroupedStaging = "ManageUngroupedStaging";
+        public const string ManageStagedPackage = "ManageStagedPackage";
+        public const string ManageStagedSymbolPackage = "ManageStagedSymbolPackage";
         public const string DownloadManagedStagedPackage = "DownloadManagedStagedPackage";
         public const string DownloadManagedStagedSymbolPackage = "DownloadManagedStagedSymbolPackage";
         public const string DeleteManagedStagedSymbolPackage = "DeleteManagedStagedSymbolPackage";

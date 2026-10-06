@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
+using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 
 namespace NuGetGallery
@@ -663,6 +664,159 @@ namespace NuGetGallery
             }
 
             return new StagingGroupPackagePage(group, packages, totalCount, allPackagesReady, symbols, symbolCount, hasRegistrationOwnershipLoss);
+        }
+
+        /// <inheritdoc />
+        public StagingArtifactPage<StagedPackage> GetStagedPackagePage(User stagingOwner, IReadOnlyCollection<Scope> scopes, int page, int pageSize)
+        {
+            ValidateArtifactPaging(stagingOwner, scopes, page, pageSize);
+            var query = GetCurrentStagedPackages(new[] { stagingOwner.Key });
+            var matchingScopes = GetInventoryScopes(stagingOwner, scopes);
+            if (!matchingScopes.Any(scope => scope.Subject == NuGetPackagePattern.AllInclusivePattern))
+            {
+                var ids = GetVisiblePackageIds(query.Select(package => package.StagedPackageIdentity.Package.PackageRegistration.Id), matchingScopes);
+                query = query.Where(package => ids.Contains(package.StagedPackageIdentity.Package.PackageRegistration.Id));
+            }
+
+            var totalCount = query.Count();
+            var skip = ((long)page - 1) * pageSize;
+            var items = new List<StagedPackage>();
+            if (skip < totalCount)
+            {
+                items = query.OrderByDescending(package => package.UploadedDate)
+                    .ThenByDescending(package => package.Key)
+                    .Skip((int)skip)
+                    .Take(pageSize)
+                    .ToList();
+            }
+
+            return new StagingArtifactPage<StagedPackage>(items, totalCount);
+        }
+
+        /// <inheritdoc />
+        public StagingArtifactPage<StagedSymbolPackage> GetStagedSymbolPackagePage(User stagingOwner, IReadOnlyCollection<Scope> scopes, int page, int pageSize)
+        {
+            ValidateArtifactPaging(stagingOwner, scopes, page, pageSize);
+            if (!stagingOwner.Confirmed || stagingOwner.IsLocked)
+            {
+                return new StagingArtifactPage<StagedSymbolPackage>(Array.Empty<StagedSymbolPackage>(), 0);
+            }
+
+            var query = GetCurrentStagedSymbols(new[] { stagingOwner.Key })
+                .Where(symbol => symbol.Status != StagedPackageStatus.Deleted && symbol.Status != StagedPackageStatus.Superseded);
+            var matchingScopes = GetInventoryScopes(stagingOwner, scopes);
+            if (!matchingScopes.Any(scope => scope.Subject == NuGetPackagePattern.AllInclusivePattern))
+            {
+                var ids = GetVisiblePackageIds(query.Select(symbol => symbol.StagedPackageIdentity.Package.PackageRegistration.Id), matchingScopes);
+                query = query.Where(symbol => ids.Contains(symbol.StagedPackageIdentity.Package.PackageRegistration.Id));
+            }
+
+            var totalCount = query.Count();
+            var skip = ((long)page - 1) * pageSize;
+            var items = new List<StagedSymbolPackage>();
+            if (skip < totalCount)
+            {
+                items = query.OrderByDescending(symbol => symbol.UploadedDate)
+                    .ThenByDescending(symbol => symbol.Key)
+                    .Skip((int)skip)
+                    .Take(pageSize)
+                    .ToList();
+            }
+
+            return new StagingArtifactPage<StagedSymbolPackage>(items, totalCount);
+        }
+
+        /// <inheritdoc />
+        public StagedPackage GetStagedPackage(User stagingOwner, IReadOnlyCollection<Scope> scopes, string id, string version)
+        {
+            var package = FindApiPackage(stagingOwner, scopes, id, version);
+            if (package == null)
+            {
+                return null;
+            }
+
+            return GetCurrentStagedPackages(new[] { stagingOwner.Key })
+                .SingleOrDefault(attempt => attempt.StagedPackageIdentityKey == package.Key);
+        }
+
+        /// <inheritdoc />
+        public StagedSymbolPackage GetStagedSymbolPackage(User stagingOwner, IReadOnlyCollection<Scope> scopes, string id, string version)
+        {
+            var package = FindApiPackage(stagingOwner, scopes, id, version);
+            if (package == null || !stagingOwner.Confirmed || stagingOwner.IsLocked)
+            {
+                return null;
+            }
+
+            return GetCurrentStagedSymbols(new[] { stagingOwner.Key })
+                .Where(symbol => symbol.Status != StagedPackageStatus.Deleted && symbol.Status != StagedPackageStatus.Superseded)
+                .SingleOrDefault(attempt => attempt.StagedPackageIdentityKey == package.Key);
+        }
+
+        private Package FindApiPackage(User stagingOwner, IReadOnlyCollection<Scope> scopes, string id, string version)
+        {
+            if (stagingOwner == null)
+            {
+                throw new ArgumentNullException(nameof(stagingOwner));
+            }
+
+            if (scopes == null)
+            {
+                throw new ArgumentNullException(nameof(scopes));
+            }
+
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(id));
+            }
+
+            if (string.IsNullOrWhiteSpace(version))
+            {
+                throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(version));
+            }
+
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
+            if (package == null || !GetInventoryScopes(stagingOwner, scopes).Any(scope => scope.AllowsSubject(package.PackageRegistration.Id)))
+            {
+                return null;
+            }
+
+            return package;
+        }
+
+        private static List<Scope> GetInventoryScopes(User stagingOwner, IReadOnlyCollection<Scope> scopes)
+        {
+            return scopes.Where(scope => scope.OwnerKey == stagingOwner.Key && scope.AllowsActions(NuGetScopes.PackageStage)).ToList();
+        }
+
+        private static string[] GetVisiblePackageIds(IQueryable<string> query, IReadOnlyCollection<Scope> scopes)
+        {
+            return query.Distinct().AsEnumerable()
+                .Where(id => scopes.Any(scope => scope.AllowsSubject(id)))
+                .ToArray();
+        }
+
+        private static void ValidateArtifactPaging(User stagingOwner, IReadOnlyCollection<Scope> scopes, int page, int pageSize)
+        {
+            if (stagingOwner == null)
+            {
+                throw new ArgumentNullException(nameof(stagingOwner));
+            }
+
+            if (scopes == null)
+            {
+                throw new ArgumentNullException(nameof(scopes));
+            }
+
+            if (page < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(page));
+            }
+
+            if (pageSize < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(pageSize));
+            }
         }
 
         public IReadOnlyList<PackageStagingStatus> GetPackages(User currentUser, IEnumerable<Scope> scopes)

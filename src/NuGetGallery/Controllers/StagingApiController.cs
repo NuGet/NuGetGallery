@@ -13,6 +13,7 @@ using System.Web;
 using System.Web.Mvc;
 using Newtonsoft.Json;
 using NuGet.Services.Entities;
+using NuGet.Services.Validation.Issues;
 using NuGetGallery.Authentication;
 using NuGetGallery.Filters;
 
@@ -30,17 +31,26 @@ namespace NuGetGallery
         private readonly IPackageStagingManagementService _packageStagingManagementService;
         private readonly IPackageStagingUploadService _packageStagingUploadService;
         private readonly ISymbolPackageStagingUploadService _symbolPackageStagingUploadService;
+        private readonly ISymbolPackageStagingManagementService _symbolPackageStagingManagementService;
+        private readonly IStagingQuotaService _stagingQuotaService;
+        private readonly IValidationService _validationService;
 
         public StagingApiController(
             IPackageStagingAuthorizationService packageStagingAuthorizationService,
             IPackageStagingManagementService packageStagingManagementService,
             IPackageStagingUploadService packageStagingUploadService,
-            ISymbolPackageStagingUploadService symbolPackageStagingUploadService)
+            ISymbolPackageStagingUploadService symbolPackageStagingUploadService,
+            ISymbolPackageStagingManagementService symbolPackageStagingManagementService,
+            IStagingQuotaService stagingQuotaService,
+            IValidationService validationService)
         {
             _packageStagingAuthorizationService = packageStagingAuthorizationService ?? throw new ArgumentNullException(nameof(packageStagingAuthorizationService));
             _packageStagingManagementService = packageStagingManagementService ?? throw new ArgumentNullException(nameof(packageStagingManagementService));
             _packageStagingUploadService = packageStagingUploadService ?? throw new ArgumentNullException(nameof(packageStagingUploadService));
             _symbolPackageStagingUploadService = symbolPackageStagingUploadService ?? throw new ArgumentNullException(nameof(symbolPackageStagingUploadService));
+            _symbolPackageStagingManagementService = symbolPackageStagingManagementService ?? throw new ArgumentNullException(nameof(symbolPackageStagingManagementService));
+            _stagingQuotaService = stagingQuotaService ?? throw new ArgumentNullException(nameof(stagingQuotaService));
+            _validationService = validationService ?? throw new ArgumentNullException(nameof(validationService));
         }
 
         [HttpPost]
@@ -89,6 +99,11 @@ namespace NuGetGallery
             }
         }
 
+        /// <summary>
+        /// Creates or replaces a staged package and returns its artifact resource.
+        /// </summary>
+        /// <param name="request">The package file, optional group, and listed intent.</param>
+        /// <returns>The accepted artifact with upload warnings and a status Location on creation, or an upload error.</returns>
         [HttpPut]
         public virtual async Task<ActionResult> StagePackage(StagePackageRequest request)
         {
@@ -104,9 +119,10 @@ namespace NuGetGallery
                     return Error(HttpStatusCode.BadRequest, "InvalidRequest", "The request must contain one package file.", "package");
                 }
 
-                if (Request.Form.AllKeys.Any(key => string.Equals(key, "groupId", StringComparison.OrdinalIgnoreCase)) && string.IsNullOrWhiteSpace(Request.Form["groupId"]))
+                var fieldError = ValidateUploadFields(symbols: false);
+                if (fieldError != null)
                 {
-                    return Error(HttpStatusCode.BadRequest, "InvalidRequest", "The group ID must not be empty.", "groupid");
+                    return fieldError;
                 }
 
                 if (!ModelState.IsValid)
@@ -120,22 +136,29 @@ namespace NuGetGallery
                 var result = await _packageStagingUploadService.StagePackageAsync(currentUser, scopes, HttpContext, request.Package.InputStream, request.GroupId, request.Listed);
                 if (!result.Success)
                 {
-                    return new HttpStatusCodeWithBodyResult(result.StatusCode, result.ErrorMessage);
+                    return Error(result.StatusCode, "PackageUploadFailed", result.ErrorMessage);
                 }
 
-                return new HttpStatusCodeWithServerWarningResult(result.StatusCode, result.Warnings);
+                var package = result.StagedPackage;
+                var response = GetPackageResponses(new[] { package })[package.Key];
+                return UploadResponse(result, response, RouteName.GetStagedPackageStatus);
             }
             catch (HttpException exception) when (exception.IsMaxRequestLengthExceeded())
             {
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.RequestEntityTooLarge, Strings.PackageFileTooLarge);
+                return Error(HttpStatusCode.RequestEntityTooLarge, "PackageFileTooLarge", Strings.PackageFileTooLarge);
             }
             catch (HttpException exception) when (!Response.IsClientConnected)
             {
                 QuietLog.LogHandledException(exception);
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, Strings.PackageUploadCancelled);
+                return Error(HttpStatusCode.BadRequest, "PackageUploadCancelled", Strings.PackageUploadCancelled);
             }
         }
 
+        /// <summary>
+        /// Creates or replaces staged symbols and returns their artifact resource.
+        /// </summary>
+        /// <param name="request">The symbol package file and optional group.</param>
+        /// <returns>The accepted artifact with upload warnings and a status Location on creation, or an upload error.</returns>
         [HttpPut]
         public virtual async Task<ActionResult> StageSymbolPackage(StageSymbolPackageRequest request)
         {
@@ -146,9 +169,15 @@ namespace NuGetGallery
                     return Error(HttpStatusCode.UnsupportedMediaType, "UnsupportedMediaType", $"The request must have a Content-Type of '{MultipartContentType}'.");
                 }
 
-                if (request == null || request.Package == null || Request.Files.Count != 1 || !string.Equals(Request.Files.GetKey(0), "package", StringComparison.OrdinalIgnoreCase))
+                if (request == null || request.Symbols == null || Request.Files.Count != 1 || !string.Equals(Request.Files.GetKey(0), "symbols", StringComparison.OrdinalIgnoreCase))
                 {
-                    return Error(HttpStatusCode.BadRequest, "InvalidRequest", "The request must contain one symbol package file.", "package");
+                    return Error(HttpStatusCode.BadRequest, "InvalidRequest", "The request must contain one symbol package file in the symbols field.", "symbols");
+                }
+
+                var fieldError = ValidateUploadFields(symbols: true);
+                if (fieldError != null)
+                {
+                    return fieldError;
                 }
 
                 if (!ModelState.IsValid)
@@ -159,22 +188,24 @@ namespace NuGetGallery
 
                 var currentUser = GetCurrentUser();
                 var scopes = User.Identity.GetScopesFromClaim();
-                var result = await _symbolPackageStagingUploadService.StageSymbolPackageAsync(currentUser, scopes, HttpContext, request.Package.InputStream, request.GroupId);
+                var result = await _symbolPackageStagingUploadService.StageSymbolPackageAsync(currentUser, scopes, HttpContext, request.Symbols.InputStream, request.GroupId);
                 if (!result.Success)
                 {
-                    return new HttpStatusCodeWithBodyResult(result.StatusCode, result.ErrorMessage);
+                    return Error(result.StatusCode, "SymbolPackageUploadFailed", result.ErrorMessage);
                 }
 
-                return new HttpStatusCodeWithServerWarningResult(result.StatusCode, result.Warnings);
+                var symbolPackage = result.StagedSymbolPackage;
+                var response = GetSymbolResponses(new[] { symbolPackage })[symbolPackage.Key];
+                return UploadResponse(result, response, RouteName.GetStagedSymbolPackageStatus);
             }
             catch (HttpException exception) when (exception.IsMaxRequestLengthExceeded())
             {
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.RequestEntityTooLarge, Strings.PackageFileTooLarge);
+                return Error(HttpStatusCode.RequestEntityTooLarge, "PackageFileTooLarge", Strings.PackageFileTooLarge);
             }
             catch (HttpException exception) when (!Response.IsClientConnected)
             {
                 QuietLog.LogHandledException(exception);
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, Strings.PackageUploadCancelled);
+                return Error(HttpStatusCode.BadRequest, "PackageUploadCancelled", Strings.PackageUploadCancelled);
             }
         }
 
@@ -238,9 +269,11 @@ namespace NuGetGallery
             var group = packagePage.Group;
             var managementUrl = Url.ManageStagingGroup(group.Owner.Username, group.Id, relativeUrl: false);
             var expirationDate = group.ExpirationDate;
+            var packageResponses = GetPackageResponses(packagePage.Items);
+            var symbolResponses = GetSymbolResponses(packagePage.Symbols);
             var artifacts = packagePage.Items
-                .Select(package => new { package.Key, package.UploadedDate, IsSymbol = false, Artifact = StagingArtifactResponse.FromPackage(package, expirationDate, managementUrl) })
-                .Concat(packagePage.Symbols.Select(symbol => new { symbol.Key, symbol.UploadedDate, IsSymbol = true, Artifact = StagingArtifactResponse.FromSymbolPackage(symbol, expirationDate, managementUrl) }))
+                .Select(package => new { package.Key, package.UploadedDate, IsSymbol = false, Artifact = packageResponses[package.Key] })
+                .Concat(packagePage.Symbols.Select(symbol => new { symbol.Key, symbol.UploadedDate, IsSymbol = true, Artifact = symbolResponses[symbol.Key] }))
                 .OrderByDescending(item => item.UploadedDate)
                 .ThenByDescending(item => item.Key)
                 .ThenBy(item => item.IsSymbol)
@@ -284,110 +317,335 @@ namespace NuGetGallery
             }
         }
 
+        /// <summary>
+        /// Lists one page of current staged packages visible to the API-key owner.
+        /// </summary>
+        /// <param name="page">The one-based page number.</param>
+        /// <param name="pageSize">The number of packages per page.</param>
+        /// <returns>The artifact page and owner-wide quota metadata.</returns>
         [HttpGet]
-        public virtual ActionResult GetStagedPackages()
+        public virtual ActionResult GetStagedPackages(int page = 1, int pageSize = DefaultPageSize)
         {
+            var pagingError = ValidatePaging(page, pageSize);
+            if (pagingError != null)
+            {
+                return pagingError;
+            }
+
             var currentUser = GetCurrentUser();
             var scopes = User.Identity.GetScopesFromClaim();
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledApiKeyOwner(currentUser, scopes);
+            if (stagingOwner == null)
+            {
+                return Error(HttpStatusCode.Forbidden, "StagingOwnerUnavailable", "Staging is not available for the API key owner.");
+            }
 
-            var packages = _packageStagingManagementService.GetPackages(currentUser, scopes);
-            return Json(packages, JsonRequestBehavior.AllowGet);
+            var packagePage = _packageStagingManagementService.GetStagedPackagePage(stagingOwner, scopes, page, pageSize);
+            var responses = GetPackageResponses(packagePage.Items);
+            var artifacts = packagePage.Items.Select(package => responses[package.Key]).ToList();
+            var quota = _stagingQuotaService.GetUsage(stagingOwner);
+            return JsonContent(new StagingArtifactPagedResponse(artifacts, page, pageSize, packagePage.TotalCount, quota));
         }
 
+        /// <summary>
+        /// Lists one page of current staged symbols visible to the API-key owner.
+        /// </summary>
+        /// <param name="page">The one-based page number.</param>
+        /// <param name="pageSize">The number of symbol packages per page.</param>
+        /// <returns>The artifact page and owner-wide quota metadata.</returns>
+        [HttpGet]
+        public virtual ActionResult GetStagedSymbolPackages(int page = 1, int pageSize = DefaultPageSize)
+        {
+            var pagingError = ValidatePaging(page, pageSize);
+            if (pagingError != null)
+            {
+                return pagingError;
+            }
+
+            var currentUser = GetCurrentUser();
+            var scopes = User.Identity.GetScopesFromClaim();
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledApiKeyOwner(currentUser, scopes);
+            if (stagingOwner == null)
+            {
+                return Error(HttpStatusCode.Forbidden, "StagingOwnerUnavailable", "Staging is not available for the API key owner.");
+            }
+
+            var symbolPage = _packageStagingManagementService.GetStagedSymbolPackagePage(stagingOwner, scopes, page, pageSize);
+            var responses = GetSymbolResponses(symbolPage.Items);
+            var artifacts = symbolPage.Items.Select(symbol => responses[symbol.Key]).ToList();
+            var quota = _stagingQuotaService.GetUsage(stagingOwner);
+            return JsonContent(new StagingArtifactPagedResponse(artifacts, page, pageSize, symbolPage.TotalCount, quota));
+        }
+
+        private IReadOnlyDictionary<int, StagingArtifactResponse> GetPackageResponses(IReadOnlyCollection<StagedPackage> packages)
+        {
+            var failedKeys = packages.Where(package => package.Status == StagedPackageStatus.FailedValidation).Select(package => package.Key).ToList();
+            IReadOnlyDictionary<int, IReadOnlyList<ValidationIssue>> issues = new Dictionary<int, IReadOnlyList<ValidationIssue>>();
+            if (failedKeys.Count > 0)
+            {
+                issues = _validationService.GetStagedPackageValidationIssues(failedKeys);
+            }
+
+            return packages.ToDictionary(package => package.Key, package =>
+            {
+                issues.TryGetValue(package.Key, out var validationIssues);
+                return StagingArtifactResponse.FromPackage(
+                    package, StagingExpirationPolicy.GetDeadline(package), GetManagementUrl(package.StagedPackageIdentity), validationIssues);
+            });
+        }
+
+        private IReadOnlyDictionary<int, StagingArtifactResponse> GetSymbolResponses(IReadOnlyCollection<StagedSymbolPackage> symbols)
+        {
+            var failedKeys = symbols.Where(symbol => symbol.Status == StagedPackageStatus.FailedValidation).Select(symbol => symbol.Key).ToList();
+            IReadOnlyDictionary<int, IReadOnlyList<ValidationIssue>> issues = new Dictionary<int, IReadOnlyList<ValidationIssue>>();
+            if (failedKeys.Count > 0)
+            {
+                issues = _validationService.GetStagedSymbolPackageValidationIssues(failedKeys);
+            }
+
+            return symbols.ToDictionary(symbol => symbol.Key, symbol =>
+            {
+                issues.TryGetValue(symbol.Key, out var validationIssues);
+                return StagingArtifactResponse.FromSymbolPackage(
+                    symbol, StagingExpirationPolicy.GetDeadline(symbol), GetManagementUrl(symbol.StagedPackageIdentity), validationIssues);
+            });
+        }
+
+        private ActionResult ValidateUploadFields(bool symbols)
+        {
+            foreach (var field in Request.Form.AllKeys)
+            {
+                if (string.Equals(field, "groupId", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (string.IsNullOrWhiteSpace(Request.Form[field]))
+                    {
+                        return Error(HttpStatusCode.BadRequest, "InvalidRequest", "The group ID must not be empty.", "groupid");
+                    }
+                }
+                else if (!symbols && string.Equals(field, "listed", StringComparison.OrdinalIgnoreCase))
+                {
+                    var value = Request.Form[field];
+                    if (!string.Equals(value, "true", StringComparison.OrdinalIgnoreCase) && !string.Equals(value, "false", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return Error(HttpStatusCode.BadRequest, "InvalidRequest", "The listed value must be true or false.", "listed");
+                    }
+                }
+                else
+                {
+                    return Error(HttpStatusCode.BadRequest, "InvalidRequest", "The multipart field is not supported.", field?.ToLowerInvariant());
+                }
+            }
+
+            return null;
+        }
+
+        private ActionResult UploadResponse(PackageStagingResult result, StagingArtifactResponse response, string statusRoute)
+        {
+            Response.StatusCode = (int)result.StatusCode;
+            if (result.StatusCode == HttpStatusCode.Created)
+            {
+                Response.AppendHeader("Location", Url.RouteUrl(statusRoute, new { id = response.Id, version = response.Version }, Request.Url.Scheme));
+            }
+
+            if (!Response.HeadersWritten)
+            {
+                foreach (var warning in result.Warnings)
+                {
+                    if (!string.IsNullOrWhiteSpace(warning.PlainTextMessage))
+                    {
+                        Response.AppendHeader(GalleryConstants.WarningHeaderName, warning.PlainTextMessage);
+                    }
+                }
+            }
+
+            return JsonContent(response);
+        }
+
+        private string GetManagementUrl(StagedPackageIdentity identity)
+        {
+            if (identity.StagingGroupKey.HasValue)
+            {
+                return Url.ManageStagingGroup(identity.Owner.Username, identity.StagingGroup.Id, relativeUrl: false);
+            }
+
+            return Url.ManageUngroupedStaging(identity.Owner.Username, relativeUrl: false);
+        }
+
+        /// <summary>
+        /// Downloads the selected staged package content visible to the API-key owner.
+        /// </summary>
+        /// <param name="id">The package ID.</param>
+        /// <param name="version">The package version.</param>
+        /// <returns>The package attachment, or an owner-availability or private-resource error.</returns>
         [HttpGet]
         public virtual async Task<ActionResult> DownloadStagedPackage(string id, string version)
         {
-            var stagedPackage = FindAuthorizedStagedPackage(id, version);
+            var currentUser = GetCurrentUser();
+            var scopes = User.Identity.GetScopesFromClaim();
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledApiKeyOwner(currentUser, scopes);
+            if (stagingOwner == null)
+            {
+                return Error(HttpStatusCode.Forbidden, "StagingOwnerUnavailable", "Staging is not available for the API key owner.");
+            }
+
+            var stagedPackage = _packageStagingManagementService.GetStagedPackage(stagingOwner, scopes, id, version);
             if (stagedPackage == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+                return Error(HttpStatusCode.NotFound, "PackageNotFound", "The staged package was not found.");
             }
 
             var content = await _packageStagingManagementService.OpenPackageContentAsync(stagedPackage);
-            return File(content, CoreConstants.PackageContentType, $"{id}.{version}{CoreConstants.NuGetPackageFileExtension}");
+            var package = stagedPackage.StagedPackageIdentity.Package;
+            var fileName = $"{package.PackageRegistration.Id}.{package.NormalizedVersion}{CoreConstants.NuGetPackageFileExtension}";
+            return File(content, CoreConstants.OctetStreamContentType, fileName);
         }
 
+        /// <summary>
+        /// Gets the current package artifact visible to the API-key owner.
+        /// </summary>
+        /// <param name="id">The package ID.</param>
+        /// <param name="version">The package version.</param>
+        /// <returns>The artifact resource, or an owner-availability or private-resource error.</returns>
         [HttpGet]
         public virtual ActionResult GetStagedPackageStatus(string id, string version)
         {
             var currentUser = GetCurrentUser();
             var scopes = User.Identity.GetScopesFromClaim();
-
-            var package = _packageStagingManagementService.GetPackageStatus(currentUser, scopes, id, version);
-            if (package == null)
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledApiKeyOwner(currentUser, scopes);
+            if (stagingOwner == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+                return Error(HttpStatusCode.Forbidden, "StagingOwnerUnavailable", "Staging is not available for the API key owner.");
             }
 
-            return Json(package, JsonRequestBehavior.AllowGet);
+            var package = _packageStagingManagementService.GetStagedPackage(stagingOwner, scopes, id, version);
+            if (package == null)
+            {
+                return Error(HttpStatusCode.NotFound, "PackageNotFound", "The staged package was not found.");
+            }
+
+            return JsonContent(GetPackageResponses(new[] { package })[package.Key]);
         }
 
+        /// <summary>
+        /// Gets the current symbol artifact visible to the API-key owner.
+        /// </summary>
+        /// <param name="id">The package ID.</param>
+        /// <param name="version">The package version.</param>
+        /// <returns>The artifact resource, or an owner-availability or private-resource error.</returns>
         [HttpGet]
-        public virtual ActionResult GetStagedSymbolPackage(string id, string version)
+        public virtual ActionResult GetStagedSymbolPackageStatus(string id, string version)
         {
             var currentUser = GetCurrentUser();
             var scopes = User.Identity.GetScopesFromClaim();
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledApiKeyOwner(currentUser, scopes);
+            if (stagingOwner == null)
+            {
+                return Error(HttpStatusCode.Forbidden, "StagingOwnerUnavailable", "Staging is not available for the API key owner.");
+            }
 
-            var symbolPackage = _symbolPackageStagingUploadService.GetStatus(currentUser, scopes, id, version);
+            var symbolPackage = _packageStagingManagementService.GetStagedSymbolPackage(stagingOwner, scopes, id, version);
             if (symbolPackage == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+                return Error(HttpStatusCode.NotFound, "SymbolPackageNotFound", "The staged symbol package was not found.");
             }
 
-            return Json(symbolPackage, JsonRequestBehavior.AllowGet);
+            return JsonContent(GetSymbolResponses(new[] { symbolPackage })[symbolPackage.Key]);
         }
 
-        [AcceptVerbs(HttpVerbs.Patch)]
-        public virtual async Task<ActionResult> UpdateStagedPackageListed(string id, string version, UpdateStagedPackageRequest request)
+        /// <summary>
+        /// Downloads the immutable uploaded symbols visible to the API-key owner.
+        /// </summary>
+        /// <param name="id">The package ID.</param>
+        /// <param name="version">The package version.</param>
+        /// <returns>The symbol package attachment, or an owner-availability or private-resource error.</returns>
+        [HttpGet]
+        public virtual async Task<ActionResult> DownloadStagedSymbolPackage(string id, string version)
         {
-            if (request == null)
+            var currentUser = GetCurrentUser();
+            var scopes = User.Identity.GetScopesFromClaim();
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledApiKeyOwner(currentUser, scopes);
+            if (stagingOwner == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+                return Error(HttpStatusCode.Forbidden, "StagingOwnerUnavailable", "Staging is not available for the API key owner.");
             }
 
-            var stagedPackage = FindAuthorizedStagedPackage(id, version);
-            if (stagedPackage == null)
+            var symbolPackage = _packageStagingManagementService.GetStagedSymbolPackage(stagingOwner, scopes, id, version);
+            if (symbolPackage == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+                return Error(HttpStatusCode.NotFound, "SymbolPackageNotFound", "The staged symbol package was not found.");
             }
 
-            if (!await _packageStagingManagementService.UpdateListedAsync(stagedPackage, request.Listed))
+            var content = await _symbolPackageStagingManagementService.OpenPackageContentAsync(symbolPackage);
+            if (content == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.Conflict);
+                return Error(HttpStatusCode.NotFound, "SymbolPackageNotFound", "The staged symbol package content was not found.");
             }
 
-            return Json(_packageStagingManagementService.GetStatus(stagedPackage));
+            var package = symbolPackage.StagedPackageIdentity.Package;
+            var fileName = $"{package.PackageRegistration.Id}.{package.NormalizedVersion}{CoreConstants.NuGetSymbolPackageFileExtension}";
+            return File(content, CoreConstants.OctetStreamContentType, fileName);
         }
 
+        /// <summary>
+        /// Deletes the current private symbols visible to the API-key owner.
+        /// </summary>
+        /// <param name="id">The package ID.</param>
+        /// <param name="version">The package version.</param>
+        /// <returns>No content on success, or an owner-availability, private-resource, or state-conflict error.</returns>
+        [HttpDelete]
+        public virtual async Task<ActionResult> DeleteStagedSymbolPackage(string id, string version)
+        {
+            var currentUser = GetCurrentUser();
+            var scopes = User.Identity.GetScopesFromClaim();
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledApiKeyOwner(currentUser, scopes);
+            if (stagingOwner == null)
+            {
+                return Error(HttpStatusCode.Forbidden, "StagingOwnerUnavailable", "Staging is not available for the API key owner.");
+            }
+
+            var symbolPackage = _packageStagingManagementService.GetStagedSymbolPackage(stagingOwner, scopes, id, version);
+            if (symbolPackage == null)
+            {
+                return Error(HttpStatusCode.NotFound, "SymbolPackageNotFound", "The staged symbol package was not found.");
+            }
+
+            if (!await _symbolPackageStagingManagementService.DeletePackageAsync(symbolPackage))
+            {
+                return Error(HttpStatusCode.Conflict, "SymbolPackageDeletionConflict", "The staged symbols could not be deleted because promotion is active or their staging state changed. Refresh and try again.");
+            }
+
+            return new HttpStatusCodeResult(HttpStatusCode.NoContent);
+        }
+
+        /// <summary>
+        /// Deletes the current private package visible to the API-key owner.
+        /// </summary>
+        /// <param name="id">The package ID.</param>
+        /// <param name="version">The package version.</param>
+        /// <returns>No content on success, or an owner-availability, private-resource, or state-conflict error.</returns>
         [HttpDelete]
         public virtual async Task<ActionResult> DeleteStagedPackage(string id, string version)
         {
-            var stagedPackage = FindAuthorizedStagedPackage(id, version);
-            if (stagedPackage == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
-            }
-
-            var deleted = await _packageStagingManagementService.DeletePackageAsync(stagedPackage);
-            return new HttpStatusCodeResult(deleted ? HttpStatusCode.NoContent : HttpStatusCode.Conflict);
-        }
-
-        private StagedPackage FindAuthorizedStagedPackage(string id, string version)
-        {
-            var stagedPackage = _packageStagingManagementService.FindCurrentStagedPackage(id, version);
-            if (stagedPackage == null)
-            {
-                return null;
-            }
-
             var currentUser = GetCurrentUser();
             var scopes = User.Identity.GetScopesFromClaim();
-            if (!_packageStagingAuthorizationService.CanManageWithApiKey(currentUser, scopes, stagedPackage))
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledApiKeyOwner(currentUser, scopes);
+            if (stagingOwner == null)
             {
-                return null;
+                return Error(HttpStatusCode.Forbidden, "StagingOwnerUnavailable", "Staging is not available for the API key owner.");
             }
 
-            return stagedPackage;
+            var stagedPackage = _packageStagingManagementService.GetStagedPackage(stagingOwner, scopes, id, version);
+            if (stagedPackage == null || stagedPackage.StagedPackageIdentity.Package.PackageStatusKey != PackageStatus.Staged)
+            {
+                return Error(HttpStatusCode.NotFound, "PackageNotFound", "The staged package was not found.");
+            }
+
+            if (!await _packageStagingManagementService.DeletePackageAsync(stagedPackage))
+            {
+                return Error(HttpStatusCode.Conflict, "PackageDeletionConflict", "The staged package could not be deleted because promotion is active or its staging state changed. Refresh and try again.");
+            }
+
+            return new HttpStatusCodeResult(HttpStatusCode.NoContent);
         }
 
         private JsonResult Error(HttpStatusCode statusCode, string code, string message, string target = null)

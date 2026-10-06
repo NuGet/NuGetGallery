@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Web;
 using Moq;
@@ -189,7 +190,7 @@ namespace NuGetGallery
                     stagedValidationMessageEmitter.Object,
                     Mock.Of<IEntityRepository<StagedSymbolPackage>>(),
                     Mock.Of<IStagedSymbolPackageValidationMessageEmitter>(),
-                    new Configuration.AppConfiguration { SiteRoot = "https://gallery.test/" },
+                    new Configuration.AppConfiguration { SiteRoot = "https://gallery.test/", GalleryOwner = new MailAddress("support@gallery.test", "Gallery") },
                     quota.Object,
                     messages.Object);
 
@@ -204,9 +205,14 @@ namespace NuGetGallery
                         listed: false);
 
                     quota.Verify(service => service.EnsureCapacityAsync(owner), Times.Once);
-                    messages.Verify(service => service.SendMessageAsync(It.IsAny<StagedPackageUploadedMessage>(), It.IsAny<bool>(), It.IsAny<bool>()),
+                    var stagingUrl = "https://gallery.test/account/staging/package/PackageA/1.0.0/manage";
+                    messages.Verify(service => service.SendMessageAsync(
+                        It.Is<StagedPackageUploadedMessage>(message => message.GetBody(EmailFormat.Markdown).Contains(stagingUrl)),
+                        It.IsAny<bool>(), It.IsAny<bool>()),
                         quotaReached ? Times.Never() : Times.Once());
-                    messages.Verify(service => service.SendMessageAsync(It.IsAny<StagedPackageValidationSucceededMessage>(), It.IsAny<bool>(), It.IsAny<bool>()),
+                    messages.Verify(service => service.SendMessageAsync(
+                        It.Is<StagedPackageValidationSucceededMessage>(message => message.GetBody(EmailFormat.Markdown).Contains(stagingUrl)),
+                        It.IsAny<bool>(), It.IsAny<bool>()),
                         !quotaReached && expectedStatus == StagedPackageStatus.Ready ? Times.Once() : Times.Never());
                     if (quotaReached)
                     {
@@ -219,6 +225,7 @@ namespace NuGetGallery
 
                     Assert.True(result.Success, result.ErrorMessage);
                     Assert.Equal(HttpStatusCode.Created, result.StatusCode);
+                    Assert.Same(stagedPackage, result.StagedPackage);
                 }
 
                 Assert.Equal(PackageStatus.Staged, package.PackageStatusKey);
@@ -512,7 +519,7 @@ namespace NuGetGallery
                     stagedValidationMessageEmitter.Object,
                     symbolRepository.Object,
                     symbolEmitter.Object,
-                    new Configuration.AppConfiguration { SiteRoot = "https://gallery.test/" },
+                    new Configuration.AppConfiguration { SiteRoot = "https://gallery.test/", GalleryOwner = new MailAddress("support@gallery.test", "Gallery") },
                     quota.Object,
                     messages.Object);
 
@@ -531,10 +538,19 @@ namespace NuGetGallery
                 Assert.Equal(assignGroup && expectedStatusCode == HttpStatusCode.OK ? (createGroup ? createdGroup.Key : requestedGroup.Key) : originalGroup.Key, stagedPackage.StagedPackageIdentity.StagingGroupKey);
                 Assert.Equal(!assignGroup || expectedStatusCode == HttpStatusCode.Conflict, package.Listed);
                 var createsSuccessor = expectedStatusCode == HttpStatusCode.OK && !isActiveNoOp;
+                if (result.Success)
+                {
+                    Assert.Same(createsSuccessor ? successor : stagedPackage, result.StagedPackage);
+                }
                 messages.Verify(service => service.SendMessageAsync(It.IsAny<StagedPackageUploadedMessage>(), It.IsAny<bool>(), It.IsAny<bool>()),
                     createsSuccessor ? Times.Once() : Times.Never());
                 messages.Verify(service => service.SendMessageAsync(It.IsAny<StagedPackageValidationSucceededMessage>(), It.IsAny<bool>(), It.IsAny<bool>()),
                     createsSuccessor && validationStatus == StagedPackageStatus.Ready ? Times.Exactly(hasSymbols ? 2 : 1) : Times.Never());
+                var symbolsUrl = "https://gallery.test/account/staging/symbols/PackageA/1.0.0/manage";
+                messages.Verify(service => service.SendMessageAsync(
+                    It.Is<StagedPackageValidationSucceededMessage>(message => message.GetBody(EmailFormat.Markdown).Contains(symbolsUrl)),
+                    It.IsAny<bool>(), It.IsAny<bool>()),
+                    createsSuccessor && validationStatus == StagedPackageStatus.Ready && hasSymbols ? Times.Once() : Times.Never());
                 if (createsSuccessor || (assignGroup && expectedStatusCode == HttpStatusCode.OK))
                 {
                     Assert.True(originalGroup.ExpirationDate > originalDeadline);

@@ -3,8 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 using NuGet.Services.Entities;
+using NuGet.Services.Validation.Issues;
 
 namespace NuGetGallery
 {
@@ -38,13 +40,10 @@ namespace NuGetGallery
         [JsonProperty("uploaded")]
         public string Uploaded { get; private set; }
 
-        [JsonProperty("validated")]
-        public string Validated { get; private set; }
-
         [JsonProperty("expires")]
         public string Expires { get; private set; }
 
-        [JsonProperty("listed")]
+        [JsonProperty("listed", NullValueHandling = NullValueHandling.Ignore)]
         public bool? Listed { get; private set; }
 
         [JsonProperty("canPromote")]
@@ -56,7 +55,7 @@ namespace NuGetGallery
         [JsonProperty("managementUrl")]
         public string ManagementUrl { get; private set; }
 
-        public static StagingArtifactResponse FromPackage(StagedPackage package, DateTime expirationDate, string managementUrl)
+        public static StagingArtifactResponse FromPackage(StagedPackage package, DateTime expirationDate, string managementUrl, IReadOnlyList<ValidationIssue> validationIssues = null)
         {
             if (package == null)
             {
@@ -68,6 +67,12 @@ namespace NuGetGallery
             var ownershipBlocker = StagingOwnershipPolicy.GetBlocker(package.StagedPackageIdentity);
             var canPromote = package.Status == StagedPackageStatus.Ready && !isGrouped && !isExpired && ownershipBlocker == null;
             var blockers = new List<StagingBlockerResponse>();
+            AddValidationBlockers(blockers, package.Status, validationIssues);
+            var promotionBlocker = StagingPromotionFailure.GetBlocker(package.Status, symbols: false, isGrouped);
+            if (promotionBlocker != null)
+            {
+                blockers.Add(promotionBlocker);
+            }
             if (ownershipBlocker != null)
             {
                 blockers.Add(ownershipBlocker);
@@ -81,7 +86,7 @@ namespace NuGetGallery
             {
                 blockers.Add(new StagingBlockerResponse("PackageGrouped", "The staged package must be promoted with its group."));
             }
-            else if (package.Status != StagedPackageStatus.Ready)
+            else if (package.Status != StagedPackageStatus.Ready && package.Status != StagedPackageStatus.FailedValidation && promotionBlocker == null)
             {
                 blockers.Add(new StagingBlockerResponse("PackageNotReady", "The staged package is not ready for promotion."));
             }
@@ -97,8 +102,6 @@ namespace NuGetGallery
                     package.StagedPackageIdentity.StagingGroup.Name) : null,
                 Status = isExpired ? "expired" : GetStatus(package.Status),
                 Uploaded = package.UploadedDate.ToUtcIso8601String(),
-                // The authoritative validation completion timestamp will be persisted in a later unit.
-                Validated = null,
                 Expires = expirationDate.ToUtcIso8601String(),
                 Listed = package.StagedPackageIdentity.Package.Listed,
                 CanPromote = canPromote,
@@ -107,7 +110,7 @@ namespace NuGetGallery
             };
         }
 
-        public static StagingArtifactResponse FromSymbolPackage(StagedSymbolPackage symbols, DateTime expirationDate, string managementUrl)
+        public static StagingArtifactResponse FromSymbolPackage(StagedSymbolPackage symbols, DateTime expirationDate, string managementUrl, IReadOnlyList<ValidationIssue> validationIssues = null)
         {
             if (symbols == null)
             {
@@ -115,7 +118,8 @@ namespace NuGetGallery
             }
 
             var identity = symbols.StagedPackageIdentity;
-            var blockers = StagedSymbolPackagePromotionEligibility.GetBlockers(symbols);
+            var blockers = StagedSymbolPackagePromotionEligibility.GetBlockers(symbols).ToList();
+            AddValidationBlockers(blockers, symbols.Status, validationIssues);
             return new StagingArtifactResponse
             {
                 Id = identity.Package.PackageRegistration.Id,
@@ -125,13 +129,31 @@ namespace NuGetGallery
                 Group = identity.StagingGroupKey.HasValue ? new StagingGroupReferenceResponse(identity.StagingGroup.Id, identity.StagingGroup.Name) : null,
                 Status = StagingExpirationPolicy.HasExpired(symbols) ? "expired" : GetStatus(symbols.Status),
                 Uploaded = symbols.UploadedDate.ToUtcIso8601String(),
-                Validated = null,
                 Expires = expirationDate.ToUtcIso8601String(),
                 Listed = null,
                 CanPromote = blockers.Count == 0,
                 Blockers = blockers,
                 ManagementUrl = managementUrl,
             };
+        }
+
+        private static void AddValidationBlockers(List<StagingBlockerResponse> blockers, StagedPackageStatus status, IReadOnlyList<ValidationIssue> issues)
+        {
+            if (status != StagedPackageStatus.FailedValidation)
+            {
+                return;
+            }
+
+            if (issues == null || issues.Count == 0)
+            {
+                blockers.Add(new StagingBlockerResponse("ValidationFailed", ValidationIssue.Unknown.ToPlainTextString()));
+                return;
+            }
+
+            foreach (var issue in issues)
+            {
+                blockers.Add(new StagingBlockerResponse("Validation" + issue.IssueCode, issue.ToPlainTextString()));
+            }
         }
 
         private static string GetStatus(StagedPackageStatus status)
