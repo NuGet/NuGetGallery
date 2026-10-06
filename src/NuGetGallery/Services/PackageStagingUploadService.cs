@@ -183,6 +183,11 @@ namespace NuGetGallery
 
             ValidateRequest(currentUser, httpContext, packageFile);
 
+            if (!StagingOwnershipPolicy.CanPublish(stagedPackage.StagedPackageIdentity))
+            {
+                return PackageStagingResult.Error(HttpStatusCode.Forbidden, StagingOwnershipPolicy.BlockerMessage);
+            }
+
             try
             {
                 using var upload = await PrepareUploadAsync(packageFile);

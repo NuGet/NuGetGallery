@@ -628,15 +628,21 @@ namespace NuGetGallery
             var allPackagesReady = !packagesQuery.Any(package => package.Status != StagedPackageStatus.Ready);
             if (allPackagesReady)
             {
+                allPackagesReady = !packagesQuery.Any(package => !package.StagedPackageIdentity.Package.PackageRegistration.Owners.Any(owner => owner.Key == package.StagedPackageIdentity.OwnerKey));
+            }
+
+            if (allPackagesReady)
+            {
                 var symbolReadiness = symbolsQuery.Select(symbol => new
                 {
                     IsReady = symbol.Status == StagedPackageStatus.Ready && symbol.SymbolPackage.StatusKey == PackageStatus.Staged,
+                    OwnerCanPublish = symbol.StagedPackageIdentity.Package.PackageRegistration.Owners.Any(owner => owner.Key == symbol.StagedPackageIdentity.OwnerKey),
                     ParentIsAvailable = symbol.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Available,
                     ParentIsReady = symbol.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Staged
                         && symbol.StagedPackageIdentity.CurrentStagedPackageKey.HasValue
                         && symbol.StagedPackageIdentity.CurrentStagedPackage.Status == StagedPackageStatus.Ready,
                 });
-                allPackagesReady = !symbolReadiness.Any(symbol => !symbol.IsReady || (!symbol.ParentIsAvailable && !symbol.ParentIsReady));
+                allPackagesReady = !symbolReadiness.Any(symbol => !symbol.IsReady || !symbol.OwnerCanPublish || (!symbol.ParentIsAvailable && !symbol.ParentIsReady));
             }
 
             var skip = ((long)page - 1) * pageSize;
@@ -691,7 +697,7 @@ namespace NuGetGallery
         {
             return _stagedPackageRepository
                 .GetAll()
-                .Include(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageRegistration)
+                .Include(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageRegistration.Owners)
                 .Include(stagedPackage => stagedPackage.StagedPackageIdentity.Owner)
                 .Include(stagedPackage => stagedPackage.StagedPackageIdentity.StagingGroup)
                 .Include(stagedPackage => stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackage.SymbolPackage)
@@ -709,7 +715,7 @@ namespace NuGetGallery
                 .Include(symbol => symbol.StagedPackageIdentity.Owner)
                 .Include(symbol => symbol.StagedPackageIdentity.StagingGroup)
                 .Include(symbol => symbol.StagedPackageIdentity.CurrentStagedPackage)
-                .Include(symbol => symbol.StagedPackageIdentity.Package.PackageRegistration)
+                .Include(symbol => symbol.StagedPackageIdentity.Package.PackageRegistration.Owners)
                 .Include(symbol => symbol.StagedPackageIdentity.Package.SymbolPackages)
                 .Where(symbol => ownerKeys.Contains(symbol.StagedPackageIdentity.OwnerKey))
                 .Where(symbol => symbol.StagedPackageIdentity.CurrentStagedSymbolPackageKey == symbol.Key)

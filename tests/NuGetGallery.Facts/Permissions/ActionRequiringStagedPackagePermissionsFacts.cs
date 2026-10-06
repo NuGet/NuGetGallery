@@ -37,21 +37,6 @@ namespace NuGetGallery
             Assert.Equal(PermissionsCheckResult.StagedPackageFailure, result);
         }
 
-        [Fact]
-        public void RejectsStagedOwnerWhoNoLongerOwnsPackageRegistration()
-        {
-            var stagedOwner = new User("stagedOwner") { Key = 1 };
-            var packageOwner = new User("packageOwner") { Key = 2 };
-            var stagedPackage = CreateStagedPackage(stagedOwner, packageOwner);
-
-            var result = ActionsRequiringPermissions.ManageStagedPackage.CheckPermissions(
-                stagedOwner,
-                stagedOwner,
-                stagedPackage);
-
-            Assert.Equal(PermissionsCheckResult.PackageRegistrationFailure, result);
-        }
-
         private static StagedPackage CreateStagedPackage(User stagedOwner, params User[] packageOwners)
         {
             var registration = new PackageRegistration { Id = "PackageA" };

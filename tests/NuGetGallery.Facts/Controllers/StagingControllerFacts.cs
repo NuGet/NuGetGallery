@@ -1548,6 +1548,67 @@ namespace NuGetGallery
                 Times.Never);
         }
 
+        [Theory]
+        [InlineData(false, false)]
+        [InlineData(false, true)]
+        [InlineData(true, false)]
+        [InlineData(true, true)]
+        public void OwnershipLossKeepsPrivateControlsAndRestorationEnablesPublication(bool grouped, bool symbolOnly)
+        {
+            var owner = new User("owner") { Key = 1 };
+            var group = new StagingGroup { Key = 10, Owner = owner, OwnerKey = owner.Key, Id = "release", Name = "Release" };
+            var parent = CreateStagedPackage(42, "PackageA", "1.0.0", owner, StagedPackageStatus.Ready);
+            var identity = parent.StagedPackageIdentity;
+            identity.Package.PackageStatusKey = symbolOnly ? PackageStatus.Available : PackageStatus.Staged;
+            if (grouped)
+            {
+                identity.StagingGroupKey = group.Key;
+                identity.StagingGroup = group;
+            }
+
+            var symbols = CreateStagedSymbolPackage(owner);
+            if (symbolOnly)
+            {
+                symbols.StagedPackageIdentity = identity;
+                identity.CurrentStagedSymbolPackageKey = symbols.Key;
+            }
+            else
+            {
+                symbols.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Available;
+                if (grouped)
+                {
+                    symbols.StagedPackageIdentity.StagingGroupKey = group.Key;
+                    symbols.StagedPackageIdentity.StagingGroup = group;
+                }
+            }
+
+            GetMock<IPackageStagingAuthorizationService>().Setup(service => service.GetEnabledOwner(owner, owner.Username)).Returns(owner);
+            GetMock<IPackageStagingManagementService>().Setup(service => service.GetStagedPackages(owner)).Returns(symbolOnly ? Array.Empty<StagedPackage>() : new[] { parent });
+            GetMock<IPackageStagingManagementService>().Setup(service => service.GetStagingGroups(owner)).Returns(new[] { group });
+            GetMock<IPackageStagingManagementService>().Setup(service => service.FindStagingGroup(owner, group.Id)).Returns(group);
+            GetMock<ISymbolPackageStagingManagementService>().Setup(service => service.GetStagedSymbolPackages(owner)).Returns(new[] { symbols });
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(owner);
+            identity.Package.PackageRegistration.Owners.Clear();
+
+            var model = ResultAssert.IsView<StagingGroupDetailViewModel>(grouped ? target.Group(owner.Username, group.Id) : target.Ungrouped(owner.Username), viewName: "Group");
+            var artifact = model.Packages.Single(package => package.IsSymbolPackage == symbolOnly);
+            Assert.True(artifact.CanManage);
+            Assert.False(artifact.CanReplace);
+            Assert.False(artifact.CanPromote);
+            Assert.Equal(StagingOwnershipPolicy.BlockerMessage, artifact.PromotionBlocker);
+            Assert.False(model.CanPromote);
+
+            identity.Package.PackageRegistration.Owners.Add(owner);
+            model = ResultAssert.IsView<StagingGroupDetailViewModel>(grouped ? target.Group(owner.Username, group.Id) : target.Ungrouped(owner.Username), viewName: "Group");
+            artifact = model.Packages.Single(package => package.IsSymbolPackage == symbolOnly);
+            Assert.True(artifact.CanManage);
+            Assert.True(artifact.CanReplace);
+            Assert.Equal(!grouped, artifact.CanPromote);
+            Assert.Null(artifact.PromotionBlocker);
+            Assert.Equal(grouped, model.CanPromote);
+        }
+
         private static StagedPackage CreateStagedPackage(User owner)
         {
             return CreateStagedPackage(43, "PackageA", "1.0.0", owner, StagedPackageStatus.Validating);
@@ -1566,6 +1627,7 @@ namespace NuGetGallery
                 NormalizedVersion = version,
                 PackageRegistration = new PackageRegistration { Id = id },
             };
+            package.PackageRegistration.Owners.Add(owner);
             var identity = new StagedPackageIdentity
             {
                 Key = package.Key,

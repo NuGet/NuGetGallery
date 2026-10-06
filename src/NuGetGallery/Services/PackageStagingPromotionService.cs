@@ -69,6 +69,11 @@ namespace NuGetGallery
                 return PackageStagingPromotionResult.NotReady;
             }
 
+            if (!StagingOwnershipPolicy.CanPublish(stagedPackage.StagedPackageIdentity))
+            {
+                return PackageStagingPromotionResult.NotReady;
+            }
+
             var symbols = _stagedSymbolPackageRepository.GetAll()
                 .Include(attempt => attempt.SymbolPackage)
                 .Include(attempt => attempt.StagedPackageIdentity.Package)
@@ -290,6 +295,11 @@ namespace NuGetGallery
             }
 
             if (stagedPackages.Any(stagedPackage => stagedPackage.Status != StagedPackageStatus.Ready))
+            {
+                return StagingGroupPromotionResult.NotReady;
+            }
+
+            if (stagedPackages.Any(stagedPackage => !StagingOwnershipPolicy.CanPublish(stagedPackage.StagedPackageIdentity)))
             {
                 return StagingGroupPromotionResult.NotReady;
             }

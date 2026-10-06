@@ -68,7 +68,7 @@ namespace NuGetGallery
             }
 
             symbols = symbols ?? Array.Empty<StagedSymbolPackage>();
-            var allReady = packages.All(package => package.Status == StagedPackageStatus.Ready);
+            var allReady = packages.All(package => package.Status == StagedPackageStatus.Ready && StagingOwnershipPolicy.CanPublish(package.StagedPackageIdentity));
             if (allReady)
             {
                 foreach (var symbol in symbols)
