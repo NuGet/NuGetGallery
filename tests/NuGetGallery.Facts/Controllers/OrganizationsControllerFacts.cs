@@ -1705,6 +1705,7 @@ namespace NuGetGallery
 
                 controller.SetCurrentUser(fakes.OrganizationAdmin);
                 PackageRegistration packageRegistration = new PackageRegistration();
+                packageRegistration.Id = "Published.Package";
                 packageRegistration.Owners.Add(testOrganization);
 
                 if (!withAdditionalMembers)
@@ -1723,14 +1724,40 @@ namespace NuGetGallery
 
                 var privatePackage = new Package { Key = 2, Version = "2.0.0", PackageStatusKey = PackageStatus.Staged, PackageRegistration = packageRegistration };
                 packageRegistration.Packages.Add(privatePackage);
-                List<Package> userPackages = new List<Package>() { userPackage, privatePackage };
+                var retiredRegistration = new PackageRegistration { Key = 10, Id = "Retired.Private", Owners = { testOrganization } };
+                var retiredPackage = new Package
+                {
+                    Key = 3,
+                    Version = "1.0.0",
+                    PackageStatusKey = PackageStatus.Deleted,
+                    PackageRegistration = retiredRegistration,
+                    PackageRegistrationKey = retiredRegistration.Key,
+                };
+                var deletedRegistration = new PackageRegistration { Key = 20, Id = "Deleted.Public", Owners = { testOrganization } };
+                var deletedPackage = new Package
+                {
+                    Key = 4,
+                    Version = "1.0.0",
+                    PackageStatusKey = PackageStatus.Deleted,
+                    PackageRegistration = deletedRegistration,
+                    PackageRegistrationKey = deletedRegistration.Key,
+                };
+                var context = GetFakeContext();
+                context.Packages.AddRange(new[] { userPackage, privatePackage, retiredPackage, deletedPackage });
+                context.StagedPackageIdentities.Add(new StagedPackageIdentity
+                {
+                    Key = retiredPackage.Key,
+                    Package = retiredPackage,
+                    CurrentStagedPackage = new StagedPackage { Status = StagedPackageStatus.Deleted },
+                });
+                context.StagedPackageIdentities.Add(new StagedPackageIdentity { Key = deletedPackage.Key, Package = deletedPackage });
 
                 GetMock<IUserService>()
                     .Setup(stub => stub.FindByUsername(testOrganization.Username, false))
                     .Returns(testOrganization);
                 GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testOrganization, It.IsAny<bool>(), false))
-                    .Returns(userPackages);
+                    .Setup(stub => stub.FindPackagesForAccountDeletion(testOrganization))
+                    .Returns(() => GetService<PackageService>().FindPackagesForAccountDeletion(testOrganization));
                 GetMock<IPackageService>()
                     .Setup(stub => stub.WillPackageBeOrphanedIfOwnerRemoved(packageRegistration, testOrganization))
                     .Returns(isPackageOrphaned);
@@ -1742,7 +1769,7 @@ namespace NuGetGallery
                 // Assert
                 var model = ResultAssert.IsView<DeleteOrganizationViewModel>(result, "DeleteAccount");
                 Assert.Equal(testOrganization.Username, model.AccountName);
-                Assert.Single(model.Packages);
+                Assert.Equal(new[] { "Deleted.Public", "Published.Package" }, model.Packages.Select(package => package.Id).OrderBy(id => id));
                 Assert.Equal(isPackageOrphaned, model.HasPackagesThatWillBeOrphaned);
                 Assert.Equal(withAdditionalMembers, model.HasAdditionalMembers);
                 Assert.Equal(stagingEnabled, model.IsPackageStagingEnabled);
@@ -1766,7 +1793,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(fakes.OrganizationOwnerAdmin);
 
                 GetMock<IPackageService>()
-                    .Setup(x => x.FindPackagesByAnyMatchingOwner(testOrganization, true, false))
+                    .Setup(x => x.FindPackagesForAccountDeletion(testOrganization))
                     .Returns(new[] { new Package { Version = "1.0.0", PackageRegistration = new PackageRegistration { Owners = new[] { testOrganization } } } });
                 GetMock<IPackageService>()
                     .Setup(x => x.WillPackageBeOrphanedIfOwnerRemoved(It.IsAny<PackageRegistration>(), testOrganization))
@@ -2588,7 +2615,7 @@ namespace NuGetGallery
                     .Setup(stub => stub.FindByUsername(username, false))
                     .Returns(testUser);
                 GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
+                    .Setup(stub => stub.FindPackagesForAccountDeletion(testUser))
                     .Returns(userPackages);
                 const string iconUrl = "https://icon.test/url";
                 GetMock<IIconUrlProvider>()

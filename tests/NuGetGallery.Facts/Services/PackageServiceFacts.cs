@@ -1726,6 +1726,71 @@ namespace NuGetGallery
                 => InternalReturnsVersionsWhenIncludedVersionsIsTrue_IncludeUnlistedFalse(currentUser, packageOwner);
         }
 
+        /// <summary>
+        /// Covers deletion-page selection independently of ordinary owner listings.
+        /// </summary>
+        public class TheFindPackagesForAccountDeletionMethod : TestContainer
+        {
+            [Fact]
+            public void ExcludesPrivateVersionsBeforeSelectingRegistrationRepresentatives()
+            {
+                var owner = new User("owner") { Key = 1 };
+                var organization = new Organization("organization") { Key = 2 };
+                owner.Organizations.Add(new Membership { Organization = organization, OrganizationKey = organization.Key, Member = owner });
+                var registration = new PackageRegistration { Key = 10, Owners = { owner } };
+                var publicPackage = new Package
+                {
+                    Key = 100,
+                    PackageRegistration = registration,
+                    PackageRegistrationKey = registration.Key,
+                    PackageStatusKey = PackageStatus.Deleted,
+                    Listed = false,
+                };
+                var activePackage = new Package
+                {
+                    Key = 101,
+                    PackageRegistration = registration,
+                    PackageRegistrationKey = registration.Key,
+                    PackageStatusKey = PackageStatus.Staged,
+                    Listed = false,
+                };
+                var retiredPackage = new Package
+                {
+                    Key = 102,
+                    PackageRegistration = registration,
+                    PackageRegistrationKey = registration.Key,
+                    PackageStatusKey = PackageStatus.Deleted,
+                    Listed = false,
+                };
+                var organizationRegistration = new PackageRegistration { Key = 20, Owners = { organization } };
+                var organizationPackage = new Package
+                {
+                    Key = 200,
+                    PackageRegistration = organizationRegistration,
+                    PackageRegistrationKey = organizationRegistration.Key,
+                    PackageStatusKey = PackageStatus.Available,
+                    Listed = false,
+                };
+                var otherRegistration = new PackageRegistration { Key = 30, Owners = { new User("other") { Key = 3 } } };
+                var otherPackage = new Package { Key = 300, PackageRegistration = otherRegistration, PackageRegistrationKey = otherRegistration.Key };
+                var context = GetFakeContext();
+                context.Packages.AddRange(new[] { publicPackage, activePackage, retiredPackage, organizationPackage, otherPackage });
+                context.StagedPackageIdentities.Add(new StagedPackageIdentity
+                {
+                    Key = retiredPackage.Key,
+                    Package = retiredPackage,
+                    CurrentStagedPackage = new StagedPackage { Status = StagedPackageStatus.Deleted },
+                });
+                context.StagedPackageIdentities.Add(new StagedPackageIdentity { Key = publicPackage.Key, Package = publicPackage });
+                var service = GetService<PackageService>();
+
+                var packages = service.FindPackagesForAccountDeletion(owner);
+
+                Assert.Equal(new[] { publicPackage.Key, organizationPackage.Key }, packages.Select(package => package.Key).OrderBy(key => key));
+                Assert.Contains(retiredPackage, service.FindPackagesByAnyMatchingOwner(owner, includeUnlisted: true));
+            }
+        }
+
         public abstract class TheFindPackagesByOwnersMethodsBase : TestContainer
         {
             public static IEnumerable<object[]> TestData_RoleVariants

@@ -124,6 +124,11 @@ namespace NuGetGallery
 
         IEnumerable<Package> FindPackagesByAnyMatchingOwner(User user, bool includeUnlisted, bool includeVersions = false);
 
+        /// <summary>
+        /// Finds ordinary packages for account deletion, excluding never-published staging.
+        /// </summary>
+        IEnumerable<Package> FindPackagesForAccountDeletion(User user);
+
         IQueryable<PackageRegistration> FindPackageRegistrationsByOwner(User user);
 
         (IReadOnlyCollection<Package> Packages, long TotalDownloadCount, int PackageCount) FindPackagesByProfile(User user, int page, int pageSize);
