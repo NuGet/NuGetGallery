@@ -508,13 +508,27 @@ namespace NuGetGallery
             return new HttpStatusCodeResult(HttpStatusCode.NoContent);
         }
 
+        /// <summary>
+        /// Deletes the current private package visible to the API-key owner.
+        /// </summary>
+        /// <param name="id">The package ID.</param>
+        /// <param name="version">The package version.</param>
+        /// <returns>No content on success, or an owner-availability, private-resource, or state-conflict error.</returns>
         [HttpDelete]
         public virtual async Task<ActionResult> DeleteStagedPackage(string id, string version)
         {
-            var stagedPackage = FindAuthorizedStagedPackage(id, version);
-            if (stagedPackage == null)
+            var currentUser = GetCurrentUser();
+            var scopes = User.Identity.GetScopesFromClaim();
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledApiKeyOwner(currentUser, scopes);
+            if (stagingOwner == null)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+                return Error(HttpStatusCode.Forbidden, "StagingOwnerUnavailable", "Staging is not available for the API key owner.");
+            }
+
+            var stagedPackage = _packageStagingManagementService.GetStagedPackage(stagingOwner, scopes, id, version);
+            if (stagedPackage == null || stagedPackage.StagedPackageIdentity.Package.PackageStatusKey != PackageStatus.Staged)
+            {
+                return Error(HttpStatusCode.NotFound, "PackageNotFound", "The staged package was not found.");
             }
 
             var result = await _packageStagingManagementService.DeletePackageAsync(stagedPackage);
@@ -524,28 +538,10 @@ namespace NuGetGallery
                     return new HttpStatusCodeResult(HttpStatusCode.NoContent);
                 case PackageStagingDeletionResult.PromotionActive:
                 case PackageStagingDeletionResult.Conflict:
-                    return new HttpStatusCodeResult(HttpStatusCode.Conflict);
+                    return Error(HttpStatusCode.Conflict, "PackageDeletionConflict", "The staged package could not be deleted because promotion is active or its staging state changed. Refresh and try again.");
                 default:
                     throw new InvalidOperationException($"Unexpected staged package deletion result: {result}");
             }
-        }
-
-        private StagedPackage FindAuthorizedStagedPackage(string id, string version)
-        {
-            var stagedPackage = _packageStagingManagementService.FindCurrentStagedPackage(id, version);
-            if (stagedPackage == null)
-            {
-                return null;
-            }
-
-            var currentUser = GetCurrentUser();
-            var scopes = User.Identity.GetScopesFromClaim();
-            if (!_packageStagingAuthorizationService.CanManageWithApiKey(currentUser, scopes, stagedPackage))
-            {
-                return null;
-            }
-
-            return stagedPackage;
         }
 
         private JsonResult Error(HttpStatusCode statusCode, string code, string message, string target = null)
