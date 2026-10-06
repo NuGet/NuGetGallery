@@ -111,6 +111,12 @@ Add a test controller/action to the .NET 10 Gallery that allows a developer sign
 
 **Done when**: The new controller can be exercised locally after legacy sign-in, the response reports the expected shared identity, targeted host tests pass, and the endpoint does not expose diagnostic information outside Development.
 
+### 11-local-shared-key-ring: Align local launch configuration with the legacy authentication key ring
+
+Configure the .NET 10 Development launch profile to use the existing legacy Gallery filesystem storage base instead of its independent `.data` directory. Preserve certificate selection and production configuration, use a portable relative path, and do not append the repository-managed `data-protection` subfolder. Verify launch working-directory semantics, shared repository key discovery, cookie authentication with equivalent legacy configuration, and update directly related local-development documentation. Do not copy or delete existing keys or change cookie issuance or renewal.
+
+**Done when**: The standard local launch configuration resolves both hosts to the same key ring, focused authentication tests pass, and the user has precise restart and sign-in verification instructions.
+
 ## Execution constraints
 
 - Execute tasks strictly in numeric order and commit after each task.

@@ -1,6 +1,6 @@
 # Migration Progress
 
-**Progress**: 10/10 tasks complete <progress value="100" max="100"></progress> 100%
+**Progress**: 11/11 tasks complete <progress value="100" max="100"></progress> 100%
 **Status**: Complete
 
 ## Tasks
@@ -15,5 +15,6 @@
 - ✅ 08-cross-host-regression-tests: Complete focused .NET 10 and cross-framework coverage ([Content](tasks/08-cross-host-regression-tests/task.md), [Progress](tasks/08-cross-host-regression-tests/progress-details.md))
 - ✅ 09-build-integration: Validate repository build boundaries and release readiness ([Content](tasks/09-build-integration/task.md), [Progress](tasks/09-build-integration/progress-details.md))
 - ✅ 10-auth-context-diagnostic: Add a development-only authentication diagnostic controller ([Content](tasks/10-auth-context-diagnostic/task.md), [Progress](tasks/10-auth-context-diagnostic/progress-details.md))
+- ✅ 11-local-shared-key-ring: Align local launch configuration with the legacy authentication key ring ([Content](tasks/11-local-shared-key-ring/task.md), [Progress](tasks/11-local-shared-key-ring/progress-details.md))
 
 **Legend**: ✅ Complete | 🔄 In Progress | 🔲 Pending | ⚠️ Blocked | ❌ Failed

@@ -10,6 +10,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\..\src\NuGetGallery.net10\Properties\launchSettings.json"
+          Link="launchSettings.json"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.TestHost" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="xunit" />

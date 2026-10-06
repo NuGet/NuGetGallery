@@ -59,7 +59,14 @@ namespace NuGetGallery.Authentication
                         });
 
                     string protectedTicket = options.TicketDataFormat.Protect(ticket);
-                    AuthenticationTicket roundTrippedTicket = options.TicketDataFormat.Unprotect(protectedTicket);
+                    IDataProtectionProvider independentProvider = DataProtectionProvider.Create(
+                        new DirectoryInfo(keyRingPath),
+                        builder => builder.SetApplicationName(SharedCookieConstants.DataProtectionApplicationName));
+                    Assert.NotSame(provider, independentProvider);
+                    CookieAuthenticationOptions independentOptions = new LocalUserAuthenticator(independentProvider)
+                        .CreateCookieAuthenticationOptions(requireSsl);
+                    AuthenticationTicket roundTrippedTicket =
+                        independentOptions.TicketDataFormat.Unprotect(protectedTicket);
 
                     Assert.NotNull(roundTrippedTicket);
                     Assert.Equal("legacy-user", roundTrippedTicket.Identity.Name);

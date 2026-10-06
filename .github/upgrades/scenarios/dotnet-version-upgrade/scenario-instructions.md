@@ -41,6 +41,9 @@
 
 ## User Preferences
 
+### Technical Preferences
+- Keep local side-by-side authentication working through the standard Visual Studio launch profile; the legacy Gallery remains the sign-in authority.
+
 ### Custom Instructions
 
 #### 10-auth-context-diagnostic

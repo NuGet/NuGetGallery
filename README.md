@@ -40,17 +40,24 @@ running legacy Gallery above. The legacy Gallery remains the only sign-in and
 cookie-renewal authority; this diagnostic reads its shared cookie without refreshing it.
 Keep the development host bound to localhost, not a public/shared environment.
 
-1. Start the legacy Gallery at `https://localhost` with its local HTTPS certificate
+1. Stop any running legacy and .NET 10 Gallery processes. Then start the legacy
+   Gallery at `https://localhost` with its local HTTPS certificate
    trusted. Both hosts must use the same Data Protection key ring and application
    name (`NuGetGallery`). The legacy filesystem default is
    `src/NuGetGallery/App_Data/Files` (`Gallery.FileStorageDirectory`); Core's default
    `.data` is **not** that same directory. Use the actual configured legacy directory
-   if yours differs. Do not copy/export cookies or keys to compare them.
-2. From the repository root run (substitute an absolute directory for `<shared-key-directory>`):
+   if yours differs. The Core configuration must name this base directory, not its
+   `data-protection` child: the shared repository appends that folder itself. Do not
+   copy, export, or inspect cookies or keys.
+2. Stop any running .NET 10 host, then start it with the standard `NuGetGallery.net10`
+   Development launch profile in Visual Studio or from the repository root:
    ```text
-   dotnet run --project src/NuGetGallery.net10/NuGetGallery.net10.csproj --launch-profile NuGetGallery.net10 -- --DataProtection:StorageLocation "<shared-key-directory>"
+   dotnet run --project src/NuGetGallery.net10/NuGetGallery.net10.csproj --launch-profile NuGetGallery.net10
    ```
-   The checked-in Development profile uses `https://localhost:7150` and
+   Both Visual Studio and `dotnet run` use the project directory as the working
+   directory for this `Project` launch profile. Its portable
+   `../NuGetGallery/App_Data/Files` setting therefore resolves to the legacy base.
+   The profile uses `https://localhost:7150` and
    `http://localhost:5150`; use **HTTPS** for the shared Secure cookie. The proxy
    origin defaults to `https://localhost`. If your legacy origin differs, also set
    `--LegacyProxy:Origin` to its HTTPS origin. Retain the same hostname for browser
