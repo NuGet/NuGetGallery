@@ -1084,6 +1084,12 @@ namespace NuGetGallery
                 new { httpMethod = new HttpMethodConstraint("PUT") });
 
             routes.MapRoute(
+                RouteName.DeleteStagedSymbolPackage,
+                "api/v3/staging/symbols/{id}/{version}",
+                new { controller = "StagingApi", action = nameof(StagingApiController.DeleteStagedSymbolPackage) },
+                new { httpMethod = new HttpMethodConstraint("DELETE") });
+
+            routes.MapRoute(
                 RouteName.DownloadStagedSymbolPackage,
                 "api/v3/staging/symbols/{id}/{version}",
                 new { controller = "StagingApi", action = nameof(StagingApiController.DownloadStagedSymbolPackage) },

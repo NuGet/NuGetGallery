@@ -526,6 +526,71 @@ namespace NuGetGallery
                 Times.Never);
         }
 
+        [Fact]
+        public async Task DeletesOnlyAuthorizedStagedSymbols()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var owner = new User("owner") { Key = 2 };
+            var symbol = new StagedSymbolPackage { StagedPackageIdentity = CreateStagedPackage(owner).StagedPackageIdentity };
+            var target = GetController<StagingApiController>();
+            ConfigureCreateGroupRequest(target, currentUser, owner);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagedSymbolPackage(owner, It.IsAny<IReadOnlyCollection<Scope>>(), "packagea", "1.0"))
+                .Returns(symbol);
+            GetMock<ISymbolPackageStagingManagementService>().Setup(x => x.DeletePackageAsync(symbol)).ReturnsAsync(true);
+
+            var result = await target.DeleteStagedSymbolPackage("packagea", "1.0");
+
+            Assert.Equal((int)HttpStatusCode.NoContent, Assert.IsType<HttpStatusCodeResult>(result).StatusCode);
+            GetMock<ISymbolPackageStagingManagementService>().Verify(x => x.DeletePackageAsync(symbol), Times.Once);
+            GetMock<IPackageStagingManagementService>().Verify(x => x.DeletePackageAsync(It.IsAny<StagedPackage>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task RejectsSymbolDeletionWithoutEnabledApiKeyOwner()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var target = GetController<StagingApiController>();
+            ConfigureCreateGroupRequest(target, currentUser, owner: null);
+
+            var result = await target.DeleteStagedSymbolPackage("PackageA", "1.0.0");
+
+            AssertError(target, result, HttpStatusCode.Forbidden, "StagingOwnerUnavailable");
+            GetMock<IPackageStagingManagementService>().Verify(
+                x => x.GetStagedSymbolPackage(It.IsAny<User>(), It.IsAny<IReadOnlyCollection<Scope>>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            GetMock<ISymbolPackageStagingManagementService>().Verify(x => x.DeletePackageAsync(It.IsAny<StagedSymbolPackage>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task HidesUnavailableSymbolDeletionWithoutMutating()
+        {
+            var owner = new User("owner") { Key = 1 };
+            var target = GetController<StagingApiController>();
+            ConfigureCreateGroupRequest(target, owner, owner);
+
+            var result = await target.DeleteStagedSymbolPackage("PackageA", "1.0.0");
+
+            AssertError(target, result, HttpStatusCode.NotFound, "SymbolPackageNotFound");
+            GetMock<ISymbolPackageStagingManagementService>().Verify(x => x.DeletePackageAsync(It.IsAny<StagedSymbolPackage>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task ReportsSymbolDeletionStateConflict()
+        {
+            var owner = new User("owner") { Key = 1 };
+            var symbol = new StagedSymbolPackage { StagedPackageIdentity = CreateStagedPackage(owner).StagedPackageIdentity };
+            var target = GetController<StagingApiController>();
+            ConfigureCreateGroupRequest(target, owner, owner);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(x => x.GetStagedSymbolPackage(owner, It.IsAny<IReadOnlyCollection<Scope>>(), "PackageA", "1.0.0"))
+                .Returns(symbol);
+            GetMock<ISymbolPackageStagingManagementService>().Setup(x => x.DeletePackageAsync(symbol)).ReturnsAsync(false);
+
+            var result = await target.DeleteStagedSymbolPackage("PackageA", "1.0.0");
+
+            AssertError(target, result, HttpStatusCode.Conflict, "SymbolPackageDeletionConflict");
+        }
+
         [Theory]
         [InlineData(false, true)]
         [InlineData(true, false)]
@@ -733,16 +798,17 @@ namespace NuGetGallery
         }
 
         [Theory]
-        [InlineData("", nameof(StagingApiController.DownloadStagedSymbolPackage))]
-        [InlineData("/status", nameof(StagingApiController.GetStagedSymbolPackageStatus))]
-        public void MapsSymbolContentAndStatusRoutes(string suffix, string action)
+        [InlineData("GET", "", nameof(StagingApiController.DownloadStagedSymbolPackage))]
+        [InlineData("GET", "/status", nameof(StagingApiController.GetStagedSymbolPackageStatus))]
+        [InlineData("DELETE", "", nameof(StagingApiController.DeleteStagedSymbolPackage))]
+        public void MapsSymbolContentStatusAndDeletionRoutes(string method, string suffix, string action)
         {
             var routes = new RouteCollection();
             Routes.RegisterStagingApiRoutes(routes);
             var context = new Mock<HttpContextBase>();
             context.SetupGet(x => x.Request.AppRelativeCurrentExecutionFilePath).Returns($"~/api/v3/staging/symbols/PackageA/1.0.0{suffix}");
             context.SetupGet(x => x.Request.PathInfo).Returns(string.Empty);
-            context.SetupGet(x => x.Request.HttpMethod).Returns("GET");
+            context.SetupGet(x => x.Request.HttpMethod).Returns(method);
 
             var route = routes.GetRouteData(context.Object);
 
