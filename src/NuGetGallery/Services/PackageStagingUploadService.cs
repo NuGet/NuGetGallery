@@ -591,7 +591,7 @@ namespace NuGetGallery
             }
 
             var siteRoot = new Uri(_configuration.SiteRoot.TrimEnd('/') + "/");
-            var stagingUrl = new Uri(siteRoot, $"account/staging/package/{Uri.EscapeDataString(package.Id)}/{Uri.EscapeDataString(package.NormalizedVersion)}").AbsoluteUri;
+            var stagingUrl = new Uri(siteRoot, $"account/staging/package/{Uri.EscapeDataString(package.Id)}/{Uri.EscapeDataString(package.NormalizedVersion)}/manage").AbsoluteUri;
             var emailSettingsUrl = new Uri(siteRoot, "account").AbsoluteUri;
             await _messageService.SendMessageAsync(new StagedPackageUploadedMessage(_configuration, target.Owner, package, symbols: false, stagingUrl, emailSettingsUrl));
             if (commitResult.Attempt.Status == StagedPackageStatus.Ready)
@@ -602,7 +602,7 @@ namespace NuGetGallery
             var symbolAttempt = commitResult.Attempt.StagedPackageIdentity.CurrentStagedSymbolPackage;
             if (symbolAttempt?.Status == StagedPackageStatus.Ready)
             {
-                var symbolsUrl = new Uri(siteRoot, $"account/staging/symbols/{Uri.EscapeDataString(package.Id)}/{Uri.EscapeDataString(package.NormalizedVersion)}").AbsoluteUri;
+                var symbolsUrl = new Uri(siteRoot, $"account/staging/symbols/{Uri.EscapeDataString(package.Id)}/{Uri.EscapeDataString(package.NormalizedVersion)}/manage").AbsoluteUri;
                 await _messageService.SendMessageAsync(new StagedPackageValidationSucceededMessage(_configuration, target.Owner, package, symbols: true, symbolsUrl, emailSettingsUrl));
             }
 

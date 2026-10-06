@@ -720,6 +720,43 @@ namespace NuGetGallery
         }
 
         [HttpGet]
+        public virtual ActionResult ManagePackage(string id, string version)
+        {
+            ValidatePackageIdentity(id, version);
+            var stagedPackage = FindAuthorizedStagedPackage(id, version);
+            if (stagedPackage == null)
+            {
+                return HttpNotFound();
+            }
+
+            return RedirectToStaging(stagedPackage.StagedPackageIdentity);
+        }
+
+        [HttpGet]
+        public virtual ActionResult ManageSymbolPackage(string id, string version)
+        {
+            ValidatePackageIdentity(id, version);
+            var attempt = FindAuthorizedStagedSymbolPackage(id, version);
+            if (attempt == null)
+            {
+                return HttpNotFound();
+            }
+
+            return RedirectToStaging(attempt.StagedPackageIdentity);
+        }
+
+        private RedirectResult RedirectToStaging(StagedPackageIdentity identity)
+        {
+            var owner = identity.Owner.Username;
+            if (identity.StagingGroup != null)
+            {
+                return Redirect(Url.ManageStagingGroup(owner, identity.StagingGroup.Id));
+            }
+
+            return Redirect(Url.ManageUngroupedStaging(owner));
+        }
+
+        [HttpGet]
         public virtual async Task<ActionResult> DownloadPackage(string id, string version)
         {
             ValidatePackageIdentity(id, version);

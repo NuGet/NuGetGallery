@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Web;
 using Moq;
@@ -354,7 +355,7 @@ namespace NuGetGallery
                 validationMessageEmitter.Object,
                 managementService.Object,
                 groupRepository.Object,
-                new Configuration.AppConfiguration { SiteRoot = "https://gallery.test/" },
+                new Configuration.AppConfiguration { SiteRoot = "https://gallery.test/", GalleryOwner = new MailAddress("support@gallery.test", "Gallery") },
                 quota.Object,
                 messages.Object);
 
@@ -375,9 +376,14 @@ namespace NuGetGallery
             }
 
             Assert.Equal(expectedStatus, result.StatusCode);
-            messages.Verify(service => service.SendMessageAsync(It.IsAny<StagedPackageUploadedMessage>(), It.IsAny<bool>(), It.IsAny<bool>()),
+            var stagingUrl = "https://gallery.test/account/staging/symbols/Test.Package/1.0.0/manage";
+            messages.Verify(service => service.SendMessageAsync(
+                It.Is<StagedPackageUploadedMessage>(message => message.GetBody(EmailFormat.Markdown).Contains(stagingUrl)),
+                It.IsAny<bool>(), It.IsAny<bool>()),
                 attempt == null ? Times.Never() : Times.Once());
-            messages.Verify(service => service.SendMessageAsync(It.IsAny<StagedPackageValidationSucceededMessage>(), It.IsAny<bool>(), It.IsAny<bool>()),
+            messages.Verify(service => service.SendMessageAsync(
+                It.Is<StagedPackageValidationSucceededMessage>(message => message.GetBody(EmailFormat.Markdown).Contains(stagingUrl)),
+                It.IsAny<bool>(), It.IsAny<bool>()),
                 attempt?.Status == StagedPackageStatus.Ready ? Times.Once() : Times.Never());
             if (quotaReached && expectedStatus == HttpStatusCode.Conflict)
             {

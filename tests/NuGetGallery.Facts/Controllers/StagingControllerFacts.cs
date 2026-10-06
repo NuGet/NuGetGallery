@@ -10,6 +10,7 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.Routing;
 using Moq;
 using NuGet.Services.Entities;
 using NuGet.Services.Validation.Issues;
@@ -25,6 +26,99 @@ namespace NuGetGallery
             GetMock<ISymbolPackageStagingManagementService>()
                 .Setup(x => x.GetStagedSymbolPackages(It.IsAny<User>()))
                 .Returns(new List<StagedSymbolPackage>());
+        }
+
+        [Theory]
+        [InlineData(false, "PackageA")]
+        [InlineData(true, "PackageA")]
+        [InlineData(false, "groups")]
+        [InlineData(true, "groups")]
+        public void EmailLinksFollowCurrentMembershipForTheStagingOwner(bool symbols, string id)
+        {
+            var currentUser = new User("member") { Key = 1 };
+            var owner = new Organization("organization") { Key = 2 };
+            var parent = CreateStagedPackage(owner);
+            var symbol = CreateStagedSymbolPackage(owner);
+            parent.StagedPackageIdentity.Package.PackageRegistration.Id = id;
+            symbol.StagedPackageIdentity.Package.PackageRegistration.Id = id;
+            var identity = symbols ? symbol.StagedPackageIdentity : parent.StagedPackageIdentity;
+            GetMock<IPackageStagingManagementService>().Setup(service => service.FindCurrentStagedPackage(id, "1.0.0")).Returns(parent);
+            GetMock<ISymbolPackageStagingManagementService>().Setup(service => service.FindCurrentStagedSymbolPackage(id, "1.0.0")).Returns(symbol);
+            GetMock<IPackageStagingAuthorizationService>().Setup(service => service.CanManage(currentUser, parent)).Returns(true);
+            GetMock<IPackageStagingAuthorizationService>().Setup(service => service.CanManage(currentUser, symbol)).Returns(true);
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(currentUser);
+            Func<ActionResult> followLink = () => symbols ? target.ManageSymbolPackage(id, "1.0.0") : target.ManagePackage(id, "1.0.0");
+
+            var path = symbols ? $"~/account/staging/symbols/{id}/1.0.0/manage" : $"~/account/staging/package/{id}/1.0.0/manage";
+            var route = GetRouteData(target.Url, path);
+            Assert.NotNull(route);
+            Assert.Equal("Staging", route.Values["controller"]);
+            Assert.Equal(symbols ? nameof(StagingController.ManageSymbolPackage) : nameof(StagingController.ManagePackage), route.Values["action"]);
+            Assert.Equal(id, route.Values["id"]);
+            Assert.Equal("1.0.0", route.Values["version"]);
+
+            ResultAssert.IsRedirect(followLink(), permanent: false, url: "/account/staging/organization/ungrouped");
+
+            identity.StagingGroup = new StagingGroup { Key = 10, Id = "first", Owner = owner, OwnerKey = owner.Key };
+            identity.StagingGroupKey = identity.StagingGroup.Key;
+            ResultAssert.IsRedirect(followLink(), permanent: false, url: "/account/staging/organization/groups/first");
+
+            identity.StagingGroup = new StagingGroup { Key = 20, Id = "second", Owner = owner, OwnerKey = owner.Key };
+            identity.StagingGroupKey = identity.StagingGroup.Key;
+            ResultAssert.IsRedirect(followLink(), permanent: false, url: "/account/staging/organization/groups/second");
+
+            identity.StagingGroup = null;
+            identity.StagingGroupKey = null;
+            ResultAssert.IsRedirect(followLink(), permanent: false, url: "/account/staging/organization/ungrouped");
+        }
+
+        [Theory]
+        [InlineData("package")]
+        [InlineData("symbols")]
+        public void EmailLinkRoutesPreserveGroupRoutesForOwnersWithArtifactNames(string owner)
+        {
+            var target = GetController<StagingController>();
+
+            var route = GetRouteData(target.Url, $"~/account/staging/{owner}/groups/1.0.0");
+
+            Assert.NotNull(route);
+            Assert.Equal("Staging", route.Values["controller"]);
+            Assert.Equal(nameof(StagingController.Group), route.Values["action"]);
+            Assert.Equal(owner, route.Values["owner"]);
+            Assert.Equal("1.0.0", route.Values["groupId"]);
+        }
+
+        private static RouteData GetRouteData(UrlHelper url, string path)
+        {
+            var request = new Mock<HttpRequestBase>();
+            request.SetupGet(value => value.AppRelativeCurrentExecutionFilePath).Returns(path);
+            request.SetupGet(value => value.PathInfo).Returns(string.Empty);
+            request.SetupGet(value => value.HttpMethod).Returns("GET");
+            var context = new Mock<HttpContextBase>();
+            context.SetupGet(value => value.Request).Returns(request.Object);
+            return url.RouteCollection.GetRouteData(context.Object);
+        }
+
+        [Theory]
+        [InlineData(false, false)]
+        [InlineData(false, true)]
+        [InlineData(true, false)]
+        [InlineData(true, true)]
+        public void EmailLinksHideMissingAndUnauthorizedArtifacts(bool symbols, bool exists)
+        {
+            var currentUser = new User("other") { Key = 1 };
+            var owner = new User("owner") { Key = 2 };
+            var parent = CreateStagedPackage(owner);
+            var symbol = CreateStagedSymbolPackage(owner);
+            GetMock<IPackageStagingManagementService>().Setup(service => service.FindCurrentStagedPackage("PackageA", "1.0.0")).Returns(exists ? parent : null);
+            GetMock<ISymbolPackageStagingManagementService>().Setup(service => service.FindCurrentStagedSymbolPackage("PackageA", "1.0.0")).Returns(exists ? symbol : null);
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(currentUser);
+
+            var result = symbols ? target.ManageSymbolPackage("PackageA", "1.0.0") : target.ManagePackage("PackageA", "1.0.0");
+
+            Assert.IsType<HttpNotFoundResult>(result);
         }
 
         [Theory]

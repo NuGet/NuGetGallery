@@ -197,6 +197,18 @@ namespace NuGetGallery
                 new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
+                RouteName.ManageStagedPackage,
+                "account/staging/package/{id}/{version}/manage",
+                new { controller = "Staging", action = nameof(StagingController.ManagePackage) },
+                new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
+                RouteName.ManageStagedSymbolPackage,
+                "account/staging/symbols/{id}/{version}/manage",
+                new { controller = "Staging", action = nameof(StagingController.ManageSymbolPackage) },
+                new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
                 RouteName.DownloadManagedStagedPackage,
                 "account/staging/package/{id}/{version}/content",
                 new { controller = "Staging", action = nameof(StagingController.DownloadPackage) },

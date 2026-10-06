@@ -76,6 +76,8 @@ namespace NuGetGallery
         public const string GetStagingGroupsApi = "GetStagingGroupsApi";
         public const string ManageStagingGroup = "ManageStagingGroup";
         public const string ManageUngroupedStaging = "ManageUngroupedStaging";
+        public const string ManageStagedPackage = "ManageStagedPackage";
+        public const string ManageStagedSymbolPackage = "ManageStagedSymbolPackage";
         public const string DownloadManagedStagedPackage = "DownloadManagedStagedPackage";
         public const string DownloadManagedStagedSymbolPackage = "DownloadManagedStagedSymbolPackage";
         public const string DeleteManagedStagedSymbolPackage = "DeleteManagedStagedSymbolPackage";
