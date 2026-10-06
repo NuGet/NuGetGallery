@@ -42,6 +42,29 @@ namespace NuGetGallery
         }
 
         /// <summary>
+        /// Identifies a never-published parent that account deletion can remove, including retired staging.
+        /// </summary>
+        public static bool IsUnpublishedPackage(StagedPackageIdentity identity)
+        {
+            if (identity == null)
+            {
+                throw new ArgumentNullException(nameof(identity));
+            }
+
+            if (identity.Package.PackageStatusKey == PackageStatus.Staged)
+            {
+                return true;
+            }
+
+            if (identity.Package.PackageStatusKey != PackageStatus.Deleted)
+            {
+                return false;
+            }
+
+            return identity.CurrentStagedPackage?.Status == StagedPackageStatus.Deleted;
+        }
+
+        /// <summary>
         /// Retires a private parent and retains its symbols in a fresh waiting attempt.
         /// The caller checks eligibility and commits the surrounding transaction.
         /// </summary>

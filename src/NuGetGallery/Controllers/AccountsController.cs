@@ -404,6 +404,7 @@ namespace NuGetGallery
         {
             return PackageService
                  .FindPackagesByAnyMatchingOwner(account, includeUnlisted: true)
+                 .Where(package => package.PackageStatusKey != PackageStatus.Staged)
                  .Select(p => CreateDeleteAccountListPackageItemViewModel(p, account, GetCurrentUser()))
                  .ToList();
         }

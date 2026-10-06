@@ -148,7 +148,9 @@ namespace NuGetGallery
 
         protected override DeleteAccountViewModel GetDeleteAccountViewModel(User account)
         {
-            return new DeleteUserViewModel(account, PackageService, GetOwnedPackagesViewModels(account), _supportRequestService);
+            var model = new DeleteUserViewModel(account, PackageService, GetOwnedPackagesViewModels(account), _supportRequestService);
+            model.IsPackageStagingEnabled = FeatureFlagService.IsPackageStagingEnabled(account);
+            return model;
         }
 
         [HttpGet]

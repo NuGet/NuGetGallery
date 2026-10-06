@@ -2590,11 +2590,11 @@ namespace NuGetGallery
         public class TheDeleteAccountRequestAction : TestContainer
         {
             [Theory]
-            [InlineData(false, false)]
+            [InlineData(false, false, true)]
             [InlineData(false, true)]
             [InlineData(true, false)]
             [InlineData(true, true)]
-            public void ShowsViewWithCorrectData(bool isPackageOrphaned, bool withPendingIssues)
+            public void ShowsViewWithCorrectData(bool isPackageOrphaned, bool withPendingIssues, bool stagingEnabled = false)
             {
                 // Arrange
                 var controller = GetController<UsersController>();
@@ -2614,7 +2614,9 @@ namespace NuGetGallery
                 };
                 packageRegistration.Packages.Add(userPackage);
 
-                List<Package> userPackages = new List<Package>() { userPackage };
+                var privatePackage = new Package { Key = 2, Version = "2.0.0", PackageStatusKey = PackageStatus.Staged, PackageRegistration = packageRegistration };
+                packageRegistration.Packages.Add(privatePackage);
+                List<Package> userPackages = new List<Package>() { userPackage, privatePackage };
                 List<Issue> issues = new List<Issue>();
                 if (withPendingIssues)
                 {
@@ -2637,6 +2639,7 @@ namespace NuGetGallery
                 GetMock<IPackageService>()
                     .Setup(stub => stub.WillPackageBeOrphanedIfOwnerRemoved(packageRegistration, testUser))
                     .Returns(isPackageOrphaned);
+                GetMock<IFeatureFlagService>().Setup(service => service.IsPackageStagingEnabled(testUser)).Returns(stagingEnabled);
                 GetMock<ISupportRequestService>()
                    .Setup(stub => stub.GetIssues(null, null, null, null))
                    .Returns(issues);
@@ -2656,6 +2659,7 @@ namespace NuGetGallery
                     .Verify(iup => iup.GetIconUrlString(It.IsAny<Package>()), Times.AtLeastOnce);
                 Assert.Equal(isPackageOrphaned, model.HasPackagesThatWillBeOrphaned);
                 Assert.Equal(withPendingIssues, model.HasPendingRequests);
+                Assert.Equal(stagingEnabled, model.IsPackageStagingEnabled);
             }
         }
 

@@ -737,6 +737,34 @@ namespace NuGetGallery
             {
                 return false;
             }
+
+            var hasStagedVersions = packageRegistration.Packages.Any(package => package.PackageStatusKey == PackageStatus.Staged);
+            var hasDeletedVersions = packageRegistration.Packages.Any(package => package.PackageStatusKey == PackageStatus.Deleted);
+            if (hasStagedVersions || hasDeletedVersions)
+            {
+                var deletedOwnerKeys = new List<int> { ownerToRemove.Key };
+                foreach (var membership in ownerToRemove.Organizations)
+                {
+                    var hasOtherMembers = membership.Organization.Members.Any(member => !member.Member.MatchesUser(ownerToRemove));
+                    if (!hasOtherMembers)
+                    {
+                        deletedOwnerKeys.Add(membership.OrganizationKey);
+                    }
+                }
+
+                var identities = _entitiesContext.StagedPackageIdentities
+                    .Include(identity => identity.Package)
+                    .Include(identity => identity.CurrentStagedPackage)
+                    .Where(identity => identity.Package.PackageRegistrationKey == packageRegistration.Key)
+                    .Where(identity => deletedOwnerKeys.Contains(identity.OwnerKey))
+                    .ToList();
+                var removedPackageKeys = new HashSet<int>(identities.Where(StagingDeletionService.IsUnpublishedPackage).Select(identity => identity.Key));
+                if (packageRegistration.Packages.All(package => removedPackageKeys.Contains(package.Key)))
+                {
+                    return false;
+                }
+            }
+
             return WillPackageBeOrphanedIfOwnerRemovedHelper(packageRegistration.Owners, ownerToRemove);
         }
 

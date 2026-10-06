@@ -1692,11 +1692,11 @@ namespace NuGetGallery
         public class TheDeleteAccountRequestAction : TheDeleteOrganizationBaseAction
         {
             [Theory]
-            [InlineData(false, false)]
+            [InlineData(false, false, true)]
             [InlineData(false, true)]
             [InlineData(true, false)]
             [InlineData(true, true)]
-            public async Task IfAdministrator_ShowsViewWithCorrectData(bool isPackageOrphaned, bool withAdditionalMembers)
+            public async Task IfAdministrator_ShowsViewWithCorrectData(bool isPackageOrphaned, bool withAdditionalMembers, bool stagingEnabled = false)
             {
                 // Arrange
                 var controller = GetController<OrganizationsController>();
@@ -1721,7 +1721,9 @@ namespace NuGetGallery
                 };
                 packageRegistration.Packages.Add(userPackage);
 
-                List<Package> userPackages = new List<Package>() { userPackage };
+                var privatePackage = new Package { Key = 2, Version = "2.0.0", PackageStatusKey = PackageStatus.Staged, PackageRegistration = packageRegistration };
+                packageRegistration.Packages.Add(privatePackage);
+                List<Package> userPackages = new List<Package>() { userPackage, privatePackage };
 
                 GetMock<IUserService>()
                     .Setup(stub => stub.FindByUsername(testOrganization.Username, false))
@@ -1732,6 +1734,7 @@ namespace NuGetGallery
                 GetMock<IPackageService>()
                     .Setup(stub => stub.WillPackageBeOrphanedIfOwnerRemoved(packageRegistration, testOrganization))
                     .Returns(isPackageOrphaned);
+                GetMock<IFeatureFlagService>().Setup(service => service.IsPackageStagingEnabled(testOrganization)).Returns(stagingEnabled);
 
                 // act
                 var result = await Invoke(controller, testOrganization.Username);
@@ -1742,6 +1745,7 @@ namespace NuGetGallery
                 Assert.Single(model.Packages);
                 Assert.Equal(isPackageOrphaned, model.HasPackagesThatWillBeOrphaned);
                 Assert.Equal(withAdditionalMembers, model.HasAdditionalMembers);
+                Assert.Equal(stagingEnabled, model.IsPackageStagingEnabled);
             }
 
             protected override Task<ActionResult> Invoke(OrganizationsController controller, string username)
