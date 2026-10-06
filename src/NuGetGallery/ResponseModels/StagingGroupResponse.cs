@@ -68,7 +68,9 @@ namespace NuGetGallery
             }
 
             symbols = symbols ?? Array.Empty<StagedSymbolPackage>();
-            var allReady = packages.All(package => package.Status == StagedPackageStatus.Ready);
+            var hasRegistrationOwnershipLoss = packages.Any(package => !StagingOwnershipPolicy.CanPublish(package.StagedPackageIdentity))
+                || symbols.Any(symbol => !StagingOwnershipPolicy.CanPublish(symbol.StagedPackageIdentity));
+            var allReady = !hasRegistrationOwnershipLoss && packages.All(package => package.Status == StagedPackageStatus.Ready);
             if (allReady)
             {
                 foreach (var symbol in symbols)
@@ -83,7 +85,7 @@ namespace NuGetGallery
                 }
             }
 
-            return FromGroup(group, packages.Count + symbols.Count, allReady, expirationDate, managementUrl, symbols.Count);
+            return FromGroup(group, packages.Count + symbols.Count, allReady, expirationDate, managementUrl, symbols.Count, hasRegistrationOwnershipLoss);
         }
 
         public static StagingGroupResponse FromGroup(
@@ -92,7 +94,8 @@ namespace NuGetGallery
             bool allPackagesReady,
             DateTime expirationDate,
             string managementUrl,
-            int symbolCount = 0)
+            int symbolCount = 0,
+            bool hasRegistrationOwnershipLoss = false)
         {
             if (group == null)
             {
@@ -109,7 +112,7 @@ namespace NuGetGallery
                 throw new ArgumentOutOfRangeException(nameof(symbolCount));
             }
 
-            var canPromote = itemCount > 0 && allPackagesReady && !group.ActivePromotionId.HasValue && !StagingExpirationPolicy.HasExpired(group);
+            var canPromote = itemCount > 0 && allPackagesReady && !hasRegistrationOwnershipLoss && !group.ActivePromotionId.HasValue && !StagingExpirationPolicy.HasExpired(group);
             IReadOnlyList<StagingBlockerResponse> blockers = Array.Empty<StagingBlockerResponse>();
             if (group.ActivePromotionId.HasValue)
             {
@@ -130,6 +133,13 @@ namespace NuGetGallery
                 blockers = new[]
                 {
                     new StagingBlockerResponse("GroupEmpty", "The staging group does not contain any packages or symbols."),
+                };
+            }
+            else if (hasRegistrationOwnershipLoss)
+            {
+                blockers = new[]
+                {
+                    new StagingBlockerResponse("RegistrationOwnershipLost", "The staging owner no longer owns one or more package IDs in this group. Restore registration ownership before promoting. You can still download or delete the staged content."),
                 };
             }
             else if (!canPromote)

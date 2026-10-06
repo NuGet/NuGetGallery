@@ -37,6 +37,7 @@
         this.HasValidationIssues = packageItem.HasValidationIssues;
         this.ValidationIssuesId = packageItem.ValidationIssuesId;
         this.CanManage = packageItem.CanManage;
+        this.CanReplace = packageItem.CanReplace;
         this.CanPromote = packageItem.CanPromote;
         this.ReplacesPublishedSymbols = packageItem.ReplacesPublishedSymbols;
         this.IncludesStagedSymbols = packageItem.IncludesStagedSymbols;

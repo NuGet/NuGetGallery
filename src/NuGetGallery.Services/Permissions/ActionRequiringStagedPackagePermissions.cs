@@ -8,7 +8,7 @@ using NuGet.Services.Entities;
 namespace NuGetGallery
 {
     /// <summary>
-    /// An action requiring ownership of both a staged package attempt and its package registration.
+    /// An action requiring ownership of a private staged package attempt.
     /// </summary>
     public class ActionRequiringStagedPackagePermissions : ActionRequiringEntityPermissions<StagedPackage>
     {
@@ -25,12 +25,7 @@ namespace NuGetGallery
                 return PermissionsCheckResult.StagedPackageFailure;
             }
 
-            return PermissionsHelpers.IsRequirementSatisfied(
-                PermissionsRequirement.Owner,
-                account,
-                stagedPackage.StagedPackageIdentity.Package.PackageRegistration)
-                    ? PermissionsCheckResult.Allowed
-                    : PermissionsCheckResult.PackageRegistrationFailure;
+            return PermissionsCheckResult.Allowed;
         }
 
         protected override IEnumerable<User> GetOwners(StagedPackage stagedPackage)

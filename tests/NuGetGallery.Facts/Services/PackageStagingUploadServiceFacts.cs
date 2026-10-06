@@ -708,6 +708,23 @@ namespace NuGetGallery
         public class TheReplacePackageAsyncMethod
         {
             [Fact]
+            public async Task OwnershipLossRejectsReplacementBeforeSavingContent()
+            {
+                var owner = new User { Key = 23 };
+                var attempt = CreateStagedPackage(owner);
+                attempt.StagedPackageIdentity.Package.PackageRegistration.Owners.Clear();
+                var repository = new Mock<IEntityRepository<StagedPackage>>(MockBehavior.Strict);
+                var target = CreateService(owner, new Mock<IPackageService>(MockBehavior.Strict).Object, repository.Object);
+                using var file = TestPackage.CreateTestPackageStream("PackageA", "1.0.0");
+
+                var result = await target.ReplacePackageAsync(owner, Mock.Of<HttpContextBase>(), attempt, file);
+
+                Assert.Equal(HttpStatusCode.Forbidden, result.StatusCode);
+                Assert.Equal(StagingOwnershipPolicy.BlockerMessage, result.ErrorMessage);
+                Assert.Same(attempt, attempt.StagedPackageIdentity.CurrentStagedPackage);
+            }
+
+            [Fact]
             public async Task RejectsDifferentPackageIdentity()
             {
                 var currentUser = new User { Key = 17 };
@@ -809,6 +826,7 @@ namespace NuGetGallery
                     PackageRegistration = new PackageRegistration { Id = "PackageA" },
                     PackageStatusKey = PackageStatus.Staged,
                 };
+                package.PackageRegistration.Owners.Add(owner);
                 var stagedPackageIdentity = new StagedPackageIdentity
                 {
                     Key = package.Key,

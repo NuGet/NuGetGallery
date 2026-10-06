@@ -625,7 +625,10 @@ namespace NuGetGallery
                 .Where(symbol => symbol.StagedPackageIdentity.StagingGroupKey == group.Key);
             var symbolCount = symbolsQuery.Count();
             var totalCount = packagesQuery.Count() + symbolCount;
-            var allPackagesReady = !packagesQuery.Any(package => package.Status != StagedPackageStatus.Ready);
+            var hasRegistrationOwnershipLoss = packagesQuery.Any(package => !package.StagedPackageIdentity.Package.PackageRegistration.Owners.Any(owner => owner.Key == package.StagedPackageIdentity.OwnerKey))
+                || symbolsQuery.Any(symbol => !symbol.StagedPackageIdentity.Package.PackageRegistration.Owners.Any(owner => owner.Key == symbol.StagedPackageIdentity.OwnerKey));
+            var allPackagesReady = !hasRegistrationOwnershipLoss && !packagesQuery.Any(package => package.Status != StagedPackageStatus.Ready);
+
             if (allPackagesReady)
             {
                 var symbolReadiness = symbolsQuery.Select(symbol => new
@@ -659,7 +662,7 @@ namespace NuGetGallery
                 symbols = symbolsQuery.Where(symbol => symbolKeys.Contains(symbol.Key)).OrderByDescending(symbol => symbol.UploadedDate).ThenByDescending(symbol => symbol.Key).ToList();
             }
 
-            return new StagingGroupPackagePage(group, packages, totalCount, allPackagesReady, symbols, symbolCount);
+            return new StagingGroupPackagePage(group, packages, totalCount, allPackagesReady, symbols, symbolCount, hasRegistrationOwnershipLoss);
         }
 
         public IReadOnlyList<PackageStagingStatus> GetPackages(User currentUser, IEnumerable<Scope> scopes)
@@ -691,7 +694,7 @@ namespace NuGetGallery
         {
             return _stagedPackageRepository
                 .GetAll()
-                .Include(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageRegistration)
+                .Include(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageRegistration.Owners)
                 .Include(stagedPackage => stagedPackage.StagedPackageIdentity.Owner)
                 .Include(stagedPackage => stagedPackage.StagedPackageIdentity.StagingGroup)
                 .Include(stagedPackage => stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackage.SymbolPackage)
@@ -709,7 +712,7 @@ namespace NuGetGallery
                 .Include(symbol => symbol.StagedPackageIdentity.Owner)
                 .Include(symbol => symbol.StagedPackageIdentity.StagingGroup)
                 .Include(symbol => symbol.StagedPackageIdentity.CurrentStagedPackage)
-                .Include(symbol => symbol.StagedPackageIdentity.Package.PackageRegistration)
+                .Include(symbol => symbol.StagedPackageIdentity.Package.PackageRegistration.Owners)
                 .Include(symbol => symbol.StagedPackageIdentity.Package.SymbolPackages)
                 .Where(symbol => ownerKeys.Contains(symbol.StagedPackageIdentity.OwnerKey))
                 .Where(symbol => symbol.StagedPackageIdentity.CurrentStagedSymbolPackageKey == symbol.Key)

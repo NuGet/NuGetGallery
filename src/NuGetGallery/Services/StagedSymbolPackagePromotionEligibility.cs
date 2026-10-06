@@ -21,6 +21,12 @@ namespace NuGetGallery
 
             var identity = attempt.StagedPackageIdentity;
             var blockers = new List<StagingBlockerResponse>();
+            var ownershipBlocker = StagingOwnershipPolicy.GetBlocker(identity);
+            if (ownershipBlocker != null)
+            {
+                blockers.Add(ownershipBlocker);
+            }
+
             if (StagingExpirationPolicy.HasExpired(attempt))
             {
                 blockers.Add(new StagingBlockerResponse("StagingExpired", "The staged symbols have expired. Delete the expired staging before uploading new content."));

@@ -364,13 +364,19 @@ namespace NuGetGallery
             }
 
             var owner = _authorizationService.GetEnabledApiKeyOwner(currentUser, scopes);
-            if (owner == null)
+            if (owner == null || !owner.Confirmed || owner.IsLocked)
             {
                 return null;
             }
 
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
-            if (!CanAccessPackage(currentUser, scopes, owner, package))
+            if (package == null)
+            {
+                return null;
+            }
+
+            var hasMatchingScope = scopes.Any(scope => scope.AllowsSubject(package.Id) && scope.AllowsActions(NuGetScopes.PackageStage));
+            if (!hasMatchingScope)
             {
                 return null;
             }
@@ -410,6 +416,11 @@ namespace NuGetGallery
             if (authorizedAttempt != null && (identity?.CurrentStagedSymbolPackageKey != authorizedAttempt.Key || !_authorizationService.CanManage(currentUser, authorizedAttempt)))
             {
                 return PackageStagingResult.Error(HttpStatusCode.NotFound, "The staged symbol package was not found.");
+            }
+
+            if (authorizedAttempt != null && !StagingOwnershipPolicy.CanPublish(identity))
+            {
+                return PackageStagingResult.Error(HttpStatusCode.Forbidden, StagingOwnershipPolicy.BlockerMessage);
             }
 
             if (identity != null && identity.OwnerKey != owner.Key)

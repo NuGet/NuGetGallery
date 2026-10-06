@@ -45,8 +45,10 @@ namespace NuGetGallery
             Assert.False(target.CanManage(owner, new StagedSymbolPackage { StagedPackageIdentity = CreateStagedPackage(owner).StagedPackageIdentity }));
         }
 
-        [Fact]
-        public void OrganizationMemberCanManageOrganizationAttempt()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void OrganizationMemberCanManageOrganizationAttempt(bool ownershipLost)
         {
             var organization = new Organization("organization") { Key = 1 };
             var member = new User("member") { Key = 2, EmailAddress = "member@example.test" };
@@ -58,6 +60,11 @@ namespace NuGetGallery
             organization.Members.Add(membership);
             member.Organizations.Add(membership);
             var stagedPackage = CreateStagedPackage(organization);
+            if (ownershipLost)
+            {
+                stagedPackage.StagedPackageIdentity.Package.PackageRegistration.Owners.Clear();
+            }
+
             var featureFlagService = new Mock<IFeatureFlagService>();
             featureFlagService
                 .Setup(x => x.IsPackageStagingEnabled(organization))
@@ -90,6 +97,23 @@ namespace NuGetGallery
 
             Assert.False(result);
             Assert.False(target.CanManage(otherPackageOwner, new StagedSymbolPackage { StagedPackageIdentity = stagedPackage.StagedPackageIdentity }));
+        }
+
+        [Fact]
+        public void OwnershipLossPreservesPrivateAccessWithMatchingApiKeyScope()
+        {
+            var owner = new User("owner") { Key = 1, EmailAddress = "owner@example.test" };
+            var attempt = CreateStagedPackage(owner, new User("otherOwner") { Key = 2 });
+            var symbols = new StagedSymbolPackage { StagedPackageIdentity = attempt.StagedPackageIdentity };
+            var scopes = new[] { new Scope(owner.Key, "PackageA", NuGetScopes.PackageStage) };
+            var flags = Mock.Of<IFeatureFlagService>(service => service.IsPackageStagingEnabled(owner) == true);
+            var users = Mock.Of<IUserService>(service => service.FindByKey(owner.Key, It.IsAny<bool>()) == owner);
+            var target = new PackageStagingAuthorizationService(new ApiScopeEvaluator(users), flags);
+            attempt.StagedPackageIdentity.Package.PackageRegistration.Owners.Remove(owner);
+
+            Assert.True(target.CanManage(owner, attempt));
+            Assert.True(target.CanManage(owner, symbols));
+            Assert.True(target.CanManageWithApiKey(owner, scopes, attempt));
         }
 
         [Fact]

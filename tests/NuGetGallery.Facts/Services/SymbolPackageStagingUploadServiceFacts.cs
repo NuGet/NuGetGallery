@@ -24,9 +24,42 @@ namespace NuGetGallery
     public class SymbolPackageStagingUploadServiceFacts
     {
         [Theory]
+        [InlineData("Test.Package", true, true)]
+        [InlineData("Other.Package", true, false)]
+        [InlineData("Test.Package", false, false)]
+        public void SymbolStatusAfterOwnershipLossStillRequiresStagingOwnershipAndMatchingScope(string subject, bool ownsStaging, bool allowed)
+        {
+            var owner = new User("owner") { Key = 20, EmailAddress = "owner@example.test" };
+            var package = new Package { Key = 42, NormalizedVersion = "1.0.0", PackageRegistration = new PackageRegistration { Id = "Test.Package" } };
+            var identity = new StagedPackageIdentity { Key = package.Key, Package = package, Owner = owner, OwnerKey = ownsStaging ? owner.Key : 21, CurrentStagedSymbolPackageKey = 71 };
+            var attempt = new StagedSymbolPackage { Key = 71, StagedPackageIdentity = identity, StagedPackageIdentityKey = identity.Key, Status = StagedPackageStatus.Ready };
+            var scopes = new[] { new Scope(owner.Key, subject, NuGetScopes.PackageStage) };
+            var authorization = Mock.Of<IPackageStagingAuthorizationService>(service => service.GetEnabledApiKeyOwner(owner, scopes) == owner);
+            var packages = Mock.Of<IPackageService>(service => service.FindPackageByIdAndVersionStrict("Test.Package", "1.0.0") == package);
+            var attempts = Mock.Of<IEntityRepository<StagedSymbolPackage>>(repository => repository.GetAll() == new[] { attempt }.AsQueryable());
+            var target = new SymbolPackageStagingUploadService(
+                Mock.Of<IApiScopeEvaluator>(), Mock.Of<IContentObjectService>(), Mock.Of<IEntitiesContext>(), packages, authorization,
+                Mock.Of<ISymbolPackageService>(), Mock.Of<ISecurityPolicyService>(), Mock.Of<IStagingBlobService>(), attempts,
+                Mock.Of<IStagedSymbolPackageValidationMessageEmitter>(), Mock.Of<IPackageStagingManagementService>(),
+                Mock.Of<IEntityRepository<StagingGroup>>(), new Configuration.AppConfiguration(), Mock.Of<IStagingQuotaService>(), Mock.Of<IMessageService>());
+
+            var result = target.GetStatus(owner, scopes, "Test.Package", "1.0.0");
+
+            Assert.Equal(allowed, result != null);
+            if (allowed)
+            {
+                Assert.Equal("Ready", result.Status);
+                var expirationDate = result.Expires;
+                package.PackageRegistration.Owners.Add(owner);
+                Assert.Equal(expirationDate, target.GetStatus(owner, scopes, "Test.Package", "1.0.0").Expires);
+            }
+        }
+
+        [Theory]
         [InlineData(false, true)]
         [InlineData(true, false)]
-        public async Task UiReplacementRejectsStaleOrUnauthorizedAttempt(bool current, bool authorized)
+        [InlineData(true, true, false)]
+        public async Task UiReplacementRejectsStaleUnauthorizedOrUnownedAttempt(bool current, bool authorized, bool ownsRegistration = true)
         {
             var owner = new User("owner") { Key = 20 };
             var package = new Package
@@ -36,6 +69,11 @@ namespace NuGetGallery
                 NormalizedVersion = "1.0.0",
                 PackageStatusKey = PackageStatus.Available,
             };
+            if (ownsRegistration)
+            {
+                package.PackageRegistration.Owners.Add(owner);
+            }
+
             var identity = new StagedPackageIdentity { Key = package.Key, Package = package, Owner = owner, OwnerKey = owner.Key, CurrentStagedSymbolPackageKey = current ? 71 : 72 };
             var attempt = new StagedSymbolPackage { Key = 71, StagedPackageIdentity = identity };
             var authorizationService = new Mock<IPackageStagingAuthorizationService>();
@@ -68,7 +106,11 @@ namespace NuGetGallery
 
             var result = await target.ReplaceSymbolPackageAsync(owner, Mock.Of<HttpContextBase>(), attempt, file);
 
-            Assert.Equal(HttpStatusCode.NotFound, result.StatusCode);
+            Assert.Equal(ownsRegistration ? HttpStatusCode.NotFound : HttpStatusCode.Forbidden, result.StatusCode);
+            if (!ownsRegistration)
+            {
+                Assert.Equal(StagingOwnershipPolicy.BlockerMessage, result.ErrorMessage);
+            }
             Assert.Equal(current ? 71 : 72, identity.CurrentStagedSymbolPackageKey);
         }
 
@@ -197,7 +239,7 @@ namespace NuGetGallery
         {
             var currentUser = new User("uploader") { Key = 10 };
             var owner = new User("owner") { Key = 20, EmailAddress = "owner@example.test" };
-            var scopes = new List<Scope>();
+            var scopes = new List<Scope> { new Scope(owner.Key, "Test.Package", NuGetScopes.PackageStage) };
             var package = new Package
             {
                 Key = 42,
@@ -206,6 +248,7 @@ namespace NuGetGallery
                 NormalizedVersion = "1.0.0",
                 PackageStatusKey = parentStatus,
             };
+            package.PackageRegistration.Owners.Add(owner);
             var authorizationService = new Mock<IPackageStagingAuthorizationService>();
             authorizationService.Setup(x => x.GetEnabledApiKeyOwner(currentUser, scopes)).Returns(owner);
             var contentObjectService = new Mock<IContentObjectService>();

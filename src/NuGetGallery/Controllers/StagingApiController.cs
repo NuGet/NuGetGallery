@@ -247,7 +247,9 @@ namespace NuGetGallery
                 .Select(item => item.Artifact)
                 .ToList();
 
-            var stagingGroupResponse = StagingGroupResponse.FromGroup(group, packagePage.TotalCount, packagePage.AllPackagesReady, expirationDate, managementUrl, packagePage.SymbolCount);
+            var stagingGroupResponse = StagingGroupResponse.FromGroup(
+                group, packagePage.TotalCount, packagePage.AllPackagesReady, expirationDate, managementUrl,
+                packagePage.SymbolCount, packagePage.HasRegistrationOwnershipLoss);
             var response = new StagingGroupDetailResponse(stagingGroupResponse, artifacts, page, pageSize, packagePage.TotalCount);
 
             return JsonContent(response);

@@ -65,8 +65,14 @@ namespace NuGetGallery
 
             var isGrouped = package.StagedPackageIdentity.StagingGroupKey.HasValue;
             var isExpired = StagingExpirationPolicy.HasExpired(package);
-            var canPromote = package.Status == StagedPackageStatus.Ready && !isGrouped && !isExpired;
+            var ownershipBlocker = StagingOwnershipPolicy.GetBlocker(package.StagedPackageIdentity);
+            var canPromote = package.Status == StagedPackageStatus.Ready && !isGrouped && !isExpired && ownershipBlocker == null;
             var blockers = new List<StagingBlockerResponse>();
+            if (ownershipBlocker != null)
+            {
+                blockers.Add(ownershipBlocker);
+            }
+
             if (isExpired)
             {
                 blockers.Add(new StagingBlockerResponse("StagingExpired", "The staged package has expired. Delete the expired staging before uploading new content."));
@@ -75,7 +81,7 @@ namespace NuGetGallery
             {
                 blockers.Add(new StagingBlockerResponse("PackageGrouped", "The staged package must be promoted with its group."));
             }
-            else if (!canPromote)
+            else if (package.Status != StagedPackageStatus.Ready)
             {
                 blockers.Add(new StagingBlockerResponse("PackageNotReady", "The staged package is not ready for promotion."));
             }
@@ -86,9 +92,9 @@ namespace NuGetGallery
                 Version = package.StagedPackageIdentity.Package.NormalizedVersion,
                 Kind = "package",
                 Owner = package.StagedPackageIdentity.Owner.Username,
-                Group = new StagingGroupReferenceResponse(
+                Group = isGrouped ? new StagingGroupReferenceResponse(
                     package.StagedPackageIdentity.StagingGroup.Id,
-                    package.StagedPackageIdentity.StagingGroup.Name),
+                    package.StagedPackageIdentity.StagingGroup.Name) : null,
                 Status = isExpired ? "expired" : GetStatus(package.Status),
                 Uploaded = package.UploadedDate.ToUtcIso8601String(),
                 // The authoritative validation completion timestamp will be persisted in a later unit.

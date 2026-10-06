@@ -84,13 +84,9 @@ namespace NuGetGallery
             }
 
             var identity = stagedSymbolPackage.StagedPackageIdentity;
-            var permissionsResult = ActionsRequiringPermissions.UploadSymbolPackage.CheckPermissions(
-                currentUser,
-                identity.Owner,
-                identity.Package.PackageRegistration);
+            var canActForOwner = ActionsRequiringPermissions.ManageStagedPackage.IsAllowedOnBehalfOfAccount(currentUser, identity.Owner);
 
-            return permissionsResult == PermissionsCheckResult.Allowed
-                && _featureFlagService.IsPackageStagingEnabled(identity.Owner);
+            return canActForOwner && _featureFlagService.IsPackageStagingEnabled(identity.Owner);
         }
 
         public bool CanManageWithApiKey(User currentUser, IEnumerable<Scope> scopes, StagedPackage stagedPackage)

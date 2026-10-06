@@ -1267,6 +1267,78 @@ namespace NuGetGallery
             }
 
             [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            [InlineData(false, false)]
+            [InlineData(true, false)]
+            public void GroupReadinessIncludesOwnershipOfArtifactsOutsideTheCurrentPage(bool symbolOnly, bool visibleReady = true)
+            {
+                var owner = new User("owner") { Key = 1 };
+                var group = CreateStagingGroup(10, "release", "Release", owner);
+                var visible = CreateStagedPackage(100, "Owned.Package", "1.0.0", owner);
+                visible.Status = visibleReady ? StagedPackageStatus.Ready : StagedPackageStatus.Validating;
+                visible.UploadedDate = DateTime.UtcNow;
+                visible.StagedPackageIdentity.StagingGroup = group;
+                visible.StagedPackageIdentity.StagingGroupKey = group.Key;
+                var blocked = CreateStagedPackage(101, "Unowned.Package", "1.0.0", owner);
+                blocked.Status = StagedPackageStatus.Ready;
+                blocked.UploadedDate = visible.UploadedDate.AddMinutes(-1);
+                var identity = blocked.StagedPackageIdentity;
+                identity.StagingGroup = group;
+                identity.StagingGroupKey = group.Key;
+                identity.Package.PackageRegistration.Owners.Clear();
+                var symbols = new StagedSymbolPackage
+                {
+                    Key = 102,
+                    UploadedDate = blocked.UploadedDate,
+                    StagedPackageIdentity = identity,
+                    SymbolPackage = new SymbolPackage { StatusKey = PackageStatus.Staged },
+                    Status = StagedPackageStatus.Ready,
+                };
+                identity.CurrentStagedSymbolPackageKey = symbols.Key;
+                if (symbolOnly)
+                {
+                    identity.Package.PackageStatusKey = PackageStatus.Available;
+                    identity.CurrentStagedPackageKey = null;
+                    identity.CurrentStagedPackage = null;
+                }
+
+                var target = CreateService(symbolOnly ? new[] { visible } : new[] { visible, blocked }, user => true, stagingGroups: new[] { group }, stagedSymbols: symbolOnly ? new[] { symbols } : null);
+                var first = target.GetStagingGroupPackagePage(owner, group.Id, 1, 1);
+                Assert.Same(visible, Assert.Single(first.Items));
+                Assert.False(first.AllPackagesReady);
+                Assert.True(first.HasRegistrationOwnershipLoss);
+                var response = StagingGroupResponse.FromGroup(group, first.TotalCount, first.AllPackagesReady, group.ExpirationDate, "management", first.SymbolCount, first.HasRegistrationOwnershipLoss);
+                Assert.False(response.CanPromote);
+                Assert.Equal("RegistrationOwnershipLost", Assert.Single(response.Blockers).Code);
+                Assert.Equal(2, response.ItemCount);
+                var second = target.GetStagingGroupPackagePage(owner, group.Id, 2, 1);
+                if (symbolOnly)
+                {
+                    Assert.Same(symbols, Assert.Single(second.Symbols));
+                }
+                else
+                {
+                    Assert.Same(blocked, Assert.Single(second.Items));
+                }
+
+                identity.Package.PackageRegistration.Owners.Add(owner);
+                var restored = target.GetStagingGroupPackagePage(owner, group.Id, 1, 1);
+                Assert.False(restored.HasRegistrationOwnershipLoss);
+                Assert.Equal(visibleReady, restored.AllPackagesReady);
+                var restoredResponse = StagingGroupResponse.FromGroup(group, restored.TotalCount, restored.AllPackagesReady, group.ExpirationDate, "management", restored.SymbolCount, restored.HasRegistrationOwnershipLoss);
+                Assert.Equal(visibleReady, restoredResponse.CanPromote);
+                if (visibleReady)
+                {
+                    Assert.Empty(restoredResponse.Blockers);
+                }
+                else
+                {
+                    Assert.Equal("GroupNotReady", Assert.Single(restoredResponse.Blockers).Code);
+                }
+            }
+
+            [Theory]
             [InlineData(PackageStatus.Available)]
             [InlineData(PackageStatus.Deleted)]
             public void SymbolOnlyGroupReadinessRequiresAnAvailableParent(PackageStatus parentStatus)
@@ -1413,6 +1485,7 @@ namespace NuGetGallery
                 stagedPackagesSet.Setup(x => x.Include("StagedPackageIdentity.Package.PackageRegistration"))
                     .Callback<string>(path => includedPath?.Invoke(path))
                     .Returns(stagedPackagesSet.Object);
+                stagedPackagesSet.Setup(x => x.Include("StagedPackageIdentity.Package.PackageRegistration.Owners")).Returns(stagedPackagesSet.Object);
                 stagedPackagesSet.Setup(x => x.Include("StagedPackageIdentity.Owner")).Returns(stagedPackagesSet.Object);
                 stagedPackagesSet.Setup(x => x.Include("StagedPackageIdentity.StagingGroup")).Returns(stagedPackagesSet.Object);
                 stagedPackagesSet.Setup(x => x.Include("StagedPackageIdentity.CurrentStagedSymbolPackage.SymbolPackage")).Returns(stagedPackagesSet.Object);

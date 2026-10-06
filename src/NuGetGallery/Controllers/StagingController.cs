@@ -424,8 +424,9 @@ namespace NuGetGallery
                 var canManage = !model.IsPromotionActive && attempt.Status != StagedPackageStatus.Promoting;
                 var isExpired = StagingExpirationPolicy.HasExpired(attempt);
                 var blockers = StagedSymbolPackagePromotionEligibility.GetBlockers(attempt);
-                string promotionBlocker = null;
-                if (attempt.Status == StagedPackageStatus.Ready && !identity.StagingGroupKey.HasValue)
+                var ownershipBlocker = StagingOwnershipPolicy.GetBlocker(identity);
+                var promotionBlocker = ownershipBlocker?.Message;
+                if (promotionBlocker == null && attempt.Status == StagedPackageStatus.Ready && !identity.StagingGroupKey.HasValue)
                 {
                     promotionBlocker = blockers.FirstOrDefault(blocker => blocker.Code != "ParentPackageNotAvailable")?.Message;
                 }
@@ -447,6 +448,7 @@ namespace NuGetGallery
                     IsExpired = isExpired,
                     ValidationIssues = issues ?? [],
                     CanManage = canManage,
+                    CanReplace = canManage && !isExpired && ownershipBlocker == null,
                     CanPromote = canManage && blockers.Count == 0,
                     ReplacesPublishedSymbols = package.SymbolPackages.Any(symbols => symbols.StatusKey == PackageStatus.Available),
                     CanResend = StagedSymbolPackagePromotionEligibility.CanResend(attempt),
@@ -474,6 +476,11 @@ namespace NuGetGallery
 
             model.CanPromote = false;
             if (model.IsPromotionActive || model.IsExpired || model.PackageCount == 0 || model.ReadyCount != model.PackageCount)
+            {
+                return;
+            }
+
+            if (model.Packages.Any(package => package.PromotionBlocker != null))
             {
                 return;
             }
@@ -658,6 +665,7 @@ namespace NuGetGallery
                     var identity = stagedPackage.StagedPackageIdentity;
                     var package = identity.Package;
                     var isExpired = StagingExpirationPolicy.HasExpired(stagedPackage);
+                    var ownershipBlocker = StagingOwnershipPolicy.GetBlocker(identity);
                     var hasMoveTarget = identity.StagingGroupKey.HasValue || stagingGroups.Any(group => group.Key != identity.StagingGroupKey);
                     var moveUrl = hasMoveTarget && !isPromotionActive && !isExpired ? Url.MoveStagedPackage(identity.Owner.Username, package.PackageRegistration.Id, package.NormalizedVersion) : null;
 
@@ -674,7 +682,9 @@ namespace NuGetGallery
                         ValidationIssues = issues ?? [],
                         Listed = package.Listed,
                         CanManage = !isPromotionActive,
-                        CanPromote = stagedPackage.Status == StagedPackageStatus.Ready && !identity.StagingGroupKey.HasValue && !isExpired,
+                        CanReplace = !isPromotionActive && !isExpired && ownershipBlocker == null,
+                        CanPromote = stagedPackage.Status == StagedPackageStatus.Ready && !identity.StagingGroupKey.HasValue && !isExpired && ownershipBlocker == null,
+                        PromotionBlocker = ownershipBlocker?.Message,
                         IncludesStagedSymbols = identity.CurrentStagedSymbolPackage != null
                             && StagedSymbolPackagePromotionEligibility.GetBlockers(identity.CurrentStagedSymbolPackage, stagedPackage).Count == 0,
                         CanResend = !identity.StagingGroupKey.HasValue
@@ -827,7 +837,11 @@ namespace NuGetGallery
                 case PackageStagingPromotionResult.Unauthorized:
                     return HttpNotFound();
                 case PackageStagingPromotionResult.NotReady:
-                    if (StagingExpirationPolicy.HasExpired(stagedPackage))
+                    if (!StagingOwnershipPolicy.CanPublish(stagedPackage.StagedPackageIdentity))
+                    {
+                        TempData["ErrorMessage"] = StagingOwnershipPolicy.BlockerMessage;
+                    }
+                    else if (StagingExpirationPolicy.HasExpired(stagedPackage))
                     {
                         TempData["ErrorMessage"] = "The staged package has expired. Delete the expired staging before uploading new content.";
                     }
@@ -936,7 +950,14 @@ namespace NuGetGallery
                 case PackageStagingPromotionResult.Unauthorized:
                     return HttpNotFound();
                 case PackageStagingPromotionResult.NotReady:
-                    TempData["ErrorMessage"] = "These symbols cannot be promoted or retried yet. Refresh and check their status and parent package.";
+                    if (!StagingOwnershipPolicy.CanPublish(attempt.StagedPackageIdentity))
+                    {
+                        TempData["ErrorMessage"] = StagingOwnershipPolicy.BlockerMessage;
+                    }
+                    else
+                    {
+                        TempData["ErrorMessage"] = "These symbols cannot be promoted or retried yet. Refresh and check their status and parent package.";
+                    }
                     break;
                 case PackageStagingPromotionResult.Grouped:
                     TempData["ErrorMessage"] = "Symbol promotion is not available for staging groups yet.";
