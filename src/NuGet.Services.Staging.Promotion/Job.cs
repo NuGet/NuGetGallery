@@ -22,6 +22,7 @@ namespace NuGet.Services.Staging.Promotion
     public class Job : SubscriptionProcessorJob<StagingPromotionMessage>
     {
         private const string PromotionConfigurationSectionName = "Promotion";
+        private const string PackageValidationServiceBusSectionName = "PackageValidationServiceBus";
         private const string PackageStorageKey = "PackageStorage";
         private const string StagingStorageKey = "StagingStorage";
         private const string FlatContainerStorageKey = "FlatContainerStorage";
@@ -31,7 +32,7 @@ namespace NuGet.Services.Staging.Promotion
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             services.Configure<PromotionConfiguration>(configurationRoot.GetSection(PromotionConfigurationSectionName));
-            services.Configure<PackageValidationServiceBusConfiguration>(configurationRoot.GetSection("PackageValidationServiceBus"));
+            services.Configure<PackageValidationServiceBusConfiguration>(configurationRoot.GetSection(PackageValidationServiceBusSectionName));
             SetupDefaultSubscriptionProcessorConfiguration(services, configurationRoot);
             services.Configure<SubscriptionProcessorConfiguration>(configuration => configuration.MaxConcurrentCalls = 1);
 
