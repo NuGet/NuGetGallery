@@ -42,7 +42,11 @@ if ($UnsafeAdminApiAuthBypassForTesting)
 }
 if ($env:APPHOST_PROFILE -eq "full")
 {
-    $categories = "($categories)&Category!=StagingCiTests"
+    $categories = "($categories|Category=StagingFullTests)&Category!=StagingCiTests"
+}
+else
+{
+    $categories = "($categories)&Category!=StagingFullTests"
 }
 
 Write-Host "=== Running Aspire-hosted functional tests: $categories ==="
@@ -50,13 +54,26 @@ $testDll = Join-Path $repoRoot "tests\NuGetGallery.FunctionalTests\bin\$Configur
 $resultsDirectory = Join-Path $repoRoot "tests\TestResults"
 New-Item -ItemType Directory -Path $resultsDirectory -Force | Out-Null
 
-dotnet test $testDll `
-    --blame-hang-timeout 600s `
-    --filter $categories `
-    --logger "trx;LogFileName=FunctionalTests.trx" `
-    --results-directory $resultsDirectory
+$originalSymbolPromotion = $env:Staging__EnableSymbolPromotion
+try
+{
+    if ($env:APPHOST_PROFILE -eq "full")
+    {
+        $env:Staging__EnableSymbolPromotion = "true"
+    }
 
-$testExitCode = $LASTEXITCODE
+    dotnet test $testDll `
+        --blame-hang-timeout 600s `
+        --filter $categories `
+        --logger "trx;LogFileName=FunctionalTests.trx" `
+        --results-directory $resultsDirectory
+
+    $testExitCode = $LASTEXITCODE
+}
+finally
+{
+    $env:Staging__EnableSymbolPromotion = $originalSymbolPromotion
+}
 Write-Host "dotnet test exited with code $testExitCode"
 
 Get-ChildItem -File -Recurse $resultsDirectory | ForEach-Object {
