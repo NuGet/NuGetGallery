@@ -7,16 +7,20 @@ using Xunit;
 
 namespace NuGetGallery.FunctionalTests.Playwright.BasicPages
 {
+	[Collection(GalleryTestCollection.Definition)]
 	public class PackagesPageTest : NuGetPageTest
 	{
 		[Fact]
 		[Priority(1)]
 		[Category("P1Tests")]
-		public async Task PackagePage_ContainsPackageIdAndVersion()
+        [Category("PlaywrightTests")]
+        public async Task PackagePage_ContainsPackageIdAndVersion()
 		{
 			// Arrange
 			var packageId = Constants.TestPackageId;
-			var latestStableVersion = await ClientSdkHelper.GetLatestStableVersionAsync(packageId);
+			var latestStableVersion = IsAspireHarness
+				? "1.0.0"
+				: await ClientSdkHelper.GetLatestStableVersionAsync(packageId);
 			var packagePageUrl = UrlHelper.BaseUrl + "/Packages/" + packageId;
 			var expectedText = $"{packageId} {latestStableVersion}";
 

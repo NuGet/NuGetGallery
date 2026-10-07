@@ -7,6 +7,7 @@ using Xunit;
 
 namespace NuGetGallery.FunctionalTests.Playwright.ReadOnlyMode
 {
+	[Collection(GalleryTestCollection.Definition)]
 	public class LogonInReadOnlyModeTest : NuGetPageTest
 	{
         [Fact]

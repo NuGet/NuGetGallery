@@ -10,6 +10,7 @@ using Xunit;
 
 namespace NuGetGallery.FunctionalTests.Statistics
 {
+    [Collection(GalleryTestCollection.Definition)]
     public class PackageStatisticsTests
     {
         /// <summary>
