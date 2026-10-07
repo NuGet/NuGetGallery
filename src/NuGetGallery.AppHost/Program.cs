@@ -521,9 +521,7 @@ public class Program
 
         var searchIndexNames = new[] { config.SearchIndexes.Search, config.SearchIndexes.Hijack };
 
-        // Polls Azure Search for indexes + cursor.json in Azurite created by db2azuresearch.
-        // Decouples dependents from db2azuresearch's exit code — if indexes already exist from a
-        // prior run, dependents start immediately even when db2azuresearch fails on "already exists".
+        // Wait for the DB bootstrap and resulting indexes/cursor before starting Search consumers.
         var searchIndexReady = builder.AddProject<Projects.NuGetGallery_AppHost_Tools>("search-index-ready")
             .WithArgs("search-index-available")
             .WaitFor(search)
@@ -584,6 +582,7 @@ public class Program
                     Development = new
                     {
                         ReplaceContainersAndIndexes = false,
+                        ReuseContainersAndIndexes = true,
                     },
                 },
             });
@@ -595,6 +594,8 @@ public class Program
             .WaitForCompletion(dbMigrateGallery)
             .WaitFor(search)
             .WithParentRelationship(pipelineGroup);
+
+        searchIndexReady.WaitForCompletion(db2azuresearch);
 
         builder.AddProject<Projects.NuGet_Jobs_Catalog2AzureSearch>("catalog2azuresearch")
             .WithArgs("-Configuration", catalog2searchConfigPath)
