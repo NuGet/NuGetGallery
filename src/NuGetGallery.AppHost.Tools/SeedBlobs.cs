@@ -240,6 +240,8 @@ static class SeedBlobsTool
 		flights["NuGetGallery.PackageStaging"]!["Accounts"]!.AsArray().Add("NugetTestAccount");
 		flights["NuGetGallery.PackageStaging"]!["Accounts"]!.AsArray().Add("NugetTestAdminOrganization");
 		flights["NuGetGallery.PackageStaging"]!["Accounts"]!.AsArray().Add("NugetTestCollaboratorOrganization");
+		flights["NuGetGallery.PackageStaging"]!["Accounts"]!.AsArray().Add("NugetTestStagingQuotaOrganization");
+		flights["NuGetGallery.PackageStaging"]!["Accounts"]!.AsArray().Add("NugetTestStagingRestrictedOrganization");
 
 		var patched = json.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
 		await SeedAsync(blobService, containerName, "flags.json", patched);

@@ -1078,6 +1078,7 @@ public class Program
                 Setting("Gallery.AzureStorage.Revalidation.ConnectionString", connectionString),
                 Setting("Gallery.AsynchronousPackageValidationEnabled", bool.FalseString),
                 Setting("Gallery.BlockingAsynchronousPackageValidationEnabled", bool.FalseString),
+                Setting("Gallery.StagingQuotaOwnerOverrides", "{\"NugetTestStagingQuotaOrganization\":3}"),
                 Setting("AzureServiceBus.Validation.ConnectionString", ""),
                 Setting("AzureServiceBus.Validation.TopicName", validationTopicName),
                 Setting("AzureServiceBus.SymbolsValidation.ConnectionString", ""),

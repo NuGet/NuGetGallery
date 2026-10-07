@@ -14,6 +14,109 @@ namespace NuGetGallery.FunctionalTests.Staging
     [Collection(GalleryTestCollection.Definition)]
     public class StagingApiTests
     {
+        [Fact]
+        [Category("StagingCiTests")]
+        public async Task OwnerQuotaCountsBothKindsRejectsNewArtifactsAndAllowsReplacement()
+        {
+            await using var context = new StagingTestContext(GalleryConfiguration.Instance.StagingQuotaOrganization.ApiKeyStage);
+            var firstId = StagingTestContext.NewPackageId();
+            var secondId = StagingTestContext.NewPackageId();
+            var rejectedId = StagingTestContext.NewPackageId();
+            var empty = await context.GetJsonAsync("package");
+            Assert.Equal(0, empty["quota"]["usedArtifacts"].GetValue<int>());
+            Assert.Equal(3, empty["quota"]["limit"].GetValue<int>());
+            foreach (var id in new[] { firstId, secondId })
+            {
+                using var upload = await context.UploadAsync(id, StagingTestContext.CreateArchive(id));
+                await StagingTestContext.ReadJsonAsync(upload, HttpStatusCode.Created);
+            }
+
+            using (var symbols = await context.UploadAsync(firstId, StagingTestContext.CreateArchive(firstId, symbols: true), symbols: true))
+            {
+                await StagingTestContext.ReadJsonAsync(symbols, HttpStatusCode.Created);
+            }
+
+            var full = await context.GetJsonAsync("package");
+            Assert.Equal(full["quota"]["limit"].GetValue<int>(), full["quota"]["usedArtifacts"].GetValue<int>());
+            foreach (var symbols in new[] { false, true })
+            {
+                var id = rejectedId;
+                if (symbols)
+                {
+                    id = secondId;
+                }
+
+                using var rejected = await context.UploadAsync(id, StagingTestContext.CreateArchive(id, symbols), symbols);
+                var error = await StagingTestContext.ReadJsonAsync(rejected, HttpStatusCode.Conflict);
+                Assert.Contains("artifact limit", error["error"]["message"].GetValue<string>());
+                Assert.Null(rejected.Headers.Location);
+                using var absent = await context.SendAsync(HttpMethod.Get, StagingTestContext.ArtifactPath(id, symbols) + "/status");
+                Assert.Equal(HttpStatusCode.NotFound, absent.StatusCode);
+
+                var replacement = StagingTestContext.CreateArchive(firstId, symbols, description: "Replacement at capacity");
+                using var replaced = await context.UploadAsync(firstId, replacement, symbols);
+                await StagingTestContext.ReadJsonAsync(replaced, HttpStatusCode.OK);
+                using var download = await context.SendAsync(HttpMethod.Get, StagingTestContext.ArtifactPath(firstId, symbols));
+                Assert.Equal(replacement, await StagingTestContext.ReadBytesAsync(download));
+            }
+
+            Assert.Equal(3, (await context.GetJsonAsync("symbols"))["quota"]["usedArtifacts"].GetValue<int>());
+            using (var delete = await context.SendAsync(HttpMethod.Delete, StagingTestContext.ArtifactPath(firstId, true)))
+            {
+                Assert.Equal(HttpStatusCode.NoContent, delete.StatusCode);
+            }
+
+            Assert.Equal(2, (await context.GetJsonAsync("package"))["quota"]["usedArtifacts"].GetValue<int>());
+            using (var accepted = await context.UploadAsync(secondId, StagingTestContext.CreateArchive(secondId, symbols: true), symbols: true))
+            {
+                await StagingTestContext.ReadJsonAsync(accepted, HttpStatusCode.Created);
+            }
+
+            Assert.Equal(3, (await context.GetJsonAsync("symbols"))["quota"]["usedArtifacts"].GetValue<int>());
+        }
+
+        [Theory]
+        [Category("StagingCiTests")]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task RestrictedOwnerCannotListDownloadOrDeletePrivateArtifacts(bool locked)
+        {
+            await using var context = new StagingTestContext(GalleryConfiguration.Instance.StagingRestrictedOrganization.ApiKeyStage);
+            var id = StagingTestContext.NewPackageId();
+            using (var parent = await context.UploadAsync(id, StagingTestContext.CreateArchive(id)))
+            using (var symbols = await context.UploadAsync(id, StagingTestContext.CreateArchive(id, symbols: true), symbols: true))
+            {
+                await StagingTestContext.ReadJsonAsync(parent, HttpStatusCode.Created);
+                await StagingTestContext.ReadJsonAsync(symbols, HttpStatusCode.Created);
+            }
+
+            foreach (var route in new[] { "package", "symbols" })
+            {
+                var visible = await context.GetJsonAsync(route);
+                Assert.Contains(visible["items"].AsArray(), item => item["id"].GetValue<string>() == id);
+            }
+
+            await using (var restriction = await StagingOwnerStateScope.RestrictAsync(locked))
+            {
+                foreach (var symbols in new[] { false, true })
+                {
+                    var inventory = await context.GetJsonAsync(symbols ? "symbols" : "package");
+                    Assert.Empty(inventory["items"].AsArray());
+                    Assert.Equal(0, inventory["totalCount"].GetValue<int>());
+                    var path = StagingTestContext.ArtifactPath(id, symbols);
+                    using var status = await context.SendAsync(HttpMethod.Get, path + "/status");
+                    using var download = await context.SendAsync(HttpMethod.Get, path);
+                    using var delete = await context.SendAsync(HttpMethod.Delete, path);
+                    Assert.Equal(HttpStatusCode.NotFound, status.StatusCode);
+                    Assert.Equal(HttpStatusCode.NotFound, download.StatusCode);
+                    Assert.Equal(HttpStatusCode.NotFound, delete.StatusCode);
+                }
+            }
+
+            StagingTestContext.AssertArtifact(await context.GetJsonAsync(StagingTestContext.ArtifactPath(id) + "/status"), id);
+            StagingTestContext.AssertArtifact(await context.GetJsonAsync(StagingTestContext.ArtifactPath(id, true) + "/status"), id, symbols: true);
+        }
+
         [Theory]
         [Category("StagingCiTests")]
         [InlineData(false)]
