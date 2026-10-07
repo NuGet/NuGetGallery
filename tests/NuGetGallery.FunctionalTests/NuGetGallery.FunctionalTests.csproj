@@ -2,8 +2,18 @@
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
+  <ItemGroup Condition="'$(ConfigurationFilePath)' == ''">
+    <PackageReference Include="Aspire.Hosting.Testing" />
+    <ProjectReference Include="..\..\src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGetGallery.FunctionalTests.Core\NuGetGallery.FunctionalTests.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(ConfigurationFilePath)' != ''">
+    <Compile Remove="AspireFunctionalTestFixture.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(ConfigurationFilePath)' == ''">
+    <Compile Remove="ExternalFunctionalTestFixture.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FluentLinkChecker" />
