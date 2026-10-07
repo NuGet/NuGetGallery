@@ -10,6 +10,8 @@ namespace NuGet.Services.Staging
 {
     /// <summary>
     /// Derives a stable validation-set identity without persisting a second promotion identifier.
+    /// Retries of the same accepted promotion reuse this identity so the symbol orchestrator
+    /// can resume the existing ingestion validation set instead of creating another.
     /// </summary>
     public static class SymbolPromotionValidationTrackingId
     {
