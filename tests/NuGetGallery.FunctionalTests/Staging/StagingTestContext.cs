@@ -3,8 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -23,6 +25,7 @@ namespace NuGetGallery.FunctionalTests.Staging
         private readonly HttpClient _client = new HttpClient { Timeout = TimeSpan.FromSeconds(120) };
         private readonly HashSet<string> _packageIds = new HashSet<string>();
         private readonly HashSet<string> _groupIds = new HashSet<string>();
+        private readonly HashSet<string> _publishedPackageIds = new HashSet<string>();
 
         internal StagingTestContext(string apiKey = null)
         {
@@ -42,7 +45,9 @@ namespace NuGetGallery.FunctionalTests.Staging
 
         internal void TrackGroup(string id) => _groupIds.Add(id);
 
-        internal static byte[] CreateArchive(string id, bool symbols = false, string description = "Staging functional test")
+        internal void TrackPublication(string id) => _publishedPackageIds.Add(id);
+
+        internal static byte[] CreateArchive(string id, bool symbols = false, string description = "Staging functional test", string assemblyName = null)
         {
             var metadata = new XElement("metadata",
                 new XElement("id", id),
@@ -68,8 +73,9 @@ namespace NuGetGallery.FunctionalTests.Staging
 
                     var extension = symbols ? ".pdb" : ".dll";
                     var sourcePath = Path.ChangeExtension(typeof(StagingTestContext).Assembly.Location, extension);
+                    var archiveName = assemblyName ?? Path.GetFileNameWithoutExtension(sourcePath);
                     using (var source = File.OpenRead(sourcePath))
-                    using (var target = archive.CreateEntry("lib/net10.0/StagingFixture" + extension).Open())
+                    using (var target = archive.CreateEntry("lib/net10.0/" + archiveName + extension).Open())
                     {
                         source.CopyTo(target);
                     }
@@ -142,6 +148,59 @@ namespace NuGetGallery.FunctionalTests.Staging
             }
         }
 
+        internal Task<JsonObject> WaitForArtifactAsync(string id, bool symbols = false, string status = "ready")
+        {
+            return WaitForJsonAsync(ArtifactPath(id, symbols) + "/status", artifact =>
+            {
+                var actual = artifact["status"].GetValue<string>();
+                if (actual != status && (actual == "validationFailed" || actual == "promotionFailed" || actual == "expired"))
+                {
+                    Assert.Fail($"Artifact reached an unexpected terminal state: {artifact}");
+                }
+
+                return actual == status;
+            });
+        }
+
+        internal Task<JsonObject> WaitForGroupCompletionAsync(string groupId)
+        {
+            return WaitForJsonAsync("groups/" + groupId, detail =>
+            {
+                Assert.DoesNotContain(detail["items"].AsArray(), item => item["status"].GetValue<string>() == "promotionFailed");
+                return detail["totalCount"].GetValue<int>() == 0
+                    && detail["group"]["blockers"].AsArray().Any(blocker => blocker["code"].GetValue<string>() == "GroupEmpty");
+            });
+        }
+
+        internal async Task<byte[]> DownloadPublishedAsync(string id, bool symbols = false)
+        {
+            var route = symbols ? "symbolpackage" : "package";
+            using var redirect = await SendAsync(HttpMethod.Get, "../../../api/v2/" + route + "/" + id + "/1.0.0", apiKey: "");
+            Assert.Equal(HttpStatusCode.Found, redirect.StatusCode);
+            Assert.NotNull(redirect.Headers.Location);
+            using var download = await SendAsync(HttpMethod.Get, redirect.Headers.Location.AbsoluteUri, apiKey: "");
+            return await ReadBytesAsync(download);
+        }
+
+        private async Task<JsonObject> WaitForJsonAsync(string path, Func<JsonObject, bool> completed)
+        {
+            var timeout = TimeSpan.FromMinutes(4);
+            var elapsed = Stopwatch.StartNew();
+            JsonObject latest = null;
+            while (elapsed.Elapsed < timeout)
+            {
+                latest = await GetJsonAsync(path);
+                if (completed(latest))
+                {
+                    return latest;
+                }
+
+                await Task.Delay(TimeSpan.FromSeconds(2));
+            }
+
+            throw new TimeoutException($"Timed out after {timeout} waiting for {path}. Last response: {latest}");
+        }
+
         internal static async Task<JsonObject> ReadJsonAsync(HttpResponseMessage response, HttpStatusCode expectedStatus)
         {
             var body = await response.Content.ReadAsStringAsync();
@@ -189,6 +248,13 @@ namespace NuGetGallery.FunctionalTests.Staging
                 foreach (var id in _groupIds)
                 {
                     await DeleteFixtureAsync("groups/" + id);
+                }
+
+                foreach (var id in _publishedPackageIds)
+                {
+                    using var response = await SendAsync(HttpMethod.Delete, "../../../api/v2/package/" + id + "/1.0.0", apiKey: GalleryConfiguration.Instance.Account.ApiKeyUnlist);
+                    Assert.True(response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.NoContent,
+                        $"Unlisting the published fixture failed for {id}: {(int)response.StatusCode} {await response.Content.ReadAsStringAsync()}");
                 }
             }
             finally
