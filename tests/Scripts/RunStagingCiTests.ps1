@@ -4,50 +4,42 @@
 [CmdletBinding()]
 param(
     [ValidateSet("Debug", "Release")]
-    [string]$Configuration = "Release",
-    [ValidateSet("ci-gallery", "full")]
-    [string]$AppHostProfile = "ci-gallery"
+    [string]$Configuration = "Release"
 )
 
 $ErrorActionPreference = "Stop"
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
-$originalAppHostProfile = $env:APPHOST_PROFILE
-$originalNuGetAudit = $env:NuGetAudit
+$originalProfile = $env:APPHOST_PROFILE
+$originalConfigurationFilePath = $env:ConfigurationFilePath
 
 try
 {
-    $env:APPHOST_PROFILE = $AppHostProfile
-    $env:NuGetAudit = "false"
+    $env:APPHOST_PROFILE = "ci-gallery"
+    Remove-Item Env:\ConfigurationFilePath -ErrorAction SilentlyContinue
 
     & "$PSScriptRoot\BuildGalleryFunctionalTests.ps1" -Configuration $Configuration
     if ($LASTEXITCODE -ne 0)
     {
-        throw "Building the Gallery functional tests failed with exit code $LASTEXITCODE."
+        throw "Building staging functional tests failed with exit code $LASTEXITCODE."
     }
 
     $testDll = Join-Path $repoRoot "tests\NuGetGallery.FunctionalTests\bin\$Configuration\net10.0\NuGetGallery.FunctionalTests.dll"
     $resultsDirectory = Join-Path $repoRoot "tests\TestResults"
     New-Item -ItemType Directory -Path $resultsDirectory -Force | Out-Null
 
-    $testFilter = "Category=PlaywrightTests"
-    if ($AppHostProfile -eq "full")
-    {
-        $testFilter += "&Category!=StagingCiTests"
-    }
-
     dotnet test $testDll `
         --blame-hang-timeout 600s `
-        --filter $testFilter `
-        --logger "trx;LogFileName=PlaywrightTests.trx" `
+        --filter "Category=StagingCiTests" `
+        --logger "trx;LogFileName=StagingCiTests.trx" `
         --results-directory $resultsDirectory
 
     if ($LASTEXITCODE -ne 0)
     {
-        throw "Gallery Playwright tests failed with exit code $LASTEXITCODE."
+        throw "Staging functional tests failed with exit code $LASTEXITCODE."
     }
 }
 finally
 {
-    $env:APPHOST_PROFILE = $originalAppHostProfile
-    $env:NuGetAudit = $originalNuGetAudit
+    $env:APPHOST_PROFILE = $originalProfile
+    $env:ConfigurationFilePath = $originalConfigurationFilePath
 }

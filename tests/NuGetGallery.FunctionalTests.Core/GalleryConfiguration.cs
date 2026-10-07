@@ -111,12 +111,16 @@ namespace NuGetGallery.FunctionalTests
             public string ApiKeyPush { get; set; }
             public string ApiKeyPushVersion { get; set; }
             public string ApiKeyUnlist { get; set; }
+
+            public string ApiKeyStagePattern { get; set; }
         }
 
         public class OrganizationConfiguration
         {
             public string Name { get; set; }
             public string ApiKey { get; set; }
+
+            public string ApiKeyStage { get; set; }
         }
 
         public class BrandingConfiguration

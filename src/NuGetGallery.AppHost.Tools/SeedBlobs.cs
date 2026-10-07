@@ -60,14 +60,14 @@ static class SeedBlobsTool
 					await SeedPatchedFlagsAsync(blobService, cfg.Containers.Content, file);
 					continue;
 				}
-				if (profile != "ci-gallery" && fileName.Equals("Symbols-Configuration.json", StringComparison.OrdinalIgnoreCase))
+				if (fileName.Equals("Symbols-Configuration.json", StringComparison.OrdinalIgnoreCase))
 				{
 					var symbolsConfiguration = JsonNode.Parse(await File.ReadAllTextAsync(file))
 						?? throw new InvalidOperationException("The symbols configuration is empty.");
 					symbolsConfiguration["isSymbolsUploadEnabledForAll"] = true;
 					await SeedAsync(blobService, cfg.Containers.Content, fileName,
 						symbolsConfiguration.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
-					Console.WriteLine("  (enabled symbol uploads for the symbol-validation pipeline)");
+					Console.WriteLine("  (enabled symbol uploads for local/CI tests)");
 					continue;
 				}
 
@@ -238,6 +238,8 @@ static class SeedBlobsTool
 
 		features["NuGetGallery.AdminApiSoftDelete"] = "Enabled";
 		flights["NuGetGallery.PackageStaging"]!["Accounts"]!.AsArray().Add("NugetTestAccount");
+		flights["NuGetGallery.PackageStaging"]!["Accounts"]!.AsArray().Add("NugetTestAdminOrganization");
+		flights["NuGetGallery.PackageStaging"]!["Accounts"]!.AsArray().Add("NugetTestCollaboratorOrganization");
 
 		var patched = json.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
 		await SeedAsync(blobService, containerName, "flags.json", patched);
