@@ -28,16 +28,16 @@ namespace NuGet.Services.Validation.Symbols
             ISymbolsValidationEntitiesService symbolsValidationEntitiesService,
             ISymbolsIngesterMessageEnqueuer symbolMessageEnqueuer,
             ITelemetryService telemetryService,
-            ILogger<SymbolsIngester> logger,
             IValidationStorageService validationStorageService,
-            IEntityService<StagedSymbolPackage> stagedSymbols)
+            IEntityService<StagedSymbolPackage> stagedSymbols,
+            ILogger<SymbolsIngester> logger)
         {
             _symbolsValidationEntitiesService = symbolsValidationEntitiesService ?? throw new ArgumentNullException(nameof(symbolsValidationEntitiesService));
             _symbolMessageEnqueuer = symbolMessageEnqueuer ?? throw new ArgumentNullException(nameof(symbolMessageEnqueuer));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _validationStorageService = validationStorageService ?? throw new ArgumentNullException(nameof(validationStorageService));
             _stagedSymbols = stagedSymbols ?? throw new ArgumentNullException(nameof(stagedSymbols));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<INuGetValidationResponse> GetResponseAsync(INuGetValidationRequest request)

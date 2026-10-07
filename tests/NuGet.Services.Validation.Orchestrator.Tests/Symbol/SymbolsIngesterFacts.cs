@@ -333,9 +333,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
                     _symbolsValidationEntitiesService.Object,
                     _symbolMessageEnqueuer.Object,
                     _telemetryService.Object,
-                    _logger,
                     _validationStorageService.Object,
-                    _stagedSymbols.Object);
+                    _stagedSymbols.Object,
+                    _logger);
             }
 
             public static SymbolsPackageIngestRequestStatus ConvertToSymbolsPackageIngestRequestStatus(ValidationStatus validationStatus)
