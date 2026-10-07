@@ -146,7 +146,7 @@ namespace NuGetGallery.FunctionalTests
                 dashboardUrl = dashboardUrlBuilder.Uri;
             }
 
-            Console.WriteLine($"Aspire Dashboard: {dashboardUrl}");
+            Console.WriteLine($"Aspire Dashboard: {dashboardUrl.GetLeftPart(UriPartial.Path)}");
             Process.Start(new ProcessStartInfo
             {
                 FileName = dashboardUrl.AbsoluteUri,

@@ -24,18 +24,9 @@ try
 {
     $env:APPHOST_PROFILE = $AppHostProfile
     $env:NuGetAudit = "false"
-    if ($PwDebug)
-    {
-        $env:PWDEBUG = "1"
-    }
-    if ($Headed)
-    {
-        $env:HEADED = "1"
-    }
-    if ($Dashboard)
-    {
-        $env:NUGET_PLAYWRIGHT_ASPIRE_DASHBOARD = "true"
-    }
+    $env:PWDEBUG = if ($PwDebug) { "1" } else { $null }
+    $env:HEADED = if ($Headed) { "1" } else { $null }
+    $env:NUGET_PLAYWRIGHT_ASPIRE_DASHBOARD = if ($Dashboard) { "true" } else { $null }
 
     & "$PSScriptRoot\BuildGalleryFunctionalTests.ps1" -Configuration $Configuration
     if ($LASTEXITCODE -ne 0)
