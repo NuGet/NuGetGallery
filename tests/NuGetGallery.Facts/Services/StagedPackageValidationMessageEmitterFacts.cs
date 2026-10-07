@@ -60,10 +60,13 @@ namespace NuGetGallery
         public async Task ImmediateEmitterDoesNotStartValidation()
         {
             var target = new ImmediateStagedPackageValidationMessageEmitter();
+            var stagedPackage = new StagedPackage { UploadedBlobPath = "uploaded/package.nupkg", UploadedBlobETag = "upload-etag" };
 
-            var status = await target.StartValidationAsync(new StagedPackage());
+            var status = await target.StartValidationAsync(stagedPackage);
 
             Assert.Equal(StagedPackageStatus.Ready, status);
+            Assert.Equal(stagedPackage.UploadedBlobPath, stagedPackage.ValidatedBlobPath);
+            Assert.Equal(stagedPackage.UploadedBlobETag, stagedPackage.ValidatedBlobETag);
         }
     }
 }
