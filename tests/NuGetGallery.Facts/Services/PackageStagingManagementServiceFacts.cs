@@ -1587,11 +1587,15 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData(false, false, 0)]
-            [InlineData(true, true, 0)]
-            [InlineData(false, true, 0)]
-            [InlineData(true, false, 1)]
-            public void FiltersApiSymbolInventoryByOwnerState(bool confirmed, bool locked, int expectedCount)
+            [InlineData(false, false, false, 0)]
+            [InlineData(false, true, true, 0)]
+            [InlineData(false, false, true, 0)]
+            [InlineData(false, true, false, 1)]
+            [InlineData(true, false, false, 0)]
+            [InlineData(true, true, true, 0)]
+            [InlineData(true, false, true, 0)]
+            [InlineData(true, true, false, 1)]
+            public void FiltersApiArtifactInventoryByOwnerState(bool symbols, bool confirmed, bool locked, int expectedCount)
             {
                 var owner = new User("owner") { Key = 1, EmailAddress = "owner@example.test" };
                 if (!confirmed)
@@ -1609,13 +1613,13 @@ namespace NuGetGallery
                 var target = CreateService(new[] { package }, user => true, stagedSymbols: new[] { symbol });
                 var scopes = new[] { new Scope(owner.Key, "*", NuGetScopes.PackageStage) };
 
-                var result = target.GetStagedSymbolPackagePage(owner, scopes, 1, 100);
+                var result = GetInventoryPage(target, owner, scopes, symbols, 1, 100);
 
                 Assert.Equal(expectedCount, result.TotalCount);
                 Assert.Equal(expectedCount, result.Items.Count);
                 if (expectedCount > 0)
                 {
-                    Assert.Same(symbol, result.Items[0]);
+                    Assert.Equal(package.Key, result.Items[0]);
                 }
             }
 
@@ -1667,15 +1671,12 @@ namespace NuGetGallery
                 scopes[0] = new Scope(owner.Key, "Other.*", NuGetScopes.PackageStage);
                 Assert.Null(GetArtifact(owner, "allowed.package"));
                 Assert.Null(GetArtifact(owner, "Missing"));
-                if (symbols)
-                {
-                    scopes[0] = new Scope(owner.Key, "Allowed.*", NuGetScopes.PackageStage);
-                    owner.UserStatusKey = UserStatus.Locked;
-                    Assert.Null(GetArtifact(owner, "allowed.package"));
-                    owner.UserStatusKey = UserStatus.Unlocked;
-                    owner.EmailAddress = null;
-                    Assert.Null(GetArtifact(owner, "allowed.package"));
-                }
+                scopes[0] = new Scope(owner.Key, "Allowed.*", NuGetScopes.PackageStage);
+                owner.UserStatusKey = UserStatus.Locked;
+                Assert.Null(GetArtifact(owner, "allowed.package"));
+                owner.UserStatusKey = UserStatus.Unlocked;
+                owner.EmailAddress = null;
+                Assert.Null(GetArtifact(owner, "allowed.package"));
 
                 object GetArtifact(User stagingOwner, string id)
                 {

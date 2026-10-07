@@ -20,7 +20,7 @@ namespace NuGetGallery
         /// <param name="scopes">The credential scopes used to filter package IDs.</param>
         /// <param name="page">The one-based page number.</param>
         /// <param name="pageSize">The number of artifacts per page.</param>
-        /// <returns>The visible package page and total matching count.</returns>
+        /// <returns>The visible package page and total matching count, or an empty page when the owner is unconfirmed or locked.</returns>
         StagingArtifactPage<StagedPackage> GetStagedPackagePage(User stagingOwner, IReadOnlyCollection<Scope> scopes, int page, int pageSize);
 
         /// <summary>
@@ -35,6 +35,7 @@ namespace NuGetGallery
 
         /// <summary>
         /// Gets a current package visible to an authorized API owner and credential.
+        /// Unconfirmed or locked owners cannot read staged package attempts.
         /// </summary>
         /// <param name="stagingOwner">The authorized staging owner.</param>
         /// <param name="scopes">The credential scopes used to filter package IDs.</param>

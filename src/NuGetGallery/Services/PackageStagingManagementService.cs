@@ -670,6 +670,11 @@ namespace NuGetGallery
         public StagingArtifactPage<StagedPackage> GetStagedPackagePage(User stagingOwner, IReadOnlyCollection<Scope> scopes, int page, int pageSize)
         {
             ValidateArtifactPaging(stagingOwner, scopes, page, pageSize);
+            if (!stagingOwner.Confirmed || stagingOwner.IsLocked)
+            {
+                return new StagingArtifactPage<StagedPackage>(Array.Empty<StagedPackage>(), 0);
+            }
+
             var query = GetCurrentStagedPackages(new[] { stagingOwner.Key });
             var matchingScopes = GetInventoryScopes(stagingOwner, scopes);
             if (!matchingScopes.Any(scope => scope.Subject == NuGetPackagePattern.AllInclusivePattern))
@@ -730,7 +735,7 @@ namespace NuGetGallery
         public StagedPackage GetStagedPackage(User stagingOwner, IReadOnlyCollection<Scope> scopes, string id, string version)
         {
             var package = FindApiPackage(stagingOwner, scopes, id, version);
-            if (package == null)
+            if (package == null || !stagingOwner.Confirmed || stagingOwner.IsLocked)
             {
                 return null;
             }
