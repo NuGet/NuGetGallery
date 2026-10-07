@@ -25,7 +25,7 @@ namespace NuGet.Services.Staging
                 throw new ArgumentOutOfRangeException(nameof(stagedSymbolPackageKey));
             }
 
-            var name = "symbol-promotion:" + promotionId.ToString("N") + ":" + stagedSymbolPackageKey.ToString(CultureInfo.InvariantCulture);
+            var name = string.Format(CultureInfo.InvariantCulture, "symbol-promotion:{0:N}:{1}", promotionId, stagedSymbolPackageKey);
             using (var hash = SHA256.Create())
             {
                 var bytes = hash.ComputeHash(Encoding.UTF8.GetBytes(name));
