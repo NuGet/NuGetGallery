@@ -20,6 +20,40 @@ namespace NuGetGallery.FunctionalTests.Playwright.Staging
         [Fact]
         [Category("PlaywrightTests")]
         [Category("StagingCiTests")]
+        public async Task NonMemberCannotOpenPrivateGroupsOrArtifactManagement()
+        {
+            var owner = GalleryConfiguration.Instance.AdminOrganization;
+            await using var context = new StagingTestContext(owner.ApiKeyStage);
+            var group = await context.CreateGroupAsync();
+            var id = StagingTestContext.NewPackageId();
+            using (var parent = await context.UploadAsync(id, StagingTestContext.CreateArchive(id), groupId: group))
+            using (var symbols = await context.UploadAsync(id, StagingTestContext.CreateArchive(id, symbols: true), symbols: true))
+            {
+                await StagingTestContext.ReadJsonAsync(parent, HttpStatusCode.Created);
+                await StagingTestContext.ReadJsonAsync(symbols, HttpStatusCode.Created);
+            }
+
+            var otherAccount = GalleryConfiguration.Instance.OrganizationAdminAccount;
+            await SignInAsync(otherAccount.Name, otherAccount.Password);
+            await Expect(Page.Locator("span.dropdown-username")).ToContainTextAsync(otherAccount.Name);
+            var groupUrl = GalleryConfiguration.Instance.GalleryBaseUrl.TrimEnd('/') + "/account/staging/" + owner.Name + "/groups/" + group;
+            foreach (var url in new[] { groupUrl, StagingTestContext.ManagementUrl(id) })
+            {
+                var response = await Page.GotoAsync(url);
+                Assert.Equal(404, response.Status);
+                await Expect(Page.Locator(".staging-packages-table")).ToHaveCountAsync(0);
+                Assert.DoesNotContain("Functional group", await Page.ContentAsync());
+            }
+
+            var detail = await context.GetJsonAsync("groups/" + group);
+            Assert.Equal(2, detail["totalCount"].GetValue<int>());
+            StagingTestContext.AssertArtifact(await context.GetJsonAsync(StagingTestContext.ArtifactPath(id) + "/status"), id);
+            StagingTestContext.AssertArtifact(await context.GetJsonAsync(StagingTestContext.ArtifactPath(id, true) + "/status"), id, symbols: true);
+        }
+
+        [Fact]
+        [Category("PlaywrightTests")]
+        [Category("StagingCiTests")]
         public async Task GroupListsParentAndSymbolsAndFiltersTheirRows()
         {
             await using var context = new StagingTestContext();

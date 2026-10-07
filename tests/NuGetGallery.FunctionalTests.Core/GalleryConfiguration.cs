@@ -36,6 +36,10 @@ namespace NuGetGallery.FunctionalTests
         public AccountConfiguration Account { get; set; }
         public OrganizationConfiguration AdminOrganization { get; set; }
         public OrganizationConfiguration CollaboratorOrganization { get; set; }
+        public AccountConfiguration OrganizationAdminAccount { get; set; }
+        public OrganizationConfiguration StagingQuotaOrganization { get; set; }
+        public OrganizationConfiguration StagingRestrictedOrganization { get; set; }
+        public string StagingDatabaseConnectionString { get; set; }
         public BrandingConfiguration Branding { get; set; }
         public bool TyposquattingCheckAndBlockUsers { get; set; }
         public bool HasSearchService { get; set; } = true;
