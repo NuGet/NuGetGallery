@@ -182,7 +182,7 @@ namespace NuGetGallery
         [InlineData(StagedPackageStatus.Ready, false, true)]
         public void DisplaysPrivateStagedParentStatusAndLink(StagedPackageStatus parentStatus, bool grouped = false, bool symbolsReady = false)
         {
-            var owner = new User("owner") { Key = 1 };
+            var owner = new User("owner") { Key = 1, EmailAddress = "owner@example.test" };
             var parent = CreateStagedPackage(owner);
             parent.Status = parentStatus;
             parent.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Staged;
@@ -224,7 +224,7 @@ namespace NuGetGallery
         [Fact]
         public void AllowsPromotionOfASymbolOnlyGroup()
         {
-            var owner = new User("owner") { Key = 1 };
+            var owner = new User("owner") { Key = 1, EmailAddress = "owner@example.test" };
             var group = new StagingGroup { Key = 10, Owner = owner, OwnerKey = owner.Key, Id = "release", Name = "Release" };
             var symbols = CreateStagedSymbolPackage(owner);
             symbols.Status = StagedPackageStatus.Ready;
@@ -392,7 +392,7 @@ namespace NuGetGallery
         [InlineData(StagedPackageStatus.Ready, false, true)]
         public void DisplaysSymbolPromotionControlsAndStatus(StagedPackageStatus status, bool resendDue, bool hasPublicSymbols = false)
         {
-            var owner = new User("owner") { Key = 1 };
+            var owner = new User("owner") { Key = 1, EmailAddress = "owner@example.test" };
             var attempt = CreateStagedSymbolPackage(owner);
             attempt.Status = status;
             attempt.ActivePromotionId = Guid.NewGuid();
@@ -727,7 +727,7 @@ namespace NuGetGallery
         [Fact]
         public void DisplaysRetainedMembersAndFreezesAnActiveGroup()
         {
-            var currentUser = new User("current") { Key = 1 };
+            var currentUser = new User("current") { Key = 1, EmailAddress = "current@example.test" };
             var group = new StagingGroup
             {
                 Key = 10,
@@ -794,7 +794,7 @@ namespace NuGetGallery
         [Fact]
         public void AllowsPromotionWhenEveryPackageInAnInactiveGroupIsReady()
         {
-            var currentUser = new User("current") { Key = 1 };
+            var currentUser = new User("current") { Key = 1, EmailAddress = "current@example.test" };
             var group = new StagingGroup
             {
                 Key = 10,
@@ -1019,7 +1019,7 @@ namespace NuGetGallery
         [InlineData(StagedPackageStatus.Validating, false)]
         public void DisplaysUngroupedPackagesForAnOwner(StagedPackageStatus symbolStatus, bool includesSymbols)
         {
-            var currentUser = new User("Current") { Key = 1 };
+            var currentUser = new User("Current") { Key = 1, EmailAddress = "Current@example.test" };
             var ungroupedPackage = CreateStagedPackage(42, "Ungrouped.Package", "1.0.0", currentUser, StagedPackageStatus.Ready);
             var groupedPackage = CreateStagedPackage(43, "Grouped.Package", "2.0.0", currentUser, StagedPackageStatus.Ready);
             groupedPackage.StagedPackageIdentity.StagingGroupKey = 10;
@@ -1059,7 +1059,7 @@ namespace NuGetGallery
         [Fact]
         public void OffersResendForAStalledUngroupedPromotion()
         {
-            var currentUser = new User("current") { Key = 1 };
+            var currentUser = new User("current") { Key = 1, EmailAddress = "current@example.test" };
             var stagedPackage = CreateStagedPackage(42, "Example.Package", "1.0.0", currentUser, StagedPackageStatus.Promoting);
             stagedPackage.ActivePromotionId = System.Guid.NewGuid();
             stagedPackage.PromotionMessageSentDate = System.DateTime.UtcNow.AddHours(-2);
@@ -1664,7 +1664,7 @@ namespace NuGetGallery
         [InlineData(true, true)]
         public void OwnershipLossKeepsPrivateControlsAndRestorationEnablesPublication(bool grouped, bool symbolOnly)
         {
-            var owner = new User("owner") { Key = 1 };
+            var owner = new User("owner") { Key = 1, EmailAddress = "owner@example.test" };
             var group = new StagingGroup { Key = 10, Owner = owner, OwnerKey = owner.Key, Id = "release", Name = "Release" };
             var parent = CreateStagedPackage(42, "PackageA", "1.0.0", owner, StagedPackageStatus.Ready);
             var identity = parent.StagedPackageIdentity;
@@ -1716,6 +1716,84 @@ namespace NuGetGallery
             Assert.Equal(!grouped, artifact.CanPromote);
             Assert.Null(artifact.PromotionBlocker);
             Assert.Equal(grouped, model.CanPromote);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void RequesterAndRegistrationLocksDisablePromotionAndResendWithoutDisablingPrivateControls(bool requesterLocked)
+        {
+            foreach (var grouped in new[] { false, true })
+            {
+                foreach (var resend in new[] { false, true })
+                {
+                    var requester = new User("member") { Key = 2, EmailAddress = "member@example.test" };
+                    var owner = new User("owner") { Key = 1, EmailAddress = "owner@example.test" };
+                    var group = new StagingGroup { Key = 10, Owner = owner, OwnerKey = owner.Key, Id = "release", Name = "Release" };
+                    var parent = CreateStagedPackage(42, "PackageA", "1.0.0", owner, resend ? StagedPackageStatus.Promoting : StagedPackageStatus.Ready);
+                    var identity = parent.StagedPackageIdentity;
+                    identity.Package.PackageStatusKey = PackageStatus.Staged;
+                    var symbols = CreateStagedSymbolPackage(owner);
+                    symbols.StagedPackageIdentity = identity;
+                    symbols.Status = parent.Status;
+                    identity.CurrentStagedSymbolPackage = symbols;
+                    identity.CurrentStagedSymbolPackageKey = symbols.Key;
+                    if (grouped)
+                    {
+                        identity.StagingGroupKey = group.Key;
+                        identity.StagingGroup = group;
+                    }
+                    if (resend)
+                    {
+                        parent.ActivePromotionId = Guid.NewGuid();
+                        parent.PromotionMessageSentDate = DateTime.UtcNow.AddHours(-2);
+                        symbols.ActivePromotionId = parent.ActivePromotionId;
+                        symbols.PromotionMessageSentDate = parent.PromotionMessageSentDate;
+                        if (grouped)
+                        {
+                            group.ActivePromotionId = parent.ActivePromotionId;
+                            group.PromotionMessageSentDate = parent.PromotionMessageSentDate;
+                        }
+                        else
+                        {
+                            identity.Package.PackageStatusKey = PackageStatus.Available;
+                        }
+                    }
+
+                    if (requesterLocked)
+                    {
+                        requester.UserStatusKey = UserStatus.Locked;
+                    }
+                    else
+                    {
+                        identity.Package.PackageRegistration.IsLocked = true;
+                    }
+
+                    GetMock<IPackageStagingAuthorizationService>().Setup(service => service.GetEnabledOwner(requester, owner.Username)).Returns(owner);
+                    GetMock<IPackageStagingManagementService>().Setup(service => service.GetStagedPackages(requester)).Returns(new[] { parent });
+                    GetMock<IPackageStagingManagementService>().Setup(service => service.GetStagingGroups(requester)).Returns(new[] { group });
+                    GetMock<IPackageStagingManagementService>().Setup(service => service.FindStagingGroup(owner, group.Id)).Returns(group);
+                    GetMock<ISymbolPackageStagingManagementService>().Setup(service => service.GetStagedSymbolPackages(requester)).Returns(new[] { symbols });
+                    var target = GetController<StagingController>();
+                    target.SetCurrentUser(requester);
+
+                    var model = ResultAssert.IsView<StagingGroupDetailViewModel>(grouped ? target.Group(owner.Username, group.Id) : target.Ungrouped(owner.Username), viewName: "Group");
+
+                    Assert.False(model.CanPromote);
+                    Assert.False(model.CanResend);
+                    Assert.All(model.Packages, package =>
+                    {
+                        Assert.False(package.CanPromote);
+                        Assert.False(package.CanResend);
+                        Assert.NotNull(package.PromotionBlocker);
+                        if (!resend)
+                        {
+                            Assert.True(package.CanManage);
+                            Assert.True(package.CanReplace);
+                        }
+                    });
+                }
+            }
         }
 
         private static StagedPackage CreateStagedPackage(User owner)

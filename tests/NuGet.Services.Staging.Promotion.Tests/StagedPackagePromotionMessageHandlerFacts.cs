@@ -21,6 +21,72 @@ namespace NuGet.Services.Staging.Promotion.Tests
     public class StagedPackagePromotionMessageHandlerFacts
     {
         [Theory]
+        [InlineData("owner-locked")]
+        [InlineData("owner-unconfirmed")]
+        [InlineData("registration-locked")]
+        public async Task PublishingRestrictionsAtStartupFailParentAndPairedSymbols(string restriction)
+        {
+            foreach (var grouped in new[] { false, true })
+            {
+                var context = new TestContext();
+                var symbols = context.AddAcceptedSymbols();
+                if (grouped)
+                {
+                    context.AddToGroup();
+                }
+
+                switch (restriction)
+                {
+                    case "owner-locked":
+                        context.StagedPackageIdentity.Owner.UserStatusKey = UserStatus.Locked;
+                        break;
+                    case "owner-unconfirmed":
+                        context.StagedPackageIdentity.Owner.EmailAddress = null;
+                        break;
+                    case "registration-locked":
+                        context.Package.PackageRegistration.IsLocked = true;
+                        break;
+                    default:
+                        throw new ArgumentException("Unknown publishing restriction.", nameof(restriction));
+                }
+
+                Assert.True(await context.Target.HandleAsync(context.Message));
+
+                Assert.Equal(PackageStatus.Staged, context.Package.PackageStatusKey);
+                Assert.Equal(StagedPackageStatus.PromotionFailed, context.StagedPackage.Status);
+                Assert.Equal(StagedPackageStatus.PromotionFailed, symbols.Status);
+                Assert.Contains(context.StagedPackage, context.StagedPackages);
+                context.MessageEnqueuer.Verify(service => service.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
+                context.Notifications.Verify(service => service.SendAsync(context.StagedPackageIdentity.Owner,
+                    It.Is<StagingPromotionArtifact>(artifact => !artifact.Succeeded)), Times.Exactly(2));
+                context.PackageFileStorageService.Verify(service => service.CopyFileAsync(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IAccessCondition>()), Times.Never);
+                context.PackageFileStorageService.Verify(service => service.DeleteFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+                context.PackageService.Verify(service => service.UpdatePackageStatusAsync(It.IsAny<Package>(), PackageStatus.Available, false), Times.Never);
+                context.StagingGroupPromotionService.Verify(service => service.TryFinalizeAsync(It.IsAny<int>(), context.PromotionId), grouped ? Times.Once() : Times.Never());
+            }
+        }
+
+        [Fact]
+        public async Task OwnerLockedDuringCopyDoesNotInterruptParentPublication()
+        {
+            var context = new TestContext();
+            var symbols = context.AddAcceptedSymbols();
+            context.AddToGroup();
+            context.PackageFileStorageService.Setup(service => service.CopyFileAsync(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IAccessCondition>()))
+                .Callback(() => context.StagedPackageIdentity.Owner.UserStatusKey = UserStatus.Locked).Returns(Task.CompletedTask);
+
+            Assert.True(await context.Target.HandleAsync(context.Message));
+
+            Assert.Equal(PackageStatus.Available, context.Package.PackageStatusKey);
+            Assert.Equal(StagedPackageStatus.Succeeded, context.StagedPackage.Status);
+            Assert.Equal(StagedPackageStatus.Promoting, symbols.Status);
+            context.PackageFileStorageService.Verify(service => service.CopyFileAsync(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IAccessCondition>()), Times.Once);
+            context.PackageFileStorageService.Verify(service => service.DeleteFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            context.MessageEnqueuer.Verify(service => service.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Once);
+            context.StagingGroupPromotionService.Verify(service => service.TryFinalizeAsync(It.IsAny<int>(), context.PromotionId), Times.Once);
+        }
+
+        [Theory]
         [InlineData(false)]
         [InlineData(true)]
         public async Task PublishesExactValidatedPackageAndRemovesStagingRow(bool hasStagedSymbols)
@@ -86,6 +152,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
             var context = new TestContext();
 
             var firstHandled = await context.Target.HandleAsync(context.Message);
+            context.StagedPackageIdentity.Owner.UserStatusKey = UserStatus.Locked;
             var duplicateHandled = await context.Target.HandleAsync(context.Message);
 
             Assert.True(firstHandled);
@@ -627,7 +694,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 Content = Encoding.UTF8.GetBytes("validated package content");
                 SourceUri = new Uri("https://example.test/staging/validated.nupkg");
                 PromotionId = Guid.NewGuid();
-                var owner = new User { Key = 23, Username = "owner" };
+                var owner = new User { Key = 23, Username = "owner", EmailAddress = "owner@example.test" };
                 Package = new Package
                 {
                     Key = 11,

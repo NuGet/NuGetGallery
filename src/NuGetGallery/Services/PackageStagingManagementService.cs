@@ -628,7 +628,9 @@ namespace NuGetGallery
             var totalCount = packagesQuery.Count() + symbolCount;
             var hasRegistrationOwnershipLoss = packagesQuery.Any(package => !package.StagedPackageIdentity.Package.PackageRegistration.Owners.Any(owner => owner.Key == package.StagedPackageIdentity.OwnerKey))
                 || symbolsQuery.Any(symbol => !symbol.StagedPackageIdentity.Package.PackageRegistration.Owners.Any(owner => owner.Key == symbol.StagedPackageIdentity.OwnerKey));
-            var allPackagesReady = !hasRegistrationOwnershipLoss && !packagesQuery.Any(package => package.Status != StagedPackageStatus.Ready);
+            var hasLockedRegistration = packagesQuery.Any(package => package.StagedPackageIdentity.Package.PackageRegistration.IsLocked)
+                || symbolsQuery.Any(symbol => symbol.StagedPackageIdentity.Package.PackageRegistration.IsLocked);
+            var allPackagesReady = !hasRegistrationOwnershipLoss && !hasLockedRegistration && !packagesQuery.Any(package => package.Status != StagedPackageStatus.Ready);
 
             if (allPackagesReady)
             {
@@ -663,7 +665,7 @@ namespace NuGetGallery
                 symbols = symbolsQuery.Where(symbol => symbolKeys.Contains(symbol.Key)).OrderByDescending(symbol => symbol.UploadedDate).ThenByDescending(symbol => symbol.Key).ToList();
             }
 
-            return new StagingGroupPackagePage(group, packages, totalCount, allPackagesReady, symbols, symbolCount, hasRegistrationOwnershipLoss);
+            return new StagingGroupPackagePage(group, packages, totalCount, allPackagesReady, symbols, symbolCount, hasRegistrationOwnershipLoss, hasLockedRegistration);
         }
 
         /// <inheritdoc />

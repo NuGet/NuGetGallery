@@ -248,7 +248,7 @@ namespace NuGet.Services.Staging.Promotion
         {
             return !string.IsNullOrWhiteSpace(stagedPackage.ValidatedBlobPath)
                 && !string.IsNullOrWhiteSpace(stagedPackage.ValidatedBlobETag)
-                && stagedPackage.StagedPackageIdentity.Package.PackageRegistration.Owners.Any(owner => owner.Key == stagedPackage.StagedPackageIdentity.OwnerKey);
+                && StagingPublicationPolicy.GetBlocker(stagedPackage.StagedPackageIdentity) == null;
         }
 
         private async Task MarkPromotionFailedAsync(StagedPackage stagedPackage)

@@ -15,6 +15,71 @@ namespace NuGetGallery
     public class SymbolPackageStagingPromotionFacts
     {
         [Theory]
+        [InlineData("requester-locked")]
+        [InlineData("requester-unconfirmed")]
+        [InlineData("owner-locked")]
+        [InlineData("owner-unconfirmed")]
+        [InlineData("registration-locked")]
+        [InlineData("ownership-lost")]
+        public async Task PublishingRestrictionsRejectSymbolPromotionAndResend(string restriction)
+        {
+            foreach (var resend in new[] { false, true })
+            {
+                if (restriction == "ownership-lost" && !resend)
+                {
+                    continue;
+                }
+
+                var fixture = new Fixture();
+                var requester = new User("member") { Key = 2, EmailAddress = "member@example.test" };
+                fixture.Authorization.Setup(service => service.CanManage(requester, fixture.Attempt)).Returns(true);
+                switch (restriction)
+                {
+                    case "requester-locked":
+                        requester.UserStatusKey = UserStatus.Locked;
+                        break;
+                    case "requester-unconfirmed":
+                        requester.EmailAddress = null;
+                        break;
+                    case "owner-locked":
+                        fixture.Owner.UserStatusKey = UserStatus.Locked;
+                        break;
+                    case "owner-unconfirmed":
+                        fixture.Owner.EmailAddress = null;
+                        break;
+                    case "registration-locked":
+                        fixture.Attempt.StagedPackageIdentity.Package.PackageRegistration.IsLocked = true;
+                        break;
+                    case "ownership-lost":
+                        fixture.Attempt.StagedPackageIdentity.Package.PackageRegistration.Owners.Clear();
+                        break;
+                    default:
+                        throw new ArgumentException("Unknown publishing restriction.", nameof(restriction));
+                }
+
+                fixture.Attempt.Status = resend ? StagedPackageStatus.Promoting : StagedPackageStatus.Ready;
+                fixture.Attempt.ActivePromotionId = resend ? Guid.NewGuid() : (Guid?)null;
+                fixture.Attempt.PromotionMessageSentDate = DateTime.UtcNow.AddHours(-2);
+                var promotionId = fixture.Attempt.ActivePromotionId;
+                var result = resend
+                    ? await fixture.Service.ResendSymbolPackageAsync(requester, fixture.Attempt)
+                    : await fixture.Service.PromoteSymbolPackageAsync(requester, fixture.Attempt);
+
+                Assert.Equal(PackageStagingPromotionResult.NotReady, result);
+                Assert.Equal(resend ? StagedPackageStatus.Promoting : StagedPackageStatus.Ready, fixture.Attempt.Status);
+                Assert.Equal(promotionId, fixture.Attempt.ActivePromotionId);
+                fixture.Repository.Verify(service => service.CommitChangesAsync(), Times.Never);
+                fixture.Enqueuer.Verify(service => service.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
+                if (!resend && !restriction.StartsWith("requester-", StringComparison.Ordinal))
+                {
+                    var response = StagingArtifactResponse.FromSymbolPackage(fixture.Attempt, fixture.Attempt.ExpirationDate, "management");
+                    Assert.False(response.CanPromote);
+                    Assert.Equal(StagingPublicationPolicy.GetBlocker(fixture.Attempt.StagedPackageIdentity).Code, Assert.Single(response.Blockers).Code);
+                }
+            }
+        }
+
+        [Theory]
         [InlineData(false)]
         [InlineData(true)]
         public async Task CommitsExactSymbolAttemptBeforeDispatchWithoutPublishingItsEntities(bool hasPublicSymbols)
@@ -174,7 +239,6 @@ namespace NuGetGallery
             var promotionId = fixture.Attempt.ActivePromotionId;
             var expirationDate = DateTime.UtcNow.AddDays(-1);
             fixture.Attempt.ExpirationDate = expirationDate;
-            fixture.Attempt.StagedPackageIdentity.Package.PackageRegistration.Owners.Clear();
             Assert.Equal(StagedPackageStatus.Promoting, fixture.Attempt.Status);
             Assert.True(StagedSymbolPackagePromotionEligibility.CanResend(fixture.Attempt));
             fixture.Enqueuer.Setup(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>())).Returns(Task.CompletedTask);
@@ -285,7 +349,7 @@ namespace NuGetGallery
 
         private class Fixture
         {
-            internal User Owner { get; } = new User("owner") { Key = 1 };
+            internal User Owner { get; } = new User("owner") { Key = 1, EmailAddress = "owner@example.test" };
 
             internal StagedSymbolPackage Attempt { get; }
 

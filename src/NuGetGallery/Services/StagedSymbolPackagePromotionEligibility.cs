@@ -26,10 +26,10 @@ namespace NuGetGallery
             {
                 blockers.Add(promotionBlocker);
             }
-            var ownershipBlocker = StagingOwnershipPolicy.GetBlocker(identity);
-            if (ownershipBlocker != null)
+            var publicationBlocker = StagingPublicationPolicy.GetBlocker(identity);
+            if (publicationBlocker != null)
             {
-                blockers.Add(ownershipBlocker);
+                blockers.Add(new StagingBlockerResponse(publicationBlocker.Code, publicationBlocker.Message));
             }
 
             if (StagingExpirationPolicy.HasExpired(attempt))
@@ -77,6 +77,11 @@ namespace NuGetGallery
             }
 
             var identity = attempt.StagedPackageIdentity;
+            if (StagingPublicationPolicy.GetBlocker(identity) != null)
+            {
+                return false;
+            }
+
             if (identity.StagingGroupKey.HasValue || identity.Package.PackageStatusKey != PackageStatus.Available)
             {
                 return false;

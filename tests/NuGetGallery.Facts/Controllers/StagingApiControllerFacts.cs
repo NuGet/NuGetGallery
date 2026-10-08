@@ -418,8 +418,8 @@ namespace NuGetGallery
         [InlineData(true, PackageStatus.Deleted)]
         public void GetsPagedStagingGroups(bool withSymbols, PackageStatus parentStatus = PackageStatus.Available)
         {
-            var currentUser = new User("current") { Key = 1 };
-            var owner = new User("example-org") { Key = 2 };
+            var currentUser = new User("current") { Key = 1, EmailAddress = "current@example.test" };
+            var owner = new User("example-org") { Key = 2, EmailAddress = "example-org@example.test" };
             var olderGroup = CreateStagingGroup(10, "older", "Older", owner, new DateTime(2026, 9, 1));
             var newerGroup = CreateStagingGroup(11, "newer", "Newer", owner, new DateTime(2026, 9, 2));
             var parent = CreateStagedPackage(owner);
@@ -501,8 +501,8 @@ namespace NuGetGallery
         [InlineData(true, StagedPackageStatus.FailedValidation)]
         public void GetsStagingGroupWithPagedMembers(bool withSymbols, StagedPackageStatus symbolStatus = StagedPackageStatus.Ready)
         {
-            var currentUser = new User("current") { Key = 1 };
-            var owner = new User("example-org") { Key = 2 };
+            var currentUser = new User("current") { Key = 1, EmailAddress = "current@example.test" };
+            var owner = new User("example-org") { Key = 2, EmailAddress = "example-org@example.test" };
             var group = CreateStagingGroup(10, "release", "Release", owner, new DateTime(2026, 9, 1));
             var package = CreateStagedPackage(owner);
             package.Status = StagedPackageStatus.Ready;
@@ -595,10 +595,13 @@ namespace NuGetGallery
         [InlineData("RegistrationOwnershipLost")]
         [InlineData("GroupPromotionInProgress")]
         [InlineData("StagingExpired")]
-        public void ReportsOffPageOwnershipLossWithExistingGroupBlockerPrecedence(string expectedBlocker)
+        [InlineData("PackageRegistrationLocked")]
+        [InlineData("StagingOwnerLocked")]
+        [InlineData("StagingOwnerUnconfirmed")]
+        public void ReportsOffPagePublishingRestrictionsWithExistingGroupBlockerPrecedence(string expectedBlocker)
         {
             var currentUser = new User("current") { Key = 1 };
-            var owner = new User("example-org") { Key = 2 };
+            var owner = new User("example-org") { Key = 2, EmailAddress = "owner@example.test" };
             var group = CreateStagingGroup(10, "release", "Release", owner, DateTime.UtcNow);
             if (expectedBlocker == "GroupPromotionInProgress")
             {
@@ -607,6 +610,14 @@ namespace NuGetGallery
             else if (expectedBlocker == "StagingExpired")
             {
                 group.ExpirationDate = DateTime.UtcNow.AddMinutes(-1);
+            }
+            else if (expectedBlocker == "StagingOwnerLocked")
+            {
+                owner.UserStatusKey = UserStatus.Locked;
+            }
+            else if (expectedBlocker == "StagingOwnerUnconfirmed")
+            {
+                owner.EmailAddress = null;
             }
 
             var package = CreateStagedPackage(owner);
@@ -617,7 +628,8 @@ namespace NuGetGallery
             ConfigureCreateGroupRequest(target, currentUser, owner);
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.GetStagingGroupPackagePage(owner, "release", 1, 1))
-                .Returns(new StagingGroupPackagePage(group, new[] { package }, totalCount: 2, allPackagesReady: false, hasRegistrationOwnershipLoss: true));
+                .Returns(new StagingGroupPackagePage(group, new[] { package }, totalCount: 2, allPackagesReady: false,
+                    hasRegistrationOwnershipLoss: expectedBlocker != "PackageRegistrationLocked", hasLockedRegistration: expectedBlocker == "PackageRegistrationLocked"));
 
             var body = ParseJsonContent(target.GetStagingGroup("release", page: 1, pageSize: 1));
 

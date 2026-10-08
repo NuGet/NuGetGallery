@@ -19,6 +19,118 @@ namespace NuGetGallery
         private const int StagedPackageKey = 456;
 
         [Theory]
+        [InlineData("requester-locked")]
+        [InlineData("requester-unconfirmed")]
+        [InlineData("owner-locked")]
+        [InlineData("owner-unconfirmed")]
+        [InlineData("registration-locked")]
+        [InlineData("ownership-lost")]
+        public async Task PublishingRestrictionsRejectParentAndGroupRequestsWithoutAcceptingAnyWork(string restriction)
+        {
+            foreach (var grouped in new[] { false, true })
+            {
+                foreach (var resend in new[] { false, true })
+                {
+                    if (restriction == "ownership-lost" && !resend)
+                    {
+                        continue;
+                    }
+
+                    var requester = new User("member") { Key = 1, EmailAddress = "member@example.test" };
+                    var group = grouped ? CreateStagingGroup() : null;
+                    var parent = CreateStagedPackage(resend ? StagedPackageStatus.Promoting : StagedPackageStatus.Ready, group: group);
+                    var symbols = CreateStagedSymbols(parent);
+                    var promotionId = resend ? Guid.NewGuid() : (Guid?)null;
+                    parent.ActivePromotionId = promotionId;
+                    parent.PromotionMessageSentDate = resend ? DateTime.UtcNow.AddHours(-2) : (DateTime?)null;
+                    symbols.Status = parent.Status;
+                    symbols.ActivePromotionId = promotionId;
+                    if (grouped)
+                    {
+                        group.ActivePromotionId = promotionId;
+                        group.PromotionMessageSentDate = parent.PromotionMessageSentDate;
+                    }
+
+                    ApplyPublishingRestriction(restriction, requester, parent.StagedPackageIdentity);
+                    var otherParent = CreateStagedPackage(parent.Status, key: 789, group: group);
+                    var repository = new Mock<IEntityRepository<StagedPackage>>();
+                    repository.Setup(service => service.GetAll()).Returns(new[] { otherParent, parent }.AsQueryable());
+                    var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
+                    var target = CreateService(repository, enqueuer, stagedSymbols: new[] { symbols });
+                    if (grouped)
+                    {
+                        var result = resend
+                            ? await target.ResendGroupAsync(requester, group)
+                            : await target.PromoteGroupAsync(requester, group);
+                        Assert.Equal(StagingGroupPromotionResult.NotReady, result);
+                        Assert.Equal(promotionId, group.ActivePromotionId);
+                    }
+                    else
+                    {
+                        var result = resend
+                            ? await target.ResendPackageAsync(requester, parent)
+                            : await target.PromotePackageAsync(requester, parent);
+                        Assert.Equal(PackageStagingPromotionResult.NotReady, result);
+                    }
+
+                    Assert.Equal(resend ? StagedPackageStatus.Promoting : StagedPackageStatus.Ready, parent.Status);
+                    Assert.Equal(parent.Status, symbols.Status);
+                    Assert.Equal(parent.Status, otherParent.Status);
+                    Assert.Equal(promotionId, parent.ActivePromotionId);
+                    Assert.Equal(promotionId, symbols.ActivePromotionId);
+                    Assert.Null(otherParent.ActivePromotionId);
+                    repository.Verify(service => service.CommitChangesAsync(), Times.Never);
+                    enqueuer.Verify(service => service.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
+
+                    if (resend || restriction.StartsWith("requester-", StringComparison.Ordinal))
+                    {
+                        continue;
+                    }
+
+                    if (grouped)
+                    {
+                        var groupResponse = StagingGroupResponse.FromGroup(group, new[] { otherParent, parent }, group.ExpirationDate, "management", new[] { symbols });
+                        Assert.False(groupResponse.CanPromote);
+                        Assert.Equal(StagingPublicationPolicy.GetBlocker(parent.StagedPackageIdentity).Code, Assert.Single(groupResponse.Blockers).Code);
+                    }
+                    else
+                    {
+                        var artifactResponse = StagingArtifactResponse.FromPackage(parent, parent.ExpirationDate, "management");
+                        Assert.False(artifactResponse.CanPromote);
+                        Assert.Equal(StagingPublicationPolicy.GetBlocker(parent.StagedPackageIdentity).Code, Assert.Single(artifactResponse.Blockers).Code);
+                    }
+                }
+            }
+        }
+
+        private static void ApplyPublishingRestriction(string restriction, User requester, StagedPackageIdentity identity)
+        {
+            switch (restriction)
+            {
+                case "requester-locked":
+                    requester.UserStatusKey = UserStatus.Locked;
+                    break;
+                case "requester-unconfirmed":
+                    requester.EmailAddress = null;
+                    break;
+                case "owner-locked":
+                    identity.Owner.UserStatusKey = UserStatus.Locked;
+                    break;
+                case "owner-unconfirmed":
+                    identity.Owner.EmailAddress = null;
+                    break;
+                case "registration-locked":
+                    identity.Package.PackageRegistration.IsLocked = true;
+                    break;
+                case "ownership-lost":
+                    identity.Package.PackageRegistration.Owners.Clear();
+                    break;
+                default:
+                    throw new ArgumentException("Unknown publishing restriction.", nameof(restriction));
+            }
+        }
+
+        [Theory]
         [InlineData(false)]
         [InlineData(true)]
         public async Task CommitsAuthorizedReadyPackageBeforeSendingMessage(bool includesSymbols)
@@ -52,7 +164,7 @@ namespace NuGetGallery
                 .Returns(Task.CompletedTask);
             var target = CreateService(repository, enqueuer, stagedSymbols: symbols == null ? null : new[] { symbols });
 
-            var promotion = target.PromotePackageAsync(new User("owner"), stagedPackage);
+            var promotion = target.PromotePackageAsync(new User("owner") { EmailAddress = "owner@example.test" }, stagedPackage);
             enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
             saveCompleted.SetResult(true);
             var result = await promotion;
@@ -102,8 +214,8 @@ namespace NuGetGallery
             stagedPackage.ActivePromotionId = Guid.NewGuid();
             var previousSentDate = DateTime.UtcNow.AddMinutes(-61);
             stagedPackage.PromotionMessageSentDate = previousSentDate;
-            stagedPackage.StagedPackageIdentity.Package.PackageRegistration.Owners.Clear();
             var repository = new Mock<IEntityRepository<StagedPackage>>();
+            repository.Setup(x => x.GetAll()).Returns(new[] { stagedPackage }.AsQueryable());
             repository.Setup(x => x.CommitChangesAsync())
                 .Callback(() => events.Add("Commit"))
                 .Returns(Task.CompletedTask);
@@ -118,7 +230,7 @@ namespace NuGetGallery
                 .Returns(Task.CompletedTask);
             var target = CreateService(repository, enqueuer);
 
-            var result = await target.ResendPackageAsync(new User("owner"), stagedPackage);
+            var result = await target.ResendPackageAsync(new User("owner") { EmailAddress = "owner@example.test" }, stagedPackage);
 
             Assert.Equal(PackageStagingPromotionResult.Accepted, result);
             Assert.Equal(StagedPackageStatus.Promoting, stagedPackage.Status);
@@ -144,7 +256,7 @@ namespace NuGetGallery
                 .ThrowsAsync(new ServiceBusException("Send failed.", ServiceBusFailureReason.ServiceTimeout));
             var target = CreateService(repository, enqueuer);
 
-            var result = await target.ResendPackageAsync(new User("owner"), stagedPackage);
+            var result = await target.ResendPackageAsync(new User("owner") { EmailAddress = "owner@example.test" }, stagedPackage);
 
             Assert.Equal(PackageStagingPromotionResult.DispatchFailed, result);
             Assert.Equal(promotionId, stagedPackage.ActivePromotionId);
@@ -165,7 +277,7 @@ namespace NuGetGallery
             var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
             var target = CreateService(repository, enqueuer);
 
-            var result = await target.ResendPackageAsync(new User("owner"), stagedPackage);
+            var result = await target.ResendPackageAsync(new User("owner") { EmailAddress = "owner@example.test" }, stagedPackage);
 
             Assert.Equal(PackageStagingPromotionResult.NotReady, result);
             repository.Verify(x => x.CommitChangesAsync(), Times.Never);
@@ -196,7 +308,7 @@ namespace NuGetGallery
             var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
             var target = CreateService(repository, enqueuer);
 
-            var result = await target.PromotePackageAsync(new User("owner"), stagedPackage);
+            var result = await target.PromotePackageAsync(new User("owner") { EmailAddress = "owner@example.test" }, stagedPackage);
 
             Assert.Equal(PackageStagingPromotionResult.NotReady, result);
             repository.Verify(x => x.CommitChangesAsync(), Times.Never);
@@ -212,7 +324,7 @@ namespace NuGetGallery
             var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
             var target = CreateService(repository, enqueuer);
 
-            var result = await target.PromotePackageAsync(new User("owner"), stagedPackage);
+            var result = await target.PromotePackageAsync(new User("owner") { EmailAddress = "owner@example.test" }, stagedPackage);
 
             Assert.Equal(PackageStagingPromotionResult.Grouped, result);
             Assert.Equal(StagedPackageStatus.Ready, stagedPackage.Status);
@@ -232,7 +344,7 @@ namespace NuGetGallery
             var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
             var target = CreateService(repository, enqueuer, stagedSymbols: new[] { symbols });
 
-            var result = await target.PromotePackageAsync(new User("owner"), stagedPackage);
+            var result = await target.PromotePackageAsync(new User("owner") { EmailAddress = "owner@example.test" }, stagedPackage);
 
             Assert.Equal(PackageStagingPromotionResult.Conflict, result);
             enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
@@ -250,7 +362,7 @@ namespace NuGetGallery
                 .ThrowsAsync(new TimeoutException("Send timed out."));
             var target = CreateService(repository, enqueuer);
 
-            var result = await target.PromotePackageAsync(new User("owner"), stagedPackage);
+            var result = await target.PromotePackageAsync(new User("owner") { EmailAddress = "owner@example.test" }, stagedPackage);
 
             Assert.Equal(PackageStagingPromotionResult.DispatchFailed, result);
             Assert.Equal(StagedPackageStatus.Promoting, stagedPackage.Status);
@@ -259,7 +371,7 @@ namespace NuGetGallery
             repository.Verify(x => x.CommitChangesAsync(), Times.Exactly(2));
 
             enqueuer.Setup(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>())).Returns(Task.CompletedTask);
-            Assert.Equal(PackageStagingPromotionResult.Accepted, await target.ResendPackageAsync(new User("owner"), stagedPackage));
+            Assert.Equal(PackageStagingPromotionResult.Accepted, await target.ResendPackageAsync(new User("owner") { EmailAddress = "owner@example.test" }, stagedPackage));
             Assert.Equal(StagedPackageStatus.Promoting, stagedPackage.Status);
             Assert.False(StagingPromotionResendPolicy.IsDue(stagedPackage.PromotionMessageSentDate));
         }
@@ -284,7 +396,7 @@ namespace NuGetGallery
                 .ThrowsAsync(new TimeoutException("Send timed out."));
             var target = CreateService(repository, enqueuer);
 
-            var result = await target.PromotePackageAsync(new User("owner"), stagedPackage);
+            var result = await target.PromotePackageAsync(new User("owner") { EmailAddress = "owner@example.test" }, stagedPackage);
 
             Assert.Equal(PackageStagingPromotionResult.Conflict, result);
             Assert.Equal(StagedPackageStatus.Promoting, stagedPackage.Status);
@@ -319,7 +431,7 @@ namespace NuGetGallery
                 .Returns(Task.CompletedTask);
             var target = CreateService(repository, enqueuer);
 
-            var result = await target.PromoteGroupAsync(new User("owner") { Key = 1 }, group);
+            var result = await target.PromoteGroupAsync(new User("owner") { Key = 1, EmailAddress = "owner@example.test" }, group);
 
             Assert.Equal(StagingGroupPromotionResult.Accepted, result);
             Assert.Equal(group.ActivePromotionId, message.PromotionId);
@@ -346,6 +458,7 @@ namespace NuGetGallery
             var stagedPackage = CreateStagedPackage(StagedPackageStatus.Promoting, group: group);
             stagedPackage.ActivePromotionId = group.ActivePromotionId;
             var repository = new Mock<IEntityRepository<StagedPackage>>();
+            repository.Setup(x => x.GetAll()).Returns(new[] { stagedPackage }.AsQueryable());
             repository.Setup(x => x.CommitChangesAsync())
                 .Callback(() => events.Add("Commit"))
                 .Returns(Task.CompletedTask);
@@ -360,7 +473,7 @@ namespace NuGetGallery
                 .Returns(Task.CompletedTask);
             var target = CreateService(repository, enqueuer);
 
-            var result = await target.ResendGroupAsync(new User("owner") { Key = 1 }, group);
+            var result = await target.ResendGroupAsync(new User("owner") { Key = 1, EmailAddress = "owner@example.test" }, group);
 
             Assert.Equal(StagingGroupPromotionResult.Accepted, result);
             Assert.Equal(group.ActivePromotionId, message.PromotionId);
@@ -388,7 +501,7 @@ namespace NuGetGallery
                 .ThrowsAsync(new TimeoutException("Send timed out."));
             var target = CreateService(repository, enqueuer);
 
-            var result = await target.ResendGroupAsync(new User("owner") { Key = 1 }, group);
+            var result = await target.ResendGroupAsync(new User("owner") { Key = 1, EmailAddress = "owner@example.test" }, group);
 
             Assert.Equal(StagingGroupPromotionResult.DispatchFailed, result);
             Assert.Equal(promotionId, group.ActivePromotionId);
@@ -408,7 +521,7 @@ namespace NuGetGallery
             var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
             var target = CreateService(repository, enqueuer);
 
-            var result = await target.ResendGroupAsync(new User("owner") { Key = 1 }, group);
+            var result = await target.ResendGroupAsync(new User("owner") { Key = 1, EmailAddress = "owner@example.test" }, group);
 
             Assert.Equal(StagingGroupPromotionResult.NotReady, result);
             repository.Verify(x => x.CommitChangesAsync(), Times.Never);
@@ -429,7 +542,7 @@ namespace NuGetGallery
             var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
             var target = CreateService(repository, enqueuer, authorizedPackageKey: 456);
 
-            var result = await target.PromoteGroupAsync(new User("owner") { Key = 1 }, group);
+            var result = await target.PromoteGroupAsync(new User("owner") { Key = 1, EmailAddress = "owner@example.test" }, group);
 
             Assert.Equal(StagingGroupPromotionResult.Unauthorized, result);
             Assert.All(stagedPackages, stagedPackage =>
@@ -455,7 +568,7 @@ namespace NuGetGallery
             var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
             var target = CreateService(repository, enqueuer);
 
-            var result = await target.PromoteGroupAsync(new User("owner") { Key = 1 }, group);
+            var result = await target.PromoteGroupAsync(new User("owner") { Key = 1, EmailAddress = "owner@example.test" }, group);
 
             Assert.Equal(StagingGroupPromotionResult.NotReady, result);
             Assert.All(stagedPackages, stagedPackage => Assert.Null(stagedPackage.ActivePromotionId));
@@ -476,7 +589,7 @@ namespace NuGetGallery
             var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
             var target = CreateService(repository, enqueuer);
 
-            var result = await target.PromoteGroupAsync(new User("owner") { Key = 1 }, group);
+            var result = await target.PromoteGroupAsync(new User("owner") { Key = 1, EmailAddress = "owner@example.test" }, group);
 
             Assert.Equal(StagingGroupPromotionResult.Conflict, result);
             enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
@@ -496,7 +609,7 @@ namespace NuGetGallery
                 .ThrowsAsync(new TimeoutException("Send timed out."));
             var target = CreateService(repository, enqueuer);
 
-            var result = await target.PromoteGroupAsync(new User("owner") { Key = 1 }, group);
+            var result = await target.PromoteGroupAsync(new User("owner") { Key = 1, EmailAddress = "owner@example.test" }, group);
 
             Assert.Equal(StagingGroupPromotionResult.DispatchFailed, result);
             Assert.NotNull(group.ActivePromotionId);
@@ -506,7 +619,7 @@ namespace NuGetGallery
             repository.Verify(x => x.CommitChangesAsync(), Times.Exactly(2));
 
             enqueuer.Setup(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>())).Returns(Task.CompletedTask);
-            Assert.Equal(StagingGroupPromotionResult.Accepted, await target.ResendGroupAsync(new User("owner") { Key = 1 }, group));
+            Assert.Equal(StagingGroupPromotionResult.Accepted, await target.ResendGroupAsync(new User("owner") { Key = 1, EmailAddress = "owner@example.test" }, group));
             Assert.Equal(group.ActivePromotionId, stagedPackages[0].ActivePromotionId);
             Assert.False(StagingPromotionResendPolicy.IsDue(group.PromotionMessageSentDate));
         }
@@ -617,7 +730,7 @@ namespace NuGetGallery
         [Fact]
         public async Task RejectsGroupExpiringWhileReadingMembers()
         {
-            var owner = new User("owner") { Key = 1 };
+            var owner = new User("owner") { Key = 1, EmailAddress = "owner@example.test" };
             var group = new StagingGroup { Key = 10, Owner = owner, OwnerKey = owner.Key };
             var attempt = CreateStagedPackage(StagedPackageStatus.Ready, group: group);
             var repository = new Mock<IEntityRepository<StagedPackage>>();
@@ -721,6 +834,7 @@ namespace NuGetGallery
             IEnumerable<StagedSymbolPackage> stagedSymbols = null,
             bool authorizedSymbols = true)
         {
+            repository.SetReturnsDefault(Array.Empty<StagedPackage>().AsQueryable());
             var authorizationService = new Mock<IPackageStagingAuthorizationService>();
             authorizationService
                 .Setup(x => x.CanManage(It.IsAny<User>(), It.IsAny<StagedPackage>()))
@@ -756,7 +870,7 @@ namespace NuGetGallery
 
         private static StagedPackage CreateStagedPackage(StagedPackageStatus status, int key = StagedPackageKey, StagingGroup group = null)
         {
-            var owner = new User("owner") { Key = 1 };
+            var owner = group?.Owner ?? new User("owner") { Key = 1, EmailAddress = "owner@example.test" };
             var registration = new PackageRegistration { Id = "PackageA" };
             registration.Owners.Add(owner);
             var package = new Package { Key = key + 1, PackageStatusKey = PackageStatus.Staged, PackageRegistration = registration };
@@ -783,7 +897,7 @@ namespace NuGetGallery
 
         private static StagingGroup CreateStagingGroup()
         {
-            var owner = new User("owner") { Key = 1 };
+            var owner = new User("owner") { Key = 1, EmailAddress = "owner@example.test" };
             return new StagingGroup
             {
                 Key = 12,

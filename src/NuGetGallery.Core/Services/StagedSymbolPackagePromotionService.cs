@@ -73,7 +73,7 @@ namespace NuGetGallery
                 return;
             }
 
-            if (!IsEligible(attempt))
+            if (!IsEligible(attempt) || StagingPublicationPolicy.GetBlocker(attempt.StagedPackageIdentity) != null)
             {
                 await FailAsync(stagedSymbolPackageKey, promotionId);
                 return;
@@ -287,7 +287,7 @@ namespace NuGetGallery
 
             var attempt = _attempts.GetAll()
                 .Include(attempt => attempt.SymbolPackage)
-                .Include(attempt => attempt.StagedPackageIdentity.Package.PackageRegistration)
+                .Include(attempt => attempt.StagedPackageIdentity.Package.PackageRegistration.Owners)
                 .Include(attempt => attempt.StagedPackageIdentity.Owner)
                 .Include(attempt => attempt.StagedPackageIdentity.StagingGroup)
                 .SingleOrDefault(attempt => attempt.Key == key && attempt.ActivePromotionId == promotionId

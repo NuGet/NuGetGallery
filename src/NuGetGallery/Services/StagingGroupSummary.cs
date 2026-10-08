@@ -88,6 +88,7 @@ namespace NuGetGallery
         /// <param name="symbols">The symbol attempts on the requested artifact page.</param>
         /// <param name="symbolCount">The total number of current symbol attempts in the group.</param>
         /// <param name="hasRegistrationOwnershipLoss">Whether the staging owner has lost registration ownership for any current artifact in the group.</param>
+        /// <param name="hasLockedRegistration">Whether any current artifact in the group has a locked package ID.</param>
         public StagingGroupPackagePage(
             StagingGroup group,
             IReadOnlyList<StagedPackage> items,
@@ -95,7 +96,8 @@ namespace NuGetGallery
             bool allPackagesReady,
             IReadOnlyList<StagedSymbolPackage> symbols = null,
             int symbolCount = 0,
-            bool hasRegistrationOwnershipLoss = false)
+            bool hasRegistrationOwnershipLoss = false,
+            bool hasLockedRegistration = false)
         {
             Group = group ?? throw new ArgumentNullException(nameof(group));
             Items = items ?? throw new ArgumentNullException(nameof(items));
@@ -114,6 +116,7 @@ namespace NuGetGallery
 
             SymbolCount = symbolCount;
             HasRegistrationOwnershipLoss = hasRegistrationOwnershipLoss;
+            HasLockedRegistration = hasLockedRegistration;
         }
 
         /// <summary>
@@ -140,6 +143,11 @@ namespace NuGetGallery
         /// Gets whether the staging owner has lost registration ownership for any current artifact in the group.
         /// </summary>
         public bool HasRegistrationOwnershipLoss { get; }
+
+        /// <summary>
+        /// Gets whether any current artifact in the group has a locked package ID.
+        /// </summary>
+        public bool HasLockedRegistration { get; }
 
         /// <summary>
         /// Gets the symbol attempts on the requested artifact page.

@@ -1273,7 +1273,7 @@ namespace NuGetGallery
             [InlineData(true, false)]
             public void GroupReadinessIncludesOwnershipOfArtifactsOutsideTheCurrentPage(bool symbolOnly, bool visibleReady = true)
             {
-                var owner = new User("owner") { Key = 1 };
+                var owner = new User("owner") { Key = 1, EmailAddress = "owner@example.test" };
                 var group = CreateStagingGroup(10, "release", "Release", owner);
                 var visible = CreateStagedPackage(100, "Owned.Package", "1.0.0", owner);
                 visible.Status = visibleReady ? StagedPackageStatus.Ready : StagedPackageStatus.Validating;
@@ -1336,6 +1336,48 @@ namespace NuGetGallery
                 {
                     Assert.Equal("GroupNotReady", Assert.Single(restoredResponse.Blockers).Code);
                 }
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void LockedRegistrationOutsideTheCurrentPageBlocksGroupPromotion(bool symbolOnly)
+            {
+                var owner = new User("owner") { Key = 1, EmailAddress = "owner@example.test" };
+                var group = CreateStagingGroup(10, "release", "Release", owner);
+                var visible = CreateStagedPackage(100, "Owned.Package", "1.0.0", owner);
+                visible.Status = StagedPackageStatus.Ready;
+                visible.UploadedDate = DateTime.UtcNow;
+                visible.StagedPackageIdentity.StagingGroup = group;
+                visible.StagedPackageIdentity.StagingGroupKey = group.Key;
+                var blocked = CreateStagedPackage(101, "Locked.Package", "1.0.0", owner);
+                blocked.Status = StagedPackageStatus.Ready;
+                blocked.UploadedDate = visible.UploadedDate.AddMinutes(-1);
+                var identity = blocked.StagedPackageIdentity;
+                identity.StagingGroup = group;
+                identity.StagingGroupKey = group.Key;
+                identity.Package.PackageRegistration.IsLocked = true;
+                var symbols = CreateInventorySymbols(blocked);
+                if (symbolOnly)
+                {
+                    identity.Package.PackageStatusKey = PackageStatus.Available;
+                    identity.CurrentStagedPackageKey = null;
+                    identity.CurrentStagedPackage = null;
+                }
+
+                var target = CreateService(symbolOnly ? new[] { visible } : new[] { visible, blocked }, user => true, stagingGroups: new[] { group }, stagedSymbols: symbolOnly ? new[] { symbols } : null);
+                var page = target.GetStagingGroupPackagePage(owner, group.Id, 1, 1);
+                Assert.Same(visible, Assert.Single(page.Items));
+                Assert.False(page.AllPackagesReady);
+                Assert.True(page.HasLockedRegistration);
+                var response = StagingGroupResponse.FromGroup(group, page.TotalCount, page.AllPackagesReady, group.ExpirationDate, "management", page.SymbolCount, page.HasRegistrationOwnershipLoss, page.HasLockedRegistration);
+                Assert.False(response.CanPromote);
+                Assert.Equal("PackageRegistrationLocked", Assert.Single(response.Blockers).Code);
+
+                identity.Package.PackageRegistration.IsLocked = false;
+                var restored = target.GetStagingGroupPackagePage(owner, group.Id, 1, 1);
+                Assert.True(restored.AllPackagesReady);
+                Assert.False(restored.HasLockedRegistration);
             }
 
             [Theory]

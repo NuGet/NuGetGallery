@@ -68,6 +68,8 @@ namespace NuGetGallery
             }
 
             symbols = symbols ?? Array.Empty<StagedSymbolPackage>();
+            var hasLockedRegistration = packages.Any(package => package.StagedPackageIdentity.Package.PackageRegistration.IsLocked)
+                || symbols.Any(symbol => symbol.StagedPackageIdentity.Package.PackageRegistration.IsLocked);
             var hasRegistrationOwnershipLoss = packages.Any(package => !StagingOwnershipPolicy.CanPublish(package.StagedPackageIdentity))
                 || symbols.Any(symbol => !StagingOwnershipPolicy.CanPublish(symbol.StagedPackageIdentity));
             var allReady = !hasRegistrationOwnershipLoss && packages.All(package => package.Status == StagedPackageStatus.Ready);
@@ -85,7 +87,7 @@ namespace NuGetGallery
                 }
             }
 
-            return FromGroup(group, packages.Count + symbols.Count, allReady, expirationDate, managementUrl, symbols.Count, hasRegistrationOwnershipLoss);
+            return FromGroup(group, packages.Count + symbols.Count, allReady, expirationDate, managementUrl, symbols.Count, hasRegistrationOwnershipLoss, hasLockedRegistration);
         }
 
         public static StagingGroupResponse FromGroup(
@@ -95,7 +97,8 @@ namespace NuGetGallery
             DateTime expirationDate,
             string managementUrl,
             int symbolCount = 0,
-            bool hasRegistrationOwnershipLoss = false)
+            bool hasRegistrationOwnershipLoss = false,
+            bool hasLockedRegistration = false)
         {
             if (group == null)
             {
@@ -112,7 +115,8 @@ namespace NuGetGallery
                 throw new ArgumentOutOfRangeException(nameof(symbolCount));
             }
 
-            var canPromote = itemCount > 0 && allPackagesReady && !hasRegistrationOwnershipLoss && !group.ActivePromotionId.HasValue && !StagingExpirationPolicy.HasExpired(group);
+            var ownerBlocker = StagingPublicationPolicy.GetOwnerBlocker(group.Owner);
+            var canPromote = itemCount > 0 && allPackagesReady && !hasRegistrationOwnershipLoss && !hasLockedRegistration && ownerBlocker == null && !group.ActivePromotionId.HasValue && !StagingExpirationPolicy.HasExpired(group);
             IReadOnlyList<StagingBlockerResponse> blockers = Array.Empty<StagingBlockerResponse>();
             if (group.ActivePromotionId.HasValue)
             {
@@ -134,6 +138,14 @@ namespace NuGetGallery
                 {
                     new StagingBlockerResponse("GroupEmpty", "The staging group does not contain any packages or symbols."),
                 };
+            }
+            else if (ownerBlocker != null)
+            {
+                blockers = new[] { new StagingBlockerResponse(ownerBlocker.Code, ownerBlocker.Message) };
+            }
+            else if (hasLockedRegistration)
+            {
+                blockers = new[] { new StagingBlockerResponse("PackageRegistrationLocked", "One or more package IDs in this group are locked. Contact support before promoting staged content.") };
             }
             else if (hasRegistrationOwnershipLoss)
             {
