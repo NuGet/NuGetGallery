@@ -406,6 +406,7 @@ namespace NuGetGallery.Authentication
                 UnconfirmedEmailAddress = emailAddress,
                 EmailConfirmationToken = CryptographyService.GenerateToken(),
                 NotifyPackagePushed = true,
+                NotifyPackageStaged = true,
                 CreatedUtc = _dateTimeProvider.UtcNow,
                 EnableMultiFactorAuthentication = enableMultiFactorAuthentication
             };

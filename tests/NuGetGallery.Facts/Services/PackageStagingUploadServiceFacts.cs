@@ -11,7 +11,9 @@ using System.Web;
 using Moq;
 using NuGet.Packaging;
 using NuGet.Services.Entities;
+using NuGet.Services.Messaging.Email;
 using NuGetGallery.Authentication;
+using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using Xunit;
@@ -169,6 +171,10 @@ namespace NuGetGallery
                     quota.Setup(service => service.EnsureCapacityAsync(owner)).ThrowsAsync(new StagingQuotaExceededException());
                 }
 
+                var messages = new Mock<IMessageService>();
+                messages.Setup(service => service.SendMessageAsync(It.IsAny<IEmailBuilder>(), It.IsAny<bool>(), It.IsAny<bool>()))
+                    .Callback(() => Assert.Equal("commit", operations.Last()))
+                    .Returns(Task.CompletedTask);
                 var target = new PackageStagingUploadService(
                     apiScopeEvaluator.Object,
                     featureFlagService.Object,
@@ -183,8 +189,9 @@ namespace NuGetGallery
                     stagedValidationMessageEmitter.Object,
                     Mock.Of<IEntityRepository<StagedSymbolPackage>>(),
                     Mock.Of<IStagedSymbolPackageValidationMessageEmitter>(),
-                    new Configuration.AppConfiguration(),
-                    quota.Object);
+                    new Configuration.AppConfiguration { SiteRoot = "https://gallery.test/" },
+                    quota.Object,
+                    messages.Object);
 
                 using (var packageFile = TestPackage.CreateTestPackageStream("PackageA", "1.0.0"))
                 {
@@ -197,6 +204,10 @@ namespace NuGetGallery
                         listed: false);
 
                     quota.Verify(service => service.EnsureCapacityAsync(owner), Times.Once);
+                    messages.Verify(service => service.SendMessageAsync(It.IsAny<StagedPackageUploadedMessage>(), It.IsAny<bool>(), It.IsAny<bool>()),
+                        quotaReached ? Times.Never() : Times.Once());
+                    messages.Verify(service => service.SendMessageAsync(It.IsAny<StagedPackageValidationSucceededMessage>(), It.IsAny<bool>(), It.IsAny<bool>()),
+                        !quotaReached && expectedStatus == StagedPackageStatus.Ready ? Times.Once() : Times.Never());
                     if (quotaReached)
                     {
                         Assert.Equal(HttpStatusCode.Conflict, result.StatusCode);
@@ -272,7 +283,10 @@ namespace NuGetGallery
             [InlineData(StagedPackageStatus.Ready, HttpStatusCode.OK, true, false, false, true)]
             [InlineData(StagedPackageStatus.Ready, HttpStatusCode.OK, true, true, false, true)]
             [InlineData(StagedPackageStatus.Ready, HttpStatusCode.Conflict, false, false, false, false, true)]
-            public async Task UploadReturnsExpectedStatus(StagedPackageStatus status, HttpStatusCode expectedStatusCode, bool identical, bool assignGroup, bool createGroup, bool hasSymbols = false, bool expired = false)
+            [InlineData(StagedPackageStatus.Ready, HttpStatusCode.OK, false, false, false, true, false, StagedPackageStatus.Ready)]
+            [InlineData(StagedPackageStatus.Deleted, HttpStatusCode.OK, false, false, false, true, false, StagedPackageStatus.Ready)]
+            public async Task UploadReturnsExpectedStatus(StagedPackageStatus status, HttpStatusCode expectedStatusCode, bool identical, bool assignGroup, bool createGroup,
+                bool hasSymbols = false, bool expired = false, StagedPackageStatus validationStatus = StagedPackageStatus.Validating)
             {
                 var currentUser = new User { Key = 17 };
                 var owner = new User { Key = 23, EmailAddress = "owner@example.com" };
@@ -335,7 +349,7 @@ namespace NuGetGallery
                     return Task.CompletedTask;
                 });
                 var symbolEmitter = new Mock<IStagedSymbolPackageValidationMessageEmitter>();
-                symbolEmitter.Setup(x => x.StartValidationAsync(It.IsAny<StagedSymbolPackage>())).ReturnsAsync(StagedPackageStatus.Validating)
+                symbolEmitter.Setup(x => x.StartValidationAsync(It.IsAny<StagedSymbolPackage>())).ReturnsAsync(validationStatus)
                     .Callback<StagedSymbolPackage>(attempt =>
                     {
                         Assert.Equal(32, attempt.StagedPackageIdentity.CurrentStagedPackageKey);
@@ -469,7 +483,7 @@ namespace NuGetGallery
                 var stagedValidationMessageEmitter = new Mock<IStagedPackageValidationMessageEmitter>(MockBehavior.Strict);
                 stagedValidationMessageEmitter
                     .Setup(x => x.StartValidationAsync(It.IsAny<StagedPackage>()))
-                    .ReturnsAsync(StagedPackageStatus.Validating);
+                    .ReturnsAsync(validationStatus);
 
                 var featureFlagService = new Mock<IFeatureFlagService>();
                 featureFlagService
@@ -483,6 +497,7 @@ namespace NuGetGallery
                     quota.Setup(service => service.EnsureCapacityAsync(owner)).ThrowsAsync(new StagingQuotaExceededException());
                 }
 
+                var messages = new Mock<IMessageService>();
                 var target = new PackageStagingUploadService(
                     apiScopeEvaluator.Object,
                     featureFlagService.Object,
@@ -497,8 +512,9 @@ namespace NuGetGallery
                     stagedValidationMessageEmitter.Object,
                     symbolRepository.Object,
                     symbolEmitter.Object,
-                    new Configuration.AppConfiguration(),
-                    quota.Object);
+                    new Configuration.AppConfiguration { SiteRoot = "https://gallery.test/" },
+                    quota.Object,
+                    messages.Object);
 
                 var isActiveNoOp = identical && (status == StagedPackageStatus.Validating || status == StagedPackageStatus.Ready);
                 var result = await target.StagePackageAsync(
@@ -515,6 +531,10 @@ namespace NuGetGallery
                 Assert.Equal(assignGroup && expectedStatusCode == HttpStatusCode.OK ? (createGroup ? createdGroup.Key : requestedGroup.Key) : originalGroup.Key, stagedPackage.StagedPackageIdentity.StagingGroupKey);
                 Assert.Equal(!assignGroup || expectedStatusCode == HttpStatusCode.Conflict, package.Listed);
                 var createsSuccessor = expectedStatusCode == HttpStatusCode.OK && !isActiveNoOp;
+                messages.Verify(service => service.SendMessageAsync(It.IsAny<StagedPackageUploadedMessage>(), It.IsAny<bool>(), It.IsAny<bool>()),
+                    createsSuccessor ? Times.Once() : Times.Never());
+                messages.Verify(service => service.SendMessageAsync(It.IsAny<StagedPackageValidationSucceededMessage>(), It.IsAny<bool>(), It.IsAny<bool>()),
+                    createsSuccessor && validationStatus == StagedPackageStatus.Ready ? Times.Exactly(hasSymbols ? 2 : 1) : Times.Never());
                 if (createsSuccessor || (assignGroup && expectedStatusCode == HttpStatusCode.OK))
                 {
                     Assert.True(originalGroup.ExpirationDate > originalDeadline);
@@ -531,7 +551,7 @@ namespace NuGetGallery
                     Assert.Equal("symbols.snupkg", renewedSymbols.UploadedBlobPath);
                     Assert.Equal("symbols-etag", renewedSymbols.UploadedBlobETag);
                     Assert.Equal(previousSymbols.ExpirationDate, renewedSymbols.ExpirationDate);
-                    Assert.Equal(StagedPackageStatus.Validating, renewedSymbols.Status);
+                    Assert.Equal(validationStatus, renewedSymbols.Status);
                     symbolEmitter.Verify(x => x.StartValidationAsync(renewedSymbols), Times.Once);
                 }
                 else
@@ -616,8 +636,9 @@ namespace NuGetGallery
                     Mock.Of<IStagedPackageValidationMessageEmitter>(),
                     Mock.Of<IEntityRepository<StagedSymbolPackage>>(),
                     Mock.Of<IStagedSymbolPackageValidationMessageEmitter>(),
-                    new Configuration.AppConfiguration(),
-                    Mock.Of<IStagingQuotaService>());
+                    new Configuration.AppConfiguration { SiteRoot = "https://gallery.test/" },
+                    Mock.Of<IStagingQuotaService>(),
+                    Mock.Of<IMessageService>());
                 using var packageFile = TestPackage.CreateTestPackageStream("PackageA", "1.0.0");
 
                 var result = await target.StagePackageAsync(currentUser, scopes, Mock.Of<HttpContextBase>(), packageFile, "release");
@@ -670,8 +691,9 @@ namespace NuGetGallery
                     Mock.Of<IStagedPackageValidationMessageEmitter>(),
                     Mock.Of<IEntityRepository<StagedSymbolPackage>>(),
                     Mock.Of<IStagedSymbolPackageValidationMessageEmitter>(),
-                    new Configuration.AppConfiguration(),
-                    Mock.Of<IStagingQuotaService>());
+                    new Configuration.AppConfiguration { SiteRoot = "https://gallery.test/" },
+                    Mock.Of<IStagingQuotaService>(),
+                    Mock.Of<IMessageService>());
                 using var packageFile = TestPackage.CreateTestPackageStream("PackageA", "1.0.0");
 
                 var result = await target.StagePackageAsync(currentUser, scopes, Mock.Of<HttpContextBase>(), packageFile, "release");
@@ -832,8 +854,9 @@ namespace NuGetGallery
                     Mock.Of<IStagedPackageValidationMessageEmitter>(),
                     Mock.Of<IEntityRepository<StagedSymbolPackage>>(),
                     Mock.Of<IStagedSymbolPackageValidationMessageEmitter>(),
-                    new Configuration.AppConfiguration(),
-                    Mock.Of<IStagingQuotaService>());
+                    new Configuration.AppConfiguration { SiteRoot = "https://gallery.test/" },
+                    Mock.Of<IStagingQuotaService>(),
+                    Mock.Of<IMessageService>());
             }
         }
 

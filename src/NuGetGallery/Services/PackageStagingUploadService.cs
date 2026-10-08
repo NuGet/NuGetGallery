@@ -14,9 +14,11 @@ using System.Web;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using NuGet.Services.Entities;
+using NuGet.Services.Messaging.Email;
 using NuGet.Versioning;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
+using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 
@@ -54,6 +56,8 @@ namespace NuGetGallery
 
         private readonly IStagingQuotaService _quotaService;
 
+        private readonly IMessageService _messageService;
+
         public PackageStagingUploadService(
             IApiScopeEvaluator apiScopeEvaluator,
             IFeatureFlagService featureFlagService,
@@ -69,7 +73,8 @@ namespace NuGetGallery
             IEntityRepository<StagedSymbolPackage> stagedSymbolPackageRepository,
             IStagedSymbolPackageValidationMessageEmitter symbolValidationMessageEmitter,
             IAppConfiguration configuration,
-            IStagingQuotaService quotaService)
+            IStagingQuotaService quotaService,
+            IMessageService messageService)
         {
             _apiScopeEvaluator = apiScopeEvaluator ?? throw new ArgumentNullException(nameof(apiScopeEvaluator));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
@@ -86,6 +91,7 @@ namespace NuGetGallery
             _symbolValidationMessageEmitter = symbolValidationMessageEmitter ?? throw new ArgumentNullException(nameof(symbolValidationMessageEmitter));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _quotaService = quotaService ?? throw new ArgumentNullException(nameof(quotaService));
+            _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
         }
 
         public async Task<PackageStagingResult> StagePackageAsync(
@@ -569,7 +575,7 @@ namespace NuGetGallery
                 target.CurrentAttempt,
                 requestedGroup,
                 listed);
-            if (commitResult == PackageCommitResult.Conflict)
+            if (commitResult.Result == PackageCommitResult.Conflict)
             {
                 if (creatingGroup)
                 {
@@ -577,6 +583,22 @@ namespace NuGetGallery
                 }
 
                 return PackageStagingResult.Error(HttpStatusCode.Conflict, Strings.UploadPackage_IdVersionConflict);
+            }
+
+            var siteRoot = new Uri(_configuration.SiteRoot.TrimEnd('/') + "/");
+            var stagingUrl = new Uri(siteRoot, $"account/staging/package/{Uri.EscapeDataString(package.Id)}/{Uri.EscapeDataString(package.NormalizedVersion)}").AbsoluteUri;
+            var emailSettingsUrl = new Uri(siteRoot, "account").AbsoluteUri;
+            await _messageService.SendMessageAsync(new StagedPackageUploadedMessage(_configuration, target.Owner, package, symbols: false, stagingUrl, emailSettingsUrl));
+            if (commitResult.Attempt.Status == StagedPackageStatus.Ready)
+            {
+                await _messageService.SendMessageAsync(new StagedPackageValidationSucceededMessage(_configuration, target.Owner, package, symbols: false, stagingUrl, emailSettingsUrl));
+            }
+
+            var symbolAttempt = commitResult.Attempt.StagedPackageIdentity.CurrentStagedSymbolPackage;
+            if (symbolAttempt?.Status == StagedPackageStatus.Ready)
+            {
+                var symbolsUrl = new Uri(siteRoot, $"account/staging/symbols/{Uri.EscapeDataString(package.Id)}/{Uri.EscapeDataString(package.NormalizedVersion)}").AbsoluteUri;
+                await _messageService.SendMessageAsync(new StagedPackageValidationSucceededMessage(_configuration, target.Owner, package, symbols: true, symbolsUrl, emailSettingsUrl));
             }
 
             var warnings = CreateWarnings(beforeValidation, afterValidation, packagePolicyResult);
@@ -739,7 +761,7 @@ namespace NuGetGallery
             }
         }
 
-        private async Task<PackageCommitResult> CommitPackageAsync(
+        private async Task<(PackageCommitResult Result, StagedPackage Attempt)> CommitPackageAsync(
             Package package,
             User owner,
             Stream packageFile,
@@ -813,10 +835,10 @@ namespace NuGetGallery
             catch (Exception exception) when (IsConflict(exception))
             {
                 exception.Log();
-                return PackageCommitResult.Conflict;
+                return (PackageCommitResult.Conflict, null);
             }
 
-            return PackageCommitResult.Success;
+            return (PackageCommitResult.Success, stagedPackage);
         }
 
         private void UpdateGroupAssignment(StagedPackageIdentity identity, StagingGroup requestedGroup, DateTime deadline)
