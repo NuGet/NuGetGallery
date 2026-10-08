@@ -165,12 +165,12 @@ namespace NuGetGallery
         Task<StagingGroupDeletionResult> DeleteStagingGroupAsync(User stagingOwner, StagingGroup group);
 
         /// <summary>
-        /// Deletes a group only when the API credential authorizes every affected package ID.
+        /// Deletes a group only when its owner is confirmed and unlocked and the API credential authorizes every affected package ID.
         /// </summary>
         /// <param name="stagingOwner">The authorized staging owner.</param>
         /// <param name="scopes">The credential scopes used to authorize the entire group.</param>
         /// <param name="group">The staging group to delete.</param>
-        /// <returns>The deletion result, or NotFound when any member is outside the credential's staging scopes.</returns>
+        /// <returns>The deletion result, or NotFound when the owner is locked or unconfirmed or any member is outside the credential's staging scopes.</returns>
         Task<StagingGroupDeletionResult> DeleteStagingGroupAsync(User stagingOwner, IReadOnlyCollection<Scope> scopes, StagingGroup group);
 
         /// <summary>
@@ -213,7 +213,7 @@ namespace NuGetGallery
         /// <param name="scopes">The credential scopes; only fully authorized groups are included before counting and paging.</param>
         /// <param name="page">The one-based page number.</param>
         /// <param name="pageSize">The number of groups per page.</param>
-        /// <returns>The requested summaries and total number of matching groups.</returns>
+        /// <returns>The requested summaries and total number of matching groups, or an empty page when the owner is locked or unconfirmed.</returns>
         StagingGroupSummaryPage GetStagingGroupSummaryPage(User stagingOwner, IReadOnlyCollection<Scope> scopes, int page, int pageSize);
 
         /// <summary>
@@ -224,7 +224,7 @@ namespace NuGetGallery
         /// <param name="groupId">The owner-scoped group ID.</param>
         /// <param name="page">The one-based page number.</param>
         /// <param name="pageSize">The number of package attempts per page.</param>
-        /// <returns>The requested package page, or <see langword="null"/> when the group does not exist or is not fully authorized.</returns>
+        /// <returns>The requested package page, or <see langword="null"/> when the owner is locked or unconfirmed, the group does not exist, or it is not fully authorized.</returns>
         StagingGroupPackagePage GetStagingGroupPackagePage(User stagingOwner, IReadOnlyCollection<Scope> scopes, string groupId, int page, int pageSize);
     }
 

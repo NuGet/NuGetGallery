@@ -71,7 +71,7 @@ namespace NuGetGallery
             [InlineData(StagedPackageStatus.Succeeded)]
             public void ShowsRetainedSucceededMembersUntilGroupCleanup(StagedPackageStatus symbolStatus)
             {
-                var owner = new User("owner") { Key = 1 };
+                var owner = new User("owner") { Key = 1, EmailAddress = "owner@example.test" };
                 var group = CreateStagingGroup(10, "release", "Release", owner);
                 group.ActivePromotionId = Guid.NewGuid();
                 var promoting = CreateStagedPackage(100, "Promoting.Package", "1.0.0", owner);
@@ -243,7 +243,7 @@ namespace NuGetGallery
             [Fact]
             public void GetsAnOrderedPageOfGroupsAndOnlyItsPackages()
             {
-                var currentUser = new User("current") { Key = 1 };
+                var currentUser = new User("current") { Key = 1, EmailAddress = "current@example.test" };
                 var oldestGroup = CreateStagingGroup(10, "oldest", "Oldest", currentUser);
                 oldestGroup.CreatedDate = new DateTime(2026, 9, 1);
                 var middleGroup = CreateStagingGroup(11, "middle", "Middle", currentUser);
@@ -271,7 +271,7 @@ namespace NuGetGallery
             [Fact]
             public void GetsAnOrderedPageOfGroupPackagesWithWholeGroupState()
             {
-                var currentUser = new User("current") { Key = 1 };
+                var currentUser = new User("current") { Key = 1, EmailAddress = "current@example.test" };
                 var group = CreateStagingGroup(10, "release", "Release", currentUser);
                 var olderPackage = CreateStagedPackage(100, "Older.Package", "1.0.0", currentUser);
                 olderPackage.UploadedDate = new DateTime(2026, 9, 1);
@@ -1235,7 +1235,7 @@ namespace NuGetGallery
             [InlineData(StagedPackageStatus.Ready)]
             public void PaginatesMixedArtifactsWithoutLosingMatchingKeys(StagedPackageStatus symbolStatus)
             {
-                var owner = new User("owner") { Key = 1 };
+                var owner = new User("owner") { Key = 1, EmailAddress = "owner@example.test" };
                 var group = CreateStagingGroup(10, "release", "Release", owner);
                 var parent = CreateStagedPackage(100, "Test.Package", "1.0.0", owner);
                 parent.Status = StagedPackageStatus.Ready;
@@ -1391,7 +1391,7 @@ namespace NuGetGallery
             [InlineData(PackageStatus.Deleted)]
             public void SymbolOnlyGroupReadinessRequiresAnAvailableParent(PackageStatus parentStatus)
             {
-                var owner = new User("owner") { Key = 1 };
+                var owner = new User("owner") { Key = 1, EmailAddress = "owner@example.test" };
                 var group = CreateStagingGroup(10, "release", "Release", owner);
                 var parent = CreateStagedPackage(100, "Test.Package", "1.0.0", owner);
                 var identity = parent.StagedPackageIdentity;
@@ -1551,7 +1551,7 @@ namespace NuGetGallery
             [InlineData(true)]
             public async Task AuthorizesOffPageGroupMembersBeforeReturningDetailsOrDeleting(bool symbolOnly)
             {
-                var owner = new User("owner") { Key = 1 };
+                var owner = new User("owner") { Key = 1, EmailAddress = "owner@example.test" };
                 var group = CreateStagingGroup(20, "release", "Release", owner);
                 var visible = CreateStagedPackage(100, "Allowed.Parent", "1.0.0", owner);
                 visible.StagedPackageIdentity.StagingGroupKey = group.Key;
@@ -1620,7 +1620,7 @@ namespace NuGetGallery
             [Fact]
             public void FiltersWholeGroupsBeforeCountingAndPaging()
             {
-                var owner = new User("owner") { Key = 1 };
+                var owner = new User("owner") { Key = 1, EmailAddress = "owner@example.test" };
                 var otherOwner = new User("other") { Key = 2 };
                 var hiddenGroup = CreateStagingGroup(20, "hidden", "Hidden", owner);
                 var emptyGroup = CreateStagingGroup(21, "empty", "Empty", owner);
@@ -1668,7 +1668,7 @@ namespace NuGetGallery
             [Fact]
             public async Task EmptyGroupRequiresAnOwnerStagingScope()
             {
-                var owner = new User("owner") { Key = 1 };
+                var owner = new User("owner") { Key = 1, EmailAddress = "owner@example.test" };
                 var group = CreateStagingGroup(20, "empty", "Empty", owner);
                 var repository = new Mock<IEntityRepository<StagingGroup>>();
                 var target = CreateService(Array.Empty<StagedPackage>(), user => true, stagingGroups: new[] { group }, stagingGroupRepository: repository);
@@ -1684,6 +1684,45 @@ namespace NuGetGallery
                 Assert.Same(group, target.GetStagingGroupPackagePage(owner, validScopes, group.Id, 1, 1).Group);
                 Assert.Equal(StagingGroupDeletionResultType.Deleted, (await target.DeleteStagingGroupAsync(owner, validScopes, group)).Type);
                 repository.Verify(x => x.DeleteOnCommit(group), Times.Once);
+            }
+
+            [Theory]
+            [InlineData(UserStatus.Locked, true)]
+            [InlineData(UserStatus.Unlocked, false)]
+            public async Task HidesApiGroupsForRestrictedOwnersWithoutBlockingPrivateUiManagement(UserStatus status, bool confirmed)
+            {
+                var owner = new User("owner") { Key = 1, EmailAddress = "owner@example.test", UserStatusKey = status };
+                if (!confirmed)
+                {
+                    owner.EmailAddress = null;
+                }
+
+                var group = CreateStagingGroup(20, "release", "Release", owner);
+                var parent = CreateStagedPackage(100, "PackageA", "1.0.0", owner);
+                parent.StagedPackageIdentity.StagingGroupKey = group.Key;
+                var symbols = CreateInventorySymbols(parent);
+                var packages = new Mock<IEntityRepository<StagedPackage>>();
+                var symbolRepository = new Mock<IEntityRepository<StagedSymbolPackage>>();
+                var groups = new Mock<IEntityRepository<StagingGroup>>();
+                var target = CreateService(new[] { parent }, user => true, stagedPackageRepository: packages,
+                    stagingGroups: new[] { group }, stagingGroupRepository: groups,
+                    stagedSymbols: new[] { symbols }, stagedSymbolRepository: symbolRepository);
+                var scopes = new[] { new Scope(owner.Key, "*", NuGetScopes.PackageStage) };
+
+                var inventory = target.GetStagingGroupSummaryPage(owner, scopes, 1, 100);
+                Assert.Empty(inventory.Items);
+                Assert.Equal(0, inventory.TotalCount);
+                Assert.Null(target.GetStagingGroupPackagePage(owner, scopes, group.Id, 1, 100));
+                var deletion = await target.DeleteStagingGroupAsync(owner, scopes, group);
+                Assert.Equal(StagingGroupDeletionResultType.NotFound, deletion.Type);
+                groups.Verify(x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()), Times.Never);
+                groups.Verify(x => x.GetAll(), Times.Never);
+                packages.Verify(x => x.GetAll(), Times.Never);
+                symbolRepository.Verify(x => x.GetAll(), Times.Never);
+
+                Assert.Same(group, Assert.Single(target.GetStagingGroupSummaries(owner)).Group);
+                Assert.Equal(StagingGroupDeletionResultType.Deleted, (await target.DeleteStagingGroupAsync(owner, group)).Type);
+                groups.Verify(x => x.DeleteOnCommit(group), Times.Once);
             }
 
             [Theory]
