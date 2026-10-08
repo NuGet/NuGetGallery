@@ -282,7 +282,7 @@ namespace NuGetGallery
 
             var stagingGroupResponse = StagingGroupResponse.FromGroup(
                 group, packagePage.TotalCount, packagePage.AllPackagesReady, expirationDate, managementUrl,
-                packagePage.SymbolCount, packagePage.HasRegistrationOwnershipLoss);
+                packagePage.SymbolCount, packagePage.HasRegistrationOwnershipLoss, packagePage.HasLockedRegistration);
             var response = new StagingGroupDetailResponse(stagingGroupResponse, artifacts, page, pageSize, packagePage.TotalCount);
 
             return JsonContent(response);
