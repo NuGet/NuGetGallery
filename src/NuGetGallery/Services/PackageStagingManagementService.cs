@@ -362,7 +362,49 @@ namespace NuGetGallery
             return group;
         }
 
-        public async Task<StagingGroupDeletionResult> DeleteStagingGroupAsync(User stagingOwner, StagingGroup group)
+        public Task<StagingGroupDeletionResult> DeleteStagingGroupAsync(User stagingOwner, StagingGroup group)
+        {
+            return DeleteStagingGroupAsync(stagingOwner, group, canDeletePackageIds: null);
+        }
+
+        public Task<StagingGroupDeletionResult> DeleteStagingGroupAsync(User stagingOwner, IReadOnlyCollection<Scope> scopes, StagingGroup group)
+        {
+            ValidateGroupOwner(stagingOwner, group);
+            if (scopes == null)
+            {
+                throw new ArgumentNullException(nameof(scopes));
+            }
+
+            if (!stagingOwner.Confirmed || stagingOwner.IsLocked)
+            {
+                return Task.FromResult(StagingGroupDeletionResult.NotFound());
+            }
+
+            var matchingScopes = GetInventoryScopes(stagingOwner, scopes);
+            return DeleteStagingGroupAsync(stagingOwner, group, ids => AllowsGroup(matchingScopes, ids));
+        }
+
+        private async Task<StagingGroupDeletionResult> DeleteStagingGroupAsync(User stagingOwner, StagingGroup group, Func<IEnumerable<string>, bool> canDeletePackageIds)
+        {
+            ValidateGroupOwner(stagingOwner, group);
+            StagingGroupDeletionResult result = null;
+            try
+            {
+                await _stagingGroupRepository.ExecuteInTransactionAsync(async () =>
+                {
+                    result = await _deletionService.DeleteGroupAsync(group, canDeletePackageIds);
+                });
+            }
+            catch (DbUpdateConcurrencyException exception)
+            {
+                exception.Log();
+                result = StagingGroupDeletionResult.Conflict(result?.AffectedPackageCount ?? 0);
+            }
+
+            return result;
+        }
+
+        private static void ValidateGroupOwner(User stagingOwner, StagingGroup group)
         {
             if (stagingOwner == null)
             {
@@ -378,22 +420,6 @@ namespace NuGetGallery
             {
                 throw new ArgumentException("The staging group must belong to the authorized owner.");
             }
-
-            StagingGroupDeletionResult result = null;
-            try
-            {
-                await _stagingGroupRepository.ExecuteInTransactionAsync(async () =>
-                {
-                    result = await _deletionService.DeleteGroupAsync(group);
-                });
-            }
-            catch (DbUpdateConcurrencyException exception)
-            {
-                exception.Log();
-                result = StagingGroupDeletionResult.Conflict(result?.AffectedPackageCount ?? 0);
-            }
-
-            return result;
         }
 
         public async Task<StagingGroupMembershipResult> AddPackageToStagingGroupAsync(User stagingOwner, StagingGroup group, StagedPackage stagedPackage)
@@ -539,11 +565,16 @@ namespace NuGetGallery
                 .ToList();
         }
 
-        public StagingGroupSummaryPage GetStagingGroupSummaryPage(User stagingOwner, int page, int pageSize)
+        public StagingGroupSummaryPage GetStagingGroupSummaryPage(User stagingOwner, IReadOnlyCollection<Scope> scopes, int page, int pageSize)
         {
             if (stagingOwner == null)
             {
                 throw new ArgumentNullException(nameof(stagingOwner));
+            }
+
+            if (scopes == null)
+            {
+                throw new ArgumentNullException(nameof(scopes));
             }
 
             if (page <= 0)
@@ -556,10 +587,30 @@ namespace NuGetGallery
                 throw new ArgumentOutOfRangeException(nameof(pageSize));
             }
 
+            if (!stagingOwner.Confirmed || stagingOwner.IsLocked)
+            {
+                return new StagingGroupSummaryPage(Array.Empty<StagingGroupSummary>(), 0);
+            }
+
             var groupsQuery = _stagingGroupRepository
                 .GetAll()
                 .Include(group => group.Owner)
                 .Where(group => group.OwnerKey == stagingOwner.Key);
+
+            var matchingScopes = GetInventoryScopes(stagingOwner, scopes);
+            if (matchingScopes.Count == 0)
+            {
+                return new StagingGroupSummaryPage(Array.Empty<StagingGroupSummary>(), 0);
+            }
+
+            if (!matchingScopes.Any(scope => scope.Subject == NuGetPackagePattern.AllInclusivePattern))
+            {
+                var identities = GetGroupedIdentities(stagingOwner);
+                var visibleIds = GetVisiblePackageIds(identities.Select(identity => identity.Package.PackageRegistration.Id), matchingScopes);
+                var blockedGroupKeys = identities.Where(identity => !visibleIds.Contains(identity.Package.PackageRegistration.Id))
+                    .Select(identity => identity.StagingGroupKey.Value).Distinct().ToArray();
+                groupsQuery = groupsQuery.Where(group => !blockedGroupKeys.Contains(group.Key));
+            }
 
             var totalCount = groupsQuery.Count();
             var skip = ((long)page - 1) * pageSize;
@@ -592,11 +643,16 @@ namespace NuGetGallery
             return new StagingGroupSummaryPage(summaries, totalCount);
         }
 
-        public StagingGroupPackagePage GetStagingGroupPackagePage(User stagingOwner, string groupId, int page, int pageSize)
+        public StagingGroupPackagePage GetStagingGroupPackagePage(User stagingOwner, IReadOnlyCollection<Scope> scopes, string groupId, int page, int pageSize)
         {
             if (stagingOwner == null)
             {
                 throw new ArgumentNullException(nameof(stagingOwner));
+            }
+
+            if (scopes == null)
+            {
+                throw new ArgumentNullException(nameof(scopes));
             }
 
             if (string.IsNullOrWhiteSpace(groupId))
@@ -614,8 +670,20 @@ namespace NuGetGallery
                 throw new ArgumentOutOfRangeException(nameof(pageSize));
             }
 
+            if (!stagingOwner.Confirmed || stagingOwner.IsLocked)
+            {
+                return null;
+            }
+
             var group = FindStagingGroup(stagingOwner, groupId);
             if (group == null)
+            {
+                return null;
+            }
+
+            var ids = GetGroupedIdentities(stagingOwner).Where(identity => identity.StagingGroupKey == group.Key)
+                .Select(identity => identity.Package.PackageRegistration.Id).Distinct().AsEnumerable();
+            if (!AllowsGroup(GetInventoryScopes(stagingOwner, scopes), ids))
             {
                 return null;
             }
@@ -628,7 +696,9 @@ namespace NuGetGallery
             var totalCount = packagesQuery.Count() + symbolCount;
             var hasRegistrationOwnershipLoss = packagesQuery.Any(package => !package.StagedPackageIdentity.Package.PackageRegistration.Owners.Any(owner => owner.Key == package.StagedPackageIdentity.OwnerKey))
                 || symbolsQuery.Any(symbol => !symbol.StagedPackageIdentity.Package.PackageRegistration.Owners.Any(owner => owner.Key == symbol.StagedPackageIdentity.OwnerKey));
-            var allPackagesReady = !hasRegistrationOwnershipLoss && !packagesQuery.Any(package => package.Status != StagedPackageStatus.Ready);
+            var hasLockedRegistration = packagesQuery.Any(package => package.StagedPackageIdentity.Package.PackageRegistration.IsLocked)
+                || symbolsQuery.Any(symbol => symbol.StagedPackageIdentity.Package.PackageRegistration.IsLocked);
+            var allPackagesReady = !hasRegistrationOwnershipLoss && !hasLockedRegistration && !packagesQuery.Any(package => package.Status != StagedPackageStatus.Ready);
 
             if (allPackagesReady)
             {
@@ -663,13 +733,18 @@ namespace NuGetGallery
                 symbols = symbolsQuery.Where(symbol => symbolKeys.Contains(symbol.Key)).OrderByDescending(symbol => symbol.UploadedDate).ThenByDescending(symbol => symbol.Key).ToList();
             }
 
-            return new StagingGroupPackagePage(group, packages, totalCount, allPackagesReady, symbols, symbolCount, hasRegistrationOwnershipLoss);
+            return new StagingGroupPackagePage(group, packages, totalCount, allPackagesReady, symbols, symbolCount, hasRegistrationOwnershipLoss, hasLockedRegistration);
         }
 
         /// <inheritdoc />
         public StagingArtifactPage<StagedPackage> GetStagedPackagePage(User stagingOwner, IReadOnlyCollection<Scope> scopes, int page, int pageSize)
         {
             ValidateArtifactPaging(stagingOwner, scopes, page, pageSize);
+            if (!stagingOwner.Confirmed || stagingOwner.IsLocked)
+            {
+                return new StagingArtifactPage<StagedPackage>(Array.Empty<StagedPackage>(), 0);
+            }
+
             var query = GetCurrentStagedPackages(new[] { stagingOwner.Key });
             var matchingScopes = GetInventoryScopes(stagingOwner, scopes);
             if (!matchingScopes.Any(scope => scope.Subject == NuGetPackagePattern.AllInclusivePattern))
@@ -730,7 +805,7 @@ namespace NuGetGallery
         public StagedPackage GetStagedPackage(User stagingOwner, IReadOnlyCollection<Scope> scopes, string id, string version)
         {
             var package = FindApiPackage(stagingOwner, scopes, id, version);
-            if (package == null)
+            if (package == null || !stagingOwner.Confirmed || stagingOwner.IsLocked)
             {
                 return null;
             }
@@ -787,6 +862,23 @@ namespace NuGetGallery
         private static List<Scope> GetInventoryScopes(User stagingOwner, IReadOnlyCollection<Scope> scopes)
         {
             return scopes.Where(scope => scope.OwnerKey == stagingOwner.Key && scope.AllowsActions(NuGetScopes.PackageStage)).ToList();
+        }
+
+        private static bool AllowsGroup(IReadOnlyCollection<Scope> scopes, IEnumerable<string> packageIds)
+        {
+            return scopes.Count > 0 && (scopes.Any(scope => scope.Subject == NuGetPackagePattern.AllInclusivePattern)
+                || packageIds.All(id => scopes.Any(scope => scope.AllowsSubject(id))));
+        }
+
+        private IQueryable<StagedPackageIdentity> GetGroupedIdentities(User stagingOwner)
+        {
+            var ownerKeys = new[] { stagingOwner.Key };
+            return GetCurrentStagedPackages(ownerKeys)
+                .Where(package => package.StagedPackageIdentity.StagingGroupKey.HasValue)
+                .Select(package => package.StagedPackageIdentity)
+                .Concat(GetCurrentStagedSymbols(ownerKeys)
+                    .Where(symbol => symbol.StagedPackageIdentity.StagingGroupKey.HasValue)
+                    .Select(symbol => symbol.StagedPackageIdentity));
         }
 
         private static string[] GetVisiblePackageIds(IQueryable<string> query, IReadOnlyCollection<Scope> scopes)

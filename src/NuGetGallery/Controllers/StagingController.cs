@@ -356,6 +356,9 @@ namespace NuGetGallery
                 .Where(attempt => attempt.StagedPackageIdentity.OwnerKey == group.OwnerKey && attempt.StagedPackageIdentity.StagingGroupKey == group.Key)
                 .ToList();
             AddSymbolPackages(model, stagedSymbols, stagingGroups);
+            var ownerBlocker = StagingPublicationPolicy.GetOwnerBlocker(group.Owner);
+            model.CanPromote = model.CanPromote && ownerBlocker == null;
+            model.CanResend = model.CanResend && ownerBlocker == null;
             return View(nameof(Group), model);
         }
 
@@ -394,6 +397,7 @@ namespace NuGetGallery
 
         private void AddSymbolPackages(StagingGroupDetailViewModel model, IReadOnlyList<StagedSymbolPackage> stagedSymbols, IReadOnlyCollection<StagingGroup> stagingGroups)
         {
+            var requesterBlocker = StagingPublicationPolicy.GetRequesterBlocker(GetCurrentUser());
             var failedKeys = stagedSymbols
                 .Where(attempt => attempt.Status == StagedPackageStatus.FailedValidation)
                 .Select(attempt => attempt.Key)
@@ -425,7 +429,8 @@ namespace NuGetGallery
                 var isExpired = StagingExpirationPolicy.HasExpired(attempt);
                 var blockers = StagedSymbolPackagePromotionEligibility.GetBlockers(attempt);
                 var ownershipBlocker = StagingOwnershipPolicy.GetBlocker(identity);
-                var promotionBlocker = ownershipBlocker?.Message
+                var publicationBlocker = requesterBlocker ?? StagingPublicationPolicy.GetBlocker(identity);
+                var promotionBlocker = publicationBlocker?.Message
                     ?? StagingPromotionFailure.GetBlocker(attempt.Status, symbols: true, identity.StagingGroupKey.HasValue)?.Message;
                 if (promotionBlocker == null && attempt.Status == StagedPackageStatus.Ready && !identity.StagingGroupKey.HasValue)
                 {
@@ -450,9 +455,9 @@ namespace NuGetGallery
                     ValidationIssues = issues ?? [],
                     CanManage = canManage,
                     CanReplace = canManage && !isExpired && ownershipBlocker == null,
-                    CanPromote = canManage && blockers.Count == 0,
+                    CanPromote = canManage && requesterBlocker == null && blockers.Count == 0,
                     ReplacesPublishedSymbols = package.SymbolPackages.Any(symbols => symbols.StatusKey == PackageStatus.Available),
-                    CanResend = StagedSymbolPackagePromotionEligibility.CanResend(attempt),
+                    CanResend = requesterBlocker == null && StagedSymbolPackagePromotionEligibility.CanResend(attempt),
                     PromotionBlocker = promotionBlocker,
                     MoveUrl = moveUrl,
                 };
@@ -464,6 +469,9 @@ namespace NuGetGallery
                 .ThenBy(package => package.IsSymbolPackage)
                 .ToList();
             model.PackageCount = model.Packages.Count;
+            model.CanResend = model.CanResend && requesterBlocker == null
+                && stagedSymbols.Where(attempt => attempt.Status == StagedPackageStatus.Promoting)
+                    .All(attempt => StagingPublicationPolicy.GetBlocker(attempt.StagedPackageIdentity) == null);
             model.ReadyCount += stagedSymbols.Count(attempt => attempt.Status == StagedPackageStatus.Ready);
             model.ValidatingCount += stagedSymbols.Count(attempt => attempt.Status == StagedPackageStatus.Validating);
             model.WaitingForParentCount += stagedSymbols.Count(attempt => attempt.Status == StagedPackageStatus.WaitingForParent);
@@ -647,6 +655,7 @@ namespace NuGetGallery
             bool isPromotionActive = false,
             DateTime? promotionMessageSentDate = null)
         {
+            var requesterBlocker = StagingPublicationPolicy.GetRequesterBlocker(GetCurrentUser());
             var orderedStagedPackages = stagedPackages
                 .OrderBy(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageRegistration.Id)
                 .ThenBy(stagedPackage => stagedPackage.StagedPackageIdentity.Package.NormalizedVersion)
@@ -667,6 +676,7 @@ namespace NuGetGallery
                     var package = identity.Package;
                     var isExpired = StagingExpirationPolicy.HasExpired(stagedPackage);
                     var ownershipBlocker = StagingOwnershipPolicy.GetBlocker(identity);
+                    var publicationBlocker = requesterBlocker ?? StagingPublicationPolicy.GetBlocker(identity);
                     var hasMoveTarget = identity.StagingGroupKey.HasValue || stagingGroups.Any(group => group.Key != identity.StagingGroupKey);
                     var moveUrl = hasMoveTarget && !isPromotionActive && !isExpired ? Url.MoveStagedPackage(identity.Owner.Username, package.PackageRegistration.Id, package.NormalizedVersion) : null;
 
@@ -684,12 +694,13 @@ namespace NuGetGallery
                         Listed = package.Listed,
                         CanManage = !isPromotionActive,
                         CanReplace = !isPromotionActive && !isExpired && ownershipBlocker == null,
-                        CanPromote = stagedPackage.Status == StagedPackageStatus.Ready && !identity.StagingGroupKey.HasValue && !isExpired && ownershipBlocker == null,
-                        PromotionBlocker = ownershipBlocker?.Message
+                        CanPromote = stagedPackage.Status == StagedPackageStatus.Ready && !identity.StagingGroupKey.HasValue && !isExpired && publicationBlocker == null,
+                        PromotionBlocker = publicationBlocker?.Message
                             ?? StagingPromotionFailure.GetBlocker(stagedPackage.Status, symbols: false, identity.StagingGroupKey.HasValue)?.Message,
                         IncludesStagedSymbols = identity.CurrentStagedSymbolPackage != null
                             && StagedSymbolPackagePromotionEligibility.GetBlockers(identity.CurrentStagedSymbolPackage, stagedPackage).Count == 0,
                         CanResend = !identity.StagingGroupKey.HasValue
+                            && publicationBlocker == null
                             && stagedPackage.Status == StagedPackageStatus.Promoting
                             && stagedPackage.ActivePromotionId.HasValue
                             && StagingPromotionResendPolicy.IsDue(stagedPackage.PromotionMessageSentDate),
@@ -707,10 +718,13 @@ namespace NuGetGallery
                 IsUngrouped = id == null,
                 IsPromotionActive = isPromotionActive,
                 CanPromote = id != null
+                    && requesterBlocker == null
                     && !isPromotionActive
                     && orderedStagedPackages.Count > 0
                     && orderedStagedPackages.All(stagedPackage => stagedPackage.Status == StagedPackageStatus.Ready && !StagingExpirationPolicy.HasExpired(stagedPackage)),
-                CanResend = id != null && isPromotionActive && StagingPromotionResendPolicy.IsDue(promotionMessageSentDate),
+                CanResend = id != null && isPromotionActive && requesterBlocker == null && StagingPromotionResendPolicy.IsDue(promotionMessageSentDate)
+                    && orderedStagedPackages.Where(package => package.Status == StagedPackageStatus.Promoting)
+                        .All(package => StagingPublicationPolicy.GetBlocker(package.StagedPackageIdentity) == null),
                 PackageCount = packageViewModels.Count,
                 ReadyCount = orderedStagedPackages.Count(stagedPackage => stagedPackage.Status == StagedPackageStatus.Ready),
                 ValidatingCount = orderedStagedPackages.Count(stagedPackage => stagedPackage.Status == StagedPackageStatus.Validating),

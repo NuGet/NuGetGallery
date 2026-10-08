@@ -418,8 +418,8 @@ namespace NuGetGallery
         [InlineData(true, PackageStatus.Deleted)]
         public void GetsPagedStagingGroups(bool withSymbols, PackageStatus parentStatus = PackageStatus.Available)
         {
-            var currentUser = new User("current") { Key = 1 };
-            var owner = new User("example-org") { Key = 2 };
+            var currentUser = new User("current") { Key = 1, EmailAddress = "current@example.test" };
+            var owner = new User("example-org") { Key = 2, EmailAddress = "example-org@example.test" };
             var olderGroup = CreateStagingGroup(10, "older", "Older", owner, new DateTime(2026, 9, 1));
             var newerGroup = CreateStagingGroup(11, "newer", "Newer", owner, new DateTime(2026, 9, 2));
             var parent = CreateStagedPackage(owner);
@@ -447,8 +447,9 @@ namespace NuGetGallery
             var summary = new StagingGroupSummary(newerGroup, Array.Empty<StagedPackage>(), groupSymbols);
             var target = GetController<StagingApiController>();
             ConfigureCreateGroupRequest(target, currentUser, owner);
+            target.SetCurrentUser(currentUser, new[] { new Scope(owner.Key, "Package*", NuGetScopes.PackageStage) });
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagingGroupSummaryPage(owner, 1, 1))
+                .Setup(x => x.GetStagingGroupSummaryPage(owner, It.Is<IReadOnlyCollection<Scope>>(scopes => HasStagingScope(scopes, owner.Key, "Package*")), 1, 1))
                 .Returns(new StagingGroupSummaryPage(new[] { summary }, totalCount: 2));
 
             var result = target.GetStagingGroups(page: 1, pageSize: 1);
@@ -472,7 +473,7 @@ namespace NuGetGallery
             var target = GetController<StagingApiController>();
             ConfigureCreateGroupRequest(target, currentUser, owner);
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagingGroupSummaryPage(owner, 2, 100))
+                .Setup(x => x.GetStagingGroupSummaryPage(owner, It.IsAny<IReadOnlyCollection<Scope>>(), 2, 100))
                 .Returns(new StagingGroupSummaryPage(Array.Empty<StagingGroupSummary>(), totalCount: 1));
 
             var result = target.GetStagingGroups(page: 2, pageSize: 100);
@@ -501,8 +502,8 @@ namespace NuGetGallery
         [InlineData(true, StagedPackageStatus.FailedValidation)]
         public void GetsStagingGroupWithPagedMembers(bool withSymbols, StagedPackageStatus symbolStatus = StagedPackageStatus.Ready)
         {
-            var currentUser = new User("current") { Key = 1 };
-            var owner = new User("example-org") { Key = 2 };
+            var currentUser = new User("current") { Key = 1, EmailAddress = "current@example.test" };
+            var owner = new User("example-org") { Key = 2, EmailAddress = "example-org@example.test" };
             var group = CreateStagingGroup(10, "release", "Release", owner, new DateTime(2026, 9, 1));
             var package = CreateStagedPackage(owner);
             package.Status = StagedPackageStatus.Ready;
@@ -529,8 +530,9 @@ namespace NuGetGallery
 
             var itemCount = 1 + groupSymbols.Length;
             var allReady = !withSymbols || symbolStatus == StagedPackageStatus.Ready;
+            target.SetCurrentUser(currentUser, new[] { new Scope(owner.Key, "Package*", NuGetScopes.PackageStage) });
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagingGroupPackagePage(owner, "RELEASE", 1, 100))
+                .Setup(x => x.GetStagingGroupPackagePage(owner, It.Is<IReadOnlyCollection<Scope>>(scopes => HasStagingScope(scopes, owner.Key, "Package*")), "RELEASE", 1, 100))
                 .Returns(new StagingGroupPackagePage(group, new[] { package }, itemCount, allReady, groupSymbols, groupSymbols.Length));
 
             var result = target.GetStagingGroup("RELEASE");
@@ -595,10 +597,13 @@ namespace NuGetGallery
         [InlineData("RegistrationOwnershipLost")]
         [InlineData("GroupPromotionInProgress")]
         [InlineData("StagingExpired")]
-        public void ReportsOffPageOwnershipLossWithExistingGroupBlockerPrecedence(string expectedBlocker)
+        [InlineData("PackageRegistrationLocked")]
+        [InlineData("StagingOwnerLocked")]
+        [InlineData("StagingOwnerUnconfirmed")]
+        public void ReportsOffPagePublishingRestrictionsWithExistingGroupBlockerPrecedence(string expectedBlocker)
         {
             var currentUser = new User("current") { Key = 1 };
-            var owner = new User("example-org") { Key = 2 };
+            var owner = new User("example-org") { Key = 2, EmailAddress = "owner@example.test" };
             var group = CreateStagingGroup(10, "release", "Release", owner, DateTime.UtcNow);
             if (expectedBlocker == "GroupPromotionInProgress")
             {
@@ -608,6 +613,14 @@ namespace NuGetGallery
             {
                 group.ExpirationDate = DateTime.UtcNow.AddMinutes(-1);
             }
+            else if (expectedBlocker == "StagingOwnerLocked")
+            {
+                owner.UserStatusKey = UserStatus.Locked;
+            }
+            else if (expectedBlocker == "StagingOwnerUnconfirmed")
+            {
+                owner.EmailAddress = null;
+            }
 
             var package = CreateStagedPackage(owner);
             package.Status = StagedPackageStatus.Ready;
@@ -616,8 +629,9 @@ namespace NuGetGallery
             var target = GetController<StagingApiController>();
             ConfigureCreateGroupRequest(target, currentUser, owner);
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagingGroupPackagePage(owner, "release", 1, 1))
-                .Returns(new StagingGroupPackagePage(group, new[] { package }, totalCount: 2, allPackagesReady: false, hasRegistrationOwnershipLoss: true));
+                .Setup(x => x.GetStagingGroupPackagePage(owner, It.IsAny<IReadOnlyCollection<Scope>>(), "release", 1, 1))
+                .Returns(new StagingGroupPackagePage(group, new[] { package }, totalCount: 2, allPackagesReady: false,
+                    hasRegistrationOwnershipLoss: expectedBlocker != "PackageRegistrationLocked", hasLockedRegistration: expectedBlocker == "PackageRegistrationLocked"));
 
             var body = ParseJsonContent(target.GetStagingGroup("release", page: 1, pageSize: 1));
 
@@ -645,7 +659,7 @@ namespace NuGetGallery
             var target = GetController<StagingApiController>();
             ConfigureCreateGroupRequest(target, currentUser, owner);
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagingGroupPackagePage(owner, group.Id, 1, 100))
+                .Setup(x => x.GetStagingGroupPackagePage(owner, It.IsAny<IReadOnlyCollection<Scope>>(), group.Id, 1, 100))
                 .Returns(new StagingGroupPackagePage(group, new[] { package }, totalCount: 1, allPackagesReady: false));
 
             var result = target.GetStagingGroup(group.Id);
@@ -664,7 +678,7 @@ namespace NuGetGallery
             var target = GetController<StagingApiController>();
             ConfigureCreateGroupRequest(target, currentUser, owner);
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagingGroupPackagePage(owner, "missing", 1, 100))
+                .Setup(x => x.GetStagingGroupPackagePage(owner, It.IsAny<IReadOnlyCollection<Scope>>(), "missing", 1, 100))
                 .Returns((StagingGroupPackagePage)null);
 
             var result = target.GetStagingGroup("missing");
@@ -1333,11 +1347,12 @@ namespace NuGetGallery
             var group = CreateStagingGroup(10, "release", "Release", owner, new DateTime(2026, 9, 1));
             var target = GetController<StagingApiController>();
             ConfigureCreateGroupRequest(target, currentUser, owner);
+            target.SetCurrentUser(currentUser, new[] { new Scope(owner.Key, "Package*", NuGetScopes.PackageStage) });
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.FindStagingGroup(owner, group.Id))
                 .Returns(group);
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.DeleteStagingGroupAsync(owner, group))
+                .Setup(x => x.DeleteStagingGroupAsync(owner, It.Is<IReadOnlyCollection<Scope>>(scopes => HasStagingScope(scopes, owner.Key, "Package*")), group))
                 .ReturnsAsync(StagingGroupDeletionResult.Deleted(2));
 
             var result = await target.DeleteStagingGroup(group.Id);
@@ -1346,8 +1361,10 @@ namespace NuGetGallery
             Assert.Equal(204, status.StatusCode);
         }
 
-        [Fact]
-        public async Task RejectsDeletingAStagingGroupWhilePromotionIsActive()
+        [Theory]
+        [InlineData(StagingGroupDeletionResultType.Conflict, HttpStatusCode.Conflict, "GroupPromotionInProgress")]
+        [InlineData(StagingGroupDeletionResultType.NotFound, HttpStatusCode.NotFound, "GroupNotFound")]
+        public async Task ReportsUnavailableOrPromotingStagingGroupDeletion(StagingGroupDeletionResultType resultType, HttpStatusCode statusCode, string errorCode)
         {
             var currentUser = new User("current") { Key = 1 };
             var owner = new User("example-org") { Key = 2 };
@@ -1357,13 +1374,19 @@ namespace NuGetGallery
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.FindStagingGroup(owner, group.Id))
                 .Returns(group);
+            var deletionResult = StagingGroupDeletionResult.Conflict(1);
+            if (resultType == StagingGroupDeletionResultType.NotFound)
+            {
+                deletionResult = StagingGroupDeletionResult.NotFound();
+            }
+
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.DeleteStagingGroupAsync(owner, group))
-                .ReturnsAsync(StagingGroupDeletionResult.Conflict(1));
+                .Setup(x => x.DeleteStagingGroupAsync(owner, It.IsAny<IReadOnlyCollection<Scope>>(), group))
+                .ReturnsAsync(deletionResult);
 
             var result = await target.DeleteStagingGroup(group.Id);
 
-            AssertError(target, result, HttpStatusCode.Conflict, "GroupPromotionInProgress");
+            AssertError(target, result, statusCode, errorCode);
         }
 
         private HttpPostedFileBase ConfigureUploadRequest(StagingApiController target, NameValueCollection form, bool symbols = false)
@@ -1414,6 +1437,11 @@ namespace NuGetGallery
 
             var request = Mock.Get(httpContext.Object.Request);
             request.SetupGet(x => x.ContentType).Returns("application/json; charset=utf-8");
+        }
+
+        private static bool HasStagingScope(IReadOnlyCollection<Scope> scopes, int ownerKey, string pattern)
+        {
+            return scopes.Count == 1 && scopes.Any(scope => scope.OwnerKey == ownerKey && scope.Subject == pattern && scope.AllowedAction == NuGetScopes.PackageStage);
         }
 
         private static void AddModelErrors(Controller controller, object model)

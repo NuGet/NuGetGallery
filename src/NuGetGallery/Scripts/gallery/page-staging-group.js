@@ -70,6 +70,7 @@
             const input = $(event.currentTarget);
             const form = input.closest('form');
             const previousValue = !self.Listed();
+            const formData = form.serialize();
 
             self.IsSavingListed(true);
             self.ListedStatus('');
@@ -78,7 +79,7 @@
                 method: 'POST',
                 url: form.attr('action'),
                 cache: false,
-                data: form.serialize()
+                data: formData
             })
                 .fail(function () {
                     self.Listed(previousValue);

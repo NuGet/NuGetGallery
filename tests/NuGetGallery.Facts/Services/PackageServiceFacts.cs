@@ -156,6 +156,95 @@ namespace NuGetGallery
             }
         }
 
+        /// <summary>
+        /// Covers deleted staging privacy in full and reduced public version lists.
+        /// </summary>
+        public class TheDisplayPackageVersionsMethods : TestContainer
+        {
+            private readonly PackageService _service;
+
+            public TheDisplayPackageVersionsMethods()
+            {
+                var context = GetFakeContext();
+                var registration = new PackageRegistration { Key = 1, Id = "Package" };
+                for (var version = 1; version <= 6; version++)
+                {
+                    var package = new Package
+                    {
+                        Key = version,
+                        PackageRegistration = registration,
+                        PackageRegistrationKey = registration.Key,
+                        Version = $"{version}.0.0",
+                        NormalizedVersion = $"{version}.0.0",
+                        PackageStatusKey = PackageStatus.Deleted,
+                    };
+                    if (version == 1)
+                    {
+                        package.PackageStatusKey = PackageStatus.Available;
+                        package.IsLatestSemVer2 = true;
+                        package.IsLatestStableSemVer2 = true;
+                    }
+
+                    registration.Packages.Add(package);
+                    context.Packages.Add(package);
+                    if (version < 3)
+                    {
+                        continue;
+                    }
+
+                    var identity = new StagedPackageIdentity { Key = package.Key, Package = package };
+                    if (version == 3)
+                    {
+                        identity.CurrentStagedPackage = new StagedPackage { Status = StagedPackageStatus.Succeeded };
+                    }
+                    else if (version >= 5)
+                    {
+                        identity.CurrentStagedPackage = new StagedPackage { Status = StagedPackageStatus.Deleted };
+                    }
+
+                    context.StagedPackageIdentities.Add(identity);
+                }
+
+                _service = GetService<PackageService>();
+            }
+
+            [Fact]
+            public void HidesDeletedPrivateVersionsWithoutChangingOrdinaryOrPromotedDeletedVersions()
+            {
+                var packages = _service.FindPackagesById("Package", includePackageRegistration: true, includeDeprecations: true, includeSupportedFrameworks: true);
+
+                Assert.Equal(new[] { 1, 2, 3, 4 }, packages.Select(package => package.Key));
+                Assert.True(_service.IsDeletedStagingPackage("Package", "05.0.0"));
+                Assert.False(_service.IsDeletedStagingPackage("OtherPackage", "5.0.0"));
+                Assert.False(_service.IsDeletedStagingPackage("Package", "7.0.0"));
+                foreach (var package in packages)
+                {
+                    Assert.False(_service.IsDeletedStagingPackage("Package", package.NormalizedVersion));
+                }
+
+                Assert.Equal(6, _service.FindPackagesById("Package").Count);
+                Assert.NotNull(_service.FindPackageByIdAndVersionStrict("Package", "5.0.0"));
+            }
+
+            [Fact]
+            public void ExcludesDeletedPrivateVersionsBeforeCountingAndDoesNotReinsertRequestedPrivateVersion()
+            {
+                var result = _service.FindLatestVersionsById("Package", "5.0.0", true, true, true, maxCount: 4);
+
+                Assert.Equal(new[] { 4, 3, 2, 1 }, result.Packages.Select(package => package.Key));
+                Assert.False(result.HasMoreResults);
+            }
+
+            [Fact]
+            public void RetainsLatestAndRequestedPublicVersionsWhenTheListIsReduced()
+            {
+                var result = _service.FindLatestVersionsById("Package", "2.0.0", true, true, true, maxCount: 2);
+
+                Assert.Equal(new[] { 1, 2 }, result.Packages.Select(package => package.Key));
+                Assert.True(result.HasMoreResults);
+            }
+        }
+
         public class TheAddPackageOwnerMethod
         {
             [Fact]

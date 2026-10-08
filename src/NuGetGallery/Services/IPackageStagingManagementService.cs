@@ -20,7 +20,7 @@ namespace NuGetGallery
         /// <param name="scopes">The credential scopes used to filter package IDs.</param>
         /// <param name="page">The one-based page number.</param>
         /// <param name="pageSize">The number of artifacts per page.</param>
-        /// <returns>The visible package page and total matching count.</returns>
+        /// <returns>The visible package page and total matching count, or an empty page when the owner is unconfirmed or locked.</returns>
         StagingArtifactPage<StagedPackage> GetStagedPackagePage(User stagingOwner, IReadOnlyCollection<Scope> scopes, int page, int pageSize);
 
         /// <summary>
@@ -35,6 +35,7 @@ namespace NuGetGallery
 
         /// <summary>
         /// Gets a current package visible to an authorized API owner and credential.
+        /// Unconfirmed or locked owners cannot read staged package attempts.
         /// </summary>
         /// <param name="stagingOwner">The authorized staging owner.</param>
         /// <param name="scopes">The credential scopes used to filter package IDs.</param>
@@ -164,6 +165,15 @@ namespace NuGetGallery
         Task<StagingGroupDeletionResult> DeleteStagingGroupAsync(User stagingOwner, StagingGroup group);
 
         /// <summary>
+        /// Deletes a group only when its owner is confirmed and unlocked and the API credential authorizes every affected package ID.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="scopes">The credential scopes used to authorize the entire group.</param>
+        /// <param name="group">The staging group to delete.</param>
+        /// <returns>The deletion result, or NotFound when the owner is locked or unconfirmed or any member is outside the credential's staging scopes.</returns>
+        Task<StagingGroupDeletionResult> DeleteStagingGroupAsync(User stagingOwner, IReadOnlyCollection<Scope> scopes, StagingGroup group);
+
+        /// <summary>
         /// Adds or moves a staged package identity to an owner-scoped group.
         /// </summary>
         /// <param name="stagingOwner">The authorized staging owner.</param>
@@ -200,20 +210,22 @@ namespace NuGetGallery
         /// Gets one ordered page of staging group summaries for an authorized owner.
         /// </summary>
         /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="scopes">The credential scopes; only fully authorized groups are included before counting and paging.</param>
         /// <param name="page">The one-based page number.</param>
         /// <param name="pageSize">The number of groups per page.</param>
-        /// <returns>The requested summaries and total number of matching groups.</returns>
-        StagingGroupSummaryPage GetStagingGroupSummaryPage(User stagingOwner, int page, int pageSize);
+        /// <returns>The requested summaries and total number of matching groups, or an empty page when the owner is locked or unconfirmed.</returns>
+        StagingGroupSummaryPage GetStagingGroupSummaryPage(User stagingOwner, IReadOnlyCollection<Scope> scopes, int page, int pageSize);
 
         /// <summary>
         /// Gets one ordered page of current package attempts in an owner-scoped staging group.
         /// </summary>
         /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="scopes">The credential scopes used to authorize every package ID, including off-page members.</param>
         /// <param name="groupId">The owner-scoped group ID.</param>
         /// <param name="page">The one-based page number.</param>
         /// <param name="pageSize">The number of package attempts per page.</param>
-        /// <returns>The requested package page, or <see langword="null"/> when the group does not exist.</returns>
-        StagingGroupPackagePage GetStagingGroupPackagePage(User stagingOwner, string groupId, int page, int pageSize);
+        /// <returns>The requested package page, or <see langword="null"/> when the owner is locked or unconfirmed, the group does not exist, or it is not fully authorized.</returns>
+        StagingGroupPackagePage GetStagingGroupPackagePage(User stagingOwner, IReadOnlyCollection<Scope> scopes, string groupId, int page, int pageSize);
     }
 
     public enum StagingGroupMembershipResult

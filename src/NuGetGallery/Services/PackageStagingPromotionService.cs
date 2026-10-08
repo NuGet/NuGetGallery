@@ -69,7 +69,7 @@ namespace NuGetGallery
                 return PackageStagingPromotionResult.NotReady;
             }
 
-            if (!StagingOwnershipPolicy.CanPublish(stagedPackage.StagedPackageIdentity))
+            if (StagingPublicationPolicy.GetRequesterBlocker(currentUser) != null || StagingPublicationPolicy.GetBlocker(stagedPackage.StagedPackageIdentity) != null)
             {
                 return PackageStagingPromotionResult.NotReady;
             }
@@ -150,6 +150,11 @@ namespace NuGetGallery
                 return PackageStagingPromotionResult.NotReady;
             }
 
+            if (StagingPublicationPolicy.GetRequesterBlocker(currentUser) != null || StagingPublicationPolicy.GetBlocker(stagedPackage.StagedPackageIdentity) != null)
+            {
+                return PackageStagingPromotionResult.NotReady;
+            }
+
             var promotionId = stagedPackage.ActivePromotionId.Value;
             try
             {
@@ -193,7 +198,7 @@ namespace NuGetGallery
                 return PackageStagingPromotionResult.Grouped;
             }
 
-            if (StagedSymbolPackagePromotionEligibility.GetBlockers(stagedSymbolPackage).Count > 0)
+            if (StagingPublicationPolicy.GetRequesterBlocker(currentUser) != null || StagedSymbolPackagePromotionEligibility.GetBlockers(stagedSymbolPackage).Count > 0)
             {
                 return PackageStagingPromotionResult.NotReady;
             }
@@ -231,7 +236,7 @@ namespace NuGetGallery
                 return PackageStagingPromotionResult.Grouped;
             }
 
-            if (!StagedSymbolPackagePromotionEligibility.CanResend(stagedSymbolPackage))
+            if (StagingPublicationPolicy.GetRequesterBlocker(currentUser) != null || !StagedSymbolPackagePromotionEligibility.CanResend(stagedSymbolPackage))
             {
                 return PackageStagingPromotionResult.NotReady;
             }
@@ -257,7 +262,7 @@ namespace NuGetGallery
                 return StagingGroupPromotionResult.Unauthorized;
             }
 
-            if (StagingExpirationPolicy.HasExpired(group))
+            if (StagingExpirationPolicy.HasExpired(group) || StagingPublicationPolicy.GetRequesterBlocker(currentUser) != null || StagingPublicationPolicy.GetOwnerBlocker(group.Owner) != null)
             {
                 return StagingGroupPromotionResult.NotReady;
             }
@@ -299,7 +304,7 @@ namespace NuGetGallery
                 return StagingGroupPromotionResult.NotReady;
             }
 
-            if (stagedPackages.Any(stagedPackage => !StagingOwnershipPolicy.CanPublish(stagedPackage.StagedPackageIdentity)))
+            if (stagedPackages.Any(stagedPackage => StagingPublicationPolicy.GetBlocker(stagedPackage.StagedPackageIdentity) != null))
             {
                 return StagingGroupPromotionResult.NotReady;
             }
@@ -381,7 +386,32 @@ namespace NuGetGallery
                 return StagingGroupPromotionResult.NotReady;
             }
 
+            if (StagingPublicationPolicy.GetRequesterBlocker(currentUser) != null || StagingPublicationPolicy.GetOwnerBlocker(group.Owner) != null)
+            {
+                return StagingGroupPromotionResult.NotReady;
+            }
+
             var promotionId = group.ActivePromotionId.Value;
+            var pendingParents = _stagedPackageRepository.GetAll()
+                .Include(package => package.StagedPackageIdentity.Owner)
+                .Include(package => package.StagedPackageIdentity.Package.PackageRegistration.Owners)
+                .Where(package => package.StagedPackageIdentity.StagingGroupKey == group.Key
+                    && package.ActivePromotionId == promotionId
+                    && package.Status == StagedPackageStatus.Promoting)
+                .ToList();
+            var pendingSymbols = _stagedSymbolPackageRepository.GetAll()
+                .Include(symbol => symbol.StagedPackageIdentity.Owner)
+                .Include(symbol => symbol.StagedPackageIdentity.Package.PackageRegistration.Owners)
+                .Where(symbol => symbol.StagedPackageIdentity.StagingGroupKey == group.Key
+                    && symbol.ActivePromotionId == promotionId
+                    && symbol.Status == StagedPackageStatus.Promoting)
+                .ToList();
+            if (pendingParents.Any(package => StagingPublicationPolicy.GetBlocker(package.StagedPackageIdentity) != null)
+                || pendingSymbols.Any(symbol => StagingPublicationPolicy.GetBlocker(symbol.StagedPackageIdentity) != null))
+            {
+                return StagingGroupPromotionResult.NotReady;
+            }
+
             try
             {
                 group.PromotionMessageSentDate = DateTime.UtcNow;

@@ -64,8 +64,8 @@ namespace NuGetGallery
 
             var isGrouped = package.StagedPackageIdentity.StagingGroupKey.HasValue;
             var isExpired = StagingExpirationPolicy.HasExpired(package);
-            var ownershipBlocker = StagingOwnershipPolicy.GetBlocker(package.StagedPackageIdentity);
-            var canPromote = package.Status == StagedPackageStatus.Ready && !isGrouped && !isExpired && ownershipBlocker == null;
+            var publicationBlocker = StagingPublicationPolicy.GetBlocker(package.StagedPackageIdentity);
+            var canPromote = package.Status == StagedPackageStatus.Ready && !isGrouped && !isExpired && publicationBlocker == null;
             var blockers = new List<StagingBlockerResponse>();
             AddValidationBlockers(blockers, package.Status, validationIssues);
             var promotionBlocker = StagingPromotionFailure.GetBlocker(package.Status, symbols: false, isGrouped);
@@ -73,9 +73,9 @@ namespace NuGetGallery
             {
                 blockers.Add(promotionBlocker);
             }
-            if (ownershipBlocker != null)
+            if (publicationBlocker != null)
             {
-                blockers.Add(ownershipBlocker);
+                blockers.Add(new StagingBlockerResponse(publicationBlocker.Code, publicationBlocker.Message));
             }
 
             if (isExpired)

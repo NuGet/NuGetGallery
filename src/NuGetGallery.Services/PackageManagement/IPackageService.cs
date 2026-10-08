@@ -44,7 +44,8 @@ namespace NuGetGallery
             bool includePackageRegistration);
 
         /// <summary>
-        /// Returns all packages with an <see cref="Package.Id"/> of <paramref name="id"/>.
+        /// Returns package versions for display with an <see cref="Package.Id"/> of <paramref name="id"/>,
+        /// excluding deleted, never-published staging packages.
         /// Includes the <see cref="Package.PackageRegistration"/> fields based on <paramref name="includePackageRegistration"/>.
         /// Includes the <see cref="Package.Deprecations"/> fields based on <paramref name="includeDeprecations"/>.
         /// Includes the <see cref="Package.SupportedFrameworks"/> fields based on <paramref name="includeSupportedFrameworks);"/>.
@@ -56,8 +57,17 @@ namespace NuGetGallery
             bool includeSupportedFrameworks);
 
         /// <summary>
+        /// Determines whether an exact package version is a deleted, never-published staging package
+        /// whose metadata must remain private.
+        /// </summary>
+        /// <param name="id">The package ID.</param>
+        /// <param name="version">The package version.</param>
+        bool IsDeletedStagingPackage(string id, string version);
+
+        /// <summary>
         /// Returns <paramref name="maxCount"/> latest (by Created) versions of packages with an <see cref="Package.Id"/> of <paramref name="id"/>.
-        /// The list always includes the <paramref name="includeVersion"/> version if specified.
+        /// Deleted, never-published staging packages are excluded before paging.
+        /// The list includes the <paramref name="includeVersion"/> version if it exists and is not excluded.
         /// </summary>
         /// <param name="id"></param>
         /// <param name="includeVersion"></param>
