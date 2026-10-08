@@ -402,14 +402,15 @@ namespace NuGetGallery
 
         public Task<StagingGroupDeletionResult> DeleteStagingGroupAsync(User stagingOwner, IReadOnlyCollection<Scope> scopes, StagingGroup group)
         {
-            if (stagingOwner == null)
-            {
-                throw new ArgumentNullException(nameof(stagingOwner));
-            }
-
+            ValidateGroupOwner(stagingOwner, group);
             if (scopes == null)
             {
                 throw new ArgumentNullException(nameof(scopes));
+            }
+
+            if (!stagingOwner.Confirmed || stagingOwner.IsLocked)
+            {
+                return Task.FromResult(StagingGroupDeletionResult.NotFound());
             }
 
             var matchingScopes = GetInventoryScopes(stagingOwner, scopes);
@@ -418,21 +419,7 @@ namespace NuGetGallery
 
         private async Task<StagingGroupDeletionResult> DeleteStagingGroupAsync(User stagingOwner, StagingGroup group, Func<IEnumerable<string>, bool> canDeletePackageIds)
         {
-            if (stagingOwner == null)
-            {
-                throw new ArgumentNullException(nameof(stagingOwner));
-            }
-
-            if (group == null)
-            {
-                throw new ArgumentNullException(nameof(group));
-            }
-
-            if (group.OwnerKey != stagingOwner.Key)
-            {
-                throw new ArgumentException("The staging group must belong to the authorized owner.");
-            }
-
+            ValidateGroupOwner(stagingOwner, group);
             StagingGroupDeletionResult result = null;
             try
             {
@@ -448,6 +435,24 @@ namespace NuGetGallery
             }
 
             return result;
+        }
+
+        private static void ValidateGroupOwner(User stagingOwner, StagingGroup group)
+        {
+            if (stagingOwner == null)
+            {
+                throw new ArgumentNullException(nameof(stagingOwner));
+            }
+
+            if (group == null)
+            {
+                throw new ArgumentNullException(nameof(group));
+            }
+
+            if (group.OwnerKey != stagingOwner.Key)
+            {
+                throw new ArgumentException("The staging group must belong to the authorized owner.");
+            }
         }
 
         public async Task<StagingGroupMembershipResult> AddPackageToStagingGroupAsync(User stagingOwner, StagingGroup group, StagedPackage stagedPackage)
@@ -615,6 +620,11 @@ namespace NuGetGallery
                 throw new ArgumentOutOfRangeException(nameof(pageSize));
             }
 
+            if (!stagingOwner.Confirmed || stagingOwner.IsLocked)
+            {
+                return new StagingGroupSummaryPage(Array.Empty<StagingGroupSummary>(), 0);
+            }
+
             var groupsQuery = _stagingGroupRepository
                 .GetAll()
                 .Include(group => group.Owner)
@@ -691,6 +701,11 @@ namespace NuGetGallery
             if (pageSize <= 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(pageSize));
+            }
+
+            if (!stagingOwner.Confirmed || stagingOwner.IsLocked)
+            {
+                return null;
             }
 
             var group = FindStagingGroup(stagingOwner, groupId);
