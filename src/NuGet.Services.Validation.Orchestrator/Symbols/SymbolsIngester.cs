@@ -165,7 +165,9 @@ namespace NuGet.Services.Validation.Symbols
             var ownerStillOwnsPackage = identity.Package.PackageRegistration.Owners.Any(owner => owner.Key == identity.OwnerKey);
             if (!parentIsAvailable || !symbolIsStaged || !ownerStillOwnsPackage)
             {
-                _logger.LogWarning("Symbol promotion {PromotionId} lost eligibility; marking ingestion validation failed.", attempt.ActivePromotionId);
+                _logger.LogWarning(
+                    "Symbol promotion {PromotionId} lost eligibility; marking ingestion validation failed. ParentIsAvailable: {ParentIsAvailable}, SymbolIsStaged: {SymbolIsStaged}, OwnerStillOwnsPackage: {OwnerStillOwnsPackage}.",
+                    attempt.ActivePromotionId, parentIsAvailable, symbolIsStaged, ownerStillOwnsPackage);
                 return null;
             }
 
