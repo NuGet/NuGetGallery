@@ -52,6 +52,8 @@ namespace NuGetGallery
 
         private readonly IAppConfiguration _configuration;
 
+        private readonly IStagingQuotaService _quotaService;
+
         public PackageStagingUploadService(
             IApiScopeEvaluator apiScopeEvaluator,
             IFeatureFlagService featureFlagService,
@@ -66,7 +68,8 @@ namespace NuGetGallery
             IStagedPackageValidationMessageEmitter stagedValidationMessageEmitter,
             IEntityRepository<StagedSymbolPackage> stagedSymbolPackageRepository,
             IStagedSymbolPackageValidationMessageEmitter symbolValidationMessageEmitter,
-            IAppConfiguration configuration)
+            IAppConfiguration configuration,
+            IStagingQuotaService quotaService)
         {
             _apiScopeEvaluator = apiScopeEvaluator ?? throw new ArgumentNullException(nameof(apiScopeEvaluator));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
@@ -82,6 +85,7 @@ namespace NuGetGallery
             _stagedSymbolPackageRepository = stagedSymbolPackageRepository ?? throw new ArgumentNullException(nameof(stagedSymbolPackageRepository));
             _symbolValidationMessageEmitter = symbolValidationMessageEmitter ?? throw new ArgumentNullException(nameof(symbolValidationMessageEmitter));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _quotaService = quotaService ?? throw new ArgumentNullException(nameof(quotaService));
         }
 
         public async Task<PackageStagingResult> StagePackageAsync(
@@ -153,6 +157,11 @@ namespace NuGetGallery
                 exception.Log();
                 return PackageStagingResult.Error(HttpStatusCode.Conflict, exception.Message);
             }
+            catch (StagingQuotaExceededException exception)
+            {
+                exception.Log();
+                return PackageStagingResult.Error(HttpStatusCode.Conflict, exception.Message);
+            }
         }
 
         public async Task<PackageStagingResult> ReplacePackageAsync(
@@ -185,6 +194,11 @@ namespace NuGetGallery
                 return PackageStagingResult.Error(HttpStatusCode.BadRequest, exception.Message);
             }
             catch (StagingExpiredException exception)
+            {
+                exception.Log();
+                return PackageStagingResult.Error(HttpStatusCode.Conflict, exception.Message);
+            }
+            catch (StagingQuotaExceededException exception)
             {
                 exception.Log();
                 return PackageStagingResult.Error(HttpStatusCode.Conflict, exception.Message);
@@ -525,6 +539,11 @@ namespace NuGetGallery
             if (afterValidation.Type != PackageValidationResultType.Accepted)
             {
                 return PackageStagingResult.Error(HttpStatusCode.BadRequest, afterValidation.Message.PlainTextMessage);
+            }
+
+            if (target.ExistingPackage?.PackageStatusKey != PackageStatus.Staged)
+            {
+                await _quotaService.EnsureCapacityAsync(target.Owner);
             }
 
             var package = candidatePackage;

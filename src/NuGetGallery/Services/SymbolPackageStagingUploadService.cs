@@ -39,6 +39,7 @@ namespace NuGetGallery
         private readonly IPackageStagingManagementService _managementService;
         private readonly IEntityRepository<StagingGroup> _stagingGroupRepository;
         private readonly IAppConfiguration _configuration;
+        private readonly IStagingQuotaService _quotaService;
 
         public SymbolPackageStagingUploadService(
             IApiScopeEvaluator apiScopeEvaluator,
@@ -53,7 +54,8 @@ namespace NuGetGallery
             IStagedSymbolPackageValidationMessageEmitter validationMessageEmitter,
             IPackageStagingManagementService managementService,
             IEntityRepository<StagingGroup> stagingGroupRepository,
-            IAppConfiguration configuration)
+            IAppConfiguration configuration,
+            IStagingQuotaService quotaService)
         {
             _apiScopeEvaluator = apiScopeEvaluator ?? throw new ArgumentNullException(nameof(apiScopeEvaluator));
             _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
@@ -68,6 +70,7 @@ namespace NuGetGallery
             _managementService = managementService ?? throw new ArgumentNullException(nameof(managementService));
             _stagingGroupRepository = stagingGroupRepository ?? throw new ArgumentNullException(nameof(stagingGroupRepository));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _quotaService = quotaService ?? throw new ArgumentNullException(nameof(quotaService));
         }
 
         public async Task<PackageStagingResult> StageSymbolPackageAsync(
@@ -240,6 +243,11 @@ namespace NuGetGallery
                     return PackageStagingResult.Ok();
                 }
 
+                if (previousAttempt?.SymbolPackage.StatusKey != PackageStatus.Staged)
+                {
+                    await _quotaService.EnsureCapacityAsync(owner);
+                }
+
                 file.Position = 0;
                 var blob = await _stagingBlobService.SaveSymbolPackageFileAsync(package.Id, package.NormalizedVersion, file);
                 var symbolPackage = _symbolPackageService.CreateSymbolPackage(package, metadata);
@@ -304,6 +312,11 @@ namespace NuGetGallery
                 return PackageStagingResult.Error(HttpStatusCode.BadRequest, exception.Message);
             }
             catch (StagingExpiredException exception)
+            {
+                exception.Log();
+                return PackageStagingResult.Error(HttpStatusCode.Conflict, exception.Message);
+            }
+            catch (StagingQuotaExceededException exception)
             {
                 exception.Log();
                 return PackageStagingResult.Error(HttpStatusCode.Conflict, exception.Message);

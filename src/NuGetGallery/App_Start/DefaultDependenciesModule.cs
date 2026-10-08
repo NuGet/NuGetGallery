@@ -424,6 +424,10 @@ namespace NuGetGallery
                 .AsSelf()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<StagingQuotaService>()
+                .As<IStagingQuotaService>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<PackageStagingPromotionService>()
                 .As<IPackageStagingPromotionService>()
                 .InstancePerLifetimeScope();
