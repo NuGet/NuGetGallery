@@ -37,6 +37,7 @@
         this.CanManage = packageItem.CanManage;
         this.CanPromote = packageItem.CanPromote;
         this.CanResend = packageItem.CanResend;
+        this.PromotionBlocker = packageItem.PromotionBlocker;
         this.MoveUrl = packageItem.MoveUrl;
         this.ListedInputId = packageItem.ListedInputId;
         this.DownloadUrl = packageItem.DownloadUrl;
@@ -104,7 +105,8 @@
         this.Promote = function (model, event) {
             event.preventDefault();
             const trigger = $(event.currentTarget);
-            const message = `Promote staged package ${self.Id} ${self.Version}?`;
+            const artifact = self.IsSymbolPackage ? 'symbols' : 'package';
+            const message = `Promote staged ${artifact} ${self.Id} ${self.Version}?`;
             if (!self.IsBusy() && window.nuget.confirmEvent(message)) {
                 self.IsBusy(true);
                 trigger.siblings('.staging-promote-form')[0].submit();
@@ -114,7 +116,8 @@
         this.Resend = function (model, event) {
             event.preventDefault();
             const trigger = $(event.currentTarget);
-            const message = `Retry promotion for ${self.Id} ${self.Version}?`;
+            const artifact = self.IsSymbolPackage ? 'symbol' : 'package';
+            const message = `Retry ${artifact} promotion for ${self.Id} ${self.Version}?`;
             if (!self.IsResending() && window.nuget.confirmEvent(message)) {
                 self.IsResending(true);
                 trigger.siblings('.staging-resend-form')[0].submit();

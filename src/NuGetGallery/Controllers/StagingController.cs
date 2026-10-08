@@ -422,6 +422,13 @@ namespace NuGetGallery
 
                 findings.TryGetValue(attempt.Key, out var issues);
                 var canManage = !model.IsPromotionActive && attempt.Status != StagedPackageStatus.Promoting;
+                var blockers = StagedSymbolPackagePromotionEligibility.GetBlockers(attempt);
+                string promotionBlocker = null;
+                if (attempt.Status == StagedPackageStatus.Ready && !identity.StagingGroupKey.HasValue)
+                {
+                    promotionBlocker = blockers.FirstOrDefault(blocker => blocker.Code != "PublicSymbolsExist" && blocker.Code != "ParentPackageNotAvailable")?.Message;
+                }
+
                 var hasMoveTarget = identity.StagingGroupKey.HasValue || stagingGroups.Any(group => group.Key != identity.StagingGroupKey);
                 var moveUrl = canManage && hasMoveTarget ? Url.MoveStagedPackage(identity.Owner.Username, package.Id, package.NormalizedVersion) : null;
                 return new PackageStagingViewModel
@@ -437,6 +444,9 @@ namespace NuGetGallery
                     UploadedDate = attempt.UploadedDate,
                     ValidationIssues = issues ?? [],
                     CanManage = canManage,
+                    CanPromote = canManage && blockers.Count == 0,
+                    CanResend = StagedSymbolPackagePromotionEligibility.CanResend(attempt),
+                    PromotionBlocker = promotionBlocker,
                     MoveUrl = moveUrl,
                 };
             });
@@ -450,7 +460,9 @@ namespace NuGetGallery
             model.ReadyCount += stagedSymbols.Count(attempt => attempt.Status == StagedPackageStatus.Ready);
             model.ValidatingCount += stagedSymbols.Count(attempt => attempt.Status == StagedPackageStatus.Validating);
             model.WaitingForParentCount += stagedSymbols.Count(attempt => attempt.Status == StagedPackageStatus.WaitingForParent);
-            model.FailedCount += stagedSymbols.Count(attempt => attempt.Status == StagedPackageStatus.FailedValidation);
+            model.FailedCount += stagedSymbols.Count(attempt => attempt.Status == StagedPackageStatus.FailedValidation || attempt.Status == StagedPackageStatus.PromotionFailed);
+            model.PromotingCount += stagedSymbols.Count(attempt => attempt.Status == StagedPackageStatus.Promoting);
+            model.PromotionFailedCount += stagedSymbols.Count(attempt => attempt.Status == StagedPackageStatus.PromotionFailed);
             if (stagedSymbols.Count > 0)
             {
                 model.CanPromote = false;
@@ -842,6 +854,69 @@ namespace NuGetGallery
             }
 
             return Redirect(Url.ManageUngroupedStaging(stagedPackage.StagedPackageIdentity.Owner.Username));
+        }
+
+        /// <summary>
+        /// Begins asynchronous publication of ready Ungrouped symbols.
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> PromoteSymbolPackage(string id, string version)
+        {
+            ValidatePackageIdentity(id, version);
+            var attempt = FindAuthorizedStagedSymbolPackage(id, version);
+            if (attempt == null)
+            {
+                return HttpNotFound();
+            }
+
+            var result = await _packageStagingPromotionService.PromoteSymbolPackageAsync(GetCurrentUser(), attempt);
+            return SymbolPromotionResult(attempt, result);
+        }
+
+        /// <summary>
+        /// Resends an active symbol promotion without creating a new ingestion attempt.
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> ResendSymbolPackage(string id, string version)
+        {
+            ValidatePackageIdentity(id, version);
+            var attempt = FindAuthorizedStagedSymbolPackage(id, version);
+            if (attempt == null)
+            {
+                return HttpNotFound();
+            }
+
+            var result = await _packageStagingPromotionService.ResendSymbolPackageAsync(GetCurrentUser(), attempt);
+            return SymbolPromotionResult(attempt, result);
+        }
+
+        private ActionResult SymbolPromotionResult(StagedSymbolPackage attempt, PackageStagingPromotionResult result)
+        {
+            switch (result)
+            {
+                case PackageStagingPromotionResult.Accepted:
+                    break;
+                case PackageStagingPromotionResult.Unauthorized:
+                    return HttpNotFound();
+                case PackageStagingPromotionResult.NotReady:
+                    TempData["ErrorMessage"] = "These symbols cannot be promoted or retried yet. Refresh and check their status and parent package.";
+                    break;
+                case PackageStagingPromotionResult.Grouped:
+                    TempData["ErrorMessage"] = "Symbol promotion is not available for staging groups yet.";
+                    break;
+                case PackageStagingPromotionResult.Conflict:
+                    TempData["ErrorMessage"] = "The symbol promotion changed while processing your request. Refresh and check its status.";
+                    break;
+                case PackageStagingPromotionResult.DispatchFailed:
+                    TempData["ErrorMessage"] = "Promotion started, but we couldn't confirm it's being processed. Refresh the page; if it's still in progress, you can retry now.";
+                    break;
+                default:
+                    throw new InvalidOperationException($"Unknown symbol promotion result '{result}'.");
+            }
+
+            return Redirect(Url.ManageUngroupedStaging(attempt.StagedPackageIdentity.Owner.Username));
         }
 
         private static void ValidatePackageIdentity(string id, string version)

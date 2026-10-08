@@ -131,9 +131,17 @@
                     @ViewHelpers.AlertWarning(@<text>Promotion is taking longer than expected. You can retry it. Packages that have already failed won't be retried.</text>)
                 }
             }
-            else if (Model.PromotionFailedCount > 0)
+            else if (!Model.IsUngrouped && Model.PromotionFailedCount > 0)
             {
                 @ViewHelpers.AlertDanger(@<text>Some packages failed promotion. Replace or remove them before promoting this group again.</text>)
+            }
+            @if (Model.IsUngrouped && Model.Packages.Any(package => package.IsSymbolPackage && package.Status == "Promoting"))
+            {
+                @ViewHelpers.AlertInfo("Symbol promotion is in progress. Refresh to check its status.")
+            }
+            @if (Model.IsUngrouped && Model.Packages.Any(package => package.IsSymbolPackage && package.Status == "PromotionFailed"))
+            {
+                @ViewHelpers.AlertDanger(@<text>Symbol promotion failed. Its parent package is unchanged. Replace or remove the staged symbols before trying again.</text>)
             }
             @if (Model.IsUngrouped && Model.Packages.Any(package => package.CanResend))
             {
@@ -240,6 +248,7 @@
                                             </button>
                                             <!-- /ko -->
                                         </div>
+                                        <div class="small text-muted" data-bind="visible: PromotionBlocker, text: PromotionBlocker"></div>
                                     </td>
                                     <td class="align-middle staging-package-listed">
                                         <!-- ko ifnot: IsSymbolPackage -->
@@ -414,17 +423,23 @@
         string downloadUrl;
         string deleteUrl;
         string replaceUrl;
+        string promoteUrl;
+        string resendUrl;
         if (package.IsSymbolPackage)
         {
             downloadUrl = Url.DownloadStagedSymbolPackage(package.Id, package.Version);
             deleteUrl = Url.DeleteStagedSymbolPackage(package.Id, package.Version);
             replaceUrl = Url.ReplaceStagedSymbolPackage(package.Id, package.Version);
+            promoteUrl = Url.PromoteStagedSymbolPackage(package.Id, package.Version);
+            resendUrl = Url.ResendStagedSymbolPackage(package.Id, package.Version);
         }
         else
         {
             downloadUrl = Url.DownloadStagedPackage(package.Id, package.Version);
             deleteUrl = Url.DeleteStagedPackage(package.Id, package.Version);
             replaceUrl = Url.ReplaceStagedPackage(package.Id, package.Version);
+            promoteUrl = Url.PromoteStagedPackage(package.Id, package.Version);
+            resendUrl = Url.ResendStagedPackage(package.Id, package.Version);
         }
 
         var isParentContinuation = false;
@@ -449,14 +464,15 @@
             package.CanManage,
             package.CanPromote,
             package.CanResend,
+            package.PromotionBlocker,
             package.Listed,
             package.MoveUrl,
             ListedInputId = "staged-listed-" + index,
             DownloadUrl = downloadUrl,
             ReplaceUrl = replaceUrl,
             UpdateListedUrl = Url.UpdateStagedPackageListed(package.Id, package.Version),
-            PromoteUrl = Url.PromoteStagedPackage(package.Id, package.Version),
-            ResendUrl = Url.ResendStagedPackage(package.Id, package.Version),
+            PromoteUrl = promoteUrl,
+            ResendUrl = resendUrl,
             DeleteUrl = deleteUrl,
         };
     }

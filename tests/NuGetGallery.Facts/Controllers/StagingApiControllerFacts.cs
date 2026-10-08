@@ -346,7 +346,7 @@ namespace NuGetGallery
             package.UploadedDate = new DateTime(2026, 9, 2, 12, 0, 0, DateTimeKind.Utc);
             package.StagedPackageIdentity.StagingGroupKey = group.Key;
             package.StagedPackageIdentity.StagingGroup = group;
-            var symbols = new StagedSymbolPackage { Key = 50, StagedPackageIdentity = package.StagedPackageIdentity, Status = symbolStatus, UploadedDate = package.UploadedDate.AddMinutes(-1) };
+            var symbols = new StagedSymbolPackage { Key = 50, StagedPackageIdentity = package.StagedPackageIdentity, SymbolPackage = new SymbolPackage { StatusKey = PackageStatus.Staged }, Status = symbolStatus, UploadedDate = package.UploadedDate.AddMinutes(-1) };
             var target = GetController<StagingApiController>();
             ConfigureCreateGroupRequest(target, currentUser, owner);
             GetMock<IPackageStagingManagementService>()
