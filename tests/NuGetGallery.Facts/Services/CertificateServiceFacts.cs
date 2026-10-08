@@ -477,6 +477,60 @@ namespace NuGetGallery.Services
         }
 
         [Fact]
+        public async Task DeactivateCertificateAsync_WhenCertificateHasLinkedDurableIdentityValue_RemovesAccountLink()
+        {
+            var durableIdentityValue = new DurableIdentityValue { Key = 9, Value = "1.3.6.1.4.1.311.97.1.2.3.4" };
+            var otherDurableIdentityValue = new DurableIdentityValue { Key = 10, Value = "1.3.6.1.4.1.311.97.5.6.7.8" };
+            _certificate.DurableIdentityValueKey = durableIdentityValue.Key;
+            _certificate.DurableIdentityValue = durableIdentityValue;
+            _certificate.UserCertificates.Add(new UserCertificate()
+            {
+                Key = 7,
+                UserKey = _user.Key,
+                User = _user,
+                CertificateKey = _certificate.Key,
+                Certificate = _certificate
+            });
+            _user.UserDurableIdentityValues.Add(new UserDurableIdentityValue
+            {
+                Key = 11,
+                UserKey = _user.Key,
+                User = _user,
+                DurableIdentityValueKey = durableIdentityValue.Key,
+                DurableIdentityValue = durableIdentityValue,
+            });
+            _user.UserDurableIdentityValues.Add(new UserDurableIdentityValue
+            {
+                Key = 12,
+                UserKey = _user.Key,
+                User = _user,
+                DurableIdentityValueKey = otherDurableIdentityValue.Key,
+                DurableIdentityValue = otherDurableIdentityValue,
+            });
+
+            _certificateRepository.Setup(x => x.GetAll())
+                .Returns(new EnumerableQuery<Certificate>(new[] { _certificate }));
+            _entitiesContext.Setup(x => x.DeleteOnCommit(
+                It.Is<UserCertificate>(uc => uc.CertificateKey == _certificate.Key && uc.UserKey == _user.Key)));
+            _entitiesContext.Setup(x => x.DeleteOnCommit(
+                It.Is<UserDurableIdentityValue>(ud => ud.Key == 11)));
+            _entitiesContext.Setup(x => x.SaveChangesAsync())
+                .ReturnsAsync(0);
+            _auditingService.Setup(x => x.SaveAuditRecordAsync(
+                It.Is<CertificateAuditRecord>(record => record.Action == AuditedCertificateAction.Deactivate)))
+                .Returns(Task.CompletedTask);
+            _telemetryService.Setup(x => x.TrackCertificateDeactivated(_sha256Thumbprint, _user));
+
+            var service = GetCertificateService();
+
+            await service.DeactivateCertificateAsync(_sha256Thumbprint, _user);
+
+            _entitiesContext.Verify(x => x.DeleteOnCommit(It.Is<UserDurableIdentityValue>(ud => ud.Key == 11)), Times.Once);
+            _entitiesContext.Verify(x => x.DeleteOnCommit(It.Is<UserDurableIdentityValue>(ud => ud.Key == 12)), Times.Never);
+            VerifyMockExpectations();
+        }
+
+        [Fact]
         public void GetCertificates_WhenAccountIsNull_Throws()
         {
             var service = GetCertificateService();
