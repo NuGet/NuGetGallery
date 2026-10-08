@@ -58,6 +58,7 @@ namespace NuGetGallery
         [InlineData("stale-attempt", PackageStagingPromotionResult.NotReady)]
         [InlineData("published-attempt", PackageStagingPromotionResult.NotReady)]
         [InlineData("grouped", PackageStagingPromotionResult.Grouped)]
+        [InlineData("expired", PackageStagingPromotionResult.NotReady)]
         public async Task KeepsAcceptanceAndApiEligibilityAligned(string blocker, PackageStagingPromotionResult expected)
         {
             var fixture = new Fixture();
@@ -86,6 +87,9 @@ namespace NuGetGallery
                     identity.StagingGroup = new StagingGroup { Key = 10 };
                     identity.StagingGroupKey = identity.StagingGroup.Key;
                     break;
+                case "expired":
+                    fixture.Attempt.ExpirationDate = DateTime.UtcNow;
+                    break;
                 default:
                     throw new InvalidOperationException($"Unknown test blocker '{blocker}'.");
             }
@@ -96,6 +100,13 @@ namespace NuGetGallery
             Assert.Equal(expected, result);
             Assert.False(response.CanPromote);
             Assert.NotEmpty(response.Blockers);
+            if (blocker == "expired")
+            {
+                Assert.Equal("expired", response.Status);
+                Assert.Contains(response.Blockers, item => item.Code == "StagingExpired");
+                Assert.Equal(StagedPackageStatus.Ready, fixture.Attempt.Status);
+            }
+
             Assert.Null(fixture.Attempt.ActivePromotionId);
             fixture.Repository.Verify(x => x.CommitChangesAsync(), Times.Never);
             fixture.Enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
@@ -148,11 +159,14 @@ namespace NuGetGallery
             }
 
             var promotionId = fixture.Attempt.ActivePromotionId;
+            var expirationDate = DateTime.UtcNow.AddDays(-1);
+            fixture.Attempt.ExpirationDate = expirationDate;
             Assert.Equal(StagedPackageStatus.Promoting, fixture.Attempt.Status);
             Assert.True(StagedSymbolPackagePromotionEligibility.CanResend(fixture.Attempt));
             fixture.Enqueuer.Setup(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>())).Returns(Task.CompletedTask);
             Assert.Equal(PackageStagingPromotionResult.Accepted, await fixture.Service.ResendSymbolPackageAsync(fixture.Owner, fixture.Attempt));
             Assert.Equal(promotionId, fixture.Attempt.ActivePromotionId);
+            Assert.Equal(expirationDate, fixture.Attempt.ExpirationDate);
             Assert.False(StagedSymbolPackagePromotionEligibility.CanResend(fixture.Attempt));
             fixture.Enqueuer.Verify(x => x.SendMessageAsync(It.Is<StagingPromotionMessage>(message =>
                 message.PromotionId == promotionId && message.TargetKey == fixture.Attempt.Key && message.TargetType == StagingPromotionTargetType.StagedSymbolPackage)), Times.Exactly(2));

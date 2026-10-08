@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
@@ -24,6 +25,7 @@ namespace NuGetGallery
         private readonly IEntityRepository<SymbolPackage> _symbolPackageRepository;
         private readonly IStagedSymbolPackageValidationMessageEmitter _symbolValidationMessageEmitter;
         private readonly IStagingBlobCleanupService _blobCleanup;
+        private readonly IAppConfiguration _configuration;
 
         public PackageStagingManagementService(
             IPackageStagingAuthorizationService packageStagingAuthorizationService,
@@ -35,7 +37,8 @@ namespace NuGetGallery
             IEntityRepository<StagedPackageIdentity> identityRepository,
             IEntityRepository<SymbolPackage> symbolPackageRepository,
             IStagedSymbolPackageValidationMessageEmitter symbolValidationMessageEmitter,
-            IStagingBlobCleanupService blobCleanup)
+            IStagingBlobCleanupService blobCleanup,
+            IAppConfiguration configuration)
         {
             _packageStagingAuthorizationService = packageStagingAuthorizationService ?? throw new ArgumentNullException(nameof(packageStagingAuthorizationService));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
@@ -47,6 +50,7 @@ namespace NuGetGallery
             _symbolPackageRepository = symbolPackageRepository ?? throw new ArgumentNullException(nameof(symbolPackageRepository));
             _symbolValidationMessageEmitter = symbolValidationMessageEmitter ?? throw new ArgumentNullException(nameof(symbolValidationMessageEmitter));
             _blobCleanup = blobCleanup ?? throw new ArgumentNullException(nameof(blobCleanup));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
         public PackageStagingStatus GetPackageStatus(User currentUser, IEnumerable<Scope> scopes, string id, string version)
@@ -96,7 +100,8 @@ namespace NuGetGallery
             {
                 Id = stagedPackage.StagedPackageIdentity.Package.PackageRegistration.Id,
                 Version = stagedPackage.StagedPackageIdentity.Package.NormalizedVersion,
-                Status = stagedPackage.Status.ToString(),
+                Status = StagingExpirationPolicy.HasExpired(stagedPackage) ? "Expired" : stagedPackage.Status.ToString(),
+                Expires = StagingExpirationPolicy.GetDeadline(stagedPackage).ToUtcIso8601String(),
                 Listed = stagedPackage.StagedPackageIdentity.Package.Listed,
             };
         }
@@ -207,12 +212,19 @@ namespace NuGetGallery
                         return;
                     }
 
+                    if (stagedPackage.Status == StagedPackageStatus.Deleted)
+                    {
+                        deleted = true;
+                        return;
+                    }
+
                     if (group != null)
                     {
                         group.MutationRevision++;
                     }
 
                     _blobCleanup.QueuePackageFiles(stagedPackage.StagedPackageIdentityKey);
+                    StagingExpirationPolicy.RefreshGroup(group, StagingExpirationPolicy.CreateDeadline(_configuration));
                     stagedPackage.Status = StagedPackageStatus.Deleted;
                     stagedPackage.StagedPackageIdentity.Package.Listed = false;
                     await _packageService.UpdatePackageStatusAsync(stagedPackage.StagedPackageIdentity.Package, PackageStatus.Deleted, commitChanges: false);
@@ -309,6 +321,7 @@ namespace NuGetGallery
                 Id = groupId,
                 Name = string.IsNullOrWhiteSpace(name) ? groupId : name.Trim(),
                 CreatedDate = DateTime.UtcNow,
+                ExpirationDate = StagingExpirationPolicy.CreateDeadline(_configuration),
             };
 
             _stagingGroupRepository.InsertOnCommit(group);
@@ -553,6 +566,8 @@ namespace NuGetGallery
             {
                 await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
                 {
+                    StagingExpirationPolicy.EnsureMutable(identity, group);
+                    var deadline = StagingExpirationPolicy.CreateDeadline(_configuration);
                     if (identity.CurrentStagedPackage != null)
                     {
                         identity.CurrentStagedPackage.MutationRevision++;
@@ -566,11 +581,23 @@ namespace NuGetGallery
                     if (identity.StagingGroup != null)
                     {
                         identity.StagingGroup.MutationRevision++;
+                        StagingExpirationPolicy.RefreshGroup(identity.StagingGroup, deadline);
                     }
 
                     if (group != null)
                     {
                         group.MutationRevision++;
+                        StagingExpirationPolicy.RefreshGroup(group, deadline);
+                    }
+
+                    if (identity.CurrentStagedPackage != null)
+                    {
+                        identity.CurrentStagedPackage.ExpirationDate = deadline;
+                    }
+
+                    if (identity.CurrentStagedSymbolPackage != null)
+                    {
+                        identity.CurrentStagedSymbolPackage.ExpirationDate = deadline;
                     }
 
                     identity.StagingGroupKey = group?.Key;
@@ -579,6 +606,11 @@ namespace NuGetGallery
                 });
             }
             catch (DbUpdateConcurrencyException exception)
+            {
+                exception.Log();
+                return StagingGroupMembershipResult.Conflict;
+            }
+            catch (StagingExpiredException exception)
             {
                 exception.Log();
                 return StagingGroupMembershipResult.Conflict;

@@ -64,8 +64,13 @@ namespace NuGetGallery
             }
 
             var isGrouped = package.StagedPackageIdentity.StagingGroupKey.HasValue;
-            var canPromote = package.Status == StagedPackageStatus.Ready && !isGrouped;
+            var isExpired = StagingExpirationPolicy.HasExpired(package);
+            var canPromote = package.Status == StagedPackageStatus.Ready && !isGrouped && !isExpired;
             var blockers = new List<StagingBlockerResponse>();
+            if (isExpired)
+            {
+                blockers.Add(new StagingBlockerResponse("StagingExpired", "The staged package has expired. Delete the expired staging before uploading new content."));
+            }
             if (isGrouped)
             {
                 blockers.Add(new StagingBlockerResponse("PackageGrouped", "The staged package must be promoted with its group."));
@@ -84,7 +89,7 @@ namespace NuGetGallery
                 Group = new StagingGroupReferenceResponse(
                     package.StagedPackageIdentity.StagingGroup.Id,
                     package.StagedPackageIdentity.StagingGroup.Name),
-                Status = GetStatus(package.Status),
+                Status = isExpired ? "expired" : GetStatus(package.Status),
                 Uploaded = package.UploadedDate.ToUtcIso8601String(),
                 // The authoritative validation completion timestamp will be persisted in a later unit.
                 Validated = null,
@@ -112,7 +117,7 @@ namespace NuGetGallery
                 Kind = "symbols",
                 Owner = identity.Owner.Username,
                 Group = identity.StagingGroupKey.HasValue ? new StagingGroupReferenceResponse(identity.StagingGroup.Id, identity.StagingGroup.Name) : null,
-                Status = GetStatus(symbols.Status),
+                Status = StagingExpirationPolicy.HasExpired(symbols) ? "expired" : GetStatus(symbols.Status),
                 Uploaded = symbols.UploadedDate.ToUtcIso8601String(),
                 Validated = null,
                 Expires = expirationDate.ToUtcIso8601String(),

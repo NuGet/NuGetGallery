@@ -560,6 +560,18 @@ namespace NuGetGallery
                 .HasColumnType("datetime2");
 
             modelBuilder.Entity<StagingGroup>()
+                .Property(g => g.ExpirationDate)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<StagedPackage>()
+                .Property(p => p.ExpirationDate)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<StagedSymbolPackage>()
+                .Property(p => p.ExpirationDate)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<StagingGroup>()
                 .Property(g => g.RowVersion)
                 .IsRowVersion();
 

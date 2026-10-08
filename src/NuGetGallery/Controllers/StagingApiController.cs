@@ -26,7 +26,6 @@ namespace NuGetGallery
         private const string MultipartContentType = "multipart/form-data";
         private const int DefaultPageSize = 100;
         private const int MaximumPageSize = 500;
-        private static readonly TimeSpan InitialGroupExpiration = TimeSpan.FromDays(30);
         private readonly IPackageStagingAuthorizationService _packageStagingAuthorizationService;
         private readonly IPackageStagingManagementService _packageStagingManagementService;
         private readonly IPackageStagingUploadService _packageStagingUploadService;
@@ -79,7 +78,7 @@ namespace NuGetGallery
                     var group = result.Group;
                     var response = StagingGroupResponse.FromNewGroup(
                         group,
-                        group.CreatedDate.Add(InitialGroupExpiration),
+                        group.ExpirationDate,
                         Url.ManageStagingGroup(group.Owner.Username, group.Id, relativeUrl: false));
                     Response.StatusCode = (int)HttpStatusCode.Created;
                     return Content(JsonConvert.SerializeObject(response), JsonContentType);
@@ -201,7 +200,7 @@ namespace NuGetGallery
                 .Select(summary => StagingGroupResponse.FromGroup(
                     summary.Group,
                     summary.Packages,
-                    summary.Group.CreatedDate.Add(InitialGroupExpiration),
+                    summary.Group.ExpirationDate,
                     Url.ManageStagingGroup(summary.Group.Owner.Username, summary.Group.Id, relativeUrl: false),
                     summary.Symbols))
                 .ToList();
@@ -238,7 +237,7 @@ namespace NuGetGallery
 
             var group = packagePage.Group;
             var managementUrl = Url.ManageStagingGroup(group.Owner.Username, group.Id, relativeUrl: false);
-            var expirationDate = group.CreatedDate.Add(InitialGroupExpiration);
+            var expirationDate = group.ExpirationDate;
             var artifacts = packagePage.Items
                 .Select(package => new { package.Key, package.UploadedDate, IsSymbol = false, Artifact = StagingArtifactResponse.FromPackage(package, expirationDate, managementUrl) })
                 .Concat(packagePage.Symbols.Select(symbol => new { symbol.Key, symbol.UploadedDate, IsSymbol = true, Artifact = StagingArtifactResponse.FromSymbolPackage(symbol, expirationDate, managementUrl) }))

@@ -28,6 +28,11 @@ namespace NuGet.Services.Entities
         public DateTime CreatedDate { get; set; }
 
         /// <summary>
+        /// Gets or sets the shared expiration deadline for the group's current members.
+        /// </summary>
+        public DateTime ExpirationDate { get; set; } = DateTime.UtcNow.AddDays(30);
+
+        /// <summary>
         /// Advances RowVersion when an edit changes a member without changing this group.
         /// </summary>
         public long MutationRevision { get; set; }

@@ -22,6 +22,7 @@ namespace NuGetGallery.AccountDeleter
         public LuceneIndexLocation LuceneIndexLocation { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string Environment { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string WarningBanner { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public int StagingExpirationDays { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public bool RequireSSL { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public int SSLPort { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         public string[] ForceSslExclusion { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }

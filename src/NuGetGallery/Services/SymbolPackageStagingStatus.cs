@@ -13,5 +13,10 @@ namespace NuGetGallery
         public string Version { get; set; }
 
         public string Status { get; set; }
+
+        /// <summary>
+        /// Gets or sets the effective expiration deadline in UTC ISO 8601 format.
+        /// </summary>
+        public string Expires { get; set; }
     }
 }

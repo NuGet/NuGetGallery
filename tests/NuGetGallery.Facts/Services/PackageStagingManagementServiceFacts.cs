@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Data.SqlClient;
@@ -342,6 +343,7 @@ namespace NuGetGallery
                 var createdDate = new DateTime(2026, 9, 1);
                 var group = CreateStagingGroup(10, "release.1", "Release 1", currentUser);
                 group.CreatedDate = createdDate;
+                var expirationDate = group.ExpirationDate;
                 var stagingGroupRepository = new Mock<IEntityRepository<StagingGroup>>();
                 var target = CreateService(
                     Array.Empty<StagedPackage>(),
@@ -356,6 +358,7 @@ namespace NuGetGallery
                 Assert.Equal("release.1", group.Id);
                 Assert.Same(currentUser, group.Owner);
                 Assert.Equal(createdDate, group.CreatedDate);
+                Assert.Equal(expirationDate, group.ExpirationDate);
                 stagingGroupRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
             }
 
@@ -571,6 +574,7 @@ namespace NuGetGallery
                 Assert.Equal(previous.UploadedBlobPath, waiting.UploadedBlobPath);
                 Assert.Equal(previous.UploadedBlobETag, waiting.UploadedBlobETag);
                 Assert.Equal(previous.UploadedDate, waiting.UploadedDate);
+                Assert.Equal(previous.ExpirationDate, waiting.ExpirationDate);
                 Assert.Equal(group.Key, identity.StagingGroupKey);
                 Assert.Equal(1, group.MutationRevision);
                 symbols.Verify(x => x.DeleteOnCommit(It.IsAny<StagedSymbolPackage>()), Times.Never);
@@ -881,8 +885,13 @@ namespace NuGetGallery
                 var owner = new User("owner") { Key = 1 };
                 var stagedPackage = CreateStagedPackage(10, "Test.Package", "1.0.0", owner);
                 stagedPackage.StagedPackageIdentity.Package.Listed = false;
+                var expirationDate = stagedPackage.ExpirationDate;
+                var group = CreateStagingGroup(20, "release", "Release", owner);
+                var groupExpirationDate = group.ExpirationDate;
                 if (hasSymbols)
                 {
+                    stagedPackage.StagedPackageIdentity.StagingGroup = group;
+                    stagedPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
                     stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackageKey = 50;
                 }
 
@@ -896,6 +905,12 @@ namespace NuGetGallery
 
                 Assert.True(result);
                 Assert.True(stagedPackage.StagedPackageIdentity.Package.Listed);
+                Assert.Equal(expirationDate, stagedPackage.ExpirationDate);
+                if (hasSymbols)
+                {
+                    Assert.Equal(groupExpirationDate, group.ExpirationDate);
+                }
+
                 Assert.Equal(1, stagedPackage.MutationRevision);
                 stagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
             }
@@ -992,11 +1007,15 @@ namespace NuGetGallery
                 blobCleanup.Verify(service => service.QueueSymbolFiles(It.IsAny<int>()), Times.Never);
             }
 
-            [Fact]
-            public async Task DeletingGroupedPackageUpdatesGroupRevision()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task DeletingGroupedPackageUpdatesGroupRevision(bool expired)
             {
                 var owner = new User("owner") { Key = 1 };
                 var group = CreateStagingGroup(20, "release", "Release", owner);
+                var expirationDate = DateTime.UtcNow.AddDays(expired ? -1 : 1);
+                group.ExpirationDate = expirationDate;
                 var stagedPackage = CreateStagedPackage(10, "Test.Package", "1.0.0", owner);
                 stagedPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
                 stagedPackage.StagedPackageIdentity.StagingGroup = group;
@@ -1007,6 +1026,19 @@ namespace NuGetGallery
                 Assert.True(result);
                 Assert.Equal(StagedPackageStatus.Deleted, stagedPackage.Status);
                 Assert.Equal(0, stagedPackage.MutationRevision);
+                Assert.Equal(1, group.MutationRevision);
+                if (expired)
+                {
+                    Assert.Equal(expirationDate, group.ExpirationDate);
+                }
+                else
+                {
+                    Assert.True(group.ExpirationDate > expirationDate);
+                }
+
+                var deadlineAfterDeletion = group.ExpirationDate;
+                Assert.True(await target.DeletePackageAsync(stagedPackage));
+                Assert.Equal(deadlineAfterDeletion, group.ExpirationDate);
                 Assert.Equal(1, group.MutationRevision);
             }
 
@@ -1092,6 +1124,9 @@ namespace NuGetGallery
                 var owner = new User("owner") { Key = 1 };
                 var previousGroup = CreateStagingGroup(10, "previous", "Previous", owner);
                 var targetGroup = CreateStagingGroup(20, "target", "Target", owner);
+                var originalDeadline = DateTime.UtcNow.AddDays(1);
+                previousGroup.ExpirationDate = originalDeadline;
+                targetGroup.ExpirationDate = originalDeadline;
                 var parent = CreateStagedPackage(100, "Test.Package", "1.0.0", owner);
                 var identity = parent.StagedPackageIdentity;
                 identity.StagingGroup = previousGroup;
@@ -1110,6 +1145,8 @@ namespace NuGetGallery
 
                 Assert.Equal(StagingGroupMembershipResult.Updated, await target.MovePackageIdentityAsync(owner, identity, targetGroup));
                 Assert.Same(targetGroup, identity.StagingGroup);
+                Assert.True(previousGroup.ExpirationDate > originalDeadline);
+                Assert.Equal(previousGroup.ExpirationDate, targetGroup.ExpirationDate);
                 Assert.Equal(1, previousGroup.MutationRevision);
                 Assert.Equal(1, targetGroup.MutationRevision);
                 Assert.Equal(stagedParent ? 1 : 0, parent.MutationRevision);
@@ -1120,6 +1157,11 @@ namespace NuGetGallery
                 Assert.Equal(StagingGroupMembershipResult.Updated, await target.MovePackageIdentityAsync(owner, identity, group: null));
                 Assert.Null(identity.StagingGroupKey);
                 Assert.Null(identity.StagingGroup);
+                Assert.Equal(targetGroup.ExpirationDate, symbols.ExpirationDate);
+                if (stagedParent)
+                {
+                    Assert.Equal(targetGroup.ExpirationDate, parent.ExpirationDate);
+                }
                 Assert.Equal(2, targetGroup.MutationRevision);
                 Assert.Equal(2, symbols.MutationRevision);
                 Assert.Equal(symbols.Key, identity.CurrentStagedSymbolPackageKey);
@@ -1256,6 +1298,95 @@ namespace NuGetGallery
                 Assert.Equal(parentStatus == PackageStatus.Available, page.AllPackagesReady);
             }
 
+            [Theory]
+            [InlineData(1)]
+            [InlineData(14)]
+            [InlineData(365)]
+            public async Task CreatesConfiguredExpirationDeadline(int expirationDays)
+            {
+                var owner = new User("owner") { Key = 1 };
+                var configuration = new Configuration.AppConfiguration { StagingExpirationDays = expirationDays };
+                var validationContext = new ValidationContext(configuration) { MemberName = nameof(Configuration.AppConfiguration.StagingExpirationDays) };
+                Validator.ValidateProperty(expirationDays, validationContext);
+                var target = CreateService(Array.Empty<StagedPackage>(), user => true, configuration: configuration);
+                var earliestDeadline = DateTime.UtcNow.AddDays(expirationDays);
+
+                var result = await target.CreateStagingGroupAsync(owner, "release", "Release");
+
+                Assert.Equal(CreateStagingGroupResultType.Created, result.Type);
+                Assert.InRange(result.Group.ExpirationDate, earliestDeadline, DateTime.UtcNow.AddDays(expirationDays));
+            }
+
+            [Theory]
+            [InlineData(0)]
+            [InlineData(366)]
+            [InlineData(int.MaxValue)]
+            public async Task RejectsInvalidExpirationConfigurationBeforeCreatingGroup(int expirationDays)
+            {
+                var owner = new User("owner") { Key = 1 };
+                var configuration = new Configuration.AppConfiguration { StagingExpirationDays = expirationDays };
+                var validationContext = new ValidationContext(configuration) { MemberName = nameof(Configuration.AppConfiguration.StagingExpirationDays) };
+                Assert.Throws<ValidationException>(() => Validator.ValidateProperty(expirationDays, validationContext));
+                var repository = new Mock<IEntityRepository<StagingGroup>>();
+                var target = CreateService(Array.Empty<StagedPackage>(), user => true, stagingGroupRepository: repository, configuration: configuration);
+
+                var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => target.CreateStagingGroupAsync(owner, "release", "Release"));
+
+                Assert.Equal("StagingExpirationDays must be between 1 and 365.", exception.Message);
+                repository.Verify(x => x.InsertOnCommit(It.IsAny<StagingGroup>()), Times.Never);
+                repository.Verify(x => x.CommitChangesAsync(), Times.Never);
+            }
+
+            [Theory]
+            [InlineData(true, false, false)]
+            [InlineData(false, true, false)]
+            [InlineData(false, false, true)]
+            public async Task RejectsExpiredSourceDestinationOrUngroupedArtifact(bool sourceExpired, bool destinationExpired, bool artifactExpired)
+            {
+                var owner = new User("owner") { Key = 1 };
+                var parent = CreateStagedPackage(100, "Test.Package", "1.0.0", owner);
+                parent.ExpirationDate = DateTime.UtcNow.AddDays(artifactExpired ? -1 : 1);
+                var source = sourceExpired ? CreateStagingGroup(10, "source", "Source", owner) : null;
+                if (source != null)
+                {
+                    source.ExpirationDate = DateTime.UtcNow;
+                }
+
+                parent.StagedPackageIdentity.StagingGroup = source;
+                parent.StagedPackageIdentity.StagingGroupKey = source?.Key;
+                var destination = CreateStagingGroup(20, "destination", "Destination", owner);
+                destination.ExpirationDate = DateTime.UtcNow.AddDays(destinationExpired ? -1 : 1);
+                var deadline = destination.ExpirationDate;
+                var repository = new Mock<IEntityRepository<StagedPackage>>();
+                var target = CreateService(new[] { parent }, user => true, stagedPackageRepository: repository);
+
+                Assert.Equal(StagingGroupMembershipResult.Conflict, await target.MovePackageIdentityAsync(owner, parent.StagedPackageIdentity, destination));
+
+                Assert.Same(source, parent.StagedPackageIdentity.StagingGroup);
+                Assert.Equal(deadline, destination.ExpirationDate);
+                repository.Verify(x => x.CommitChangesAsync(), Times.Never);
+            }
+
+            [Fact]
+            public async Task RechecksExpirationInsideMembershipTransaction()
+            {
+                var owner = new User("owner") { Key = 1 };
+                var parent = CreateStagedPackage(100, "Test.Package", "1.0.0", owner);
+                var destination = CreateStagingGroup(20, "destination", "Destination", owner);
+                var repository = new Mock<IEntityRepository<StagedPackage>>();
+                var target = CreateService(new[] { parent }, user => true, stagedPackageRepository: repository);
+                repository.Setup(x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task>>())).Returns<Func<Task>>(action =>
+                {
+                    parent.ExpirationDate = DateTime.UtcNow;
+                    return action();
+                });
+
+                Assert.Equal(StagingGroupMembershipResult.Conflict, await target.MovePackageIdentityAsync(owner, parent.StagedPackageIdentity, destination));
+
+                Assert.Null(parent.StagedPackageIdentity.StagingGroup);
+                repository.Verify(x => x.CommitChangesAsync(), Times.Never);
+            }
+
             private static PackageStagingManagementService CreateService(
                 IEnumerable<StagedPackage> stagedPackages,
                 Func<User, bool> isEnabled,
@@ -1271,7 +1402,8 @@ namespace NuGetGallery
                 Mock<IEntityRepository<StagedPackageIdentity>> identityRepository = null,
                 Mock<IEntityRepository<SymbolPackage>> symbolRepository = null,
                 IStagedSymbolPackageValidationMessageEmitter symbolValidationMessageEmitter = null,
-                IStagingBlobCleanupService blobCleanup = null)
+                IStagingBlobCleanupService blobCleanup = null,
+                Configuration.IAppConfiguration configuration = null)
             {
                 var stagedPackagesList = stagedPackages.ToList();
                 var stagedPackagesQuery = stagedPackagesList.AsQueryable();
@@ -1341,7 +1473,8 @@ namespace NuGetGallery
                     (identityRepository ?? new Mock<IEntityRepository<StagedPackageIdentity>>()).Object,
                     (symbolRepository ?? new Mock<IEntityRepository<SymbolPackage>>()).Object,
                     symbolValidationMessageEmitter ?? Mock.Of<IStagedSymbolPackageValidationMessageEmitter>(),
-                    blobCleanup ?? Mock.Of<IStagingBlobCleanupService>());
+                    blobCleanup ?? Mock.Of<IStagingBlobCleanupService>(),
+                    configuration ?? new Configuration.AppConfiguration());
             }
 
             private static StagingGroup CreateStagingGroup(int key, string id, string name, User owner)

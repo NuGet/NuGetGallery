@@ -98,6 +98,10 @@
             }
 
             <div class="staging-group-summary">
+                @if (Model.ExpirationDate.HasValue)
+                {
+                    <span class="text-muted">Expires @Model.ExpirationDate.Value.ToString("MMM d, yyyy HH:mm 'UTC'")</span>
+                }
                 @if (Model.ReadyCount > 0)
                 {
                     <span class="label staging-status staging-status-ready">@Model.ReadyCount ready</span>
@@ -109,6 +113,10 @@
                 @if (Model.WaitingForParentCount > 0)
                 {
                     <span class="label label-warning">@Model.WaitingForParentCount waiting for parent</span>
+                }
+                @if (Model.IsExpired)
+                {
+                    @ViewHelpers.AlertWarning(@<text>Expired - awaiting cleanup. This group can no longer be promoted or have its content or membership changed. You can delete it now.</text>)
                 }
                 @if (Model.PromotingCount > 0)
                 {
@@ -248,6 +256,7 @@
                                             </button>
                                             <!-- /ko -->
                                         </div>
+                                        <div class="small text-muted" data-bind="text: 'Expires ' + ExpirationDate"></div>
                                         <div class="small text-muted" data-bind="visible: PromotionBlocker, text: PromotionBlocker"></div>
                                     </td>
                                     <td class="align-middle staging-package-listed">
@@ -313,7 +322,7 @@
                                                     <a data-bind="attr: { href: MoveUrl }">Move</a>
                                                 </li>
                                                 <!-- /ko -->
-                                                <li data-bind="visible: !IsBusy()">
+                                                <li data-bind="visible: !IsBusy() && !IsExpired">
                                                     <a href="#"
                                                        class="staging-replace-trigger"
                                                        data-bind="click: ChooseReplacement">Replace&hellip;</a>
@@ -459,6 +468,8 @@
             Status = GetStagedPackageStatus(package.Status),
             package.StatusClass,
             UploadedDate = package.UploadedDate.ToNuGetShortDateString(),
+            ExpirationDate = package.ExpirationDate.ToString("MMM d, yyyy HH:mm 'UTC'"),
+            package.IsExpired,
             HasValidationIssues = package.ValidationIssues.Count > 0,
             ValidationIssuesId = GetStagedValidationIssuesId(index),
             package.CanManage,
