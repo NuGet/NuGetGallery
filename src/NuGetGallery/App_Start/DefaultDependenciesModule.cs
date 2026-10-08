@@ -1040,10 +1040,9 @@ namespace NuGetGallery
                 .As<IBrokeredMessageSerializer<StagingPromotionMessage>>();
 
             builder
-                .RegisterType<StagingPromotionMessageEnqueuer>()
-                .WithParameter(new ResolvedParameter(
-                    (parameter, context) => parameter.ParameterType == typeof(ITopicClient),
-                    (parameter, context) => context.ResolveKeyed<ITopicClient>(BindingKeys.StagingPromotionTopic)))
+                .Register(c => new StagingPromotionMessageEnqueuer(
+                    c.ResolveKeyed<Lazy<ITopicClient>>(BindingKeys.StagingPromotionTopic),
+                    c.Resolve<IBrokeredMessageSerializer<StagingPromotionMessage>>()))
                 .As<IStagingPromotionMessageEnqueuer>();
         }
 

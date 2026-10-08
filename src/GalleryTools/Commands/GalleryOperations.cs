@@ -110,14 +110,15 @@ namespace GalleryTools.Commands
         /// <summary>
         /// Creates an API key credential and returns the plaintext key.
         /// Does NOT call SaveChangesAsync — caller should batch saves.
+        /// Optional subjects restrict the key to matching package IDs.
         /// </summary>
-        public string CreateApiKey(User user, string description, string[] scopeActions, User scopeOwner)
+        public string CreateApiKey(User user, string description, string[] scopeActions, User scopeOwner, string[] subjects = null)
         {
             var credential = _credentialBuilder.CreateApiKey(expiration: null, out string plaintextApiKey);
             credential.Description = description;
             credential.User = user;
             credential.UserKey = user.Key;
-            credential.Scopes = _credentialBuilder.BuildScopes(scopeOwner, scopeActions, subjects: null);
+            credential.Scopes = _credentialBuilder.BuildScopes(scopeOwner, scopeActions, subjects);
 
             user.Credentials.Add(credential);
 

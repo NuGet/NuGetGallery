@@ -12,7 +12,19 @@ namespace NuGetGallery.FunctionalTests
 {
     public class GalleryConfiguration
     {
-        public static GalleryConfiguration Instance;
+        private static readonly object InitializationLock = new object();
+        private static GalleryConfiguration _instance;
+
+        public static GalleryConfiguration Instance
+        {
+            get
+            {
+                lock (InitializationLock)
+                {
+                    return _instance ?? (_instance = Load(EnvironmentSettings.ConfigurationFilePath));
+                }
+            }
+        }
 
         public string GalleryBaseUrl => "staging".Equals(Slot, StringComparison.OrdinalIgnoreCase) ? StagingBaseUrl : ProductionBaseUrl;
 
@@ -24,6 +36,10 @@ namespace NuGetGallery.FunctionalTests
         public AccountConfiguration Account { get; set; }
         public OrganizationConfiguration AdminOrganization { get; set; }
         public OrganizationConfiguration CollaboratorOrganization { get; set; }
+        public AccountConfiguration OrganizationAdminAccount { get; set; }
+        public OrganizationConfiguration StagingQuotaOrganization { get; set; }
+        public OrganizationConfiguration StagingRestrictedOrganization { get; set; }
+        public string StagingDatabaseConnectionString { get; set; }
         public BrandingConfiguration Branding { get; set; }
         public bool TyposquattingCheckAndBlockUsers { get; set; }
         public bool HasSearchService { get; set; } = true;
@@ -32,7 +48,25 @@ namespace NuGetGallery.FunctionalTests
 
         public AdminApiConfiguration AdminApi { get; set; }
 
-        static GalleryConfiguration()
+        public static GalleryConfiguration Initialize(string configurationFilePath)
+        {
+            lock (InitializationLock)
+            {
+                var previous = _instance;
+                _instance = Load(configurationFilePath);
+                return previous;
+            }
+        }
+
+        public static void Restore(GalleryConfiguration instance)
+        {
+            lock (InitializationLock)
+            {
+                _instance = instance;
+            }
+        }
+
+        private static GalleryConfiguration Load(string configurationFilePath)
         {
             try
             {
@@ -41,7 +75,7 @@ namespace NuGetGallery.FunctionalTests
 
                 // Load the configuration without injection. This allows us to read KeyVault configuration.
                 var uninjectedBuilder = new ConfigurationBuilder()
-                    .AddJsonFile(EnvironmentSettings.ConfigurationFilePath, optional: false);
+                    .AddJsonFile(configurationFilePath, optional: false);
                 var uninjectedConfiguration = uninjectedBuilder.Build();
 
                 // Initialize KeyVault integration.
@@ -52,11 +86,11 @@ namespace NuGetGallery.FunctionalTests
                 // Initialize the configuration with KeyVault secrets injected.
                 var builder = new ConfigurationBuilder()
                     .SetBasePath(Environment.CurrentDirectory)
-                    .AddInjectedJsonFile(EnvironmentSettings.ConfigurationFilePath, secretInjector);
+                    .AddInjectedJsonFile(configurationFilePath, secretInjector);
                 var instance = new GalleryConfiguration();
                 builder.Build().Bind(instance);
 
-                Instance = instance;
+                return instance;
             }
             catch (ArgumentException ae)
             {
@@ -81,12 +115,16 @@ namespace NuGetGallery.FunctionalTests
             public string ApiKeyPush { get; set; }
             public string ApiKeyPushVersion { get; set; }
             public string ApiKeyUnlist { get; set; }
+
+            public string ApiKeyStagePattern { get; set; }
         }
 
         public class OrganizationConfiguration
         {
             public string Name { get; set; }
             public string ApiKey { get; set; }
+
+            public string ApiKeyStage { get; set; }
         }
 
         public class BrandingConfiguration

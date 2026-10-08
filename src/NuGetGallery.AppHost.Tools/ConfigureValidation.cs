@@ -78,6 +78,7 @@ static class ConfigureValidationTool
 
 		SetJsonValue(root, "ServiceBus", "ConnectionString", serviceBusHostName);
 		SetJsonValue(root, "PackageValidationServiceBus", "ConnectionString", serviceBusHostName);
+		SetJsonValue(root, "Email", "ServiceBus", "ConnectionString", serviceBusHostName);
 		File.WriteAllText(path, root.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
 	}
 

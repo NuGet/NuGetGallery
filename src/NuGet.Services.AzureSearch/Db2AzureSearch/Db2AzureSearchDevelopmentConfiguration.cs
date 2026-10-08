@@ -17,6 +17,12 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         public bool ReplaceContainersAndIndexes { get; set; }
 
         /// <summary>
+        /// If true, reuses existing containers and indexes and refreshes indexed data and auxiliary files.
+        /// This should be false in production and cannot be combined with ReplaceContainersAndIndexes.
+        /// </summary>
+        public bool ReuseContainersAndIndexes { get; set; }
+
+        /// <summary>
         /// Db2AzureSearch skips packages whose ID start with these prefixes.
         /// This is case insensitive. This should be empty on production environments.
         /// </summary>

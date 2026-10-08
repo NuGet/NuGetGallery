@@ -343,17 +343,25 @@ namespace NuGetGallery.FunctionalTests.AdminApi
             [Category("AdminApiTests")]
             public async Task SoftDeletesExistingPackage()
             {
-                var config = GalleryConfiguration.Instance.AdminApi;
+                var packageId = $"AdminApiTest.SoftDelete.{Guid.NewGuid():N}";
+                const string packageVersion = "1.0.0";
+                var packageCreationHelper = new PackageCreationHelper(TestOutputHelper);
+                var commandlineHelper = new CommandlineHelper(TestOutputHelper);
+                var packagePath = await packageCreationHelper.CreatePackage(packageId, packageVersion);
+                var uploadResult = await commandlineHelper.UploadPackageAsync(packagePath, UrlHelper.V2FeedPushSourceUrl);
+                Assert.True(
+                    uploadResult.ExitCode == 0,
+                    $"Push failed with exit code {uploadResult.ExitCode}{Environment.NewLine}{uploadResult.StandardError}");
 
                 // Verify the package exists before deletion
-                var packageUrl = $"{UrlHelper.V2FeedRootUrl}Packages(Id='{config.SoftDeletePackageId}',Version='{config.SoftDeletePackageVersion}')?hijack=false";
+                var packageUrl = $"{UrlHelper.V2FeedRootUrl}Packages(Id='{packageId}',Version='{packageVersion}')?hijack=false";
                 var beforeResponse = await _httpClient.GetAsync(packageUrl);
                 TestOutputHelper.WriteLine($"Before delete: {(int)beforeResponse.StatusCode} for {packageUrl}");
                 Assert.Equal(HttpStatusCode.OK, beforeResponse.StatusCode);
 
                 var body = JsonConvert.SerializeObject(new
                 {
-                    packages = new[] { new { id = config.SoftDeletePackageId, version = config.SoftDeletePackageVersion } },
+                    packages = new[] { new { id = packageId, version = packageVersion } },
                     reason = "Functional test soft-delete"
                 });
 
