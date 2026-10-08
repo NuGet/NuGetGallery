@@ -35,6 +35,8 @@ namespace NuGetGallery
 
         public bool CanPromote { get; set; }
 
+        public bool ReplacesPublishedSymbols { get; set; }
+
         public bool CanResend { get; set; }
 
         public string PromotionBlocker { get; set; }
