@@ -35,6 +35,26 @@ namespace NuGetGallery
             Assert.Same(context.Attempt, Assert.Single(context.Target.GetStagedSymbolPackages(context.Owner)));
         }
 
+        [Theory]
+        [InlineData(StagedPackageStatus.Promoting, true)]
+        [InlineData(StagedPackageStatus.Succeeded, true)]
+        [InlineData(StagedPackageStatus.Succeeded, false)]
+        public void KeepsPublishedGroupSymbolsVisibleUntilGroupCleanup(StagedPackageStatus status, bool grouped)
+        {
+            var context = new TestContext();
+            context.Attempt.Status = status;
+            context.Attempt.SymbolPackage.StatusKey = PackageStatus.Available;
+            if (grouped)
+            {
+                context.Attempt.StagedPackageIdentity.StagingGroupKey = 7;
+                context.Attempt.StagedPackageIdentity.StagingGroup = new StagingGroup { Key = 7, ActivePromotionId = Guid.NewGuid() };
+                Assert.Same(context.Attempt, Assert.Single(context.Target.GetStagedSymbolPackages(context.Owner)));
+                context.Attempt.StagedPackageIdentity.CurrentStagedSymbolPackageKey = null;
+            }
+
+            Assert.Empty(context.Target.GetStagedSymbolPackages(context.Owner));
+        }
+
         [Fact]
         public async Task DownloadsExactUploadedSymbolContent()
         {

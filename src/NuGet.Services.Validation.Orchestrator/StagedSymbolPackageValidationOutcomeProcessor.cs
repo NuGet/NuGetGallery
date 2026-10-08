@@ -83,6 +83,12 @@ namespace NuGet.Services.Validation.Orchestrator
                 return;
             }
 
+            if (attempt.StagedPackageIdentity.StagingGroupKey.HasValue && attempt.SymbolPackage.StatusKey == PackageStatus.Available)
+            {
+                await CompleteValidationSetAsync(validationSet, attempt, promotionId);
+                return;
+            }
+
             if (!_configuration.EnableStagedSymbolPromotion)
             {
                 throw new NotSupportedException("Staged symbol promotion is not enabled.");
@@ -135,8 +141,14 @@ namespace NuGet.Services.Validation.Orchestrator
         {
             validationSet.ValidationSetStatus = ValidationSetStatus.Completed;
             await _storage.UpdateValidationSetAsync(validationSet);
+            var succeeded = attempt.Status == StagedPackageStatus.Succeeded;
+            if (attempt.StagedPackageIdentity.StagingGroupKey.HasValue && attempt.SymbolPackage.StatusKey == PackageStatus.Available)
+            {
+                succeeded = true;
+            }
+
             _telemetry.TrackTotalValidationDuration(validationSet.PackageId, validationSet.PackageNormalizedVersion,
-                validationSet.ValidationTrackingId, DateTime.UtcNow - validationSet.Created, attempt.Status == StagedPackageStatus.Succeeded);
+                validationSet.ValidationTrackingId, DateTime.UtcNow - validationSet.Created, succeeded);
             await CleanUpAsync(validationSet, attempt.Key, promotionId);
         }
 

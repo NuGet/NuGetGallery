@@ -19,10 +19,17 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 {
     public class SymbolPackagePromotionValidationFacts
     {
-        [Fact]
-        public async Task CreatesOnlyIngestionUsingImmutableSourceAndStagedAttemptKey()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task CreatesOnlyIngestionUsingImmutableSourceAndStagedAttemptKey(bool grouped)
         {
             var fixture = new Fixture();
+            if (grouped)
+            {
+                fixture.Attempt.StagedPackageIdentity.StagingGroupKey = 7;
+                fixture.Attempt.StagedPackageIdentity.StagingGroup = new StagingGroup { Key = 7, ActivePromotionId = fixture.Attempt.ActivePromotionId };
+            }
 
             var set = await fixture.CreateSetAsync();
 
@@ -87,6 +94,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         [InlineData("superseded")]
         [InlineData("unaccepted")]
         [InlineData("ready")]
+        [InlineData("inactive-group")]
         public async Task NoSetIsCreatedForInactiveAttempt(string scenario)
         {
             var fixture = new Fixture();
@@ -103,6 +111,10 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     break;
                 case "ready":
                     fixture.Attempt.Status = StagedPackageStatus.Ready;
+                    break;
+                case "inactive-group":
+                    fixture.Attempt.StagedPackageIdentity.StagingGroupKey = 7;
+                    fixture.Attempt.StagedPackageIdentity.StagingGroup = new StagingGroup { Key = 7, ActivePromotionId = Guid.NewGuid() };
                     break;
             }
 

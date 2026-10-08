@@ -55,7 +55,7 @@ namespace NuGetGallery
             IReadOnlyCollection<StagedPackage> packages,
             DateTime expirationDate,
             string managementUrl,
-            int symbolCount = 0)
+            IReadOnlyCollection<StagedSymbolPackage> symbols = null)
         {
             if (group == null)
             {
@@ -67,7 +67,23 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(packages));
             }
 
-            return FromGroup(group, packages.Count + symbolCount, packages.All(package => package.Status == StagedPackageStatus.Ready), expirationDate, managementUrl, symbolCount);
+            symbols = symbols ?? Array.Empty<StagedSymbolPackage>();
+            var allReady = packages.All(package => package.Status == StagedPackageStatus.Ready);
+            if (allReady)
+            {
+                foreach (var symbol in symbols)
+                {
+                    var parent = packages.SingleOrDefault(package => package.StagedPackageIdentityKey == symbol.StagedPackageIdentityKey);
+                    var blockers = StagedSymbolPackagePromotionEligibility.GetBlockers(symbol, parent, forGroup: true);
+                    if (blockers.Count > 0)
+                    {
+                        allReady = false;
+                        break;
+                    }
+                }
+            }
+
+            return FromGroup(group, packages.Count + symbols.Count, allReady, expirationDate, managementUrl, symbols.Count);
         }
 
         public static StagingGroupResponse FromGroup(
@@ -93,7 +109,7 @@ namespace NuGetGallery
                 throw new ArgumentOutOfRangeException(nameof(symbolCount));
             }
 
-            var canPromote = itemCount > 0 && allPackagesReady && symbolCount == 0 && !group.ActivePromotionId.HasValue;
+            var canPromote = itemCount > 0 && allPackagesReady && !group.ActivePromotionId.HasValue;
             IReadOnlyList<StagingBlockerResponse> blockers = Array.Empty<StagingBlockerResponse>();
             if (group.ActivePromotionId.HasValue)
             {
@@ -106,21 +122,14 @@ namespace NuGetGallery
             {
                 blockers = new[]
                 {
-                    new StagingBlockerResponse("GroupEmpty", "The staging group does not contain any packages."),
-                };
-            }
-            else if (symbolCount > 0)
-            {
-                blockers = new[]
-                {
-                    new StagingBlockerResponse("SymbolPromotionUnavailable", "Groups containing staged symbols cannot be promoted yet."),
+                    new StagingBlockerResponse("GroupEmpty", "The staging group does not contain any packages or symbols."),
                 };
             }
             else if (!canPromote)
             {
                 blockers = new[]
                 {
-                    new StagingBlockerResponse("GroupNotReady", "One or more packages in the staging group are not ready."),
+                    new StagingBlockerResponse("GroupNotReady", "One or more packages or symbols in the staging group are not ready or eligible."),
                 };
             }
 

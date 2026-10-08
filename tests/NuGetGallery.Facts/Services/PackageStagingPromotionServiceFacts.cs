@@ -513,27 +513,77 @@ namespace NuGetGallery
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public async Task DoesNotPromoteGroupsContainingSymbols(bool hasStagedParent)
+        public async Task AcceptsReadySymbolsWithTheirStagedOrPublishedParent(bool hasStagedParent)
         {
             var group = CreateStagingGroup();
             var parent = CreateStagedPackage(StagedPackageStatus.Ready, group: group);
-            var symbols = new StagedSymbolPackage
+            var symbols = CreateStagedSymbols(parent);
+            if (!hasStagedParent)
             {
-                Key = 50,
-                StagedPackageIdentity = parent.StagedPackageIdentity,
-                SymbolPackage = new SymbolPackage { StatusKey = PackageStatus.Staged },
-                Status = StagedPackageStatus.Ready,
-            };
-            parent.StagedPackageIdentity.CurrentStagedSymbolPackageKey = symbols.Key;
+                parent.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Available;
+                parent.StagedPackageIdentity.CurrentStagedPackageKey = null;
+                parent.StagedPackageIdentity.CurrentStagedPackage = null;
+            }
+
             var repository = new Mock<IEntityRepository<StagedPackage>>();
             repository.Setup(x => x.GetAll()).Returns((hasStagedParent ? new[] { parent } : Array.Empty<StagedPackage>()).AsQueryable());
+            var committed = new TaskCompletionSource<bool>();
+            repository.Setup(x => x.CommitChangesAsync()).Callback(() =>
+            {
+                Assert.Equal(StagedPackageStatus.Promoting, symbols.Status);
+                Assert.Equal(group.ActivePromotionId, symbols.ActivePromotionId);
+            }).Returns(committed.Task);
             var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
             var target = CreateService(repository, enqueuer, stagedSymbols: new[] { symbols });
 
+            var promotion = target.PromoteGroupAsync(group.Owner, group);
+            enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
+            committed.SetResult(true);
+            var result = await promotion;
+
+            Assert.Equal(StagingGroupPromotionResult.Accepted, result);
+            Assert.NotNull(group.ActivePromotionId);
+            Assert.Null(symbols.PromotionMessageSentDate);
+            if (hasStagedParent)
+            {
+                Assert.Equal(StagedPackageStatus.Promoting, parent.Status);
+                Assert.Equal(group.ActivePromotionId, parent.ActivePromotionId);
+            }
+
+            enqueuer.Verify(x => x.SendMessageAsync(It.Is<StagingPromotionMessage>(message =>
+                message.TargetType == StagingPromotionTargetType.StagingGroup && message.TargetKey == group.Key && message.PromotionId == group.ActivePromotionId)), Times.Once);
+        }
+
+        [Theory]
+        [InlineData("failed-promotion")]
+        [InlineData("unauthorized")]
+        [InlineData("deleted-parent")]
+        public async Task RejectsTheWholeGroupWhenSymbolsAreBlocked(string blocker)
+        {
+            var group = CreateStagingGroup();
+            var parent = CreateStagedPackage(StagedPackageStatus.Ready, group: group);
+            var symbols = CreateStagedSymbols(parent);
+            if (blocker == "failed-promotion")
+            {
+                symbols.Status = StagedPackageStatus.PromotionFailed;
+            }
+            else if (blocker == "deleted-parent")
+            {
+                parent.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Deleted;
+            }
+
+            var repository = new Mock<IEntityRepository<StagedPackage>>();
+            repository.Setup(x => x.GetAll()).Returns(new[] { parent }.AsQueryable());
+            var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
+            var target = CreateService(repository, enqueuer, stagedSymbols: new[] { symbols }, authorizedSymbols: blocker != "unauthorized");
+
             var result = await target.PromoteGroupAsync(group.Owner, group);
 
-            Assert.Equal(StagingGroupPromotionResult.SymbolsNotSupported, result);
+            Assert.Equal(blocker == "unauthorized" ? StagingGroupPromotionResult.Unauthorized : StagingGroupPromotionResult.NotReady, result);
             Assert.Null(group.ActivePromotionId);
+            Assert.Null(parent.ActivePromotionId);
+            Assert.Null(symbols.ActivePromotionId);
+            Assert.Equal(StagedPackageStatus.Ready, parent.Status);
             repository.Verify(x => x.CommitChangesAsync(), Times.Never);
             enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
         }

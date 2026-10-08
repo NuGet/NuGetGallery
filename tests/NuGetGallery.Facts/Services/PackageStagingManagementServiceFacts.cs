@@ -65,8 +65,10 @@ namespace NuGetGallery
                 Assert.Same(currentAttempt, Assert.Single(result));
             }
 
-            [Fact]
-            public void ShowsOnlyRemainingStagedMembersDuringGroupPromotion()
+            [Theory]
+            [InlineData(StagedPackageStatus.Promoting)]
+            [InlineData(StagedPackageStatus.Succeeded)]
+            public void ShowsRetainedSucceededMembersUntilGroupCleanup(StagedPackageStatus symbolStatus)
             {
                 var owner = new User("owner") { Key = 1 };
                 var group = CreateStagingGroup(10, "release", "Release", owner);
@@ -79,14 +81,36 @@ namespace NuGetGallery
                 succeeded.ActivePromotionId = group.ActivePromotionId;
                 succeeded.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Available;
                 succeeded.StagedPackageIdentity.StagingGroupKey = group.Key;
-                var target = CreateService(new[] { promoting, succeeded }, user => true, stagingGroups: new[] { group });
+                var symbols = new StagedSymbolPackage
+                {
+                    Key = 102,
+                    ActivePromotionId = group.ActivePromotionId,
+                    Status = symbolStatus,
+                    StagedPackageIdentity = succeeded.StagedPackageIdentity,
+                    SymbolPackage = new SymbolPackage { StatusKey = PackageStatus.Available },
+                };
+                succeeded.StagedPackageIdentity.CurrentStagedSymbolPackageKey = symbols.Key;
+                var target = CreateService(new[] { promoting, succeeded }, user => true, stagingGroups: new[] { group }, stagedSymbols: new[] { symbols });
+
+                Assert.Equal(new[] { promoting, succeeded }, target.GetStagedPackages(owner));
+                var summary = Assert.Single(target.GetStagingGroupSummaries(owner));
+                Assert.Equal(new[] { promoting, succeeded }, summary.Packages);
+                Assert.Same(symbols, Assert.Single(summary.Symbols));
+                var pagedSummary = Assert.Single(target.GetStagingGroupSummaryPage(owner, 1, 1).Items);
+                Assert.Equal(new[] { promoting, succeeded }, pagedSummary.Packages);
+                Assert.Same(symbols, Assert.Single(pagedSummary.Symbols));
+                var page = target.GetStagingGroupPackagePage(owner, group.Id, page: 1, pageSize: 10);
+                Assert.Equal(2, page.Items.Count);
+                Assert.Contains(succeeded, page.Items);
+                Assert.Same(symbols, Assert.Single(page.Symbols));
+                Assert.Equal(3, page.TotalCount);
+                Assert.False(page.AllPackagesReady);
+
+                succeeded.StagedPackageIdentity.CurrentStagedPackageKey = null;
+                succeeded.StagedPackageIdentity.CurrentStagedSymbolPackageKey = null;
 
                 Assert.Same(promoting, Assert.Single(target.GetStagedPackages(owner)));
-                Assert.Same(promoting, Assert.Single(Assert.Single(target.GetStagingGroupSummaries(owner)).Packages));
-                Assert.Same(promoting, Assert.Single(Assert.Single(target.GetStagingGroupSummaryPage(owner, 1, 1).Items).Packages));
-                var page = target.GetStagingGroupPackagePage(owner, group.Id, page: 1, pageSize: 10);
-                Assert.Same(promoting, Assert.Single(page.Items));
-                Assert.Equal(1, page.TotalCount);
+                Assert.Equal(1, target.GetStagingGroupPackagePage(owner, group.Id, page: 1, pageSize: 10).TotalCount);
             }
 
             [Fact]
@@ -1154,8 +1178,10 @@ namespace NuGetGallery
                 }
             }
 
-            [Fact]
-            public void PaginatesMixedArtifactsWithoutLosingMatchingKeys()
+            [Theory]
+            [InlineData(StagedPackageStatus.FailedValidation)]
+            [InlineData(StagedPackageStatus.Ready)]
+            public void PaginatesMixedArtifactsWithoutLosingMatchingKeys(StagedPackageStatus symbolStatus)
             {
                 var owner = new User("owner") { Key = 1 };
                 var group = CreateStagingGroup(10, "release", "Release", owner);
@@ -1169,7 +1195,7 @@ namespace NuGetGallery
                     UploadedDate = parent.UploadedDate,
                     StagedPackageIdentity = parent.StagedPackageIdentity,
                     SymbolPackage = new SymbolPackage { StatusKey = PackageStatus.Staged },
-                    Status = StagedPackageStatus.FailedValidation,
+                    Status = symbolStatus,
                 };
                 parent.StagedPackageIdentity.CurrentStagedSymbolPackageKey = symbols.Key;
                 var target = CreateService(new[] { parent }, user => true, stagingGroups: new[] { group }, stagedSymbols: new[] { symbols });
@@ -1186,9 +1212,39 @@ namespace NuGetGallery
                 Assert.Empty(empty.Symbols);
                 Assert.Equal(2, first.TotalCount);
                 Assert.Equal(1, first.SymbolCount);
-                Assert.False(first.AllPackagesReady);
+                Assert.Equal(symbolStatus == StagedPackageStatus.Ready, first.AllPackagesReady);
                 var summary = Assert.Single(target.GetStagingGroupSummaryPage(owner, 1, 1).Items);
                 Assert.Same(symbols, Assert.Single(summary.Symbols));
+            }
+
+            [Theory]
+            [InlineData(PackageStatus.Available)]
+            [InlineData(PackageStatus.Deleted)]
+            public void SymbolOnlyGroupReadinessRequiresAnAvailableParent(PackageStatus parentStatus)
+            {
+                var owner = new User("owner") { Key = 1 };
+                var group = CreateStagingGroup(10, "release", "Release", owner);
+                var parent = CreateStagedPackage(100, "Test.Package", "1.0.0", owner);
+                var identity = parent.StagedPackageIdentity;
+                identity.Package.PackageStatusKey = parentStatus;
+                identity.CurrentStagedPackageKey = null;
+                identity.CurrentStagedPackage = null;
+                identity.StagingGroupKey = group.Key;
+                identity.StagingGroup = group;
+                var symbols = new StagedSymbolPackage
+                {
+                    Key = 101,
+                    StagedPackageIdentity = identity,
+                    SymbolPackage = new SymbolPackage { StatusKey = PackageStatus.Staged },
+                    Status = StagedPackageStatus.Ready,
+                };
+                identity.CurrentStagedSymbolPackageKey = symbols.Key;
+                var target = CreateService(Array.Empty<StagedPackage>(), user => true, stagingGroups: new[] { group }, stagedSymbols: new[] { symbols });
+
+                var page = target.GetStagingGroupPackagePage(owner, group.Id, 1, 1);
+
+                Assert.Same(symbols, Assert.Single(page.Symbols));
+                Assert.Equal(parentStatus == PackageStatus.Available, page.AllPackagesReady);
             }
 
             private static PackageStagingManagementService CreateService(

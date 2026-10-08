@@ -124,7 +124,30 @@ namespace NuGetGallery
             Assert.NotNull(symbols.MoveUrl);
             Assert.Null(symbols.PromotionBlocker);
             Assert.False(symbols.CanPromote);
-            Assert.False(model.CanPromote);
+            Assert.Equal(grouped && symbolsReady && parentStatus == StagedPackageStatus.Ready, model.CanPromote);
+        }
+
+        [Fact]
+        public void AllowsPromotionOfASymbolOnlyGroup()
+        {
+            var owner = new User("owner") { Key = 1 };
+            var group = new StagingGroup { Key = 10, Owner = owner, OwnerKey = owner.Key, Id = "release", Name = "Release" };
+            var symbols = CreateStagedSymbolPackage(owner);
+            symbols.Status = StagedPackageStatus.Ready;
+            symbols.StagedPackageIdentity.StagingGroupKey = group.Key;
+            symbols.StagedPackageIdentity.StagingGroup = group;
+            GetMock<IPackageStagingAuthorizationService>().Setup(service => service.GetEnabledOwner(owner, owner.Username)).Returns(owner);
+            GetMock<IPackageStagingManagementService>().Setup(service => service.FindStagingGroup(owner, group.Id)).Returns(group);
+            GetMock<IPackageStagingManagementService>().Setup(service => service.GetStagedPackages(owner)).Returns(Array.Empty<StagedPackage>());
+            GetMock<IPackageStagingManagementService>().Setup(service => service.GetStagingGroups(owner)).Returns(new[] { group });
+            GetMock<ISymbolPackageStagingManagementService>().Setup(service => service.GetStagedSymbolPackages(owner)).Returns(new[] { symbols });
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(owner);
+
+            var model = ResultAssert.IsView<StagingGroupDetailViewModel>(target.Group(owner.Username, group.Id), viewName: "Group");
+
+            Assert.True(model.CanPromote);
+            Assert.False(Assert.Single(model.Packages).CanPromote);
         }
 
         [Theory]
@@ -559,7 +582,7 @@ namespace NuGetGallery
         }
 
         [Fact]
-        public void DisplaysRemainingPackagesAndFreezesAnActiveGroup()
+        public void DisplaysRetainedMembersAndFreezesAnActiveGroup()
         {
             var currentUser = new User("current") { Key = 1 };
             var group = new StagingGroup
@@ -576,6 +599,13 @@ namespace NuGetGallery
             promotingPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
             var failedPackage = CreateStagedPackage(43, "Failed.Package", "1.0.0", currentUser, StagedPackageStatus.PromotionFailed);
             failedPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
+            var succeededPackage = CreateStagedPackage(44, "Succeeded.Package", "1.0.0", currentUser, StagedPackageStatus.Succeeded);
+            succeededPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
+            succeededPackage.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Available;
+            var succeededSymbols = CreateStagedSymbolPackage(currentUser);
+            succeededSymbols.Status = StagedPackageStatus.Succeeded;
+            succeededSymbols.SymbolPackage.StatusKey = PackageStatus.Available;
+            succeededSymbols.StagedPackageIdentity.StagingGroupKey = group.Key;
             GetMock<IPackageStagingAuthorizationService>()
                 .Setup(x => x.GetEnabledOwner(currentUser, currentUser.Username))
                 .Returns(currentUser);
@@ -584,10 +614,13 @@ namespace NuGetGallery
                 .Returns(group);
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.GetStagedPackages(currentUser))
-                .Returns(new[] { promotingPackage, failedPackage });
+                .Returns(new[] { promotingPackage, failedPackage, succeededPackage });
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.GetStagingGroups(currentUser))
                 .Returns(new[] { group });
+            GetMock<ISymbolPackageStagingManagementService>()
+                .Setup(x => x.GetStagedSymbolPackages(currentUser))
+                .Returns(new[] { succeededSymbols });
             var target = GetController<StagingController>();
             target.SetCurrentUser(currentUser);
 
@@ -599,10 +632,13 @@ namespace NuGetGallery
             Assert.False(model.CanPromote);
             Assert.Equal(1, model.PromotingCount);
             Assert.Equal(1, model.PromotionFailedCount);
-            Assert.Equal(2, model.PackageCount);
+            Assert.Equal(4, model.PackageCount);
+            Assert.Equal(2, model.Packages.Count(package => package.Status == StagedPackageStatus.Succeeded.ToString()));
             Assert.All(model.Packages, package =>
             {
                 Assert.False(package.CanManage);
+                Assert.False(package.CanPromote);
+                Assert.False(package.CanResend);
                 Assert.Null(package.MoveUrl);
             });
         }

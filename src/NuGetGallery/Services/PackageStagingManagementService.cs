@@ -677,8 +677,20 @@ namespace NuGetGallery
                 .Where(symbol => symbol.StagedPackageIdentity.StagingGroupKey == group.Key);
             var symbolCount = symbolsQuery.Count();
             var totalCount = packagesQuery.Count() + symbolCount;
-            var allPackagesReady = !packagesQuery.Any(package => package.Status != StagedPackageStatus.Ready)
-                && !symbolsQuery.Any(symbol => symbol.Status != StagedPackageStatus.Ready);
+            var allPackagesReady = !packagesQuery.Any(package => package.Status != StagedPackageStatus.Ready);
+            if (allPackagesReady)
+            {
+                var symbolReadiness = symbolsQuery.Select(symbol => new
+                {
+                    IsReady = symbol.Status == StagedPackageStatus.Ready && symbol.SymbolPackage.StatusKey == PackageStatus.Staged,
+                    ParentIsAvailable = symbol.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Available,
+                    ParentIsReady = symbol.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Staged
+                        && symbol.StagedPackageIdentity.CurrentStagedPackageKey.HasValue
+                        && symbol.StagedPackageIdentity.CurrentStagedPackage.Status == StagedPackageStatus.Ready,
+                });
+                allPackagesReady = !symbolReadiness.Any(symbol => !symbol.IsReady || (!symbol.ParentIsAvailable && !symbol.ParentIsReady));
+            }
+
             var skip = ((long)page - 1) * pageSize;
 
             var packages = new List<StagedPackage>();
@@ -736,7 +748,8 @@ namespace NuGetGallery
                 .Include(stagedPackage => stagedPackage.StagedPackageIdentity.StagingGroup)
                 .Include(stagedPackage => stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackage.SymbolPackage)
                 .Where(stagedPackage => ownerKeys.Contains(stagedPackage.StagedPackageIdentity.OwnerKey))
-                .Where(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Staged)
+                .Where(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Staged
+                    || (stagedPackage.StagedPackageIdentity.StagingGroupKey.HasValue && stagedPackage.Status == StagedPackageStatus.Succeeded))
                 .Where(stagedPackage => stagedPackage.Status != StagedPackageStatus.Superseded && stagedPackage.Status != StagedPackageStatus.Deleted)
                 .Where(stagedPackage => stagedPackage.StagedPackageIdentity.CurrentStagedPackageKey == stagedPackage.Key);
         }
@@ -747,11 +760,15 @@ namespace NuGetGallery
                 .Include(symbol => symbol.SymbolPackage)
                 .Include(symbol => symbol.StagedPackageIdentity.Owner)
                 .Include(symbol => symbol.StagedPackageIdentity.StagingGroup)
+                .Include(symbol => symbol.StagedPackageIdentity.CurrentStagedPackage)
                 .Include(symbol => symbol.StagedPackageIdentity.Package.PackageRegistration)
                 .Include(symbol => symbol.StagedPackageIdentity.Package.SymbolPackages)
                 .Where(symbol => ownerKeys.Contains(symbol.StagedPackageIdentity.OwnerKey))
                 .Where(symbol => symbol.StagedPackageIdentity.CurrentStagedSymbolPackageKey == symbol.Key)
-                .Where(symbol => symbol.SymbolPackage.StatusKey == PackageStatus.Staged);
+                .Where(symbol => symbol.SymbolPackage.StatusKey == PackageStatus.Staged
+                    || (symbol.StagedPackageIdentity.StagingGroupKey.HasValue && symbol.Status == StagedPackageStatus.Succeeded)
+                    || (symbol.StagedPackageIdentity.StagingGroupKey.HasValue
+                        && symbol.Status == StagedPackageStatus.Promoting && symbol.SymbolPackage.StatusKey == PackageStatus.Available));
         }
 
         private StagedPackage GetCurrentAttempt(int packageKey)

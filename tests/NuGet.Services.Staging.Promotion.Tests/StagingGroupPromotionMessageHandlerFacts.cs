@@ -40,6 +40,46 @@ namespace NuGet.Services.Staging.Promotion.Tests
             context.GroupPromotionService.Verify(x => x.TryFinalizeAsync(It.IsAny<int>(), It.IsAny<Guid>()), Times.Never);
         }
 
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task DispatchesSymbolsOnlyAfterTheirStagedParentFinishes(bool parentPublished)
+        {
+            var context = new TestContext();
+            if (parentPublished)
+            {
+                context.Packages[0].Status = StagedPackageStatus.Succeeded;
+            }
+
+            var paired = context.AddSymbols(100, context.Packages[0]);
+            var standalone = context.AddSymbols(101);
+            context.AddSymbols(102).ActivePromotionId = Guid.NewGuid();
+            context.AddSymbols(103).StagedPackageIdentity.CurrentStagedSymbolPackageKey = 999;
+
+            Assert.True(await context.Target.HandleAsync(context.Message));
+
+            var firstMessage = StagingPromotionMessage.ForPackage(context.PromotionId, context.Packages[0].Key);
+            if (parentPublished)
+            {
+                firstMessage = StagingPromotionMessage.ForSymbolPackage(context.PromotionId, paired.Key);
+            }
+
+            Assert.Collection(context.SentMessages,
+                message =>
+                {
+                    Assert.Equal(firstMessage.TargetKey, message.TargetKey);
+                    Assert.Equal(firstMessage.TargetType, message.TargetType);
+                },
+                message =>
+                {
+                    Assert.Equal(standalone.Key, message.TargetKey);
+                    Assert.Equal(StagingPromotionTargetType.StagedSymbolPackage, message.TargetType);
+                });
+            Assert.All(context.SentMessages, message => Assert.Equal(context.PromotionId, message.PromotionId));
+            Assert.Equal(parentPublished, paired.PromotionMessageSentDate.HasValue);
+            Assert.NotNull(standalone.PromotionMessageSentDate);
+        }
+
         [Fact]
         public async Task ConsumesRootMessageAfterPromotionCompletes()
         {
@@ -65,14 +105,25 @@ namespace NuGet.Services.Staging.Promotion.Tests
             Assert.Empty(context.SentMessages);
         }
 
-        [Fact]
-        public async Task RetriesRootWhenFanOutIsPartial()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task RetriesRootWhenFanOutIsPartial(bool symbolFails)
         {
             var context = new TestContext();
-            context.AddPackage(43, StagedPackageStatus.Promoting, context.PromotionId, isCurrent: true);
+            var failedKey = 43;
+            if (symbolFails)
+            {
+                failedKey = context.AddSymbols(100).Key;
+            }
+            else
+            {
+                context.AddPackage(43, StagedPackageStatus.Promoting, context.PromotionId, isCurrent: true);
+            }
+
             var expected = new InvalidOperationException("Send failed.");
             context.MessageEnqueuer
-                .Setup(x => x.SendMessageAsync(It.Is<StagingPromotionMessage>(message => message.TargetKey == 43)))
+                .Setup(x => x.SendMessageAsync(It.Is<StagingPromotionMessage>(message => message.TargetKey == failedKey)))
                 .ThrowsAsync(expected);
 
             var actual = await Assert.ThrowsAsync<InvalidOperationException>(() => context.Target.HandleAsync(context.Message));
@@ -109,6 +160,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 StagingGroupRepository.Setup(x => x.GetAll()).Returns(() => Groups.AsQueryable());
                 StagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
                 StagedPackageRepository.Setup(x => x.GetAll()).Returns(() => Packages.AsQueryable());
+                StagedSymbolPackageRepository.Setup(repository => repository.GetAll()).Returns(() => Symbols.AsQueryable());
                 MessageEnqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
                 MessageEnqueuer
                     .Setup(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()))
@@ -123,6 +175,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 Target = new StagingGroupPromotionMessageHandler(
                     StagingGroupRepository.Object,
                     StagedPackageRepository.Object,
+                    StagedSymbolPackageRepository.Object,
                     MessageEnqueuer.Object,
                     GroupPromotionService.Object,
                     Mock.Of<ILogger<StagingGroupPromotionMessageHandler>>());
@@ -149,14 +202,42 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 Packages.Add(stagedPackage);
             }
 
+            public StagedSymbolPackage AddSymbols(int key, StagedPackage parent = null)
+            {
+                var identity = parent?.StagedPackageIdentity ?? new StagedPackageIdentity
+                {
+                    Key = key,
+                    StagingGroupKey = Group.Key,
+                    StagingGroup = Group,
+                };
+                var symbols = new StagedSymbolPackage
+                {
+                    Key = key,
+                    StagedPackageIdentity = identity,
+                    StagedPackageIdentityKey = identity.Key,
+                    Status = StagedPackageStatus.Promoting,
+                    ActivePromotionId = PromotionId,
+                };
+                identity.CurrentStagedSymbolPackageKey = symbols.Key;
+                identity.CurrentStagedSymbolPackage = symbols;
+                Symbols.Add(symbols);
+                return symbols;
+            }
+
             public Guid PromotionId { get; }
             public StagingGroup Group { get; }
             public List<StagingGroup> Groups { get; }
             public List<StagedPackage> Packages { get; }
+
+            public List<StagedSymbolPackage> Symbols { get; } = new List<StagedSymbolPackage>();
+
             public List<StagingPromotionMessage> SentMessages { get; }
             public StagingPromotionMessage Message { get; }
             public Mock<IEntityRepository<StagingGroup>> StagingGroupRepository { get; }
             public Mock<IEntityRepository<StagedPackage>> StagedPackageRepository { get; }
+
+            public Mock<IEntityRepository<StagedSymbolPackage>> StagedSymbolPackageRepository { get; } = new Mock<IEntityRepository<StagedSymbolPackage>>(MockBehavior.Loose);
+
             public Mock<IStagingPromotionMessageEnqueuer> MessageEnqueuer { get; }
             public Mock<IStagingGroupPromotionService> GroupPromotionService { get; }
             public StagingGroupPromotionMessageHandler Target { get; }
