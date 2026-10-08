@@ -2496,6 +2496,10 @@ namespace NuGetGallery
                 packageRenames: null, // not used in this view
                 readmeResult: null);  // not used in this view
 
+            model.IsCertificatesUIEnabled = _contentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false;
+            model.IsPackageDeprecationEnabled = isPackageDeprecationEnabled;
+            model.IsPackageVulnerabilitiesEnabled = isPackageVulnerabilitiesEnabled;
+
             return PartialView("_DisplayPackageVersionTable", model);
         }
 

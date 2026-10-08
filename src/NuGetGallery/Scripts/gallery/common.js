@@ -369,6 +369,22 @@
         };
     };
 
+    nuget.formatDateTimeElement = function () {
+        const $el = $(this);
+        const formats = nuget.getDateFormats($el.data().datetime);
+        if (!formats) {
+            return;
+        }
+
+        if (!$el.attr('title')) {
+            $el.attr('title', formats.title);
+        }
+
+        if (formats.text) {
+            $el.text(formats.text);
+        }
+    };
+
     nuget.getFileName = function (fullPath) {
         return fullPath.split(/(\\|\/)/g).pop();
     };
@@ -669,21 +685,7 @@
         });
 
         // Use moment.js to format attributes with the "datetime" attribute to "X time ago".
-        $.each($('*[data-datetime]'), function () {
-            var $el = $(this);
-            var formats = window.nuget.getDateFormats($el.data().datetime);
-            if (!formats) {
-                return;
-            }
-
-            if (!$el.attr('title')) {
-                $el.attr('title', formats.title);
-            }
-
-            if (formats.text) {
-                $el.text(formats.text);
-            }
-        });
+        $('*[data-datetime]').each(nuget.formatDateTimeElement);
 
         // Handle confirm pop-ups.
         $('*[data-confirm]').on('click', '', function (e) {

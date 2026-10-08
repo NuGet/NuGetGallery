@@ -363,6 +363,7 @@ $(function () {
             },
             success: function(response) {
                 $("#version-history table").html(response);
+                $('#version-history [data-datetime]').each(window.nuget.formatDateTimeElement);
                 versionHistoryViewModel.loadState('loaded');
                 const currentVersionLink = document.querySelector(".version-history .bg-brand-info a");
                 if (currentVersionLink) {
