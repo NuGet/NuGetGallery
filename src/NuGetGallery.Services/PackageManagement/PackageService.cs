@@ -262,6 +262,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(id));
             }
 
+            var deletedStagingPackageKeys = GetDeletedStagingPackages().Select(identity => identity.Key);
             var packages = GetPackagesByIdQueryable(
                 id,
                 includeLicenseReports: false,
@@ -270,9 +271,33 @@ namespace NuGetGallery
                 includeSymbolPackages: false,
                 includeDeprecations: includeDeprecations,
                 includeDeprecationRelationships: false,
-                includeSupportedFrameworks: includeSupportedFrameworks);
+                includeSupportedFrameworks: includeSupportedFrameworks)
+                .Where(package => !deletedStagingPackageKeys.Contains(package.Key));
 
             return packages.ToList();
+        }
+
+        public bool IsDeletedStagingPackage(string id, string version)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+
+            if (string.IsNullOrWhiteSpace(version))
+            {
+                throw new ArgumentException(nameof(version));
+            }
+
+            var normalizedVersion = NuGetVersionFormatter.Normalize(version);
+            return GetDeletedStagingPackages().Any(identity => identity.Package.PackageRegistration.Id == id && identity.Package.NormalizedVersion == normalizedVersion);
+        }
+
+        private IQueryable<StagedPackageIdentity> GetDeletedStagingPackages()
+        {
+            return _entitiesContext.StagedPackageIdentities
+                .Where(identity => identity.Package.PackageStatusKey == PackageStatus.Deleted)
+                .Where(identity => identity.CurrentStagedPackage != null && identity.CurrentStagedPackage.Status == StagedPackageStatus.Deleted);
         }
 
         public LatestPackageVersionsResult FindLatestVersionsById(
@@ -293,6 +318,7 @@ namespace NuGetGallery
                 throw new ArgumentOutOfRangeException(nameof(maxCount), "Max count must be greater than 0.");
             }
 
+            var deletedStagingPackageKeys = GetDeletedStagingPackages().Select(identity => identity.Key);
             var packages = GetPackagesByIdQueryable(
                 id,
                 includeLicenseReports: false,
@@ -302,6 +328,7 @@ namespace NuGetGallery
                 includeDeprecations: includeDeprecations,
                 includeDeprecationRelationships: false,
                 includeSupportedFrameworks: includeSupportedFrameworks)
+                .Where(package => !deletedStagingPackageKeys.Contains(package.Key))
                 .OrderByDescending(p => p.Key)
                 .Take(maxCount + 1)
                 .ToList();
@@ -321,6 +348,7 @@ namespace NuGetGallery
                     includeDeprecations: includeDeprecations,
                     includeDeprecationRelationships: false,
                     includeSupportedFrameworks: includeSupportedFrameworks)
+                    .Where(package => !deletedStagingPackageKeys.Contains(package.Key))
                     .Where(p => p.IsLatestSemVer2 || p.IsLatestStableSemVer2)
                     .ToList();
 
@@ -356,6 +384,7 @@ namespace NuGetGallery
                     includeDeprecations: includeDeprecations,
                     includeDeprecationRelationships: false,
                     includeSupportedFrameworks: includeSupportedFrameworks)
+                    .Where(package => !deletedStagingPackageKeys.Contains(package.Key))
                     .Where(p => p.NormalizedVersion == includeVersion) // string comparisons on DB side are case-insensitive due to collation used
                     .SingleOrDefault();
 

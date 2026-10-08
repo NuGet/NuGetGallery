@@ -633,6 +633,27 @@ namespace NuGetGallery
                 ResultAssert.IsStatusCodeWithHeaders(result, HttpStatusCode.MethodNotAllowed, new NameValueCollection() { { "allow", "GET" } });
             }
 
+            [Fact]
+            public async Task DeletedStagingVersionReturns404InsteadOfFallingBackToPublicVersion()
+            {
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService.Setup(service => service.IsDeletedStagingPackage("Package", "5.0.0")).Returns(true);
+                var controller = CreateController(GetConfigurationService(), packageService: packageService);
+
+                var result = await controller.DisplayPackage("Package", "5.0.0");
+
+                ResultAssert.IsNotFound(result);
+                packageService.Verify(service => service.IsDeletedStagingPackage("Package", "5.0.0"), Times.Once);
+            }
+
+            [Fact]
+            public async Task PreviouslyPublicDeletedVersionStillDisplaysMetadata()
+            {
+                var result = await GetActionResultForPackageStatusAsync(PackageStatus.Deleted, null, TestUtility.FakeUser, expectSuccess: true);
+
+                Assert.IsType<ViewResult>(result);
+            }
+
             public static IEnumerable<PackageStatus> ValidatingPackageStatuses =
                 new[] { PackageStatus.Validating, PackageStatus.FailedValidation };
 
@@ -10792,6 +10813,27 @@ namespace NuGetGallery
 
                 // assert
                 Assert.IsType<HttpNotFoundResult>(result);
+            }
+        }
+
+        /// <summary>
+        /// Covers private deleted staging on the full version-list endpoint.
+        /// </summary>
+        public class TheGetAllPackageVersionsMethod : TestContainer
+        {
+            [Fact]
+            public void DeletedStagingVersionReturns404InsteadOfFallingBackToPublicVersion()
+            {
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService.Setup(service => service.IsDeletedStagingPackage("Package", "5.0.0")).Returns(true);
+                var featureFlagService = new Mock<IFeatureFlagService>();
+                featureFlagService.Setup(service => service.IsReducedVersionListsEnabled()).Returns(true);
+                var controller = CreateController(GetConfigurationService(), packageService: packageService, featureFlagService: featureFlagService);
+
+                var result = controller.GetAllPackageVersions("Package", "5.0.0");
+
+                ResultAssert.IsNotFound(result);
+                packageService.Verify(service => service.IsDeletedStagingPackage("Package", "5.0.0"), Times.Once);
             }
         }
 
