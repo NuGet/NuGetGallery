@@ -97,10 +97,11 @@ namespace NuGetGallery
                 var summary = Assert.Single(target.GetStagingGroupSummaries(owner));
                 Assert.Equal(new[] { promoting, succeeded }, summary.Packages);
                 Assert.Same(symbols, Assert.Single(summary.Symbols));
-                var pagedSummary = Assert.Single(target.GetStagingGroupSummaryPage(owner, 1, 1).Items);
+                var scopes = new[] { new Scope(owner.Key, "*", NuGetScopes.PackageStage) };
+                var pagedSummary = Assert.Single(target.GetStagingGroupSummaryPage(owner, scopes, 1, 1).Items);
                 Assert.Equal(new[] { promoting, succeeded }, pagedSummary.Packages);
                 Assert.Same(symbols, Assert.Single(pagedSummary.Symbols));
-                var page = target.GetStagingGroupPackagePage(owner, group.Id, page: 1, pageSize: 10);
+                var page = target.GetStagingGroupPackagePage(owner, scopes, group.Id, page: 1, pageSize: 10);
                 Assert.Equal(2, page.Items.Count);
                 Assert.Contains(succeeded, page.Items);
                 Assert.Same(symbols, Assert.Single(page.Symbols));
@@ -111,7 +112,7 @@ namespace NuGetGallery
                 succeeded.StagedPackageIdentity.CurrentStagedSymbolPackageKey = null;
 
                 Assert.Same(promoting, Assert.Single(target.GetStagedPackages(owner)));
-                Assert.Equal(1, target.GetStagingGroupPackagePage(owner, group.Id, page: 1, pageSize: 10).TotalCount);
+                Assert.Equal(1, target.GetStagingGroupPackagePage(owner, scopes, group.Id, page: 1, pageSize: 10).TotalCount);
             }
 
             [Fact]
@@ -258,7 +259,8 @@ namespace NuGetGallery
                     owner => true,
                     stagingGroups: new[] { oldestGroup, middleGroup, newestGroup });
 
-                var result = target.GetStagingGroupSummaryPage(currentUser, page: 2, pageSize: 1);
+                var scopes = new[] { new Scope(currentUser.Key, "*", NuGetScopes.PackageStage) };
+                var result = target.GetStagingGroupSummaryPage(currentUser, scopes, page: 2, pageSize: 1);
 
                 Assert.Equal(3, result.TotalCount);
                 var summary = Assert.Single(result.Items);
@@ -290,7 +292,8 @@ namespace NuGetGallery
                     owner => true,
                     stagingGroups: new[] { group });
 
-                var result = target.GetStagingGroupPackagePage(currentUser, group.Id, page: 2, pageSize: 1);
+                var scopes = new[] { new Scope(currentUser.Key, "*", NuGetScopes.PackageStage) };
+                var result = target.GetStagingGroupPackagePage(currentUser, scopes, group.Id, page: 2, pageSize: 1);
 
                 Assert.Same(group, result.Group);
                 Assert.Same(lowerKeyPackage, Assert.Single(result.Items));
@@ -1249,9 +1252,10 @@ namespace NuGetGallery
                 parent.StagedPackageIdentity.CurrentStagedSymbolPackageKey = symbols.Key;
                 var target = CreateService(new[] { parent }, user => true, stagingGroups: new[] { group }, stagedSymbols: new[] { symbols });
 
-                var first = target.GetStagingGroupPackagePage(owner, group.Id, 1, 1);
-                var second = target.GetStagingGroupPackagePage(owner, group.Id, 2, 1);
-                var empty = target.GetStagingGroupPackagePage(owner, group.Id, 3, 1);
+                var scopes = new[] { new Scope(owner.Key, "*", NuGetScopes.PackageStage) };
+                var first = target.GetStagingGroupPackagePage(owner, scopes, group.Id, 1, 1);
+                var second = target.GetStagingGroupPackagePage(owner, scopes, group.Id, 2, 1);
+                var empty = target.GetStagingGroupPackagePage(owner, scopes, group.Id, 3, 1);
 
                 Assert.Same(parent, Assert.Single(first.Items));
                 Assert.Empty(first.Symbols);
@@ -1262,7 +1266,7 @@ namespace NuGetGallery
                 Assert.Equal(2, first.TotalCount);
                 Assert.Equal(1, first.SymbolCount);
                 Assert.Equal(symbolStatus == StagedPackageStatus.Ready, first.AllPackagesReady);
-                var summary = Assert.Single(target.GetStagingGroupSummaryPage(owner, 1, 1).Items);
+                var summary = Assert.Single(target.GetStagingGroupSummaryPage(owner, scopes, 1, 1).Items);
                 Assert.Same(symbols, Assert.Single(summary.Symbols));
             }
 
@@ -1304,7 +1308,8 @@ namespace NuGetGallery
                 }
 
                 var target = CreateService(symbolOnly ? new[] { visible } : new[] { visible, blocked }, user => true, stagingGroups: new[] { group }, stagedSymbols: symbolOnly ? new[] { symbols } : null);
-                var first = target.GetStagingGroupPackagePage(owner, group.Id, 1, 1);
+                var scopes = new[] { new Scope(owner.Key, "*", NuGetScopes.PackageStage) };
+                var first = target.GetStagingGroupPackagePage(owner, scopes, group.Id, 1, 1);
                 Assert.Same(visible, Assert.Single(first.Items));
                 Assert.False(first.AllPackagesReady);
                 Assert.True(first.HasRegistrationOwnershipLoss);
@@ -1312,7 +1317,7 @@ namespace NuGetGallery
                 Assert.False(response.CanPromote);
                 Assert.Equal("RegistrationOwnershipLost", Assert.Single(response.Blockers).Code);
                 Assert.Equal(2, response.ItemCount);
-                var second = target.GetStagingGroupPackagePage(owner, group.Id, 2, 1);
+                var second = target.GetStagingGroupPackagePage(owner, scopes, group.Id, 2, 1);
                 if (symbolOnly)
                 {
                     Assert.Same(symbols, Assert.Single(second.Symbols));
@@ -1323,7 +1328,7 @@ namespace NuGetGallery
                 }
 
                 identity.Package.PackageRegistration.Owners.Add(owner);
-                var restored = target.GetStagingGroupPackagePage(owner, group.Id, 1, 1);
+                var restored = target.GetStagingGroupPackagePage(owner, scopes, group.Id, 1, 1);
                 Assert.False(restored.HasRegistrationOwnershipLoss);
                 Assert.Equal(visibleReady, restored.AllPackagesReady);
                 var restoredResponse = StagingGroupResponse.FromGroup(group, restored.TotalCount, restored.AllPackagesReady, group.ExpirationDate, "management", restored.SymbolCount, restored.HasRegistrationOwnershipLoss);
@@ -1366,7 +1371,8 @@ namespace NuGetGallery
                 }
 
                 var target = CreateService(symbolOnly ? new[] { visible } : new[] { visible, blocked }, user => true, stagingGroups: new[] { group }, stagedSymbols: symbolOnly ? new[] { symbols } : null);
-                var page = target.GetStagingGroupPackagePage(owner, group.Id, 1, 1);
+                var scopes = new[] { new Scope(owner.Key, "*", NuGetScopes.PackageStage) };
+                var page = target.GetStagingGroupPackagePage(owner, scopes, group.Id, 1, 1);
                 Assert.Same(visible, Assert.Single(page.Items));
                 Assert.False(page.AllPackagesReady);
                 Assert.True(page.HasLockedRegistration);
@@ -1375,7 +1381,7 @@ namespace NuGetGallery
                 Assert.Equal("PackageRegistrationLocked", Assert.Single(response.Blockers).Code);
 
                 identity.Package.PackageRegistration.IsLocked = false;
-                var restored = target.GetStagingGroupPackagePage(owner, group.Id, 1, 1);
+                var restored = target.GetStagingGroupPackagePage(owner, scopes, group.Id, 1, 1);
                 Assert.True(restored.AllPackagesReady);
                 Assert.False(restored.HasLockedRegistration);
             }
@@ -1404,7 +1410,8 @@ namespace NuGetGallery
                 identity.CurrentStagedSymbolPackageKey = symbols.Key;
                 var target = CreateService(Array.Empty<StagedPackage>(), user => true, stagingGroups: new[] { group }, stagedSymbols: new[] { symbols });
 
-                var page = target.GetStagingGroupPackagePage(owner, group.Id, 1, 1);
+                var scopes = new[] { new Scope(owner.Key, "*", NuGetScopes.PackageStage) };
+                var page = target.GetStagingGroupPackagePage(owner, scopes, group.Id, 1, 1);
 
                 Assert.Same(symbols, Assert.Single(page.Symbols));
                 Assert.Equal(parentStatus == PackageStatus.Available, page.AllPackagesReady);
@@ -1537,6 +1544,146 @@ namespace NuGetGallery
                 var empty = GetInventoryPage(target, owner, scopes, symbols, int.MaxValue, 500);
                 Assert.Empty(empty.Items);
                 Assert.Equal(5, empty.TotalCount);
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task AuthorizesOffPageGroupMembersBeforeReturningDetailsOrDeleting(bool symbolOnly)
+            {
+                var owner = new User("owner") { Key = 1 };
+                var group = CreateStagingGroup(20, "release", "Release", owner);
+                var visible = CreateStagedPackage(100, "Allowed.Parent", "1.0.0", owner);
+                visible.StagedPackageIdentity.StagingGroupKey = group.Key;
+                visible.UploadedDate = new DateTime(2026, 10, 2);
+                var hidden = CreateStagedPackage(101, "Hidden.Package", "1.0.0", owner);
+                hidden.StagedPackageIdentity.StagingGroupKey = group.Key;
+                hidden.UploadedDate = visible.UploadedDate.AddDays(-1);
+                StagedSymbolPackage symbols = null;
+                if (symbolOnly)
+                {
+                    symbols = CreateInventorySymbols(hidden);
+                    hidden.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Available;
+                    hidden.StagedPackageIdentity.CurrentStagedPackageKey = null;
+                    hidden.StagedPackageIdentity.CurrentStagedPackage = null;
+                }
+
+                var packages = symbolOnly ? new[] { visible } : new[] { visible, hidden };
+                var groupRepository = new Mock<IEntityRepository<StagingGroup>>();
+                var symbolRepository = new Mock<IEntityRepository<StagedSymbolPackage>>();
+                var packageService = new Mock<IPackageService>();
+                packageService.Setup(x => x.UpdatePackageStatusAsync(It.IsAny<Package>(), PackageStatus.Deleted, false))
+                    .Returns(Task.CompletedTask);
+                var cleanup = new Mock<IStagingBlobCleanupService>();
+                var target = CreateService(packages, user => true, stagingGroups: new[] { group },
+                    stagingGroupRepository: groupRepository, packageService: packageService.Object, blobCleanup: cleanup.Object,
+                    stagedSymbols: symbolOnly ? new[] { symbols } : null, stagedSymbolRepository: symbolRepository);
+                var scopes = new[]
+                {
+                    new Scope(owner.Key, "Allowed.*", NuGetScopes.PackageStage),
+                    new Scope(owner.Key, "*", NuGetScopes.PackagePush),
+                    new Scope(2, "*", NuGetScopes.PackageStage),
+                };
+
+                Assert.Null(target.GetStagingGroupPackagePage(owner, scopes, group.Id, 1, 1));
+                group.ActivePromotionId = Guid.NewGuid();
+                var denied = await target.DeleteStagingGroupAsync(owner, scopes, group);
+
+                Assert.Equal(StagingGroupDeletionResultType.NotFound, denied.Type);
+                Assert.Equal(0, denied.AffectedPackageCount);
+                Assert.Equal(PackageStatus.Staged, visible.StagedPackageIdentity.Package.PackageStatusKey);
+                Assert.Equal(group.Key, visible.StagedPackageIdentity.StagingGroupKey);
+                Assert.Equal(group.Key, hidden.StagedPackageIdentity.StagingGroupKey);
+                if (symbolOnly)
+                {
+                    Assert.Equal(symbols.Key, hidden.StagedPackageIdentity.CurrentStagedSymbolPackageKey);
+                }
+
+                groupRepository.Verify(x => x.DeleteOnCommit(It.IsAny<StagingGroup>()), Times.Never);
+                groupRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
+                symbolRepository.Verify(x => x.DeleteOnCommit(It.IsAny<StagedSymbolPackage>()), Times.Never);
+                packageService.Verify(x => x.UpdatePackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), It.IsAny<bool>()), Times.Never);
+                cleanup.Verify(x => x.QueuePackageFiles(It.IsAny<int>()), Times.Never);
+                cleanup.Verify(x => x.QueueSymbolFiles(It.IsAny<int>()), Times.Never);
+
+                group.ActivePromotionId = null;
+                var unionScopes = scopes.Concat(new[] { new Scope(owner.Key, "Hidden.*", NuGetScopes.PackageStage) }).ToArray();
+                var page = target.GetStagingGroupPackagePage(owner, unionScopes, group.Id, 1, 1);
+                Assert.Same(visible, Assert.Single(page.Items));
+                Assert.Equal(2, page.TotalCount);
+                Assert.Same(group, Assert.Single(target.GetStagingGroupSummaryPage(owner, unionScopes, 1, 1).Items).Group);
+                var deleted = await target.DeleteStagingGroupAsync(owner, unionScopes, group);
+                Assert.Equal(StagingGroupDeletionResultType.Deleted, deleted.Type);
+                groupRepository.Verify(x => x.DeleteOnCommit(group), Times.Once);
+            }
+
+            [Fact]
+            public void FiltersWholeGroupsBeforeCountingAndPaging()
+            {
+                var owner = new User("owner") { Key = 1 };
+                var otherOwner = new User("other") { Key = 2 };
+                var hiddenGroup = CreateStagingGroup(20, "hidden", "Hidden", owner);
+                var emptyGroup = CreateStagingGroup(21, "empty", "Empty", owner);
+                var allowedGroup = CreateStagingGroup(22, "allowed", "Allowed", owner);
+                var otherGroup = CreateStagingGroup(23, "other", "Other", otherOwner);
+                hiddenGroup.CreatedDate = new DateTime(2026, 10, 4);
+                emptyGroup.CreatedDate = hiddenGroup.CreatedDate.AddDays(-1);
+                allowedGroup.CreatedDate = emptyGroup.CreatedDate.AddDays(-1);
+                var allowed = CreateStagedPackage(100, "Allowed.Parent", "1.0.0", owner);
+                allowed.StagedPackageIdentity.StagingGroupKey = allowedGroup.Key;
+                var retired = CreateStagedPackage(101, "Hidden.Retired", "1.0.0", owner);
+                retired.StagedPackageIdentity.StagingGroupKey = allowedGroup.Key;
+                retired.Status = StagedPackageStatus.Deleted;
+                retired.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Deleted;
+                var hidden = CreateStagedPackage(102, "Hidden.Symbols", "1.0.0", owner);
+                hidden.StagedPackageIdentity.StagingGroupKey = hiddenGroup.Key;
+                hidden.StagedPackageIdentity.CurrentStagedPackageKey = null;
+                hidden.StagedPackageIdentity.CurrentStagedPackage = null;
+                hidden.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Available;
+                var hiddenSymbols = CreateInventorySymbols(hidden);
+                var matched = CreateStagedPackage(103, "Allowed.Mixed", "1.0.0", owner);
+                matched.StagedPackageIdentity.StagingGroupKey = hiddenGroup.Key;
+                var target = CreateService(new[] { allowed, retired, matched }, user => true,
+                    stagingGroups: new[] { hiddenGroup, emptyGroup, allowedGroup, otherGroup }, stagedSymbols: new[] { hiddenSymbols });
+                var scopes = new[]
+                {
+                    new Scope(owner.Key, "Allowed.*", NuGetScopes.PackageStage),
+                    new Scope(owner.Key, "*", NuGetScopes.PackagePush),
+                    new Scope(otherOwner.Key, "*", NuGetScopes.PackageStage),
+                };
+
+                var first = target.GetStagingGroupSummaryPage(owner, scopes, 1, 1);
+                var second = target.GetStagingGroupSummaryPage(owner, scopes, 2, 1);
+                var beyond = target.GetStagingGroupSummaryPage(owner, scopes, 3, 1);
+
+                Assert.Equal(2, first.TotalCount);
+                Assert.Equal(2, second.TotalCount);
+                Assert.Equal(2, beyond.TotalCount);
+                Assert.Same(emptyGroup, Assert.Single(first.Items).Group);
+                Assert.Same(allowedGroup, Assert.Single(second.Items).Group);
+                Assert.Same(allowed, Assert.Single(second.Items[0].Packages));
+                Assert.Empty(beyond.Items);
+            }
+
+            [Fact]
+            public async Task EmptyGroupRequiresAnOwnerStagingScope()
+            {
+                var owner = new User("owner") { Key = 1 };
+                var group = CreateStagingGroup(20, "empty", "Empty", owner);
+                var repository = new Mock<IEntityRepository<StagingGroup>>();
+                var target = CreateService(Array.Empty<StagedPackage>(), user => true, stagingGroups: new[] { group }, stagingGroupRepository: repository);
+                var invalidScopes = new[] { new Scope(owner.Key, "*", NuGetScopes.PackagePush), new Scope(2, "*", NuGetScopes.PackageStage) };
+
+                Assert.Equal(0, target.GetStagingGroupSummaryPage(owner, invalidScopes, 1, 1).TotalCount);
+                Assert.Null(target.GetStagingGroupPackagePage(owner, invalidScopes, group.Id, 1, 1));
+                Assert.Equal(StagingGroupDeletionResultType.NotFound, (await target.DeleteStagingGroupAsync(owner, invalidScopes, group)).Type);
+                repository.Verify(x => x.DeleteOnCommit(group), Times.Never);
+                repository.Verify(x => x.CommitChangesAsync(), Times.Never);
+
+                var validScopes = new[] { new Scope(owner.Key, "Allowed.*", NuGetScopes.PackageStage) };
+                Assert.Same(group, target.GetStagingGroupPackagePage(owner, validScopes, group.Id, 1, 1).Group);
+                Assert.Equal(StagingGroupDeletionResultType.Deleted, (await target.DeleteStagingGroupAsync(owner, validScopes, group)).Type);
+                repository.Verify(x => x.DeleteOnCommit(group), Times.Once);
             }
 
             [Theory]

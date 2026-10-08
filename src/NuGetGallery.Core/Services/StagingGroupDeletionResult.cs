@@ -4,12 +4,13 @@
 namespace NuGetGallery
 {
     /// <summary>
-    /// Identifies whether a staging group was deleted or protected by an accepted promotion.
+    /// Identifies whether a staging group was deleted, protected by an accepted promotion, or unavailable to the credential.
     /// </summary>
     public enum StagingGroupDeletionResultType
     {
         Deleted,
         Conflict,
+        NotFound,
     }
 
     /// <summary>
@@ -35,6 +36,11 @@ namespace NuGetGallery
         public static StagingGroupDeletionResult Conflict(int affectedPackageCount)
         {
             return new StagingGroupDeletionResult(StagingGroupDeletionResultType.Conflict, affectedPackageCount);
+        }
+
+        public static StagingGroupDeletionResult NotFound()
+        {
+            return new StagingGroupDeletionResult(StagingGroupDeletionResultType.NotFound, 0);
         }
     }
 }
