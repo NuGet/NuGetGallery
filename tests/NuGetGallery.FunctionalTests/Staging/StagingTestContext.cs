@@ -23,7 +23,7 @@ namespace NuGetGallery.FunctionalTests.Staging
     internal sealed class StagingTestContext : IAsyncDisposable
     {
         private readonly HttpClient _client = new HttpClient { Timeout = TimeSpan.FromSeconds(120) };
-        private readonly HashSet<string> _packageIds = new HashSet<string>();
+        private readonly HashSet<(string Id, string Version)> _packageVersions = new HashSet<(string Id, string Version)>();
         private readonly HashSet<string> _groupIds = new HashSet<string>();
         private readonly HashSet<string> _publishedPackageIds = new HashSet<string>();
 
@@ -39,7 +39,7 @@ namespace NuGetGallery.FunctionalTests.Staging
 
         internal static string NewPackageId(string prefix = "StagingFunctional") => prefix + "." + Guid.NewGuid().ToString("N");
 
-        internal static string ArtifactPath(string id, bool symbols = false) => (symbols ? "symbols/" : "package/") + id + "/1.0.0";
+        internal static string ArtifactPath(string id, bool symbols = false, string version = "1.0.0") => (symbols ? "symbols/" : "package/") + id + "/" + version;
 
         internal static string ManagementUrl(string id) => GalleryConfiguration.Instance.GalleryBaseUrl.TrimEnd('/') + "/account/staging/package/" + id + "/1.0.0/manage";
 
@@ -47,11 +47,11 @@ namespace NuGetGallery.FunctionalTests.Staging
 
         internal void TrackPublication(string id) => _publishedPackageIds.Add(id);
 
-        internal static byte[] CreateArchive(string id, bool symbols = false, string description = "Staging functional test", string assemblyName = null)
+        internal static byte[] CreateArchive(string id, bool symbols = false, string description = "Staging functional test", string assemblyName = null, string version = "1.0.0")
         {
             var metadata = new XElement("metadata",
                 new XElement("id", id),
-                new XElement("version", "1.0.0"),
+                new XElement("version", version),
                 new XElement("description", description));
             if (symbols)
             {
@@ -85,9 +85,9 @@ namespace NuGetGallery.FunctionalTests.Staging
             }
         }
 
-        internal async Task<HttpResponseMessage> UploadAsync(string id, byte[] bytes, bool symbols = false, string groupId = null, bool? listed = null)
+        internal async Task<HttpResponseMessage> UploadAsync(string id, byte[] bytes, bool symbols = false, string groupId = null, bool? listed = null, string version = "1.0.0")
         {
-            _packageIds.Add(id);
+            _packageVersions.Add((id, version));
             using (var content = new MultipartFormDataContent())
             {
                 var field = symbols ? "symbols" : "package";
@@ -239,10 +239,10 @@ namespace NuGetGallery.FunctionalTests.Staging
         {
             try
             {
-                foreach (var id in _packageIds)
+                foreach (var package in _packageVersions)
                 {
-                    await DeleteFixtureAsync(ArtifactPath(id, symbols: true));
-                    await DeleteFixtureAsync(ArtifactPath(id));
+                    await DeleteFixtureAsync(ArtifactPath(package.Id, symbols: true, version: package.Version));
+                    await DeleteFixtureAsync(ArtifactPath(package.Id, version: package.Version));
                 }
 
                 foreach (var id in _groupIds)

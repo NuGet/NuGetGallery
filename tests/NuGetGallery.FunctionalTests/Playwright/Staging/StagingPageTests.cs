@@ -135,6 +135,60 @@ namespace NuGetGallery.FunctionalTests.Playwright.Staging
             Assert.False(artifact["listed"].GetValue<bool>());
             await Page.ReloadAsync();
             await Expect(checkbox).Not.ToBeCheckedAsync();
+
+            response = await Page.RunAndWaitForResponseAsync(
+                () => checkbox.CheckAsync(),
+                response => response.Url.EndsWith("/listed", StringComparison.Ordinal) && response.Request.Method == "POST");
+            Assert.Equal(204, response.Status);
+            artifact = await context.GetJsonAsync(StagingTestContext.ArtifactPath(id) + "/status");
+            Assert.True(artifact["listed"].GetValue<bool>());
+            await Page.ReloadAsync();
+            await Expect(checkbox).ToBeCheckedAsync();
+        }
+
+        [Fact]
+        [Category("PlaywrightTests")]
+        [Category("StagingCiTests")]
+        public async Task MovingAndUngroupingAParentKeepsItsSymbolsTogether()
+        {
+            await using var context = new StagingTestContext();
+            var sourceGroup = await context.CreateGroupAsync();
+            var destinationGroup = await context.CreateGroupAsync();
+            var id = StagingTestContext.NewPackageId();
+            using (var parent = await context.UploadAsync(id, StagingTestContext.CreateArchive(id), groupId: sourceGroup))
+            using (var symbols = await context.UploadAsync(id, StagingTestContext.CreateArchive(id, symbols: true), symbols: true))
+            {
+                await StagingTestContext.ReadJsonAsync(parent, HttpStatusCode.Created);
+                await StagingTestContext.ReadJsonAsync(symbols, HttpStatusCode.Created);
+            }
+
+            await SignInAsStagingOwnerAsync();
+            var moveUrl = GalleryConfiguration.Instance.GalleryBaseUrl.TrimEnd('/') + "/account/staging/" + GalleryConfiguration.Instance.Account.Name + "/package/" + id + "/1.0.0/move";
+            await OpenStagingPageAsync(moveUrl);
+            await Page.Locator("select[name='GroupId']").SelectOptionAsync(destinationGroup);
+            await Page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Move", Exact = true }).ClickAsync();
+            await Page.WaitForURLAsync(url => new Uri(url).AbsolutePath.EndsWith("/groups/" + destinationGroup, StringComparison.Ordinal));
+
+            var parentArtifact = await context.GetJsonAsync(StagingTestContext.ArtifactPath(id) + "/status");
+            var symbolArtifact = await context.GetJsonAsync(StagingTestContext.ArtifactPath(id, true) + "/status");
+            Assert.Equal(destinationGroup, parentArtifact["group"]["id"].GetValue<string>());
+            Assert.Equal(destinationGroup, symbolArtifact["group"]["id"].GetValue<string>());
+            Assert.Equal(0, (await context.GetJsonAsync("groups/" + sourceGroup))["totalCount"].GetValue<int>());
+            Assert.Equal(2, (await context.GetJsonAsync("groups/" + destinationGroup))["totalCount"].GetValue<int>());
+            await Expect(Page.Locator(".staging-packages-table tbody tr")).ToHaveCountAsync(2);
+
+            await OpenStagingPageAsync(moveUrl);
+            await Page.Locator("select[name='GroupId']").SelectOptionAsync("");
+            await Page.GetByRole(AriaRole.Button, new PageGetByRoleOptions { Name = "Move", Exact = true }).ClickAsync();
+            await Page.WaitForURLAsync(url => new Uri(url).AbsolutePath.EndsWith("/ungrouped", StringComparison.Ordinal));
+
+            parentArtifact = await context.GetJsonAsync(StagingTestContext.ArtifactPath(id) + "/status");
+            symbolArtifact = await context.GetJsonAsync(StagingTestContext.ArtifactPath(id, true) + "/status");
+            Assert.Null(parentArtifact["group"]);
+            Assert.Null(symbolArtifact["group"]);
+            Assert.Equal(0, (await context.GetJsonAsync("groups/" + destinationGroup))["totalCount"].GetValue<int>());
+            var rows = Page.Locator(".staging-packages-table tbody tr").Filter(new LocatorFilterOptions { HasText = id });
+            await Expect(rows).ToHaveCountAsync(2);
         }
 
         [Fact]

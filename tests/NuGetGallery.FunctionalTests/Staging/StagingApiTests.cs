@@ -196,6 +196,71 @@ namespace NuGetGallery.FunctionalTests.Staging
             }
         }
 
+        [Fact]
+        [Category("StagingCiTests")]
+        public async Task DeletingNeverPublishedStagingKeepsItsMetadataPrivate()
+        {
+            await using var context = new StagingTestContext();
+            var id = StagingTestContext.NewPackageId();
+            using (var upload = await context.UploadAsync(id, StagingTestContext.CreateArchive(id)))
+            {
+                await StagingTestContext.ReadJsonAsync(upload, HttpStatusCode.Created);
+            }
+
+            using (var deleted = await context.SendAsync(HttpMethod.Delete, StagingTestContext.ArtifactPath(id)))
+            {
+                Assert.Equal(HttpStatusCode.NoContent, deleted.StatusCode);
+            }
+
+            using (var missing = await context.SendAsync(HttpMethod.Get, StagingTestContext.ArtifactPath(id) + "/status"))
+            {
+                Assert.Equal(HttpStatusCode.NotFound, missing.StatusCode);
+            }
+
+            using var publicPage = await context.SendAsync(HttpMethod.Get, "../../../packages/" + id + "/1.0.0", apiKey: "");
+            Assert.Equal(HttpStatusCode.NotFound, publicPage.StatusCode);
+        }
+
+        [Fact]
+        [Category("StagingCiTests")]
+        public async Task VersionsOfTheSameIdRemainIndependentWhenOneIsDeleted()
+        {
+            await using var context = new StagingTestContext();
+            var id = StagingTestContext.NewPackageId();
+            var firstBytes = StagingTestContext.CreateArchive(id);
+            var secondBytes = StagingTestContext.CreateArchive(id, version: "2.0.0");
+            using (var first = await context.UploadAsync(id, firstBytes))
+            using (var second = await context.UploadAsync(id, secondBytes, version: "2.0.0"))
+            {
+                var firstArtifact = await StagingTestContext.ReadJsonAsync(first, HttpStatusCode.Created);
+                var secondArtifact = await StagingTestContext.ReadJsonAsync(second, HttpStatusCode.Created);
+                Assert.Equal("1.0.0", firstArtifact["version"].GetValue<string>());
+                Assert.Equal("2.0.0", secondArtifact["version"].GetValue<string>());
+            }
+
+            using (var first = await context.SendAsync(HttpMethod.Get, StagingTestContext.ArtifactPath(id, version: "1.0")))
+            using (var second = await context.SendAsync(HttpMethod.Get, StagingTestContext.ArtifactPath(id, version: "2.0")))
+            {
+                Assert.Equal(firstBytes, await StagingTestContext.ReadBytesAsync(first));
+                Assert.Equal(secondBytes, await StagingTestContext.ReadBytesAsync(second));
+            }
+
+            using (var deleted = await context.SendAsync(HttpMethod.Delete, StagingTestContext.ArtifactPath(id)))
+            {
+                Assert.Equal(HttpStatusCode.NoContent, deleted.StatusCode);
+            }
+
+            using (var missing = await context.SendAsync(HttpMethod.Get, StagingTestContext.ArtifactPath(id) + "/status"))
+            {
+                Assert.Equal(HttpStatusCode.NotFound, missing.StatusCode);
+            }
+
+            var remaining = await context.GetJsonAsync(StagingTestContext.ArtifactPath(id, version: "2.0.0") + "/status");
+            Assert.Equal("2.0.0", remaining["version"].GetValue<string>());
+            using var download = await context.SendAsync(HttpMethod.Get, StagingTestContext.ArtifactPath(id, version: "2.0.0"));
+            Assert.Equal(secondBytes, await StagingTestContext.ReadBytesAsync(download));
+        }
+
         [Theory]
         [Category("StagingCiTests")]
         [InlineData(false)]
