@@ -182,33 +182,4 @@ namespace NuGetGallery
         Unchanged,
         Conflict,
     }
-
-    public enum StagingGroupDeletionResultType
-    {
-        Deleted,
-        Conflict,
-    }
-
-    public sealed class StagingGroupDeletionResult
-    {
-        private StagingGroupDeletionResult(StagingGroupDeletionResultType type, int affectedPackageCount)
-        {
-            Type = type;
-            AffectedPackageCount = affectedPackageCount;
-        }
-
-        public StagingGroupDeletionResultType Type { get; }
-
-        public int AffectedPackageCount { get; }
-
-        public static StagingGroupDeletionResult Deleted(int affectedPackageCount)
-        {
-            return new StagingGroupDeletionResult(StagingGroupDeletionResultType.Deleted, affectedPackageCount);
-        }
-
-        public static StagingGroupDeletionResult Conflict(int affectedPackageCount)
-        {
-            return new StagingGroupDeletionResult(StagingGroupDeletionResultType.Conflict, affectedPackageCount);
-        }
-    }
 }
