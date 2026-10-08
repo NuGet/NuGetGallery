@@ -23,6 +23,7 @@ namespace NuGetGallery
         private readonly IEntityRepository<StagedPackageIdentity> _identityRepository;
         private readonly IEntityRepository<SymbolPackage> _symbolPackageRepository;
         private readonly IStagingBlobService _stagingBlobService;
+        private readonly IStagingBlobCleanupService _blobCleanup;
 
         public SymbolPackageStagingManagementService(
             IPackageStagingAuthorizationService authorizationService,
@@ -30,7 +31,8 @@ namespace NuGetGallery
             IEntityRepository<StagedSymbolPackage> stagedSymbolPackageRepository,
             IEntityRepository<StagedPackageIdentity> identityRepository,
             IEntityRepository<SymbolPackage> symbolPackageRepository,
-            IStagingBlobService stagingBlobService)
+            IStagingBlobService stagingBlobService,
+            IStagingBlobCleanupService blobCleanup)
         {
             _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
@@ -38,6 +40,7 @@ namespace NuGetGallery
             _identityRepository = identityRepository ?? throw new ArgumentNullException(nameof(identityRepository));
             _symbolPackageRepository = symbolPackageRepository ?? throw new ArgumentNullException(nameof(symbolPackageRepository));
             _stagingBlobService = stagingBlobService ?? throw new ArgumentNullException(nameof(stagingBlobService));
+            _blobCleanup = blobCleanup ?? throw new ArgumentNullException(nameof(blobCleanup));
         }
 
         public IReadOnlyList<StagedSymbolPackage> GetStagedSymbolPackages(User currentUser)
@@ -126,6 +129,12 @@ namespace NuGetGallery
                     if (group != null)
                     {
                         group.MutationRevision++;
+                    }
+
+                    _blobCleanup.QueueSymbolFiles(identity.Key);
+                    if (!identity.CurrentStagedPackageKey.HasValue)
+                    {
+                        _blobCleanup.QueuePackageFiles(identity.Key);
                     }
 
                     identity.CurrentStagedSymbolPackageKey = null;

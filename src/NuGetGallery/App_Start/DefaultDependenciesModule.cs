@@ -415,6 +415,10 @@ namespace NuGetGallery
                 .As<IPackageStagingManagementService>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<StagingBlobCleanupService>()
+                .As<IStagingBlobCleanupService>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<PackageStagingPromotionService>()
                 .As<IPackageStagingPromotionService>()
                 .InstancePerLifetimeScope();
