@@ -102,8 +102,12 @@ namespace NuGet.Services.Validation.Orchestrator
                     await _storage.UpdateValidationSetAsync(validationSet);
                     if (scheduleNextCheck)
                     {
-                        var message = PackageValidationMessageData.NewProcessValidationSet(validationSet.PackageId, validationSet.PackageNormalizedVersion,
-                            validationSet.ValidationTrackingId, ValidatingType.StagedSymbolPackage, attempt.Key);
+                        var message = PackageValidationMessageData.NewProcessValidationSet(
+                            validationSet.PackageId,
+                            validationSet.PackageNormalizedVersion,
+                            validationSet.ValidationTrackingId,
+                            ValidatingType.StagedSymbolPackage,
+                            attempt.Key);
                         await _enqueuer.SendMessageAsync(message, DateTimeOffset.UtcNow + _configuration.ValidationMessageRecheckPeriod);
                     }
 
