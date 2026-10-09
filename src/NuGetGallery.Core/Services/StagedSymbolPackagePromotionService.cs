@@ -129,6 +129,15 @@ namespace NuGetGallery
                 throw;
             }
 
+            if (attempt.Status == StagedPackageStatus.Succeeded)
+            {
+                _logger.LogInformation(
+                    "Public symbols published for promotion {PromotionId}, attempt {AttemptKey}, symbol package {SymbolPackageKey}.",
+                    promotionId,
+                    stagedSymbolPackageKey,
+                    symbol.Key);
+            }
+
             if (attempt.Status == StagedPackageStatus.PromotionFailed && !existed)
             {
                 await _storage.DeleteFileAsync(folder, name);
@@ -158,6 +167,7 @@ namespace NuGetGallery
                 return;
             }
 
+            _logger.LogInformation("Removing succeeded staged symbol attempt {AttemptKey} for promotion {PromotionId}.", stagedSymbolPackageKey, promotionId);
             await _attempts.ExecuteInTransactionAsync(async () =>
             {
                 var identity = attempt.StagedPackageIdentity;
@@ -172,6 +182,7 @@ namespace NuGetGallery
                     await _attempts.CommitChangesAsync();
                 }
             });
+            _logger.LogInformation("Removed succeeded staged symbol attempt {AttemptKey} for promotion {PromotionId}.", stagedSymbolPackageKey, promotionId);
         }
 
         private StagedSymbolPackage FindAttempt(int key, Guid promotionId)

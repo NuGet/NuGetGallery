@@ -113,6 +113,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 set.PackageKey,
                 set.ValidationTrackingId))
             {
+                _logger.LogInformation("Processing symbol promotion message {MessageType}.", message.Type);
                 var entity = _entities.FindPackageByKey(set.PackageKey.Value);
                 if (entity == null)
                 {
@@ -140,6 +141,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 data.EntityKey,
                 data.ValidationTrackingId))
             {
+                _logger.LogInformation("Processing symbol promotion message {MessageType}.", message.Type);
                 var entity = _entities.FindPackageByKey(data.EntityKey.Value);
                 if (entity == null)
                 {

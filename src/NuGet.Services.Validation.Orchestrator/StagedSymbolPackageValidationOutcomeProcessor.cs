@@ -99,6 +99,10 @@ namespace NuGet.Services.Validation.Orchestrator
             {
                 if (DateTime.UtcNow - validationSet.Created <= _configuration.TimeoutValidationSetAfter)
                 {
+                    _logger.LogDebug(
+                        "Symbol promotion ingestion {ValidationTrackingId} is {ValidationStatus}; awaiting completion.",
+                        validationSet.ValidationTrackingId,
+                        ingestion.ValidationStatus);
                     await _storage.UpdateValidationSetAsync(validationSet);
                     if (scheduleNextCheck)
                     {
@@ -121,6 +125,7 @@ namespace NuGet.Services.Validation.Orchestrator
             }
             else if (ingestion.ValidationStatus == ValidationStatus.Succeeded)
             {
+                _logger.LogInformation("Symbol ingestion succeeded for promotion {PromotionId}; beginning publication.", promotionId);
                 await _promotion.Value.CompleteAsync(attempt.Key, promotionId);
             }
             else if (ingestion.ValidationStatus == ValidationStatus.Failed)
@@ -139,13 +144,26 @@ namespace NuGet.Services.Validation.Orchestrator
         {
             validationSet.ValidationSetStatus = ValidationSetStatus.Completed;
             await _storage.UpdateValidationSetAsync(validationSet);
+            _logger.LogInformation(
+                "Symbol promotion validation set {ValidationSetId} completed with attempt status {AttemptStatus} for promotion {PromotionId}.",
+                validationSet.ValidationTrackingId,
+                attempt.Status,
+                promotionId);
             _telemetry.TrackStagingValidationDuration(validationSet, DateTime.UtcNow - validationSet.Created, attempt.Status == StagedPackageStatus.Succeeded);
             await CleanUpAsync(validationSet, attempt.Key, promotionId);
         }
 
         private async Task CleanUpAsync(PackageValidationSet validationSet, int attemptKey, Guid promotionId)
         {
+            _logger.LogInformation(
+                "Cleaning up validation content for symbol promotion {PromotionId}, validation set {ValidationSetId}.",
+                promotionId,
+                validationSet.ValidationTrackingId);
             await _files.DeletePackageForValidationSetAsync(validationSet);
+            _logger.LogInformation(
+                "Validation content cleanup completed for symbol promotion {PromotionId}, validation set {ValidationSetId}.",
+                promotionId,
+                validationSet.ValidationTrackingId);
             await _promotion.Value.CleanUpAsync(attemptKey, promotionId);
         }
     }
