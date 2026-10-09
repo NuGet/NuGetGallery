@@ -17,6 +17,7 @@ namespace NuGet.Services.Staging.Promotion
     {
         private readonly IStagingPromotionMessageHandler<StagingGroup> _groupHandler;
         private readonly IStagingPromotionMessageHandler<StagedPackage> _packageHandler;
+        private readonly Lazy<IStagingPromotionMessageHandler<StagedSymbolPackage>> _symbolHandler;
         private readonly ILogger<StagingPromotionMessageHandler> _logger;
 
         /// <summary>
@@ -24,14 +25,17 @@ namespace NuGet.Services.Staging.Promotion
         /// </summary>
         /// <param name="groupHandler">The staging group promotion handler.</param>
         /// <param name="packageHandler">The staged package promotion handler.</param>
+        /// <param name="symbolHandler">The staged symbol promotion dispatcher.</param>
         /// <param name="logger">The logger.</param>
         public StagingPromotionMessageHandler(
             IStagingPromotionMessageHandler<StagingGroup> groupHandler,
             IStagingPromotionMessageHandler<StagedPackage> packageHandler,
+            Lazy<IStagingPromotionMessageHandler<StagedSymbolPackage>> symbolHandler,
             ILogger<StagingPromotionMessageHandler> logger)
         {
             _groupHandler = groupHandler ?? throw new ArgumentNullException(nameof(groupHandler));
             _packageHandler = packageHandler ?? throw new ArgumentNullException(nameof(packageHandler));
+            _symbolHandler = symbolHandler ?? throw new ArgumentNullException(nameof(symbolHandler));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -52,7 +56,7 @@ namespace NuGet.Services.Staging.Promotion
                     case StagingPromotionTargetType.StagedPackage:
                         return await _packageHandler.HandleAsync(message);
                     case StagingPromotionTargetType.StagedSymbolPackage:
-                        throw new NotSupportedException("Staged symbol package promotion is not implemented.");
+                        return await _symbolHandler.Value.HandleAsync(message);
                     default:
                         throw new InvalidOperationException($"Unknown staging promotion target type '{message.TargetType}'.");
                 }

@@ -27,12 +27,15 @@ namespace NuGet.Services.Validation.Orchestrator
                 switch (EntityRecord.Status)
                 {
                     case StagedPackageStatus.Validating:
+                    case StagedPackageStatus.Promoting:
                         return PackageStatus.Validating;
                     case StagedPackageStatus.FailedValidation:
+                    case StagedPackageStatus.PromotionFailed:
                         return PackageStatus.FailedValidation;
                     case StagedPackageStatus.Ready:
                     case StagedPackageStatus.Superseded:
                     case StagedPackageStatus.Deleted:
+                    case StagedPackageStatus.Succeeded:
                         return PackageStatus.Available;
                     default:
                         throw new ArgumentOutOfRangeException(nameof(EntityRecord.Status));

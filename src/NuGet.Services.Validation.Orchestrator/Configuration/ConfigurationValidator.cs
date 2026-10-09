@@ -60,6 +60,11 @@ namespace NuGet.Services.Validation.Orchestrator
 
         private void CheckPropertyValues()
         {
+            if (_configuration.EnableStagedSymbolPromotion && string.IsNullOrWhiteSpace(_configuration.PackageStorageConnectionString))
+            {
+                throw new ConfigurationErrorsException($"{nameof(_configuration.PackageStorageConnectionString)} must be set when staged symbol promotion is enabled");
+            }
+
             foreach (var validationConfigurationItem in _configuration.Validations)
             {
                 if (string.IsNullOrWhiteSpace(validationConfigurationItem.Name))

@@ -86,6 +86,37 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             [InlineData(true, true, true)]
             [InlineData(false, true, false)]
             [InlineData(true, false, false)]
+            public void ReplacesOnlyExplicitlyEnabledLocalSymbolsIngester(bool enabled, bool useForSymbolsIngester, bool expectedDevelopmentValidator)
+            {
+                DevelopmentConfiguration.Enabled = enabled;
+                DevelopmentConfiguration.UseForSymbolsIngester = useForSymbolsIngester;
+                var developmentValidator = new DevelopmentValidator(Options.Create(new DevelopmentValidatorConfiguration { Enabled = true }));
+                var symbolsIngester = new TestNuGetValidator();
+                ServiceProviderMock.Setup(provider => provider.GetService(typeof(DevelopmentValidator))).Returns(developmentValidator);
+                ServiceProviderMock.Setup(provider => provider.GetService(typeof(SymbolsIngester))).Returns(symbolsIngester);
+                var symbolsValidator = new TestNuGetValidator();
+                ServiceProviderMock.Setup(provider => provider.GetService(typeof(SymbolsValidator))).Returns(symbolsValidator);
+
+                var ingester = Target.GetNuGetValidator(ValidatorName.SymbolsIngester);
+
+                if (expectedDevelopmentValidator)
+                {
+                    Assert.Same(developmentValidator, ingester);
+                    ServiceProviderMock.Verify(provider => provider.GetService(typeof(SymbolsIngester)), Times.Never);
+                }
+                else
+                {
+                    Assert.Same(symbolsIngester, ingester);
+                    ServiceProviderMock.Verify(provider => provider.GetService(typeof(DevelopmentValidator)), Times.Never);
+                }
+
+                Assert.Same(symbolsValidator, Target.GetNuGetValidator(ValidatorName.SymbolsValidator));
+            }
+
+            [Theory]
+            [InlineData(true, true, true)]
+            [InlineData(false, true, false)]
+            [InlineData(true, false, false)]
             public void ReplacesOnlyExplicitlyEnabledLocalSymbolScan(bool enabled, bool useForSymbolScan, bool expectedDevelopmentValidator)
             {
                 DevelopmentConfiguration.Enabled = enabled;

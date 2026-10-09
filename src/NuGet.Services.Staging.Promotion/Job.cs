@@ -11,6 +11,7 @@ using NuGet.Jobs.Validation;
 using NuGet.Services.Entities;
 using NuGet.Services.ServiceBus;
 using NuGet.Services.Staging;
+using NuGet.Services.Validation;
 using NuGetGallery;
 
 namespace NuGet.Services.Staging.Promotion
@@ -21,14 +22,17 @@ namespace NuGet.Services.Staging.Promotion
     public class Job : SubscriptionProcessorJob<StagingPromotionMessage>
     {
         private const string PromotionConfigurationSectionName = "Promotion";
+        private const string PackageValidationServiceBusSectionName = "PackageValidationServiceBus";
         private const string PackageStorageKey = "PackageStorage";
         private const string StagingStorageKey = "StagingStorage";
         private const string FlatContainerStorageKey = "FlatContainerStorage";
         private const string PromotionTopicKey = "PromotionTopic";
+        private const string SymbolsOrchestratorTopicKey = "SymbolsOrchestratorTopic";
 
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             services.Configure<PromotionConfiguration>(configurationRoot.GetSection(PromotionConfigurationSectionName));
+            services.Configure<PackageValidationServiceBusConfiguration>(configurationRoot.GetSection(PackageValidationServiceBusSectionName));
             SetupDefaultSubscriptionProcessorConfiguration(services, configurationRoot);
             services.Configure<SubscriptionProcessorConfiguration>(configuration => configuration.MaxConcurrentCalls = 1);
 
@@ -42,6 +46,7 @@ namespace NuGet.Services.Staging.Promotion
             services.AddTransient<ICorePackageService, CorePackageService>();
             services.AddTransient<IFileMetadataService, PackageFileMetadataService>();
             services.AddTransient<IBrokeredMessageSerializer<StagingPromotionMessage>, StagingPromotionMessageSerializer>();
+            services.AddTransient<IServiceBusMessageSerializer, ServiceBusMessageSerializer>();
             services.AddTransient<ISubscriptionProcessorTelemetryService, SubscriptionProcessorNoTelemetryService>();
             services.AddTransient<ICloudBlobContainerInformationProvider, GalleryCloudBlobContainerInformationProvider>();
         }
@@ -63,6 +68,20 @@ namespace NuGet.Services.Staging.Promotion
                 .RegisterType<StagingPromotionMessageEnqueuer>()
                 .WithKeyedParameter(typeof(ITopicClient), PromotionTopicKey)
                 .As<IStagingPromotionMessageEnqueuer>();
+
+            containerBuilder
+                .Register(context =>
+                {
+                    var configuration = context.Resolve<IOptionsSnapshot<PackageValidationServiceBusConfiguration>>().Value;
+                    return new TopicClientWrapper(configuration.ConnectionString, configuration.TopicPath);
+                })
+                .Keyed<ITopicClient>(SymbolsOrchestratorTopicKey)
+                .SingleInstance()
+                .OnRelease(client => _ = client.CloseAsync());
+            containerBuilder
+                .RegisterType<PackageValidationEnqueuer>()
+                .WithKeyedParameter(typeof(ITopicClient), SymbolsOrchestratorTopicKey)
+                .As<IPackageValidationEnqueuer>();
 
             containerBuilder
                 .RegisterStorageAccount<PromotionConfiguration>(configuration => configuration.PackageStorageConnectionString)
@@ -100,6 +119,9 @@ namespace NuGet.Services.Staging.Promotion
                 .RegisterType<StagedPackagePromotionMessageHandler>()
                 .WithKeyedParameter(typeof(ICoreFileStorageService), PackageStorageKey)
                 .As<IStagingPromotionMessageHandler<StagedPackage>>();
+            containerBuilder
+                .RegisterType<StagedSymbolPackagePromotionMessageHandler>()
+                .As<IStagingPromotionMessageHandler<StagedSymbolPackage>>();
             containerBuilder
                 .RegisterType<StagingGroupPromotionMessageHandler>()
                 .As<IStagingPromotionMessageHandler<StagingGroup>>();
