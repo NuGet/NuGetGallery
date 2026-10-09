@@ -115,7 +115,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 }
 
                 _logger.LogWarning("Symbol promotion ingestion {ValidationTrackingId} timed out.", validationSet.ValidationTrackingId);
-                _telemetry.TrackValidationSetTimeout(validationSet.PackageId, validationSet.PackageNormalizedVersion, validationSet.ValidationTrackingId);
+                _telemetry.TrackStagingValidationSetTimeout(validationSet);
                 await _storage.UpdateValidationStatusAsync(ingestion, NuGetValidationResponse.Failed);
                 await _promotion.Value.FailAsync(attempt.Key, promotionId);
             }
@@ -139,8 +139,7 @@ namespace NuGet.Services.Validation.Orchestrator
         {
             validationSet.ValidationSetStatus = ValidationSetStatus.Completed;
             await _storage.UpdateValidationSetAsync(validationSet);
-            _telemetry.TrackTotalValidationDuration(validationSet.PackageId, validationSet.PackageNormalizedVersion,
-                validationSet.ValidationTrackingId, DateTime.UtcNow - validationSet.Created, attempt.Status == StagedPackageStatus.Succeeded);
+            _telemetry.TrackStagingValidationDuration(validationSet, DateTime.UtcNow - validationSet.Created, attempt.Status == StagedPackageStatus.Succeeded);
             await CleanUpAsync(validationSet, attempt.Key, promotionId);
         }
 
