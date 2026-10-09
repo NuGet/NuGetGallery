@@ -258,9 +258,9 @@ Function Build-Solution {
     if (-not $SkipRestore) {
         # Restore packages for NuGet.Tooling solution
         if (-not $UseDotnet) {
-            Restore-SolutionPackages -path $SolutionPath -MSBuildVersion $MSBuildVersion
+            Restore-SolutionPackages -path $SolutionPath -MSBuildVersion $MSBuildVersion -BinLog:$BinLog
         } else {
-            Restore-SolutionPackages -path $SolutionPath -UseDotnet
+            Restore-SolutionPackages -path $SolutionPath -UseDotnet -BinLog:$BinLog
         }
     }
 
@@ -599,7 +599,8 @@ Function Restore-SolutionPackages {
         [int]$MSBuildVersion,
         [string]$BuildNumber,
         [string]$ConfigFile,
-        [switch]$UseDotnet
+        [switch]$UseDotnet,
+        [switch]$BinLog
     )
 
     if ($UseDotnet -and $MSBuildVersion) {
@@ -619,6 +620,10 @@ Function Restore-SolutionPackages {
 
         if ($ConfigFile) {
             $opts += '--configfile', $ConfigFile
+        }
+
+        if ($BinLog) {
+            $opts += '-bl:restore.binlog'
         }
 
         Trace-Log "Restoring packages @""$InstallLocation"""
@@ -644,6 +649,10 @@ Function Restore-SolutionPackages {
 
         if ($ConfigFile) {
             $opts += '-configfile', $ConfigFile
+        }
+
+        if ($BinLog) {
+            $opts += '/bl:restore.binlog'
         }
 
         Trace-Log "Restoring packages @""$InstallLocation"""
