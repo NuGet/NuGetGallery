@@ -2138,6 +2138,7 @@ namespace NuGetGallery
         }
 
         [AdminAction]
+        [ElevatedAdminAction]
         [HttpPost]
         [RequiresAccountConfirmation("delete a package")]
         [ValidateAntiForgeryToken]
