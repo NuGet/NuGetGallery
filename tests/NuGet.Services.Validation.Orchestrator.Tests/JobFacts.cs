@@ -40,12 +40,13 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         public async Task SymbolPromotionPublishesThroughPublicStorageRatherThanValidationStorage()
         {
             var promotionId = Guid.NewGuid();
+            var owner = new User { Key = 7, EmailAddress = "owner@example.test" };
             var parent = new Package
             {
                 Key = 42,
                 NormalizedVersion = "1.0.0",
                 PackageStatusKey = PackageStatus.Available,
-                PackageRegistration = new PackageRegistration { Id = "PackageA", Owners = new List<User> { new User { Key = 7 } } },
+                PackageRegistration = new PackageRegistration { Id = "PackageA", Owners = new List<User> { owner } },
             };
             var symbol = new SymbolPackage { Key = 44, PackageKey = parent.Key, StatusKey = PackageStatus.Staged };
             var attempt = new StagedSymbolPackage
@@ -56,7 +57,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 UploadedBlobPath = "symbols/43",
                 UploadedBlobETag = "etag",
                 SymbolPackage = symbol,
-                StagedPackageIdentity = new StagedPackageIdentity { Package = parent, OwnerKey = 7, CurrentStagedSymbolPackageKey = 43 },
+                StagedPackageIdentity = new StagedPackageIdentity { Package = parent, Owner = owner, OwnerKey = owner.Key, CurrentStagedSymbolPackageKey = 43 },
             };
             var attempts = new Mock<IEntityRepository<StagedSymbolPackage>>();
             attempts.Setup(repository => repository.GetAll()).Returns(new[] { attempt }.AsQueryable());
