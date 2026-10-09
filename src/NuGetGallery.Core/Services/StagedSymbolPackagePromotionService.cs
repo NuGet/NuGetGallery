@@ -77,6 +77,12 @@ namespace NuGetGallery
             try
             {
                 await _storage.CopyFileAsync(uri, folder, name, AccessConditionWrapper.GenerateIfNotExistsCondition());
+                _logger.LogInformation(
+                    "Public symbol content is ready at {Folder}/{FileName} for promotion {PromotionId} and attempt {AttemptKey}.",
+                    folder,
+                    name,
+                    promotionId,
+                    stagedSymbolPackageKey);
             }
             catch (FileAlreadyExistsException exception)
             {
