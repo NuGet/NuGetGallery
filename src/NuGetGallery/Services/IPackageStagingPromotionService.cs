@@ -7,7 +7,7 @@ using NuGet.Services.Entities;
 namespace NuGetGallery
 {
     /// <summary>
-    /// Accepts package and staging group promotion requests from signed-in Gallery users.
+    /// Accepts package, symbol, and staging group promotion requests from signed-in Gallery users.
     /// </summary>
     public interface IPackageStagingPromotionService
     {
@@ -26,6 +26,22 @@ namespace NuGetGallery
         /// <param name="stagedPackage">The staged package attempt being promoted.</param>
         /// <returns>The result of the resend request.</returns>
         Task<PackageStagingPromotionResult> ResendPackageAsync(User currentUser, StagedPackage stagedPackage);
+
+        /// <summary>
+        /// Attempts to begin promotion of ready Ungrouped symbols with an available parent.
+        /// </summary>
+        /// <param name="currentUser">The user requesting promotion.</param>
+        /// <param name="stagedSymbolPackage">The immutable symbol attempt to promote.</param>
+        /// <returns>The result of accepting the promotion request.</returns>
+        Task<PackageStagingPromotionResult> PromoteSymbolPackageAsync(User currentUser, StagedSymbolPackage stagedSymbolPackage);
+
+        /// <summary>
+        /// Resends an active individual symbol promotion without starting a new ingestion attempt.
+        /// </summary>
+        /// <param name="currentUser">The user requesting the resend.</param>
+        /// <param name="stagedSymbolPackage">The symbol attempt being promoted.</param>
+        /// <returns>The result of the resend request.</returns>
+        Task<PackageStagingPromotionResult> ResendSymbolPackageAsync(User currentUser, StagedSymbolPackage stagedSymbolPackage);
 
         /// <summary>
         /// Attempts to begin promotion of every current package in a staging group.

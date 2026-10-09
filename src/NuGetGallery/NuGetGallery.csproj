@@ -443,6 +443,10 @@
     <Compile Include="Migrations\202609302029038_AddStagedSymbolPromotion.Designer.cs">
       <DependentUpon>202609302029038_AddStagedSymbolPromotion.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\20261001004643032_AddStagedSymbolPromotionControls.cs" />
+    <Compile Include="Migrations\20261001004643032_AddStagedSymbolPromotionControls.Designer.cs">
+      <DependentUpon>20261001004643032_AddStagedSymbolPromotionControls.cs</DependentUpon>
+    </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
     <Compile Include="RequestModels\UpdateListedRequest.cs" />
@@ -666,6 +670,7 @@
     <Compile Include="Services\PackageStagingAuthorizationService.cs" />
     <Compile Include="Services\PackageStagingManagementService.cs" />
     <Compile Include="Services\PackageStagingPromotionService.cs" />
+    <Compile Include="Services\StagedSymbolPackagePromotionEligibility.cs" />
     <Compile Include="Services\StagingPromotionResendPolicy.cs" />
     <Compile Include="Services\PackageStagingStatus.cs" />
     <Compile Include="Services\PackageStagingUploadService.cs" />
@@ -1910,6 +1915,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202609302029038_AddStagedSymbolPromotion.resx">
       <DependentUpon>202609302029038_AddStagedSymbolPromotion.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\20261001004643032_AddStagedSymbolPromotionControls.resx">
+      <DependentUpon>20261001004643032_AddStagedSymbolPromotionControls.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

@@ -173,6 +173,7 @@ namespace NuGetGallery
                 .Include(attempt => attempt.StagedPackageIdentity.CurrentStagedPackage)
                 .Include(attempt => attempt.StagedPackageIdentity.StagingGroup)
                 .Include(attempt => attempt.StagedPackageIdentity.Package.PackageRegistration.Owners)
+                .Include(attempt => attempt.StagedPackageIdentity.Package.SymbolPackages)
                 .Where(attempt => attempt.StagedPackageIdentity.CurrentStagedSymbolPackageKey == attempt.Key)
                 .Where(attempt => attempt.SymbolPackage.StatusKey == PackageStatus.Staged);
         }

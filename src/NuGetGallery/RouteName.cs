@@ -80,6 +80,8 @@ namespace NuGetGallery
         public const string DownloadManagedStagedSymbolPackage = "DownloadManagedStagedSymbolPackage";
         public const string DeleteManagedStagedSymbolPackage = "DeleteManagedStagedSymbolPackage";
         public const string ReplaceManagedStagedSymbolPackage = "ReplaceManagedStagedSymbolPackage";
+        public const string PromoteManagedStagedSymbolPackage = "PromoteManagedStagedSymbolPackage";
+        public const string ResendManagedStagedSymbolPackage = "ResendManagedStagedSymbolPackage";
         public const string ReplaceManagedStagedPackage = "ReplaceManagedStagedPackage";
         public const string UpdateManagedStagedPackageListed = "UpdateManagedStagedPackageListed";
         public const string PromoteManagedStagedPackage = "PromoteManagedStagedPackage";
