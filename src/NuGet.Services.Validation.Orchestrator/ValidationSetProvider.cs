@@ -138,7 +138,18 @@ namespace NuGet.Services.Validation.Orchestrator
             // case.
             if (await _validationStorageService.GetValidationSetCountAsync(validatingEntity) == 1)
             {
-                _telemetryService.TrackDurationToValidationSetCreation(validationSet.PackageId, validationSet.PackageNormalizedVersion, validationSet.ValidationTrackingId, validationSet.Created - validatingEntity.Created);
+                if (validationSet.ValidatingType == ValidatingType.StagedPackage || validationSet.ValidatingType == ValidatingType.StagedSymbolPackage)
+                {
+                    // Upload age is not a measure of the later promotion request's creation delay.
+                    if (!SymbolPromotionValidationConfiguration.IsPromotion(validationSet))
+                    {
+                        _telemetryService.TrackStagingDurationToValidationSetCreation(validationSet, validationSet.Created - validatingEntity.Created);
+                    }
+                }
+                else
+                {
+                    _telemetryService.TrackDurationToValidationSetCreation(validationSet.PackageId, validationSet.PackageNormalizedVersion, validationSet.ValidationTrackingId, validationSet.Created - validatingEntity.Created);
+                }
             }
 
             return persistedValidationSet;

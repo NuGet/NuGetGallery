@@ -29,6 +29,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             Assert.Equal(new[] { "publish", "save-set", "delete-validation-blob", "cleanup" }, fixture.Calls);
             Assert.Equal(ValidationSetStatus.Completed, fixture.Set.ValidationSetStatus);
+            fixture.Telemetry.Verify(service => service.TrackStagingValidationDuration(fixture.Set, It.IsAny<TimeSpan>(), true), Times.Once);
+            fixture.Telemetry.VerifyNoOtherCalls();
         }
 
         [Theory]
@@ -48,6 +50,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             fixture.Storage.Verify(service => service.UpdateValidationStatusAsync(fixture.Ingestion, NuGetValidationResponse.Failed),
                 timedOut ? Times.Once() : Times.Never());
             fixture.Promotion.Verify(service => service.CompleteAsync(It.IsAny<int>(), It.IsAny<Guid>()), Times.Never);
+            fixture.Telemetry.Verify(service => service.TrackStagingValidationDuration(fixture.Set, It.IsAny<TimeSpan>(), false), Times.Once);
+            fixture.Telemetry.Verify(service => service.TrackStagingValidationSetTimeout(fixture.Set), timedOut ? Times.Once() : Times.Never());
+            fixture.Telemetry.VerifyNoOtherCalls();
         }
 
         [Theory]
@@ -62,6 +67,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             Assert.Equal(new[] { "save-set" }, fixture.Calls);
             Assert.Equal(ValidationSetStatus.InProgress, fixture.Set.ValidationSetStatus);
+            fixture.Telemetry.VerifyNoOtherCalls();
             fixture.Enqueuer.Verify(service => service.SendMessageAsync(
                 It.Is<PackageValidationMessageData>(message => message.ProcessValidationSet.ValidationTrackingId == fixture.Set.ValidationTrackingId
                     && message.ProcessValidationSet.EntityKey == fixture.Attempt.Key
@@ -309,6 +315,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             public Mock<IFeatureFlagService> Features { get; } = new Mock<IFeatureFlagService>();
 
+            public Mock<ITelemetryService> Telemetry { get; } = new Mock<ITelemetryService>();
+
             public StagedSymbolPackageValidationOutcomeProcessor Target { get; set; }
 
             public Task ProcessAsync(bool scheduleNextCheck = true)
@@ -348,7 +356,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             public StagedSymbolPackageValidationOutcomeProcessor CreateTarget(Lazy<IStagedSymbolPackagePromotionService> promotion)
             {
                 return new StagedSymbolPackageValidationOutcomeProcessor(promotion, Storage.Object, Files.Object, Enqueuer.Object,
-                    Configuration, Mock.Of<ITelemetryService>(), Mock.Of<ILogger<StagedSymbolPackageValidationOutcomeProcessor>>());
+                    Configuration, Telemetry.Object, Mock.Of<ILogger<StagedSymbolPackageValidationOutcomeProcessor>>());
             }
         }
     }
