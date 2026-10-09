@@ -399,69 +399,9 @@
     <Compile Include="Migrations\202608031928454_AddFederatedCredentialPolicyScopes.Designer.cs">
       <DependentUpon>202608031928454_AddFederatedCredentialPolicyScopes.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202608141813294_AddStagedPackages.cs" />
-    <Compile Include="Migrations\202608141813294_AddStagedPackages.Designer.cs">
-      <DependentUpon>202608141813294_AddStagedPackages.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202608270422303_AddStagedPackageValidation.cs" />
-    <Compile Include="Migrations\202608270422303_AddStagedPackageValidation.Designer.cs">
-      <DependentUpon>202608270422303_AddStagedPackageValidation.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202608282336197_AddStagedPackageUploadHash.cs" />
-    <Compile Include="Migrations\202608282336197_AddStagedPackageUploadHash.Designer.cs">
-      <DependentUpon>202608282336197_AddStagedPackageUploadHash.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202608290458316_AddStagedPackageRowVersion.cs" />
-    <Compile Include="Migrations\202608290458316_AddStagedPackageRowVersion.Designer.cs">
-      <DependentUpon>202608290458316_AddStagedPackageRowVersion.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609020256140_AddStagedPackagePromotionState.cs" />
-    <Compile Include="Migrations\202609020256140_AddStagedPackagePromotionState.Designer.cs">
-      <DependentUpon>202609020256140_AddStagedPackagePromotionState.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609102046018_AddStagedPackageIdentitiesAndGroups.cs" />
-    <Compile Include="Migrations\202609102046018_AddStagedPackageIdentitiesAndGroups.Designer.cs">
-      <DependentUpon>202609102046018_AddStagedPackageIdentitiesAndGroups.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609182152047_AddStagingGroupPromotionState.cs" />
-    <Compile Include="Migrations\202609182152047_AddStagingGroupPromotionState.Designer.cs">
-      <DependentUpon>202609182152047_AddStagingGroupPromotionState.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609222212426_AddStagingMutationRevisions.cs" />
-    <Compile Include="Migrations\202609222212426_AddStagingMutationRevisions.Designer.cs">
-      <DependentUpon>202609222212426_AddStagingMutationRevisions.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609232306044_AddStagingPromotionMessageSentDates.cs" />
-    <Compile Include="Migrations\202609232306044_AddStagingPromotionMessageSentDates.Designer.cs">
-      <DependentUpon>202609232306044_AddStagingPromotionMessageSentDates.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609252020200_AddStagedSymbolPackages.cs" />
-    <Compile Include="Migrations\202609252020200_AddStagedSymbolPackages.Designer.cs">
-      <DependentUpon>202609252020200_AddStagedSymbolPackages.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202609302029038_AddStagedSymbolPromotion.cs" />
-    <Compile Include="Migrations\202609302029038_AddStagedSymbolPromotion.Designer.cs">
-      <DependentUpon>202609302029038_AddStagedSymbolPromotion.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202610012106230_AddStagingBlobCleanups.cs" />
-    <Compile Include="Migrations\202610020725065_AddStagingExpirationDates.cs" />
-    <Compile Include="Migrations\202610020725065_AddStagingExpirationDates.Designer.cs">
-      <DependentUpon>202610020725065_AddStagingExpirationDates.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202610040443441_AddNotifyPackageStaged.cs" />
-    <Compile Include="Migrations\202610040443441_AddNotifyPackageStaged.Designer.cs">
-      <DependentUpon>202610040443441_AddNotifyPackageStaged.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202610052230414_AddStagingExpirationWarnings.cs" />
-    <Compile Include="Migrations\202610052230414_AddStagingExpirationWarnings.Designer.cs">
-      <DependentUpon>202610052230414_AddStagingExpirationWarnings.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\202610012106230_AddStagingBlobCleanups.Designer.cs">
-      <DependentUpon>202610012106230_AddStagingBlobCleanups.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Migrations\20261001004643032_AddStagedSymbolPromotionControls.cs" />
-    <Compile Include="Migrations\20261001004643032_AddStagedSymbolPromotionControls.Designer.cs">
-      <DependentUpon>20261001004643032_AddStagedSymbolPromotionControls.cs</DependentUpon>
+    <Compile Include="Migrations\202610090013233_AddPackageStaging.cs" />
+    <Compile Include="Migrations\202610090013233_AddPackageStaging.Designer.cs">
+      <DependentUpon>202610090013233_AddPackageStaging.cs</DependentUpon>
     </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
@@ -1906,53 +1846,8 @@
     <EmbeddedResource Include="Migrations\202608031928454_AddFederatedCredentialPolicyScopes.resx">
       <DependentUpon>202608031928454_AddFederatedCredentialPolicyScopes.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202608141813294_AddStagedPackages.resx">
-      <DependentUpon>202608141813294_AddStagedPackages.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202608270422303_AddStagedPackageValidation.resx">
-      <DependentUpon>202608270422303_AddStagedPackageValidation.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202608282336197_AddStagedPackageUploadHash.resx">
-      <DependentUpon>202608282336197_AddStagedPackageUploadHash.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202608290458316_AddStagedPackageRowVersion.resx">
-      <DependentUpon>202608290458316_AddStagedPackageRowVersion.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609020256140_AddStagedPackagePromotionState.resx">
-      <DependentUpon>202609020256140_AddStagedPackagePromotionState.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609102046018_AddStagedPackageIdentitiesAndGroups.resx">
-      <DependentUpon>202609102046018_AddStagedPackageIdentitiesAndGroups.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609182152047_AddStagingGroupPromotionState.resx">
-      <DependentUpon>202609182152047_AddStagingGroupPromotionState.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609222212426_AddStagingMutationRevisions.resx">
-      <DependentUpon>202609222212426_AddStagingMutationRevisions.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609232306044_AddStagingPromotionMessageSentDates.resx">
-      <DependentUpon>202609232306044_AddStagingPromotionMessageSentDates.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609252020200_AddStagedSymbolPackages.resx">
-      <DependentUpon>202609252020200_AddStagedSymbolPackages.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202609302029038_AddStagedSymbolPromotion.resx">
-      <DependentUpon>202609302029038_AddStagedSymbolPromotion.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202610012106230_AddStagingBlobCleanups.resx">
-      <DependentUpon>202610012106230_AddStagingBlobCleanups.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202610020725065_AddStagingExpirationDates.resx">
-      <DependentUpon>202610020725065_AddStagingExpirationDates.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202610040443441_AddNotifyPackageStaged.resx">
-      <DependentUpon>202610040443441_AddNotifyPackageStaged.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202610052230414_AddStagingExpirationWarnings.resx">
-      <DependentUpon>202610052230414_AddStagingExpirationWarnings.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\20261001004643032_AddStagedSymbolPromotionControls.resx">
-      <DependentUpon>20261001004643032_AddStagedSymbolPromotionControls.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202610090013233_AddPackageStaging.resx">
+      <DependentUpon>202610090013233_AddPackageStaging.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

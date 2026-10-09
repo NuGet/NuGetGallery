@@ -93,6 +93,73 @@ namespace NuGet.Services.DatabaseMigration.Facts
             }
         }
 
+        [Fact]
+        public async Task CanApplyAndRollbackPackageStaging()
+        {
+            _dbName = $"PackageStagingMigrationTest{Guid.NewGuid():N}";
+            var connectionString = $@"Data Source=(localdb)\mssqllocaldb; Initial Catalog={_dbName}; Integrated Security=True; MultipleActiveResultSets=True";
+            const string baselineMigration = "202608031928454_AddFederatedCredentialPolicyScopes";
+
+            using (var migrationConnection = new SqlConnection(connectionString))
+            {
+                var migrationContext = new GalleryDbMigrationContext(migrationConnection);
+                var dbMigrator = migrationContext.GetDbMigrator();
+                dbMigrator.Update(baselineMigration);
+
+                using (var sqlConnection = new SqlConnection(connectionString))
+                {
+                    await sqlConnection.OpenAsync();
+                    using (var command = sqlConnection.CreateCommand())
+                    {
+                        command.CommandText = @"INSERT dbo.Users (Username, EmailAllowed, IsDeleted)
+                            VALUES (N'StagingActive', 1, 0), (N'StagingDeleted', 0, 1)";
+                        await command.ExecuteNonQueryAsync();
+
+                        dbMigrator.Update("AddPackageStaging");
+
+                        command.CommandText = @"SELECT COUNT(*) FROM dbo.Users
+                            WHERE (Username = N'StagingActive' AND NotifyPackageStaged = 1)
+                               OR (Username = N'StagingDeleted' AND NotifyPackageStaged = 0)";
+                        Assert.Equal(2, await command.ExecuteScalarAsync());
+
+                        command.CommandText = @"INSERT dbo.Users (Username, EmailAllowed)
+                            VALUES (N'StagingNew', 1);
+                            SELECT NotifyPackageStaged FROM dbo.Users WHERE Username = N'StagingNew'";
+                        Assert.Equal(true, await command.ExecuteScalarAsync());
+
+                        command.CommandText = @"INSERT dbo.StagingGroups (OwnerKey, Id, Name, CreatedDate)
+                            SELECT [Key], N'migration-test', N'Migration test', SYSUTCDATETIME()
+                            FROM dbo.Users WHERE Username = N'StagingActive';
+                            SELECT COUNT(*) FROM dbo.StagingGroups
+                            WHERE MutationRevision = 0
+                              AND ExpirationDate BETWEEN DATEADD(day, 30, DATEADD(minute, -1, SYSUTCDATETIME()))
+                                                     AND DATEADD(day, 30, DATEADD(minute, 1, SYSUTCDATETIME()))";
+                        Assert.Equal(1, await command.ExecuteScalarAsync());
+
+                        dbMigrator.Update(baselineMigration);
+
+                        command.CommandText = @"SELECT COUNT(*) FROM sys.tables
+                            WHERE name IN (N'StagedPackageIdentities', N'StagedPackages', N'StagedSymbolPackages',
+                                           N'StagingGroups', N'StagingBlobCleanups')";
+                        Assert.Equal(0, await command.ExecuteScalarAsync());
+
+                        command.CommandText = "SELECT COL_LENGTH(N'dbo.Users', N'NotifyPackageStaged')";
+                        Assert.Equal(DBNull.Value, await command.ExecuteScalarAsync());
+
+                        command.CommandText = "SELECT COUNT(*) FROM dbo.Users WHERE Username LIKE N'Staging%'";
+                        Assert.Equal(3, await command.ExecuteScalarAsync());
+
+                        dbMigrator.Update("AddPackageStaging");
+
+                        command.CommandText = @"SELECT COUNT(*) FROM dbo.Users
+                            WHERE (Username IN (N'StagingActive', N'StagingNew') AND NotifyPackageStaged = 1)
+                               OR (Username = N'StagingDeleted' AND NotifyPackageStaged = 0)";
+                        Assert.Equal(3, await command.ExecuteScalarAsync());
+                    }
+                }
+            }
+        }
+
         [Theory]
         [MemberData(nameof(TestData))]
         public async Task NoPendingMigrations(string dbName, string argumentName, MigrationContextFactory factory, IServiceProvider serviceProvider)
