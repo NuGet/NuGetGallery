@@ -105,14 +105,23 @@ namespace NuGet.Services.Validation.Orchestrator
                 throw new InvalidOperationException("The message does not identify a symbol promotion ingestion set.");
             }
 
-            var entity = _entities.FindPackageByKey(set.PackageKey.Value);
-            if (entity == null)
+            using (_logger.BeginScope(
+                "Handling symbol promotion message for {ValidatingType} {PackageId} {PackageVersion} {Key} validation set {ValidationSetId}",
+                set.ValidatingType,
+                set.PackageId,
+                set.PackageNormalizedVersion,
+                set.PackageKey,
+                set.ValidationTrackingId))
             {
-                _logger.LogInformation("Symbol promotion attempt {AttemptKey} no longer exists; dropping its callback.", set.PackageKey);
-                return true;
-            }
+                var entity = _entities.FindPackageByKey(set.PackageKey.Value);
+                if (entity == null)
+                {
+                    _logger.LogInformation("Symbol promotion attempt {AttemptKey} no longer exists; dropping its callback.", set.PackageKey);
+                    return true;
+                }
 
-            return await WithLeaseAsync(message, set.PackageId, set.PackageNormalizedVersion, () => ProcessSetAsync(message, set, entity));
+                return await WithLeaseAsync(message, set.PackageId, set.PackageNormalizedVersion, () => ProcessSetAsync(message, set, entity));
+            }
         }
 
         private async Task<bool> ProcessAsync(PackageValidationMessageData message)
@@ -123,30 +132,39 @@ namespace NuGet.Services.Validation.Orchestrator
                 throw new ArgumentException("Symbol promotion requires a staged attempt key.", nameof(message));
             }
 
-            var entity = _entities.FindPackageByKey(data.EntityKey.Value);
-            if (entity == null)
+            using (_logger.BeginScope(
+                "Handling symbol promotion message for {ValidatingType} {PackageId} {PackageVersion} {Key} validation set {ValidationSetId}",
+                data.ValidatingType,
+                data.PackageId,
+                data.PackageNormalizedVersion,
+                data.EntityKey,
+                data.ValidationTrackingId))
             {
-                _logger.LogWarning("Could not find symbol promotion attempt {AttemptKey} for validation set {ValidationTrackingId}.", data.EntityKey, data.ValidationTrackingId);
-                if (message.DeliveryCount - 1 < _configuration.MissingPackageRetryCount)
+                var entity = _entities.FindPackageByKey(data.EntityKey.Value);
+                if (entity == null)
                 {
-                    return false;
-                }
+                    _logger.LogWarning("Could not find symbol promotion attempt {AttemptKey} for validation set {ValidationTrackingId}.", data.EntityKey, data.ValidationTrackingId);
+                    if (message.DeliveryCount - 1 < _configuration.MissingPackageRetryCount)
+                    {
+                        return false;
+                    }
 
-                _telemetry.TrackMissingPackageForValidationMessage(data.PackageId, data.PackageNormalizedVersion, data.ValidationTrackingId.ToString());
-                return true;
-            }
-
-            return await WithLeaseAsync(message, data.PackageId, data.PackageNormalizedVersion, async () =>
-            {
-                var set = await _sets.TryGetOrCreateValidationSetAsync(data, entity);
-                if (set == null)
-                {
-                    _logger.LogInformation("Ignoring inactive symbol promotion request {ValidationTrackingId}.", data.ValidationTrackingId);
+                    _telemetry.TrackMissingPackageForValidationMessage(data.PackageId, data.PackageNormalizedVersion, data.ValidationTrackingId.ToString());
                     return true;
                 }
 
-                return await ProcessSetAsync(message, set, entity);
-            });
+                return await WithLeaseAsync(message, data.PackageId, data.PackageNormalizedVersion, async () =>
+                {
+                    var set = await _sets.TryGetOrCreateValidationSetAsync(data, entity);
+                    if (set == null)
+                    {
+                        _logger.LogInformation("Ignoring inactive symbol promotion request {ValidationTrackingId}.", data.ValidationTrackingId);
+                        return true;
+                    }
+
+                    return await ProcessSetAsync(message, set, entity);
+                });
+            }
         }
 
         private async Task<bool> ProcessSetAsync(PackageValidationMessageData message, PackageValidationSet set, IValidatingEntity<StagedSymbolPackage> entity)

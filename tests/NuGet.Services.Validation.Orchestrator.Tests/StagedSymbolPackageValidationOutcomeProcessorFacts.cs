@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -184,10 +185,17 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         public async Task AcquiredLeaseIsReleasedWhenPublicationThrows()
         {
             var fixture = new Fixture();
+            var scope = new Mock<IDisposable>();
+            var scopeDisposed = false;
+            var releaseWasScoped = false;
+            scope.Setup(service => service.Dispose()).Callback(() => scopeDisposed = true);
+            fixture.HandlerLogger.Setup(logger => logger.BeginScope(It.IsAny<It.IsAnyType>())).Returns(scope.Object);
             fixture.Features.Setup(service => service.IsOrchestratorLeaseEnabled()).Returns(true);
             fixture.Leases.Setup(service => service.TryAcquireAsync("StagedSymbolPackage/packagea/1.0.0", TimeSpan.FromMinutes(1), CancellationToken.None))
                 .ReturnsAsync(LeaseResult.Success("lease"));
-            fixture.Leases.Setup(service => service.ReleaseAsync("StagedSymbolPackage/packagea/1.0.0", "lease", CancellationToken.None)).ReturnsAsync(true);
+            fixture.Leases.Setup(service => service.ReleaseAsync("StagedSymbolPackage/packagea/1.0.0", "lease", CancellationToken.None))
+                .Callback(() => releaseWasScoped = !scopeDisposed)
+                .ReturnsAsync(true);
             fixture.Promotion.Setup(service => service.CompleteAsync(fixture.Attempt.Key, fixture.PromotionId))
                 .ThrowsAsync(new InvalidOperationException("Publication unavailable"));
             var validators = new Mock<IValidationSetProcessor>();
@@ -198,6 +206,69 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             Assert.Equal(ValidationSetStatus.InProgress, fixture.Set.ValidationSetStatus);
             validators.Verify(service => service.ProcessValidationsAsync(fixture.Set), Times.Once);
+            fixture.Leases.Verify(service => service.ReleaseAsync("StagedSymbolPackage/packagea/1.0.0", "lease", CancellationToken.None), Times.Once);
+            Assert.True(releaseWasScoped);
+            scope.Verify(service => service.Dispose(), Times.Once);
+        }
+
+        [Theory]
+        [InlineData("process")]
+        [InlineData("check")]
+        [InlineData("fail")]
+        public async Task MessageProcessingAndLeaseReleaseUseTheIdentityScope(string messageType)
+        {
+            var fixture = new Fixture();
+            var scopeActive = false;
+            var releaseWasScoped = false;
+            var scope = new Mock<IDisposable>();
+            scope.Setup(service => service.Dispose()).Callback(() => scopeActive = false);
+            fixture.HandlerLogger.Setup(logger => logger.BeginScope(It.IsAny<It.IsAnyType>()))
+                .Callback(new InvocationAction(invocation =>
+                {
+                    var properties = Assert.IsAssignableFrom<IEnumerable<KeyValuePair<string, object>>>(invocation.Arguments[0]);
+                    var values = properties.ToDictionary(property => property.Key, property => property.Value);
+                    Assert.Equal(ValidatingType.StagedSymbolPackage, values["ValidatingType"]);
+                    Assert.Equal(fixture.Set.PackageId, values["PackageId"]);
+                    Assert.Equal(fixture.Set.PackageNormalizedVersion, values["PackageVersion"]);
+                    Assert.Equal(fixture.Attempt.Key, values["Key"]);
+                    Assert.Equal(fixture.Set.ValidationTrackingId, values["ValidationSetId"]);
+                    scopeActive = true;
+                }))
+                .Returns(scope.Object);
+            fixture.Features.Setup(service => service.IsOrchestratorLeaseEnabled()).Returns(true);
+            fixture.Leases.Setup(service => service.TryAcquireAsync("StagedSymbolPackage/packagea/1.0.0", TimeSpan.FromMinutes(1), CancellationToken.None))
+                .Callback(() => Assert.True(scopeActive))
+                .ReturnsAsync(LeaseResult.Success("lease"));
+            fixture.Leases.Setup(service => service.ReleaseAsync("StagedSymbolPackage/packagea/1.0.0", "lease", CancellationToken.None))
+                .Returns(async () =>
+                {
+                    await Task.Yield();
+                    releaseWasScoped = scopeActive;
+                    return true;
+                });
+            Func<Task<ValidationSetProcessorResult>> process = async () =>
+            {
+                await Task.Yield();
+                Assert.True(scopeActive);
+                return new ValidationSetProcessorResult();
+            };
+            var validators = new Mock<IValidationSetProcessor>(MockBehavior.Strict);
+            if (messageType == "fail")
+            {
+                fixture.Ingestion.ValidationStatus = ValidationStatus.Failed;
+                validators.Setup(service => service.ForceFailValidationSetAsync(fixture.Set)).Returns(process);
+            }
+            else
+            {
+                validators.Setup(service => service.ProcessValidationsAsync(fixture.Set)).Returns(process);
+            }
+
+            Assert.True(await fixture.CreateHandler(validators.Object).HandleAsync(fixture.CreateMessage(messageType)));
+
+            Assert.False(scopeActive);
+            Assert.True(releaseWasScoped);
+            scope.Verify(service => service.Dispose(), Times.Once);
+            validators.VerifyAll();
             fixture.Leases.Verify(service => service.ReleaseAsync("StagedSymbolPackage/packagea/1.0.0", "lease", CancellationToken.None), Times.Once);
         }
 
@@ -317,6 +388,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             public Mock<ITelemetryService> Telemetry { get; } = new Mock<ITelemetryService>();
 
+            public Mock<ILogger<StagedSymbolPackagePromotionValidationMessageHandler>> HandlerLogger { get; } = new();
+
             public StagedSymbolPackageValidationOutcomeProcessor Target { get; set; }
 
             public Task ProcessAsync(bool scheduleNextCheck = true)
@@ -334,7 +407,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 Storage.Setup(service => service.GetValidationSetAsync(Set.ValidationTrackingId)).ReturnsAsync(Set);
                 return new StagedSymbolPackagePromotionValidationMessageHandler(Configuration, entities.Object, provider.Object, validators, Target,
                     Storage.Object, Leases.Object, Enqueuer.Object, Features.Object, Mock.Of<ITelemetryService>(),
-                    Mock.Of<ILogger<StagedSymbolPackagePromotionValidationMessageHandler>>());
+                    HandlerLogger.Object);
             }
 
             public PackageValidationMessageData CreateMessage(string type)
