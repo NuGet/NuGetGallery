@@ -197,7 +197,7 @@ namespace NuGet.Services.Validation.Orchestrator
             return validationSet;
         }
 
-        protected virtual IEnumerable<ValidationConfigurationItem> GetValidationsToStart(IValidatingEntity<T> validatingEntity)
+        protected virtual IEnumerable<ValidationConfigurationItem> GetValidationsToStart(IValidatingEntity<T> _)
         {
             return _validationConfiguration.Validations.Where(v => v.ShouldStart);
         }
