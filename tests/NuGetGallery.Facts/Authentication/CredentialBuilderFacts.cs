@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery.Authentication;
@@ -13,10 +14,13 @@ namespace NuGetGallery.Infrastructure.Authentication
     {
         public class TheCreateShortLivedApiKeyMethod : CredentialBuilderFacts
         {
-            [Fact]
-            public void CreatesShortLivedApiKeyV5()
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public void CreatesShortLivedApiKeyV5WithNullOrEmptyPolicyScopes(bool isNull)
             {
                 // Act
+                Policy.Scopes = isNull ? null : new List<Scope>();
                 var credential = Target.CreateShortLivedApiKey(Expiration, Policy, galleryEnvironment: ServicesConstants.DevelopmentEnvironment, out var plaintextApiKey);
 
                 // Assert
@@ -33,7 +37,7 @@ namespace NuGetGallery.Infrastructure.Authentication
             }
 
             [Fact]
-            public void CreatesShortLivedApiKeyV5WithScopes()
+            public void CreatesShortLivedApiKeyV5WithPolicyScopes()
             {
                 // Act
                 Policy.Scopes = [ new Scope(Policy.PackageOwner, "Package1", NuGetScopes.PackagePush) ];

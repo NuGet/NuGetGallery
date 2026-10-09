@@ -37,7 +37,8 @@
     "NuGetGallery.NewAccount2FAEnforcement": "Disabled",
     "NuGetGallery.NuGetAccountPasswordLogin": "Enabled",
     "NuGetGallery.ProfileLoadOptimization": "Enabled",
-    "NuGetGallery.RestrictApiKeyExpiration": "Disabled"
+    "NuGetGallery.RestrictApiKeyExpiration": "Disabled",
+    "NuGetGallery.ApiKeyReduction": "Enabled"
   },
   "Flights": {
     "NuGetGallery.TyposquattingFlight": {

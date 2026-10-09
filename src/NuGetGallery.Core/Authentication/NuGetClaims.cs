@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 namespace NuGetGallery.Authentication
@@ -56,6 +56,12 @@ namespace NuGetGallery.Authentication
         /// The claim url for the claim that stores the type of credential used for authentication for the current session.
         /// </summary>
         public const string ExternalLoginCredentialType = ClaimsDomain + "externallogincredentialtype";
+
+        /// <summary>
+        /// The claim url for the claim that stores the specific <see cref="Credential.Type"/>
+        /// (e.g. apikey.v2, apikey.v4) used to authenticate the request.
+        /// </summary>
+        public const string CredentialType = ClaimsDomain + "credentialtype";
 
         /// <summary>
         /// The class for all possible values for <see cref="ExternalLoginCredentialType"/> claim.

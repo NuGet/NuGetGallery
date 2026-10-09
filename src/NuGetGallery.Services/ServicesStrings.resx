@@ -1159,4 +1159,7 @@ The {1} Team</value>
   <data name="ScopeDescription_StagePackage" xml:space="preserve">
     <value>Stage packages</value>
   </data>
+  <data name="ApiKeyExpiredUnderReductionPolicy" xml:space="preserve">
+    <value>The specified API key has expired. Please create a new API key at https://www.nuget.org/account/apikeys.</value>
+  </data>
 </root>

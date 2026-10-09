@@ -39,27 +39,32 @@ DELETE FROM [dbo].[Credentials] WHERE [Key] IN ({0})";
 
         public override async Task RunAsync(Job job)
         {
-            IEnumerable<ApiKey> expiredApiKeys;
+            IEnumerable<ApiKey> expiredApiKeyScopes;
 
             using (var connection = await job.OpenSqlConnectionAsync<GalleryDbConfiguration>())
             {
-                expiredApiKeys = await connection.QueryWithRetryAsync<ApiKey>(
+                expiredApiKeyScopes = await connection.QueryWithRetryAsync<ApiKey>(
                     SelectQuery,
                     commandTimeout: _commandTimeout,
                     maxRetries: 3);
             }
 
-            var credentialKeys = expiredApiKeys.Select(expiredApiKey =>
+            var expiredCredentialKeys = expiredApiKeyScopes.Select(expiredApiKeyScope =>
             {
                 _logger.LogInformation(
                     "Found expired ApiKey: CredentialKey='{credentialKey}' CredentialType='{credentialType}' UserKey='{userKey}', User='{userName}', Subject='{scopeSubject}', Expires={expires}",
-                    expiredApiKey.CredentialKey, expiredApiKey.CredentialType, expiredApiKey.UserKey, expiredApiKey.Username, expiredApiKey.ScopeSubject, expiredApiKey.Expires);
+                    expiredApiKeyScope.CredentialKey,
+                    expiredApiKeyScope.CredentialType,
+                    expiredApiKeyScope.UserKey,
+                    expiredApiKeyScope.Username,
+                    expiredApiKeyScope.ScopeSubject,
+                    expiredApiKeyScope.Expires);
 
-                return expiredApiKey.CredentialKey;
-            });
+                return expiredApiKeyScope.CredentialKey;
+            }).Distinct().ToList();
 
             var rowCount = 0;
-            var expectedRowCount = expiredApiKeys.Count() * 2; // credential and scope.
+            var expectedRowCount = expiredCredentialKeys.Count + expiredApiKeyScopes.Count();
 
             if (expectedRowCount > 0)
             {
@@ -68,7 +73,7 @@ DELETE FROM [dbo].[Credentials] WHERE [Key] IN ({0})";
                 using (var command = connection.CreateCommand())
                 {
                     var numKeys = 0;
-                    var parameters = credentialKeys.Select(c => new SqlParameter("@Key" + numKeys++, SqlDbType.Int) { Value = c }).ToArray();
+                    var parameters = expiredCredentialKeys.Select(c => new SqlParameter("@Key" + numKeys++, SqlDbType.Int) { Value = c }).ToArray();
                     command.Parameters.AddRange(parameters);
 
 #pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
