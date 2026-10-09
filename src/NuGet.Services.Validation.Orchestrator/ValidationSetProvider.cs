@@ -202,7 +202,7 @@ namespace NuGet.Services.Validation.Orchestrator
             return _validationConfiguration.Validations.Where(v => v.ShouldStart);
         }
 
-        protected virtual TimeSpan GetDeduplicationWindow(IValidatingEntity<T> validatingEntity)
+        protected virtual TimeSpan GetDeduplicationWindow(IValidatingEntity<T> _)
         {
             return _validationConfiguration.NewValidationRequestDeduplicationWindow;
         }
