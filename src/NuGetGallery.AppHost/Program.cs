@@ -837,8 +837,11 @@ public class Program
     }
 
     static object CreateStagingPromotionConfiguration(
-        string galleryConnectionString, string storageConnectionString,
-        string topicName, string subscriptionName, string symbolsValidationTopicName)
+        string galleryConnectionString,
+        string storageConnectionString,
+        string topicName,
+        string subscriptionName,
+        string symbolsValidationTopicName)
     {
         return new
         {
