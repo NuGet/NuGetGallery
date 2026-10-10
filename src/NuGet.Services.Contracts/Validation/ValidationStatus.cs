@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 namespace NuGet.Services.Validation
@@ -29,5 +29,12 @@ namespace NuGet.Services.Validation
         /// out, or the logic of the validation has discovered an issue with the entity that is being validated.
         /// </summary>
         Failed = 3,
+
+        /// <summary>
+        /// The validation step has identified the package as malicious. Unlike <see cref="Failed"/>, this status
+        /// does not trigger the standard validation failure workflow and is not counted as a stuck validation
+        /// by monitoring. The package remains in the validating state pending further review.
+        /// </summary>
+        Malicious = 4,
     }
 }

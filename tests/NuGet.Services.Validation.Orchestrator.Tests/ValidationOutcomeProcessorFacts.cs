@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -566,7 +566,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             ValidationStatus optionalValidationState,
             bool requiredValidationSucceeded)
         {
-            bool expectedNotification = requiredValidationState == ValidationStatus.Incomplete || requiredValidationState == ValidationStatus.NotStarted;
+            bool expectedNotification = (requiredValidationState == ValidationStatus.Incomplete || requiredValidationState == ValidationStatus.NotStarted)
+    && requiredValidationState != ValidationStatus.Malicious    
+    && optionalValidationState != ValidationStatus.Malicious;
 
             AddValidation("requiredValidation", requiredValidationState, ValidationFailureBehavior.MustSucceed);
             AddValidation("optionalValidaiton", optionalValidationState, ValidationFailureBehavior.AllowedToFail);
