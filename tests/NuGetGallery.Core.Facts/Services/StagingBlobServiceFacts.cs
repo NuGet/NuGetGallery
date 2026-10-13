@@ -57,6 +57,29 @@ namespace NuGetGallery
         }
 
         [Fact]
+        public async Task SavesMultipleSymbolUploadsForSameVersionToDistinctImmutablePaths()
+        {
+            var storage = new Mock<ICoreFileStorageService>();
+            storage.Setup(x => x.GetETagOrNullAsync(CoreConstants.Folders.StagingFolderName, It.IsAny<string>()))
+                .ReturnsAsync("\"symbol-etag\"");
+            var target = new StagingBlobService(storage.Object);
+            using var firstStream = new MemoryStream(new byte[] { 1, 2, 3 });
+            using var secondStream = new MemoryStream(new byte[] { 4, 5, 6 });
+
+            var first = await target.SaveSymbolPackageFileAsync("NuGet.Versioning", "3.4.0", firstStream);
+            var second = await target.SaveSymbolPackageFileAsync("NuGet.Versioning", "3.4.0", secondStream);
+
+            Assert.NotEqual(first.Path, second.Path);
+            Assert.StartsWith("nuget.versioning/3.4.0/", first.Path);
+            Assert.StartsWith("nuget.versioning/3.4.0/", second.Path);
+            Assert.EndsWith(".snupkg", first.Path);
+            Assert.EndsWith(".snupkg", second.Path);
+            storage.Verify(x => x.SaveFileAsync(CoreConstants.Folders.StagingFolderName, first.Path, CoreConstants.PackageContentType, firstStream, false), Times.Once);
+            storage.Verify(x => x.SaveFileAsync(CoreConstants.Folders.StagingFolderName, second.Path, CoreConstants.PackageContentType, secondStream, false), Times.Once);
+            storage.Verify(x => x.SaveFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Stream>(), It.IsAny<bool>()), Times.Exactly(2));
+        }
+
+        [Fact]
         public async Task GetsReadUriWhenUploadedETagMatches()
         {
             var expected = new Uri("https://example.test/staged-package");
