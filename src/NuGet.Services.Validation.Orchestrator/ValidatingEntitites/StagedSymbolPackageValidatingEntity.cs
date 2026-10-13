@@ -35,7 +35,7 @@ namespace NuGet.Services.Validation.Orchestrator
                     case StagedPackageStatus.Deleted:
                         return PackageStatus.Available;
                     default:
-                        throw new ArgumentOutOfRangeException(nameof(EntityRecord.Status));
+                        throw new ArgumentOutOfRangeException(nameof(EntityRecord.Status), EntityRecord.Status, "Unsupported staged symbol package status.");
                 }
             }
         }
