@@ -22,6 +22,54 @@ namespace NuGetGallery
     public class SymbolPackageStagingUploadServiceFacts
     {
         [Theory]
+        [InlineData("<id>Test.Package</id>")]
+        [InlineData("<id>Test.Package</id><version></version>")]
+        [InlineData("<id>Test.Package</id><version> </version>")]
+        [InlineData("<id>Test.Package</id><version>invalid</version>")]
+        [InlineData("<version>1.0.0</version>")]
+        [InlineData("<id></id><version>1.0.0</version>")]
+        [InlineData("<id> </id><version>1.0.0</version>")]
+        public async Task ReturnsBadRequestForMissingOrInvalidIdentity(string metadata)
+        {
+            var currentUser = new User("uploader") { Key = 10 };
+            var owner = new User("owner") { Key = 20 };
+            var scopes = new List<Scope>();
+            var authorizationService = new Mock<IPackageStagingAuthorizationService>();
+            authorizationService.Setup(x => x.GetEnabledApiKeyOwner(currentUser, scopes)).Returns(owner);
+            var contentObjectService = new Mock<IContentObjectService>();
+            contentObjectService.Setup(x => x.SymbolsConfiguration.IsSymbolsUploadEnabledForUser(currentUser)).Returns(true);
+            var securityPolicyService = new Mock<ISecurityPolicyService>();
+            securityPolicyService
+                .Setup(x => x.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackagePush, currentUser, It.IsAny<HttpContextBase>()))
+                .ReturnsAsync(SecurityPolicyResult.SuccessResult);
+            var corePackageService = new CorePackageService(
+                new Mock<IEntityRepository<Package>>(MockBehavior.Strict).Object,
+                new Mock<IEntityRepository<PackageRegistration>>(MockBehavior.Strict).Object,
+                new Mock<IEntityRepository<Certificate>>(MockBehavior.Strict).Object);
+            var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+            packageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns<string, string>((id, version) => corePackageService.FindPackageByIdAndVersionStrict(id, version));
+            var target = new SymbolPackageStagingUploadService(
+                new Mock<IApiScopeEvaluator>(MockBehavior.Strict).Object,
+                contentObjectService.Object,
+                new Mock<IEntitiesContext>(MockBehavior.Strict).Object,
+                packageService.Object,
+                authorizationService.Object,
+                new Mock<ISymbolPackageService>(MockBehavior.Strict).Object,
+                securityPolicyService.Object,
+                new Mock<IStagingBlobService>(MockBehavior.Strict).Object,
+                new Mock<IEntityRepository<StagedSymbolPackage>>(MockBehavior.Strict).Object,
+                new Mock<IStagedSymbolPackageValidationMessageEmitter>(MockBehavior.Strict).Object);
+            using var file = TestPackage.CreateTestPackageStreamFromNuspec("Test.Package", "<package><metadata>" + metadata + "</metadata></package>");
+
+            var result = await target.StageSymbolPackageAsync(currentUser, scopes, Mock.Of<HttpContextBase>(), file);
+
+            Assert.False(result.Success);
+            Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
+            Assert.Equal(Strings.SymbolsPackage_FailedToReadPackage, result.ErrorMessage);
+        }
+
+        [Theory]
         [InlineData(false)]
         [InlineData(true)]
         public async Task ReturnsBadRequestForInvalidSymbolMetadata(bool invalidFramework)

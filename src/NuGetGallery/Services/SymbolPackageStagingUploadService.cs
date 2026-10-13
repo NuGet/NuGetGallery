@@ -109,7 +109,17 @@ namespace NuGetGallery
 
                 using var archive = new PackageArchiveReader(file, leaveStreamOpen: true);
                 var nuspec = archive.GetNuspecReader();
-                var package = _packageService.FindPackageByIdAndVersionStrict(nuspec.GetId(), nuspec.GetVersion().ToStringSafe());
+                Package package;
+                try
+                {
+                    package = _packageService.FindPackageByIdAndVersionStrict(nuspec.GetId(), nuspec.GetVersion().ToStringSafe());
+                }
+                catch (ArgumentException exception)
+                {
+                    exception.Log();
+                    return PackageStagingResult.Error(HttpStatusCode.BadRequest, Strings.SymbolsPackage_FailedToReadPackage);
+                }
+
                 var targetError = ValidateTarget(currentUser, scopes, owner, package);
                 if (targetError != null)
                 {
