@@ -40,6 +40,11 @@ namespace NuGet.Services.Validation.Orchestrator
 
         public async Task UpdateStatusAsync(StagedSymbolPackage entity, PackageStatus status, bool commitChanges = true)
         {
+            if (entity == null)
+            {
+                throw new ArgumentNullException(nameof(entity));
+            }
+
             switch (status)
             {
                 case PackageStatus.Available:
