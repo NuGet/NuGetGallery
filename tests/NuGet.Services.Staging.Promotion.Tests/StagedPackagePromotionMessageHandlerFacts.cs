@@ -578,16 +578,17 @@ namespace NuGet.Services.Staging.Promotion.Tests
         }
 
         [Fact]
-        public async Task RemovesPublishedPackageWhenBlobPropertyUpdateFails()
+        public async Task RetainsPublishedPackageAndRetriesWhenBlobPropertyUpdateFails()
         {
             var context = new TestContext();
             var expected = new InvalidOperationException("Property update failed.");
             context.PackageFileStorageService
-                .Setup(x => x.SetPropertiesAsync(
+                .SetupSequence(x => x.SetPropertiesAsync(
                     CoreConstants.Folders.PackagesFolderName,
                     "example.package.1.2.3.nupkg",
                     It.IsAny<Func<Lazy<Task<Stream>>, ICloudBlobProperties, Task<bool>>>()))
-                .ThrowsAsync(expected);
+                .ThrowsAsync(expected)
+                .Returns(Task.CompletedTask);
 
             var actual = await Assert.ThrowsAsync<InvalidOperationException>(
                 () => context.Target.HandleAsync(context.Message));
@@ -598,14 +599,21 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 x => x.DeleteFileAsync(
                     CoreConstants.Folders.PackagesFolderName,
                     "example.package.1.2.3.nupkg"),
-                Times.Once);
+                Times.Never);
             context.StagedPackageRepository.Verify(
                 x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()),
                 Times.Never);
+
+            Assert.True(await context.Target.HandleAsync(context.Message));
+
+            Assert.Equal(PackageStatus.Available, context.Package.PackageStatusKey);
+            context.PackageFileStorageService.Verify(storage => storage.CopyFileAsync(
+                It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IAccessCondition>()), Times.Exactly(2));
+            context.PackageFileStorageService.Verify(storage => storage.DeleteFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
 
         [Fact]
-        public async Task RemovesPublishedFilesWhenContentExtractionFails()
+        public async Task RetainsPublishedFilesWhenContentExtractionFails()
         {
             var context = new TestContext();
             var expected = new InvalidOperationException("Readme extraction failed.");
@@ -625,28 +633,31 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 x => x.DeleteFileAsync(
                     CoreConstants.Folders.PackagesFolderName,
                     "example.package.1.2.3.nupkg"),
-                Times.Once);
+                Times.Never);
             context.LicenseFileService.Verify(
                 x => x.DeleteLicenseFileAsync(context.Package.Id, context.Package.NormalizedVersion),
-                Times.Once);
+                Times.Never);
             context.ReadmeFileService.Verify(
                 x => x.DeleteReadmeFileAsync(context.Package.Id, context.Package.NormalizedVersion),
-                Times.Once);
+                Times.Never);
             context.StagedPackageRepository.Verify(
                 x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()),
                 Times.Never);
         }
 
         [Fact]
-        public async Task RemovesPublishedPackageWhenDatabaseCommitFails()
+        public async Task RetainsPublishedFilesWhenDatabaseCommitFails()
         {
             var context = new TestContext();
-            var expected = new InvalidOperationException("Database commit failed.");
+            var expected = new DbUpdateConcurrencyException("Database commit failed.");
+            context.Package.EmbeddedLicenseType = EmbeddedLicenseFileType.PlainText;
+            context.Package.EmbeddedReadmeType = EmbeddedReadmeFileType.Markdown;
+            context.Package.HasReadMe = true;
             context.StagedPackageRepository
                 .Setup(x => x.CommitChangesAsync())
                 .ThrowsAsync(expected);
 
-            var actual = await Assert.ThrowsAsync<InvalidOperationException>(
+            var actual = await Assert.ThrowsAsync<DbUpdateConcurrencyException>(
                 () => context.Target.HandleAsync(context.Message));
 
             Assert.Same(expected, actual);
@@ -655,7 +666,13 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 x => x.DeleteFileAsync(
                     CoreConstants.Folders.PackagesFolderName,
                     "example.package.1.2.3.nupkg"),
-                Times.Once);
+                Times.Never);
+            context.LicenseFileService.Verify(
+                x => x.DeleteLicenseFileAsync(context.Package.Id, context.Package.NormalizedVersion),
+                Times.Never);
+            context.ReadmeFileService.Verify(
+                x => x.DeleteReadmeFileAsync(context.Package.Id, context.Package.NormalizedVersion),
+                Times.Never);
         }
 
         [Fact]
@@ -681,6 +698,114 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 Times.Never);
         }
 
+        [Fact]
+        public async Task OverlappingWorkersPublishOnlyOnceAndReplayTheCompletedAttempt()
+        {
+            var leases = new TestLeaseService();
+            var first = new TestContext();
+            var second = new TestContext(promotionId: first.PromotionId);
+            var entered = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var finish = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            first.PackageFileStorageService.Setup(storage => storage.SetPropertiesAsync(
+                CoreConstants.Folders.PackagesFolderName, first.FileName,
+                It.IsAny<Func<Lazy<Task<Stream>>, ICloudBlobProperties, Task<bool>>>()))
+                .Returns(async () =>
+                {
+                    entered.SetResult(true);
+                    await finish.Task;
+                });
+            var firstWork = first.CreateDispatcher(leases).HandleAsync(first.Message);
+            await entered.Task;
+            var retry = second.CreateDispatcher(leases);
+
+            Assert.False(await retry.HandleAsync(second.Message));
+            second.VerifyNotPublished();
+            finish.SetResult(true);
+            Assert.True(await firstWork);
+            second.StagedPackageRepository.Setup(repository => repository.GetAll()).Returns(() => first.StagedPackages.AsQueryable());
+            Assert.True(await retry.HandleAsync(second.Message));
+            second.VerifyNotPublished();
+            first.PackageFileStorageService.Verify(storage => storage.CopyFileAsync(
+                It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IAccessCondition>()), Times.Once);
+            first.PackageFileStorageService.Verify(storage => storage.DeleteFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task IndependentPackageWorkersPublishInParallel()
+        {
+            var leases = new TestLeaseService();
+            var first = new TestContext();
+            var second = new TestContext(packageKey: 12, attemptKey: 43, packageId: "Other.Package");
+            var finish = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var entered = 0;
+            foreach (var context in new[] { first, second })
+            {
+                context.PackageFileStorageService.Setup(storage => storage.SetPropertiesAsync(
+                    CoreConstants.Folders.PackagesFolderName, context.FileName,
+                    It.IsAny<Func<Lazy<Task<Stream>>, ICloudBlobProperties, Task<bool>>>()))
+                    .Returns(async () =>
+                    {
+                        System.Threading.Interlocked.Increment(ref entered);
+                        await finish.Task;
+                    });
+            }
+
+            var firstWork = first.CreateDispatcher(leases).HandleAsync(first.Message);
+            var secondWork = second.CreateDispatcher(leases).HandleAsync(second.Message);
+            Assert.Equal(2, entered);
+            finish.SetResult(true);
+
+            Assert.All(await Task.WhenAll(firstWork, secondWork), Assert.True);
+            Assert.Equal(PackageStatus.Available, first.Package.PackageStatusKey);
+            Assert.Equal(PackageStatus.Available, second.Package.PackageStatusKey);
+        }
+
+        [Fact]
+        public async Task ExpiredWorkerDoesNotUndoReplacementWorkersPublication()
+        {
+            var leases = new TestLeaseService();
+            var oldWorker = new TestContext();
+            var newWorker = new TestContext(promotionId: oldWorker.PromotionId);
+            var copied = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var finishCopy = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            oldWorker.PackageFileStorageService.Setup(storage => storage.CopyFileAsync(
+                It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IAccessCondition>()))
+                .Returns(async () =>
+                {
+                    copied.SetResult(true);
+                    await finishCopy.Task;
+                });
+            var oldWork = oldWorker.CreateDispatcher(leases).HandleAsync(oldWorker.Message);
+            await copied.Task;
+            leases.Expire("package/11");
+            Assert.True(await newWorker.CreateDispatcher(leases).HandleAsync(newWorker.Message));
+
+            finishCopy.SetResult(true);
+            await Assert.ThrowsAsync<InvalidOperationException>(() => oldWork);
+
+            Assert.Equal(PackageStatus.Available, newWorker.Package.PackageStatusKey);
+            oldWorker.StagedPackageRepository.Verify(repository => repository.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()), Times.Never);
+            oldWorker.PackageFileStorageService.Verify(storage => storage.DeleteFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task LeaseLossAfterExtractionPreventsDatabasePublicationAndRetainsPublicFiles()
+        {
+            var context = new TestContext();
+            var leases = new TestLeaseService();
+            context.Package.EmbeddedReadmeType = EmbeddedReadmeFileType.Markdown;
+            context.Package.HasReadMe = true;
+            context.ReadmeFileService.Setup(service => service.ExtractAndSaveReadmeFileAsync(context.Package, It.IsAny<Stream>()))
+                .Callback(() => leases.Expire("package/11")).Returns(Task.CompletedTask);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => context.CreateDispatcher(leases).HandleAsync(context.Message));
+
+            Assert.Equal(PackageStatus.Staged, context.Package.PackageStatusKey);
+            context.StagedPackageRepository.Verify(repository => repository.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()), Times.Never);
+            context.PackageFileStorageService.Verify(storage => storage.DeleteFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            context.ReadmeFileService.Verify(service => service.DeleteReadmeFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        }
+
         public enum InvalidState
         {
             MissingValidatedBlob,
@@ -689,20 +814,20 @@ namespace NuGet.Services.Staging.Promotion.Tests
 
         private class TestContext
         {
-            public TestContext()
+            public TestContext(int packageKey = 11, int attemptKey = 42, string packageId = "Example.Package", Guid? promotionId = null)
             {
                 Content = Encoding.UTF8.GetBytes("validated package content");
                 SourceUri = new Uri("https://example.test/staging/validated.nupkg");
-                PromotionId = Guid.NewGuid();
+                PromotionId = promotionId ?? Guid.NewGuid();
                 var owner = new User { Key = 23, Username = "owner", EmailAddress = "owner@example.test" };
                 Package = new Package
                 {
-                    Key = 11,
+                    Key = packageKey,
                     NormalizedVersion = "1.2.3",
                     PackageStatusKey = PackageStatus.Staged,
                     PackageRegistration = new PackageRegistration
                     {
-                        Id = "Example.Package",
+                        Id = packageId,
                         Owners = new List<User> { owner },
                         Packages = new List<Package>(),
                     },
@@ -717,7 +842,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 };
                 StagedPackage = new StagedPackage
                 {
-                    Key = 42,
+                    Key = attemptKey,
                     StagedPackageIdentityKey = StagedPackageIdentity.Key,
                     StagedPackageIdentity = StagedPackageIdentity,
                     Status = StagedPackageStatus.Promoting,
@@ -779,7 +904,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 PackageFileStorageService
                     .Setup(x => x.SetPropertiesAsync(
                         CoreConstants.Folders.PackagesFolderName,
-                        "example.package.1.2.3.nupkg",
+                        FileName,
                         It.IsAny<Func<Lazy<Task<Stream>>, ICloudBlobProperties, Task<bool>>>()))
                     .Returns<string, string, Func<Lazy<Task<Stream>>, ICloudBlobProperties, Task<bool>>>(
                         (_, __, update) => update(null, PublicBlobProperties.Object));
@@ -794,7 +919,26 @@ namespace NuGet.Services.Staging.Promotion.Tests
                     .Setup(x => x.TryFinalizeAsync(It.IsAny<int>(), It.IsAny<Guid>()))
                     .Returns(Task.CompletedTask);
                 MessageEnqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
-                Target = new StagedPackagePromotionMessageHandler(
+                Target = CreateTarget(Lease.Object);
+            }
+
+            public string FileName => $"{Package.PackageRegistration.Id.ToLowerInvariant()}.{Package.NormalizedVersion}.nupkg";
+
+            public StagingPromotionMessageHandler CreateDispatcher(TestLeaseService leases)
+            {
+                var lease = new StagingPromotionLease(leases, Mock.Of<ILogger<StagingPromotionLease>>());
+                var symbols = new Mock<IEntityRepository<StagedSymbolPackage>>();
+                symbols.Setup(repository => repository.GetAll()).Returns(new List<StagedSymbolPackage>().AsQueryable());
+                return new StagingPromotionMessageHandler(
+                    Mock.Of<IStagingPromotionMessageHandler<StagingGroup>>(),
+                    CreateTarget(lease),
+                    new Lazy<IStagingPromotionMessageHandler<StagedSymbolPackage>>(() => Mock.Of<IStagingPromotionMessageHandler<StagedSymbolPackage>>()),
+                    StagedPackageRepository.Object, symbols.Object, lease, Mock.Of<ILogger<StagingPromotionMessageHandler>>());
+            }
+
+            private StagedPackagePromotionMessageHandler CreateTarget(IStagingPromotionLease lease)
+            {
+                return new StagedPackagePromotionMessageHandler(
                     StagedPackageRepository.Object,
                     StagedPackageIdentityRepository.Object,
                     StagingGroupPromotionService.Object,
@@ -807,6 +951,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
                     ReadmeFileService.Object,
                     BlobCleanup.Object,
                     Notifications.Object,
+                    lease,
                     Mock.Of<ILogger<StagedPackagePromotionMessageHandler>>());
             }
 
@@ -829,6 +974,8 @@ namespace NuGet.Services.Staging.Promotion.Tests
             public Mock<IStagingBlobCleanupService> BlobCleanup { get; } = new Mock<IStagingBlobCleanupService>();
 
             public Mock<IStagingPromotionNotificationService> Notifications { get; } = new Mock<IStagingPromotionNotificationService>();
+
+            public Mock<IStagingPromotionLease> Lease { get; } = new Mock<IStagingPromotionLease>();
 
             public void AddToGroup()
             {

@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
 using NuGet.Jobs.Validation;
+using NuGet.Jobs.Validation.Leases;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging;
 using NuGet.Services.Messaging.Email;
@@ -55,11 +56,22 @@ namespace NuGet.Services.Staging.Promotion
             services.AddTransient<NuGet.Services.Messaging.IServiceBusMessageSerializer, NuGet.Services.Messaging.ServiceBusMessageSerializer>();
             services.AddTransient<ISubscriptionProcessorTelemetryService, SubscriptionProcessorNoTelemetryService>();
             services.AddTransient<ICloudBlobContainerInformationProvider, GalleryCloudBlobContainerInformationProvider>();
+            services.AddScoped<IStagingPromotionLease, StagingPromotionLease>();
         }
 
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
             ConfigureDefaultSubscriptionProcessor(containerBuilder);
+
+            containerBuilder.Register(context =>
+                {
+                    var configuration = context.Resolve<IOptionsSnapshot<PromotionConfiguration>>().Value;
+                    var storageMsi = context.Resolve<IOptionsSnapshot<StorageMsiConfiguration>>().Value;
+                    var client = StorageAccountHelper.CreateBlobServiceClient(storageMsi, configuration.StagingStorageConnectionString);
+                    return new CloudBlobLeaseService(client, CoreConstants.Folders.StagingFolderName, "promotion-leases");
+                })
+                .As<ILeaseService>()
+                .SingleInstance();
 
             containerBuilder
                 .Register(context =>

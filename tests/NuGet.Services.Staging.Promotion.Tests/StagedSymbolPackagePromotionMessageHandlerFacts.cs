@@ -12,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
+using NuGet.Jobs.Validation.Leases;
 using NuGet.Services.Entities;
 using NuGet.Services.ServiceBus;
 using NuGet.Services.Staging;
@@ -307,6 +308,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 ConfigureJobServices(services, configuration);
                 builder.Populate(services);
                 ConfigureAutofacServices(builder, configuration);
+                builder.RegisterInstance(new TestLeaseService()).As<ILeaseService>();
             }
         }
 
