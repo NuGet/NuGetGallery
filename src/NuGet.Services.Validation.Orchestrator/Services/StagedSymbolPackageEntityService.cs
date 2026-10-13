@@ -54,7 +54,7 @@ namespace NuGet.Services.Validation.Orchestrator
                     entity.Status = StagedPackageStatus.FailedValidation;
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(status));
+                    throw new ArgumentOutOfRangeException(nameof(status), status, "Unsupported staged symbol package status.");
             }
 
             if (commitChanges)
