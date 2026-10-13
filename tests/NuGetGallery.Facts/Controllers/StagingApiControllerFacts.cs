@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
@@ -28,6 +29,93 @@ namespace NuGetGallery
         {
             Assert.NotEmpty(typeof(StagingApiController).GetCustomAttributes(typeof(ApiAuthorizeAttribute), inherit: true));
             Assert.NotEmpty(typeof(StagingApiController).GetCustomAttributes(typeof(ApiScopeRequiredAttribute), inherit: true));
+        }
+
+        [Fact]
+        public async Task StagesMultipartPackageWithGroupAndListingIntent()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var owner = new User("example-org") { Key = 2 };
+            var target = GetController<StagingApiController>();
+            ConfigureCreateGroupRequest(target, currentUser, owner);
+            var request = Mock.Get(target.Request);
+            request.SetupGet(x => x.ContentType).Returns("multipart/form-data; boundary=test");
+            request.SetupGet(x => x.Form).Returns(new NameValueCollection { { "groupId", "release" }, { "listed", "false" } });
+            var files = new Mock<HttpFileCollectionBase>();
+            files.SetupGet(x => x.Count).Returns(1);
+            files.Setup(x => x.GetKey(0)).Returns("package");
+            request.SetupGet(x => x.Files).Returns(files.Object);
+            using var stream = new MemoryStream(new byte[] { 1, 2, 3 });
+            var file = new Mock<HttpPostedFileBase>();
+            file.SetupGet(x => x.InputStream).Returns(stream);
+            GetMock<IPackageStagingUploadService>()
+                .Setup(x => x.StagePackageAsync(currentUser, It.IsAny<IReadOnlyCollection<Scope>>(), target.HttpContext, stream, "release", false))
+                .ReturnsAsync(PackageStagingResult.Ok());
+
+            var result = await target.StagePackage(new StagePackageRequest { Package = file.Object, GroupId = "release", Listed = false });
+
+            Assert.Equal((int)HttpStatusCode.OK, Assert.IsType<HttpStatusCodeWithServerWarningResult>(result).StatusCode);
+            GetMock<IPackageStagingUploadService>().Verify(
+                x => x.StagePackageAsync(currentUser, It.IsAny<IReadOnlyCollection<Scope>>(), target.HttpContext, stream, "release", false),
+                Times.Once);
+        }
+
+        [Theory]
+        [InlineData("application/octet-stream", "UnsupportedMediaType")]
+        [InlineData("multipart/form-data; boundary=test", "InvalidRequest")]
+        public async Task RejectsUploadWithoutMultipartPackage(string contentType, string errorCode)
+        {
+            var target = GetController<StagingApiController>();
+            ConfigureCreateGroupRequest(target, new User("current") { Key = 1 }, owner: null);
+            var request = Mock.Get(target.Request);
+            request.SetupGet(x => x.ContentType).Returns(contentType);
+
+            var result = await target.StagePackage(new StagePackageRequest());
+
+            AssertError(target, result, contentType == "application/octet-stream" ? HttpStatusCode.UnsupportedMediaType : HttpStatusCode.BadRequest, errorCode);
+            GetMock<IPackageStagingUploadService>().Verify(
+                x => x.StagePackageAsync(It.IsAny<User>(), It.IsAny<IReadOnlyCollection<Scope>>(), It.IsAny<HttpContextBase>(), It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<bool?>()),
+                Times.Never);
+        }
+
+        [Fact]
+        public async Task RejectsEmptyGroupIdBeforeUpload()
+        {
+            var target = GetController<StagingApiController>();
+            ConfigureCreateGroupRequest(target, new User("current") { Key = 1 }, owner: null);
+            var request = Mock.Get(target.Request);
+            request.SetupGet(x => x.ContentType).Returns("multipart/form-data; boundary=test");
+            request.SetupGet(x => x.Form).Returns(new NameValueCollection { { "groupId", "" } });
+            var files = new Mock<HttpFileCollectionBase>();
+            files.SetupGet(x => x.Count).Returns(1);
+            files.Setup(x => x.GetKey(0)).Returns("package");
+            request.SetupGet(x => x.Files).Returns(files.Object);
+
+            var result = await target.StagePackage(new StagePackageRequest { Package = Mock.Of<HttpPostedFileBase>() });
+
+            AssertError(target, result, HttpStatusCode.BadRequest, "InvalidRequest", "groupid");
+        }
+
+        [Theory]
+        [InlineData("bad group")]
+        [InlineData("x.")]
+        [InlineData("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
+        public async Task RejectsMalformedGroupIdBeforeUpload(string groupId)
+        {
+            var target = GetController<StagingApiController>();
+            ConfigureCreateGroupRequest(target, new User("current") { Key = 1 }, owner: null);
+            var request = Mock.Get(target.Request);
+            request.SetupGet(x => x.ContentType).Returns("multipart/form-data; boundary=test");
+            request.SetupGet(x => x.Form).Returns(new NameValueCollection { { "groupId", groupId } });
+            var files = new Mock<HttpFileCollectionBase>();
+            files.SetupGet(x => x.Count).Returns(1);
+            files.Setup(x => x.GetKey(0)).Returns("package");
+            request.SetupGet(x => x.Files).Returns(files.Object);
+            target.ModelState.AddModelError("GroupId", "Invalid group ID.");
+
+            var result = await target.StagePackage(new StagePackageRequest { Package = Mock.Of<HttpPostedFileBase>(), GroupId = groupId });
+
+            AssertError(target, result, HttpStatusCode.BadRequest, "InvalidRequest", "groupid");
         }
 
         [Fact]

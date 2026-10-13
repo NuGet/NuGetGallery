@@ -21,8 +21,10 @@ namespace NuGetGallery
         /// <param name="scopes">The scopes granted to the staging credential.</param>
         /// <param name="httpContext">The current HTTP context.</param>
         /// <param name="packageFile">The stream containing the package file.</param>
+        /// <param name="groupId">The optional owner-scoped group ID. Omission preserves existing membership.</param>
+        /// <param name="listed">The optional listing intent. Omission preserves existing intent.</param>
         /// <returns>The result of the staging operation.</returns>
-        Task<PackageStagingResult> StagePackageAsync(User currentUser, IReadOnlyCollection<Scope> scopes, HttpContextBase httpContext, Stream packageFile);
+        Task<PackageStagingResult> StagePackageAsync(User currentUser, IReadOnlyCollection<Scope> scopes, HttpContextBase httpContext, Stream packageFile, string groupId = null, bool? listed = null);
 
         /// <summary>
         /// Replaces an authorized current staged package with a new immutable attempt.
