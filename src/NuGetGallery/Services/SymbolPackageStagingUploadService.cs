@@ -177,7 +177,7 @@ namespace NuGetGallery
                 catch (DbUpdateException exception)
                 {
                     exception.Log();
-                    return PackageStagingResult.Error(HttpStatusCode.Conflict, "The staged symbol package changed during upload. Retry the upload.");
+                    return PackageStagingResult.Error(HttpStatusCode.Conflict, "The symbol package could not be staged. Retry the upload.");
                 }
 
                 return PackageStagingResult.Created(warnings: null);
