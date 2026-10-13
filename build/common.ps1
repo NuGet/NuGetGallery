@@ -651,10 +651,6 @@ Function Restore-SolutionPackages {
             $opts += '-configfile', $ConfigFile
         }
 
-        if ($BinLog) {
-            $opts += '/bl:restore.binlog'
-        }
-
         Trace-Log "Restoring packages @""$InstallLocation"""
         Trace-Log "$NuGetExe $opts"
         & $NuGetExe $opts
