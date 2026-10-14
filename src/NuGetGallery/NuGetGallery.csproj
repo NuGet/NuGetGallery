@@ -435,6 +435,10 @@
     <Compile Include="Migrations\202609232306044_AddStagingPromotionMessageSentDates.Designer.cs">
       <DependentUpon>202609232306044_AddStagingPromotionMessageSentDates.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202609252020200_AddStagedSymbolPackages.cs" />
+    <Compile Include="Migrations\202609252020200_AddStagedSymbolPackages.Designer.cs">
+      <DependentUpon>202609252020200_AddStagedSymbolPackages.cs</DependentUpon>
+    </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
     <Compile Include="RequestModels\UpdateListedRequest.cs" />
@@ -1885,6 +1889,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202609232306044_AddStagingPromotionMessageSentDates.resx">
       <DependentUpon>202609232306044_AddStagingPromotionMessageSentDates.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609252020200_AddStagedSymbolPackages.resx">
+      <DependentUpon>202609252020200_AddStagedSymbolPackages.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

@@ -130,6 +130,7 @@ namespace NuGet.Services.AzureSearch
             public DbSet<SymbolPackage> SymbolPackages { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
             public DbSet<Package> Packages { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
             public DbSet<StagedPackage> StagedPackages { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+            public DbSet<StagedSymbolPackage> StagedSymbolPackages { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
             public DbSet<StagedPackageIdentity> StagedPackageIdentities { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
             public DbSet<StagingGroup> StagingGroups { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
             public DbSet<PackageDeprecation> Deprecations { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }

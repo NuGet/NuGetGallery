@@ -22,6 +22,7 @@ namespace NuGetGallery
         DbSet<UserCertificate> UserCertificates { get; set; }
         DbSet<SymbolPackage> SymbolPackages { get; set; }
         DbSet<StagedPackage> StagedPackages { get; set; }
+        DbSet<StagedSymbolPackage> StagedSymbolPackages { get; set; }
         DbSet<StagedPackageIdentity> StagedPackageIdentities { get; set; }
         DbSet<StagingGroup> StagingGroups { get; set; }
         DbSet<PackageVulnerability> Vulnerabilities { get; set; }

@@ -21,6 +21,16 @@ namespace NuGetGallery
 
         public async Task<StagingFileReference> SavePackageFileAsync(string packageId, string normalizedVersion, Stream packageFile)
         {
+            return await SaveFileAsync(packageId, normalizedVersion, packageFile, CoreConstants.NuGetPackageFileExtension);
+        }
+
+        public async Task<StagingFileReference> SaveSymbolPackageFileAsync(string packageId, string normalizedVersion, Stream symbolPackageFile)
+        {
+            return await SaveFileAsync(packageId, normalizedVersion, symbolPackageFile, CoreConstants.NuGetSymbolPackageFileExtension);
+        }
+
+        private async Task<StagingFileReference> SaveFileAsync(string packageId, string normalizedVersion, Stream packageFile, string extension)
+        {
             if (string.IsNullOrWhiteSpace(packageId))
             {
                 throw new ArgumentNullException(nameof(packageId));
@@ -41,7 +51,7 @@ namespace NuGetGallery
                 throw new ArgumentException("The package stream must be readable, seekable, and positioned at the beginning.", nameof(packageFile));
             }
 
-            var path = GeneratePackagePath(packageId, normalizedVersion, Guid.NewGuid());
+            var path = GeneratePackagePath(packageId, normalizedVersion, Guid.NewGuid(), extension);
             await _fileStorageService.SaveFileAsync(
                 CoreConstants.Folders.StagingFolderName,
                 path,
@@ -138,6 +148,11 @@ namespace NuGetGallery
 
         internal static string GeneratePackagePath(string packageId, string normalizedVersion, Guid fileId)
         {
+            return GeneratePackagePath(packageId, normalizedVersion, fileId, CoreConstants.NuGetPackageFileExtension);
+        }
+
+        internal static string GeneratePackagePath(string packageId, string normalizedVersion, Guid fileId, string extension)
+        {
             if (packageId.IndexOf('/') >= 0)
             {
                 throw new ArgumentException("The package ID cannot contain a slash.", nameof(packageId));
@@ -154,7 +169,7 @@ namespace NuGetGallery
                 packageId.ToLowerInvariant(),
                 normalizedVersion.ToLowerInvariant(),
                 fileId,
-                CoreConstants.NuGetPackageFileExtension);
+                extension);
         }
     }
 }
