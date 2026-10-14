@@ -236,6 +236,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
         public abstract class FactsBase
         {
             protected readonly Mock<IValidatorStateService> _validatorStateService;
+            protected readonly Mock<IValidationStorageService> _validationStorageService;
             protected readonly Mock<ISymbolsMessageEnqueuer> _symbolMessageEnqueuer;
             protected readonly Mock<ISimpleCloudBlobProvider> _blobProvider;
             protected readonly Mock<ITelemetryService> _telemetryService;
@@ -249,6 +250,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
             public FactsBase(ITestOutputHelper output)
             {
                 _validatorStateService = new Mock<IValidatorStateService>();
+                _validationStorageService = new Mock<IValidationStorageService>();
+                _validationStorageService.Setup(x => x.TryGetParentValidationSetAsync(ValidationId))
+                    .ReturnsAsync(new PackageValidationSet { PackageKey = PackageKey, ValidatingType = ValidatingType.SymbolPackage });
                 _symbolMessageEnqueuer = new Mock<ISymbolsMessageEnqueuer>();
                 _blobProvider = new Mock<ISimpleCloudBlobProvider>();
                 _config = new SymbolsValidationConfiguration();
@@ -267,7 +271,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
                     _validatorStateService.Object,
                     _symbolMessageEnqueuer.Object,
                     _telemetryService.Object,
-                    _logger);
+                    _logger,
+                    _validationStorageService.Object);
             }
         }
     }

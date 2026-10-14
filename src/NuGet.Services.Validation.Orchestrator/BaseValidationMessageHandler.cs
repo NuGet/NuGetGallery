@@ -294,7 +294,7 @@ namespace NuGet.Services.Validation.Orchestrator
                     {
                         _logger.LogInformation(
                             "The validation request for {ValidatingType} {PackageId} {PackageVersion} {Key} " +
-                            "{ValidationSetId} is a duplicate. Discarding the message.",
+                            "{ValidationSetId} is a duplicate or is no longer eligible. Discarding the message.",
                             ValidatingType,
                             message.PackageId,
                             message.PackageNormalizedVersion,
