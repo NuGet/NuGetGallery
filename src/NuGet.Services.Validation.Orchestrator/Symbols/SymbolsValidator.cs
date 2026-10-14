@@ -30,7 +30,6 @@ namespace NuGet.Services.Validation.Symbols
         {
             _validatorStateService = validatorStateService ?? throw new ArgumentNullException(nameof(validatorStateService));
             _validationStorageService = validationStorageService ?? throw new ArgumentNullException(nameof(validationStorageService));
-            _validationStorageService = validationStorageService ?? throw new ArgumentNullException(nameof(validationStorageService));
             _symbolMessageEnqueuer = symbolMessageEnqueuer ?? throw new ArgumentNullException(nameof(symbolMessageEnqueuer));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
