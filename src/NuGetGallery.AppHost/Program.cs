@@ -22,6 +22,10 @@ public class Program
     private const string ValidationLeasesContainerName = "validation-leases";
     private const string SymbolsOrchestratorLeaseStoragePath = "symbols-orchestrator";
     private const string PackageOrchestratorLeaseStoragePath = "orchestrator";
+    private const string ValidationOrchestratorResourceName = "validation-orchestrator";
+    private const string SymbolsOrchestratorResourceName = "symbols-orchestrator";
+    private const string SymbolsValidatorResourceName = "symbols-validator";
+    private const string GalleryResourceName = "gallery";
 
     public static void Main(string[] args)
     {
@@ -192,7 +196,7 @@ public class Program
             content: config.Containers.Content, uploads: config.Containers.Uploads);
 
         var gallery = builder.AddExecutable(
-            "gallery",
+            GalleryResourceName,
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "IIS Express", "iisexpress.exe"),
             galleryPath,
             "/config:" + iisExpressConfig,
@@ -282,7 +286,7 @@ public class Program
 
             gallery.WaitForCompletion(configureValidation);
 
-            builder.AddProject<Projects.NuGet_Services_Validation_Orchestrator>("validation-orchestrator")
+            builder.AddProject<Projects.NuGet_Services_Validation_Orchestrator>(ValidationOrchestratorResourceName)
                 .WithArgs("-Configuration", orchestratorConfigPath)
                 .WaitForCompletion(configureValidation)
                 .WaitForCompletion(dbMigrateGallery)
@@ -300,7 +304,7 @@ public class Program
                 .WaitFor(serviceBus)
                 .WithParentRelationship(pipelineGroup);
 
-            builder.AddProject<Projects.NuGet_Services_Validation_Orchestrator>("symbols-orchestrator")
+            builder.AddProject<Projects.NuGet_Services_Validation_Orchestrator>(SymbolsOrchestratorResourceName)
                 .WithArgs("-Configuration", symbolsOrchestratorConfigPath)
                 .WaitForCompletion(configureValidation)
                 .WaitForCompletion(dbMigrateGallery)
@@ -310,7 +314,7 @@ public class Program
                 .WaitFor(gallery)
                 .WithParentRelationship(pipelineGroup);
 
-            builder.AddProject<Projects.Validation_Symbols_Job>("symbols-validator")
+            builder.AddProject<Projects.Validation_Symbols_Job>(SymbolsValidatorResourceName)
                 .WithArgs("-Configuration", symbolsValidatorConfigPath)
                 .WaitForCompletion(configureValidation)
                 .WaitForCompletion(dbMigrateGallery)
@@ -731,7 +735,13 @@ public class Program
                 var commandService = context.ServiceProvider.GetRequiredService<ResourceCommandService>();
 
                 // 1. Stop all V3 resources + Gallery
-                var allStoppable = allV3Resources.Concat(new[] { "validation-orchestrator", "symbols-orchestrator", "symbols-validator", "gallery" }).ToArray();
+                var allStoppable = allV3Resources.Concat(new[]
+                {
+                    ValidationOrchestratorResourceName,
+                    SymbolsOrchestratorResourceName,
+                    SymbolsValidatorResourceName,
+                    GalleryResourceName,
+                }).ToArray();
                 foreach (var name in allStoppable)
                 {
                     try
