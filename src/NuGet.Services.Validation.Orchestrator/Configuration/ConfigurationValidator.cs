@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using Microsoft.Extensions.Options;
+using NuGet.Jobs.Validation;
 
 namespace NuGet.Services.Validation.Orchestrator
 {
@@ -60,9 +61,10 @@ namespace NuGet.Services.Validation.Orchestrator
 
         private void CheckPropertyValues()
         {
-            if (_configuration.EnableStagedSymbolPromotion && string.IsNullOrWhiteSpace(_configuration.PackageStorageConnectionString))
+            var hasSymbolsIngester = _configuration.Validations.Any(validation => validation.Name == ValidatorName.SymbolsIngester);
+            if (hasSymbolsIngester && string.IsNullOrWhiteSpace(_configuration.PackageStorageConnectionString))
             {
-                throw new ConfigurationErrorsException($"{nameof(_configuration.PackageStorageConnectionString)} must be set when staged symbol promotion is enabled");
+                throw new ConfigurationErrorsException($"{nameof(_configuration.PackageStorageConnectionString)} must be set when SymbolsIngester is configured");
             }
 
             foreach (var validationConfigurationItem in _configuration.Validations)

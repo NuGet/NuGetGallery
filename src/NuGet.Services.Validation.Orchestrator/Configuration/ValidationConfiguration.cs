@@ -59,10 +59,5 @@ namespace NuGet.Services.Validation.Orchestrator
         /// The threshold until a validation set is no longer processed.
         /// </summary>
         public TimeSpan TimeoutValidationSetAfter { get; set; }
-
-        /// <summary>
-        /// Enables ingestion-only staged symbol promotion after promotion completion is deployed.
-        /// </summary>
-        public bool EnableStagedSymbolPromotion { get; set; }
     }
 }

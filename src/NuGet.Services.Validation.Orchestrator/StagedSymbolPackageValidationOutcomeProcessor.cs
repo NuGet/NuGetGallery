@@ -89,11 +89,6 @@ namespace NuGet.Services.Validation.Orchestrator
                 return;
             }
 
-            if (!_configuration.EnableStagedSymbolPromotion)
-            {
-                throw new NotSupportedException("Staged symbol promotion is not enabled.");
-            }
-
             if (attempt.Status != StagedPackageStatus.Promoting)
             {
                 await CompleteValidationSetAsync(validationSet, attempt, promotionId);

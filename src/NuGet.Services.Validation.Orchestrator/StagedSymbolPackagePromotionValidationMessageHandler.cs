@@ -175,11 +175,6 @@ namespace NuGet.Services.Validation.Orchestrator
                 return true;
             }
 
-            if (!_configuration.EnableStagedSymbolPromotion)
-            {
-                throw new NotSupportedException("Staged symbol promotion is not enabled.");
-            }
-
             var rejectBeforeIngestion = false;
             if (isGrouped && ingestionStatus == ValidationStatus.NotStarted)
             {

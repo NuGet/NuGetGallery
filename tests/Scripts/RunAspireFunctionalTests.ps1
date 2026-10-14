@@ -54,26 +54,13 @@ $testDll = Join-Path $repoRoot "tests\NuGetGallery.FunctionalTests\bin\$Configur
 $resultsDirectory = Join-Path $repoRoot "tests\TestResults"
 New-Item -ItemType Directory -Path $resultsDirectory -Force | Out-Null
 
-$originalSymbolPromotion = $env:Staging__EnableSymbolPromotion
-try
-{
-    if ($env:APPHOST_PROFILE -eq "full")
-    {
-        $env:Staging__EnableSymbolPromotion = "true"
-    }
+dotnet test $testDll `
+    --blame-hang-timeout 600s `
+    --filter $categories `
+    --logger "trx;LogFileName=FunctionalTests.trx" `
+    --results-directory $resultsDirectory
 
-    dotnet test $testDll `
-        --blame-hang-timeout 600s `
-        --filter $categories `
-        --logger "trx;LogFileName=FunctionalTests.trx" `
-        --results-directory $resultsDirectory
-
-    $testExitCode = $LASTEXITCODE
-}
-finally
-{
-    $env:Staging__EnableSymbolPromotion = $originalSymbolPromotion
-}
+$testExitCode = $LASTEXITCODE
 Write-Host "dotnet test exited with code $testExitCode"
 
 Get-ChildItem -File -Recurse $resultsDirectory | ForEach-Object {
