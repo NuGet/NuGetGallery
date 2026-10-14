@@ -94,7 +94,7 @@ namespace NuGetGallery
                 Assert.Same(content, file.FileStream);
                 Assert.Equal("PackageA.1.0.0.snupkg", file.FileDownloadName);
                 Assert.Equal(CoreConstants.OctetStreamContentType, file.ContentType);
-                ResultAssert.IsRedirectTo(delete, "/account/staging/owner/ungrouped");
+                ResultAssert.IsRedirectTo(delete, "/account/Packages");
                 GetMock<ISymbolPackageStagingManagementService>().Verify(x => x.DeletePackageAsync(attempt), Times.Once);
                 if (!deletionSucceeds)
                 {

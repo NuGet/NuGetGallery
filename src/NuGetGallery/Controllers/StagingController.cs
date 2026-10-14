@@ -858,13 +858,12 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var owner = attempt.StagedPackageIdentity.Owner.Username;
             if (!await _symbolPackageStagingManagementService.DeletePackageAsync(attempt))
             {
                 TempData["ErrorMessage"] = "The staged symbols changed or promotion started. Refresh and try again.";
             }
 
-            return Redirect(Url.ManageUngroupedStaging(owner));
+            return Redirect(Url.ManageMyPackages());
         }
 
         private StagedSymbolPackage FindAuthorizedStagedSymbolPackage(string id, string version)
