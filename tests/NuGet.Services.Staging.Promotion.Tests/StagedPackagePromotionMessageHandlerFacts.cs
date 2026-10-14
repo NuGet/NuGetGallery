@@ -19,10 +19,16 @@ namespace NuGet.Services.Staging.Promotion.Tests
 {
     public class StagedPackagePromotionMessageHandlerFacts
     {
-        [Fact]
-        public async Task PublishesExactValidatedPackageAndRemovesStagingRow()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task PublishesExactValidatedPackageAndRemovesStagingRow(bool hasStagedSymbols)
         {
             var context = new TestContext();
+            if (hasStagedSymbols)
+            {
+                context.StagedPackageIdentity.CurrentStagedSymbolPackageKey = 100;
+            }
 
             var handled = await context.Target.HandleAsync(context.Message);
 
@@ -62,7 +68,12 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()),
                 Times.Once);
             context.StagedPackageRepository.Verify(x => x.DeleteOnCommit(context.StagedPackage), Times.Once);
-            context.StagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
+            context.StagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Exactly(hasStagedSymbols ? 1 : 2));
+            Assert.Null(context.StagedPackageIdentity.CurrentStagedPackageKey);
+            Assert.Null(context.StagedPackageIdentity.CurrentStagedPackage);
+            context.StagedPackageIdentityRepository.Verify(
+                x => x.DeleteOnCommit(context.StagedPackageIdentity),
+                hasStagedSymbols ? Times.Never() : Times.Once());
             Assert.Empty(context.StagedPackages);
         }
 
@@ -428,6 +439,10 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 StagedPackages = new List<StagedPackage> { StagedPackage };
 
                 StagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
+                StagedPackageIdentityRepository = new Mock<IEntityRepository<StagedPackageIdentity>>();
+                StagedPackageIdentityRepository
+                    .Setup(x => x.DeleteOnCommit(It.IsAny<StagedPackageIdentity>()))
+                    .Callback(() => StagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Once));
                 StagedPackageRepository
                     .Setup(x => x.GetAll())
                     .Returns(() => StagedPackages.AsQueryable());
@@ -485,6 +500,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
                     .Returns(Task.CompletedTask);
                 Target = new StagedPackagePromotionMessageHandler(
                     StagedPackageRepository.Object,
+                    StagedPackageIdentityRepository.Object,
                     StagingGroupPromotionService.Object,
                     PackageService.Object,
                     StagingBlobService.Object,
@@ -545,6 +561,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
             public StagingPromotionMessage Message { get; }
             public List<StagedPackage> StagedPackages { get; }
             public Mock<IEntityRepository<StagedPackage>> StagedPackageRepository { get; }
+            public Mock<IEntityRepository<StagedPackageIdentity>> StagedPackageIdentityRepository { get; }
             public Mock<IStagingGroupPromotionService> StagingGroupPromotionService { get; }
             public Mock<ICorePackageService> PackageService { get; }
             public Mock<IStagingBlobService> StagingBlobService { get; }

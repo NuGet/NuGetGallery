@@ -1,0 +1,225 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using System.Web;
+using Moq;
+using NuGet.Frameworks;
+using NuGet.Packaging;
+using NuGet.Services.Entities;
+using NuGetGallery.Authentication;
+using NuGetGallery.Packaging;
+using NuGetGallery.Security;
+using NuGetGallery.TestUtils;
+using Xunit;
+
+namespace NuGetGallery
+{
+    public class SymbolPackageStagingUploadServiceFacts
+    {
+        [Theory]
+        [InlineData("<id>Test.Package</id>")]
+        [InlineData("<id>Test.Package</id><version></version>")]
+        [InlineData("<id>Test.Package</id><version> </version>")]
+        [InlineData("<id>Test.Package</id><version>invalid</version>")]
+        [InlineData("<version>1.0.0</version>")]
+        [InlineData("<id></id><version>1.0.0</version>")]
+        [InlineData("<id> </id><version>1.0.0</version>")]
+        public async Task ReturnsBadRequestForMissingOrInvalidIdentity(string metadata)
+        {
+            var currentUser = new User("uploader") { Key = 10 };
+            var owner = new User("owner") { Key = 20 };
+            var scopes = new List<Scope>();
+            var authorizationService = new Mock<IPackageStagingAuthorizationService>();
+            authorizationService.Setup(x => x.GetEnabledApiKeyOwner(currentUser, scopes)).Returns(owner);
+            var contentObjectService = new Mock<IContentObjectService>();
+            contentObjectService.Setup(x => x.SymbolsConfiguration.IsSymbolsUploadEnabledForUser(currentUser)).Returns(true);
+            var securityPolicyService = new Mock<ISecurityPolicyService>();
+            securityPolicyService
+                .Setup(x => x.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackagePush, currentUser, It.IsAny<HttpContextBase>()))
+                .ReturnsAsync(SecurityPolicyResult.SuccessResult);
+            var corePackageService = new CorePackageService(
+                new Mock<IEntityRepository<Package>>(MockBehavior.Strict).Object,
+                new Mock<IEntityRepository<PackageRegistration>>(MockBehavior.Strict).Object,
+                new Mock<IEntityRepository<Certificate>>(MockBehavior.Strict).Object);
+            var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+            packageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns<string, string>((id, version) => corePackageService.FindPackageByIdAndVersionStrict(id, version));
+            var target = new SymbolPackageStagingUploadService(
+                new Mock<IApiScopeEvaluator>(MockBehavior.Strict).Object,
+                contentObjectService.Object,
+                new Mock<IEntitiesContext>(MockBehavior.Strict).Object,
+                packageService.Object,
+                authorizationService.Object,
+                new Mock<ISymbolPackageService>(MockBehavior.Strict).Object,
+                securityPolicyService.Object,
+                new Mock<IStagingBlobService>(MockBehavior.Strict).Object,
+                new Mock<IEntityRepository<StagedSymbolPackage>>(MockBehavior.Strict).Object,
+                new Mock<IStagedSymbolPackageValidationMessageEmitter>(MockBehavior.Strict).Object);
+            using var file = TestPackage.CreateTestPackageStreamFromNuspec("Test.Package", "<package><metadata>" + metadata + "</metadata></package>");
+
+            var result = await target.StageSymbolPackageAsync(currentUser, scopes, Mock.Of<HttpContextBase>(), file);
+
+            Assert.False(result.Success);
+            Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
+            Assert.Equal(Strings.SymbolsPackage_FailedToReadPackage, result.ErrorMessage);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task ReturnsBadRequestForInvalidSymbolMetadata(bool invalidFramework)
+        {
+            var currentUser = new User("uploader") { Key = 10 };
+            var owner = new User("owner") { Key = 20, EmailAddress = "owner@example.test" };
+            var scopes = new List<Scope>();
+            var package = new Package
+            {
+                Key = 42,
+                PackageRegistration = new PackageRegistration { Id = "Test.Package" },
+                Version = "1.0.0",
+                NormalizedVersion = "1.0.0",
+                PackageStatusKey = PackageStatus.Available,
+            };
+            var authorizationService = new Mock<IPackageStagingAuthorizationService>();
+            authorizationService.Setup(x => x.GetEnabledApiKeyOwner(currentUser, scopes)).Returns(owner);
+            var contentObjectService = new Mock<IContentObjectService>();
+            contentObjectService.Setup(x => x.SymbolsConfiguration.IsSymbolsUploadEnabledForUser(currentUser)).Returns(true);
+            var packageService = new Mock<IPackageService>();
+            packageService.Setup(x => x.FindPackageByIdAndVersionStrict("Test.Package", "1.0.0")).Returns(package);
+            var apiScopeEvaluator = new Mock<IApiScopeEvaluator>();
+            apiScopeEvaluator
+                .Setup(x => x.Evaluate(currentUser, scopes, ActionsRequiringPermissions.UploadSymbolPackage, package.PackageRegistration, It.IsAny<string[]>()))
+                .Returns(new ApiScopeEvaluationResult(owner, PermissionsCheckResult.Allowed, scopesAreValid: true));
+            var entitiesContext = new Mock<IEntitiesContext>();
+            entitiesContext.Setup(x => x.StagedPackageIdentities).Returns(Enumerable.Empty<StagedPackageIdentity>().MockDbSet().Object);
+            entitiesContext.Setup(x => x.SymbolPackages).Returns(Enumerable.Empty<SymbolPackage>().MockDbSet().Object);
+            var symbolPackageService = new Mock<ISymbolPackageService>();
+            Exception exception = new EntityException("Invalid symbol metadata.");
+            if (invalidFramework)
+            {
+                exception = new FrameworkException("Invalid target framework.");
+            }
+
+            symbolPackageService.Setup(x => x.EnsureValidAsync(It.IsAny<PackageArchiveReader>())).ThrowsAsync(exception);
+            var securityPolicyService = new Mock<ISecurityPolicyService>();
+            securityPolicyService
+                .Setup(x => x.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackagePush, currentUser, It.IsAny<HttpContextBase>()))
+                .ReturnsAsync(SecurityPolicyResult.SuccessResult);
+            var stagingBlobService = new Mock<IStagingBlobService>(MockBehavior.Strict);
+            var repository = new Mock<IEntityRepository<StagedSymbolPackage>>(MockBehavior.Strict);
+            var validationMessageEmitter = new Mock<IStagedSymbolPackageValidationMessageEmitter>(MockBehavior.Strict);
+            var target = new SymbolPackageStagingUploadService(
+                apiScopeEvaluator.Object,
+                contentObjectService.Object,
+                entitiesContext.Object,
+                packageService.Object,
+                authorizationService.Object,
+                symbolPackageService.Object,
+                securityPolicyService.Object,
+                stagingBlobService.Object,
+                repository.Object,
+                validationMessageEmitter.Object);
+
+            using var file = TestPackage.CreateTestSymbolPackageStream("Test.Package", "1.0.0");
+            var result = await target.StageSymbolPackageAsync(currentUser, scopes, Mock.Of<HttpContextBase>(), file);
+
+            Assert.False(result.Success);
+            Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
+            Assert.Equal(exception.Message, result.ErrorMessage);
+        }
+
+        [Theory]
+        [InlineData(PackageStatus.Available, HttpStatusCode.Created)]
+        [InlineData(PackageStatus.Staged, HttpStatusCode.NotFound)]
+        public async Task StagesSymbolsOnlyForAvailableParent(PackageStatus parentStatus, HttpStatusCode expectedStatus)
+        {
+            var currentUser = new User("uploader") { Key = 10 };
+            var owner = new User("owner") { Key = 20, EmailAddress = "owner@example.test" };
+            var scopes = new List<Scope>();
+            var package = new Package
+            {
+                Key = 42,
+                PackageRegistration = new PackageRegistration { Id = "Test.Package" },
+                Version = "1.0.0",
+                NormalizedVersion = "1.0.0",
+                PackageStatusKey = parentStatus,
+            };
+            var authorizationService = new Mock<IPackageStagingAuthorizationService>();
+            authorizationService.Setup(x => x.GetEnabledApiKeyOwner(currentUser, scopes)).Returns(owner);
+            var contentObjectService = new Mock<IContentObjectService>();
+            contentObjectService.Setup(x => x.SymbolsConfiguration.IsSymbolsUploadEnabledForUser(currentUser)).Returns(true);
+            var packageService = new Mock<IPackageService>();
+            packageService.Setup(x => x.FindPackageByIdAndVersionStrict("Test.Package", "1.0.0")).Returns(package);
+            var apiScopeEvaluator = new Mock<IApiScopeEvaluator>();
+            apiScopeEvaluator
+                .Setup(x => x.Evaluate(currentUser, scopes, ActionsRequiringPermissions.UploadSymbolPackage, package.PackageRegistration, It.IsAny<string[]>()))
+                .Returns(new ApiScopeEvaluationResult(owner, PermissionsCheckResult.Allowed, scopesAreValid: true));
+            var entitiesContext = new Mock<IEntitiesContext>();
+            entitiesContext.Setup(x => x.StagedPackageIdentities).Returns(Enumerable.Empty<StagedPackageIdentity>().MockDbSet().Object);
+            entitiesContext.Setup(x => x.SymbolPackages).Returns(Enumerable.Empty<SymbolPackage>().MockDbSet().Object);
+            var symbolPackageService = new Mock<ISymbolPackageService>();
+            var symbolPackage = new SymbolPackage { Package = package, PackageKey = package.Key };
+            symbolPackageService.Setup(x => x.EnsureValidAsync(It.IsAny<PackageArchiveReader>())).Returns(Task.CompletedTask);
+            symbolPackageService.Setup(x => x.CreateSymbolPackage(package, It.IsAny<PackageStreamMetadata>())).Returns(symbolPackage);
+            var securityPolicyService = new Mock<ISecurityPolicyService>();
+            securityPolicyService
+                .Setup(x => x.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackagePush, currentUser, It.IsAny<HttpContextBase>()))
+                .ReturnsAsync(SecurityPolicyResult.SuccessResult);
+            var stagingBlobService = new Mock<IStagingBlobService>();
+            stagingBlobService.Setup(x => x.SaveSymbolPackageFileAsync("Test.Package", "1.0.0", It.IsAny<System.IO.Stream>()))
+                .ReturnsAsync(new StagingFileReference("test.package/1.0.0/file.snupkg", "etag"));
+            StagedSymbolPackage attempt = null;
+            var repository = new Mock<IEntityRepository<StagedSymbolPackage>>();
+            repository.Setup(x => x.InsertOnCommit(It.IsAny<StagedSymbolPackage>())).Callback<StagedSymbolPackage>(value => attempt = value);
+            repository.Setup(x => x.GetAll()).Returns(() => new[] { attempt }.AsQueryable());
+            repository.Setup(x => x.CommitChangesAsync()).Returns(() =>
+            {
+                attempt.Key = 123;
+                attempt.StagedPackageIdentityKey = package.Key;
+                return Task.CompletedTask;
+            });
+            repository.Setup(x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task>>())).Returns<Func<Task>>(action => action());
+            var validationMessageEmitter = new Mock<IStagedSymbolPackageValidationMessageEmitter>();
+            validationMessageEmitter.Setup(x => x.StartValidationAsync(It.IsAny<StagedSymbolPackage>())).ReturnsAsync(StagedPackageStatus.Validating);
+            var target = new SymbolPackageStagingUploadService(
+                apiScopeEvaluator.Object,
+                contentObjectService.Object,
+                entitiesContext.Object,
+                packageService.Object,
+                authorizationService.Object,
+                symbolPackageService.Object,
+                securityPolicyService.Object,
+                stagingBlobService.Object,
+                repository.Object,
+                validationMessageEmitter.Object);
+
+            using var file = TestPackage.CreateTestSymbolPackageStream("Test.Package", "1.0.0");
+            var result = await target.StageSymbolPackageAsync(currentUser, scopes, Mock.Of<HttpContextBase>(), file);
+
+            Assert.Equal(expectedStatus, result.StatusCode);
+            if (parentStatus == PackageStatus.Available)
+            {
+                Assert.True(result.Success, result.ErrorMessage);
+                Assert.Equal(PackageStatus.Staged, symbolPackage.StatusKey);
+                Assert.Equal(package, attempt.StagedPackageIdentity.Package);
+                Assert.Equal(owner, attempt.StagedPackageIdentity.Owner);
+                Assert.Equal(attempt.Key, attempt.StagedPackageIdentity.CurrentStagedSymbolPackageKey);
+                Assert.Equal("test.package/1.0.0/file.snupkg", attempt.UploadedBlobPath);
+                validationMessageEmitter.Verify(x => x.StartValidationAsync(attempt), Times.Once);
+                var status = target.GetStatus(currentUser, scopes, "Test.Package", "1.0.0");
+                Assert.Equal("Test.Package", status.Id);
+                Assert.Equal("1.0.0", status.Version);
+                Assert.Equal(nameof(StagedPackageStatus.Validating), status.Status);
+            }
+            else
+            {
+                stagingBlobService.Verify(x => x.SaveSymbolPackageFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<System.IO.Stream>()), Times.Never);
+            }
+        }
+    }
+}

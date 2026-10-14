@@ -235,6 +235,11 @@ namespace NuGetGallery
                 .As<IEntityRepository<StagedPackage>>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<EntityRepository<StagedSymbolPackage>>()
+                .AsSelf()
+                .As<IEntityRepository<StagedSymbolPackage>>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<EntityRepository<StagingGroup>>()
                 .As<IEntityRepository<StagingGroup>>()
                 .InstancePerLifetimeScope();
@@ -415,6 +420,10 @@ namespace NuGetGallery
 
             builder.RegisterType<PackageStagingUploadService>()
                 .As<IPackageStagingUploadService>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<SymbolPackageStagingUploadService>()
+                .As<ISymbolPackageStagingUploadService>()
                 .InstancePerLifetimeScope();
 
             RegisterStagingPromotionMessaging(builder, configuration);
@@ -1271,6 +1280,15 @@ namespace NuGetGallery
                 builder
                     .Register(c =>
                     {
+                        return new StagedSymbolPackageValidationMessageEmitter(
+                            c.ResolveKeyed<IPackageValidationEnqueuer>(BindingKeys.SymbolsPackageValidationEnqueuer),
+                            c.Resolve<IAppConfiguration>(),
+                            c.Resolve<IDiagnosticsService>());
+                    }).As<IStagedSymbolPackageValidationMessageEmitter>();
+
+                builder
+                    .Register(c =>
+                    {
                         return new AsynchronousValidationMessageEmitter<SymbolPackage>(
                             c.ResolveKeyed<IPackageValidationEnqueuer>(BindingKeys.SymbolsPackageValidationEnqueuer),
                             c.Resolve<IAppConfiguration>(),
@@ -1312,6 +1330,10 @@ namespace NuGetGallery
                 builder
                     .RegisterType<ImmediateStagedPackageValidationMessageEmitter>()
                     .As<IStagedPackageValidationMessageEmitter>();
+
+                builder
+                    .RegisterType<ImmediateStagedSymbolPackageValidationMessageEmitter>()
+                    .As<IStagedSymbolPackageValidationMessageEmitter>();
             }
 
             builder.RegisterType<RevalidationAdminService>()

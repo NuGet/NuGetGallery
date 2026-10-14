@@ -57,8 +57,10 @@ namespace NuGetGallery
         public const string PackageDeleteAction = "PackageDeleteAction";
         public const string PushPackageApi = "PushPackageApi";
         public const string StagePackage = "StagePackage";
+        public const string StageSymbolPackage = "StageSymbolPackage";
         public const string GetStagedPackages = "GetStagedPackages";
         public const string GetStagedPackageStatus = "GetStagedPackageStatus";
+        public const string GetStagedSymbolPackage = "GetStagedSymbolPackage";
         public const string DownloadStagedPackage = "DownloadStagedPackage";
         public const string UpdateStagedPackageListed = "UpdateStagedPackageListed";
         public const string DeleteStagedPackage = "DeleteStagedPackage";

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -84,6 +84,11 @@ namespace NuGetGallery
                             Strings.SymbolsPackage_PackageIdAndVersionNotFound,
                             id,
                             normalizedVersion));
+                    }
+
+                    if (_entitiesContext.StagedPackageIdentities.Any(identity => identity.Key == package.Key && identity.CurrentStagedSymbolPackageKey != null))
+                    {
+                        return SymbolPackageValidationResult.SymbolsPackageExists(Strings.SymbolsPackage_ConflictValidating);
                     }
 
                     // Check for duplicated entries in symbols package
