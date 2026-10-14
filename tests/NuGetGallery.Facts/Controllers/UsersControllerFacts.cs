@@ -4186,12 +4186,6 @@ namespace NuGetGallery
                 _testUser.IsDeleted = false;
                 _testUser.Key = 1;
                 _testController.SetCurrentUser(_testUser);
-                GetMock<IPackageStagingAuthorizationService>()
-                    .Setup(service => service.GetEnabledOwners(_testUser))
-                    .Returns(new[] { _testUser });
-                GetMock<IStagingQuotaService>()
-                    .Setup(service => service.GetUsage(It.IsAny<User>()))
-                    .Returns<User>(owner => new StagingQuotaUsage { Owner = owner.Username, Limit = 350 });
             }
 
             private PackageRegistration CreatePackageRegistration(string Id, int Key, string Version, string Description)
@@ -4245,13 +4239,10 @@ namespace NuGetGallery
                 GetMock<IValidationService>()
                     .Setup(service => service.GetStagedPackageValidationIssues(It.IsAny<IReadOnlyCollection<int>>()))
                     .Returns(new Dictionary<int, IReadOnlyList<ValidationIssue>>());
-                var usage = new StagingQuotaUsage { Owner = _testUser.Username, UsedPackages = 2, UsedSymbols = 1, Limit = 350 };
-                GetMock<IStagingQuotaService>().Setup(service => service.GetUsage(_testUser)).Returns(usage);
 
                 var model = ResultAssert.IsView<ManagePackagesViewModel>(_testController.Packages());
 
                 var result = Assert.Single(model.StagingGroups);
-                Assert.Same(usage, Assert.Single(model.StagingQuotas));
                 Assert.Equal(_testUser.Username, result.Owner);
                 Assert.Equal("test-group", result.Id);
                 Assert.Equal("Test group", result.Name);
@@ -4261,6 +4252,31 @@ namespace NuGetGallery
                 Assert.Equal("1 ready, 1 failed", result.PackageStatusSummary);
                 Assert.Equal("Validation failed", result.Status);
                 Assert.Equal("staging-status-failedvalidation", result.StatusClass);
+            }
+
+            [Theory]
+            [InlineData(false, false)]
+            [InlineData(false, true)]
+            [InlineData(true, false)]
+            [InlineData(true, true)]
+            public void ExposesStagingAvailabilityForEachOwner(bool personalStagingEnabled, bool organizationStagingEnabled)
+            {
+                var organization = new Organization("Organization") { Key = 2 };
+                _testUser.Organizations.Add(new Membership { Member = _testUser, Organization = organization });
+                GetMock<IFeatureFlagService>().Setup(service => service.IsPackageStagingEnabled(_testUser)).Returns(personalStagingEnabled);
+                GetMock<IFeatureFlagService>().Setup(service => service.IsPackageStagingEnabled(organization)).Returns(organizationStagingEnabled);
+                GetMock<IPackageService>()
+                    .Setup(service => service.FindPackagesByAnyMatchingOwner(_testUser, It.IsAny<bool>(), false))
+                    .Returns(Array.Empty<Package>());
+                GetMock<IPackageStagingManagementService>().Setup(service => service.IsEnabled(_testUser)).Returns(personalStagingEnabled || organizationStagingEnabled);
+                GetMock<IPackageStagingManagementService>().Setup(service => service.GetStagedPackages(_testUser)).Returns(Array.Empty<StagedPackage>());
+                GetMock<IPackageStagingManagementService>().Setup(service => service.GetStagingGroups(_testUser)).Returns(Array.Empty<StagingGroup>());
+
+                var model = ResultAssert.IsView<ManagePackagesViewModel>(_testController.Packages());
+
+                Assert.Equal(personalStagingEnabled || organizationStagingEnabled, model.IsPackageStagingEnabled);
+                Assert.Equal(personalStagingEnabled, model.Owners.Single(owner => owner.Username == _testUser.Username).IsPackageStagingEnabled);
+                Assert.Equal(organizationStagingEnabled, model.Owners.Single(owner => owner.Username == organization.Username).IsPackageStagingEnabled);
             }
 
             [Fact]
