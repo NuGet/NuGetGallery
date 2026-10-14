@@ -33,6 +33,7 @@ namespace NuGet.Services.Staging.Promotion
         private readonly IStagingPromotionNotificationService _notifications;
         private readonly IStagingPromotionLease _lease;
         private readonly ILogger<StagedPackagePromotionMessageHandler> _logger;
+        private readonly NuGet.Services.Logging.ITelemetryClient _telemetryClient;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="StagedPackagePromotionMessageHandler"/> class.
@@ -51,6 +52,7 @@ namespace NuGet.Services.Staging.Promotion
         /// <param name="notifications">The per-artifact promotion notification service.</param>
         /// <param name="lease">The scoped promotion lease protecting publication.</param>
         /// <param name="logger">The logger.</param>
+        /// <param name="telemetryClient">The publication latency metric client.</param>
         public StagedPackagePromotionMessageHandler(
             IEntityRepository<StagedPackage> stagedPackageRepository,
             IEntityRepository<StagedPackageIdentity> stagedPackageIdentityRepository,
@@ -65,7 +67,8 @@ namespace NuGet.Services.Staging.Promotion
             IStagingBlobCleanupService blobCleanup,
             IStagingPromotionNotificationService notifications,
             IStagingPromotionLease lease,
-            ILogger<StagedPackagePromotionMessageHandler> logger)
+            ILogger<StagedPackagePromotionMessageHandler> logger,
+            NuGet.Services.Logging.ITelemetryClient telemetryClient)
         {
             _stagedPackageRepository = stagedPackageRepository ?? throw new ArgumentNullException(nameof(stagedPackageRepository));
             _stagedPackageIdentityRepository = stagedPackageIdentityRepository ?? throw new ArgumentNullException(nameof(stagedPackageIdentityRepository));
@@ -81,6 +84,7 @@ namespace NuGet.Services.Staging.Promotion
             _notifications = notifications ?? throw new ArgumentNullException(nameof(notifications));
             _lease = lease ?? throw new ArgumentNullException(nameof(lease));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
         }
 
         /// <inheritdoc />
@@ -177,6 +181,9 @@ namespace NuGet.Services.Staging.Promotion
                     await _lease.EnsureHeldAsync();
                     _logger.LogInformation("Marking package as available and completing promotion in the database.");
                     await CompletePromotionAsync(package, stagedPackage, streamMetadata);
+
+                    StagingPromotionTelemetry.TrackGalleryPublished(_logger, _telemetryClient, message.PromotionId, package,
+                        stagedPackage.PromotionAcceptedAt, symbols: false);
 
                     if (stagingGroupKey.HasValue)
                     {

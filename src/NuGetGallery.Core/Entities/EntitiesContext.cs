@@ -559,6 +559,10 @@ namespace NuGetGallery
                 .Property(g => g.CreatedDate)
                 .HasColumnType("datetime2");
 
+            modelBuilder.Entity<StagingGroup>().Property(g => g.PromotionAcceptedAt).HasColumnType("datetime2");
+            modelBuilder.Entity<StagedPackage>().Property(p => p.PromotionAcceptedAt).HasColumnType("datetime2");
+            modelBuilder.Entity<StagedSymbolPackage>().Property(p => p.PromotionAcceptedAt).HasColumnType("datetime2");
+
             modelBuilder.Entity<StagingGroup>()
                 .Property(g => g.ExpirationDate)
                 .HasColumnType("datetime2");

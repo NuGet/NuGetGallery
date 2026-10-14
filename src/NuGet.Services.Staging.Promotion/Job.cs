@@ -54,7 +54,7 @@ namespace NuGet.Services.Staging.Promotion
             services.AddTransient<IBrokeredMessageSerializer<StagingPromotionMessage>, StagingPromotionMessageSerializer>();
             services.AddTransient<NuGet.Services.Validation.IServiceBusMessageSerializer, NuGet.Services.Validation.ServiceBusMessageSerializer>();
             services.AddTransient<NuGet.Services.Messaging.IServiceBusMessageSerializer, NuGet.Services.Messaging.ServiceBusMessageSerializer>();
-            services.AddTransient<ISubscriptionProcessorTelemetryService, SubscriptionProcessorNoTelemetryService>();
+            services.AddTransient<ISubscriptionProcessorTelemetryService, StagingPromotionTelemetryService>();
             services.AddTransient<ICloudBlobContainerInformationProvider, GalleryCloudBlobContainerInformationProvider>();
             services.AddScoped<IStagingPromotionLease, StagingPromotionLease>();
         }

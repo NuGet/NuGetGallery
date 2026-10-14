@@ -155,6 +155,7 @@ namespace NuGetGallery
                             else
                             {
                                 activeMember.ActivePromotionId = null;
+                                activeMember.PromotionAcceptedAt = null;
                             }
                         }
 
@@ -176,6 +177,7 @@ namespace NuGetGallery
                         }
 
                         stagingGroup.ActivePromotionId = null;
+                        stagingGroup.PromotionAcceptedAt = null;
                         stagingGroup.PromotionMessageSentDate = null;
                         await _stagedPackageRepository.CommitChangesAsync();
 

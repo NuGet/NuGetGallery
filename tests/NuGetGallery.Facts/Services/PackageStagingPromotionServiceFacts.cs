@@ -145,10 +145,13 @@ namespace NuGetGallery
                 .Callback(() =>
                 {
                     events.Add($"Commit:{stagedPackage.Status}");
+                    Assert.NotNull(stagedPackage.PromotionAcceptedAt);
+                    Assert.Equal(stagedPackage.PromotionMessageSentDate, stagedPackage.PromotionAcceptedAt);
                     if (symbols != null)
                     {
                         Assert.Equal(StagedPackageStatus.Promoting, symbols.Status);
                         Assert.Equal(stagedPackage.ActivePromotionId, symbols.ActivePromotionId);
+                        Assert.Equal(stagedPackage.PromotionAcceptedAt, symbols.PromotionAcceptedAt);
                     }
                 })
                 .Returns(saveCompleted.Task);
@@ -162,10 +165,18 @@ namespace NuGetGallery
                     message = value;
                 })
                 .Returns(Task.CompletedTask);
-            var target = CreateService(repository, enqueuer, stagedSymbols: symbols == null ? null : new[] { symbols });
+            var telemetry = new Mock<ITelemetryService>();
+            telemetry.Setup(service => service.TrackStagingPromotionAccepted(It.IsAny<Guid>(), stagedPackage.StagedPackageIdentity.Package, It.IsAny<bool>()))
+                .Callback<Guid, Package, bool>((promotionId, package, isSymbols) =>
+                {
+                    Assert.Equal(stagedPackage.ActivePromotionId, promotionId);
+                    events.Add(isSymbols ? "Accepted:Symbols" : "Accepted:Package");
+                });
+            var target = CreateService(repository, enqueuer, stagedSymbols: symbols == null ? null : new[] { symbols }, telemetry: telemetry);
 
             var promotion = target.PromotePackageAsync(new User("owner") { EmailAddress = "owner@example.test" }, stagedPackage);
             enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
+            telemetry.Verify(service => service.TrackStagingPromotionAccepted(It.IsAny<Guid>(), It.IsAny<Package>(), It.IsAny<bool>()), Times.Never);
             saveCompleted.SetResult(true);
             var result = await promotion;
 
@@ -174,7 +185,14 @@ namespace NuGetGallery
             Assert.Equal(stagedPackage.ActivePromotionId, message.PromotionId);
             Assert.Equal(StagingPromotionTargetType.StagedPackage, message.TargetType);
             Assert.Equal(StagedPackageKey, message.TargetKey);
-            Assert.Equal(new[] { "Commit:Promoting", "Send" }, events);
+            var expectedEvents = new List<string> { "Commit:Promoting", "Accepted:Package" };
+            if (includesSymbols)
+            {
+                expectedEvents.Add("Accepted:Symbols");
+            }
+
+            expectedEvents.Add("Send");
+            Assert.Equal(expectedEvents, events);
             if (symbols != null)
             {
                 Assert.Equal(StagedPackageStatus.Promoting, symbols.Status);
@@ -212,6 +230,8 @@ namespace NuGetGallery
             var events = new List<string>();
             var stagedPackage = CreateStagedPackage(StagedPackageStatus.Promoting);
             stagedPackage.ActivePromotionId = Guid.NewGuid();
+            var acceptedAt = DateTime.UtcNow.AddHours(-2);
+            stagedPackage.PromotionAcceptedAt = acceptedAt;
             var previousSentDate = DateTime.UtcNow.AddMinutes(-61);
             stagedPackage.PromotionMessageSentDate = previousSentDate;
             var repository = new Mock<IEntityRepository<StagedPackage>>();
@@ -228,7 +248,8 @@ namespace NuGetGallery
                     message = value;
                 })
                 .Returns(Task.CompletedTask);
-            var target = CreateService(repository, enqueuer);
+            var telemetry = new Mock<ITelemetryService>();
+            var target = CreateService(repository, enqueuer, telemetry: telemetry);
 
             var result = await target.ResendPackageAsync(new User("owner") { EmailAddress = "owner@example.test" }, stagedPackage);
 
@@ -238,7 +259,9 @@ namespace NuGetGallery
             Assert.Equal(StagingPromotionTargetType.StagedPackage, message.TargetType);
             Assert.Equal(stagedPackage.Key, message.TargetKey);
             Assert.True(stagedPackage.PromotionMessageSentDate > previousSentDate);
+            Assert.Equal(acceptedAt, stagedPackage.PromotionAcceptedAt);
             Assert.Equal(new[] { "Commit", "Send" }, events);
+            telemetry.Verify(service => service.TrackStagingPromotionAccepted(It.IsAny<Guid>(), It.IsAny<Package>(), It.IsAny<bool>()), Times.Never);
             repository.Verify(x => x.CommitChangesAsync(), Times.Once);
         }
 
@@ -342,11 +365,13 @@ namespace NuGetGallery
                 .Setup(x => x.CommitChangesAsync())
                 .ThrowsAsync(new DbUpdateConcurrencyException());
             var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
-            var target = CreateService(repository, enqueuer, stagedSymbols: new[] { symbols });
+            var telemetry = new Mock<ITelemetryService>();
+            var target = CreateService(repository, enqueuer, stagedSymbols: new[] { symbols }, telemetry: telemetry);
 
             var result = await target.PromotePackageAsync(new User("owner") { EmailAddress = "owner@example.test" }, stagedPackage);
 
             Assert.Equal(PackageStagingPromotionResult.Conflict, result);
+            telemetry.Verify(service => service.TrackStagingPromotionAccepted(It.IsAny<Guid>(), It.IsAny<Package>(), It.IsAny<bool>()), Times.Never);
             enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
         }
 
@@ -360,7 +385,8 @@ namespace NuGetGallery
             enqueuer
                 .Setup(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()))
                 .ThrowsAsync(new TimeoutException("Send timed out."));
-            var target = CreateService(repository, enqueuer);
+            var telemetry = new Mock<ITelemetryService>();
+            var target = CreateService(repository, enqueuer, telemetry: telemetry);
 
             var result = await target.PromotePackageAsync(new User("owner") { EmailAddress = "owner@example.test" }, stagedPackage);
 
@@ -368,12 +394,16 @@ namespace NuGetGallery
             Assert.Equal(StagedPackageStatus.Promoting, stagedPackage.Status);
             Assert.NotNull(stagedPackage.ActivePromotionId);
             Assert.True(StagingPromotionResendPolicy.IsDue(stagedPackage.PromotionMessageSentDate));
+            var acceptedAt = stagedPackage.PromotionAcceptedAt;
+            Assert.NotNull(acceptedAt);
             repository.Verify(x => x.CommitChangesAsync(), Times.Exactly(2));
 
             enqueuer.Setup(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>())).Returns(Task.CompletedTask);
             Assert.Equal(PackageStagingPromotionResult.Accepted, await target.ResendPackageAsync(new User("owner") { EmailAddress = "owner@example.test" }, stagedPackage));
             Assert.Equal(StagedPackageStatus.Promoting, stagedPackage.Status);
             Assert.False(StagingPromotionResendPolicy.IsDue(stagedPackage.PromotionMessageSentDate));
+            Assert.Equal(acceptedAt, stagedPackage.PromotionAcceptedAt);
+            telemetry.Verify(service => service.TrackStagingPromotionAccepted(stagedPackage.ActivePromotionId.Value, stagedPackage.StagedPackageIdentity.Package, false), Times.Once);
         }
 
         [Fact]
@@ -429,7 +459,15 @@ namespace NuGetGallery
                     message = value;
                 })
                 .Returns(Task.CompletedTask);
-            var target = CreateService(repository, enqueuer);
+            var telemetry = new Mock<ITelemetryService>();
+            telemetry.Setup(service => service.TrackStagingPromotionAccepted(It.IsAny<Guid>(), It.IsAny<Package>(), false))
+                .Callback<Guid, Package, bool>((promotionId, package, symbols) =>
+                {
+                    Assert.Equal(group.ActivePromotionId, promotionId);
+                    Assert.Contains(stagedPackages, attempt => attempt.StagedPackageIdentity.Package == package);
+                    events.Add("Accepted:Package");
+                });
+            var target = CreateService(repository, enqueuer, telemetry: telemetry);
 
             var result = await target.PromoteGroupAsync(new User("owner") { Key = 1, EmailAddress = "owner@example.test" }, group);
 
@@ -441,9 +479,11 @@ namespace NuGetGallery
             Assert.All(stagedPackages, stagedPackage =>
             {
                 Assert.Equal(group.ActivePromotionId, stagedPackage.ActivePromotionId);
+                Assert.NotNull(group.PromotionAcceptedAt);
+                Assert.Equal(group.PromotionAcceptedAt, stagedPackage.PromotionAcceptedAt);
                 Assert.Equal(StagedPackageStatus.Promoting, stagedPackage.Status);
             });
-            Assert.Equal(new[] { "Commit:Promoting", "Send" }, events);
+            Assert.Equal(new[] { "Commit:Promoting", "Accepted:Package", "Accepted:Package", "Send" }, events);
         }
 
         [Fact]
@@ -452,6 +492,8 @@ namespace NuGetGallery
             var events = new List<string>();
             var group = CreateStagingGroup();
             group.ActivePromotionId = Guid.NewGuid();
+            var acceptedAt = DateTime.UtcNow.AddHours(-2);
+            group.PromotionAcceptedAt = acceptedAt;
             group.MutationRevision = 3;
             var previousSentDate = DateTime.UtcNow.AddMinutes(-61);
             group.PromotionMessageSentDate = previousSentDate;
@@ -471,7 +513,8 @@ namespace NuGetGallery
                     message = value;
                 })
                 .Returns(Task.CompletedTask);
-            var target = CreateService(repository, enqueuer);
+            var telemetry = new Mock<ITelemetryService>();
+            var target = CreateService(repository, enqueuer, telemetry: telemetry);
 
             var result = await target.ResendGroupAsync(new User("owner") { Key = 1, EmailAddress = "owner@example.test" }, group);
 
@@ -483,7 +526,9 @@ namespace NuGetGallery
             Assert.Equal(StagedPackageStatus.Promoting, stagedPackage.Status);
             Assert.Equal(group.ActivePromotionId, stagedPackage.ActivePromotionId);
             Assert.True(group.PromotionMessageSentDate > previousSentDate);
+            Assert.Equal(acceptedAt, group.PromotionAcceptedAt);
             Assert.Equal(new[] { "Commit", "Send" }, events);
+            telemetry.Verify(service => service.TrackStagingPromotionAccepted(It.IsAny<Guid>(), It.IsAny<Package>(), It.IsAny<bool>()), Times.Never);
             repository.Verify(x => x.CommitChangesAsync(), Times.Once);
         }
 
@@ -648,20 +693,28 @@ namespace NuGetGallery
                 Assert.Equal(group.ActivePromotionId, symbols.ActivePromotionId);
             }).Returns(committed.Task);
             var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
-            var target = CreateService(repository, enqueuer, stagedSymbols: new[] { symbols });
+            var telemetry = new Mock<ITelemetryService>();
+            var target = CreateService(repository, enqueuer, stagedSymbols: new[] { symbols }, telemetry: telemetry);
 
             var promotion = target.PromoteGroupAsync(group.Owner, group);
             enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
+            telemetry.Verify(service => service.TrackStagingPromotionAccepted(It.IsAny<Guid>(), It.IsAny<Package>(), It.IsAny<bool>()), Times.Never);
             committed.SetResult(true);
             var result = await promotion;
 
             Assert.Equal(StagingGroupPromotionResult.Accepted, result);
             Assert.NotNull(group.ActivePromotionId);
+            telemetry.Verify(service => service.TrackStagingPromotionAccepted(group.ActivePromotionId.Value, parent.StagedPackageIdentity.Package, true), Times.Once);
+            Assert.NotNull(group.PromotionAcceptedAt);
+            Assert.Equal(group.PromotionAcceptedAt, symbols.PromotionAcceptedAt);
+            telemetry.Verify(service => service.TrackStagingPromotionAccepted(group.ActivePromotionId.Value, parent.StagedPackageIdentity.Package, false),
+                hasStagedParent ? Times.Once() : Times.Never());
             Assert.Null(symbols.PromotionMessageSentDate);
             if (hasStagedParent)
             {
                 Assert.Equal(StagedPackageStatus.Promoting, parent.Status);
                 Assert.Equal(group.ActivePromotionId, parent.ActivePromotionId);
+                Assert.Equal(group.PromotionAcceptedAt, parent.PromotionAcceptedAt);
             }
 
             enqueuer.Verify(x => x.SendMessageAsync(It.Is<StagingPromotionMessage>(message =>
@@ -713,7 +766,8 @@ namespace NuGetGallery
                 Mock.Of<IPackageStagingAuthorizationService>(x => x.CanManage(It.IsAny<User>(), attempt) == true),
                 enqueuer.Object,
                 repository.Object,
-                symbols.Object);
+                symbols.Object,
+                Mock.Of<ITelemetryService>());
             symbols.Setup(x => x.GetAll()).Returns(() =>
             {
                 attempt.ExpirationDate = DateTime.UtcNow;
@@ -832,7 +886,8 @@ namespace NuGetGallery
             bool authorized = true,
             int? authorizedPackageKey = null,
             IEnumerable<StagedSymbolPackage> stagedSymbols = null,
-            bool authorizedSymbols = true)
+            bool authorizedSymbols = true,
+            Mock<ITelemetryService> telemetry = null)
         {
             repository.SetReturnsDefault(Array.Empty<StagedPackage>().AsQueryable());
             var authorizationService = new Mock<IPackageStagingAuthorizationService>();
@@ -849,7 +904,8 @@ namespace NuGetGallery
                 authorizationService.Object,
                 enqueuer.Object,
                 repository.Object,
-                Mock.Of<IEntityRepository<StagedSymbolPackage>>(x => x.GetAll() == (stagedSymbols ?? Array.Empty<StagedSymbolPackage>()).AsQueryable()));
+                Mock.Of<IEntityRepository<StagedSymbolPackage>>(x => x.GetAll() == (stagedSymbols ?? Array.Empty<StagedSymbolPackage>()).AsQueryable()),
+                telemetry?.Object ?? Mock.Of<ITelemetryService>());
         }
 
         private static StagedSymbolPackage CreateStagedSymbols(StagedPackage parent)
