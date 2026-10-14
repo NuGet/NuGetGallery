@@ -5,8 +5,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Jobs.Validation;
+using NuGet.Services.Validation.Symbols;
 using Validation.PackageSigning.Core.Tests.Support;
 using Xunit;
 using Xunit.Abstractions;
@@ -35,12 +37,13 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
                 _output.WriteLine("Initializing the first instance.");
 
-                var targetA = new ValidatorProvider(serviceProvider.Object, logger);
+                var configuration = Options.Create(new DevelopmentValidatorConfiguration());
+                var targetA = new ValidatorProvider(serviceProvider.Object, logger, configuration);
                 var messageCountA = logger.Messages.Count;
 
                 _output.WriteLine("Initializing the second instance.");
 
-                var targetB = new ValidatorProvider(serviceProvider.Object, logger);
+                var targetB = new ValidatorProvider(serviceProvider.Object, logger, configuration);
                 var messageCountB = logger.Messages.Count;
 
                 Assert.Equal(messageCountA, messageCountB);
@@ -79,6 +82,35 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
         public class GetNuGetValidator : BaseFacts
         {
+            [Theory]
+            [InlineData(true, true, true)]
+            [InlineData(false, true, false)]
+            [InlineData(true, false, false)]
+            public void ReplacesOnlyExplicitlyEnabledLocalSymbolScan(bool enabled, bool useForSymbolScan, bool expectedDevelopmentValidator)
+            {
+                DevelopmentConfiguration.Enabled = enabled;
+                DevelopmentConfiguration.UseForSymbolScan = useForSymbolScan;
+                var developmentValidator = new DevelopmentValidator(Options.Create(new DevelopmentValidatorConfiguration { Enabled = true }));
+                var symbolScan = new TestNuGetValidator();
+                ServiceProviderMock.Setup(provider => provider.GetService(typeof(DevelopmentValidator))).Returns(developmentValidator);
+                ServiceProviderMock.Setup(provider => provider.GetService(typeof(SymbolScanValidator))).Returns(symbolScan);
+                var symbolsValidator = new TestNuGetValidator();
+                ServiceProviderMock.Setup(provider => provider.GetService(typeof(SymbolsValidator))).Returns(symbolsValidator);
+
+                var scan = Target.GetNuGetValidator(ValidatorName.SymbolScan);
+
+                if (expectedDevelopmentValidator)
+                {
+                    Assert.Same(developmentValidator, scan);
+                }
+                else
+                {
+                    Assert.Same(symbolScan, scan);
+                }
+
+                Assert.Same(symbolsValidator, Target.GetNuGetValidator(ValidatorName.SymbolsValidator));
+            }
+
             /// <summary>
             /// Names of known processors. These must never change unless there is a well thought out migration story
             /// or data fix. These names are encoded into DB tables used for orchestrator bookkeeping.
@@ -149,11 +181,13 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 ServiceProviderMock = new Mock<IServiceProvider>();
                 LoggerMock = new Mock<ILogger<ValidatorProvider>>();
 
-                Target = new ValidatorProvider(ServiceProviderMock.Object, LoggerMock.Object);
+                DevelopmentConfiguration = new DevelopmentValidatorConfiguration();
+                Target = new ValidatorProvider(ServiceProviderMock.Object, LoggerMock.Object, Options.Create(DevelopmentConfiguration));
             }
 
             protected Mock<IServiceProvider> ServiceProviderMock { get; }
             protected Mock<ILogger<ValidatorProvider>> LoggerMock { get; }
+            protected DevelopmentValidatorConfiguration DevelopmentConfiguration { get; }
             public ValidatorProvider Target { get; }
         }
 

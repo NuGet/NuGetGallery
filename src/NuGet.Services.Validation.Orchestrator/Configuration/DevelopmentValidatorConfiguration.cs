@@ -7,6 +7,12 @@ namespace NuGet.Services.Validation.Orchestrator
     {
         public bool Enabled { get; set; }
 
+        /// <summary>
+        /// Uses the development validator instead of malware scanning for local symbol validation.
+        /// Requires <see cref="Enabled"/>; leave disabled outside local development.
+        /// </summary>
+        public bool UseForSymbolScan { get; set; }
+
         public int DelaySeconds { get; set; }
 
         public string FailurePackageIdPrefix { get; set; }
