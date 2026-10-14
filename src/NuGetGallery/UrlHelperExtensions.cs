@@ -1287,6 +1287,32 @@ namespace NuGetGallery
                 });
         }
 
+        public static string DownloadStagedSymbolPackage(this UrlHelper url, string id, string version, bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.DownloadManagedStagedSymbolPackage,
+                relativeUrl,
+                new RouteValueDictionary
+                {
+                    { "id", id },
+                    { "version", version },
+                });
+        }
+
+        public static string DeleteStagedSymbolPackage(this UrlHelper url, string id, string version, bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.DeleteManagedStagedSymbolPackage,
+                relativeUrl,
+                new RouteValueDictionary
+                {
+                    { "id", id },
+                    { "version", version },
+                });
+        }
+
         public static string DownloadStagedPackage(this UrlHelper url, string id, string version, bool relativeUrl = true)
         {
             return GetRouteLink(

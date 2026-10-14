@@ -36,6 +36,11 @@ namespace NuGetGallery
         bool CanManage(User currentUser, StagedPackage stagedPackage);
 
         /// <summary>
+        /// Determines whether a signed-in user can manage symbols belonging to their staging owner.
+        /// </summary>
+        bool CanManage(User currentUser, StagedSymbolPackage stagedSymbolPackage);
+
+        /// <summary>
         /// Determines whether an API credential can manage a staged package.
         /// </summary>
         /// <param name="currentUser">The user associated with the API credential.</param>

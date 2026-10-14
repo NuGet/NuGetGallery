@@ -41,6 +41,7 @@ namespace NuGetGallery
         private readonly IPackageVulnerabilitiesService _packageVulnerabilitiesService;
         private readonly IFederatedCredentialService _federatedCredentialService;
         private readonly IPackageStagingManagementService _packageStagingManagementService;
+        private readonly ISymbolPackageStagingManagementService _symbolPackageStagingManagementService;
 
         public UsersController(
             IUserService userService,
@@ -64,7 +65,8 @@ namespace NuGetGallery
             IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory,
             IFederatedCredentialService federatedCredentialService,
             IFederatedCredentialRepository federatedCredentialRepository,
-            IPackageStagingManagementService packageStagingManagementService)
+            IPackageStagingManagementService packageStagingManagementService,
+            ISymbolPackageStagingManagementService symbolPackageStagingManagementService)
             : base(
                   authService,
                   packageService,
@@ -89,6 +91,7 @@ namespace NuGetGallery
             _packageVulnerabilitiesService = packageVulnerabilitiesService ?? throw new ArgumentNullException(nameof(packageVulnerabilitiesService));
             _federatedCredentialService = federatedCredentialService ?? throw new ArgumentNullException(nameof(federatedCredentialService));
             _packageStagingManagementService = packageStagingManagementService ?? throw new ArgumentNullException(nameof(packageStagingManagementService));
+            _symbolPackageStagingManagementService = symbolPackageStagingManagementService ?? throw new ArgumentNullException(nameof(symbolPackageStagingManagementService));
 
             _listPackageItemRequiredSignerViewModelFactory = new ListPackageItemRequiredSignerViewModelFactory(
                 securityPolicyService, iconUrlProvider, packageVulnerabilitiesService, frameworkCompatibilityFactory, featureFlagService);
@@ -583,6 +586,9 @@ namespace NuGetGallery
             if (isPackageStagingEnabled)
             {
                 var stagedPackageEntities = _packageStagingManagementService.GetStagedPackages(currentUser).ToList();
+                var ungroupedSymbols = _symbolPackageStagingManagementService.GetStagedSymbolPackages(currentUser)
+                    .Where(attempt => !attempt.StagedPackageIdentity.StagingGroupKey.HasValue)
+                    .ToList();
                 var stagedPackagesByGroupKey = stagedPackageEntities
                     .Where(stagedPackage => stagedPackage.StagedPackageIdentity.StagingGroupKey.HasValue)
                     .GroupBy(stagedPackage => stagedPackage.StagedPackageIdentity.StagingGroupKey.Value)
@@ -603,15 +609,29 @@ namespace NuGetGallery
                     })
                     .Concat(stagedPackageEntities
                         .Where(stagedPackage => !stagedPackage.StagedPackageIdentity.StagingGroupKey.HasValue)
-                        .GroupBy(stagedPackage => stagedPackage.StagedPackageIdentity.Owner)
-                        .Select(group => CreateStagingGroupViewModel(
-                            group.Key.Username,
-                            id: null,
-                            name: "Ungrouped",
-                            createdDate: null,
-                            packages: group.ToList(),
-                            isUngrouped: true,
-                            url: Url.ManageUngroupedStaging(group.Key.Username))))
+                        .Select(stagedPackage => stagedPackage.StagedPackageIdentity.Owner)
+                        .Concat(ungroupedSymbols.Select(attempt => attempt.StagedPackageIdentity.Owner))
+                        .GroupBy(owner => owner.Key)
+                        .Select(owners => owners.First())
+                        .Select(owner =>
+                        {
+                            var ownerPackages = stagedPackageEntities
+                                .Where(attempt => attempt.StagedPackageIdentity.OwnerKey == owner.Key && !attempt.StagedPackageIdentity.StagingGroupKey.HasValue)
+                                .ToList();
+                            var ownerSymbols = ungroupedSymbols
+                                .Where(attempt => attempt.StagedPackageIdentity.OwnerKey == owner.Key)
+                                .ToList();
+
+                            return CreateStagingGroupViewModel(
+                                owner.Username,
+                                id: null,
+                                name: "Ungrouped",
+                                createdDate: null,
+                                packages: ownerPackages,
+                                isUngrouped: true,
+                                url: Url.ManageUngroupedStaging(owner.Username),
+                                symbols: ownerSymbols);
+                        }))
                     .OrderBy(group => group.Owner)
                     .ThenByDescending(group => group.IsUngrouped)
                     .ThenBy(group => group.Name)
@@ -643,11 +663,18 @@ namespace NuGetGallery
             DateTime? createdDate,
             IReadOnlyList<StagedPackage> packages,
             bool isUngrouped,
-            string url = null)
+            string url = null,
+            IReadOnlyList<StagedSymbolPackage> symbols = null)
         {
-            var validatingCount = packages.Count(package => package.Status == StagedPackageStatus.Validating);
-            var readyCount = packages.Count(package => package.Status == StagedPackageStatus.Ready);
-            var failedValidationCount = packages.Count(package => package.Status == StagedPackageStatus.FailedValidation);
+            var statuses = packages.Select(package => package.Status).ToList();
+            if (symbols != null)
+            {
+                statuses.AddRange(symbols.Select(symbol => symbol.Status));
+            }
+
+            var validatingCount = statuses.Count(status => status == StagedPackageStatus.Validating);
+            var readyCount = statuses.Count(status => status == StagedPackageStatus.Ready);
+            var failedValidationCount = statuses.Count(status => status == StagedPackageStatus.FailedValidation);
             var status = "Not ready";
             var statusClass = "label-warning";
             if (failedValidationCount > 0)
@@ -660,12 +687,12 @@ namespace NuGetGallery
                 status = "Validating";
                 statusClass = "staging-status-validating";
             }
-            else if (packages.Count == 0)
+            else if (statuses.Count == 0)
             {
                 status = "Empty";
                 statusClass = "label-default";
             }
-            else if (readyCount == packages.Count)
+            else if (readyCount == statuses.Count)
             {
                 status = "Ready";
                 statusClass = "staging-status-ready";
@@ -680,7 +707,7 @@ namespace NuGetGallery
                 Url = url,
                 CreatedDate = createdDate,
                 IsUngrouped = isUngrouped,
-                PackageCount = packages.Count,
+                PackageCount = statuses.Count,
                 PackageStatusSummary = GetStagingGroupPackageStatusSummary(
                     validatingCount,
                     readyCount,
