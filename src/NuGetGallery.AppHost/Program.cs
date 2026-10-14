@@ -12,6 +12,17 @@ using Aspire.Hosting.Azure;
 
 public class Program
 {
+    private const string SymbolScanValidatorName = "SymbolScan";
+    private const string SymbolsValidatorName = "SymbolsValidator";
+    private const string DevelopmentValidatorName = "DevelopmentValidator";
+    private const string SymbolPackageValidatingType = "SymbolPackage";
+    private const string PackageValidatingType = "Package";
+    private const string RequiredValidationFailureBehavior = "MustSucceed";
+    private const string DevelopmentValidationFailurePackageIdPrefix = "ValidationFail.";
+    private const string ValidationLeasesContainerName = "validation-leases";
+    private const string SymbolsOrchestratorLeaseStoragePath = "symbols-orchestrator";
+    private const string PackageOrchestratorLeaseStoragePath = "orchestrator";
+
     public static void Main(string[] args)
     {
         var builder = DistributedApplication.CreateBuilder(args);
@@ -850,15 +861,15 @@ public class Program
         string failurePackageIdPrefix;
         if (symbols)
         {
-            validationNames = new[] { "SymbolScan", "SymbolsValidator" };
-            validatingType = "SymbolPackage";
+            validationNames = new[] { SymbolScanValidatorName, SymbolsValidatorName };
+            validatingType = SymbolPackageValidatingType;
             failurePackageIdPrefix = "";
         }
         else
         {
-            validationNames = new[] { "DevelopmentValidator" };
-            validatingType = "Package";
-            failurePackageIdPrefix = "ValidationFail.";
+            validationNames = new[] { DevelopmentValidatorName };
+            validatingType = PackageValidatingType;
+            failurePackageIdPrefix = DevelopmentValidationFailurePackageIdPrefix;
         }
 
         return new
@@ -875,7 +886,7 @@ public class Program
                     TrackAfter = "00:00:10",
                     RequiredValidations = Array.Empty<string>(),
                     ShouldStart = true,
-                    FailureBehavior = "MustSucceed",
+                    FailureBehavior = RequiredValidationFailureBehavior,
                 }).ToArray(),
                 ValidationStorageConnectionString = storageConnectionString,
                 StagingStorageConnectionString = storageConnectionString,
@@ -919,8 +930,8 @@ public class Program
             Leases = new
             {
                 ConnectionString = storageConnectionString,
-                ContainerName = "validation-leases",
-                StoragePath = symbols ? "symbols-orchestrator" : "orchestrator",
+                ContainerName = ValidationLeasesContainerName,
+                StoragePath = symbols ? SymbolsOrchestratorLeaseStoragePath : PackageOrchestratorLeaseStoragePath,
             },
             SasDefinitions = new
             {
