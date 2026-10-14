@@ -204,7 +204,7 @@
                                         <div class="text-muted">
                                             Parent:
                                             <!-- ko if: ParentUrl -->
-                                            <a data-bind="attr: { href: ParentUrl }, text: ParentStatus"></a>
+                                            <a data-bind="attr: { href: ParentUrl, 'aria-label': 'View parent package ' + Id + ' ' + Version + ', ' + ParentStatus }, text: ParentStatus"></a>
                                             <!-- /ko -->
                                             <!-- ko ifnot: ParentUrl -->
                                             <span data-bind="text: ParentStatus"></span>
