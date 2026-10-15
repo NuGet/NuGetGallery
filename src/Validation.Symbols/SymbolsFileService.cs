@@ -35,9 +35,14 @@ namespace Validation.Symbols
             _fileDownloader = fileDownloader ?? throw new ArgumentNullException(nameof(fileDownloader));
         }
 
-        public Task<Stream> DownloadSnupkgFileAsync(string snupkgUri, CancellationToken cancellationToken)
+        public Task<Stream> DownloadSnupkgFileAsync(Uri snupkgUri, CancellationToken cancellationToken)
         {
-            return DownloadFileAsync(new Uri(snupkgUri), cancellationToken);
+            if (snupkgUri == null)
+            {
+                throw new ArgumentNullException(nameof(snupkgUri));
+            }
+
+            return DownloadFileAsync(snupkgUri, cancellationToken);
         }
 
         public Task<Stream> DownloadNupkgFileAsync(Uri packageUri, CancellationToken cancellationToken)

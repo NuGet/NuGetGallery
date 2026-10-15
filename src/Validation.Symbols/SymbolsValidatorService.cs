@@ -53,7 +53,7 @@ namespace Validation.Symbols
 
             try
             {
-                using (Stream snupkgstream = await _symbolFileService.DownloadSnupkgFileAsync(message.SnupkgUrl, token))
+                using (Stream snupkgstream = await _symbolFileService.DownloadSnupkgFileAsync(new Uri(message.SnupkgUrl), token))
                 {
                     if (!await _zipArchiveService.ValidateZipAsync(snupkgstream, message.SnupkgUrl, token))
                     {
