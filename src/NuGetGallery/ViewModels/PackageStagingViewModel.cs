@@ -33,6 +33,8 @@ namespace NuGetGallery
 
         public bool CanManage { get; set; }
 
+        public bool CanDelete { get; set; }
+
         public bool CanPromote { get; set; }
 
         public bool CanResend { get; set; }

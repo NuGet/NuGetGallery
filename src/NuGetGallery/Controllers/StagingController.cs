@@ -423,6 +423,7 @@ namespace NuGetGallery
                     UploadedDate = attempt.UploadedDate,
                     ValidationIssues = issues ?? [],
                     CanManage = attempt.Status != StagedPackageStatus.Promoting,
+                    CanDelete = attempt.Status != StagedPackageStatus.Promoting,
                 };
             });
 
@@ -612,6 +613,7 @@ namespace NuGetGallery
                         ValidationIssues = issues ?? [],
                         Listed = package.Listed,
                         CanManage = !isPromotionActive,
+                        CanDelete = !isPromotionActive && stagedPackage.Status != StagedPackageStatus.Promoting && !identity.CurrentStagedSymbolPackageKey.HasValue,
                         CanPromote = stagedPackage.Status == StagedPackageStatus.Ready && !identity.StagingGroupKey.HasValue,
                         CanResend = !identity.StagingGroupKey.HasValue
                             && stagedPackage.Status == StagedPackageStatus.Promoting

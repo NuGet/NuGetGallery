@@ -59,6 +59,7 @@ namespace NuGetGallery
             Assert.Equal(parentStatus == PackageStatus.Available, symbols.ParentUrl != null);
             Assert.Same(issue, Assert.Single(symbols.ValidationIssues));
             Assert.True(symbols.CanManage);
+            Assert.True(symbols.CanDelete);
             Assert.False(symbols.CanPromote);
             Assert.False(symbols.CanResend);
             Assert.Null(symbols.MoveUrl);
@@ -78,6 +79,8 @@ namespace NuGetGallery
             parent.Status = parentStatus;
             parent.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Staged;
             var attempt = new StagedSymbolPackage { Key = 100, StagedPackageIdentity = parent.StagedPackageIdentity, Status = StagedPackageStatus.Validating };
+            parent.StagedPackageIdentity.CurrentStagedSymbolPackageKey = attempt.Key;
+            parent.StagedPackageIdentity.CurrentStagedSymbolPackage = attempt;
             GetMock<IPackageStagingAuthorizationService>().Setup(x => x.GetEnabledOwner(owner, owner.Username)).Returns(owner);
             GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagedPackages(owner)).Returns(new[] { parent });
             GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagingGroups(owner)).Returns(new List<StagingGroup>());
@@ -89,7 +92,11 @@ namespace NuGetGallery
             var model = ResultAssert.IsView<StagingGroupDetailViewModel>(target.Ungrouped(owner.Username), viewName: "Group");
 
             Assert.Equal(2, model.PackageCount);
+            var parentModel = Assert.Single(model.Packages.Where(package => !package.IsSymbolPackage));
+            Assert.False(parentModel.CanDelete);
+            Assert.True(parentModel.CanManage);
             var symbols = Assert.Single(model.Packages.Where(package => package.IsSymbolPackage));
+            Assert.True(symbols.CanDelete);
             Assert.Equal(parentStatus.ToString(), symbols.ParentStatus);
             Assert.Equal("/account/staging/package/PackageA/1.0.0/content", symbols.ParentUrl);
         }
@@ -642,11 +649,18 @@ namespace NuGetGallery
                 error => error.ErrorMessage == "The staging group cannot be deleted while package promotion is active.");
         }
 
-        [Fact]
-        public void DisplaysUngroupedPackagesForAnOwner()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void DisplaysUngroupedPackagesForAnOwner(bool hasStagedSymbols)
         {
             var currentUser = new User("Current") { Key = 1 };
             var ungroupedPackage = CreateStagedPackage(42, "Ungrouped.Package", "1.0.0", currentUser, StagedPackageStatus.Ready);
+            if (hasStagedSymbols)
+            {
+                ungroupedPackage.StagedPackageIdentity.CurrentStagedSymbolPackageKey = 100;
+            }
+
             var groupedPackage = CreateStagedPackage(43, "Grouped.Package", "2.0.0", currentUser, StagedPackageStatus.Ready);
             groupedPackage.StagedPackageIdentity.StagingGroupKey = 10;
             GetMock<IPackageStagingAuthorizationService>()
@@ -669,7 +683,10 @@ namespace NuGetGallery
             Assert.Null(model.Id);
             Assert.Equal("Ungrouped", model.Name);
             Assert.Equal("Staged packages not in any group", model.Description);
-            Assert.Equal("Ungrouped.Package", Assert.Single(model.Packages).Id);
+            var package = Assert.Single(model.Packages);
+            Assert.Equal("Ungrouped.Package", package.Id);
+            Assert.Equal(!hasStagedSymbols, package.CanDelete);
+            Assert.True(package.CanManage);
         }
 
         [Fact]

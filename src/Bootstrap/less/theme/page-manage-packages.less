@@ -278,6 +278,25 @@
       .divider {
         background-color: var(--neutralStroke2Rest);
       }
+
+      > .staging-delete-disabled > a {
+        &,
+        &:hover,
+        &:focus {
+          background-color: transparent;
+          color: var(--neutralForegroundDisabledRest);
+          cursor: not-allowed;
+        }
+
+        .tooltip-wrapper {
+          white-space: normal;
+
+          &.show {
+            left: auto;
+            right: 100%;
+          }
+        }
+      }
     }
   }
 
