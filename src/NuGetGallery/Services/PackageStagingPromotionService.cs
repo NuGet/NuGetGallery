@@ -162,15 +162,6 @@ namespace NuGetGallery
                 return StagingGroupPromotionResult.Unauthorized;
             }
 
-            var stagedPackages = _stagedPackageRepository
-                .GetAll()
-                .Include(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageRegistration.Owners)
-                .Include(stagedPackage => stagedPackage.StagedPackageIdentity.Owner)
-                .Where(stagedPackage => stagedPackage.StagedPackageIdentity.StagingGroupKey == group.Key)
-                .Where(stagedPackage => stagedPackage.StagedPackageIdentity.CurrentStagedPackageKey == stagedPackage.Key)
-                .Where(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Staged)
-                .Where(stagedPackage => stagedPackage.Status != StagedPackageStatus.Superseded && stagedPackage.Status != StagedPackageStatus.Deleted)
-                .ToList();
             var containsSymbols = _stagedSymbolPackageRepository.GetAll()
                 .Where(symbol => symbol.StagedPackageIdentity.StagingGroupKey == group.Key)
                 .Where(symbol => symbol.StagedPackageIdentity.CurrentStagedSymbolPackageKey == symbol.Key)
@@ -180,6 +171,15 @@ namespace NuGetGallery
                 return StagingGroupPromotionResult.SymbolsNotSupported;
             }
 
+            var stagedPackages = _stagedPackageRepository
+                .GetAll()
+                .Include(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageRegistration.Owners)
+                .Include(stagedPackage => stagedPackage.StagedPackageIdentity.Owner)
+                .Where(stagedPackage => stagedPackage.StagedPackageIdentity.StagingGroupKey == group.Key)
+                .Where(stagedPackage => stagedPackage.StagedPackageIdentity.CurrentStagedPackageKey == stagedPackage.Key)
+                .Where(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Staged)
+                .Where(stagedPackage => stagedPackage.Status != StagedPackageStatus.Superseded && stagedPackage.Status != StagedPackageStatus.Deleted)
+                .ToList();
             if (stagedPackages.Count == 0)
             {
                 return StagingGroupPromotionResult.Empty;

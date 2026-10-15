@@ -493,6 +493,7 @@ namespace NuGetGallery
 
             Assert.Equal(StagingGroupPromotionResult.SymbolsNotSupported, result);
             Assert.Null(group.ActivePromotionId);
+            repository.Verify(x => x.GetAll(), Times.Never);
             repository.Verify(x => x.CommitChangesAsync(), Times.Never);
             enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
         }
