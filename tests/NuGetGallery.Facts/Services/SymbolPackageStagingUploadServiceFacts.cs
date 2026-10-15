@@ -59,7 +59,9 @@ namespace NuGetGallery
                 securityPolicyService.Object,
                 new Mock<IStagingBlobService>(MockBehavior.Strict).Object,
                 new Mock<IEntityRepository<StagedSymbolPackage>>(MockBehavior.Strict).Object,
-                new Mock<IStagedSymbolPackageValidationMessageEmitter>(MockBehavior.Strict).Object);
+                new Mock<IStagedSymbolPackageValidationMessageEmitter>(MockBehavior.Strict).Object,
+                new Mock<IPackageStagingManagementService>(MockBehavior.Strict).Object,
+                new Mock<IEntityRepository<StagingGroup>>(MockBehavior.Strict).Object);
             using var file = TestPackage.CreateTestPackageStreamFromNuspec("Test.Package", "<package><metadata>" + metadata + "</metadata></package>");
 
             var result = await target.StageSymbolPackageAsync(currentUser, scopes, Mock.Of<HttpContextBase>(), file);
