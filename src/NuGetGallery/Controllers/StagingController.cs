@@ -726,16 +726,22 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            if (!await _packageStagingManagementService.DeletePackageAsync(stagedPackage))
+            var result = await _packageStagingManagementService.DeletePackageAsync(stagedPackage);
+            switch (result)
             {
-                if (stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackageKey.HasValue)
-                {
+                case PackageStagingDeletionResult.Deleted:
+                    break;
+                case PackageStagingDeletionResult.HasStagedSymbols:
                     TempData["ErrorMessage"] = "Remove the staged symbols before deleting their parent package.";
-                }
-                else
-                {
+                    break;
+                case PackageStagingDeletionResult.PromotionActive:
                     TempData["ErrorMessage"] = "The staged package cannot be deleted while package promotion is active.";
-                }
+                    break;
+                case PackageStagingDeletionResult.Conflict:
+                    TempData["ErrorMessage"] = "The staged package changed. Refresh and try again.";
+                    break;
+                default:
+                    throw new InvalidOperationException($"Unexpected staged package deletion result: {result}");
             }
 
             return Redirect(Url.ManageMyPackages());

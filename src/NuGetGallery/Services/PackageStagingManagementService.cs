@@ -174,21 +174,28 @@ namespace NuGetGallery
             return updated;
         }
 
-        public async Task<bool> DeletePackageAsync(StagedPackage stagedPackage)
+        public async Task<PackageStagingDeletionResult> DeletePackageAsync(StagedPackage stagedPackage)
         {
             if (stagedPackage == null)
             {
                 throw new ArgumentNullException(nameof(stagedPackage));
             }
 
-            var deleted = false;
+            var result = PackageStagingDeletionResult.Conflict;
             try
             {
                 await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
                 {
                     var group = stagedPackage.StagedPackageIdentity.StagingGroup;
-                    if (stagedPackage.Status == StagedPackageStatus.Promoting || group?.ActivePromotionId.HasValue == true || stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackageKey.HasValue)
+                    if (stagedPackage.Status == StagedPackageStatus.Promoting || group?.ActivePromotionId.HasValue == true)
                     {
+                        result = PackageStagingDeletionResult.PromotionActive;
+                        return;
+                    }
+
+                    if (stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackageKey.HasValue)
+                    {
+                        result = PackageStagingDeletionResult.HasStagedSymbols;
                         return;
                     }
 
@@ -201,16 +208,16 @@ namespace NuGetGallery
                     stagedPackage.StagedPackageIdentity.Package.Listed = false;
                     await _packageService.UpdatePackageStatusAsync(stagedPackage.StagedPackageIdentity.Package, PackageStatus.Deleted, commitChanges: false);
                     await _stagedPackageRepository.CommitChangesAsync();
-                    deleted = true;
+                    result = PackageStagingDeletionResult.Deleted;
                 });
             }
             catch (DbUpdateConcurrencyException exception)
             {
                 exception.Log();
-                return false;
+                return PackageStagingDeletionResult.Conflict;
             }
 
-            return deleted;
+            return result;
         }
 
         public IReadOnlyList<StagedPackage> GetStagedPackages(User currentUser)

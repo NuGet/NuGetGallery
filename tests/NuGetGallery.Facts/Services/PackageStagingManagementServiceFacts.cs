@@ -902,7 +902,7 @@ namespace NuGetGallery
 
                 var result = await target.DeletePackageAsync(stagedPackage);
 
-                Assert.True(result);
+                Assert.Equal(PackageStagingDeletionResult.Deleted, result);
                 Assert.Equal(StagedPackageStatus.Deleted, stagedPackage.Status);
                 Assert.Equal(PackageStatus.Deleted, stagedPackage.StagedPackageIdentity.Package.PackageStatusKey);
                 Assert.False(stagedPackage.StagedPackageIdentity.Package.Listed);
@@ -921,7 +921,7 @@ namespace NuGetGallery
 
                 var result = await target.DeletePackageAsync(stagedPackage);
 
-                Assert.True(result);
+                Assert.Equal(PackageStagingDeletionResult.Deleted, result);
                 Assert.Equal(StagedPackageStatus.Deleted, stagedPackage.Status);
                 Assert.Equal(0, stagedPackage.MutationRevision);
                 Assert.Equal(1, group.MutationRevision);
@@ -943,13 +943,14 @@ namespace NuGetGallery
 
                 var result = await target.DeletePackageAsync(stagedPackage);
 
-                Assert.False(result);
+                Assert.Equal(PackageStagingDeletionResult.Conflict, result);
             }
 
             [Theory]
-            [InlineData(true, false)]
-            [InlineData(false, true)]
-            public async Task RejectsDeletingAnUngroupedPromotingPackageOrParentWithSymbols(bool promoting, bool hasSymbols)
+            [InlineData(true, false, PackageStagingDeletionResult.PromotionActive)]
+            [InlineData(true, true, PackageStagingDeletionResult.PromotionActive)]
+            [InlineData(false, true, PackageStagingDeletionResult.HasStagedSymbols)]
+            public async Task RejectsDeletingAnUngroupedPromotingPackageOrParentWithSymbols(bool promoting, bool hasSymbols, PackageStagingDeletionResult expectedResult)
             {
                 var owner = new User("owner") { Key = 1 };
                 var stagedPackage = CreateStagedPackage(10, "Test.Package", "1.0.0", owner);
@@ -967,19 +968,21 @@ namespace NuGetGallery
 
                 var result = await target.DeletePackageAsync(stagedPackage);
 
-                Assert.False(result);
+                Assert.Equal(expectedResult, result);
                 Assert.Equal(promoting ? StagedPackageStatus.Promoting : StagedPackageStatus.Ready, stagedPackage.Status);
                 stagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
             }
 
-            [Fact]
-            public async Task RejectsDeletingAPackageWhileGroupPromotionIsActive()
+            [Theory]
+            [InlineData(StagedPackageStatus.Ready)]
+            [InlineData(StagedPackageStatus.Promoting)]
+            public async Task RejectsDeletingAPackageWhileGroupPromotionIsActive(StagedPackageStatus status)
             {
                 var owner = new User("owner") { Key = 1 };
                 var group = CreateStagingGroup(20, "release", "Release", owner);
                 group.ActivePromotionId = Guid.NewGuid();
                 var stagedPackage = CreateStagedPackage(10, "Test.Package", "1.0.0", owner);
-                stagedPackage.Status = StagedPackageStatus.Promoting;
+                stagedPackage.Status = status;
                 stagedPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
                 stagedPackage.StagedPackageIdentity.StagingGroup = group;
                 var packageService = new Mock<IPackageService>();
@@ -992,8 +995,8 @@ namespace NuGetGallery
 
                 var result = await target.DeletePackageAsync(stagedPackage);
 
-                Assert.False(result);
-                Assert.Equal(StagedPackageStatus.Promoting, stagedPackage.Status);
+                Assert.Equal(PackageStagingDeletionResult.PromotionActive, result);
+                Assert.Equal(status, stagedPackage.Status);
                 packageService.Verify(
                     x => x.UpdatePackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), It.IsAny<bool>()),
                     Times.Never);

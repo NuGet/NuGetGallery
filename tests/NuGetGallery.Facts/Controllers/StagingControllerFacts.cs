@@ -1093,9 +1093,14 @@ namespace NuGetGallery
         }
 
         [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public async Task DeletesAuthorizedPackageOrExplainsSymbolRestriction(bool hasSymbols)
+        [InlineData(PackageStagingDeletionResult.Deleted, false, null)]
+        [InlineData(PackageStagingDeletionResult.PromotionActive, false, "The staged package cannot be deleted while package promotion is active.")]
+        [InlineData(PackageStagingDeletionResult.PromotionActive, true, "The staged package cannot be deleted while package promotion is active.")]
+        [InlineData(PackageStagingDeletionResult.HasStagedSymbols, false, "Remove the staged symbols before deleting their parent package.")]
+        [InlineData(PackageStagingDeletionResult.HasStagedSymbols, true, "Remove the staged symbols before deleting their parent package.")]
+        [InlineData(PackageStagingDeletionResult.Conflict, false, "The staged package changed. Refresh and try again.")]
+        [InlineData(PackageStagingDeletionResult.Conflict, true, "The staged package changed. Refresh and try again.")]
+        public async Task DeletesAuthorizedPackageUsingServiceResult(PackageStagingDeletionResult deletionResult, bool hasSymbols, string expectedErrorMessage)
         {
             var currentUser = new User("current") { Key = 1 };
             var stagedPackage = CreateStagedPackage(currentUser);
@@ -1112,17 +1117,14 @@ namespace NuGetGallery
                 .Returns(true);
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.DeletePackageAsync(stagedPackage))
-                .ReturnsAsync(!hasSymbols);
+                .ReturnsAsync(deletionResult);
             var target = GetController<StagingController>();
             target.SetCurrentUser(currentUser);
 
             var result = await target.DeletePackage("PackageA", "1.0.0");
 
-            Assert.IsType<RedirectResult>(result);
-            if (hasSymbols)
-            {
-                Assert.Equal("Remove the staged symbols before deleting their parent package.", target.TempData["ErrorMessage"]);
-            }
+            ResultAssert.IsRedirectTo(result, "/account/Packages");
+            Assert.Equal(expectedErrorMessage, target.TempData["ErrorMessage"]);
 
             GetMock<IPackageStagingManagementService>().Verify(
                 x => x.DeletePackageAsync(stagedPackage),

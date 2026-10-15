@@ -625,7 +625,7 @@ namespace NuGetGallery
                 .Returns(true);
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.DeletePackageAsync(stagedPackage))
-                .ReturnsAsync(true);
+                .ReturnsAsync(PackageStagingDeletionResult.Deleted);
             GetMock<HttpContextBase>()
                 .SetupGet(x => x.User)
                 .Returns(Fakes.ToPrincipal(currentUser));
@@ -639,9 +639,13 @@ namespace NuGetGallery
         }
 
         [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public async Task ReportsConflictWhenPromotionOrSymbolsPreventPackageDeletion(bool hasSymbols)
+        [InlineData(PackageStagingDeletionResult.PromotionActive, false)]
+        [InlineData(PackageStagingDeletionResult.PromotionActive, true)]
+        [InlineData(PackageStagingDeletionResult.HasStagedSymbols, false)]
+        [InlineData(PackageStagingDeletionResult.HasStagedSymbols, true)]
+        [InlineData(PackageStagingDeletionResult.Conflict, false)]
+        [InlineData(PackageStagingDeletionResult.Conflict, true)]
+        public async Task ReportsDeletionConflictUsingServiceResult(PackageStagingDeletionResult deletionResult, bool hasSymbols)
         {
             var currentUser = new User("current") { Key = 1 };
             var stagedPackage = CreateStagedPackage(currentUser);
@@ -658,7 +662,7 @@ namespace NuGetGallery
                 .Returns(true);
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.DeletePackageAsync(stagedPackage))
-                .ReturnsAsync(false);
+                .ReturnsAsync(deletionResult);
             GetMock<HttpContextBase>()
                 .SetupGet(x => x.User)
                 .Returns(Fakes.ToPrincipal(currentUser));
@@ -667,7 +671,7 @@ namespace NuGetGallery
 
             var result = await target.DeleteStagedPackage("PackageA", "1.0.0");
 
-            if (hasSymbols)
+            if (deletionResult == PackageStagingDeletionResult.HasStagedSymbols)
             {
                 AssertError(target, result, HttpStatusCode.Conflict, "PackageHasStagedSymbols");
                 return;
