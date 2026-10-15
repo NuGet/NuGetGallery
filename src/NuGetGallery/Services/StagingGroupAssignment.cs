@@ -1,15 +1,46 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.Net;
 using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
     /// <summary>
-    /// Updates shared group membership and fences group mutations during staged uploads.
+    /// Resolves upload groups, updates shared membership, and fences group mutations during staged uploads.
     /// </summary>
     internal static class StagingGroupAssignment
     {
+        internal static PackageStagingResult ResolveForUpload(User owner, string groupId, IPackageStagingManagementService managementService, out StagingGroup group)
+        {
+            group = null;
+            if (groupId == null)
+            {
+                return null;
+            }
+
+            group = managementService.FindStagingGroup(owner, groupId);
+            if (group == null)
+            {
+                group = new StagingGroup
+                {
+                    Owner = owner,
+                    OwnerKey = owner.Key,
+                    Id = groupId,
+                    Name = groupId,
+                    CreatedDate = DateTime.UtcNow,
+                };
+            }
+
+            if (group.ActivePromotionId.HasValue)
+            {
+                return PackageStagingResult.Error(HttpStatusCode.Conflict, "The staging group is being promoted.");
+            }
+
+            return null;
+        }
+
         internal static void Update(StagedPackageIdentity identity, StagingGroup requestedGroup, IEntityRepository<StagingGroup> groups)
         {
             var previousGroup = identity.StagingGroup;

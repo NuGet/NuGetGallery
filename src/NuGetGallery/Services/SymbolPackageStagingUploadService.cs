@@ -138,21 +138,10 @@ namespace NuGetGallery
                     return targetError;
                 }
 
-                StagingGroup group = null;
-                if (groupId != null)
+                var groupError = StagingGroupAssignment.ResolveForUpload(owner, groupId, _managementService, out var group);
+                if (groupError != null)
                 {
-                    group = _managementService.FindStagingGroup(owner, groupId) ?? new StagingGroup
-                    {
-                        Owner = owner,
-                        OwnerKey = owner.Key,
-                        Id = groupId,
-                        Name = groupId,
-                        CreatedDate = DateTime.UtcNow,
-                    };
-                    if (group.ActivePromotionId.HasValue)
-                    {
-                        return PackageStagingResult.Error(HttpStatusCode.Conflict, "The staging group is being promoted.");
-                    }
+                    return groupError;
                 }
 
                 if (PackageValidationHelper.HasDuplicatedEntries(archive))
