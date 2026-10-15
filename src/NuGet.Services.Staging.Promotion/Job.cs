@@ -38,7 +38,7 @@ namespace NuGet.Services.Staging.Promotion
             services.Configure<PromotionEmailConfiguration>(configurationRoot.GetSection("Email"));
             services.Configure<PackageValidationServiceBusConfiguration>(configurationRoot.GetSection("PackageValidationServiceBus"));
             SetupDefaultSubscriptionProcessorConfiguration(services, configurationRoot);
-            services.Configure<SubscriptionProcessorConfiguration>(configuration => configuration.MaxConcurrentCalls = 1);
+            services.Configure<SubscriptionProcessorConfiguration>(configuration => configuration.MaxConcurrentCalls = 4);
 
             services.AddScoped<IEntitiesContext>(serviceProvider =>
             {
