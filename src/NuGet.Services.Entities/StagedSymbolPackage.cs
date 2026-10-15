@@ -38,6 +38,16 @@ namespace NuGet.Services.Entities
         /// </summary>
         public Guid? ActivePromotionId { get; set; }
 
+        /// <summary>
+        /// Records the last dispatch of an individual promotion.
+        /// </summary>
+        public DateTime? PromotionMessageSentDate { get; set; }
+
+        /// <summary>
+        /// Forces a concurrency check when the staging identity changes groups.
+        /// </summary>
+        public int MutationRevision { get; set; }
+
         public byte[] RowVersion { get; set; }
     }
 }

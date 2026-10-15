@@ -1419,6 +1419,36 @@ namespace NuGetGallery
                 });
         }
 
+        public static string PromoteStagedSymbolPackage(this UrlHelper url, string id, string version, bool relativeUrl = true)
+        {
+            return GetStagedSymbolPromotionLink(url, RouteName.PromoteManagedStagedSymbolPackage, id, version, relativeUrl);
+        }
+
+        public static string ResendStagedSymbolPackage(this UrlHelper url, string id, string version, bool relativeUrl = true)
+        {
+            return GetStagedSymbolPromotionLink(url, RouteName.ResendManagedStagedSymbolPackage, id, version, relativeUrl);
+        }
+
+        private static string GetStagedSymbolPromotionLink(UrlHelper url, string routeName, string id, string version, bool relativeUrl)
+        {
+            if (url == null)
+            {
+                throw new ArgumentNullException(nameof(url));
+            }
+
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+
+            if (string.IsNullOrWhiteSpace(version))
+            {
+                throw new ArgumentNullException(nameof(version));
+            }
+
+            return GetRouteLink(url, routeName, relativeUrl, new RouteValueDictionary { { "id", id }, { "version", version } });
+        }
+
         public static string ManageMyReceivedPackageOwnershipRequests(this UrlHelper url, bool relativeUrl = true)
         {
             return url.ManageMyPackages(relativeUrl) + Fragments.ManagePackagesPage.ShowRequestsReceivedContainer;

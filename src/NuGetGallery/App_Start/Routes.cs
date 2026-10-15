@@ -245,6 +245,18 @@ namespace NuGetGallery
                 new { httpMethod = new HttpMethodConstraint("POST") });
 
             routes.MapRoute(
+                RouteName.PromoteManagedStagedSymbolPackage,
+                "account/staging/symbols/{id}/{version}/promote",
+                new { controller = "Staging", action = nameof(StagingController.PromoteSymbolPackage) },
+                new { httpMethod = new HttpMethodConstraint("POST") });
+
+            routes.MapRoute(
+                RouteName.ResendManagedStagedSymbolPackage,
+                "account/staging/symbols/{id}/{version}/resend",
+                new { controller = "Staging", action = nameof(StagingController.ResendSymbolPackage) },
+                new { httpMethod = new HttpMethodConstraint("POST") });
+
+            routes.MapRoute(
                 RouteName.DeleteManagedStagedSymbolPackage,
                 "account/staging/symbols/{id}/{version}/delete",
                 new { controller = "Staging", action = nameof(StagingController.DeleteSymbolPackage) },

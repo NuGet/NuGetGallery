@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
@@ -83,6 +84,8 @@ namespace NuGetGallery
         [InlineData(StagedPackageStatus.Ready, true)]
         [InlineData(StagedPackageStatus.FailedValidation, true)]
         [InlineData(StagedPackageStatus.Ready, false, StagedPackageStatus.Promoting)]
+        [InlineData(StagedPackageStatus.Ready, true, StagedPackageStatus.Ready)]
+        [InlineData(StagedPackageStatus.Ready, false, StagedPackageStatus.Ready)]
         public void DisplaysPrivateStagedParentStatusAndLink(StagedPackageStatus parentStatus, bool grouped = false, StagedPackageStatus symbolStatus = StagedPackageStatus.Validating)
         {
             var owner = new User("owner") { Key = 1 };
@@ -96,7 +99,7 @@ namespace NuGetGallery
                 parent.StagedPackageIdentity.StagingGroupKey = group.Key;
             }
 
-            var attempt = new StagedSymbolPackage { Key = 100, StagedPackageIdentity = parent.StagedPackageIdentity, Status = symbolStatus };
+            var attempt = new StagedSymbolPackage { Key = 100, StagedPackageIdentity = parent.StagedPackageIdentity, SymbolPackage = new SymbolPackage { StatusKey = PackageStatus.Staged }, Status = symbolStatus };
             parent.StagedPackageIdentity.CurrentStagedSymbolPackageKey = attempt.Key;
             parent.StagedPackageIdentity.CurrentStagedSymbolPackage = attempt;
             GetMock<IPackageStagingAuthorizationService>().Setup(x => x.GetEnabledOwner(owner, owner.Username)).Returns(owner);
@@ -120,6 +123,8 @@ namespace NuGetGallery
             Assert.Equal(parentStatus.ToString(), symbols.ParentStatus);
             Assert.Equal("/account/staging/package/PackageA/1.0.0/content", symbols.ParentUrl);
             Assert.Equal(symbolStatus != StagedPackageStatus.Promoting, symbols.MoveUrl != null);
+            Assert.Null(symbols.PromotionBlocker);
+            Assert.False(symbols.CanPromote);
             Assert.False(model.CanPromote);
         }
 
@@ -255,11 +260,81 @@ namespace NuGetGallery
             {
                 Key = 100,
                 StagedPackageIdentity = identity,
+                SymbolPackage = new SymbolPackage { StatusKey = PackageStatus.Staged },
                 Status = StagedPackageStatus.Ready,
             };
             identity.CurrentStagedSymbolPackageKey = attempt.Key;
             identity.CurrentStagedSymbolPackage = attempt;
             return attempt;
+        }
+
+        [Theory]
+        [InlineData(StagedPackageStatus.Ready, false)]
+        [InlineData(StagedPackageStatus.Promoting, false)]
+        [InlineData(StagedPackageStatus.Promoting, true)]
+        [InlineData(StagedPackageStatus.PromotionFailed, false)]
+        public void DisplaysSymbolPromotionControlsAndStatus(StagedPackageStatus status, bool resendDue)
+        {
+            var owner = new User("owner") { Key = 1 };
+            var attempt = CreateStagedSymbolPackage(owner);
+            attempt.Status = status;
+            attempt.ActivePromotionId = Guid.NewGuid();
+            attempt.PromotionMessageSentDate = DateTime.UtcNow.AddMinutes(resendDue ? -61 : -59);
+            GetMock<IPackageStagingAuthorizationService>().Setup(x => x.GetEnabledOwner(owner, owner.Username)).Returns(owner);
+            GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagedPackages(owner, owner.Key, null)).Returns(new List<StagedPackage>());
+            GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagingGroups(owner, owner.Key)).Returns(new List<StagingGroup>());
+            GetMock<ISymbolPackageStagingManagementService>().Setup(x => x.GetStagedSymbolPackages(owner, owner.Key, null)).Returns(new[] { attempt });
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(owner);
+
+            var model = ResultAssert.IsView<StagingGroupDetailViewModel>(target.Ungrouped(owner.Username), viewName: "Group");
+
+            var symbols = Assert.Single(model.Packages);
+            Assert.Equal(status == StagedPackageStatus.Ready, symbols.CanPromote);
+            Assert.Equal(status == StagedPackageStatus.Promoting && resendDue, symbols.CanResend);
+            Assert.Equal(status != StagedPackageStatus.Promoting, symbols.CanManage);
+            Assert.Equal(status == StagedPackageStatus.Promoting ? 1 : 0, model.PromotingCount);
+            Assert.Equal(status == StagedPackageStatus.PromotionFailed ? 1 : 0, model.PromotionFailedCount);
+            Assert.Equal(model.PromotionFailedCount, model.FailedCount);
+            Assert.Equal("/account/staging/symbols/PackageA/1.0.0/promote", target.Url.PromoteStagedSymbolPackage(symbols.Id, symbols.Version));
+            Assert.Equal("/account/staging/symbols/PackageA/1.0.0/resend", target.Url.ResendStagedSymbolPackage(symbols.Id, symbols.Version));
+        }
+
+        [Theory]
+        [InlineData(false, true, PackageStagingPromotionResult.Accepted)]
+        [InlineData(true, true, PackageStagingPromotionResult.Accepted)]
+        [InlineData(false, true, PackageStagingPromotionResult.DispatchFailed)]
+        [InlineData(true, true, PackageStagingPromotionResult.DispatchFailed)]
+        [InlineData(false, false, PackageStagingPromotionResult.Accepted)]
+        [InlineData(true, false, PackageStagingPromotionResult.Accepted)]
+        public async Task AuthorizesSymbolPromotionAndReturnsToItsOwner(bool resend, bool authorized, PackageStagingPromotionResult promotionResult)
+        {
+            var owner = new User("owner") { Key = 1 };
+            var attempt = CreateStagedSymbolPackage(owner);
+            GetMock<ISymbolPackageStagingManagementService>().Setup(x => x.FindCurrentStagedSymbolPackage("PackageA", "1.0.0")).Returns(attempt);
+            GetMock<IPackageStagingAuthorizationService>().Setup(x => x.CanManage(owner, attempt)).Returns(authorized);
+            var service = GetMock<IPackageStagingPromotionService>();
+            service.Setup(x => x.PromoteSymbolPackageAsync(owner, attempt)).ReturnsAsync(promotionResult);
+            service.Setup(x => x.ResendSymbolPackageAsync(owner, attempt)).ReturnsAsync(promotionResult);
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(owner);
+
+            var result = resend
+                ? await target.ResendSymbolPackage("PackageA", "1.0.0")
+                : await target.PromoteSymbolPackage("PackageA", "1.0.0");
+
+            if (authorized)
+            {
+                ResultAssert.IsRedirect(result, permanent: false, url: target.Url.ManageUngroupedStaging(owner.Username));
+                Assert.Equal(promotionResult == PackageStagingPromotionResult.DispatchFailed, target.TempData.ContainsKey("ErrorMessage"));
+            }
+            else
+            {
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
+
+            service.Verify(x => x.PromoteSymbolPackageAsync(owner, attempt), authorized && !resend ? Times.Once() : Times.Never());
+            service.Verify(x => x.ResendSymbolPackageAsync(owner, attempt), authorized && resend ? Times.Once() : Times.Never());
         }
 
         [Fact]
