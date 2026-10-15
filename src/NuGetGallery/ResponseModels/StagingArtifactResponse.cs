@@ -104,6 +104,12 @@ namespace NuGetGallery
             }
 
             var identity = symbols.StagedPackageIdentity;
+            var blockers = new List<StagingBlockerResponse>();
+            if (symbols.Status == StagedPackageStatus.WaitingForParent)
+            {
+                blockers.Add(new StagingBlockerResponse("ParentPackageMissing", "Restage the parent package to validate these symbols."));
+            }
+            blockers.Add(new StagingBlockerResponse("SymbolPromotionUnavailable", "Staged symbol promotion is not available yet."));
             return new StagingArtifactResponse
             {
                 Id = identity.Package.PackageRegistration.Id,
@@ -117,7 +123,7 @@ namespace NuGetGallery
                 Expires = expirationDate.ToUtcIso8601String(),
                 Listed = null,
                 CanPromote = false,
-                Blockers = new[] { new StagingBlockerResponse("SymbolPromotionUnavailable", "Staged symbol promotion is not available yet.") },
+                Blockers = blockers,
                 ManagementUrl = managementUrl,
             };
         }
@@ -128,6 +134,8 @@ namespace NuGetGallery
             {
                 case StagedPackageStatus.Validating:
                     return "validating";
+                case StagedPackageStatus.WaitingForParent:
+                    return "waitingForParent";
                 case StagedPackageStatus.Ready:
                     return "ready";
                 case StagedPackageStatus.FailedValidation:

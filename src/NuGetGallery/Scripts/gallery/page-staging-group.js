@@ -27,8 +27,8 @@
         this.Id = packageItem.Id;
         this.Version = packageItem.Version;
         this.IsSymbolPackage = packageItem.IsSymbolPackage;
+        this.IsParentContinuation = packageItem.IsParentContinuation;
         this.ParentStatus = packageItem.ParentStatus;
-        this.ParentUrl = packageItem.ParentUrl;
         this.Status = packageItem.Status;
         this.StatusClass = packageItem.StatusClass;
         this.UploadedDate = packageItem.UploadedDate;

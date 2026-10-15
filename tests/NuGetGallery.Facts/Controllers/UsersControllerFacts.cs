@@ -4248,14 +4248,15 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData(false)]
-            [InlineData(true)]
-            public void IncludesSummaryWhenOnlySymbolsAreStaged(bool grouped)
+            [InlineData(false, StagedPackageStatus.FailedValidation)]
+            [InlineData(true, StagedPackageStatus.FailedValidation)]
+            [InlineData(true, StagedPackageStatus.WaitingForParent)]
+            public void IncludesSummaryWhenOnlySymbolsAreStaged(bool grouped, StagedPackageStatus status)
             {
                 var identity = CreateStagedPackage(101, "Symbols.Package", StagedPackageStatus.Ready).StagedPackageIdentity;
                 identity.CurrentStagedPackageKey = null;
                 identity.CurrentStagedPackage = null;
-                identity.Package.PackageStatusKey = PackageStatus.Available;
+                identity.Package.PackageStatusKey = status == StagedPackageStatus.WaitingForParent ? PackageStatus.Deleted : PackageStatus.Available;
                 var group = new StagingGroup { Key = 10, Id = "release", Name = "Release", Owner = _testUser, OwnerKey = _testUser.Key };
                 if (grouped)
                 {
@@ -4263,7 +4264,7 @@ namespace NuGetGallery
                     identity.StagingGroupKey = group.Key;
                 }
 
-                var attempt = new StagedSymbolPackage { StagedPackageIdentity = identity, Status = StagedPackageStatus.FailedValidation };
+                var attempt = new StagedSymbolPackage { StagedPackageIdentity = identity, Status = status };
                 GetMock<IPackageService>()
                     .Setup(x => x.FindPackagesByAnyMatchingOwner(_testUser, It.IsAny<bool>(), false))
                     .Returns(Array.Empty<Package>());
@@ -4278,7 +4279,11 @@ namespace NuGetGallery
                 Assert.Equal(!grouped, summary.IsUngrouped);
                 Assert.Equal(_testUser.Username, summary.Owner);
                 Assert.Equal(1, summary.PackageCount);
-                Assert.Equal("1 failed", summary.PackageStatusSummary);
+                Assert.Equal(status == StagedPackageStatus.WaitingForParent ? "1 waiting for parent" : "1 failed", summary.PackageStatusSummary);
+                if (grouped && status == StagedPackageStatus.WaitingForParent)
+                {
+                    Assert.Equal("Waiting for parent", summary.Status);
+                }
                 Assert.Contains(grouped ? $"/account/staging/{_testUser.Username}/groups/release" : $"/account/staging/{_testUser.Username}/ungrouped", summary.Url);
             }
 

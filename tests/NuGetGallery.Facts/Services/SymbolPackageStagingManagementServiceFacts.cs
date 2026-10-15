@@ -83,7 +83,8 @@ namespace NuGetGallery
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public async Task DeletesOnlyPrivateSymbolsAndRemovesEmptyIdentity(bool hasStagedPackage)
+        [InlineData(true, true)]
+        public async Task DeletesOnlyPrivateSymbolsAndRemovesEmptyIdentity(bool hasStagedPackage, bool retainedContent = false)
         {
             var context = new TestContext();
             var identity = context.Attempt.StagedPackageIdentity;
@@ -91,6 +92,10 @@ namespace NuGetGallery
             previousAttempt.StagedPackageIdentityKey = identity.Key;
             previousAttempt.StagedPackageIdentity = identity;
             previousAttempt.Status = StagedPackageStatus.Superseded;
+            if (retainedContent)
+            {
+                previousAttempt.SymbolPackage = context.Attempt.SymbolPackage;
+            }
             if (hasStagedPackage)
             {
                 identity.CurrentStagedPackageKey = 42;

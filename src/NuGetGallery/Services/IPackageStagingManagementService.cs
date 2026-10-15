@@ -200,7 +200,6 @@ namespace NuGetGallery
     {
         Deleted,
         PromotionActive,
-        HasStagedSymbols,
         Conflict,
     }
 
