@@ -73,14 +73,39 @@ namespace NuGetGallery
             Stream symbolPackageFile,
             string groupId = null)
         {
-            if (currentUser == null)
-            {
-                throw new ArgumentNullException(nameof(currentUser));
-            }
-
             if (scopes == null)
             {
                 throw new ArgumentNullException(nameof(scopes));
+            }
+
+            return await ProcessUploadAsync(currentUser, scopes, httpContext, symbolPackageFile, groupId, authorizedAttempt: null);
+        }
+
+        public Task<PackageStagingResult> ReplaceSymbolPackageAsync(
+            User currentUser,
+            HttpContextBase httpContext,
+            StagedSymbolPackage stagedSymbolPackage,
+            Stream symbolPackageFile)
+        {
+            if (stagedSymbolPackage == null)
+            {
+                throw new ArgumentNullException(nameof(stagedSymbolPackage));
+            }
+
+            return ProcessUploadAsync(currentUser, scopes: null, httpContext, symbolPackageFile, groupId: null, authorizedAttempt: stagedSymbolPackage);
+        }
+
+        private async Task<PackageStagingResult> ProcessUploadAsync(
+            User currentUser,
+            IReadOnlyCollection<Scope> scopes,
+            HttpContextBase httpContext,
+            Stream symbolPackageFile,
+            string groupId,
+            StagedSymbolPackage authorizedAttempt)
+        {
+            if (currentUser == null)
+            {
+                throw new ArgumentNullException(nameof(currentUser));
             }
 
             if (symbolPackageFile == null)
@@ -98,13 +123,16 @@ namespace NuGetGallery
                 return PackageStagingResult.Error(HttpStatusCode.BadRequest, "The group ID must not be empty.");
             }
 
-            var userPolicyResult = await _securityPolicyService.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackagePush, currentUser, httpContext);
-            if (!userPolicyResult.Success)
+            if (authorizedAttempt == null)
             {
-                return PackageStagingResult.Error(HttpStatusCode.BadRequest, userPolicyResult.ErrorMessage);
+                var userPolicyResult = await _securityPolicyService.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackagePush, currentUser, httpContext);
+                if (!userPolicyResult.Success)
+                {
+                    return PackageStagingResult.Error(HttpStatusCode.BadRequest, userPolicyResult.ErrorMessage);
+                }
             }
 
-            var owner = _authorizationService.GetEnabledApiKeyOwner(currentUser, scopes);
+            var owner = authorizedAttempt?.StagedPackageIdentity.Owner ?? _authorizationService.GetEnabledApiKeyOwner(currentUser, scopes);
             if (owner == null || !_contentObjectService.SymbolsConfiguration.IsSymbolsUploadEnabledForUser(currentUser))
             {
                 return PackageStagingResult.Error(HttpStatusCode.Forbidden, Strings.SymbolsPackage_UploadNotAllowed);
@@ -124,7 +152,20 @@ namespace NuGetGallery
                 Package package;
                 try
                 {
-                    package = _packageService.FindPackageByIdAndVersionStrict(nuspec.GetId(), nuspec.GetVersion().ToStringSafe());
+                    var id = nuspec.GetId();
+                    var version = nuspec.GetVersion();
+                    if (authorizedAttempt != null)
+                    {
+                        var expectedPackage = authorizedAttempt.StagedPackageIdentity.Package;
+                        var hasMatchingId = string.Equals(expectedPackage.Id, id, StringComparison.OrdinalIgnoreCase);
+                        var hasMatchingVersion = string.Equals(expectedPackage.NormalizedVersion, version.ToNormalizedString(), StringComparison.OrdinalIgnoreCase);
+                        if (!hasMatchingId || !hasMatchingVersion)
+                        {
+                            return PackageStagingResult.Error(HttpStatusCode.BadRequest, "The replacement symbol package identity does not match the staged symbol package.");
+                        }
+                    }
+
+                    package = _packageService.FindPackageByIdAndVersionStrict(id, version.ToStringSafe());
                 }
                 catch (ArgumentException exception)
                 {
@@ -132,7 +173,7 @@ namespace NuGetGallery
                     return PackageStagingResult.Error(HttpStatusCode.BadRequest, Strings.SymbolsPackage_FailedToReadPackage);
                 }
 
-                var targetError = ValidateTarget(currentUser, scopes, owner, package);
+                var targetError = ValidateTarget(currentUser, scopes, owner, package, authorizedAttempt);
                 if (targetError != null)
                 {
                     return targetError;
@@ -158,17 +199,45 @@ namespace NuGetGallery
                     Size = file.Length,
                 };
 
-                file.Position = 0;
-                var blob = await _stagingBlobService.SaveSymbolPackageFileAsync(package.Id, package.NormalizedVersion, file);
-                var symbolPackage = _symbolPackageService.CreateSymbolPackage(package, metadata);
-                symbolPackage.StatusKey = PackageStatus.Staged;
-
                 var identity = GetIdentity(package) ?? new StagedPackageIdentity
                 {
                     Package = package,
                     Owner = owner,
                     OwnerKey = owner.Key,
                 };
+                var previousAttempt = identity.CurrentStagedSymbolPackage;
+                if ((previousAttempt?.Status == StagedPackageStatus.Validating || previousAttempt?.Status == StagedPackageStatus.Ready) && previousAttempt.SymbolPackage.Hash == hash)
+                {
+                    if (group != null && identity.StagingGroupKey != group.Key)
+                    {
+                        try
+                        {
+                            await _stagedSymbolPackageRepository.ExecuteInTransactionAsync(async () =>
+                            {
+                                if (package.PackageStatusKey == PackageStatus.Staged)
+                                {
+                                    identity.CurrentStagedPackage.MutationRevision++;
+                                }
+
+                                StagingGroupAssignment.Update(identity, group, _stagingGroupRepository);
+                                await _stagedSymbolPackageRepository.CommitChangesAsync();
+                            });
+                        }
+                        catch (DbUpdateException exception)
+                        {
+                            exception.Log();
+                            return PackageStagingResult.Error(HttpStatusCode.Conflict, "The staged symbol package changed during upload. Retry the upload.");
+                        }
+                    }
+
+                    return PackageStagingResult.Ok();
+                }
+
+                file.Position = 0;
+                var blob = await _stagingBlobService.SaveSymbolPackageFileAsync(package.Id, package.NormalizedVersion, file);
+                var symbolPackage = _symbolPackageService.CreateSymbolPackage(package, metadata);
+                symbolPackage.StatusKey = PackageStatus.Staged;
+
                 var stagedSymbolPackage = new StagedSymbolPackage
                 {
                     SymbolPackage = symbolPackage,
@@ -184,6 +253,11 @@ namespace NuGetGallery
                 {
                     await _stagedSymbolPackageRepository.ExecuteInTransactionAsync(async () =>
                     {
+                        if (previousAttempt != null)
+                        {
+                            previousAttempt.Status = StagedPackageStatus.Superseded;
+                        }
+
                         if (package.PackageStatusKey == PackageStatus.Staged)
                         {
                             identity.CurrentStagedPackage.MutationRevision++;
@@ -202,6 +276,11 @@ namespace NuGetGallery
                 {
                     exception.Log();
                     return PackageStagingResult.Error(HttpStatusCode.Conflict, "The symbol package could not be staged. Retry the upload.");
+                }
+
+                if (previousAttempt != null)
+                {
+                    return PackageStagingResult.Ok();
                 }
 
                 return PackageStagingResult.Created(warnings: null);
@@ -269,14 +348,24 @@ namespace NuGetGallery
             };
         }
 
-        private PackageStagingResult ValidateTarget(User currentUser, IReadOnlyCollection<Scope> scopes, User owner, Package package)
+        private PackageStagingResult ValidateTarget(
+            User currentUser,
+            IReadOnlyCollection<Scope> scopes,
+            User owner,
+            Package package,
+            StagedSymbolPackage authorizedAttempt)
         {
-            if (package == null || !CanAccessPackage(currentUser, scopes, owner, package))
+            if (package == null || (authorizedAttempt == null && !CanAccessPackage(currentUser, scopes, owner, package)))
             {
                 return PackageStagingResult.Error(HttpStatusCode.NotFound, "The parent package was not found.");
             }
 
             var identity = GetIdentity(package);
+            if (authorizedAttempt != null && (identity?.CurrentStagedSymbolPackageKey != authorizedAttempt.Key || !_authorizationService.CanManage(currentUser, authorizedAttempt)))
+            {
+                return PackageStagingResult.Error(HttpStatusCode.NotFound, "The staged symbol package was not found.");
+            }
+
             if (identity != null && identity.OwnerKey != owner.Key)
             {
                 return PackageStagingResult.Error(HttpStatusCode.NotFound, "The parent package was not found.");
@@ -299,9 +388,9 @@ namespace NuGetGallery
                 return PackageStagingResult.Error(HttpStatusCode.Conflict, "The staging group is being promoted.");
             }
 
-            if (identity?.CurrentStagedSymbolPackageKey != null)
+            if (identity?.CurrentStagedSymbolPackage?.Status == StagedPackageStatus.Promoting)
             {
-                return PackageStagingResult.Error(HttpStatusCode.Conflict, "A staged symbol package already exists for this package.");
+                return PackageStagingResult.Error(HttpStatusCode.Conflict, "The staged symbol package is being promoted.");
             }
 
             if (_entitiesContext.SymbolPackages.Any(candidate => candidate.PackageKey == package.Key && candidate.StatusKey == PackageStatus.Validating))
@@ -332,6 +421,7 @@ namespace NuGetGallery
         {
             return _entitiesContext.StagedPackageIdentities
                 .Include(identity => identity.CurrentStagedPackage)
+                .Include(identity => identity.CurrentStagedSymbolPackage.SymbolPackage)
                 .Include(identity => identity.StagingGroup)
                 .SingleOrDefault(candidate => candidate.Key == package.Key);
         }

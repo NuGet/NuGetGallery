@@ -1300,6 +1300,19 @@ namespace NuGetGallery
                 });
         }
 
+        public static string ReplaceStagedSymbolPackage(this UrlHelper url, string id, string version, bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.ReplaceManagedStagedSymbolPackage,
+                relativeUrl,
+                new RouteValueDictionary
+                {
+                    { "id", id },
+                    { "version", version },
+                });
+        }
+
         public static string DeleteStagedSymbolPackage(this UrlHelper url, string id, string version, bool relativeUrl = true)
         {
             return GetRouteLink(

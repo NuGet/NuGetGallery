@@ -239,6 +239,12 @@ namespace NuGetGallery
                 new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
+                RouteName.ReplaceManagedStagedSymbolPackage,
+                "account/staging/symbols/{id}/{version}/replace",
+                new { controller = "Staging", action = nameof(StagingController.ReplaceSymbolPackage) },
+                new { httpMethod = new HttpMethodConstraint("POST") });
+
+            routes.MapRoute(
                 RouteName.DeleteManagedStagedSymbolPackage,
                 "account/staging/symbols/{id}/{version}/delete",
                 new { controller = "Staging", action = nameof(StagingController.DeleteSymbolPackage) },
