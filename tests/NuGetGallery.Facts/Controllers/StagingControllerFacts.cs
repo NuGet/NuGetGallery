@@ -281,9 +281,9 @@ namespace NuGetGallery
             attempt.ActivePromotionId = Guid.NewGuid();
             attempt.PromotionMessageSentDate = DateTime.UtcNow.AddMinutes(resendDue ? -61 : -59);
             GetMock<IPackageStagingAuthorizationService>().Setup(x => x.GetEnabledOwner(owner, owner.Username)).Returns(owner);
-            GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagedPackages(owner)).Returns(new List<StagedPackage>());
-            GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagingGroups(owner)).Returns(new List<StagingGroup>());
-            GetMock<ISymbolPackageStagingManagementService>().Setup(x => x.GetStagedSymbolPackages(owner)).Returns(new[] { attempt });
+            GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagedPackages(owner, owner.Key, null)).Returns(new List<StagedPackage>());
+            GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagingGroups(owner, owner.Key)).Returns(new List<StagingGroup>());
+            GetMock<ISymbolPackageStagingManagementService>().Setup(x => x.GetStagedSymbolPackages(owner, owner.Key, null)).Returns(new[] { attempt });
             var target = GetController<StagingController>();
             target.SetCurrentUser(owner);
 
