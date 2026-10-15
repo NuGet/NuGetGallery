@@ -149,21 +149,23 @@ namespace NuGetGallery
 
                 using var archive = new PackageArchiveReader(file, leaveStreamOpen: true);
                 var nuspec = archive.GetNuspecReader();
-                if (authorizedAttempt != null)
-                {
-                    var expectedPackage = authorizedAttempt.StagedPackageIdentity.Package;
-                    var hasMatchingId = string.Equals(expectedPackage.Id, nuspec.GetId(), StringComparison.OrdinalIgnoreCase);
-                    var hasMatchingVersion = string.Equals(expectedPackage.NormalizedVersion, nuspec.GetVersion().ToNormalizedString(), StringComparison.OrdinalIgnoreCase);
-                    if (!hasMatchingId || !hasMatchingVersion)
-                    {
-                        return PackageStagingResult.Error(HttpStatusCode.BadRequest, "The replacement symbol package identity does not match the staged symbol package.");
-                    }
-                }
-
                 Package package;
                 try
                 {
-                    package = _packageService.FindPackageByIdAndVersionStrict(nuspec.GetId(), nuspec.GetVersion().ToStringSafe());
+                    var id = nuspec.GetId();
+                    var version = nuspec.GetVersion();
+                    if (authorizedAttempt != null)
+                    {
+                        var expectedPackage = authorizedAttempt.StagedPackageIdentity.Package;
+                        var hasMatchingId = string.Equals(expectedPackage.Id, id, StringComparison.OrdinalIgnoreCase);
+                        var hasMatchingVersion = string.Equals(expectedPackage.NormalizedVersion, version.ToNormalizedString(), StringComparison.OrdinalIgnoreCase);
+                        if (!hasMatchingId || !hasMatchingVersion)
+                        {
+                            return PackageStagingResult.Error(HttpStatusCode.BadRequest, "The replacement symbol package identity does not match the staged symbol package.");
+                        }
+                    }
+
+                    package = _packageService.FindPackageByIdAndVersionStrict(id, version.ToStringSafe());
                 }
                 catch (ArgumentException exception)
                 {
