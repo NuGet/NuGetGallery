@@ -127,6 +127,10 @@
             {
                 <p class="text-muted">Some packages failed promotion. Replace or remove them before promoting this group again.</p>
             }
+            @if (!Model.IsUngrouped && Model.Packages.Any(package => package.IsSymbolPackage))
+            {
+                <p class="text-muted">Groups containing staged symbols cannot be promoted yet.</p>
+            }
             @if (Model.IsUngrouped && Model.Packages.Any(package => package.CanResend))
             {
                 <p class="text-muted">A promotion is taking longer than expected. Retry requests another attempt at unfinished work; failed packages remain failed.</p>

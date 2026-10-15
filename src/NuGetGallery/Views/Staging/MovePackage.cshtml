@@ -19,6 +19,7 @@
 
             <h1>Move Staged Package</h1>
             <p>Move <strong>@Model.Id @Model.Version</strong> to another staging group or to Ungrouped.</p>
+            <p class="text-muted">The staged package and its symbols move together.</p>
 
             @using (Html.BeginForm("MovePackage", "Staging", new { owner = Model.Owner, id = Model.Id, version = Model.Version }, FormMethod.Post, null))
             {

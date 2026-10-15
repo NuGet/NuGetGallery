@@ -60,8 +60,10 @@ namespace NuGetGallery
                 Times.Once);
         }
 
-        [Fact]
-        public async Task StagesMultipartSymbolPackage()
+        [Theory]
+        [InlineData(null)]
+        [InlineData("release")]
+        public async Task StagesMultipartSymbolPackage(string groupId)
         {
             var currentUser = new User("current") { Key = 1 };
             var target = GetController<StagingApiController>();
@@ -76,14 +78,14 @@ namespace NuGetGallery
             var file = new Mock<HttpPostedFileBase>();
             file.SetupGet(x => x.InputStream).Returns(stream);
             GetMock<ISymbolPackageStagingUploadService>()
-                .Setup(x => x.StageSymbolPackageAsync(currentUser, It.IsAny<IReadOnlyCollection<Scope>>(), target.HttpContext, stream))
+                .Setup(x => x.StageSymbolPackageAsync(currentUser, It.IsAny<IReadOnlyCollection<Scope>>(), target.HttpContext, stream, groupId))
                 .ReturnsAsync(PackageStagingResult.Created(warnings: null));
 
-            var result = await target.StageSymbolPackage(new StageSymbolPackageRequest { Package = file.Object });
+            var result = await target.StageSymbolPackage(new StageSymbolPackageRequest { Package = file.Object, GroupId = groupId });
 
             Assert.Equal((int)HttpStatusCode.Created, Assert.IsType<HttpStatusCodeWithServerWarningResult>(result).StatusCode);
             GetMock<ISymbolPackageStagingUploadService>().Verify(
-                x => x.StageSymbolPackageAsync(currentUser, It.IsAny<IReadOnlyCollection<Scope>>(), target.HttpContext, stream),
+                x => x.StageSymbolPackageAsync(currentUser, It.IsAny<IReadOnlyCollection<Scope>>(), target.HttpContext, stream, groupId),
                 Times.Once);
         }
 
@@ -330,8 +332,10 @@ namespace NuGetGallery
             AssertError(target, result, HttpStatusCode.Forbidden, "StagingOwnerUnavailable");
         }
 
-        [Fact]
-        public void GetsStagingGroupWithPagedMembers()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void GetsStagingGroupWithPagedMembers(bool withSymbols)
         {
             var currentUser = new User("current") { Key = 1 };
             var owner = new User("example-org") { Key = 2 };
@@ -341,20 +345,34 @@ namespace NuGetGallery
             package.UploadedDate = new DateTime(2026, 9, 2, 12, 0, 0, DateTimeKind.Utc);
             package.StagedPackageIdentity.StagingGroupKey = group.Key;
             package.StagedPackageIdentity.StagingGroup = group;
+            var symbols = new StagedSymbolPackage { Key = 50, StagedPackageIdentity = package.StagedPackageIdentity, Status = StagedPackageStatus.Ready, UploadedDate = package.UploadedDate.AddMinutes(-1) };
             var target = GetController<StagingApiController>();
             ConfigureCreateGroupRequest(target, currentUser, owner);
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.GetStagingGroupPackagePage(owner, "RELEASE", 1, 100))
-                .Returns(new StagingGroupPackagePage(group, new[] { package }, totalCount: 1, allPackagesReady: true));
+                .Returns(new StagingGroupPackagePage(group, new[] { package }, withSymbols ? 2 : 1, true, withSymbols ? new[] { symbols } : Array.Empty<StagedSymbolPackage>(), withSymbols ? 1 : 0));
 
             var result = target.GetStagingGroup("RELEASE");
 
             var body = ParseJsonContent(result);
             Assert.Equal("release", (string)body["group"]["id"]);
-            Assert.Equal(1, (int)body["group"]["itemCount"]);
-            Assert.True((bool)body["group"]["canPromote"]);
-            Assert.Empty(body["group"]["blockers"]);
-            Assert.Equal(1, (int)body["totalCount"]);
+            Assert.Equal(withSymbols ? 2 : 1, (int)body["group"]["itemCount"]);
+            Assert.Equal(!withSymbols, (bool)body["group"]["canPromote"]);
+            if (withSymbols)
+            {
+                Assert.Equal("SymbolPromotionUnavailable", (string)body["group"]["blockers"][0]["code"]);
+                Assert.Equal("symbols", (string)body["items"][1]["kind"]);
+                Assert.Equal("ready", (string)body["items"][1]["status"]);
+                Assert.Null(body["items"][1]["listed"].Value<bool?>());
+                Assert.False((bool)body["items"][1]["canPromote"]);
+                Assert.Equal("release", (string)body["items"][1]["group"]["id"]);
+            }
+            else
+            {
+                Assert.Empty(body["group"]["blockers"]);
+            }
+
+            Assert.Equal(withSymbols ? 2 : 1, (int)body["totalCount"]);
             Assert.Equal("PackageA", (string)body["items"][0]["id"]);
             Assert.Equal("package", (string)body["items"][0]["kind"]);
             Assert.Equal("ready", (string)body["items"][0]["status"]);

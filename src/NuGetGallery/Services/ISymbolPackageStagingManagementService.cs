@@ -19,6 +19,15 @@ namespace NuGetGallery
         IReadOnlyList<StagedSymbolPackage> GetStagedSymbolPackages(User currentUser);
 
         /// <summary>
+        /// Gets current staged symbols visible to the user in the specified owner's group or Ungrouped.
+        /// </summary>
+        /// <param name="currentUser">The user requesting the staged symbols.</param>
+        /// <param name="ownerKey">The staging owner's key.</param>
+        /// <param name="groupKey">The group key, or <see langword="null"/> for Ungrouped.</param>
+        /// <returns>The owner-visible staged symbols in the requested scope.</returns>
+        IReadOnlyList<StagedSymbolPackage> GetStagedSymbolPackages(User currentUser, int ownerKey, int? groupKey);
+
+        /// <summary>
         /// Finds a current staged symbol attempt. The caller must authorize access before using it.
         /// </summary>
         StagedSymbolPackage FindCurrentStagedSymbolPackage(string id, string version);

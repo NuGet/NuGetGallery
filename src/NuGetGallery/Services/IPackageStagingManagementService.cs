@@ -83,11 +83,28 @@ namespace NuGetGallery
         IReadOnlyList<StagedPackage> GetStagedPackages(User currentUser);
 
         /// <summary>
+        /// Gets owner-visible staged packages in the specified owner's group or Ungrouped.
+        /// </summary>
+        /// <param name="currentUser">The user requesting the staged packages.</param>
+        /// <param name="ownerKey">The staging owner's key.</param>
+        /// <param name="groupKey">The group key, or <see langword="null"/> for Ungrouped.</param>
+        /// <returns>The owner-visible staged packages in the requested scope.</returns>
+        IReadOnlyList<StagedPackage> GetStagedPackages(User currentUser, int ownerKey, int? groupKey);
+
+        /// <summary>
         /// Gets staging groups owned by the user or an enabled organization the user belongs to.
         /// </summary>
         /// <param name="currentUser">The user requesting the staging groups.</param>
         /// <returns>The owner-visible staging groups.</returns>
         IReadOnlyList<StagingGroup> GetStagingGroups(User currentUser);
+
+        /// <summary>
+        /// Gets owner-visible staging groups for the specified owner.
+        /// </summary>
+        /// <param name="currentUser">The user requesting the staging groups.</param>
+        /// <param name="ownerKey">The staging owner's key.</param>
+        /// <returns>The owner-visible staging groups for the requested owner.</returns>
+        IReadOnlyList<StagingGroup> GetStagingGroups(User currentUser, int ownerKey);
 
         /// <summary>
         /// Finds a staging group for an authorized owner.
@@ -139,6 +156,15 @@ namespace NuGetGallery
         /// <param name="stagedPackage">The current staged package attempt whose identity should become ungrouped.</param>
         /// <returns>The membership update result.</returns>
         Task<StagingGroupMembershipResult> RemovePackageFromStagingGroupAsync(User stagingOwner, StagedPackage stagedPackage);
+
+        /// <summary>
+        /// Moves an authorized identity's current package and symbols together, or removes them from their group.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="identity">The shared staging identity to move.</param>
+        /// <param name="group">The target group, or null for Ungrouped.</param>
+        /// <returns>The membership update result.</returns>
+        Task<StagingGroupMembershipResult> MovePackageIdentityAsync(User stagingOwner, StagedPackageIdentity identity, StagingGroup group);
 
         /// <summary>
         /// Gets staging group summaries for an authorized owner.

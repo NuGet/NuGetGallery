@@ -48,6 +48,46 @@ namespace NuGetGallery
                     result.Select(stagedPackage => stagedPackage.StagedPackageIdentity.Owner.Username));
             }
 
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void ListsOnlyAuthorizedPackagesInTheRequestedOwnerAndGroup(bool grouped)
+            {
+                var currentUser = new User("current") { Key = 1 };
+                var organization = new Organization("organization") { Key = 2 };
+                var disabledOwner = new User("disabled") { Key = 3 };
+                int? groupKey = null;
+                if (grouped)
+                {
+                    groupKey = 10;
+                }
+
+                var matching = CreateStagedPackage(10, "Matching.Package", "1.0.0", organization);
+                matching.StagedPackageIdentity.StagingGroupKey = groupKey;
+                var otherGroup = CreateStagedPackage(11, "Other.Group", "1.0.0", organization);
+                otherGroup.StagedPackageIdentity.StagingGroupKey = grouped ? null : 10;
+                var otherOwner = CreateStagedPackage(12, "Other.Owner", "1.0.0", currentUser);
+                otherOwner.StagedPackageIdentity.StagingGroupKey = groupKey;
+                var lostPermission = CreateStagedPackage(13, "Lost.Permission", "1.0.0", organization);
+                lostPermission.StagedPackageIdentity.StagingGroupKey = groupKey;
+                var disabledPackage = CreateStagedPackage(14, "Disabled.Package", "1.0.0", disabledOwner);
+                disabledPackage.StagedPackageIdentity.StagingGroupKey = groupKey;
+                var authorizationService = new Mock<IPackageStagingAuthorizationService>();
+                authorizationService.Setup(x => x.GetEnabledOwners(currentUser)).Returns(new User[] { currentUser, organization });
+                authorizationService.Setup(x => x.CanManage(currentUser, It.IsAny<StagedPackage>()))
+                    .Returns<User, StagedPackage>((user, package) => package != lostPermission);
+                var target = CreateService(
+                    new[] { matching, otherGroup, otherOwner, lostPermission, disabledPackage },
+                    owner => true,
+                    authorizationService: authorizationService.Object);
+
+                Assert.Same(matching, Assert.Single(target.GetStagedPackages(currentUser, organization.Key, groupKey)));
+                Assert.Empty(target.GetStagedPackages(currentUser, disabledOwner.Key, groupKey));
+                authorizationService.Verify(x => x.CanManage(currentUser, matching), Times.Once);
+                authorizationService.Verify(x => x.CanManage(currentUser, lostPermission), Times.Once);
+                authorizationService.Verify(x => x.CanManage(currentUser, It.IsAny<StagedPackage>()), Times.Exactly(2));
+            }
+
             [Fact]
             public void ListsOnlyTheNewestAttemptForEachStagedPackage()
             {
@@ -112,6 +152,9 @@ namespace NuGetGallery
                 var result = target.GetStagingGroups(currentUser);
 
                 Assert.Equal(new[] { "a-group", "z-group", "org-group" }, result.Select(group => group.Id));
+                Assert.Equal(new[] { "a-group", "z-group" }, target.GetStagingGroups(currentUser, currentUser.Key).Select(group => group.Id));
+                Assert.Equal("org-group", Assert.Single(target.GetStagingGroups(currentUser, organization.Key)).Id);
+                Assert.Empty(target.GetStagingGroups(currentUser, disabledOrganization.Key));
             }
 
             [Fact]
@@ -502,7 +545,7 @@ namespace NuGetGallery
             [Theory]
             [InlineData(true, false)]
             [InlineData(false, true)]
-            public async Task RejectsMovingAPromotingPackageOrParentWithSymbols(bool promoting, bool hasSymbols)
+            public async Task RejectsMovingAPromotingPackageOrSymbols(bool promoting, bool hasSymbols)
             {
                 var currentUser = new User("current") { Key = 1 };
                 var group = CreateStagingGroup(10, "release", "Release", currentUser);
@@ -511,6 +554,7 @@ namespace NuGetGallery
                 if (hasSymbols)
                 {
                     stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackageKey = 50;
+                    stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackage = new StagedSymbolPackage { Key = 50, Status = StagedPackageStatus.Promoting };
                 }
 
                 var stagedPackageRepository = new Mock<IEntityRepository<StagedPackage>>();
@@ -1003,6 +1047,137 @@ namespace NuGetGallery
                 stagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
             }
 
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task MovesSharedIdentityWithoutChangingItsAttempts(bool stagedParent)
+            {
+                var owner = new User("owner") { Key = 1 };
+                var previousGroup = CreateStagingGroup(10, "previous", "Previous", owner);
+                var targetGroup = CreateStagingGroup(20, "target", "Target", owner);
+                var parent = CreateStagedPackage(100, "Test.Package", "1.0.0", owner);
+                var identity = parent.StagedPackageIdentity;
+                identity.StagingGroup = previousGroup;
+                identity.StagingGroupKey = previousGroup.Key;
+                if (!stagedParent)
+                {
+                    identity.CurrentStagedPackage = null;
+                    identity.CurrentStagedPackageKey = null;
+                    identity.Package.PackageStatusKey = PackageStatus.Available;
+                }
+
+                var symbols = new StagedSymbolPackage { Key = 50, StagedPackageIdentity = identity, Status = StagedPackageStatus.Ready };
+                identity.CurrentStagedSymbolPackage = symbols;
+                identity.CurrentStagedSymbolPackageKey = symbols.Key;
+                var target = CreateService(new[] { parent }, user => true);
+
+                Assert.Equal(StagingGroupMembershipResult.Updated, await target.MovePackageIdentityAsync(owner, identity, targetGroup));
+                Assert.Same(targetGroup, identity.StagingGroup);
+                Assert.Equal(1, previousGroup.MutationRevision);
+                Assert.Equal(1, targetGroup.MutationRevision);
+                Assert.Equal(stagedParent ? 1 : 0, parent.MutationRevision);
+                Assert.Same(symbols, identity.CurrentStagedSymbolPackage);
+                Assert.Equal(StagedPackageStatus.Ready, symbols.Status);
+
+                Assert.Equal(StagingGroupMembershipResult.Updated, await target.MovePackageIdentityAsync(owner, identity, group: null));
+                Assert.Null(identity.StagingGroupKey);
+                Assert.Null(identity.StagingGroup);
+                Assert.Equal(2, targetGroup.MutationRevision);
+                Assert.Equal(symbols.Key, identity.CurrentStagedSymbolPackageKey);
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task DeletesGroupedSymbolsAndPreservesAvailableParents(bool stagedParent)
+            {
+                var owner = new User("owner") { Key = 1 };
+                var group = CreateStagingGroup(10, "release", "Release", owner);
+                var parent = CreateStagedPackage(100, "Test.Package", "1.0.0", owner);
+                var identity = parent.StagedPackageIdentity;
+                identity.StagingGroup = group;
+                identity.StagingGroupKey = group.Key;
+                if (!stagedParent)
+                {
+                    identity.CurrentStagedPackage = null;
+                    identity.CurrentStagedPackageKey = null;
+                    identity.Package.PackageStatusKey = PackageStatus.Available;
+                }
+
+                var symbolPackage = new SymbolPackage { StatusKey = PackageStatus.Staged, Package = identity.Package };
+                var symbols = new StagedSymbolPackage { Key = 50, StagedPackageIdentity = identity, SymbolPackage = symbolPackage, Status = StagedPackageStatus.Ready };
+                identity.CurrentStagedSymbolPackage = symbols;
+                identity.CurrentStagedSymbolPackageKey = symbols.Key;
+                var attempts = new Mock<IEntityRepository<StagedSymbolPackage>>();
+                var identities = new Mock<IEntityRepository<StagedPackageIdentity>>();
+                var ordinarySymbols = new Mock<IEntityRepository<SymbolPackage>>();
+                var packageService = new Mock<IPackageService>();
+                var groups = new Mock<IEntityRepository<StagingGroup>>();
+                var target = CreateService(
+                    new[] { parent }, user => true, packageService: packageService.Object,
+                    stagingGroupRepository: groups,
+                    stagedSymbols: new[] { symbols }, stagedSymbolRepository: attempts,
+                    identityRepository: identities, symbolRepository: ordinarySymbols);
+                groups.Setup(x => x.CommitChangesAsync()).Returns(() =>
+                {
+                    symbols.StagedPackageIdentity = null;
+                    symbols.SymbolPackage = null;
+                    return Task.CompletedTask;
+                });
+
+                var result = await target.DeleteStagingGroupAsync(owner, group);
+
+                Assert.Equal(StagingGroupDeletionResultType.Deleted, result.Type);
+                Assert.Equal(stagedParent ? 2 : 1, result.AffectedPackageCount);
+                Assert.Null(identity.CurrentStagedSymbolPackageKey);
+                Assert.Null(identity.StagingGroupKey);
+                attempts.Verify(x => x.DeleteOnCommit(symbols), Times.Once);
+                ordinarySymbols.Verify(x => x.DeleteOnCommit(symbolPackage), Times.Once);
+                identities.Verify(x => x.DeleteOnCommit(identity), stagedParent ? Times.Never() : Times.Once());
+                packageService.Verify(x => x.UpdatePackageStatusAsync(identity.Package, PackageStatus.Deleted, false), stagedParent ? Times.Once() : Times.Never());
+                if (!stagedParent)
+                {
+                    Assert.Equal(PackageStatus.Available, identity.Package.PackageStatusKey);
+                }
+            }
+
+            [Fact]
+            public void PaginatesMixedArtifactsWithoutLosingMatchingKeys()
+            {
+                var owner = new User("owner") { Key = 1 };
+                var group = CreateStagingGroup(10, "release", "Release", owner);
+                var parent = CreateStagedPackage(100, "Test.Package", "1.0.0", owner);
+                parent.Status = StagedPackageStatus.Ready;
+                parent.StagedPackageIdentity.StagingGroup = group;
+                parent.StagedPackageIdentity.StagingGroupKey = group.Key;
+                var symbols = new StagedSymbolPackage
+                {
+                    Key = parent.Key,
+                    UploadedDate = parent.UploadedDate,
+                    StagedPackageIdentity = parent.StagedPackageIdentity,
+                    SymbolPackage = new SymbolPackage { StatusKey = PackageStatus.Staged },
+                    Status = StagedPackageStatus.FailedValidation,
+                };
+                parent.StagedPackageIdentity.CurrentStagedSymbolPackageKey = symbols.Key;
+                var target = CreateService(new[] { parent }, user => true, stagingGroups: new[] { group }, stagedSymbols: new[] { symbols });
+
+                var first = target.GetStagingGroupPackagePage(owner, group.Id, 1, 1);
+                var second = target.GetStagingGroupPackagePage(owner, group.Id, 2, 1);
+                var empty = target.GetStagingGroupPackagePage(owner, group.Id, 3, 1);
+
+                Assert.Same(parent, Assert.Single(first.Items));
+                Assert.Empty(first.Symbols);
+                Assert.Same(symbols, Assert.Single(second.Symbols));
+                Assert.Empty(second.Items);
+                Assert.Empty(empty.Items);
+                Assert.Empty(empty.Symbols);
+                Assert.Equal(2, first.TotalCount);
+                Assert.Equal(1, first.SymbolCount);
+                Assert.False(first.AllPackagesReady);
+                var summary = Assert.Single(target.GetStagingGroupSummaryPage(owner, 1, 1).Items);
+                Assert.Same(symbols, Assert.Single(summary.Symbols));
+            }
+
             private static PackageStagingManagementService CreateService(
                 IEnumerable<StagedPackage> stagedPackages,
                 Func<User, bool> isEnabled,
@@ -1012,7 +1187,11 @@ namespace NuGetGallery
                 Mock<IEntityRepository<StagedPackage>> stagedPackageRepository = null,
                 IEnumerable<StagingGroup> stagingGroups = null,
                 Mock<IEntityRepository<StagingGroup>> stagingGroupRepository = null,
-                Action<string> includedPath = null)
+                Action<string> includedPath = null,
+                IEnumerable<StagedSymbolPackage> stagedSymbols = null,
+                Mock<IEntityRepository<StagedSymbolPackage>> stagedSymbolRepository = null,
+                Mock<IEntityRepository<StagedPackageIdentity>> identityRepository = null,
+                Mock<IEntityRepository<SymbolPackage>> symbolRepository = null)
             {
                 var stagedPackagesList = stagedPackages.ToList();
                 var stagedPackagesQuery = stagedPackagesList.AsQueryable();
@@ -1027,6 +1206,7 @@ namespace NuGetGallery
                     .Returns(stagedPackagesSet.Object);
                 stagedPackagesSet.Setup(x => x.Include("StagedPackageIdentity.Owner")).Returns(stagedPackagesSet.Object);
                 stagedPackagesSet.Setup(x => x.Include("StagedPackageIdentity.StagingGroup")).Returns(stagedPackagesSet.Object);
+                stagedPackagesSet.Setup(x => x.Include("StagedPackageIdentity.CurrentStagedSymbolPackage")).Returns(stagedPackagesSet.Object);
                 stagedPackageRepository = stagedPackageRepository ?? new Mock<IEntityRepository<StagedPackage>>();
                 stagedPackageRepository
                     .Setup(x => x.GetAll())
@@ -1069,12 +1249,17 @@ namespace NuGetGallery
                             .OrderBy(owner => owner.Username)
                             .ToList());
 
+                stagedSymbolRepository = stagedSymbolRepository ?? new Mock<IEntityRepository<StagedSymbolPackage>>();
+                stagedSymbolRepository.Setup(x => x.GetAll()).Returns((stagedSymbols ?? Array.Empty<StagedSymbolPackage>()).AsQueryable());
                 return new PackageStagingManagementService(
                     authorizationService ?? defaultAuthorizationService.Object,
                     packageService ?? Mock.Of<IPackageService>(),
                     stagedPackageRepository.Object,
                     stagingGroupRepository.Object,
-                    stagingBlobService ?? Mock.Of<IStagingBlobService>());
+                    stagingBlobService ?? Mock.Of<IStagingBlobService>(),
+                    stagedSymbolRepository.Object,
+                    (identityRepository ?? new Mock<IEntityRepository<StagedPackageIdentity>>()).Object,
+                    (symbolRepository ?? new Mock<IEntityRepository<SymbolPackage>>()).Object);
             }
 
             private static StagingGroup CreateStagingGroup(int key, string id, string name, User owner)

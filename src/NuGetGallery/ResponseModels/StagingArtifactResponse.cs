@@ -45,7 +45,7 @@ namespace NuGetGallery
         public string Expires { get; private set; }
 
         [JsonProperty("listed")]
-        public bool Listed { get; private set; }
+        public bool? Listed { get; private set; }
 
         [JsonProperty("canPromote")]
         public bool CanPromote { get; private set; }
@@ -92,6 +92,32 @@ namespace NuGetGallery
                 Listed = package.StagedPackageIdentity.Package.Listed,
                 CanPromote = canPromote,
                 Blockers = blockers,
+                ManagementUrl = managementUrl,
+            };
+        }
+
+        public static StagingArtifactResponse FromSymbolPackage(StagedSymbolPackage symbols, DateTime expirationDate, string managementUrl)
+        {
+            if (symbols == null)
+            {
+                throw new ArgumentNullException(nameof(symbols));
+            }
+
+            var identity = symbols.StagedPackageIdentity;
+            return new StagingArtifactResponse
+            {
+                Id = identity.Package.PackageRegistration.Id,
+                Version = identity.Package.NormalizedVersion,
+                Kind = "symbols",
+                Owner = identity.Owner.Username,
+                Group = new StagingGroupReferenceResponse(identity.StagingGroup.Id, identity.StagingGroup.Name),
+                Status = GetStatus(symbols.Status),
+                Uploaded = symbols.UploadedDate.ToUtcIso8601String(),
+                Validated = null,
+                Expires = expirationDate.ToUtcIso8601String(),
+                Listed = null,
+                CanPromote = false,
+                Blockers = new[] { new StagingBlockerResponse("SymbolPromotionUnavailable", "Staged symbol promotion is not available yet.") },
                 ManagementUrl = managementUrl,
             };
         }

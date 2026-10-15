@@ -105,26 +105,10 @@ namespace NuGetGallery
                     return targetError;
                 }
 
-                StagingGroup group = null;
-                if (groupId != null)
+                var groupError = StagingGroupAssignment.ResolveForUpload(target.Owner, groupId, _packageStagingManagementService, out var group);
+                if (groupError != null)
                 {
-                    group = _packageStagingManagementService.FindStagingGroup(target.Owner, groupId);
-                    if (group == null)
-                    {
-                        group = new StagingGroup
-                        {
-                            Owner = target.Owner,
-                            OwnerKey = target.Owner.Key,
-                            Id = groupId,
-                            Name = groupId,
-                            CreatedDate = DateTime.UtcNow,
-                        };
-                    }
-
-                    if (group.ActivePromotionId.HasValue)
-                    {
-                        return PackageStagingResult.Error(HttpStatusCode.Conflict, "The staging group is being promoted.");
-                    }
+                    return groupError;
                 }
 
                 return await ProcessUploadAsync(currentUser, httpContext, upload, target, group, listed);
@@ -407,11 +391,6 @@ namespace NuGetGallery
             var isValidating = target.CurrentAttempt?.Status == StagedPackageStatus.Validating;
             var isReady = target.CurrentAttempt?.Status == StagedPackageStatus.Ready;
             var isIdentical = string.Equals(target.CurrentAttempt?.UploadHash, streamMetadata.Hash, StringComparison.Ordinal);
-            if (target.CurrentAttempt?.StagedPackageIdentity.CurrentStagedSymbolPackageKey.HasValue == true && requestedGroup != null && target.CurrentAttempt.StagedPackageIdentity.StagingGroupKey != requestedGroup.Key)
-            {
-                return PackageStagingResult.Error(HttpStatusCode.Conflict, "Remove the staged symbols before moving their parent package into a group.");
-            }
-
             if ((isValidating || isReady) && isIdentical)
             {
                 var identity = target.CurrentAttempt.StagedPackageIdentity;
@@ -768,26 +747,7 @@ namespace NuGetGallery
 
         private void UpdateGroupAssignment(StagedPackageIdentity identity, StagingGroup requestedGroup)
         {
-            var previousGroup = identity.StagingGroup;
-            if (previousGroup != null)
-            {
-                previousGroup.MutationRevision++;
-            }
-
-            if (requestedGroup != null && requestedGroup.Key != previousGroup?.Key)
-            {
-                if (requestedGroup.Key == 0)
-                {
-                    _stagingGroupRepository.InsertOnCommit(requestedGroup);
-                }
-                else
-                {
-                    requestedGroup.MutationRevision++;
-                    identity.StagingGroupKey = requestedGroup.Key;
-                }
-
-                identity.StagingGroup = requestedGroup;
-            }
+            StagingGroupAssignment.Update(identity, requestedGroup, _stagingGroupRepository);
         }
 
         private static bool IsConflict(Exception exception)
