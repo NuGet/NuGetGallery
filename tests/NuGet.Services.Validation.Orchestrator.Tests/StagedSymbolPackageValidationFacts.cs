@@ -326,7 +326,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             public string[] GetValidationNames(StagedSymbolPackage attempt)
             {
-                return GetValidationsToStart().Select(v => v.Name).ToArray();
+                return GetValidationsToStart(new StagedSymbolPackageValidatingEntity(attempt)).Select(v => v.Name).ToArray();
             }
 
             private static IOptionsSnapshot<T> Options<T>(T value) where T : class

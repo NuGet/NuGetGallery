@@ -57,7 +57,7 @@ namespace NuGet.Services.Validation.Orchestrator
             {
                 var shouldSkip = await _validationStorageService.OtherRecentValidationSetForPackageExists(
                     validatingEntity,
-                    _validationConfiguration.NewValidationRequestDeduplicationWindow,
+                    GetDeduplicationWindow(validatingEntity),
                     message.ValidationTrackingId);
                 if (shouldSkip)
                 {
@@ -138,7 +138,18 @@ namespace NuGet.Services.Validation.Orchestrator
             // case.
             if (await _validationStorageService.GetValidationSetCountAsync(validatingEntity) == 1)
             {
-                _telemetryService.TrackDurationToValidationSetCreation(validationSet.PackageId, validationSet.PackageNormalizedVersion, validationSet.ValidationTrackingId, validationSet.Created - validatingEntity.Created);
+                if (validationSet.ValidatingType == ValidatingType.StagedPackage || validationSet.ValidatingType == ValidatingType.StagedSymbolPackage)
+                {
+                    // Upload age is not a measure of the later promotion request's creation delay.
+                    if (!SymbolPromotionValidationConfiguration.IsPromotion(validationSet))
+                    {
+                        _telemetryService.TrackStagingDurationToValidationSetCreation(validationSet, validationSet.Created - validatingEntity.Created);
+                    }
+                }
+                else
+                {
+                    _telemetryService.TrackDurationToValidationSetCreation(validationSet.PackageId, validationSet.PackageNormalizedVersion, validationSet.ValidationTrackingId, validationSet.Created - validatingEntity.Created);
+                }
             }
 
             return persistedValidationSet;
@@ -168,7 +179,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 ValidationSetStatus = ValidationSetStatus.InProgress,
             };
 
-            var validationsToStart = GetValidationsToStart();
+            var validationsToStart = GetValidationsToStart(validatingEntity);
 
             foreach (var validation in validationsToStart)
             {
@@ -186,9 +197,14 @@ namespace NuGet.Services.Validation.Orchestrator
             return validationSet;
         }
 
-        protected virtual IEnumerable<ValidationConfigurationItem> GetValidationsToStart()
+        protected virtual IEnumerable<ValidationConfigurationItem> GetValidationsToStart(IValidatingEntity<T> _)
         {
             return _validationConfiguration.Validations.Where(v => v.ShouldStart);
+        }
+
+        protected virtual TimeSpan GetDeduplicationWindow(IValidatingEntity<T> _)
+        {
+            return _validationConfiguration.NewValidationRequestDeduplicationWindow;
         }
     }
 }

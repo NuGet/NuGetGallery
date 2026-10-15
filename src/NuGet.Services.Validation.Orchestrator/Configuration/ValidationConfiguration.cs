@@ -22,6 +22,11 @@ namespace NuGet.Services.Validation.Orchestrator
         public string ValidationStorageConnectionString { get; set; }
 
         /// <summary>
+        /// Connection string to Gallery's public package storage account, used for symbol promotion.
+        /// </summary>
+        public string PackageStorageConnectionString { get; set; }
+
+        /// <summary>
         /// Connection string to storage account with staged packages
         /// </summary>
         public string StagingStorageConnectionString { get; set; }
@@ -54,5 +59,10 @@ namespace NuGet.Services.Validation.Orchestrator
         /// The threshold until a validation set is no longer processed.
         /// </summary>
         public TimeSpan TimeoutValidationSetAfter { get; set; }
+
+        /// <summary>
+        /// Enables ingestion-only staged symbol promotion after promotion completion is deployed.
+        /// </summary>
+        public bool EnableStagedSymbolPromotion { get; set; }
     }
 }

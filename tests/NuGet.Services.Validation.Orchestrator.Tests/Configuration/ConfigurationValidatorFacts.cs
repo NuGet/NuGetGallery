@@ -14,6 +14,23 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
     public class ConfigurationValidatorFacts
     {
         [Fact]
+        public void EnabledSymbolPromotionRequiresPublicPackageStorage()
+        {
+            var configuration = new ValidationConfiguration
+            {
+                EnableStagedSymbolPromotion = true,
+                Validations = new List<ValidationConfigurationItem>
+                {
+                    new ValidationConfigurationItem { Name = "Validation1", TrackAfter = TimeSpan.FromSeconds(10) },
+                },
+            };
+
+            var exception = Assert.Throws<ConfigurationErrorsException>(() => Validate(configuration));
+
+            Assert.Contains(nameof(ValidationConfiguration.PackageStorageConnectionString), exception.Message);
+        }
+
+        [Fact]
         public void ConfigurationValidatorSmokeTest()
         {
             var configuration = new ValidationConfiguration()
