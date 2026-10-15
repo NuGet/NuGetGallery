@@ -1048,7 +1048,7 @@
                     }
                 </div>
                 <div role="tabpanel" class="tab-pane @(activeBodyTab == "versions" ? "active" : "")" id="versions-tab" aria-label="Versions tab content">
-                    <div class="version-history" id="version-history">
+                    <div class="version-history" id="version-history" data-bind="css: { 'version-history-filtered': hiddenVersionCount() > 0 }">
                         <div class="version-filter-container">
                             <div class="form-group">
                                 <label class="brand-checkbox">
@@ -1080,12 +1080,33 @@
                             @Html.Partial("_DisplayPackageVersionTable", Model)
                         </table>
 
+                        <div id="version-filter-status" class="text-muted" role="status" aria-live="polite" aria-atomic="true" data-bind="if: hiddenVersionCount() > 0">
+                            <span data-bind="text: hiddenVersionCount"></span>
+                            <!-- ko if: hiddenVersionCount() === 1 -->
+                            version is
+                            <!-- /ko -->
+                            <!-- ko if: hiddenVersionCount() !== 1 -->
+                            versions are
+                            <!-- /ko -->
+                            hidden by the current filters. Adjust the "Include" options above to show hidden versions.
+                        </div>
+
                         @if (Model.HasMoreVersions)
                         {
-                            <div>
-                                <button class="btn btn-link" id="load-more-versions" data-url="@Url.VersionTable(Model.Id, Model.Version)">Load more</button>
-                                <div class="hide" id="loading-more-error">Loading failed</div>
+                            <!-- ko if: loadState() !== 'loaded' -->
+                            <div class="version-history-load">
+                                <!-- ko if: loadState() === 'idle' -->
+                                <button class="btn btn-link" id="load-more-versions" data-url="@Url.VersionTable(Model.Id, Model.Version)"
+                                        data-bind="click: loadMoreVersions">Load more</button>
+                                <!-- /ko -->
+                                <!-- ko if: loadState() === 'loading' -->
+                                <div role="status" aria-live="polite">Loading...</div>
+                                <!-- /ko -->
+                                <!-- ko if: loadState() === 'failed' -->
+                                <div id="loading-more-error" role="alert">Loading failed</div>
+                                <!-- /ko -->
                             </div>
+                            <!-- /ko -->
                         }
                     </div>
                 </div>

@@ -193,10 +193,17 @@ $(function () {
         }
     }
 
+    const versionHistoryViewModel = {
+        hiddenVersionCount: ko.observable(0),
+        loadState: ko.observable('idle'),
+        loadMoreVersions: loadMoreVersions
+    };
+    ko.applyBindings(versionHistoryViewModel, document.getElementById('version-history'));
+
     function applyVersionFilters() {
-        var includePrerelease = $('#include-prerelease').is(':checked');
-        var includeVulnerable = $('#include-vulnerable').is(':checked');
-        var includeDeprecated = $('#include-deprecated').is(':checked');
+        const includePrerelease = $('#include-prerelease').is(':checked');
+        const includeVulnerable = $('#include-vulnerable').is(':checked');
+        const includeDeprecated = $('#include-deprecated').is(':checked');
 
         if (storage) {
             storage.setItem(versionFilterPrereleaseKey, includePrerelease);
@@ -204,18 +211,19 @@ $(function () {
             storage.setItem(versionFilterDeprecatedKey, includeDeprecated);
         }
 
+        let hiddenVersionCount = 0;
         $('.version-row').each(function () {
-            var isCurrent = $(this).hasClass('bg-brand-info');
+            const isCurrent = $(this).hasClass('bg-brand-info');
             if (isCurrent) {
                 $(this).show();
                 return;
             }
 
-            var isPrerelease = $(this).data('prerelease') === true;
-            var isVulnerable = $(this).data('vulnerable') === true;
-            var isDeprecated = $(this).data('deprecated') === true;
-            var showRow = true;
-            
+            const isPrerelease = $(this).data('prerelease') === true;
+            const isVulnerable = $(this).data('vulnerable') === true;
+            const isDeprecated = $(this).data('deprecated') === true;
+            let showRow = true;
+
             if (!includePrerelease && isPrerelease) {
                 showRow = false;
             }
@@ -230,8 +238,11 @@ $(function () {
                 $(this).show();
             } else {
                 $(this).hide();
+                hiddenVersionCount++;
             }
         });
+
+        versionHistoryViewModel.hiddenVersionCount(hiddenVersionCount);
     }
 
     if (storage) {
@@ -335,20 +346,15 @@ $(function () {
         });
     }
 
-    $("#load-more-versions").on('click', function(event) {
-        const target = event.currentTarget;
-        if (target.getAttribute("aria-disabled") === "true") {
+    function loadMoreVersions(data, event) {
+        if (versionHistoryViewModel.loadState() !== 'idle') {
             event.preventDefault();
             event.stopPropagation();
             return;
         }
         const token = $("#AntiForgeryForm input[name=__RequestVerificationToken]").val();
-        const url = target.dataset.url;
-        const container = target.parentElement;
-        const failed = container.querySelector("#loading-more-error");
-        target.setAttribute("aria-disabled", "true");
-        target.setAttribute("aria-busy", "true");
-        target.innerHTML = "Loading..."
+        const url = event.currentTarget.dataset.url;
+        versionHistoryViewModel.loadState('loading');
         $.ajax({
             url: url,
             type: 'POST',
@@ -357,7 +363,8 @@ $(function () {
             },
             success: function(response) {
                 $("#version-history table").html(response);
-                container.classList.add("hide");
+                $('#version-history [data-datetime]').each(window.nuget.formatDateTimeElement);
+                versionHistoryViewModel.loadState('loaded');
                 const currentVersionLink = document.querySelector(".version-history .bg-brand-info a");
                 if (currentVersionLink) {
                     currentVersionLink.focus();
@@ -365,11 +372,10 @@ $(function () {
                 applyVersionFilters();
             },
             error: function() {
-                target.classList.add("hide");
-                failed.classList.remove("hide");
+                versionHistoryViewModel.loadState('failed');
             }
         });
-    });
+    }
 
     $(".reserved-indicator").each(window.nuget.setPopovers);
     $(".framework-badge-asset").each(window.nuget.setPopovers);
