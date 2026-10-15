@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
@@ -59,6 +60,9 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             private readonly SasDefinitionConfiguration _sasDefinitionConfiguration;
             private readonly Mock<IFeatureFlagService> _featureFlagService;
             private readonly Mock<ITelemetryService> _telemetryService;
+            private readonly Mock<IArtifactSigningCertificateReader> _artifactSigningCertificateReader;
+            private readonly Mock<IDurableIdentityValueService> _durableIdentityValueService;
+            private readonly List<string> _galleryCalls = new List<string>();
             private readonly ITestOutputHelper _output;
 
             public ValidateAsync(ITestOutputHelper output)
@@ -127,12 +131,27 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     .Returns(true);
                 _telemetryService = new Mock<ITelemetryService>();
 
+                _artifactSigningCertificateReader = new Mock<IArtifactSigningCertificateReader>();
+                _durableIdentityValueService = new Mock<IDurableIdentityValueService>();
+                _durableIdentityValueService
+                    .Setup(x => x.ProcessAsync(
+                        It.IsAny<SignatureValidationMessage>(),
+                        It.IsAny<PackageRegistration>(),
+                        It.IsAny<X509Certificate2>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<DateTimeOffset>()))
+                    .Returns(Task.CompletedTask)
+                    .Callback(() => _galleryCalls.Add(nameof(IDurableIdentityValueService.ProcessAsync)));
+
                 _target = new SignatureValidator(
                     _packageSigningStateService.Object,
                     _formatValidator.Object,
                     _signaturePartsExtractor.Object,
                     _packageFileService.Object,
                     _corePackageService.Object,
+                    _artifactSigningCertificateReader.Object,
+                    _durableIdentityValueService.Object,
                     _optionsSnapshot.Object,
                     _sasDefinitionConfigurationMock.Object,
                     _featureFlagService.Object,
@@ -1302,6 +1321,167 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 // Assert
                 Validate(result, ValidationStatus.Succeeded, PackageSigningStatus.Valid);
                 Assert.Empty(result.Issues);
+            }
+
+            private const string Div = "1.3.6.1.4.1.311.97.990309390.766961637.194916062.941502583";
+
+            private PackageRegistration ArrangeSignedPackage(string registeredThumbprint, PackageStatus status = PackageStatus.Validating)
+            {
+                _packageStream = TestResources.GetResourceStream(TestResources.SignedPackageLeaf1);
+                TestUtility.RequireSignedPackage(_corePackageService, TestResources.SignedPackageLeafId, TestResources.SignedPackageLeaf1Version, registeredThumbprint, status);
+                _message = new SignatureValidationMessage(
+                    TestResources.SignedPackageLeafId,
+                    TestResources.SignedPackageLeaf1Version,
+                    new Uri($"https://unit.test/{TestResources.SignedPackageLeaf1.ToLowerInvariant()}"),
+                    Guid.NewGuid());
+
+                return _corePackageService.Object.FindPackageRegistrationById(TestResources.SignedPackageLeafId);
+            }
+
+            private static void LinkDurableIdentityValue(User user)
+            {
+                var durableIdentityValue = new DurableIdentityValue { Key = 20, Value = Div };
+                user.UserDurableIdentityValues.Add(new UserDurableIdentityValue
+                {
+                    Key = 21,
+                    DurableIdentityValue = durableIdentityValue,
+                    DurableIdentityValueKey = durableIdentityValue.Key,
+                    User = user,
+                    UserKey = user.Key,
+                });
+            }
+
+            private void ReaderReturns(string durableIdentityValue)
+            {
+                _artifactSigningCertificateReader
+                    .Setup(x => x.TryGetDurableIdentityValue(It.IsAny<PrimarySignature>(), out durableIdentityValue))
+                    .Returns(durableIdentityValue != null);
+            }
+
+            [Fact]
+            public async Task WhenCertificateIsUnknownButDurableIdentityValueIsLinked_AcceptsAndProcessesBeforeUpdatingCertificate()
+            {
+                var packageRegistration = ArrangeSignedPackage(registeredThumbprint: "unregistered-thumbprint");
+                LinkDurableIdentityValue(packageRegistration.Owners.Single());
+                ReaderReturns(Div);
+                _corePackageService
+                    .Setup(x => x.UpdatePackageSigningCertificateAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(Task.CompletedTask)
+                    .Callback(() => _galleryCalls.Add(nameof(ICorePackageService.UpdatePackageSigningCertificateAsync)));
+
+                var result = await _target.ValidateAsync(_packageKey, _packageStream, _message, _cancellationToken);
+
+                Validate(result, ValidationStatus.Succeeded, PackageSigningStatus.Valid);
+                _durableIdentityValueService.Verify(
+                    x => x.ProcessAsync(
+                        _message,
+                        packageRegistration,
+                        It.IsAny<X509Certificate2>(),
+                        TestResources.Leaf1Thumbprint,
+                        Div,
+                        It.IsAny<DateTimeOffset>()),
+                    Times.Once);
+                Assert.Equal(
+                    new[] { nameof(IDurableIdentityValueService.ProcessAsync), nameof(ICorePackageService.UpdatePackageSigningCertificateAsync) },
+                    _galleryCalls);
+            }
+
+            [Fact]
+            public async Task WhenFlightIsDisabledAndNoDurableIdentityValues_DoesNotReadCertificate()
+            {
+                ArrangeSignedPackage(TestResources.Leaf1Thumbprint);
+
+                var result = await _target.ValidateAsync(_packageKey, _packageStream, _message, _cancellationToken);
+
+                Validate(result, ValidationStatus.Succeeded, PackageSigningStatus.Valid);
+                _artifactSigningCertificateReader.Verify(
+                    x => x.TryGetDurableIdentityValue(It.IsAny<PrimarySignature>(), out It.Ref<string>.IsAny),
+                    Times.Never);
+                _durableIdentityValueService.Verify(
+                    x => x.ProcessAsync(It.IsAny<SignatureValidationMessage>(), It.IsAny<PackageRegistration>(), It.IsAny<X509Certificate2>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTimeOffset>()),
+                    Times.Never);
+            }
+
+            [Fact]
+            public async Task WhenFlightIsEnabledAndCertificateIsRegistered_ProcessesDurableIdentityValue()
+            {
+                ArrangeSignedPackage(TestResources.Leaf1Thumbprint);
+                _featureFlagService
+                    .Setup(x => x.IsArtifactSigningDurableIdentityEnabled(It.IsAny<User>()))
+                    .Returns(true);
+                ReaderReturns(Div);
+
+                var result = await _target.ValidateAsync(_packageKey, _packageStream, _message, _cancellationToken);
+
+                Validate(result, ValidationStatus.Succeeded, PackageSigningStatus.Valid);
+                _durableIdentityValueService.Verify(
+                    x => x.ProcessAsync(_message, It.IsAny<PackageRegistration>(), It.IsAny<X509Certificate2>(), TestResources.Leaf1Thumbprint, Div, It.IsAny<DateTimeOffset>()),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task WhenFlightEnabledAndReaderFindsNothing_AcceptsKnownCertificate()
+            {
+                ArrangeSignedPackage(TestResources.Leaf1Thumbprint);
+                _featureFlagService
+                    .Setup(x => x.IsArtifactSigningDurableIdentityEnabled(It.IsAny<User>()))
+                    .Returns(true);
+                ReaderReturns(null);
+
+                var result = await _target.ValidateAsync(_packageKey, _packageStream, _message, _cancellationToken);
+
+                Validate(result, ValidationStatus.Succeeded, PackageSigningStatus.Valid);
+                _durableIdentityValueService.Verify(
+                    x => x.ProcessAsync(It.IsAny<SignatureValidationMessage>(), It.IsAny<PackageRegistration>(), It.IsAny<X509Certificate2>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTimeOffset>()),
+                    Times.Never);
+            }
+
+            [Fact]
+            public async Task WhenOwnerHasDivButReaderFindsNone_RejectsUnknownCertificate()
+            {
+                var packageRegistration = ArrangeSignedPackage(registeredThumbprint: "unregistered-thumbprint");
+                LinkDurableIdentityValue(packageRegistration.Owners.Single());
+                ReaderReturns(null);
+
+                var result = await _target.ValidateAsync(_packageKey, _packageStream, _message, _cancellationToken);
+
+                Validate(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
+                var issue = Assert.IsType<UnauthorizedCertificateFailure>(Assert.Single(result.Issues));
+                Assert.Equal(TestResources.Leaf1Thumbprint, issue.Sha256Thumbprint);
+            }
+
+            [Fact]
+            public async Task WhenPackageIsAvailable_DoesNotProcessDurableIdentityValue()
+            {
+                var packageRegistration = ArrangeSignedPackage(TestResources.Leaf1Thumbprint, PackageStatus.Available);
+                LinkDurableIdentityValue(packageRegistration.Owners.Single());
+                ReaderReturns(Div);
+
+                var result = await _target.ValidateAsync(_packageKey, _packageStream, _message, _cancellationToken);
+
+                Validate(result, ValidationStatus.Succeeded, PackageSigningStatus.Valid);
+                _artifactSigningCertificateReader.Verify(
+                    x => x.TryGetDurableIdentityValue(It.IsAny<PrimarySignature>(), out It.Ref<string>.IsAny),
+                    Times.Never);
+                _durableIdentityValueService.Verify(
+                    x => x.ProcessAsync(It.IsAny<SignatureValidationMessage>(), It.IsAny<PackageRegistration>(), It.IsAny<X509Certificate2>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTimeOffset>()),
+                    Times.Never);
+            }
+
+            [Fact]
+            public async Task WhenFullVerificationFails_DoesNotProcessDurableIdentityValue()
+            {
+                var packageRegistration = ArrangeSignedPackage(registeredThumbprint: "unregistered-thumbprint");
+                LinkDurableIdentityValue(packageRegistration.Owners.Single());
+                ReaderReturns(Div);
+                _fullVerifyResult = new VerifySignaturesResult(isValid: false, isSigned: true);
+
+                var result = await _target.ValidateAsync(_packageKey, _packageStream, _message, _cancellationToken);
+
+                Validate(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
+                _durableIdentityValueService.Verify(
+                    x => x.ProcessAsync(It.IsAny<SignatureValidationMessage>(), It.IsAny<PackageRegistration>(), It.IsAny<X509Certificate2>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTimeOffset>()),
+                    Times.Never);
             }
 
             [Fact]

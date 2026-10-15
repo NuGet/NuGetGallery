@@ -3,6 +3,7 @@
 
 using Moq;
 using NuGet.Jobs.Validation;
+using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
 using Xunit;
 
@@ -24,6 +25,25 @@ namespace Validation.Common.Job.Tests
             FeatureFlagService service = new(client.Object);
 
             bool actual = service.IsDerOrderingEnforcementEnabled();
+
+            Assert.Equal(isEnabled, actual);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void ReturnsArtifactSigningDurableIdentityFlightStatus(bool isEnabled)
+        {
+            Mock<IFeatureFlagClient> client = new();
+            client
+                .Setup(featureFlags => featureFlags.IsEnabled(
+                    "Validation.ArtifactSigningDurableIdentity",
+                    It.Is<IFlightUser>(user => user.Username == "alice"),
+                    false))
+                .Returns(isEnabled);
+            FeatureFlagService service = new(client.Object);
+
+            bool actual = service.IsArtifactSigningDurableIdentityEnabled(new User("alice"));
 
             Assert.Equal(isEnabled, actual);
         }

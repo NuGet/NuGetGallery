@@ -327,6 +327,31 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 Assert.Equal("Signed with A, B, and C's certificate (D)", viewModel.SignatureInformation);
             }
 
+            [Fact]
+            public void WhenOwnerIsLinkedThroughDurableIdentityValue_ReturnsOwnerAsSigner()
+            {
+                _packageRegistration.Owners.Add(_user1);
+                _packageRegistration.Owners.Add(_user2);
+
+                var durableIdentityValue = new DurableIdentityValue { Key = 7, Value = "1.3.6.1.4.1.311.97.1.2.3.4" };
+                _certificate.DurableIdentityValueKey = durableIdentityValue.Key;
+                _certificate.DurableIdentityValue = durableIdentityValue;
+                _user2.UserDurableIdentityValues.Add(new UserDurableIdentityValue
+                {
+                    Key = 1,
+                    UserKey = _user2.Key,
+                    User = _user2,
+                    DurableIdentityValueKey = durableIdentityValue.Key,
+                    DurableIdentityValue = durableIdentityValue,
+                });
+                SignPackage();
+
+                var viewModel = CreateListPackageItemViewModel(_package, _user1);
+
+                Assert.True(viewModel.CanDisplayPrivateMetadata);
+                Assert.Equal("Signed with B's certificate (D)", viewModel.SignatureInformation);
+            }
+
             private void ActivateCertificate(User user)
             {
                 var userCertificate = new UserCertificate()

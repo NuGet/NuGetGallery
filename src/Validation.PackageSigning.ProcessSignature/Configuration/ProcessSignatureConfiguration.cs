@@ -41,5 +41,10 @@ namespace NuGet.Jobs.Validation.PackageSigning.Configuration
         /// such as description.
         /// </summary>
         public int MaxCertificateStringLength { get; set; } = 4000;
+
+        /// <summary>
+        /// Settings for recognizing Azure Artifact Signing certificates and their durable identity values.
+        /// </summary>
+        public ArtifactSigningConfiguration ArtifactSigning { get; set; } = new ArtifactSigningConfiguration();
     }
 }

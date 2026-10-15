@@ -127,6 +127,8 @@ namespace NuGet.Services.AzureSearch
             public DbSet<UserSecurityPolicy> UserSecurityPolicies { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
             public DbSet<ReservedNamespace> ReservedNamespaces { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
             public DbSet<UserCertificate> UserCertificates { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+            public DbSet<DurableIdentityValue> DurableIdentityValues { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+            public DbSet<UserDurableIdentityValue> UserDurableIdentityValues { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
             public DbSet<SymbolPackage> SymbolPackages { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
             public DbSet<Package> Packages { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
             public DbSet<PackageDeprecation> Deprecations { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }

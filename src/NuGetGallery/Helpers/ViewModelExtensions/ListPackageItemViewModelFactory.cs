@@ -79,7 +79,13 @@ namespace NuGetGallery
             if (package.Certificate != null)
             {
                 var owners = package.PackageRegistration?.Owners ?? Enumerable.Empty<User>();
-                var signerUsernames = owners.Where(owner => owner.UserCertificates.Any(uc => uc.CertificateKey == package.CertificateKey)).Select(owner => owner.Username).ToList();
+                var durableIdentityValueKey = package.Certificate.DurableIdentityValueKey;
+                var signerUsernames = owners
+                    .Where(owner => owner.UserCertificates.Any(uc => uc.CertificateKey == package.CertificateKey)
+                        || (durableIdentityValueKey.HasValue
+                            && owner.UserDurableIdentityValues.Any(ud => ud.DurableIdentityValueKey == durableIdentityValueKey.Value)))
+                    .Select(owner => owner.Username)
+                    .ToList();
                 viewModel.UpdateSignatureInformation(signerUsernames, package.Certificate.Thumbprint);
             }
 

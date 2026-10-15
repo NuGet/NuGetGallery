@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using Xunit;
 
 namespace NuGet.Services.Entities.Tests
@@ -805,6 +806,115 @@ namespace NuGet.Services.Entities.Tests
                 _packageRegistration.RequiredSigners.Add(_user);
 
                 Assert.True(_packageRegistration.IsAcceptableSigningCertificate(_certificate.Thumbprint));
+            }
+        }
+
+        public class TheDurableIdentityValueRules
+        {
+            private const string Div = "1.3.6.1.4.1.311.97.990309390.766961637.194916062.941502583";
+            private readonly PackageRegistration _packageRegistration;
+            private readonly User _owner;
+            private readonly User _otherOwner;
+
+            public TheDurableIdentityValueRules()
+            {
+                _owner = new User { Key = 1, Username = "a" };
+                _otherOwner = new User { Key = 2, Username = "b" };
+                _packageRegistration = new PackageRegistration { Key = 3, Id = "c" };
+                _packageRegistration.Owners.Add(_owner);
+                _packageRegistration.Owners.Add(_otherOwner);
+            }
+
+            [Fact]
+            public void IsSigningAllowed_WhenOwnerHasOnlyDurableIdentityValue_ReturnsTrue()
+            {
+                LinkDurableIdentityValue(_owner, Div);
+
+                Assert.True(_packageRegistration.IsSigningAllowed());
+            }
+
+            [Fact]
+            public void IsSigningRequired_WhenAllOwnersHaveOnlyDurableIdentityValues_ReturnsTrue()
+            {
+                LinkDurableIdentityValue(_owner, Div);
+                LinkDurableIdentityValue(_otherOwner, Div);
+
+                Assert.True(_packageRegistration.IsSigningRequired());
+            }
+
+            [Fact]
+            public void IsAcceptableSigningCertificate_WhenOwnerHasMatchingDurableIdentityValue_ReturnsTrue()
+            {
+                LinkDurableIdentityValue(_otherOwner, Div);
+
+                Assert.True(_packageRegistration.IsAcceptableSigningCertificate("unknown-thumbprint", Div));
+            }
+
+            [Fact]
+            public void IsAcceptableSigningCertificate_WhenDurableIdentityValueIsNull_FallsBackToThumbprint()
+            {
+                LinkDurableIdentityValue(_owner, Div);
+
+                Assert.False(_packageRegistration.IsAcceptableSigningCertificate("unknown-thumbprint", durableIdentityValue: null));
+            }
+
+            [Fact]
+            public void IsAcceptableSigningCertificate_WhenDurableIdentityValueDiffers_ReturnsFalse()
+            {
+                LinkDurableIdentityValue(_owner, Div);
+
+                Assert.False(_packageRegistration.IsAcceptableSigningCertificate("unknown-thumbprint", Div + "1"));
+            }
+
+            [Fact]
+            public void IsAcceptableSigningCertificate_WhenRequiredSignerLacksDurableIdentityValue_ReturnsFalse()
+            {
+                LinkDurableIdentityValue(_owner, Div);
+                _packageRegistration.RequiredSigners.Add(_otherOwner);
+
+                Assert.False(_packageRegistration.IsAcceptableSigningCertificate("unknown-thumbprint", Div));
+            }
+
+            [Fact]
+            public void IsAcceptableSigningCertificate_WhenRequiredSignerHasDurableIdentityValue_ReturnsTrue()
+            {
+                LinkDurableIdentityValue(_otherOwner, Div);
+                _packageRegistration.RequiredSigners.Add(_otherOwner);
+
+                Assert.True(_packageRegistration.IsAcceptableSigningCertificate("unknown-thumbprint", Div));
+            }
+
+            [Fact]
+            public void GetSigningAccounts_WhenNoRequiredSigner_ReturnsAllOwners()
+            {
+                var accounts = _packageRegistration.GetSigningAccounts();
+
+                Assert.Equal(new[] { _owner, _otherOwner }, accounts.OrderBy(a => a.Key));
+            }
+
+            [Fact]
+            public void GetSigningAccounts_WhenRequiredSigner_ReturnsOnlyRequiredSigner()
+            {
+                _packageRegistration.RequiredSigners.Add(_otherOwner);
+
+                var accounts = _packageRegistration.GetSigningAccounts();
+
+                Assert.Equal(new[] { _otherOwner }, accounts);
+            }
+
+            private static void LinkDurableIdentityValue(User user, string value)
+            {
+                var durableIdentityValue = new DurableIdentityValue { Key = 10, Value = value };
+                var link = new UserDurableIdentityValue
+                {
+                    Key = user.UserDurableIdentityValues.Count + 1,
+                    DurableIdentityValue = durableIdentityValue,
+                    DurableIdentityValueKey = durableIdentityValue.Key,
+                    User = user,
+                    UserKey = user.Key,
+                };
+                user.UserDurableIdentityValues.Add(link);
+                durableIdentityValue.UserDurableIdentityValues.Add(link);
             }
         }
     }

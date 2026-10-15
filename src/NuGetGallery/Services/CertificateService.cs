@@ -146,6 +146,21 @@ namespace NuGetGallery
             {
                 _entitiesContext.DeleteOnCommit(userCertificate);
 
+                // Removing a certificate also revokes the durable identity value it carries for this account, so that
+                // rotated certificates of the same identity are no longer accepted.
+                if (certificate.DurableIdentityValueKey.HasValue)
+                {
+                    var durableIdentityValueLinks = account
+                        .UserDurableIdentityValues
+                        .Where(ud => ud.DurableIdentityValueKey == certificate.DurableIdentityValueKey.Value)
+                        .ToList();
+
+                    foreach (var durableIdentityValueLink in durableIdentityValueLinks)
+                    {
+                        _entitiesContext.DeleteOnCommit(durableIdentityValueLink);
+                    }
+                }
+
                 await _entitiesContext.SaveChangesAsync();
 
                 await _auditingService.SaveAuditRecordAsync(

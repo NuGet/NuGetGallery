@@ -75,11 +75,13 @@ words, this job does not have to be a singleton.
 1. ❌ If the primary signature is a repository signature and if author signing is required by the owner, reject the package.
 1. If the primary signature is an author signature...
     1. If the package is already available, skip these owner-specific certificate checks. Owners can change over time.
-    1. ❌ If there is a required signer and the author signature does not match, reject the package.
-    1. ❌ If there is no required signer and the author signature does not match any owner, reject the package.
+    1. If any signing account (the required signer, or else every owner) has a linked durable identity value, or has the `Validation.ArtifactSigningDurableIdentity` flight enabled, read the durable identity value of the signing certificate. It is only read when the certificate has the Azure Artifact Signing EKU, exactly one durable identity value EKU, and chains to a configured policy certificate (`ProcessSignature:ArtifactSigning`).
+    1. ❌ If there is a required signer and neither the author signature certificate nor its durable identity value matches it, reject the package.
+    1. ❌ If there is no required signer and neither the author signature certificate nor its durable identity value matches any owner, reject the package.
 1. ❌ If the primary signature is not a repository or author signature, reject the package.
 1. ❔ Validate the integrity and trustworthiness of just the author signature.
 1. ❔ Validate the integrity and trustworthiness of the entire signature.
+1. If the author signing certificate has a durable identity value, record it in the gallery DB and link the certificate to it. Link it to each signing account that registered this certificate, has the flight enabled, and whose package signature was timestamped within `LinkWindow` (default 30 days). Certificate registrations are kept.
 1. ✔️ If all of these checks have passed...
    - Extract signature and certificate information to validation DB, gallery DB, and blob storage.
      - This lays the groundwork for offline certification validation.

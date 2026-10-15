@@ -96,6 +96,18 @@ namespace NuGetGallery
             set => throw new NotSupportedException();
         }
 
+        public DbSet<DurableIdentityValue> DurableIdentityValues
+        {
+            get => Set<DurableIdentityValue>();
+            set => throw new NotSupportedException();
+        }
+
+        public DbSet<UserDurableIdentityValue> UserDurableIdentityValues
+        {
+            get => Set<UserDurableIdentityValue>();
+            set => throw new NotSupportedException();
+        }
+
         public DbSet<SymbolPackage> SymbolPackages
         {
             get => Set<SymbolPackage>();

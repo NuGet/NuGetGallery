@@ -91,6 +91,8 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             services.AddTransient<IMessageHandler<SignatureValidationMessage>, SignatureValidationMessageHandler>();
             services.AddTransient<IPackageSigningStateService, PackageSigningStateService>();
             services.AddTransient<ISignaturePartsExtractor, SignaturePartsExtractor>();
+            services.AddTransient<IArtifactSigningCertificateReader, ArtifactSigningCertificateReader>();
+            services.AddTransient<IDurableIdentityValueService, DurableIdentityValueService>();
             services.AddTransient<ISignatureFormatValidator, SignatureFormatValidator>();
             services.AddTransient<ISignatureValidator, SignatureValidator>();
         }

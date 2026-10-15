@@ -34,6 +34,7 @@ namespace NuGetGallery
         : ObjectMaterializedInterceptingDbContext, IEntitiesContext
     {
         private const string CertificatesThumbprintIndex = "IX_Certificates_Thumbprint";
+        private const string DurableIdentityValuesValueIndex = "IX_DurableIdentityValues_Value";
         private const string UserSecurityPolicyUserKeyNameSubscriptionIndex = "IX_UserSecurityPolicy_UserKeyNameSubscription";
 
         static EntitiesContext()
@@ -80,6 +81,8 @@ namespace NuGetGallery
         public DbSet<ReservedNamespace> ReservedNamespaces { get; set; }
         public DbSet<Certificate> Certificates { get; set; }
         public DbSet<UserCertificate> UserCertificates { get; set; }
+        public DbSet<DurableIdentityValue> DurableIdentityValues { get; set; }
+        public DbSet<UserDurableIdentityValue> UserDurableIdentityValues { get; set; }
         public DbSet<SymbolPackage> SymbolPackages { get; set; }
         public DbSet<PackageVulnerability> Vulnerabilities { get; set; }
         public DbSet<VulnerablePackageVersionRange> VulnerableRanges { get; set; }
@@ -460,6 +463,63 @@ namespace NuGetGallery
                 .WithRequired(uc => uc.Certificate)
                 .HasForeignKey(uc => uc.CertificateKey)
                 .WillCascadeOnDelete(true); // Deleting a Certificate entity will also delete related UserCertificate entities.
+
+            modelBuilder.Entity<DurableIdentityValue>()
+                .HasKey(d => d.Key);
+
+            modelBuilder.Entity<DurableIdentityValue>()
+                .Property(d => d.Value)
+                .HasMaxLength(256)
+                .HasColumnType("varchar")
+                .IsRequired()
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(new[]
+                    {
+                        new IndexAttribute(DurableIdentityValuesValueIndex)
+                        {
+                            IsUnique = true,
+                        }
+                    }));
+
+            modelBuilder.Entity<UserDurableIdentityValue>()
+                .HasKey(ud => ud.Key);
+
+            modelBuilder.Entity<UserDurableIdentityValue>()
+                .Property(ud => ud.DurableIdentityValueKey)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(new IndexAttribute("IX_UserDurableIdentityValues_DurableIdentityValueKeyUserKey", order: 0)
+                    {
+                        IsUnique = true,
+                    }));
+
+            modelBuilder.Entity<UserDurableIdentityValue>()
+                .Property(ud => ud.UserKey)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(new IndexAttribute("IX_UserDurableIdentityValues_DurableIdentityValueKeyUserKey", order: 1)
+                    {
+                        IsUnique = true,
+                    }));
+
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.UserDurableIdentityValues)
+                .WithRequired(ud => ud.User)
+                .HasForeignKey(ud => ud.UserKey)
+                .WillCascadeOnDelete(true); // Deleting a User entity will also delete related UserDurableIdentityValue entities.
+
+            modelBuilder.Entity<DurableIdentityValue>()
+                .HasMany(d => d.UserDurableIdentityValues)
+                .WithRequired(ud => ud.DurableIdentityValue)
+                .HasForeignKey(ud => ud.DurableIdentityValueKey)
+                .WillCascadeOnDelete(true); // Deleting a DurableIdentityValue entity will also delete related UserDurableIdentityValue entities.
+
+            modelBuilder.Entity<DurableIdentityValue>()
+                .HasMany(d => d.Certificates)
+                .WithOptional(c => c.DurableIdentityValue)
+                .HasForeignKey(c => c.DurableIdentityValueKey)
+                .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<Certificate>()
                 .Property(pv => pv.Expiration)

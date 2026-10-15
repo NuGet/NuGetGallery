@@ -400,6 +400,10 @@
     <Compile Include="Migrations\202608031928454_AddFederatedCredentialPolicyScopes.Designer.cs">
       <DependentUpon>202608031928454_AddFederatedCredentialPolicyScopes.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202609281247339_AddDurableIdentityValues.cs" />
+    <Compile Include="Migrations\202609281247339_AddDurableIdentityValues.Designer.cs">
+      <DependentUpon>202609281247339_AddDurableIdentityValues.cs</DependentUpon>
+    </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
     <Compile Include="RequestModels\UpdateListedRequest.cs" />
@@ -1792,6 +1796,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202608031928454_AddFederatedCredentialPolicyScopes.resx">
       <DependentUpon>202608031928454_AddFederatedCredentialPolicyScopes.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202609281247339_AddDurableIdentityValues.resx">
+      <DependentUpon>202609281247339_AddDurableIdentityValues.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
