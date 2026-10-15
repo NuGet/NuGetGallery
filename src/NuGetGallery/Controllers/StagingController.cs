@@ -397,10 +397,16 @@ namespace NuGetGallery
             {
                 var identity = attempt.StagedPackageIdentity;
                 var package = identity.Package;
+                var parentStatus = package.PackageStatusKey.ToString();
                 string parentUrl = null;
                 if (package.PackageStatusKey == PackageStatus.Available)
                 {
                     parentUrl = Url.Package(package.PackageRegistration.Id, package.NormalizedVersion);
+                }
+                else if (package.PackageStatusKey == PackageStatus.Staged)
+                {
+                    parentUrl = Url.DownloadStagedPackage(package.Id, package.NormalizedVersion);
+                    parentStatus = identity.CurrentStagedPackage?.Status.ToString();
                 }
 
                 findings.TryGetValue(attempt.Key, out var issues);
@@ -410,13 +416,14 @@ namespace NuGetGallery
                     Version = package.NormalizedVersion,
                     Owner = identity.Owner.Username,
                     IsSymbolPackage = true,
-                    ParentStatus = package.PackageStatusKey.ToString(),
+                    ParentStatus = parentStatus,
                     ParentUrl = parentUrl,
                     Status = attempt.Status.ToString(),
                     StatusClass = $"staging-status-{attempt.Status.ToString().ToLowerInvariant()}",
                     UploadedDate = attempt.UploadedDate,
                     ValidationIssues = issues ?? [],
                     CanManage = attempt.Status != StagedPackageStatus.Promoting,
+                    CanDelete = attempt.Status != StagedPackageStatus.Promoting,
                 };
             });
 
@@ -506,7 +513,15 @@ namespace NuGetGallery
                         ? Redirect(Url.ManageUngroupedStaging(stagingOwner.Username))
                         : Redirect(Url.ManageStagingGroup(group.Owner.Username, group.Id));
                 case StagingGroupMembershipResult.Conflict:
-                    ModelState.AddModelError(string.Empty, "The staged package cannot be moved while promotion is active.");
+                    if (stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackageKey.HasValue)
+                    {
+                        ModelState.AddModelError(string.Empty, "Remove the staged symbols before moving their parent package into a group.");
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, "The staged package cannot be moved while promotion is active.");
+                    }
+
                     var viewModel = CreateMovePackageViewModel(currentUser, stagedPackage);
                     viewModel.GroupId = groupId;
                     return View(viewModel);
@@ -598,6 +613,7 @@ namespace NuGetGallery
                         ValidationIssues = issues ?? [],
                         Listed = package.Listed,
                         CanManage = !isPromotionActive,
+                        CanDelete = !isPromotionActive && stagedPackage.Status != StagedPackageStatus.Promoting && !identity.CurrentStagedSymbolPackageKey.HasValue,
                         CanPromote = stagedPackage.Status == StagedPackageStatus.Ready && !identity.StagingGroupKey.HasValue,
                         CanResend = !identity.StagingGroupKey.HasValue
                             && stagedPackage.Status == StagedPackageStatus.Promoting
@@ -710,9 +726,22 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            if (!await _packageStagingManagementService.DeletePackageAsync(stagedPackage))
+            var result = await _packageStagingManagementService.DeletePackageAsync(stagedPackage);
+            switch (result)
             {
-                TempData["ErrorMessage"] = "The staged package cannot be deleted while package promotion is active.";
+                case PackageStagingDeletionResult.Deleted:
+                    break;
+                case PackageStagingDeletionResult.HasStagedSymbols:
+                    TempData["ErrorMessage"] = "Remove the staged symbols before deleting their parent package.";
+                    break;
+                case PackageStagingDeletionResult.PromotionActive:
+                    TempData["ErrorMessage"] = "The staged package cannot be deleted while package promotion is active.";
+                    break;
+                case PackageStagingDeletionResult.Conflict:
+                    TempData["ErrorMessage"] = "The staged package changed. Refresh and try again.";
+                    break;
+                default:
+                    throw new InvalidOperationException($"Unexpected staged package deletion result: {result}");
             }
 
             return Redirect(Url.ManageMyPackages());

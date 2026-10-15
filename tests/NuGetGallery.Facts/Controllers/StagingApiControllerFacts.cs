@@ -625,7 +625,7 @@ namespace NuGetGallery
                 .Returns(true);
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.DeletePackageAsync(stagedPackage))
-                .ReturnsAsync(true);
+                .ReturnsAsync(PackageStagingDeletionResult.Deleted);
             GetMock<HttpContextBase>()
                 .SetupGet(x => x.User)
                 .Returns(Fakes.ToPrincipal(currentUser));
@@ -638,11 +638,22 @@ namespace NuGetGallery
             Assert.Equal(204, status.StatusCode);
         }
 
-        [Fact]
-        public async Task ReportsConflictWhenPromotionPreventsPackageDeletion()
+        [Theory]
+        [InlineData(PackageStagingDeletionResult.PromotionActive, false)]
+        [InlineData(PackageStagingDeletionResult.PromotionActive, true)]
+        [InlineData(PackageStagingDeletionResult.HasStagedSymbols, false)]
+        [InlineData(PackageStagingDeletionResult.HasStagedSymbols, true)]
+        [InlineData(PackageStagingDeletionResult.Conflict, false)]
+        [InlineData(PackageStagingDeletionResult.Conflict, true)]
+        public async Task ReportsDeletionConflictUsingServiceResult(PackageStagingDeletionResult deletionResult, bool hasSymbols)
         {
             var currentUser = new User("current") { Key = 1 };
             var stagedPackage = CreateStagedPackage(currentUser);
+            if (hasSymbols)
+            {
+                stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackageKey = 100;
+            }
+
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
                 .Returns(stagedPackage);
@@ -651,7 +662,7 @@ namespace NuGetGallery
                 .Returns(true);
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.DeletePackageAsync(stagedPackage))
-                .ReturnsAsync(false);
+                .ReturnsAsync(deletionResult);
             GetMock<HttpContextBase>()
                 .SetupGet(x => x.User)
                 .Returns(Fakes.ToPrincipal(currentUser));
@@ -659,6 +670,12 @@ namespace NuGetGallery
             target.SetCurrentUser(currentUser);
 
             var result = await target.DeleteStagedPackage("PackageA", "1.0.0");
+
+            if (deletionResult == PackageStagingDeletionResult.HasStagedSymbols)
+            {
+                AssertError(target, result, HttpStatusCode.Conflict, "PackageHasStagedSymbols");
+                return;
+            }
 
             var status = Assert.IsType<HttpStatusCodeResult>(result);
             Assert.Equal(409, status.StatusCode);

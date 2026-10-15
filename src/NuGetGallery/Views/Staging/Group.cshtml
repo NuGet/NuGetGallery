@@ -310,6 +310,7 @@
                                                 </li>
                                                 <!-- /ko -->
                                                 <li role="separator" class="divider" data-bind="visible: !IsBusy()"></li>
+                                                <!-- ko if: CanDelete -->
                                                 <li data-bind="visible: !IsBusy()">
                                                     <a href="#"
                                                        class="staging-delete-trigger"
@@ -320,6 +321,21 @@
                                                         @Html.AntiForgeryToken()
                                                     </form>
                                                 </li>
+                                                <!-- /ko -->
+                                                <!-- ko ifnot: CanDelete -->
+                                                <li class="staging-delete-disabled" data-bind="visible: !IsBusy()">
+                                                    <a class="tooltip-target" role="button" tabindex="0" aria-disabled="true" aria-label="Delete"
+                                                       data-bind="attr: { 'aria-describedby': DeleteDisabledReasonId }">
+                                                        Delete&hellip;
+                                                        <span class="tooltip-block" role="tooltip" data-bind="attr: { id: DeleteDisabledReasonId }">
+                                                            <span class="tooltip-wrapper popover left">
+                                                                <span class="arrow"></span>
+                                                                <span class="popover-content">Remove the staged symbols before deleting their parent package.</span>
+                                                            </span>
+                                                        </span>
+                                                    </a>
+                                                </li>
+                                                <!-- /ko -->
                                                 <!-- /ko -->
                                             </ul>
                                         </div>
@@ -422,6 +438,8 @@
             HasValidationIssues = package.ValidationIssues.Count > 0,
             ValidationIssuesId = GetStagedValidationIssuesId(index),
             package.CanManage,
+            package.CanDelete,
+            DeleteDisabledReasonId = "staged-delete-disabled-" + index,
             package.CanPromote,
             package.CanResend,
             package.Listed,

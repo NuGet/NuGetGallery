@@ -361,8 +361,19 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
 
-            var deleted = await _packageStagingManagementService.DeletePackageAsync(stagedPackage);
-            return new HttpStatusCodeResult(deleted ? HttpStatusCode.NoContent : HttpStatusCode.Conflict);
+            var result = await _packageStagingManagementService.DeletePackageAsync(stagedPackage);
+            switch (result)
+            {
+                case PackageStagingDeletionResult.Deleted:
+                    return new HttpStatusCodeResult(HttpStatusCode.NoContent);
+                case PackageStagingDeletionResult.HasStagedSymbols:
+                    return Error(HttpStatusCode.Conflict, "PackageHasStagedSymbols", "Remove the staged symbols before deleting their parent package.");
+                case PackageStagingDeletionResult.PromotionActive:
+                case PackageStagingDeletionResult.Conflict:
+                    return new HttpStatusCodeResult(HttpStatusCode.Conflict);
+                default:
+                    throw new InvalidOperationException($"Unexpected staged package deletion result: {result}");
+            }
         }
 
         private StagedPackage FindAuthorizedStagedPackage(string id, string version)

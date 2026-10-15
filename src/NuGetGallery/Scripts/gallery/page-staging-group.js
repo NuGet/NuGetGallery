@@ -35,6 +35,8 @@
         this.HasValidationIssues = packageItem.HasValidationIssues;
         this.ValidationIssuesId = packageItem.ValidationIssuesId;
         this.CanManage = packageItem.CanManage;
+        this.CanDelete = packageItem.CanDelete;
+        this.DeleteDisabledReasonId = packageItem.DeleteDisabledReasonId;
         this.CanPromote = packageItem.CanPromote;
         this.CanResend = packageItem.CanResend;
         this.MoveUrl = packageItem.MoveUrl;
@@ -126,7 +128,7 @@
             const trigger = $(event.currentTarget);
             const artifact = self.IsSymbolPackage ? 'symbols' : 'package';
             const message = `Delete staged ${artifact} ${self.Id} ${self.Version}?`;
-            if (!self.IsBusy() && window.nuget.confirmEvent(message)) {
+            if (self.CanDelete && !self.IsBusy() && window.nuget.confirmEvent(message)) {
                 self.IsBusy(true);
                 trigger.siblings('.staging-delete-form')[0].submit();
             }

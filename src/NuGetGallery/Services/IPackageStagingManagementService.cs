@@ -72,8 +72,8 @@ namespace NuGetGallery
         /// Deletes an authorized current staged package attempt while retaining its reserved package row.
         /// </summary>
         /// <param name="stagedPackage">The authorized current staged package attempt.</param>
-        /// <returns><see langword="true"/> when the package was deleted; otherwise, <see langword="false"/> when promotion prevents deletion.</returns>
-        Task<bool> DeletePackageAsync(StagedPackage stagedPackage);
+        /// <returns>The deletion outcome, including the reason when deletion is rejected.</returns>
+        Task<PackageStagingDeletionResult> DeletePackageAsync(StagedPackage stagedPackage);
 
         /// <summary>
         /// Gets staged packages owned by the user or an enabled organization the user belongs to.
@@ -165,6 +165,17 @@ namespace NuGetGallery
         /// <param name="pageSize">The number of package attempts per page.</param>
         /// <returns>The requested package page, or <see langword="null"/> when the group does not exist.</returns>
         StagingGroupPackagePage GetStagingGroupPackagePage(User stagingOwner, string groupId, int page, int pageSize);
+    }
+
+    /// <summary>
+    /// Describes the outcome of deleting a staged parent package.
+    /// </summary>
+    public enum PackageStagingDeletionResult
+    {
+        Deleted,
+        PromotionActive,
+        HasStagedSymbols,
+        Conflict,
     }
 
     public enum StagingGroupMembershipResult

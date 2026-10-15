@@ -79,8 +79,10 @@ namespace NuGetGallery
             storage.Verify(x => x.SaveFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Stream>(), It.IsAny<bool>()), Times.Exactly(2));
         }
 
-        [Fact]
-        public async Task GetsReadUriWhenUploadedETagMatches()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task GetsReadUriWhenUploadedETagMatches(bool explicitExpiration)
         {
             var expected = new Uri("https://example.test/staged-package");
             var storage = new Mock<ICoreFileStorageService>();
@@ -94,16 +96,40 @@ namespace NuGetGallery
                     It.IsAny<DateTimeOffset?>()))
                 .ReturnsAsync(expected);
             var target = new StagingBlobService(storage.Object);
+            var before = DateTimeOffset.UtcNow;
+            var requestedExpiration = before.AddDays(5);
 
-            var actual = await target.GetPackageReadUriAsync("package/path", "\"etag\"");
+            Uri actual;
+            if (explicitExpiration)
+            {
+                actual = await target.GetPackageReadUriAsync("package/path", "\"etag\"", requestedExpiration);
+            }
+            else
+            {
+                actual = await target.GetPackageReadUriAsync("package/path", "\"etag\"");
+            }
 
             Assert.Same(expected, actual);
+            if (explicitExpiration)
+            {
+                storage.Verify(x => x.GetFileReadUriAsync(CoreConstants.Folders.StagingFolderName, "package/path", requestedExpiration), Times.Once);
+            }
+            else
+            {
+                var latestExpiration = DateTimeOffset.UtcNow.AddMinutes(10);
+                storage.Verify(x => x.GetFileReadUriAsync(
+                    CoreConstants.Folders.StagingFolderName,
+                    "package/path",
+                    It.Is<DateTimeOffset?>(expiry => expiry >= before.AddMinutes(10) && expiry <= latestExpiration)), Times.Once);
+            }
         }
 
         [Theory]
-        [InlineData(null)]
-        [InlineData("\"different-etag\"")]
-        public async Task RejectsReadWhenUploadedETagDoesNotMatch(string currentETag)
+        [InlineData(null, false)]
+        [InlineData("\"different-etag\"", false)]
+        [InlineData(null, true)]
+        [InlineData("\"different-etag\"", true)]
+        public async Task RejectsReadWhenUploadedETagDoesNotMatch(string currentETag, bool explicitExpiration)
         {
             var storage = new Mock<ICoreFileStorageService>();
             storage
@@ -111,8 +137,16 @@ namespace NuGetGallery
                 .ReturnsAsync(currentETag);
             var target = new StagingBlobService(storage.Object);
 
-            await Assert.ThrowsAsync<InvalidOperationException>(
-                () => target.GetPackageReadUriAsync("package/path", "\"expected-etag\""));
+            if (explicitExpiration)
+            {
+                await Assert.ThrowsAsync<InvalidOperationException>(
+                    () => target.GetPackageReadUriAsync("package/path", "\"expected-etag\"", DateTimeOffset.UtcNow.AddDays(5)));
+            }
+            else
+            {
+                await Assert.ThrowsAsync<InvalidOperationException>(
+                    () => target.GetPackageReadUriAsync("package/path", "\"expected-etag\""));
+            }
 
             storage.Verify(
                 x => x.GetFileReadUriAsync(
