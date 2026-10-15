@@ -231,24 +231,15 @@ namespace NuGetGallery
 
         public IReadOnlyList<StagedPackage> GetStagedPackages(User currentUser)
         {
-            if (currentUser == null)
-            {
-                throw new ArgumentNullException(nameof(currentUser));
-            }
-
-            var ownerKeys = _packageStagingAuthorizationService.GetEnabledOwners(currentUser)
-                .Select(owner => owner.Key)
-                .ToArray();
-
-            return GetCurrentStagedPackages(ownerKeys)
-                .AsEnumerable()
-                .Where(stagedPackage => _packageStagingAuthorizationService.CanManage(currentUser, stagedPackage))
-                .OrderBy(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageRegistration.Id)
-                .ThenByDescending(stagedPackage => stagedPackage.UploadedDate)
-                .ToList();
+            return GetVisibleStagedPackages(currentUser, ownerKey: null, groupKey: null);
         }
 
-        public IReadOnlyList<StagingGroup> GetStagingGroups(User currentUser)
+        public IReadOnlyList<StagedPackage> GetStagedPackages(User currentUser, int ownerKey, int? groupKey)
+        {
+            return GetVisibleStagedPackages(currentUser, ownerKey, groupKey);
+        }
+
+        private IReadOnlyList<StagedPackage> GetVisibleStagedPackages(User currentUser, int? ownerKey, int? groupKey)
         {
             if (currentUser == null)
             {
@@ -259,10 +250,51 @@ namespace NuGetGallery
                 .Select(owner => owner.Key)
                 .ToArray();
 
-            return _stagingGroupRepository
+            var query = GetCurrentStagedPackages(ownerKeys);
+            if (ownerKey.HasValue)
+            {
+                query = query.Where(package => package.StagedPackageIdentity.OwnerKey == ownerKey.Value && package.StagedPackageIdentity.StagingGroupKey == groupKey);
+            }
+
+            return query
+                .AsEnumerable()
+                .Where(stagedPackage => _packageStagingAuthorizationService.CanManage(currentUser, stagedPackage))
+                .OrderBy(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageRegistration.Id)
+                .ThenByDescending(stagedPackage => stagedPackage.UploadedDate)
+                .ToList();
+        }
+
+        public IReadOnlyList<StagingGroup> GetStagingGroups(User currentUser)
+        {
+            return GetVisibleStagingGroups(currentUser, ownerKey: null);
+        }
+
+        public IReadOnlyList<StagingGroup> GetStagingGroups(User currentUser, int ownerKey)
+        {
+            return GetVisibleStagingGroups(currentUser, ownerKey);
+        }
+
+        private IReadOnlyList<StagingGroup> GetVisibleStagingGroups(User currentUser, int? ownerKey)
+        {
+            if (currentUser == null)
+            {
+                throw new ArgumentNullException(nameof(currentUser));
+            }
+
+            var ownerKeys = _packageStagingAuthorizationService.GetEnabledOwners(currentUser)
+                .Select(owner => owner.Key)
+                .ToArray();
+
+            var query = _stagingGroupRepository
                 .GetAll()
                 .Include(group => group.Owner)
-                .Where(group => ownerKeys.Contains(group.OwnerKey))
+                .Where(group => ownerKeys.Contains(group.OwnerKey));
+            if (ownerKey.HasValue)
+            {
+                query = query.Where(group => group.OwnerKey == ownerKey.Value);
+            }
+
+            return query
                 .OrderBy(group => group.Owner.Username)
                 .ThenBy(group => group.Name)
                 .ThenBy(group => group.Id)

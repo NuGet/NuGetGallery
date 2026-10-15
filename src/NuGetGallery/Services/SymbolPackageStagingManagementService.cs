@@ -42,6 +42,16 @@ namespace NuGetGallery
 
         public IReadOnlyList<StagedSymbolPackage> GetStagedSymbolPackages(User currentUser)
         {
+            return GetVisibleStagedSymbolPackages(currentUser, ownerKey: null, groupKey: null);
+        }
+
+        public IReadOnlyList<StagedSymbolPackage> GetStagedSymbolPackages(User currentUser, int ownerKey, int? groupKey)
+        {
+            return GetVisibleStagedSymbolPackages(currentUser, ownerKey, groupKey);
+        }
+
+        private IReadOnlyList<StagedSymbolPackage> GetVisibleStagedSymbolPackages(User currentUser, int? ownerKey, int? groupKey)
+        {
             if (currentUser == null)
             {
                 throw new ArgumentNullException(nameof(currentUser));
@@ -51,8 +61,14 @@ namespace NuGetGallery
                 .Select(owner => owner.Key)
                 .ToArray();
 
-            return GetCurrentAttempts()
-                .Where(attempt => ownerKeys.Contains(attempt.StagedPackageIdentity.OwnerKey))
+            var query = GetCurrentAttempts()
+                .Where(attempt => ownerKeys.Contains(attempt.StagedPackageIdentity.OwnerKey));
+            if (ownerKey.HasValue)
+            {
+                query = query.Where(attempt => attempt.StagedPackageIdentity.OwnerKey == ownerKey.Value && attempt.StagedPackageIdentity.StagingGroupKey == groupKey);
+            }
+
+            return query
                 .AsEnumerable()
                 .Where(attempt => _authorizationService.CanManage(currentUser, attempt))
                 .OrderBy(attempt => attempt.StagedPackageIdentity.Package.PackageRegistration.Id)

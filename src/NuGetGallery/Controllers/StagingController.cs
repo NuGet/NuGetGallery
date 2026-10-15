@@ -337,21 +337,11 @@ namespace NuGetGallery
 
         private ActionResult GroupView(User currentUser, StagingGroup group)
         {
-            var stagedPackages = _packageStagingManagementService
-                .GetStagedPackages(currentUser)
-                .Where(stagedPackage =>
-                    stagedPackage.StagedPackageIdentity.OwnerKey == group.OwnerKey &&
-                    stagedPackage.StagedPackageIdentity.StagingGroupKey == group.Key)
-                .ToList();
-            var stagingGroups = _packageStagingManagementService
-                .GetStagingGroups(currentUser)
-                .Where(candidate => candidate.OwnerKey == group.OwnerKey)
-                .ToList();
+            var stagedPackages = _packageStagingManagementService.GetStagedPackages(currentUser, group.OwnerKey, group.Key);
+            var stagingGroups = _packageStagingManagementService.GetStagingGroups(currentUser, group.OwnerKey);
 
             var model = CreateGroupViewModel(group.Owner.Username, group.Id, group.Name, null, stagedPackages, stagingGroups, group.ActivePromotionId.HasValue, group.PromotionMessageSentDate);
-            var stagedSymbols = _symbolPackageStagingManagementService.GetStagedSymbolPackages(currentUser)
-                .Where(attempt => attempt.StagedPackageIdentity.OwnerKey == group.OwnerKey && attempt.StagedPackageIdentity.StagingGroupKey == group.Key)
-                .ToList();
+            var stagedSymbols = _symbolPackageStagingManagementService.GetStagedSymbolPackages(currentUser, group.OwnerKey, group.Key);
             AddSymbolPackages(model, stagedSymbols, stagingGroups);
             return View(nameof(Group), model);
         }
@@ -371,19 +361,10 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var stagedPackages = _packageStagingManagementService
-                .GetStagedPackages(currentUser)
-                .Where(package => package.StagedPackageIdentity.StagingGroupKey == null
-                    && package.StagedPackageIdentity.OwnerKey == stagingOwner.Key)
-                .ToList();
-            var stagingGroups = _packageStagingManagementService
-                .GetStagingGroups(currentUser)
-                .Where(group => group.OwnerKey == stagingOwner.Key)
-                .ToList();
+            var stagedPackages = _packageStagingManagementService.GetStagedPackages(currentUser, stagingOwner.Key, groupKey: null);
+            var stagingGroups = _packageStagingManagementService.GetStagingGroups(currentUser, stagingOwner.Key);
             var model = CreateGroupViewModel(stagingOwner.Username, id: null, "Ungrouped", "Staged packages not in any group", stagedPackages, stagingGroups);
-            var stagedSymbols = _symbolPackageStagingManagementService.GetStagedSymbolPackages(currentUser)
-                .Where(attempt => attempt.StagedPackageIdentity.OwnerKey == stagingOwner.Key && !attempt.StagedPackageIdentity.StagingGroupKey.HasValue)
-                .ToList();
+            var stagedSymbols = _symbolPackageStagingManagementService.GetStagedSymbolPackages(currentUser, stagingOwner.Key, groupKey: null);
             AddSymbolPackages(model, stagedSymbols, stagingGroups);
 
             return View("Group", model);

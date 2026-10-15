@@ -35,6 +35,40 @@ namespace NuGetGallery
             Assert.Same(context.Attempt, Assert.Single(context.Target.GetStagedSymbolPackages(context.Owner)));
         }
 
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void ListsOnlyAuthorizedSymbolsInTheRequestedOwnerAndGroup(bool grouped)
+        {
+            var context = new TestContext();
+            int? groupKey = null;
+            if (grouped)
+            {
+                groupKey = 10;
+            }
+
+            context.Attempt.StagedPackageIdentity.StagingGroupKey = groupKey;
+            var otherGroup = context.AddAttempt(2);
+            otherGroup.StagedPackageIdentity.StagingGroupKey = grouped ? null : 10;
+            var otherOwner = new User("other") { Key = 20 };
+            var otherOwnerSymbols = context.AddAttempt(3);
+            otherOwnerSymbols.StagedPackageIdentity.OwnerKey = otherOwner.Key;
+            otherOwnerSymbols.StagedPackageIdentity.StagingGroupKey = groupKey;
+            context.AuthorizationService.Setup(x => x.GetEnabledOwners(context.Owner)).Returns(new[] { context.Owner, otherOwner });
+            var lostPermission = context.AddAttempt(4);
+            lostPermission.StagedPackageIdentity.StagingGroupKey = groupKey;
+            context.AuthorizationService.Setup(x => x.CanManage(context.Owner, lostPermission)).Returns(false);
+            var disabled = context.AddAttempt(5);
+            disabled.StagedPackageIdentity.OwnerKey = 999;
+            disabled.StagedPackageIdentity.StagingGroupKey = groupKey;
+
+            Assert.Same(context.Attempt, Assert.Single(context.Target.GetStagedSymbolPackages(context.Owner, context.Owner.Key, groupKey)));
+            Assert.Empty(context.Target.GetStagedSymbolPackages(context.Owner, 999, groupKey));
+            context.AuthorizationService.Verify(x => x.CanManage(context.Owner, context.Attempt), Times.Once);
+            context.AuthorizationService.Verify(x => x.CanManage(context.Owner, lostPermission), Times.Once);
+            context.AuthorizationService.Verify(x => x.CanManage(context.Owner, It.IsAny<StagedSymbolPackage>()), Times.Exactly(2));
+        }
+
         [Fact]
         public async Task DownloadsExactUploadedSymbolContent()
         {

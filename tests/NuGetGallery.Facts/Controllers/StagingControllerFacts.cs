@@ -22,7 +22,7 @@ namespace NuGetGallery
         public StagingControllerFacts()
         {
             GetMock<ISymbolPackageStagingManagementService>()
-                .Setup(x => x.GetStagedSymbolPackages(It.IsAny<User>()))
+                .Setup(x => x.GetStagedSymbolPackages(It.IsAny<User>(), It.IsAny<int>(), It.IsAny<int?>()))
                 .Returns(new List<StagedSymbolPackage>());
         }
 
@@ -35,16 +35,13 @@ namespace NuGetGallery
             var attempt = CreateStagedSymbolPackage(owner);
             attempt.Status = StagedPackageStatus.FailedValidation;
             attempt.StagedPackageIdentity.Package.PackageStatusKey = parentStatus;
-            var grouped = CreateStagedSymbolPackage(owner);
-            grouped.StagedPackageIdentity.StagingGroupKey = 10;
-            var otherOwner = CreateStagedSymbolPackage(new User("other") { Key = 2 });
             var issue = ValidationIssue.SymbolErrorCode_MatchingAssemblyNotFound;
             GetMock<IPackageStagingAuthorizationService>().Setup(x => x.GetEnabledOwner(owner, owner.Username)).Returns(owner);
-            GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagedPackages(owner)).Returns(new List<StagedPackage>());
-            GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagingGroups(owner)).Returns(new List<StagingGroup>());
+            GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagedPackages(owner, owner.Key, null)).Returns(new List<StagedPackage>());
+            GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagingGroups(owner, owner.Key)).Returns(new List<StagingGroup>());
             GetMock<ISymbolPackageStagingManagementService>()
-                .Setup(x => x.GetStagedSymbolPackages(owner))
-                .Returns(new[] { attempt, grouped, otherOwner });
+                .Setup(x => x.GetStagedSymbolPackages(owner, owner.Key, null))
+                .Returns(new[] { attempt });
             GetMock<IValidationService>()
                 .Setup(x => x.GetStagedSymbolPackageValidationIssues(It.Is<IReadOnlyCollection<int>>(keys => keys.SequenceEqual(new[] { attempt.Key }))))
                 .Returns(new Dictionary<int, IReadOnlyList<ValidationIssue>> { { attempt.Key, new[] { issue } } });
@@ -91,10 +88,10 @@ namespace NuGetGallery
             parent.StagedPackageIdentity.CurrentStagedSymbolPackageKey = attempt.Key;
             parent.StagedPackageIdentity.CurrentStagedSymbolPackage = attempt;
             GetMock<IPackageStagingAuthorizationService>().Setup(x => x.GetEnabledOwner(owner, owner.Username)).Returns(owner);
-            GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagedPackages(owner)).Returns(new[] { parent });
-            GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagingGroups(owner)).Returns(new[] { group });
+            GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagedPackages(owner, owner.Key, parent.StagedPackageIdentity.StagingGroupKey)).Returns(new[] { parent });
+            GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagingGroups(owner, owner.Key)).Returns(new[] { group });
             GetMock<IPackageStagingManagementService>().Setup(x => x.FindStagingGroup(owner, group.Id)).Returns(group);
-            GetMock<ISymbolPackageStagingManagementService>().Setup(x => x.GetStagedSymbolPackages(owner)).Returns(new[] { attempt });
+            GetMock<ISymbolPackageStagingManagementService>().Setup(x => x.GetStagedSymbolPackages(owner, owner.Key, parent.StagedPackageIdentity.StagingGroupKey)).Returns(new[] { attempt });
             GetMock<IValidationService>().Setup(x => x.GetStagedPackageValidationIssues(It.IsAny<IReadOnlyCollection<int>>())).Returns(new Dictionary<int, IReadOnlyList<ValidationIssue>>());
             var target = GetController<StagingController>();
             target.SetCurrentUser(owner);
@@ -381,7 +378,6 @@ namespace NuGetGallery
             failedPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
             var readyPackage = CreateStagedPackage(43, "Ready.Package", "2.0.0", currentUser, StagedPackageStatus.Ready);
             readyPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
-            var ungroupedPackage = CreateStagedPackage(44, "Ungrouped.Package", "3.0.0", currentUser, StagedPackageStatus.Ready);
             var validationIssue = ValidationIssue.PackageIsZip64;
             GetMock<IPackageStagingAuthorizationService>()
                 .Setup(x => x.GetEnabledOwner(currentUser, "current"))
@@ -390,10 +386,10 @@ namespace NuGetGallery
                 .Setup(x => x.FindStagingGroup(currentUser, "test-group"))
                 .Returns(group);
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagedPackages(currentUser))
-                .Returns(new[] { readyPackage, ungroupedPackage, failedPackage });
+                .Setup(x => x.GetStagedPackages(currentUser, currentUser.Key, group.Key))
+                .Returns(new[] { readyPackage, failedPackage });
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagingGroups(currentUser))
+                .Setup(x => x.GetStagingGroups(currentUser, currentUser.Key))
                 .Returns(new[] { group });
             GetMock<IValidationService>()
                 .Setup(x => x.GetStagedPackageValidationIssues(
@@ -451,10 +447,10 @@ namespace NuGetGallery
                 .Setup(x => x.FindStagingGroup(currentUser, group.Id))
                 .Returns(group);
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagedPackages(currentUser))
+                .Setup(x => x.GetStagedPackages(currentUser, currentUser.Key, group.Key))
                 .Returns(new[] { promotingPackage, failedPackage });
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagingGroups(currentUser))
+                .Setup(x => x.GetStagingGroups(currentUser, currentUser.Key))
                 .Returns(new[] { group });
             var target = GetController<StagingController>();
             target.SetCurrentUser(currentUser);
@@ -504,10 +500,10 @@ namespace NuGetGallery
                 .Setup(x => x.FindStagingGroup(currentUser, group.Id))
                 .Returns(group);
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagedPackages(currentUser))
+                .Setup(x => x.GetStagedPackages(currentUser, currentUser.Key, group.Key))
                 .Returns(readyPackages);
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagingGroups(currentUser))
+                .Setup(x => x.GetStagingGroups(currentUser, currentUser.Key))
                 .Returns(new[] { group });
             var target = GetController<StagingController>();
             target.SetCurrentUser(currentUser);
@@ -579,10 +575,10 @@ namespace NuGetGallery
                 .Setup(x => x.FindStagingGroup(currentUser, group.Id))
                 .Returns(group);
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagedPackages(currentUser))
+                .Setup(x => x.GetStagedPackages(currentUser, currentUser.Key, group.Key))
                 .Returns(Enumerable.Empty<StagedPackage>().ToList());
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagingGroups(currentUser))
+                .Setup(x => x.GetStagingGroups(currentUser, currentUser.Key))
                 .Returns(new[] { group });
             var target = GetController<StagingController>();
             target.SetCurrentUser(currentUser);
@@ -710,16 +706,14 @@ namespace NuGetGallery
                 ungroupedPackage.StagedPackageIdentity.CurrentStagedSymbolPackageKey = 100;
             }
 
-            var groupedPackage = CreateStagedPackage(43, "Grouped.Package", "2.0.0", currentUser, StagedPackageStatus.Ready);
-            groupedPackage.StagedPackageIdentity.StagingGroupKey = 10;
             GetMock<IPackageStagingAuthorizationService>()
                 .Setup(x => x.GetEnabledOwner(currentUser, "current"))
                 .Returns(currentUser);
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagedPackages(currentUser))
-                .Returns(new[] { groupedPackage, ungroupedPackage });
+                .Setup(x => x.GetStagedPackages(currentUser, currentUser.Key, null))
+                .Returns(new[] { ungroupedPackage });
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagingGroups(currentUser))
+                .Setup(x => x.GetStagingGroups(currentUser, currentUser.Key))
                 .Returns(Enumerable.Empty<StagingGroup>().ToList());
             var target = GetController<StagingController>();
             target.SetCurrentUser(currentUser);
@@ -749,10 +743,10 @@ namespace NuGetGallery
                 .Setup(x => x.GetEnabledOwner(currentUser, currentUser.Username))
                 .Returns(currentUser);
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagedPackages(currentUser))
+                .Setup(x => x.GetStagedPackages(currentUser, currentUser.Key, null))
                 .Returns(new[] { stagedPackage });
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagingGroups(currentUser))
+                .Setup(x => x.GetStagingGroups(currentUser, currentUser.Key))
                 .Returns(new List<StagingGroup>());
             var target = GetController<StagingController>();
             target.SetCurrentUser(currentUser);
@@ -772,10 +766,10 @@ namespace NuGetGallery
                 .Setup(x => x.GetEnabledOwner(currentUser, currentUser.Username))
                 .Returns(currentUser);
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagedPackages(currentUser))
+                .Setup(x => x.GetStagedPackages(currentUser, currentUser.Key, null))
                 .Returns(System.Array.Empty<StagedPackage>());
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagingGroups(currentUser))
+                .Setup(x => x.GetStagingGroups(currentUser, currentUser.Key))
                 .Returns(new List<StagingGroup>());
             var target = GetController<StagingController>();
             target.SetCurrentUser(currentUser);
@@ -792,17 +786,15 @@ namespace NuGetGallery
         public void HidesUngroupedPageFromUnauthorizedOwners()
         {
             var currentUser = new User("current") { Key = 1 };
-            var otherOwner = new User("other") { Key = 2 };
-            var otherPackage = CreateStagedPackage(42, "Other.Package", "1.0.0", otherOwner, StagedPackageStatus.Ready);
-            GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagedPackages(currentUser))
-                .Returns(new[] { otherPackage });
             var target = GetController<StagingController>();
             target.SetCurrentUser(currentUser);
 
             var result = target.Ungrouped(currentUser.Username);
 
             Assert.IsType<HttpNotFoundResult>(result);
+            GetMock<IPackageStagingManagementService>().Verify(
+                x => x.GetStagedPackages(It.IsAny<User>(), It.IsAny<int>(), It.IsAny<int?>()),
+                Times.Never);
         }
 
         [Fact]
@@ -834,10 +826,10 @@ namespace NuGetGallery
                 .Setup(x => x.FindStagingGroup(currentUser, group.Id))
                 .Returns(group);
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagedPackages(currentUser))
+                .Setup(x => x.GetStagedPackages(currentUser, currentUser.Key, group.Key))
                 .Returns(stagedPackages);
             GetMock<IPackageStagingManagementService>()
-                .Setup(x => x.GetStagingGroups(currentUser))
+                .Setup(x => x.GetStagingGroups(currentUser, currentUser.Key))
                 .Returns(new[] { group });
             var target = GetController<StagingController>();
             target.SetCurrentUser(currentUser);
@@ -1044,7 +1036,7 @@ namespace NuGetGallery
 
             Assert.IsType<HttpNotFoundResult>(result);
             GetMock<IPackageStagingManagementService>().Verify(
-                x => x.GetStagedPackages(It.IsAny<User>()),
+                x => x.GetStagedPackages(It.IsAny<User>(), It.IsAny<int>(), It.IsAny<int?>()),
                 Times.Never);
         }
 

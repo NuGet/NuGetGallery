@@ -48,6 +48,46 @@ namespace NuGetGallery
                     result.Select(stagedPackage => stagedPackage.StagedPackageIdentity.Owner.Username));
             }
 
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void ListsOnlyAuthorizedPackagesInTheRequestedOwnerAndGroup(bool grouped)
+            {
+                var currentUser = new User("current") { Key = 1 };
+                var organization = new Organization("organization") { Key = 2 };
+                var disabledOwner = new User("disabled") { Key = 3 };
+                int? groupKey = null;
+                if (grouped)
+                {
+                    groupKey = 10;
+                }
+
+                var matching = CreateStagedPackage(10, "Matching.Package", "1.0.0", organization);
+                matching.StagedPackageIdentity.StagingGroupKey = groupKey;
+                var otherGroup = CreateStagedPackage(11, "Other.Group", "1.0.0", organization);
+                otherGroup.StagedPackageIdentity.StagingGroupKey = grouped ? null : 10;
+                var otherOwner = CreateStagedPackage(12, "Other.Owner", "1.0.0", currentUser);
+                otherOwner.StagedPackageIdentity.StagingGroupKey = groupKey;
+                var lostPermission = CreateStagedPackage(13, "Lost.Permission", "1.0.0", organization);
+                lostPermission.StagedPackageIdentity.StagingGroupKey = groupKey;
+                var disabledPackage = CreateStagedPackage(14, "Disabled.Package", "1.0.0", disabledOwner);
+                disabledPackage.StagedPackageIdentity.StagingGroupKey = groupKey;
+                var authorizationService = new Mock<IPackageStagingAuthorizationService>();
+                authorizationService.Setup(x => x.GetEnabledOwners(currentUser)).Returns(new User[] { currentUser, organization });
+                authorizationService.Setup(x => x.CanManage(currentUser, It.IsAny<StagedPackage>()))
+                    .Returns<User, StagedPackage>((user, package) => package != lostPermission);
+                var target = CreateService(
+                    new[] { matching, otherGroup, otherOwner, lostPermission, disabledPackage },
+                    owner => true,
+                    authorizationService: authorizationService.Object);
+
+                Assert.Same(matching, Assert.Single(target.GetStagedPackages(currentUser, organization.Key, groupKey)));
+                Assert.Empty(target.GetStagedPackages(currentUser, disabledOwner.Key, groupKey));
+                authorizationService.Verify(x => x.CanManage(currentUser, matching), Times.Once);
+                authorizationService.Verify(x => x.CanManage(currentUser, lostPermission), Times.Once);
+                authorizationService.Verify(x => x.CanManage(currentUser, It.IsAny<StagedPackage>()), Times.Exactly(2));
+            }
+
             [Fact]
             public void ListsOnlyTheNewestAttemptForEachStagedPackage()
             {
@@ -112,6 +152,9 @@ namespace NuGetGallery
                 var result = target.GetStagingGroups(currentUser);
 
                 Assert.Equal(new[] { "a-group", "z-group", "org-group" }, result.Select(group => group.Id));
+                Assert.Equal(new[] { "a-group", "z-group" }, target.GetStagingGroups(currentUser, currentUser.Key).Select(group => group.Id));
+                Assert.Equal("org-group", Assert.Single(target.GetStagingGroups(currentUser, organization.Key)).Id);
+                Assert.Empty(target.GetStagingGroups(currentUser, disabledOrganization.Key));
             }
 
             [Fact]

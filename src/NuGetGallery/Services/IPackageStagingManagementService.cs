@@ -83,11 +83,28 @@ namespace NuGetGallery
         IReadOnlyList<StagedPackage> GetStagedPackages(User currentUser);
 
         /// <summary>
+        /// Gets owner-visible staged packages in the specified owner's group or Ungrouped.
+        /// </summary>
+        /// <param name="currentUser">The user requesting the staged packages.</param>
+        /// <param name="ownerKey">The staging owner's key.</param>
+        /// <param name="groupKey">The group key, or <see langword="null"/> for Ungrouped.</param>
+        /// <returns>The owner-visible staged packages in the requested scope.</returns>
+        IReadOnlyList<StagedPackage> GetStagedPackages(User currentUser, int ownerKey, int? groupKey);
+
+        /// <summary>
         /// Gets staging groups owned by the user or an enabled organization the user belongs to.
         /// </summary>
         /// <param name="currentUser">The user requesting the staging groups.</param>
         /// <returns>The owner-visible staging groups.</returns>
         IReadOnlyList<StagingGroup> GetStagingGroups(User currentUser);
+
+        /// <summary>
+        /// Gets owner-visible staging groups for the specified owner.
+        /// </summary>
+        /// <param name="currentUser">The user requesting the staging groups.</param>
+        /// <param name="ownerKey">The staging owner's key.</param>
+        /// <returns>The owner-visible staging groups for the requested owner.</returns>
+        IReadOnlyList<StagingGroup> GetStagingGroups(User currentUser, int ownerKey);
 
         /// <summary>
         /// Finds a staging group for an authorized owner.
