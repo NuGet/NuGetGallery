@@ -107,22 +107,22 @@ namespace NuGetGallery
         Accepted,
 
         /// <summary>
-        /// The user cannot promote every package in the staging group.
+        /// The user cannot promote every package and symbol in the staging group.
         /// </summary>
         Unauthorized,
 
         /// <summary>
-        /// The staging group has no current package members.
+        /// The staging group has no current package or symbol members.
         /// </summary>
         Empty,
 
         /// <summary>
-        /// At least one current package is not ready for promotion.
+        /// At least one current package or symbol is not eligible for promotion.
         /// </summary>
         NotReady,
 
         /// <summary>
-        /// The staging group or one of its packages changed while promotion was being accepted.
+        /// The staging group or one of its artifacts changed while promotion was being accepted.
         /// </summary>
         Conflict,
 
@@ -130,10 +130,5 @@ namespace NuGetGallery
         /// The promotion is active, but its message could not be confirmed as sent; it can be retried now.
         /// </summary>
         DispatchFailed,
-
-        /// <summary>
-        /// The group contains staged symbols whose promotion is not available yet.
-        /// </summary>
-        SymbolsNotSupported,
     }
 }

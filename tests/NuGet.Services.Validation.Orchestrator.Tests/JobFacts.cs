@@ -78,6 +78,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             builder.RegisterInstance(attempts.Object).As<IEntityRepository<StagedSymbolPackage>>();
             builder.RegisterInstance(symbols.Object).As<IEntityRepository<SymbolPackage>>();
             builder.RegisterInstance(Mock.Of<IEntityRepository<StagedPackageIdentity>>()).As<IEntityRepository<StagedPackageIdentity>>();
+            builder.RegisterInstance(Mock.Of<IEntityRepository<StagedPackage>>()).As<IEntityRepository<StagedPackage>>();
+            builder.RegisterInstance(Mock.Of<IEntityRepository<StagingGroup>>()).As<IEntityRepository<StagingGroup>>();
+            builder.RegisterInstance(Mock.Of<ILogger<StagingGroupPromotionService>>()).As<ILogger<StagingGroupPromotionService>>();
             builder.RegisterInstance(symbolService.Object).As<ICoreSymbolPackageService>();
             builder.RegisterInstance(stagingBlobs.Object).As<IStagingBlobService>();
             builder.RegisterInstance(publicStorage.Object).Keyed<ICoreFileStorageService>("PackageStorage");

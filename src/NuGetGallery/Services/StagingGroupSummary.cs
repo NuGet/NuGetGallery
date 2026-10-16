@@ -84,7 +84,7 @@ namespace NuGetGallery
         /// <param name="group">The staging group.</param>
         /// <param name="items">The package attempts on the requested page.</param>
         /// <param name="totalCount">The total number of current package and symbol attempts in the group.</param>
-        /// <param name="allPackagesReady">Whether every current package and symbol attempt in the group is ready.</param>
+        /// <param name="allPackagesReady">Whether every current package and symbol attempt in the group is eligible for promotion.</param>
         /// <param name="symbols">The symbol attempts on the requested artifact page.</param>
         /// <param name="symbolCount">The total number of current symbol attempts in the group.</param>
         public StagingGroupPackagePage(
@@ -129,7 +129,7 @@ namespace NuGetGallery
         public int TotalCount { get; }
 
         /// <summary>
-        /// Gets whether every current package and symbol attempt in the group is ready.
+        /// Gets whether every current package and symbol attempt in the group is eligible for promotion.
         /// </summary>
         public bool AllPackagesReady { get; }
 

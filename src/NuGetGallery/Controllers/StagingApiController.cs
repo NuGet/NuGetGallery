@@ -203,7 +203,7 @@ namespace NuGetGallery
                     summary.Packages,
                     summary.Group.CreatedDate.Add(InitialGroupExpiration),
                     Url.ManageStagingGroup(summary.Group.Owner.Username, summary.Group.Id, relativeUrl: false),
-                    summary.Symbols.Count))
+                    summary.Symbols))
                 .ToList();
 
             return JsonContent(new StagingPagedResponse<StagingGroupResponse>(

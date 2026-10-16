@@ -12,7 +12,7 @@ namespace NuGetGallery
     /// </summary>
     internal static class StagedSymbolPackagePromotionEligibility
     {
-        internal static IReadOnlyList<StagingBlockerResponse> GetBlockers(StagedSymbolPackage attempt, StagedPackage parentAttempt = null)
+        internal static IReadOnlyList<StagingBlockerResponse> GetBlockers(StagedSymbolPackage attempt, StagedPackage parentAttempt = null, bool forGroup = false)
         {
             if (attempt == null)
             {
@@ -30,9 +30,9 @@ namespace NuGetGallery
                 blockers.Add(new StagingBlockerResponse("SymbolsNotReady", "The staged symbols are not ready for promotion."));
             }
 
-            if (identity.StagingGroupKey.HasValue)
+            if (identity.StagingGroupKey.HasValue && !forGroup)
             {
-                blockers.Add(new StagingBlockerResponse("SymbolPromotionUnavailable", "Symbol promotion is not available for staging groups yet."));
+                blockers.Add(new StagingBlockerResponse("GroupPromotionRequired", "Promote these symbols with their staging group."));
             }
 
             if (identity.CurrentStagedSymbolPackageKey != attempt.Key || attempt.SymbolPackage.StatusKey != PackageStatus.Staged)
