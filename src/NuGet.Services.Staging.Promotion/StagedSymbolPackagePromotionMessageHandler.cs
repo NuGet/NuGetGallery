@@ -101,6 +101,11 @@ namespace NuGet.Services.Staging.Promotion
             var trackingId = SymbolPromotionValidationTrackingId.Create(message.PromotionId, attempt.Key);
             var validation = PackageValidationMessageData.NewProcessValidationSet(package.Id, package.NormalizedVersion, trackingId, ValidatingType.StagedSymbolPackage, attempt.Key);
             await _symbolsOrchestrator.SendMessageAsync(validation);
+            _logger.LogInformation(
+                "Dispatched symbol promotion {PromotionId} for attempt {AttemptKey} to the orchestrator with validation tracking ID {ValidationTrackingId}.",
+                message.PromotionId,
+                attempt.Key,
+                trackingId);
             return true;
         }
     }

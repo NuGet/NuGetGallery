@@ -110,6 +110,7 @@ namespace NuGet.Services.Staging.Promotion
                 foreach (var symbols in stagedSymbols)
                 {
                     await _messageEnqueuer.SendMessageAsync(StagingPromotionMessage.ForSymbolPackage(message.PromotionId, symbols.Key));
+                    _logger.LogInformation("Dispatched symbol promotion message for attempt {AttemptKey}.", symbols.Key);
                     symbols.PromotionMessageSentDate = DateTime.UtcNow;
                     await _stagedSymbolPackageRepository.CommitChangesAsync();
                 }

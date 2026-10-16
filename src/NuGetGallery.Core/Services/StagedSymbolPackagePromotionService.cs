@@ -181,7 +181,7 @@ namespace NuGetGallery
                 throw;
             }
 
-            if (attempt.Status == StagedPackageStatus.Succeeded)
+            if (symbol.StatusKey == PackageStatus.Available)
             {
                 _logger.LogInformation(
                     "Public symbols published for promotion {PromotionId}, attempt {AttemptKey}, symbol package {SymbolPackageKey}.",
@@ -228,6 +228,12 @@ namespace NuGetGallery
                     }
 
                     await _attempts.CommitChangesAsync();
+                    _logger.LogInformation(
+                        "Committed symbol attempt {AttemptKey} outcome {AttemptStatus} for group {StagingGroupKey}, promotion {PromotionId}.",
+                        attempt.Key,
+                        attempt.Status,
+                        attempt.StagedPackageIdentity.StagingGroupKey,
+                        promotionId);
                 }
 
                 await _groups.TryFinalizeAsync(attempt.StagedPackageIdentity.StagingGroupKey.Value, promotionId);
