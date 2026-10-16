@@ -3,13 +3,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
     /// <summary>
-    /// Shares initial symbol-promotion eligibility between acceptance, owner controls, and API status.
+    /// Shares symbol-promotion eligibility between acceptance, owner controls, and API status.
     /// </summary>
     internal static class StagedSymbolPackagePromotionEligibility
     {
@@ -44,11 +43,6 @@ namespace NuGetGallery
             if (identity.Package.PackageStatusKey != PackageStatus.Available)
             {
                 blockers.Add(new StagingBlockerResponse("ParentPackageNotAvailable", "Publish the parent package before promoting these symbols."));
-            }
-
-            if (identity.Package.SymbolPackages.Any(symbols => symbols.StatusKey == PackageStatus.Available))
-            {
-                blockers.Add(new StagingBlockerResponse("PublicSymbolsExist", "Replacing published symbols is not available yet."));
             }
 
             return blockers;
