@@ -100,6 +100,7 @@ namespace NuGet.Services.Staging.Promotion
                     && !stagedPackage.StagedPackageIdentity.StagingGroupKey.HasValue
                     && stagedPackage.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Available)
                 {
+                    _logger.LogInformation("Resuming symbol promotion handoff and staging cleanup after committed parent publication.");
                     await SendSymbolFollowUpAndCleanUpAsync(stagedPackage);
                     return true;
                 }
@@ -163,6 +164,7 @@ namespace NuGet.Services.Staging.Promotion
                     else if (stagedPackage.Status == StagedPackageStatus.Succeeded)
                     {
                         // Publication has committed. Dispatch failures must not compensate the public package.
+                        _logger.LogInformation("Parent publication committed. Proceeding to symbol promotion handoff and staging cleanup.");
                         await SendSymbolFollowUpAndCleanUpAsync(stagedPackage);
                     }
 
@@ -363,6 +365,7 @@ namespace NuGet.Services.Staging.Promotion
                 _logger.LogInformation("Dispatching accepted symbol attempt {AttemptKey} after parent publication.", symbols.Key);
                 await _messageEnqueuer.SendMessageAsync(StagingPromotionMessage.ForSymbolPackage(stagedPackage.ActivePromotionId.Value, symbols.Key));
                 symbols.PromotionMessageSentDate = DateTime.UtcNow;
+                _logger.LogInformation("Dispatched accepted symbol attempt {AttemptKey} after parent publication.", symbols.Key);
             }
 
             await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
@@ -371,6 +374,7 @@ namespace NuGet.Services.Staging.Promotion
                 await _stagedPackageRepository.CommitChangesAsync();
                 await DeleteUnusedIdentityAsync(stagedPackage.StagedPackageIdentity);
             });
+            _logger.LogInformation("Completed parent staging cleanup after publication.");
         }
 
         private void RemoveStagedPackage(StagedPackage stagedPackage)
