@@ -39,6 +39,7 @@
         this.DeleteDisabledReasonId = packageItem.DeleteDisabledReasonId;
         this.CanPromote = packageItem.CanPromote;
         this.ReplacesPublishedSymbols = packageItem.ReplacesPublishedSymbols;
+        this.IncludesStagedSymbols = packageItem.IncludesStagedSymbols;
         this.CanResend = packageItem.CanResend;
         this.PromotionBlocker = packageItem.PromotionBlocker;
         this.MoveUrl = packageItem.MoveUrl;
@@ -110,6 +111,9 @@
             const trigger = $(event.currentTarget);
             const artifact = self.IsSymbolPackage ? 'symbols' : 'package';
             let message = `Promote staged ${artifact} ${self.Id} ${self.Version}?`;
+            if (self.IncludesStagedSymbols) {
+                message += ' Its Ready staged symbols will be promoted after the package is published.';
+            }
             if (self.ReplacesPublishedSymbols) {
                 message += ' This will replace the currently published symbols if promotion succeeds.';
             }

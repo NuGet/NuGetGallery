@@ -831,15 +831,24 @@ namespace NuGetGallery
         }
 
         [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public void DisplaysUngroupedPackagesForAnOwner(bool hasStagedSymbols)
+        [InlineData(null, false)]
+        [InlineData(StagedPackageStatus.Ready, true)]
+        [InlineData(StagedPackageStatus.Validating, false)]
+        public void DisplaysUngroupedPackagesForAnOwner(StagedPackageStatus? symbolStatus, bool includesSymbols)
         {
             var currentUser = new User("Current") { Key = 1 };
             var ungroupedPackage = CreateStagedPackage(42, "Ungrouped.Package", "1.0.0", currentUser, StagedPackageStatus.Ready);
-            if (hasStagedSymbols)
+            if (symbolStatus.HasValue)
             {
-                ungroupedPackage.StagedPackageIdentity.CurrentStagedSymbolPackageKey = 100;
+                var identity = ungroupedPackage.StagedPackageIdentity;
+                identity.CurrentStagedSymbolPackageKey = 100;
+                identity.CurrentStagedSymbolPackage = new StagedSymbolPackage
+                {
+                    Key = 100,
+                    StagedPackageIdentity = identity,
+                    SymbolPackage = new SymbolPackage { StatusKey = PackageStatus.Staged },
+                    Status = symbolStatus.Value,
+                };
             }
 
             GetMock<IPackageStagingAuthorizationService>()
@@ -866,6 +875,7 @@ namespace NuGetGallery
             Assert.Equal("Ungrouped.Package", package.Id);
             Assert.True(package.CanDelete);
             Assert.True(package.CanManage);
+            Assert.Equal(includesSymbols, package.IncludesStagedSymbols);
         }
 
         [Fact]

@@ -160,6 +160,24 @@ namespace NuGetGallery
         }
 
         [Fact]
+        public async Task PairedSymbolsCannotBeResentUntilTheParentIsPublic()
+        {
+            var fixture = new Fixture();
+            fixture.Attempt.Status = StagedPackageStatus.Promoting;
+            fixture.Attempt.ActivePromotionId = Guid.NewGuid();
+            fixture.Attempt.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Staged;
+            var promotionId = fixture.Attempt.ActivePromotionId;
+
+            Assert.Equal(PackageStagingPromotionResult.NotReady, await fixture.Service.ResendSymbolPackageAsync(fixture.Owner, fixture.Attempt));
+            fixture.Repository.Verify(repository => repository.CommitChangesAsync(), Times.Never);
+            fixture.Enqueuer.Verify(enqueuer => enqueuer.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
+            fixture.Attempt.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Available;
+
+            Assert.Equal(PackageStagingPromotionResult.Accepted, await fixture.Service.ResendSymbolPackageAsync(fixture.Owner, fixture.Attempt));
+            Assert.Equal(promotionId, fixture.Attempt.ActivePromotionId);
+        }
+
+        [Fact]
         public async Task FailedPromotionCannotBePromotedOrResent()
         {
             var fixture = new Fixture();

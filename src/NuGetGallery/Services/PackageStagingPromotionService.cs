@@ -69,12 +69,28 @@ namespace NuGetGallery
                 return PackageStagingPromotionResult.NotReady;
             }
 
+            var symbols = _stagedSymbolPackageRepository.GetAll()
+                .Include(attempt => attempt.SymbolPackage)
+                .Include(attempt => attempt.StagedPackageIdentity.Package)
+                .SingleOrDefault(attempt => attempt.Key == stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackageKey);
+            if (symbols != null && (!_authorizationService.CanManage(currentUser, symbols) || StagedSymbolPackagePromotionEligibility.GetBlockers(symbols, stagedPackage).Count > 0))
+            {
+                symbols = null;
+            }
+
             var promotionId = Guid.NewGuid();
             try
             {
                 stagedPackage.ActivePromotionId = promotionId;
                 stagedPackage.PromotionMessageSentDate = DateTime.UtcNow;
                 stagedPackage.Status = StagedPackageStatus.Promoting;
+                if (symbols != null)
+                {
+                    symbols.ActivePromotionId = promotionId;
+                    symbols.Status = StagedPackageStatus.Promoting;
+                    symbols.PromotionMessageSentDate = null;
+                }
+
                 await _stagedPackageRepository.CommitChangesAsync();
             }
             catch (DbUpdateConcurrencyException exception)
