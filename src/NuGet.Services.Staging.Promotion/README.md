@@ -52,6 +52,12 @@ not support this blob-metadata contract; staging uses Azure Blob Storage or
 Azurite. Embedded license/readme extraction still opens the validated package
 when needed, and publication lease checks are unchanged.
 
+Group finalization first uses SQL existence checks for unfinished accepted
+parents/symbols, avoiding full group materialization while work remains. Once
+those checks pass, it loads the accepted artifacts and checks readiness again
+before performing the existing transactional cleanup. This does not change
+when a group is considered complete.
+
 ## Publication timing
 
 `StagingPromotion.AcceptedToGallerySeconds` measures time from promotion
