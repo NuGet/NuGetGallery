@@ -29,6 +29,7 @@ namespace NuGetGallery
         private const string DisplayVulnerabilitiesFeatureName = GalleryPrefix + "DisplayVulnerabilities";
         private const string ManagePackagesVulnerabilitiesFeatureName = GalleryPrefix + "ManagePackagesVulnerabilities";
         private const string DisplayFuGetLinksFeatureName = GalleryPrefix + "DisplayFuGetLinks";
+        private const string RecentDownloadsPerDayFeatureName = GalleryPrefix + "RecentDownloadsPerDay";
         private const string DisplayNuGetPackageExplorerLinkFeatureName = GalleryPrefix + "DisplayNuGetPackageExplorerLink";
         private const string DisplayNuGetTrendsLinkFeatureName = GalleryPrefix + "DisplayNuGetTrendsLink";
         private const string ODataReadOnlyDatabaseFeatureName = GalleryPrefix + "ODataReadOnlyDatabase";
@@ -184,6 +185,11 @@ namespace NuGetGallery
         public bool IsDisplayFuGetLinksEnabled()
         {
             return _client.IsEnabled(DisplayFuGetLinksFeatureName, defaultValue: false);
+        }
+
+        public bool IsRecentDownloadsPerDayEnabled()
+        {
+            return _client.IsEnabled(RecentDownloadsPerDayFeatureName, defaultValue: false);
         }
 
         public bool IsDisplayNuGetPackageExplorerLinkEnabled()
