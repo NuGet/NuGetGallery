@@ -390,7 +390,7 @@ namespace NuGetGallery
                 Authorization.Setup(x => x.CanManage(Owner, Attempt)).Returns(true);
                 Repository.Setup(x => x.CommitChangesAsync()).Returns(Task.CompletedTask);
                 var packages = Mock.Of<IEntityRepository<StagedPackage>>(x => x.GetAll() == Array.Empty<StagedPackage>().AsQueryable());
-                Service = new PackageStagingPromotionService(Authorization.Object, Enqueuer.Object, packages, Repository.Object, Telemetry.Object);
+                Service = new PackageStagingPromotionService(Authorization.Object, Enqueuer.Object, packages, Repository.Object, Telemetry.Object, Mock.Of<IEntitiesContext>());
             }
 
             public Mock<ITelemetryService> Telemetry { get; } = new Mock<ITelemetryService>();

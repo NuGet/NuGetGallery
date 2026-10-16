@@ -30,6 +30,14 @@ attempt and carry the promotion ID used to reject stale deliveries.
 Published parents enter the normal catalog/V3 pipeline. Catalog generation,
 registration, and search indexing are separate jobs, not part of promotion.
 
+Gallery accepts a group in one database transaction, updating attempts in batches
+of at most 100 instead of one SQL round trip per artifact. Every group/attempt
+write checks its original row version; a conflict rolls back the entire
+acceptance and no work is dispatched. Attempt snapshots are untracked; the group
+uses the existing repository save and transaction APIs, so dispatch-failure
+recovery retains normal EF concurrency handling without tracking reconciliation.
+Individual acceptance and resend paths are unchanged. No schema change is required.
+
 ## Publication timing
 
 `StagingPromotion.AcceptedToGallerySeconds` measures time from promotion
