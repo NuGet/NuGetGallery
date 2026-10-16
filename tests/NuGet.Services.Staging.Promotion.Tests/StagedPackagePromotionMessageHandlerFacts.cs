@@ -15,6 +15,7 @@ using Newtonsoft.Json.Linq;
 using NuGet.Services.Entities;
 using NuGet.Services.Staging;
 using NuGetGallery;
+using NuGetGallery.Packaging;
 using Serilog;
 using Serilog.Events;
 using Xunit;
@@ -138,6 +139,16 @@ namespace NuGet.Services.Staging.Promotion.Tests
         public async Task PublishesExactValidatedPackageAndRemovesStagingRow(bool hasStagedSymbols)
         {
             var context = new TestContext();
+            var metadata = new PackageStreamMetadata
+            {
+                HashAlgorithm = CoreConstants.Sha512HashAlgorithmId,
+                Hash = Convert.ToBase64String(new byte[64]),
+                Size = 13600000,
+            };
+            context.Package.Hash = context.StagedPackage.UploadHash;
+            context.Package.PackageFileSize = 123;
+            context.StagingBlobService.Setup(service => service.GetPackageStreamMetadataAsync(
+                context.StagedPackage.ValidatedBlobPath, context.StagedPackage.ValidatedBlobETag)).ReturnsAsync(metadata);
             if (hasStagedSymbols)
             {
                 context.StagedPackageIdentity.CurrentStagedSymbolPackageKey = 100;
@@ -148,18 +159,13 @@ namespace NuGet.Services.Staging.Promotion.Tests
             Assert.True(handled);
             Assert.Equal(PackageStatus.Available, context.Package.PackageStatusKey);
             Assert.Equal(CoreConstants.Sha512HashAlgorithmId, context.Package.HashAlgorithm);
-            Assert.Equal(context.Content.Length, context.Package.PackageFileSize);
-            using (var sha512 = SHA512.Create())
-            {
-                Assert.Equal(
-                    Convert.ToBase64String(sha512.ComputeHash(context.Content)),
-                    context.Package.Hash);
-            }
+            Assert.Equal(metadata.Size, context.Package.PackageFileSize);
+            Assert.Equal(metadata.Hash, context.Package.Hash);
             context.StagingBlobService.Verify(
                 x => x.OpenPackageFileAsync(
                     context.StagedPackage.ValidatedBlobPath,
                     context.StagedPackage.ValidatedBlobETag),
-                Times.Once);
+                Times.Never);
             context.PackageFileStorageService.Verify(
                 x => x.CopyFileAsync(
                     context.SourceUri,
@@ -190,6 +196,24 @@ namespace NuGet.Services.Staging.Promotion.Tests
             Assert.Empty(context.StagedPackages);
             context.BlobCleanup.Verify(service => service.QueuePackageFiles(context.StagedPackageIdentity.Key), Times.Once);
             context.BlobCleanup.Verify(service => service.QueueSymbolFiles(context.StagedPackageIdentity.Key), hasStagedSymbols ? Times.Never() : Times.Once());
+        }
+
+        [Fact]
+        public async Task MetadataReadFailureDoesNotFallBackToDownloadingOrPublish()
+        {
+            var context = new TestContext();
+            var expected = new InvalidOperationException("The validated blob has changed.");
+            context.StagingBlobService.Setup(service => service.GetPackageStreamMetadataAsync(
+                context.StagedPackage.ValidatedBlobPath, context.StagedPackage.ValidatedBlobETag)).ThrowsAsync(expected);
+
+            var actual = await Assert.ThrowsAsync<InvalidOperationException>(() => context.Target.HandleAsync(context.Message));
+
+            Assert.Same(expected, actual);
+            Assert.Equal(StagedPackageStatus.Promoting, context.StagedPackage.Status);
+            Assert.Equal(PackageStatus.Staged, context.Package.PackageStatusKey);
+            context.StagingBlobService.Verify(service => service.OpenPackageFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            context.VerifyNotPublished();
+            Assert.Empty(context.Publications);
         }
 
         [Fact]
@@ -622,7 +646,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 x => x.OpenPackageFileAsync(
                     context.StagedPackage.ValidatedBlobPath,
                     context.StagedPackage.ValidatedBlobETag),
-                Times.Exactly(2));
+                Times.Once);
         }
 
         [Fact]
@@ -942,6 +966,17 @@ namespace NuGet.Services.Staging.Promotion.Tests
                     });
 
                 StagingBlobService = new Mock<IStagingBlobService>();
+                using (var sha512 = SHA512.Create())
+                {
+                    var metadata = new PackageStreamMetadata
+                    {
+                        HashAlgorithm = CoreConstants.Sha512HashAlgorithmId,
+                        Hash = Convert.ToBase64String(sha512.ComputeHash(Content)),
+                        Size = Content.Length,
+                    };
+                    StagingBlobService.Setup(x => x.GetPackageStreamMetadataAsync(StagedPackage.ValidatedBlobPath, StagedPackage.ValidatedBlobETag))
+                        .ReturnsAsync(metadata);
+                }
                 StagingBlobService
                     .Setup(x => x.OpenPackageFileAsync(StagedPackage.ValidatedBlobPath, StagedPackage.ValidatedBlobETag))
                     .ReturnsAsync(() => new MemoryStream(Content));

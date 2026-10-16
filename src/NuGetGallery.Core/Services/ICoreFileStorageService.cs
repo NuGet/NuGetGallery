@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using NuGetGallery.Packaging;
 
 namespace NuGetGallery
 {
@@ -24,6 +25,12 @@ namespace NuGetGallery
         /// <param name="ifNoneMatch">The <see cref="IFileReference.ContentId"/> value to use in an If-None-Match request</param>
         /// <returns>A <see cref="IFileReference"/> representing the file reference</returns>
         Task<IFileReference> GetFileReferenceAsync(string folderName, string fileName, string ifNoneMatch = null);
+
+        /// <summary>
+        /// Reads stored package hash and size without downloading the file, checking its expected ETag.
+        /// </summary>
+        /// <returns>The required stored SHA-512 hash and package size.</returns>
+        Task<PackageStreamMetadata> GetPackageStreamMetadataAsync(string folderName, string fileName, string expectedETag);
         
         /// <summary>
         /// Gets a file URI.

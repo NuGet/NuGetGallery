@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using NuGetGallery.Packaging;
 
 namespace NuGetGallery
 {
@@ -20,6 +21,11 @@ namespace NuGetGallery
         /// <param name="packageFile">The stream containing the package file.</param>
         /// <returns>A reference describing the saved package file.</returns>
         Task<StagingFileReference> SavePackageFileAsync(string packageId, string normalizedVersion, Stream packageFile);
+
+        /// <summary>
+        /// Saves a validated package at a new immutable path with its SHA-512 blob metadata.
+        /// </summary>
+        Task<StagingFileReference> SaveValidatedPackageFileAsync(string packageId, string normalizedVersion, Stream packageFile);
 
         /// <summary>
         /// Saves a symbol package at a new private immutable .snupkg path.
@@ -50,6 +56,12 @@ namespace NuGetGallery
         /// <param name="packageETag">The expected package ETag.</param>
         /// <returns>The package stream.</returns>
         Task<Stream> OpenPackageFileAsync(string packagePath, string packageETag);
+
+        /// <summary>
+        /// Reads stored hash and size for the unchanged staged package without downloading it.
+        /// </summary>
+        /// <returns>The required stored SHA-512 hash and package size.</returns>
+        Task<PackageStreamMetadata> GetPackageStreamMetadataAsync(string packagePath, string packageETag);
 
         /// <summary>
         /// Copies a package file to a new immutable path in staging storage.
