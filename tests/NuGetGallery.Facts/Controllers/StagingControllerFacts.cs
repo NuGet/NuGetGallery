@@ -125,7 +125,7 @@ namespace NuGetGallery
             Assert.Equal(symbolStatus != StagedPackageStatus.Promoting, symbols.MoveUrl != null);
             Assert.Null(symbols.PromotionBlocker);
             Assert.False(symbols.CanPromote);
-            Assert.Equal(grouped && symbolsReady && parentStatus == StagedPackageStatus.Ready, model.CanPromote);
+            Assert.Equal(grouped && symbolStatus == StagedPackageStatus.Ready && parentStatus == StagedPackageStatus.Ready, model.CanPromote);
         }
 
         [Fact]
@@ -139,9 +139,9 @@ namespace NuGetGallery
             symbols.StagedPackageIdentity.StagingGroup = group;
             GetMock<IPackageStagingAuthorizationService>().Setup(service => service.GetEnabledOwner(owner, owner.Username)).Returns(owner);
             GetMock<IPackageStagingManagementService>().Setup(service => service.FindStagingGroup(owner, group.Id)).Returns(group);
-            GetMock<IPackageStagingManagementService>().Setup(service => service.GetStagedPackages(owner)).Returns(Array.Empty<StagedPackage>());
-            GetMock<IPackageStagingManagementService>().Setup(service => service.GetStagingGroups(owner)).Returns(new[] { group });
-            GetMock<ISymbolPackageStagingManagementService>().Setup(service => service.GetStagedSymbolPackages(owner)).Returns(new[] { symbols });
+            GetMock<IPackageStagingManagementService>().Setup(service => service.GetStagedPackages(owner, owner.Key, group.Key)).Returns(Array.Empty<StagedPackage>());
+            GetMock<IPackageStagingManagementService>().Setup(service => service.GetStagingGroups(owner, owner.Key)).Returns(new[] { group });
+            GetMock<ISymbolPackageStagingManagementService>().Setup(service => service.GetStagedSymbolPackages(owner, owner.Key, group.Key)).Returns(new[] { symbols });
             var target = GetController<StagingController>();
             target.SetCurrentUser(owner);
 
