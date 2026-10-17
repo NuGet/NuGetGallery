@@ -24,6 +24,7 @@ namespace NuGetGallery
             CoreConstants.Folders.RevalidationFolderName,
             CoreConstants.Folders.PackagesContentFolderName,
             CoreConstants.Folders.PackageBackupsFolderName,
+            CoreConstants.Folders.PackageDeleteBackupsFolderName,
             CoreConstants.Folders.SymbolPackageBackupsFolderName,
             CoreConstants.Folders.StagingFolderName,
         };
@@ -39,6 +40,7 @@ namespace NuGetGallery
 
                 case CoreConstants.Folders.PackageBackupsFolderName:
                 case CoreConstants.Folders.UploadsFolderName:
+                case CoreConstants.Folders.PackageDeleteBackupsFolderName:
                 case CoreConstants.Folders.SymbolPackageBackupsFolderName:
                 case CoreConstants.Folders.PackageReadMesFolderName:
                 case CoreConstants.Folders.ContentFolderName:
@@ -74,6 +76,7 @@ namespace NuGetGallery
 
                 case CoreConstants.Folders.ContentFolderName:
                 case CoreConstants.Folders.RevalidationFolderName:
+                case CoreConstants.Folders.PackageDeleteBackupsFolderName:
                     return CoreConstants.JsonContentType;
 
                 case CoreConstants.Folders.UserCertificatesFolderName:
