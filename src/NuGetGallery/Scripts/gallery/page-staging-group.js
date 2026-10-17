@@ -167,6 +167,11 @@
 
         this.CanPromote = data.CanPromote;
         this.CanResend = data.CanResend;
+        if (data.ExpirationDate) {
+            const expirationDate = new Date(data.ExpirationDate);
+            this.ExpirationDateText = expirationDateFormat.format(expirationDate);
+            this.ExpirationDateTitle = expirationDateTitleFormat.format(expirationDate);
+        }
         this.IsPromotingGroup = ko.observable(false);
         this.IsResendingGroup = ko.observable(false);
         this.SearchQuery = ko.observable('');
