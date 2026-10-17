@@ -116,7 +116,7 @@
                 }
                 @if (Model.IsExpired)
                 {
-                    @ViewHelpers.AlertWarning(@<text>Expired - awaiting cleanup. This group can no longer be promoted or have its content or membership changed. You can delete it now.</text>)
+                    @ViewHelpers.AlertWarning(@<text>This group has expired. It can no longer be promoted or have its content or membership changed. You can delete it now.</text>)
                 }
                 @if (Model.PromotingCount > 0)
                 {
@@ -205,7 +205,10 @@
                                 <col class="staging-package-version-column" />
                                 <col class="staging-package-status-column" />
                                 <col class="staging-package-listed-column" />
-                                <col class="staging-package-uploaded-column" />
+                                @if (Model.IsUngrouped)
+                                {
+                                    <col class="staging-package-expiration-column" />
+                                }
                                 <col class="staging-package-actions-column" />
                             </colgroup>
                             <thead>
@@ -214,7 +217,10 @@
                                     <th>Version</th>
                                     <th>Status</th>
                                     <th>Listed</th>
-                                    <th>Staged On</th>
+                                    @if (Model.IsUngrouped)
+                                    {
+                                        <th>Expires On</th>
+                                    }
                                     <th><span class="sr-only">Actions</span></th>
                                 </tr>
                             </thead>
@@ -256,7 +262,6 @@
                                             </button>
                                             <!-- /ko -->
                                         </div>
-                                        <div class="small text-muted" data-bind="text: 'Expires ' + ExpirationDate"></div>
                                         <div class="small text-muted" data-bind="visible: PromotionBlocker, text: PromotionBlocker"></div>
                                     </td>
                                     <td class="align-middle staging-package-listed">
@@ -278,7 +283,12 @@
                                         <span class="text-muted" aria-label="Not applicable">N/A</span>
                                         <!-- /ko -->
                                     </td>
-                                    <td class="align-middle" data-bind="text: UploadedDate"></td>
+                                    @if (Model.IsUngrouped)
+                                    {
+                                        <td class="align-middle">
+                                            <time data-bind="text: ExpirationDateText, attr: { datetime: ExpirationDate, title: ExpirationDateTitle }"></time>
+                                        </td>
+                                    }
                                     <td class="text-right align-middle package-controls">
                                         <div class="dropdown staging-package-actions">
                                             <button type="button"
@@ -467,8 +477,7 @@
             ParentStatus = GetStagedPackageStatus(package.ParentStatus),
             Status = GetStagedPackageStatus(package.Status),
             package.StatusClass,
-            UploadedDate = package.UploadedDate.ToNuGetShortDateString(),
-            ExpirationDate = package.ExpirationDate.ToString("MMM d, yyyy HH:mm 'UTC'"),
+            ExpirationDate = DateTime.SpecifyKind(package.ExpirationDate, DateTimeKind.Utc).ToString("O"),
             package.IsExpired,
             HasValidationIssues = package.ValidationIssues.Count > 0,
             ValidationIssuesId = GetStagedValidationIssuesId(index),

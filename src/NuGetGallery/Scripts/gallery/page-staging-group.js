@@ -7,6 +7,8 @@
     const stagingValidationModal = $('#staging-validation-modal');
     const stagingValidationModalTitle = $('#staging-validation-modal-title');
     const stagingValidationModalContent = $('.staging-validation-modal-content');
+    const expirationDateFormat = new Intl.DateTimeFormat(undefined, { dateStyle: 'short' });
+    const expirationDateTitleFormat = new Intl.DateTimeFormat(undefined, { dateStyle: 'full', timeStyle: 'long' });
 
     stagingValidationModal.on('shown.bs.modal', function () {
         stagingValidationModalTitle.focus();
@@ -31,8 +33,10 @@
         this.ParentStatus = packageItem.ParentStatus;
         this.Status = packageItem.Status;
         this.StatusClass = packageItem.StatusClass;
-        this.UploadedDate = packageItem.UploadedDate;
         this.ExpirationDate = packageItem.ExpirationDate;
+        const expirationDate = new Date(packageItem.ExpirationDate);
+        this.ExpirationDateText = expirationDateFormat.format(expirationDate);
+        this.ExpirationDateTitle = expirationDateTitleFormat.format(expirationDate);
         this.IsExpired = packageItem.IsExpired;
         this.HasValidationIssues = packageItem.HasValidationIssues;
         this.ValidationIssuesId = packageItem.ValidationIssuesId;
