@@ -15,6 +15,8 @@ namespace NuGet.Services.Validation.Orchestrator
     {
         private readonly IValidationFileService _packageFileService;
         private readonly IStagingBlobService _stagingBlobService;
+        private readonly IValidationStorageService _validationStorageService;
+        private readonly ILogger<ValidationSetProvider<StagedPackage>> _logger;
 
         public StagedPackageValidationSetProvider(
             IValidationStorageService validationStorageService,
@@ -36,6 +38,36 @@ namespace NuGet.Services.Validation.Orchestrator
         {
             _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
             _stagingBlobService = stagingBlobService ?? throw new ArgumentNullException(nameof(stagingBlobService));
+            _validationStorageService = validationStorageService;
+            _logger = logger;
+        }
+
+        public override async Task<PackageValidationSet> TryGetOrCreateValidationSetAsync(ProcessValidationSetData message, IValidatingEntity<StagedPackage> validatingEntity)
+        {
+            if (message == null)
+            {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            if (validatingEntity == null)
+            {
+                throw new ArgumentNullException(nameof(validatingEntity));
+            }
+
+            var status = validatingEntity.EntityRecord.Status;
+            if (status == StagedPackageStatus.Deleted || status == StagedPackageStatus.Superseded)
+            {
+                var existing = await _validationStorageService.GetValidationSetAsync(message.ValidationTrackingId);
+                if (existing != null && existing.PackageKey != validatingEntity.Key)
+                {
+                    throw new InvalidOperationException($"Validation set key ({existing.PackageKey}) does not match expected staged package key ({validatingEntity.Key}).");
+                }
+
+                _logger.LogInformation("Retired staged attempt {AttemptKey} may finish existing validation but will not create a new set.", validatingEntity.Key);
+                return existing;
+            }
+
+            return await base.TryGetOrCreateValidationSetAsync(message, validatingEntity);
         }
 
         protected override async Task CopyPackageFileToValidationSetAsync(PackageValidationSet validationSet, IValidatingEntity<StagedPackage> validatingEntity)

@@ -76,6 +76,8 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 x => x.DeleteOnCommit(context.StagedPackageIdentity),
                 hasStagedSymbols ? Times.Never() : Times.Once());
             Assert.Empty(context.StagedPackages);
+            context.BlobCleanup.Verify(service => service.QueuePackageFiles(context.StagedPackageIdentity.Key), Times.Once);
+            context.BlobCleanup.Verify(service => service.QueueSymbolFiles(context.StagedPackageIdentity.Key), hasStagedSymbols ? Times.Never() : Times.Once());
         }
 
         [Fact]
@@ -650,6 +652,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
                     new PackageFileMetadataService(),
                     LicenseFileService.Object,
                     ReadmeFileService.Object,
+                    BlobCleanup.Object,
                     Mock.Of<ILogger<StagedPackagePromotionMessageHandler>>());
             }
 
@@ -668,6 +671,8 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 StagedPackageIdentity.CurrentStagedSymbolPackage = symbols;
                 return symbols;
             }
+
+            public Mock<IStagingBlobCleanupService> BlobCleanup { get; } = new Mock<IStagingBlobCleanupService>();
 
             public void AddToGroup()
             {

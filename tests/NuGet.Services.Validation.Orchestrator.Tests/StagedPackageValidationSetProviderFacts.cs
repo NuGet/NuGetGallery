@@ -15,6 +15,34 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 {
     public class StagedPackageValidationSetProviderFacts
     {
+        [Theory]
+        [InlineData(StagedPackageStatus.Deleted, false)]
+        [InlineData(StagedPackageStatus.Deleted, true)]
+        [InlineData(StagedPackageStatus.Superseded, false)]
+        [InlineData(StagedPackageStatus.Superseded, true)]
+        public async Task RetiredAttemptsFinishExistingSetsWithoutReadingRetiredPrivateFiles(StagedPackageStatus status, bool hasExistingSet)
+        {
+            var storage = new Mock<IValidationStorageService>();
+            var existing = hasExistingSet ? new PackageValidationSet { PackageKey = 43 } : null;
+            storage.Setup(service => service.GetValidationSetAsync(It.IsAny<Guid>())).ReturnsAsync(existing);
+            var files = new Mock<IValidationFileService>(MockBehavior.Strict);
+            var blobs = new Mock<IStagingBlobService>(MockBehavior.Strict);
+            var target = new TestableStagedPackageValidationSetProvider(files.Object, blobs.Object, storage.Object);
+            var attempt = new StagedPackage
+            {
+                Key = 43,
+                Status = status,
+                StagedPackageIdentity = new StagedPackageIdentity { Package = new Package() },
+            };
+
+            var message = new ProcessValidationSetData("Test.Package", "1.0.0", Guid.NewGuid(), ValidatingType.StagedPackage, 43);
+            var result = await target.TryGetOrCreateValidationSetAsync(message, new StagedPackageValidatingEntity(attempt));
+
+            Assert.Same(existing, result);
+            storage.Verify(service => service.OtherRecentValidationSetForPackageExists(
+                It.IsAny<IValidatingEntity<StagedPackage>>(), It.IsAny<TimeSpan>(), It.IsAny<Guid>()), Times.Never);
+        }
+
         [Fact]
         public async Task CopiesUploadedBlobAndRecordsItsETag()
         {
@@ -62,9 +90,10 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         {
             public TestableStagedPackageValidationSetProvider(
                 IValidationFileService packageFileService,
-                IStagingBlobService stagingBlobService)
+                IStagingBlobService stagingBlobService,
+                IValidationStorageService storage = null)
                 : base(
-                    Mock.Of<IValidationStorageService>(),
+                    storage ?? Mock.Of<IValidationStorageService>(),
                     packageFileService,
                     stagingBlobService,
                     Mock.Of<IValidatorProvider>(),
