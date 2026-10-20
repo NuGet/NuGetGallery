@@ -18,9 +18,19 @@ namespace NuGetGallery
         void QueuePackageFiles(int stagedPackageIdentityKey);
 
         /// <summary>
+        /// Queues uploaded and validated package files for the identities using one query, including earlier attempts.
+        /// </summary>
+        void QueuePackageFiles(IReadOnlyCollection<int> stagedPackageIdentityKeys);
+
+        /// <summary>
         /// Queues uploaded symbol files, including earlier attempts of the identity.
         /// </summary>
         void QueueSymbolFiles(int stagedPackageIdentityKey);
+
+        /// <summary>
+        /// Queues uploaded symbol files for the identities using one query, including earlier attempts.
+        /// </summary>
+        void QueueSymbolFiles(IReadOnlyCollection<int> stagedPackageIdentityKeys);
 
         /// <summary>
         /// Gets requested file paths still needed by retained current attempts using page-scoped queries.

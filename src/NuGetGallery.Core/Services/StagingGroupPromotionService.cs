@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
@@ -129,19 +130,24 @@ namespace NuGetGallery
                             .Distinct()
                             .ToList();
 
+                        var packageCleanupKeys = new List<int>();
+                        var symbolCleanupKeys = new List<int>();
                         foreach (var identity in activeIdentities)
                         {
                             var removesPackage = activeMembers.Any(candidate => candidate.StagedPackageIdentityKey == identity.Key && candidate.Status == StagedPackageStatus.Succeeded);
                             var removesSymbols = activeSymbols.Any(candidate => candidate.StagedPackageIdentityKey == identity.Key && candidate.Status == StagedPackageStatus.Succeeded);
                             if (removesPackage || (removesSymbols && !identity.CurrentStagedPackageKey.HasValue))
                             {
-                                _blobCleanup.QueuePackageFiles(identity.Key);
+                                packageCleanupKeys.Add(identity.Key);
                             }
                             if (removesSymbols || (removesPackage && !identity.CurrentStagedSymbolPackageKey.HasValue))
                             {
-                                _blobCleanup.QueueSymbolFiles(identity.Key);
+                                symbolCleanupKeys.Add(identity.Key);
                             }
                         }
+
+                        _blobCleanup.QueuePackageFiles(packageCleanupKeys);
+                        _blobCleanup.QueueSymbolFiles(symbolCleanupKeys);
 
                         foreach (var activeMember in activeMembers)
                         {

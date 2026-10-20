@@ -56,6 +56,65 @@ namespace NuGetGallery
             context.Entities.Verify(entities => entities.SaveChangesAsync(), Times.Never);
         }
 
+        [Fact]
+        public void QueuesMultipleIdentitiesWithOneQueryPerArtifactType()
+        {
+            var context = new TestContext();
+            foreach (var identityKey in new[] { 42, 43, 44 })
+            {
+                context.Packages.Add(new StagedPackage
+                {
+                    StagedPackageIdentityKey = identityKey,
+                    Status = StagedPackageStatus.Superseded,
+                    UploadedBlobPath = $"{identityKey}-old.nupkg",
+                    UploadedBlobETag = $"{identityKey}-old-etag",
+                    ValidatedBlobPath = $"{identityKey}-validated.nupkg",
+                    ValidatedBlobETag = $"{identityKey}-validated-etag",
+                });
+                context.Packages.Add(new StagedPackage
+                {
+                    StagedPackageIdentityKey = identityKey,
+                    UploadedBlobPath = $"{identityKey}-current.nupkg",
+                    UploadedBlobETag = $"{identityKey}-current-etag",
+                });
+                context.Symbols.Add(new StagedSymbolPackage
+                {
+                    StagedPackageIdentityKey = identityKey,
+                    UploadedBlobPath = $"{identityKey}-symbols.snupkg",
+                    UploadedBlobETag = $"{identityKey}-symbols-etag",
+                });
+            }
+
+            context.Target.QueuePackageFiles(new[] { 42, 43, 42 });
+            context.Target.QueueSymbolFiles(new[] { 42, 43, 42 });
+
+            Assert.Equal(8, context.Requests.Count);
+            foreach (var identityKey in new[] { 42, 43 })
+            {
+                var requests = context.Requests.Where(request => request.StagedPackageIdentityKey == identityKey).ToList();
+                Assert.Equal(new[] { $"{identityKey}-old.nupkg", $"{identityKey}-validated.nupkg", $"{identityKey}-current.nupkg", $"{identityKey}-symbols.snupkg" }, requests.Select(request => request.BlobPath));
+                Assert.Equal(new[] { $"{identityKey}-old-etag", $"{identityKey}-validated-etag", $"{identityKey}-current-etag", $"{identityKey}-symbols-etag" }, requests.Select(request => request.BlobETag));
+            }
+            Assert.Equal(1, context.PackageQueryCount);
+            Assert.Equal(1, context.SymbolQueryCount);
+            Assert.Equal(6, context.Packages.Count);
+            Assert.Equal(3, context.Symbols.Count);
+            context.Entities.Verify(entities => entities.SaveChangesAsync(), Times.Never);
+        }
+
+        [Fact]
+        public void EmptyIdentityCollectionsDoNotQueryOrQueueFiles()
+        {
+            var context = new TestContext();
+
+            context.Target.QueuePackageFiles(Array.Empty<int>());
+            context.Target.QueueSymbolFiles(Array.Empty<int>());
+
+            Assert.Empty(context.Requests);
+            Assert.Equal(0, context.PackageQueryCount);
+            Assert.Equal(0, context.SymbolQueryCount);
+        }
+
         [Theory]
         [InlineData(StagedPackageStatus.Validating, true)]
         [InlineData(StagedPackageStatus.Ready, true)]

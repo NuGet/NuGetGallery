@@ -22,31 +22,49 @@ namespace NuGetGallery
 
         public void QueuePackageFiles(int stagedPackageIdentityKey)
         {
-            ValidateIdentityKey(stagedPackageIdentityKey);
+            QueuePackageFiles(new[] { stagedPackageIdentityKey });
+        }
+
+        public void QueuePackageFiles(IReadOnlyCollection<int> stagedPackageIdentityKeys)
+        {
+            ValidateIdentityKeys(stagedPackageIdentityKeys);
+            if (stagedPackageIdentityKeys.Count == 0)
+            {
+                return;
+            }
 
             var attempts = _entities.StagedPackages.AsNoTracking()
-                .Where(attempt => attempt.StagedPackageIdentityKey == stagedPackageIdentityKey)
+                .Where(attempt => stagedPackageIdentityKeys.Contains(attempt.StagedPackageIdentityKey))
                 .ToList();
             foreach (var attempt in attempts)
             {
-                QueueFile(stagedPackageIdentityKey, attempt.UploadedBlobPath, attempt.UploadedBlobETag);
+                QueueFile(attempt.StagedPackageIdentityKey, attempt.UploadedBlobPath, attempt.UploadedBlobETag);
                 if (attempt.ValidatedBlobPath != null || attempt.ValidatedBlobETag != null)
                 {
-                    QueueFile(stagedPackageIdentityKey, attempt.ValidatedBlobPath, attempt.ValidatedBlobETag);
+                    QueueFile(attempt.StagedPackageIdentityKey, attempt.ValidatedBlobPath, attempt.ValidatedBlobETag);
                 }
             }
         }
 
         public void QueueSymbolFiles(int stagedPackageIdentityKey)
         {
-            ValidateIdentityKey(stagedPackageIdentityKey);
+            QueueSymbolFiles(new[] { stagedPackageIdentityKey });
+        }
+
+        public void QueueSymbolFiles(IReadOnlyCollection<int> stagedPackageIdentityKeys)
+        {
+            ValidateIdentityKeys(stagedPackageIdentityKeys);
+            if (stagedPackageIdentityKeys.Count == 0)
+            {
+                return;
+            }
 
             var attempts = _entities.StagedSymbolPackages.AsNoTracking()
-                .Where(attempt => attempt.StagedPackageIdentityKey == stagedPackageIdentityKey)
+                .Where(attempt => stagedPackageIdentityKeys.Contains(attempt.StagedPackageIdentityKey))
                 .ToList();
             foreach (var attempt in attempts)
             {
-                QueueFile(stagedPackageIdentityKey, attempt.UploadedBlobPath, attempt.UploadedBlobETag);
+                QueueFile(attempt.StagedPackageIdentityKey, attempt.UploadedBlobPath, attempt.UploadedBlobETag);
             }
         }
 
@@ -130,6 +148,19 @@ namespace NuGetGallery
                 BlobETag = etag,
                 QueuedDate = DateTime.UtcNow,
             });
+        }
+
+        private static void ValidateIdentityKeys(IReadOnlyCollection<int> identityKeys)
+        {
+            if (identityKeys == null)
+            {
+                throw new ArgumentNullException(nameof(identityKeys));
+            }
+
+            foreach (var identityKey in identityKeys)
+            {
+                ValidateIdentityKey(identityKey);
+            }
         }
 
         private static void ValidateIdentityKey(int identityKey)

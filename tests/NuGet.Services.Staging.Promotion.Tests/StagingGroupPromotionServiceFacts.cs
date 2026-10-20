@@ -37,6 +37,8 @@ namespace NuGet.Services.Staging.Promotion.Tests
             context.StagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
             context.BlobCleanup.Verify(service => service.QueuePackageFiles(It.IsAny<int>()), Times.Never);
             context.BlobCleanup.Verify(service => service.QueueSymbolFiles(It.IsAny<int>()), Times.Never);
+            context.BlobCleanup.Verify(service => service.QueuePackageFiles(It.IsAny<IReadOnlyCollection<int>>()), Times.Never);
+            context.BlobCleanup.Verify(service => service.QueueSymbolFiles(It.IsAny<IReadOnlyCollection<int>>()), Times.Never);
         }
 
         [Fact]
@@ -60,10 +62,10 @@ namespace NuGet.Services.Staging.Promotion.Tests
             context.StagedPackageIdentityRepository.Verify(x => x.DeleteOnCommit(completedMember.StagedPackageIdentity), Times.Once);
             context.StagingGroupRepository.Verify(x => x.DeleteOnCommit(It.IsAny<StagingGroup>()), Times.Never);
             context.StagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Exactly(2));
-            context.BlobCleanup.Verify(service => service.QueuePackageFiles(42), Times.Once);
-            context.BlobCleanup.Verify(service => service.QueueSymbolFiles(42), Times.Once);
-            context.BlobCleanup.Verify(service => service.QueuePackageFiles(43), Times.Once);
-            context.BlobCleanup.Verify(service => service.QueueSymbolFiles(43), Times.Once);
+            context.BlobCleanup.Verify(service => service.QueuePackageFiles(It.Is<IReadOnlyCollection<int>>(keys => keys.Count == 2 && keys.Contains(42) && keys.Contains(43))), Times.Once);
+            context.BlobCleanup.Verify(service => service.QueueSymbolFiles(It.Is<IReadOnlyCollection<int>>(keys => keys.Count == 2 && keys.Contains(42) && keys.Contains(43))), Times.Once);
+            context.BlobCleanup.Verify(service => service.QueuePackageFiles(It.IsAny<int>()), Times.Never);
+            context.BlobCleanup.Verify(service => service.QueueSymbolFiles(It.IsAny<int>()), Times.Never);
         }
 
         [Fact]
@@ -85,8 +87,8 @@ namespace NuGet.Services.Staging.Promotion.Tests
             Assert.Null(failedMember.ActivePromotionId);
             context.StagedPackageRepository.Verify(x => x.DeleteOnCommit(context.StagedPackage), Times.Once);
             context.StagedPackageRepository.Verify(x => x.DeleteOnCommit(failedMember), Times.Never);
-            context.BlobCleanup.Verify(service => service.QueuePackageFiles(failedMember.StagedPackageIdentityKey), Times.Never);
-            context.BlobCleanup.Verify(service => service.QueueSymbolFiles(failedMember.StagedPackageIdentityKey), Times.Never);
+            context.BlobCleanup.Verify(service => service.QueuePackageFiles(It.Is<IReadOnlyCollection<int>>(keys => keys.Count == 1 && keys.Contains(42))), Times.Once);
+            context.BlobCleanup.Verify(service => service.QueueSymbolFiles(It.Is<IReadOnlyCollection<int>>(keys => keys.Count == 1 && keys.Contains(42))), Times.Once);
             context.StagedPackageIdentityRepository.Verify(x => x.DeleteOnCommit(context.StagedPackage.StagedPackageIdentity), Times.Once);
             context.StagedPackageIdentityRepository.Verify(x => x.DeleteOnCommit(failedMember.StagedPackageIdentity), Times.Never);
             context.StagedPackageRepository.Verify(x => x.CommitChangesAsync(), Times.Exactly(2));
@@ -110,6 +112,8 @@ namespace NuGet.Services.Staging.Promotion.Tests
             Assert.Equal(context.StagingGroup.Key, identity.StagingGroupKey);
             Assert.Null(context.StagingGroup.ActivePromotionId);
             context.StagedPackageIdentityRepository.Verify(x => x.DeleteOnCommit(It.IsAny<StagedPackageIdentity>()), Times.Never);
+            context.BlobCleanup.Verify(service => service.QueuePackageFiles(It.Is<IReadOnlyCollection<int>>(keys => keys.Count == 1 && keys.Contains(42))), Times.Once);
+            context.BlobCleanup.Verify(service => service.QueueSymbolFiles(It.Is<IReadOnlyCollection<int>>(keys => keys.Count == 0)), Times.Once);
         }
 
         [Fact]
@@ -153,6 +157,8 @@ namespace NuGet.Services.Staging.Promotion.Tests
             Assert.Equal(context.StagingGroup.Key, symbols.StagedPackageIdentity.StagingGroupKey);
             Assert.Equal(context.PromotionId, symbols.ActivePromotionId);
             context.StagedPackageIdentityRepository.Verify(repository => repository.DeleteOnCommit(It.IsAny<StagedPackageIdentity>()), Times.Never);
+            context.BlobCleanup.Verify(service => service.QueuePackageFiles(It.Is<IReadOnlyCollection<int>>(keys => keys.Count == 1 && keys.Contains(42))), Times.Once);
+            context.BlobCleanup.Verify(service => service.QueueSymbolFiles(It.Is<IReadOnlyCollection<int>>(keys => keys.Count == 0)), Times.Once);
         }
 
         [Fact]
@@ -169,6 +175,8 @@ namespace NuGet.Services.Staging.Promotion.Tests
             Assert.Empty(context.StagedSymbols);
             Assert.Null(context.StagingGroup.ActivePromotionId);
             context.StagedPackageIdentityRepository.Verify(repository => repository.DeleteOnCommit(symbols.StagedPackageIdentity), Times.Once);
+            context.BlobCleanup.Verify(service => service.QueuePackageFiles(It.Is<IReadOnlyCollection<int>>(keys => keys.Count == 1 && keys.Contains(42))), Times.Once);
+            context.BlobCleanup.Verify(service => service.QueueSymbolFiles(It.Is<IReadOnlyCollection<int>>(keys => keys.Count == 1 && keys.Contains(42))), Times.Once);
         }
 
         [Theory]
