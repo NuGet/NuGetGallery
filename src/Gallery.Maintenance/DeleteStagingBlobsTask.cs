@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
@@ -48,6 +49,7 @@ namespace Gallery.Maintenance
 
         /// <summary>
         /// Processes the private cleanup queue without starving requests behind retained or changed files.
+        /// Commits completed requests once per page.
         /// </summary>
         public async Task ProcessAsync(IEntitiesContext entities, BlobContainerClient container)
         {
@@ -77,6 +79,7 @@ namespace Gallery.Maintenance
                 }
 
                 var livePaths = await cleanupService.GetLiveReferencedPathsAsync(requests);
+                var completedRequests = new List<StagingBlobCleanup>();
                 foreach (var request in requests)
                 {
                     lastKey = request.Key;
@@ -102,7 +105,17 @@ namespace Gallery.Maintenance
                     }
 
                     cleanupRepository.DeleteOnCommit(request);
-                    await cleanupRepository.CommitChangesAsync();
+                    completedRequests.Add(request);
+                }
+
+                if (completedRequests.Count == 0)
+                {
+                    continue;
+                }
+
+                await cleanupRepository.CommitChangesAsync();
+                foreach (var request in completedRequests)
+                {
                     _logger.LogInformation("Completed cleanup request {CleanupKey} for {BlobPath}.", request.Key, request.BlobPath);
                 }
             }

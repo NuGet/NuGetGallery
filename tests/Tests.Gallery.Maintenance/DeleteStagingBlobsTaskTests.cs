@@ -22,6 +22,30 @@ namespace Tests.Gallery.Maintenance
     public class DeleteStagingBlobsTaskTests
     {
         [Fact]
+        public async Task CommitsCompletedRequestsOncePerPage()
+        {
+            var context = new TestContext();
+            for (var key = 1; key <= 201; key++)
+            {
+                context.Requests.Add(new StagingBlobCleanup { Key = key, StagedPackageIdentityKey = 42, BlobPath = $"{key}.nupkg", BlobETag = "etag" });
+            }
+            var committedCounts = new List<int>();
+            context.Entities.Setup(entities => entities.SaveChangesAsync()).Callback(() =>
+            {
+                committedCounts.Add(context.PendingDeletes.Count);
+                context.CommitPendingDeletes();
+            }).ReturnsAsync(1);
+
+            await context.Target.ProcessAsync(context.Entities.Object, context.Container.Object);
+
+            Assert.Empty(context.Requests);
+            Assert.Equal(new[] { 100, 100, 1 }, committedCounts);
+            context.Entities.Verify(entities => entities.SaveChangesAsync(), Times.Exactly(3));
+            context.Blob.Verify(blob => blob.DeleteIfExistsAsync(
+                DeleteSnapshotsOption.IncludeSnapshots, It.IsAny<BlobRequestConditions>(), It.IsAny<CancellationToken>()), Times.Exactly(201));
+        }
+
+        [Fact]
         public async Task ReachesLaterPagesAndRetainsChangedAndLiveFiles()
         {
             var context = new TestContext();
@@ -38,6 +62,7 @@ namespace Tests.Gallery.Maintenance
             });
             context.Requests.Add(new StagingBlobCleanup { Key = 102, StagedPackageIdentityKey = 42, BlobPath = "changed.nupkg", BlobETag = "old-etag" });
             context.Requests.Add(new StagingBlobCleanup { Key = 103, StagedPackageIdentityKey = 42, BlobPath = "eligible.nupkg", BlobETag = "eligible-etag" });
+            context.Requests.Add(new StagingBlobCleanup { Key = 104, StagedPackageIdentityKey = 42, BlobPath = "another-eligible.nupkg", BlobETag = "eligible-etag" });
             context.Blob.Setup(blob => blob.DeleteIfExistsAsync(
                 DeleteSnapshotsOption.IncludeSnapshots, It.Is<BlobRequestConditions>(conditions => conditions.IfMatch == new ETag("old-etag")), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new RequestFailedException(412, "ETag mismatch"));
@@ -49,7 +74,22 @@ namespace Tests.Gallery.Maintenance
             Assert.Contains(context.Requests, request => request.Key == 102);
             context.Entities.Verify(entities => entities.SaveChangesAsync(), Times.Once);
             context.Blob.Verify(blob => blob.DeleteIfExistsAsync(
-                DeleteSnapshotsOption.IncludeSnapshots, It.Is<BlobRequestConditions>(conditions => conditions.IfMatch == new ETag("eligible-etag")), It.IsAny<CancellationToken>()), Times.Once);
+                DeleteSnapshotsOption.IncludeSnapshots, It.Is<BlobRequestConditions>(conditions => conditions.IfMatch == new ETag("eligible-etag")), It.IsAny<CancellationToken>()), Times.Exactly(2));
+        }
+
+        [Fact]
+        public async Task DoesNotCommitWhenAllRequestsAreDeferred()
+        {
+            var context = new TestContext();
+            context.Requests.Add(new StagingBlobCleanup { Key = 1, StagedPackageIdentityKey = 42, BlobPath = "changed.nupkg", BlobETag = "old-etag" });
+            context.Blob.Setup(blob => blob.DeleteIfExistsAsync(
+                DeleteSnapshotsOption.IncludeSnapshots, It.IsAny<BlobRequestConditions>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new RequestFailedException(412, "ETag mismatch"));
+
+            await context.Target.ProcessAsync(context.Entities.Object, context.Container.Object);
+
+            Assert.Single(context.Requests);
+            context.Entities.Verify(entities => entities.SaveChangesAsync(), Times.Never);
         }
 
         [Fact]
@@ -69,17 +109,19 @@ namespace Tests.Gallery.Maintenance
         }
 
         [Fact]
-        public async Task PreservesRequestWhenStorageFails()
+        public async Task PreservesEntirePageWhenStorageFailsAfterDeletingABlob()
         {
             var context = new TestContext();
             context.Requests.Add(new StagingBlobCleanup { Key = 1, StagedPackageIdentityKey = 42, BlobPath = "obsolete.nupkg", BlobETag = "etag" });
+            context.Requests.Add(new StagingBlobCleanup { Key = 2, StagedPackageIdentityKey = 42, BlobPath = "unavailable.nupkg", BlobETag = "unavailable-etag" });
             context.Blob.Setup(blob => blob.DeleteIfExistsAsync(
-                DeleteSnapshotsOption.IncludeSnapshots, It.IsAny<BlobRequestConditions>(), It.IsAny<CancellationToken>()))
+                DeleteSnapshotsOption.IncludeSnapshots, It.Is<BlobRequestConditions>(conditions => conditions.IfMatch == new ETag("unavailable-etag")), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new RequestFailedException(503, "Storage unavailable"));
 
             await Assert.ThrowsAsync<RequestFailedException>(() => context.Target.ProcessAsync(context.Entities.Object, context.Container.Object));
 
-            Assert.Single(context.Requests);
+            Assert.Equal(2, context.Requests.Count);
+            Assert.Equal(1, Assert.Single(context.PendingDeletes).Key);
             context.Entities.Verify(entities => entities.SaveChangesAsync(), Times.Never);
         }
 
@@ -88,13 +130,15 @@ namespace Tests.Gallery.Maintenance
         {
             var context = new TestContext();
             context.Requests.Add(new StagingBlobCleanup { Key = 1, StagedPackageIdentityKey = 42, BlobPath = "obsolete.nupkg", BlobETag = "etag" });
+            context.Requests.Add(new StagingBlobCleanup { Key = 2, StagedPackageIdentityKey = 42, BlobPath = "another-obsolete.nupkg", BlobETag = "etag" });
             context.Entities.Setup(entities => entities.SaveChangesAsync()).ThrowsAsync(new InvalidOperationException("Database unavailable"));
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => context.Target.ProcessAsync(context.Entities.Object, context.Container.Object));
 
-            Assert.Single(context.Requests);
+            Assert.Equal(2, context.Requests.Count);
             var retry = new TestContext();
             retry.Requests.Add(new StagingBlobCleanup { Key = 1, StagedPackageIdentityKey = 42, BlobPath = "obsolete.nupkg", BlobETag = "etag" });
+            retry.Requests.Add(new StagingBlobCleanup { Key = 2, StagedPackageIdentityKey = 42, BlobPath = "another-obsolete.nupkg", BlobETag = "etag" });
             retry.Blob.Setup(blob => blob.DeleteIfExistsAsync(
                 DeleteSnapshotsOption.IncludeSnapshots, It.IsAny<BlobRequestConditions>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Response.FromValue(false, Mock.Of<Response>()));
