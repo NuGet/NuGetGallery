@@ -215,7 +215,7 @@ namespace NuGetGallery
 
                     if (stagedPackage.Status == StagedPackageStatus.Deleted)
                     {
-                        deleted = true;
+                        result = PackageStagingDeletionResult.Deleted;
                         return;
                     }
 
