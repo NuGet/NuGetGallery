@@ -25,7 +25,8 @@ namespace NuGetGallery
                 fixture.Attempt.StagedPackageIdentity.Package.SymbolPackages.Add(new SymbolPackage { StatusKey = PackageStatus.Available });
             }
 
-            var response = StagingArtifactResponse.FromSymbolPackage(fixture.Attempt, DateTime.UtcNow.AddDays(30), "management");
+            var response = StagingArtifactResponse.FromSymbolPackage(fixture.Attempt, "management");
+            Assert.Equal(fixture.Attempt.ExpirationDate.ToUtcIso8601String(), response.Expires);
             Assert.True(response.CanPromote);
             Assert.Empty(response.Blockers);
             var committed = new TaskCompletionSource<bool>();
@@ -94,7 +95,7 @@ namespace NuGetGallery
                     throw new InvalidOperationException($"Unknown test blocker '{blocker}'.");
             }
 
-            var response = StagingArtifactResponse.FromSymbolPackage(fixture.Attempt, DateTime.UtcNow.AddDays(30), "management");
+            var response = StagingArtifactResponse.FromSymbolPackage(fixture.Attempt, "management");
             var result = await fixture.Service.PromoteSymbolPackageAsync(fixture.Owner, fixture.Attempt);
 
             Assert.Equal(expected, result);
@@ -138,7 +139,7 @@ namespace NuGetGallery
         public async Task ResendsActivePromotionWithTheSameCorrelation(bool deliveryFailed)
         {
             var fixture = new Fixture();
-            var response = StagingArtifactResponse.FromSymbolPackage(fixture.Attempt, DateTime.UtcNow.AddDays(30), "management");
+            var response = StagingArtifactResponse.FromSymbolPackage(fixture.Attempt, "management");
             Assert.True(response.CanPromote);
             Assert.Empty(response.Blockers);
             Assert.Null(response.Group);
@@ -201,7 +202,7 @@ namespace NuGetGallery
             fixture.Attempt.PromotionMessageSentDate = DateTime.UtcNow.AddHours(-2);
             fixture.Attempt.StagedPackageIdentity.Package.SymbolPackages.Add(new SymbolPackage { StatusKey = PackageStatus.Available });
 
-            var response = StagingArtifactResponse.FromSymbolPackage(fixture.Attempt, DateTime.UtcNow.AddDays(30), "management");
+            var response = StagingArtifactResponse.FromSymbolPackage(fixture.Attempt, "management");
             Assert.False(response.CanPromote);
             Assert.Contains(response.Blockers, blocker => blocker.Code == "SymbolsNotReady");
             Assert.Equal(PackageStagingPromotionResult.NotReady, await fixture.Service.PromoteSymbolPackageAsync(fixture.Owner, fixture.Attempt));

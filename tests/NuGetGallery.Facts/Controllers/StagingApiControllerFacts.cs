@@ -425,7 +425,7 @@ namespace NuGetGallery
             Assert.Equal("ready", (string)body["items"][0]["status"]);
             Assert.Equal("release", (string)body["items"][0]["group"]["id"]);
             Assert.Null(body["items"][0]["validated"].Value<string>());
-            Assert.Equal((string)body["group"]["expires"], (string)body["items"][0]["expires"]);
+            Assert.All(body["items"], item => Assert.Equal((string)body["group"]["expires"], (string)item["expires"]));
         }
 
         [Fact]

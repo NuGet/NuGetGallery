@@ -56,7 +56,7 @@ namespace NuGetGallery
         [JsonProperty("managementUrl")]
         public string ManagementUrl { get; private set; }
 
-        public static StagingArtifactResponse FromPackage(StagedPackage package, DateTime expirationDate, string managementUrl)
+        public static StagingArtifactResponse FromPackage(StagedPackage package, string managementUrl)
         {
             if (package == null)
             {
@@ -93,7 +93,7 @@ namespace NuGetGallery
                 Uploaded = package.UploadedDate.ToUtcIso8601String(),
                 // The authoritative validation completion timestamp will be persisted in a later unit.
                 Validated = null,
-                Expires = expirationDate.ToUtcIso8601String(),
+                Expires = StagingExpirationPolicy.GetDeadline(package).ToUtcIso8601String(),
                 Listed = package.StagedPackageIdentity.Package.Listed,
                 CanPromote = canPromote,
                 Blockers = blockers,
@@ -101,7 +101,7 @@ namespace NuGetGallery
             };
         }
 
-        public static StagingArtifactResponse FromSymbolPackage(StagedSymbolPackage symbols, DateTime expirationDate, string managementUrl)
+        public static StagingArtifactResponse FromSymbolPackage(StagedSymbolPackage symbols, string managementUrl)
         {
             if (symbols == null)
             {
@@ -120,7 +120,7 @@ namespace NuGetGallery
                 Status = StagingExpirationPolicy.HasExpired(symbols) ? "expired" : GetStatus(symbols.Status),
                 Uploaded = symbols.UploadedDate.ToUtcIso8601String(),
                 Validated = null,
-                Expires = expirationDate.ToUtcIso8601String(),
+                Expires = StagingExpirationPolicy.GetDeadline(symbols).ToUtcIso8601String(),
                 Listed = null,
                 CanPromote = blockers.Count == 0,
                 Blockers = blockers,
