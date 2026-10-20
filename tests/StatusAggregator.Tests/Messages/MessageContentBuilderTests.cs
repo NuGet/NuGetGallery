@@ -108,7 +108,7 @@ namespace StatusAggregator.Tests.Messages
         {
             IComponent bottom = null;
             IComponent root = null;
-            foreach (var name in names.Reverse())
+            foreach (var name in Enumerable.Reverse(names))
             {
                 if (bottom == null)
                 {
