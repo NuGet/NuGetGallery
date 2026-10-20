@@ -712,7 +712,7 @@ namespace NuGetGallery
                 status = "Expired - awaiting cleanup";
                 statusClass = "label-warning";
             }
-            else if (group == null && (packages.Any(StagingExpirationPolicy.HasExpired) || symbols.Any(StagingExpirationPolicy.HasExpired)))
+            else if (group == null && (packages.Any(StagingExpirationPolicy.HasExpired) || (symbols != null && symbols.Any(StagingExpirationPolicy.HasExpired))))
             {
                 status = "Contains expired staging";
                 statusClass = "label-warning";
