@@ -109,13 +109,21 @@ namespace NuGetGallery
                 throw new ArgumentOutOfRangeException(nameof(symbolCount));
             }
 
-            var canPromote = itemCount > 0 && allPackagesReady && !group.ActivePromotionId.HasValue;
+            var isExpired = StagingExpirationPolicy.HasExpired(group);
+            var canPromote = itemCount > 0 && allPackagesReady && !group.ActivePromotionId.HasValue && !isExpired;
             IReadOnlyList<StagingBlockerResponse> blockers = Array.Empty<StagingBlockerResponse>();
             if (group.ActivePromotionId.HasValue)
             {
                 blockers = new[]
                 {
                     new StagingBlockerResponse("GroupPromotionInProgress", "The staging group is being promoted."),
+                };
+            }
+            else if (isExpired)
+            {
+                blockers = new[]
+                {
+                    new StagingBlockerResponse("StagingExpired", "The staging group has expired. Delete it before creating new staging."),
                 };
             }
             else if (itemCount == 0)

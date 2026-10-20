@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -173,7 +174,8 @@ namespace NuGetGallery
                     stagingGroupRepository.Object,
                     stagedValidationMessageEmitter.Object,
                     Mock.Of<IEntityRepository<StagedSymbolPackage>>(),
-                    Mock.Of<IStagedSymbolPackageValidationMessageEmitter>());
+                    Mock.Of<IStagedSymbolPackageValidationMessageEmitter>(),
+                    new Configuration.AppConfiguration());
 
                 using (var packageFile = TestPackage.CreateTestPackageStream("PackageA", "1.0.0"))
                 {
@@ -250,7 +252,8 @@ namespace NuGetGallery
             [InlineData(StagedPackageStatus.Deleted, HttpStatusCode.OK, false, false, false, true)]
             [InlineData(StagedPackageStatus.Ready, HttpStatusCode.OK, true, false, false, true)]
             [InlineData(StagedPackageStatus.Ready, HttpStatusCode.OK, true, true, false, true)]
-            public async Task UploadReturnsExpectedStatus(StagedPackageStatus status, HttpStatusCode expectedStatusCode, bool identical, bool assignGroup, bool createGroup, bool hasSymbols = false)
+            [InlineData(StagedPackageStatus.Ready, HttpStatusCode.Conflict, false, false, false, false, true)]
+            public async Task UploadReturnsExpectedStatus(StagedPackageStatus status, HttpStatusCode expectedStatusCode, bool identical, bool assignGroup, bool createGroup, bool hasSymbols = false, bool expired = false)
             {
                 var currentUser = new User { Key = 17 };
                 var owner = new User { Key = 23, EmailAddress = "owner@example.com" };
@@ -325,6 +328,8 @@ namespace NuGetGallery
                     stagedPackage.UploadHash = "different";
                 }
                 var originalGroup = new StagingGroup { Key = 37, Id = "original", OwnerKey = owner.Key };
+                var originalDeadline = DateTime.UtcNow.AddDays(expired ? -1 : 1);
+                originalGroup.ExpirationDate = originalDeadline;
                 stagedPackage.StagedPackageIdentity.StagingGroupKey = originalGroup.Key;
                 stagedPackage.StagedPackageIdentity.StagingGroup = originalGroup;
                 var requestedGroup = new StagingGroup { Key = 38, Id = "release", OwnerKey = owner.Key };
@@ -465,7 +470,8 @@ namespace NuGetGallery
                     stagingGroupRepository.Object,
                     stagedValidationMessageEmitter.Object,
                     symbolRepository.Object,
-                    symbolEmitter.Object);
+                    symbolEmitter.Object,
+                    new Configuration.AppConfiguration());
 
                 var isActiveNoOp = identical && (status == StagedPackageStatus.Validating || status == StagedPackageStatus.Ready);
                 var result = await target.StagePackageAsync(
@@ -480,6 +486,14 @@ namespace NuGetGallery
                 Assert.Equal(assignGroup && expectedStatusCode == HttpStatusCode.OK ? (createGroup ? createdGroup.Key : requestedGroup.Key) : originalGroup.Key, stagedPackage.StagedPackageIdentity.StagingGroupKey);
                 Assert.Equal(!assignGroup || expectedStatusCode == HttpStatusCode.Conflict, package.Listed);
                 var createsSuccessor = expectedStatusCode == HttpStatusCode.OK && !isActiveNoOp;
+                if (createsSuccessor || (assignGroup && expectedStatusCode == HttpStatusCode.OK))
+                {
+                    Assert.True(originalGroup.ExpirationDate > originalDeadline);
+                }
+                else
+                {
+                    Assert.Equal(originalDeadline, originalGroup.ExpirationDate);
+                }
                 if (hasSymbols && createsSuccessor)
                 {
                     Assert.Equal(StagedPackageStatus.Superseded, previousSymbols.Status);
@@ -487,6 +501,7 @@ namespace NuGetGallery
                     Assert.Same(previousSymbols.SymbolPackage, renewedSymbols.SymbolPackage);
                     Assert.Equal("symbols.snupkg", renewedSymbols.UploadedBlobPath);
                     Assert.Equal("symbols-etag", renewedSymbols.UploadedBlobETag);
+                    Assert.Equal(previousSymbols.ExpirationDate, renewedSymbols.ExpirationDate);
                     Assert.Equal(StagedPackageStatus.Validating, renewedSymbols.Status);
                     symbolEmitter.Verify(x => x.StartValidationAsync(renewedSymbols), Times.Once);
                 }
@@ -571,7 +586,8 @@ namespace NuGetGallery
                     Mock.Of<IEntityRepository<StagingGroup>>(),
                     Mock.Of<IStagedPackageValidationMessageEmitter>(),
                     Mock.Of<IEntityRepository<StagedSymbolPackage>>(),
-                    Mock.Of<IStagedSymbolPackageValidationMessageEmitter>());
+                    Mock.Of<IStagedSymbolPackageValidationMessageEmitter>(),
+                    new Configuration.AppConfiguration());
                 using var packageFile = TestPackage.CreateTestPackageStream("PackageA", "1.0.0");
 
                 var result = await target.StagePackageAsync(currentUser, scopes, Mock.Of<HttpContextBase>(), packageFile, "release");
@@ -623,7 +639,8 @@ namespace NuGetGallery
                     groups.Object,
                     Mock.Of<IStagedPackageValidationMessageEmitter>(),
                     Mock.Of<IEntityRepository<StagedSymbolPackage>>(),
-                    Mock.Of<IStagedSymbolPackageValidationMessageEmitter>());
+                    Mock.Of<IStagedSymbolPackageValidationMessageEmitter>(),
+                    new Configuration.AppConfiguration());
                 using var packageFile = TestPackage.CreateTestPackageStream("PackageA", "1.0.0");
 
                 var result = await target.StagePackageAsync(currentUser, scopes, Mock.Of<HttpContextBase>(), packageFile, "release");
@@ -783,7 +800,8 @@ namespace NuGetGallery
                     Mock.Of<IEntityRepository<StagingGroup>>(),
                     Mock.Of<IStagedPackageValidationMessageEmitter>(),
                     Mock.Of<IEntityRepository<StagedSymbolPackage>>(),
-                    Mock.Of<IStagedSymbolPackageValidationMessageEmitter>());
+                    Mock.Of<IStagedSymbolPackageValidationMessageEmitter>(),
+                    new Configuration.AppConfiguration());
             }
         }
 

@@ -31,6 +31,7 @@ namespace NuGetGallery
                 UploadedBlobPath = previous.UploadedBlobPath,
                 UploadedBlobETag = previous.UploadedBlobETag,
                 UploadedDate = previous.UploadedDate,
+                ExpirationDate = previous.ExpirationDate,
                 Status = status,
             };
 

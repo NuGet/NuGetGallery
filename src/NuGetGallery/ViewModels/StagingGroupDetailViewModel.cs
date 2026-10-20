@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 
 namespace NuGetGallery
@@ -21,6 +22,16 @@ namespace NuGetGallery
         public bool IsUngrouped { get; set; }
 
         public bool IsPromotionActive { get; set; }
+
+        /// <summary>
+        /// Gets or sets the shared deadline, or null for the ungrouped listing.
+        /// </summary>
+        public DateTime? ExpirationDate { get; set; }
+
+        /// <summary>
+        /// Gets or sets whether the group is logically expired and awaiting cleanup.
+        /// </summary>
+        public bool IsExpired { get; set; }
 
         public bool CanPromote { get; set; }
 

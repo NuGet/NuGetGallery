@@ -32,6 +32,8 @@
         this.Status = packageItem.Status;
         this.StatusClass = packageItem.StatusClass;
         this.UploadedDate = packageItem.UploadedDate;
+        this.ExpirationDate = packageItem.ExpirationDate;
+        this.IsExpired = packageItem.IsExpired;
         this.HasValidationIssues = packageItem.HasValidationIssues;
         this.ValidationIssuesId = packageItem.ValidationIssuesId;
         this.CanManage = packageItem.CanManage;

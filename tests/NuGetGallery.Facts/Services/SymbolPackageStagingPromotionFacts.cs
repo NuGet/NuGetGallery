@@ -25,7 +25,8 @@ namespace NuGetGallery
                 fixture.Attempt.StagedPackageIdentity.Package.SymbolPackages.Add(new SymbolPackage { StatusKey = PackageStatus.Available });
             }
 
-            var response = StagingArtifactResponse.FromSymbolPackage(fixture.Attempt, DateTime.UtcNow.AddDays(30), "management");
+            var response = StagingArtifactResponse.FromSymbolPackage(fixture.Attempt, "management");
+            Assert.Equal(fixture.Attempt.ExpirationDate.ToUtcIso8601String(), response.Expires);
             Assert.True(response.CanPromote);
             Assert.Empty(response.Blockers);
             var committed = new TaskCompletionSource<bool>();
@@ -58,6 +59,7 @@ namespace NuGetGallery
         [InlineData("stale-attempt", PackageStagingPromotionResult.NotReady)]
         [InlineData("published-attempt", PackageStagingPromotionResult.NotReady)]
         [InlineData("grouped", PackageStagingPromotionResult.Grouped)]
+        [InlineData("expired", PackageStagingPromotionResult.NotReady)]
         public async Task KeepsAcceptanceAndApiEligibilityAligned(string blocker, PackageStagingPromotionResult expected)
         {
             var fixture = new Fixture();
@@ -86,16 +88,26 @@ namespace NuGetGallery
                     identity.StagingGroup = new StagingGroup { Key = 10 };
                     identity.StagingGroupKey = identity.StagingGroup.Key;
                     break;
+                case "expired":
+                    fixture.Attempt.ExpirationDate = DateTime.UtcNow;
+                    break;
                 default:
                     throw new InvalidOperationException($"Unknown test blocker '{blocker}'.");
             }
 
-            var response = StagingArtifactResponse.FromSymbolPackage(fixture.Attempt, DateTime.UtcNow.AddDays(30), "management");
+            var response = StagingArtifactResponse.FromSymbolPackage(fixture.Attempt, "management");
             var result = await fixture.Service.PromoteSymbolPackageAsync(fixture.Owner, fixture.Attempt);
 
             Assert.Equal(expected, result);
             Assert.False(response.CanPromote);
             Assert.NotEmpty(response.Blockers);
+            if (blocker == "expired")
+            {
+                Assert.Equal("expired", response.Status);
+                Assert.Contains(response.Blockers, item => item.Code == "StagingExpired");
+                Assert.Equal(StagedPackageStatus.Ready, fixture.Attempt.Status);
+            }
+
             Assert.Null(fixture.Attempt.ActivePromotionId);
             fixture.Repository.Verify(x => x.CommitChangesAsync(), Times.Never);
             fixture.Enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
@@ -127,7 +139,7 @@ namespace NuGetGallery
         public async Task ResendsActivePromotionWithTheSameCorrelation(bool deliveryFailed)
         {
             var fixture = new Fixture();
-            var response = StagingArtifactResponse.FromSymbolPackage(fixture.Attempt, DateTime.UtcNow.AddDays(30), "management");
+            var response = StagingArtifactResponse.FromSymbolPackage(fixture.Attempt, "management");
             Assert.True(response.CanPromote);
             Assert.Empty(response.Blockers);
             Assert.Null(response.Group);
@@ -148,11 +160,14 @@ namespace NuGetGallery
             }
 
             var promotionId = fixture.Attempt.ActivePromotionId;
+            var expirationDate = DateTime.UtcNow.AddDays(-1);
+            fixture.Attempt.ExpirationDate = expirationDate;
             Assert.Equal(StagedPackageStatus.Promoting, fixture.Attempt.Status);
             Assert.True(StagedSymbolPackagePromotionEligibility.CanResend(fixture.Attempt));
             fixture.Enqueuer.Setup(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>())).Returns(Task.CompletedTask);
             Assert.Equal(PackageStagingPromotionResult.Accepted, await fixture.Service.ResendSymbolPackageAsync(fixture.Owner, fixture.Attempt));
             Assert.Equal(promotionId, fixture.Attempt.ActivePromotionId);
+            Assert.Equal(expirationDate, fixture.Attempt.ExpirationDate);
             Assert.False(StagedSymbolPackagePromotionEligibility.CanResend(fixture.Attempt));
             fixture.Enqueuer.Verify(x => x.SendMessageAsync(It.Is<StagingPromotionMessage>(message =>
                 message.PromotionId == promotionId && message.TargetKey == fixture.Attempt.Key && message.TargetType == StagingPromotionTargetType.StagedSymbolPackage)), Times.Exactly(2));
@@ -187,7 +202,7 @@ namespace NuGetGallery
             fixture.Attempt.PromotionMessageSentDate = DateTime.UtcNow.AddHours(-2);
             fixture.Attempt.StagedPackageIdentity.Package.SymbolPackages.Add(new SymbolPackage { StatusKey = PackageStatus.Available });
 
-            var response = StagingArtifactResponse.FromSymbolPackage(fixture.Attempt, DateTime.UtcNow.AddDays(30), "management");
+            var response = StagingArtifactResponse.FromSymbolPackage(fixture.Attempt, "management");
             Assert.False(response.CanPromote);
             Assert.Contains(response.Blockers, blocker => blocker.Code == "SymbolsNotReady");
             Assert.Equal(PackageStagingPromotionResult.NotReady, await fixture.Service.PromoteSymbolPackageAsync(fixture.Owner, fixture.Attempt));

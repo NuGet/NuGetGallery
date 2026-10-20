@@ -24,6 +24,12 @@ namespace NuGetGallery.Configuration
         string WarningBanner { get; set; }
 
         /// <summary>
+        /// Gets or sets the lifetime in days granted by a staging content or membership change.
+        /// </summary>
+        /// <value>A lifetime from 1 to 365 days, defaulting to 30 days.</value>
+        int StagingExpirationDays { get; set; }
+
+        /// <summary>
         /// Gets a setting indicating if SSL is required for all operations once logged in.
         /// </summary>
         bool RequireSSL { get; set; }

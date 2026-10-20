@@ -61,7 +61,8 @@ namespace NuGetGallery
                 new Mock<IEntityRepository<StagedSymbolPackage>>(MockBehavior.Strict).Object,
                 new Mock<IStagedSymbolPackageValidationMessageEmitter>(MockBehavior.Strict).Object,
                 new Mock<IPackageStagingManagementService>(MockBehavior.Strict).Object,
-                new Mock<IEntityRepository<StagingGroup>>(MockBehavior.Strict).Object);
+                new Mock<IEntityRepository<StagingGroup>>(MockBehavior.Strict).Object,
+                Mock.Of<Configuration.IAppConfiguration>());
             using var file = TestPackage.CreateTestPackageStreamFromNuspec("Test.Package", "<package><metadata>" + metadata + "</metadata></package>");
 
             var result = await target.StageSymbolPackageAsync(currentUser, scopes, Mock.Of<HttpContextBase>(), file);
@@ -108,7 +109,8 @@ namespace NuGetGallery
                 new Mock<IEntityRepository<StagedSymbolPackage>>(MockBehavior.Strict).Object,
                 new Mock<IStagedSymbolPackageValidationMessageEmitter>(MockBehavior.Strict).Object,
                 Mock.Of<IPackageStagingManagementService>(),
-                Mock.Of<IEntityRepository<StagingGroup>>());
+                Mock.Of<IEntityRepository<StagingGroup>>(),
+                new Configuration.AppConfiguration());
             using var file = TestPackage.CreateTestSymbolPackageStream("Test.Package", "1.0.0");
 
             var result = await target.ReplaceSymbolPackageAsync(owner, Mock.Of<HttpContextBase>(), attempt, file);
@@ -175,7 +177,8 @@ namespace NuGetGallery
                 repository.Object,
                 validationMessageEmitter.Object,
                 Mock.Of<IPackageStagingManagementService>(),
-                Mock.Of<IEntityRepository<StagingGroup>>());
+                Mock.Of<IEntityRepository<StagingGroup>>(),
+                new Configuration.AppConfiguration());
 
             using var file = TestPackage.CreateTestSymbolPackageStream("Test.Package", "1.0.0");
             var result = await target.StageSymbolPackageAsync(currentUser, scopes, Mock.Of<HttpContextBase>(), file);
@@ -213,6 +216,7 @@ namespace NuGetGallery
         [InlineData(PackageStatus.Deleted, true, StagedPackageStatus.Deleted, true, true, HttpStatusCode.OK, null, false, StagedPackageStatus.WaitingForParent)]
         [InlineData(PackageStatus.Deleted, true, StagedPackageStatus.Deleted, true, false, HttpStatusCode.OK, null, false, StagedPackageStatus.WaitingForParent, false, "Test.Package", true)]
         [InlineData(PackageStatus.Deleted, true, StagedPackageStatus.Deleted, true, false, HttpStatusCode.NotFound)]
+        [InlineData(PackageStatus.Available, true, StagedPackageStatus.Ready, true, false, HttpStatusCode.Conflict, null, false, StagedPackageStatus.Ready, false, "Test.Package", false, true)]
         public async Task StagesSymbolsForAccessibleParent(
             PackageStatus parentStatus,
             bool hasStagedParent,
@@ -225,7 +229,8 @@ namespace NuGetGallery
             StagedPackageStatus? previousStatus = null,
             bool uiReplacement = false,
             string replacementId = "Test.Package",
-            bool identical = false)
+            bool identical = false,
+            bool expired = false)
         {
             var currentUser = new User("uploader") { Key = 10 };
             var owner = new User("owner") { Key = 20, EmailAddress = "owner@example.test" };
@@ -274,6 +279,8 @@ namespace NuGetGallery
                 identity.CurrentStagedSymbolPackage = previousAttempt;
             }
             authorizationService.Setup(x => x.CanManage(currentUser, previousAttempt)).Returns(true);
+            var previousDeadline = DateTime.UtcNow.AddDays(expired ? -1 : 1);
+            previousAttempt.ExpirationDate = previousDeadline;
             var identities = (hasStagedParent ? new[] { identity } : Array.Empty<StagedPackageIdentity>()).MockDbSet();
             identities.Setup(x => x.Include(It.IsAny<string>())).Returns(identities.Object);
             entitiesContext.Setup(x => x.StagedPackageIdentities).Returns(identities.Object);
@@ -325,7 +332,8 @@ namespace NuGetGallery
                 repository.Object,
                 validationMessageEmitter.Object,
                 managementService.Object,
-                groupRepository.Object);
+                groupRepository.Object,
+                new Configuration.AppConfiguration());
 
             using var file = TestPackage.CreateTestSymbolPackageStream(replacementId, "1.0.0");
             if (identical)
@@ -345,9 +353,16 @@ namespace NuGetGallery
 
             Assert.Equal(expectedStatus, result.StatusCode);
             securityPolicyService.Verify(x => x.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackagePush, currentUser, It.IsAny<HttpContextBase>()), uiReplacement ? Times.Never() : Times.Once());
-            if (identical && previousStatus != StagedPackageStatus.FailedValidation)
+            if (expired)
+            {
+                Assert.Equal(previousDeadline, previousAttempt.ExpirationDate);
+                repository.Verify(x => x.InsertOnCommit(It.IsAny<StagedSymbolPackage>()), Times.Never);
+                stagingBlobService.Verify(x => x.SaveSymbolPackageFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<System.IO.Stream>()), Times.Never);
+            }
+            else if (identical && previousStatus != StagedPackageStatus.FailedValidation)
             {
                 Assert.Equal(previousAttempt.Key, identity.CurrentStagedSymbolPackageKey);
+                Assert.Equal(previousDeadline, previousAttempt.ExpirationDate);
                 Assert.Equal(previousStatus, previousAttempt.Status);
                 Assert.Equal(groupId ?? (grouped ? group.Id : null), identity.StagingGroup?.Id);
                 var reassigned = groupId != null && (!grouped || groupId != group.Id);

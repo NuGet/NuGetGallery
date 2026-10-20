@@ -9,7 +9,7 @@ namespace NuGet.Services.Entities
     /// <summary>
     /// Records a private symbol validation attempt and its immutable uploaded content reference.
     /// </summary>
-    public class StagedSymbolPackage : IEntity
+    public class StagedSymbolPackage : IEntity, IStagedPackageAttempt
     {
         public int Key { get; set; }
 
@@ -30,6 +30,11 @@ namespace NuGet.Services.Entities
         public string UploadedBlobETag { get; set; }
 
         public StagedPackageStatus Status { get; set; }
+
+        /// <summary>
+        /// Gets or sets the ungrouped expiration deadline; grouped attempts use their group's deadline.
+        /// </summary>
+        public DateTime ExpirationDate { get; set; } = DateTime.UtcNow.AddDays(30);
 
         public DateTime UploadedDate { get; set; }
 
