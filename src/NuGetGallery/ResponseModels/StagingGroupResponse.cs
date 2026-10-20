@@ -109,7 +109,8 @@ namespace NuGetGallery
                 throw new ArgumentOutOfRangeException(nameof(symbolCount));
             }
 
-            var canPromote = itemCount > 0 && allPackagesReady && !group.ActivePromotionId.HasValue && !StagingExpirationPolicy.HasExpired(group);
+            var isExpired = StagingExpirationPolicy.HasExpired(group);
+            var canPromote = itemCount > 0 && allPackagesReady && !group.ActivePromotionId.HasValue && !isExpired;
             IReadOnlyList<StagingBlockerResponse> blockers = Array.Empty<StagingBlockerResponse>();
             if (group.ActivePromotionId.HasValue)
             {
@@ -118,7 +119,7 @@ namespace NuGetGallery
                     new StagingBlockerResponse("GroupPromotionInProgress", "The staging group is being promoted."),
                 };
             }
-            else if (StagingExpirationPolicy.HasExpired(group))
+            else if (isExpired)
             {
                 blockers = new[]
                 {
