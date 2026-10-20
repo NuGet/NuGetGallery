@@ -23,12 +23,7 @@ namespace NuGetGallery
             return DateTime.UtcNow.AddDays(expirationDays);
         }
 
-        internal static DateTime GetDeadline(StagedPackage attempt)
-        {
-            return attempt.StagedPackageIdentity.StagingGroup?.ExpirationDate ?? attempt.ExpirationDate;
-        }
-
-        internal static DateTime GetDeadline(StagedSymbolPackage attempt)
+        internal static DateTime GetDeadline(IStagedPackageAttempt attempt)
         {
             return attempt.StagedPackageIdentity.StagingGroup?.ExpirationDate ?? attempt.ExpirationDate;
         }
@@ -38,14 +33,7 @@ namespace NuGetGallery
             return group != null && !group.ActivePromotionId.HasValue && group.ExpirationDate <= DateTime.UtcNow;
         }
 
-        internal static bool HasExpired(StagedPackage attempt)
-        {
-            return attempt.Status != StagedPackageStatus.Promoting
-                && attempt.StagedPackageIdentity.StagingGroup?.ActivePromotionId.HasValue != true
-                && GetDeadline(attempt) <= DateTime.UtcNow;
-        }
-
-        internal static bool HasExpired(StagedSymbolPackage attempt)
+        internal static bool HasExpired(IStagedPackageAttempt attempt)
         {
             return attempt.Status != StagedPackageStatus.Promoting
                 && attempt.StagedPackageIdentity.StagingGroup?.ActivePromotionId.HasValue != true

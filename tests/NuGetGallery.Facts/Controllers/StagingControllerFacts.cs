@@ -597,9 +597,9 @@ namespace NuGetGallery
             parent.StagedPackageIdentity.CurrentStagedSymbolPackageKey = symbols.Key;
             GetMock<IPackageStagingAuthorizationService>().Setup(x => x.GetEnabledOwner(owner, owner.Username)).Returns(owner);
             GetMock<IPackageStagingManagementService>().Setup(x => x.FindStagingGroup(owner, group.Id)).Returns(group);
-            GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagedPackages(owner)).Returns(new[] { parent });
-            GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagingGroups(owner)).Returns(new[] { group });
-            GetMock<ISymbolPackageStagingManagementService>().Setup(x => x.GetStagedSymbolPackages(owner)).Returns(new[] { symbols });
+            GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagedPackages(owner, owner.Key, group.Key)).Returns(new[] { parent });
+            GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagingGroups(owner, owner.Key)).Returns(new[] { group });
+            GetMock<ISymbolPackageStagingManagementService>().Setup(x => x.GetStagedSymbolPackages(owner, owner.Key, group.Key)).Returns(new[] { symbols });
             var target = GetController<StagingController>();
             target.SetCurrentUser(owner);
 

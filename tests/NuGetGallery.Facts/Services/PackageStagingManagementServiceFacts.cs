@@ -1080,7 +1080,7 @@ namespace NuGetGallery
                 }
 
                 var deadlineAfterDeletion = group.ExpirationDate;
-                Assert.True(await target.DeletePackageAsync(stagedPackage));
+                Assert.Equal(PackageStagingDeletionResult.Deleted, await target.DeletePackageAsync(stagedPackage));
                 Assert.Equal(deadlineAfterDeletion, group.ExpirationDate);
                 Assert.Equal(1, group.MutationRevision);
             }

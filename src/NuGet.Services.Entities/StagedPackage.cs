@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace NuGet.Services.Entities
 {
-    public class StagedPackage : IEntity
+    public class StagedPackage : IEntity, IStagedPackageAttempt
     {
         public int Key { get; set; }
 

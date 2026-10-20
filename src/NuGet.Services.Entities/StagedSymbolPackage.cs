@@ -9,7 +9,7 @@ namespace NuGet.Services.Entities
     /// <summary>
     /// Records a private symbol validation attempt and its immutable uploaded content reference.
     /// </summary>
-    public class StagedSymbolPackage : IEntity
+    public class StagedSymbolPackage : IEntity, IStagedPackageAttempt
     {
         public int Key { get; set; }
 
