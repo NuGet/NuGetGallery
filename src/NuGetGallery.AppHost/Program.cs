@@ -28,6 +28,10 @@ public class Program
     private const string SymbolsValidatorResourceName = "symbols-validator";
     private const string GalleryResourceName = "gallery";
     private const string GalleryMaintenanceResourceName = "gallery-maintenance";
+    private const string GalleryMaintenanceConfigurationFileName = "gallery-maintenance-dev.json";
+    private const string JobConfigurationArgument = "-Configuration";
+    private const string JobSleepArgument = "-Sleep";
+    private const string GalleryMaintenanceSleepMilliseconds = "60000";
 
     public static void Main(string[] args)
     {
@@ -126,13 +130,13 @@ public class Program
             "--config", webConfig)
             .WithParentRelationship(infraGroup);
 
-        var maintenanceConfigPath = GenerateJsonConfig(builder.AppHostDirectory, "gallery-maintenance-dev.json", new
+        var maintenanceConfigPath = GenerateJsonConfig(builder.AppHostDirectory, GalleryMaintenanceConfigurationFileName, new
         {
             GalleryDb = new { ConnectionString = config.GalleryDb.ConnectionString },
         });
 
         var maintenance = builder.AddProject<Projects.Gallery_Maintenance>(GalleryMaintenanceResourceName)
-            .WithArgs("-Configuration", maintenanceConfigPath, "-Sleep", "60000")
+            .WithArgs(JobConfigurationArgument, maintenanceConfigPath, JobSleepArgument, GalleryMaintenanceSleepMilliseconds)
             .WaitForCompletion(dbMigrateGallery)
             .WithParentRelationship(infraGroup);
 
