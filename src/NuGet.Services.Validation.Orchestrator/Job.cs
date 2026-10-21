@@ -257,6 +257,13 @@ namespace NuGet.Services.Validation.Orchestrator
             containerBuilder
                 .RegisterType<StagingGroupPromotionService>()
                 .As<IStagingGroupPromotionService>();
+            containerBuilder.Register(context =>
+                {
+                    var email = context.Resolve<IOptionsSnapshot<EmailConfiguration>>().Value;
+                    return new StagingPromotionNotificationService(context.Resolve<IMessageService>(), context.Resolve<IMessageServiceConfiguration>(),
+                        email.PackageUrlTemplate, email.ManagePackagesUrl, email.EmailSettingsUrl);
+                })
+                .As<IStagingPromotionNotificationService>();
 
             containerBuilder
                 .RegisterType<StagedSymbolPackagePromotionService>()

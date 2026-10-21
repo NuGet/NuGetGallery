@@ -287,7 +287,7 @@ public class Program
             var promotionConfigPath = GenerateJsonConfig(
                 builder.AppHostDirectory, "staging-promotion-dev.json",
                 CreateStagingPromotionConfiguration(config.GalleryDb.ConnectionString, azuriteConnStr,
-                    stagingPromotionTopicName, stagingPromotionSubscriptionName, symbolsValidationTopicName));
+                    stagingPromotionTopicName, stagingPromotionSubscriptionName, symbolsValidationTopicName, emailTopicName));
 
             var configureValidation = builder
                 .AddProject<Projects.NuGetGallery_AppHost_Tools>("configure-validation")
@@ -888,7 +888,8 @@ public class Program
         string storageConnectionString,
         string topicName,
         string subscriptionName,
-        string symbolsValidationTopicName)
+        string symbolsValidationTopicName,
+        string emailTopicName)
     {
         return new
         {
@@ -906,6 +907,15 @@ public class Program
                 FlatContainerStorageConnectionString = storageConnectionString,
             },
             PackageValidationServiceBus = new { ConnectionString = "", TopicPath = symbolsValidationTopicName },
+            Email = new
+            {
+                ServiceBus = new { ConnectionString = "", TopicPath = emailTopicName },
+                GalleryOwner = "NuGet Gallery <support@localhost>",
+                GalleryNoReplyAddress = "NuGet Gallery <noreply@localhost>",
+                PackageUrlTemplate = "https://localhost/packages/{0}/{1}",
+                ManagePackagesUrl = "https://localhost/account/Packages",
+                EmailSettingsUrl = "https://localhost/account",
+            },
         };
     }
 
@@ -989,6 +999,7 @@ public class Program
                 PackageUrlTemplate = "https://localhost/packages/{0}/{1}",
                 PackageSupportTemplate = "https://localhost/packages/{0}/{1}/contactowners",
                 EmailSettingsUrl = "https://localhost/account",
+                ManagePackagesUrl = "https://localhost/account/Packages",
                 AnnouncementsUrl = "https://github.com/NuGet/Announcements",
                 TwitterUrl = "https://twitter.com/nuget",
             },
