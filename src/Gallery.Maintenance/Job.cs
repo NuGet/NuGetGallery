@@ -87,11 +87,17 @@ namespace Gallery.Maintenance
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             services.Configure<StagingBlobCleanupConfiguration>(configurationRoot.GetSection("StagingBlobCleanup"));
+            services.Configure<StagingExpirationConfiguration>(configurationRoot.GetSection("StagingExpiration"));
         }
 
         internal StagingBlobCleanupConfiguration GetStagingBlobCleanupConfiguration()
         {
             return _serviceProvider.GetRequiredService<IOptionsSnapshot<StagingBlobCleanupConfiguration>>().Value;
+        }
+
+        internal StagingExpirationConfiguration GetStagingExpirationConfiguration()
+        {
+            return _serviceProvider.GetRequiredService<IOptionsSnapshot<StagingExpirationConfiguration>>().Value;
         }
 
         internal BlobContainerClient CreateStagingBlobContainerClient(StagingBlobCleanupConfiguration configuration)
