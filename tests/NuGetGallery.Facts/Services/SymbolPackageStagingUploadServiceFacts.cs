@@ -65,7 +65,8 @@ namespace NuGetGallery
                 new Mock<IPackageStagingManagementService>(MockBehavior.Strict).Object,
                 new Mock<IEntityRepository<StagingGroup>>(MockBehavior.Strict).Object,
                 Mock.Of<Configuration.IAppConfiguration>(),
-                Mock.Of<IStagingQuotaService>());
+                Mock.Of<IStagingQuotaService>(),
+                Mock.Of<IMessageService>());
             using var file = TestPackage.CreateTestPackageStreamFromNuspec("Test.Package", "<package><metadata>" + metadata + "</metadata></package>");
 
             var result = await target.StageSymbolPackageAsync(currentUser, scopes, Mock.Of<HttpContextBase>(), file);
