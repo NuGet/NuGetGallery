@@ -471,6 +471,11 @@ namespace NuGetGallery
                 return PackageStagingResult.Ok();
             }
 
+            if (target.ExistingPackage?.PackageStatusKey != PackageStatus.Staged)
+            {
+                await _quotaService.EnsureCapacityAsync(target.Owner);
+            }
+
             var beforeValidation = await _packageUploadService.ValidateBeforeGeneratePackageAsync(
                 upload.PackageReader,
                 upload.PackageMetadata,
@@ -522,11 +527,6 @@ namespace NuGetGallery
             if (afterValidation.Type != PackageValidationResultType.Accepted)
             {
                 return PackageStagingResult.Error(HttpStatusCode.BadRequest, afterValidation.Message.PlainTextMessage);
-            }
-
-            if (target.ExistingPackage?.PackageStatusKey != PackageStatus.Staged)
-            {
-                await _quotaService.EnsureCapacityAsync(target.Owner);
             }
 
             var package = candidatePackage;

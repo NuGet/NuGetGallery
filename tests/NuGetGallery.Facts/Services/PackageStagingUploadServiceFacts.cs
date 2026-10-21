@@ -202,6 +202,13 @@ namespace NuGetGallery
                         Assert.Equal(HttpStatusCode.Conflict, result.StatusCode);
                         Assert.Null(stagedPackage);
                         Assert.Empty(operations);
+                        packageUploadService.VerifyNoOtherCalls();
+                        securityPolicyService.Verify(service => service.EvaluatePackagePoliciesAsync(
+                            It.IsAny<SecurityPolicyAction>(),
+                            It.IsAny<Package>(),
+                            It.IsAny<User>(),
+                            It.IsAny<User>(),
+                            It.IsAny<HttpContextBase>()), Times.Never);
                         stagingFiles.Verify(service => service.SavePackageFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Stream>()), Times.Never);
                         return;
                     }
