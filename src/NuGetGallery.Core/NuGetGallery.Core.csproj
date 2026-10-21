@@ -25,6 +25,11 @@
     <Compile Remove="Infrastructure\Mail\Messages\PackageAddedMessage.cs" />
     <Compile Remove="Infrastructure\Mail\Messages\PackageValidationFailedMessage.cs" />
     <Compile Remove="Infrastructure\Mail\Messages\PackageValidationTakingTooLongMessage.cs" />
+    <Compile Remove="Infrastructure\Mail\Messages\StagedPackageMessage.cs" />
+    <Compile Remove="Infrastructure\Mail\Messages\StagedPackageUploadedMessage.cs" />
+    <Compile Remove="Infrastructure\Mail\Messages\StagedPackageValidationFailedMessage.cs" />
+    <Compile Remove="Infrastructure\Mail\Messages\StagedPackageValidationSucceededMessage.cs" />
+    <Compile Remove="Infrastructure\Mail\Messages\StagedPackageValidationTakingTooLongMessage.cs" />
     <Compile Remove="Infrastructure\Mail\Messages\SymbolPackageAddedMessage.cs" />
     <Compile Remove="Infrastructure\Mail\Messages\SymbolPackageValidationFailedMessage.cs" />
     <Compile Remove="Infrastructure\Mail\Messages\SymbolPackageValidationTakingTooLongMessage.cs" />
