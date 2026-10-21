@@ -139,7 +139,7 @@ namespace NuGet.Services.Staging.Promotion
                         _logger.LogWarning("Staged package has invalid promotion state. Marking promotion as failed.");
 
                         var owner = stagedPackage.StagedPackageIdentity.Owner;
-                        var artifact = new StagingPromotionArtifact(package, false, false);
+                        var artifact = new StagingPromotionArtifact(package, symbols: false, succeeded: false);
                         var symbols = FindAcceptedSymbols(stagedPackage);
                         await MarkPromotionFailedAsync(stagedPackage);
 
