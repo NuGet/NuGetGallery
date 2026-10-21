@@ -43,19 +43,31 @@ namespace NuGetGallery
         public StagingQuotaUsage GetUsage(User owner)
         {
             ValidateOwner(owner);
-            return CreateUsage(owner, GetPackages(owner.Key).Count(), GetSymbols(owner.Key).Count());
+            var usage = GetUsageQuery(owner.Key).SingleOrDefault() ?? new StagingQuotaUsage();
+            return ApplyOwnerLimit(owner, usage);
         }
 
         public async Task EnsureCapacityAsync(User owner)
         {
             ValidateOwner(owner);
-            var packages = await GetPackages(owner.Key).CountAsync();
-            var symbols = await GetSymbols(owner.Key).CountAsync();
-            var usage = CreateUsage(owner, packages, symbols);
+            var usage = await GetUsageQuery(owner.Key).SingleOrDefaultAsync() ?? new StagingQuotaUsage();
+            ApplyOwnerLimit(owner, usage);
             if (usage.UsedArtifacts >= usage.Limit)
             {
                 throw new StagingQuotaExceededException();
             }
+        }
+
+        private IQueryable<StagingQuotaUsage> GetUsageQuery(int ownerKey)
+        {
+            return GetPackages(ownerKey).Select(attempt => new { Packages = 1, Symbols = 0 })
+                .Concat(GetSymbols(ownerKey).Select(attempt => new { Packages = 0, Symbols = 1 }))
+                .GroupBy(artifact => 1)
+                .Select(artifacts => new StagingQuotaUsage
+                {
+                    UsedPackages = artifacts.Sum(artifact => artifact.Packages),
+                    UsedSymbols = artifacts.Sum(artifact => artifact.Symbols),
+                });
         }
 
         private IQueryable<StagedPackage> GetPackages(int ownerKey)
@@ -76,14 +88,16 @@ namespace NuGetGallery
                 .Where(attempt => attempt.Status != StagedPackageStatus.Deleted && attempt.Status != StagedPackageStatus.Superseded);
         }
 
-        private StagingQuotaUsage CreateUsage(User owner, int packages, int symbols)
+        private StagingQuotaUsage ApplyOwnerLimit(User owner, StagingQuotaUsage usage)
         {
             if (!_ownerLimits.TryGetValue(owner.Username, out var limit))
             {
                 limit = _defaultLimit;
             }
 
-            return new StagingQuotaUsage { Owner = owner.Username, UsedPackages = packages, UsedSymbols = symbols, Limit = limit };
+            usage.Owner = owner.Username;
+            usage.Limit = limit;
+            return usage;
         }
 
         private static Dictionary<string, int> ReadOwnerLimits(string json)

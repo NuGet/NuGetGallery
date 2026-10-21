@@ -15,6 +15,43 @@ namespace NuGetGallery
 {
     public class StagingQuotaServiceFacts
     {
+        [Theory]
+        [InlineData(0, 0)]
+        [InlineData(2, 0)]
+        [InlineData(0, 2)]
+        [InlineData(1, 1)]
+        public async Task CombinesArtifactCountsForBothQuotaChecks(int packageCount, int symbolCount)
+        {
+            var owner = new User("owner") { Key = 1 };
+            var packages = new List<StagedPackage>();
+            var symbols = new List<StagedSymbolPackage>();
+            for (var key = 1; key <= packageCount; key++)
+            {
+                AddPackage(packages, key, owner);
+            }
+            for (var key = 1; key <= symbolCount; key++)
+            {
+                AddSymbols(symbols, new StagedPackageIdentity { OwnerKey = owner.Key }, key);
+            }
+            var limit = Math.Max(1, packageCount + symbolCount);
+            var service = CreateService(packages, symbols, new AppConfiguration { StagingQuotaLimit = limit });
+
+            var usage = service.GetUsage(owner);
+
+            Assert.Equal(owner.Username, usage.Owner);
+            Assert.Equal(packageCount, usage.UsedPackages);
+            Assert.Equal(symbolCount, usage.UsedSymbols);
+            Assert.Equal(limit, usage.Limit);
+            if (usage.UsedArtifacts == limit)
+            {
+                await Assert.ThrowsAsync<StagingQuotaExceededException>(() => service.EnsureCapacityAsync(owner));
+            }
+            else
+            {
+                await service.EnsureCapacityAsync(owner);
+            }
+        }
+
         [Fact]
         public async Task CountsOnlyCurrentPrivateArtifactsIncludingExpiredStaging()
         {
