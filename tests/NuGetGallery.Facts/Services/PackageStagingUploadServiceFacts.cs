@@ -26,7 +26,8 @@ namespace NuGetGallery
             [InlineData(StagedPackageStatus.Validating, false, false)]
             [InlineData(StagedPackageStatus.Ready, true, false)]
             [InlineData(StagedPackageStatus.Validating, true, true)]
-            public async Task StagesPackage(StagedPackageStatus expectedStatus, bool assignGroup, bool createGroup)
+            [InlineData(StagedPackageStatus.Validating, false, false, true)]
+            public async Task StagesPackage(StagedPackageStatus expectedStatus, bool assignGroup, bool createGroup, bool quotaReached = false)
             {
                 var currentUser = new User { Key = 17 };
                 var owner = new User { Key = 23, EmailAddress = "owner@example.com" };
@@ -161,6 +162,13 @@ namespace NuGetGallery
                     .Setup(x => x.IsPackageStagingEnabled(owner))
                     .Returns(true);
 
+                var quota = new Mock<IStagingQuotaService>();
+                quota.Setup(service => service.EnsureCapacityAsync(owner)).Returns(Task.CompletedTask);
+                if (quotaReached)
+                {
+                    quota.Setup(service => service.EnsureCapacityAsync(owner)).ThrowsAsync(new StagingQuotaExceededException());
+                }
+
                 var target = new PackageStagingUploadService(
                     apiScopeEvaluator.Object,
                     featureFlagService.Object,
@@ -175,7 +183,8 @@ namespace NuGetGallery
                     stagedValidationMessageEmitter.Object,
                     Mock.Of<IEntityRepository<StagedSymbolPackage>>(),
                     Mock.Of<IStagedSymbolPackageValidationMessageEmitter>(),
-                    new Configuration.AppConfiguration());
+                    new Configuration.AppConfiguration(),
+                    quota.Object);
 
                 using (var packageFile = TestPackage.CreateTestPackageStream("PackageA", "1.0.0"))
                 {
@@ -186,6 +195,23 @@ namespace NuGetGallery
                         packageFile,
                         assignGroup ? "release" : null,
                         listed: false);
+
+                    quota.Verify(service => service.EnsureCapacityAsync(owner), Times.Once);
+                    if (quotaReached)
+                    {
+                        Assert.Equal(HttpStatusCode.Conflict, result.StatusCode);
+                        Assert.Null(stagedPackage);
+                        Assert.Empty(operations);
+                        packageUploadService.VerifyNoOtherCalls();
+                        securityPolicyService.Verify(service => service.EvaluatePackagePoliciesAsync(
+                            It.IsAny<SecurityPolicyAction>(),
+                            It.IsAny<Package>(),
+                            It.IsAny<User>(),
+                            It.IsAny<User>(),
+                            It.IsAny<HttpContextBase>()), Times.Never);
+                        stagingFiles.Verify(service => service.SavePackageFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Stream>()), Times.Never);
+                        return;
+                    }
 
                     Assert.True(result.Success, result.ErrorMessage);
                     Assert.Equal(HttpStatusCode.Created, result.StatusCode);
@@ -457,6 +483,13 @@ namespace NuGetGallery
                     .Setup(x => x.IsPackageStagingEnabled(owner))
                     .Returns(true);
 
+                var quota = new Mock<IStagingQuotaService>();
+                quota.Setup(service => service.EnsureCapacityAsync(owner)).Returns(Task.CompletedTask);
+                if (status != StagedPackageStatus.Deleted)
+                {
+                    quota.Setup(service => service.EnsureCapacityAsync(owner)).ThrowsAsync(new StagingQuotaExceededException());
+                }
+
                 var target = new PackageStagingUploadService(
                     apiScopeEvaluator.Object,
                     featureFlagService.Object,
@@ -471,7 +504,8 @@ namespace NuGetGallery
                     stagedValidationMessageEmitter.Object,
                     symbolRepository.Object,
                     symbolEmitter.Object,
-                    new Configuration.AppConfiguration());
+                    new Configuration.AppConfiguration(),
+                    quota.Object);
 
                 var isActiveNoOp = identical && (status == StagedPackageStatus.Validating || status == StagedPackageStatus.Ready);
                 var result = await target.StagePackageAsync(
@@ -483,6 +517,8 @@ namespace NuGetGallery
                     listed: assignGroup ? false : (bool?)null);
 
                 Assert.Equal(expectedStatusCode, result.StatusCode);
+                quota.Verify(service => service.EnsureCapacityAsync(owner),
+                    status == StagedPackageStatus.Deleted && expectedStatusCode == HttpStatusCode.OK ? Times.Once() : Times.Never());
                 Assert.Equal(assignGroup && expectedStatusCode == HttpStatusCode.OK ? (createGroup ? createdGroup.Key : requestedGroup.Key) : originalGroup.Key, stagedPackage.StagedPackageIdentity.StagingGroupKey);
                 Assert.Equal(!assignGroup || expectedStatusCode == HttpStatusCode.Conflict, package.Listed);
                 var createsSuccessor = expectedStatusCode == HttpStatusCode.OK && !isActiveNoOp;
@@ -587,7 +623,8 @@ namespace NuGetGallery
                     Mock.Of<IStagedPackageValidationMessageEmitter>(),
                     Mock.Of<IEntityRepository<StagedSymbolPackage>>(),
                     Mock.Of<IStagedSymbolPackageValidationMessageEmitter>(),
-                    new Configuration.AppConfiguration());
+                    new Configuration.AppConfiguration(),
+                    Mock.Of<IStagingQuotaService>());
                 using var packageFile = TestPackage.CreateTestPackageStream("PackageA", "1.0.0");
 
                 var result = await target.StagePackageAsync(currentUser, scopes, Mock.Of<HttpContextBase>(), packageFile, "release");
@@ -640,7 +677,8 @@ namespace NuGetGallery
                     Mock.Of<IStagedPackageValidationMessageEmitter>(),
                     Mock.Of<IEntityRepository<StagedSymbolPackage>>(),
                     Mock.Of<IStagedSymbolPackageValidationMessageEmitter>(),
-                    new Configuration.AppConfiguration());
+                    new Configuration.AppConfiguration(),
+                    Mock.Of<IStagingQuotaService>());
                 using var packageFile = TestPackage.CreateTestPackageStream("PackageA", "1.0.0");
 
                 var result = await target.StagePackageAsync(currentUser, scopes, Mock.Of<HttpContextBase>(), packageFile, "release");
@@ -801,7 +839,8 @@ namespace NuGetGallery
                     Mock.Of<IStagedPackageValidationMessageEmitter>(),
                     Mock.Of<IEntityRepository<StagedSymbolPackage>>(),
                     Mock.Of<IStagedSymbolPackageValidationMessageEmitter>(),
-                    new Configuration.AppConfiguration());
+                    new Configuration.AppConfiguration(),
+                    Mock.Of<IStagingQuotaService>());
             }
         }
 
