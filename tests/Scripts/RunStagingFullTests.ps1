@@ -11,14 +11,12 @@ $ErrorActionPreference = "Stop"
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
 $originalProfile = $env:APPHOST_PROFILE
 $originalConfigurationFilePath = $env:ConfigurationFilePath
-$originalSymbolPromotion = $env:Staging__EnableSymbolPromotion
 
 try
 {
     # Requires the full profile's Azure Service Bus and Search prerequisites.
     # Parent validation, malware scanning and symbol ingestion use development substitutes.
     $env:APPHOST_PROFILE = "full"
-    $env:Staging__EnableSymbolPromotion = "true"
     Remove-Item Env:\ConfigurationFilePath -ErrorAction SilentlyContinue
 
     & "$PSScriptRoot\BuildGalleryFunctionalTests.ps1" -Configuration $Configuration
@@ -46,5 +44,4 @@ finally
 {
     $env:APPHOST_PROFILE = $originalProfile
     $env:ConfigurationFilePath = $originalConfigurationFilePath
-    $env:Staging__EnableSymbolPromotion = $originalSymbolPromotion
 }

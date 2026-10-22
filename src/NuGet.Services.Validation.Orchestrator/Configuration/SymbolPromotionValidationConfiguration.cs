@@ -76,11 +76,6 @@ namespace NuGet.Services.Validation.Orchestrator
                 throw new ArgumentNullException(nameof(symbolsConfiguration));
             }
 
-            if (!symbolsConfiguration.EnableStagedSymbolPromotion)
-            {
-                throw new NotSupportedException("Staged symbol promotion is not enabled.");
-            }
-
             var ingester = symbolsConfiguration.Validations?.SingleOrDefault(validation => validation.Name == ValidatorName.SymbolsIngester);
             if (ingester == null)
             {

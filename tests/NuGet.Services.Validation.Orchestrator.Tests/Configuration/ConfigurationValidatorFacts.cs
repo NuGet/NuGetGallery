@@ -7,21 +7,23 @@ using System.Configuration;
 using System.Linq;
 using Microsoft.Extensions.Options;
 using Moq;
+using NuGet.Jobs.Validation;
 using Xunit;
 
 namespace NuGet.Services.Validation.Orchestrator.Tests
 {
     public class ConfigurationValidatorFacts
     {
-        [Fact]
-        public void EnabledSymbolPromotionRequiresPublicPackageStorage()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void SymbolsIngesterRequiresPublicPackageStorage(bool shouldStart)
         {
             var configuration = new ValidationConfiguration
             {
-                EnableStagedSymbolPromotion = true,
                 Validations = new List<ValidationConfigurationItem>
                 {
-                    new ValidationConfigurationItem { Name = "Validation1", TrackAfter = TimeSpan.FromSeconds(10) },
+                    new ValidationConfigurationItem { Name = ValidatorName.SymbolsIngester, ShouldStart = shouldStart, TrackAfter = TimeSpan.FromSeconds(10) },
                 },
             };
 

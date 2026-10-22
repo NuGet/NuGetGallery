@@ -13,7 +13,6 @@ $ErrorActionPreference = "Stop"
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
 $originalAppHostProfile = $env:APPHOST_PROFILE
 $originalNuGetAudit = $env:NuGetAudit
-$originalSymbolPromotion = $env:Staging__EnableSymbolPromotion
 
 try
 {
@@ -33,7 +32,6 @@ try
     $testFilter = "Category=PlaywrightTests"
     if ($AppHostProfile -eq "full")
     {
-        $env:Staging__EnableSymbolPromotion = "true"
         $testFilter += "&Category!=StagingCiTests"
     }
     else
@@ -56,5 +54,4 @@ finally
 {
     $env:APPHOST_PROFILE = $originalAppHostProfile
     $env:NuGetAudit = $originalNuGetAudit
-    $env:Staging__EnableSymbolPromotion = $originalSymbolPromotion
 }

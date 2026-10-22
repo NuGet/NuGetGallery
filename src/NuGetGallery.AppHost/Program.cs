@@ -46,7 +46,6 @@ public class Program
         // APPHOST_PROFILE controls which resources are launched.
         // "ci-gallery" = minimal: only Azurite, DB migrations, and Gallery.
         var profile = Environment.GetEnvironmentVariable("APPHOST_PROFILE") ?? "full";
-        var enableSymbolPromotion = builder.Configuration.GetValue<bool>("Staging:EnableSymbolPromotion");
         var useDevelopmentSymbolsIngester = builder.Configuration.GetValue("DevelopmentValidator:UseForSymbolsIngester", true);
 
         // Read the Aspire-provisioned search service name from deployment outputs in user secrets.
@@ -267,13 +266,13 @@ public class Program
                 CreateValidationOrchestratorConfiguration(
                     config.GalleryDb.ConnectionString, validationConnectionString, azuriteConnStr,
                     validationTopicName, validationSubscriptionName, emailTopicName, symbolsValidatorTopicName, symbolsIngesterTopicName,
-                    symbols: false, enableSymbolPromotion: false, useDevelopmentSymbolsIngester: false));
+                    symbols: false, useDevelopmentSymbolsIngester: false));
             var symbolsOrchestratorConfigPath = GenerateJsonConfig(
                 builder.AppHostDirectory, "symbols-orchestrator-dev.json",
                 CreateValidationOrchestratorConfiguration(
                     config.GalleryDb.ConnectionString, validationConnectionString, azuriteConnStr,
                     symbolsValidationTopicName, validationSubscriptionName, emailTopicName, symbolsValidatorTopicName, symbolsIngesterTopicName,
-                    symbols: true, enableSymbolPromotion: enableSymbolPromotion, useDevelopmentSymbolsIngester: useDevelopmentSymbolsIngester));
+                    symbols: true, useDevelopmentSymbolsIngester: useDevelopmentSymbolsIngester));
             var symbolsValidatorConfigPath = GenerateJsonConfig(
                 builder.AppHostDirectory, "symbols-validator-dev.json", new
                 {
@@ -934,7 +933,7 @@ public class Program
     static object CreateValidationOrchestratorConfiguration(
         string galleryConnectionString, string validationConnectionString, string storageConnectionString,
         string topicName, string subscriptionName, string emailTopicName, string symbolsValidatorTopicName, string symbolsIngesterTopicName,
-        bool symbols, bool enableSymbolPromotion, bool useDevelopmentSymbolsIngester)
+        bool symbols, bool useDevelopmentSymbolsIngester)
     {
         string[] validationNames;
         string validatingType;
@@ -960,7 +959,6 @@ public class Program
             ValidationStorage = new { ConnectionString = storageConnectionString },
             Configuration = new
             {
-                EnableStagedSymbolPromotion = symbols && enableSymbolPromotion,
                 Validations = validationNames.Select(name => new
                 {
                     Name = name,

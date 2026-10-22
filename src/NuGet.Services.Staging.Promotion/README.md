@@ -105,9 +105,8 @@ Run the job with its environment-specific JSON configuration:
 
 The job needs Gallery database writes, promotion-subscription consumption and
 topic sends, private staging reads and lease writes, public package/content
-writes, and sends to the symbols-orchestrator and email topics. Symbol promotion
-also requires `Configuration.EnableStagedSymbolPromotion` on the symbols
-orchestrator.
+writes, and sends to the symbols-orchestrator and email topics. The symbols
+orchestrator needs `Configuration.PackageStorageConnectionString` for promotion.
 
 ## Concurrency and recovery
 
