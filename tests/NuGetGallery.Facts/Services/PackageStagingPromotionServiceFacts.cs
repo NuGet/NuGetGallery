@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Entity.Infrastructure;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
@@ -486,6 +488,111 @@ namespace NuGetGallery
             Assert.Equal(new[] { "Commit:Promoting", "Accepted:Package", "Accepted:Package", "Send" }, events);
         }
 
+        [Theory]
+        [InlineData(1, 0)]
+        [InlineData(0, 1)]
+        [InlineData(101, 101)]
+        [InlineData(500, 500)]
+        public async Task CommitsAllAcceptedArtifactsTogetherBeforeDispatch(int parentCount, int symbolCount)
+        {
+            var group = CreateStagingGroup();
+            var parents = new List<StagedPackage>();
+            var symbols = new List<StagedSymbolPackage>();
+            for (var index = 0; index < Math.Max(parentCount, symbolCount); index++)
+            {
+                var parent = CreateStagedPackage(StagedPackageStatus.Ready, key: index + 1, group);
+                parent.RowVersion = BitConverter.GetBytes((long)index + 1);
+                if (index < parentCount)
+                {
+                    parents.Add(parent);
+                }
+                else
+                {
+                    parent.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Available;
+                    parent.StagedPackageIdentity.CurrentStagedPackageKey = null;
+                    parent.StagedPackageIdentity.CurrentStagedPackage = null;
+                }
+
+                if (index < symbolCount)
+                {
+                    var attempt = CreateStagedSymbols(parent);
+                    attempt.Key = 10000 + index;
+                    attempt.RowVersion = BitConverter.GetBytes((long)10000 + index);
+                    attempt.StagedPackageIdentity.CurrentStagedSymbolPackageKey = attempt.Key;
+                    symbols.Add(attempt);
+                }
+            }
+
+            var repository = new Mock<IEntityRepository<StagedPackage>>();
+            repository.Setup(x => x.GetAll()).Returns(parents.AsQueryable());
+            var commitCompleted = new TaskCompletionSource<bool>();
+            repository.Setup(x => x.CommitChangesAsync()).Returns(commitCompleted.Task);
+            var writesCompleted = new TaskCompletionSource<bool>();
+            var transactionCompleted = new TaskCompletionSource<bool>();
+            var observedParents = new List<int>();
+            var observedSymbols = new List<int>();
+            var database = new Mock<IDatabase>();
+            database.Setup(x => x.ExecuteSqlCommandAsync(It.IsAny<string>(), It.IsAny<object[]>()))
+                .Returns<string, object[]>((sql, values) =>
+                {
+                    var parameters = values.Cast<SqlParameter>().ToList();
+                    Assert.Equal(group.ActivePromotionId, parameters.Single(parameter => parameter.ParameterName == "@promotionId").Value);
+                    var acceptedAt = parameters.Single(parameter => parameter.ParameterName == "@acceptedAt");
+                    Assert.Equal(SqlDbType.DateTime2, acceptedAt.SqlDbType);
+                    Assert.Equal(group.PromotionAcceptedAt, acceptedAt.Value);
+                    Assert.Equal((int)StagedPackageStatus.Promoting, parameters.Single(parameter => parameter.ParameterName == "@status").Value);
+                    var keys = parameters.Where(parameter => parameter.ParameterName.StartsWith("@key", StringComparison.Ordinal)).ToList();
+                    Assert.InRange(keys.Count, 1, 100);
+                    Assert.Equal(3 + keys.Count * 2, parameters.Count);
+                    foreach (var key in keys)
+                    {
+                        var rowVersionName = key.ParameterName.Replace("@key", "@rowVersion");
+                        var rowVersion = parameters.Single(parameter => parameter.ParameterName == rowVersionName);
+                        Assert.Equal(BitConverter.GetBytes((long)(int)key.Value), Assert.IsType<byte[]>(rowVersion.Value));
+                    }
+
+                    if (sql.Contains("[StagedSymbolPackages]"))
+                    {
+                        observedSymbols.AddRange(keys.Select(parameter => (int)parameter.Value));
+                        Assert.Contains("[PromotionMessageSentDate] = NULL", sql);
+                    }
+                    else
+                    {
+                        observedParents.AddRange(keys.Select(parameter => (int)parameter.Value));
+                        Assert.DoesNotContain("[PromotionMessageSentDate]", sql);
+                    }
+
+                    return Task.FromResult(keys.Count);
+                });
+            var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
+            var telemetry = new Mock<ITelemetryService>();
+            var target = CreateService(repository, enqueuer, stagedSymbols: symbols, telemetry: telemetry, database: database);
+            repository.Setup(x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()))
+                .Returns<Func<Task>>(async action =>
+                {
+                    await action();
+                    writesCompleted.SetResult(true);
+                    await transactionCompleted.Task;
+                });
+
+            var promotion = target.PromoteGroupAsync(group.Owner, group);
+            database.Verify(x => x.ExecuteSqlCommandAsync(It.IsAny<string>(), It.IsAny<object[]>()), Times.Never);
+            enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
+            telemetry.Verify(x => x.TrackStagingPromotionAccepted(It.IsAny<Guid>(), It.IsAny<Package>(), It.IsAny<bool>()), Times.Never);
+            commitCompleted.SetResult(true);
+            Assert.Same(writesCompleted.Task, await Task.WhenAny(writesCompleted.Task, promotion));
+            enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
+            telemetry.Verify(x => x.TrackStagingPromotionAccepted(It.IsAny<Guid>(), It.IsAny<Package>(), It.IsAny<bool>()), Times.Never);
+            transactionCompleted.SetResult(true);
+
+            Assert.Equal(StagingGroupPromotionResult.Accepted, await promotion);
+            Assert.Equal(parents.Select(attempt => attempt.Key), observedParents);
+            Assert.Equal(symbols.Select(attempt => attempt.Key), observedSymbols);
+            database.Verify(x => x.ExecuteSqlCommandAsync(It.IsAny<string>(), It.IsAny<object[]>()), Times.Exactly((parentCount + 99) / 100 + (symbolCount + 99) / 100));
+            repository.Verify(x => x.CommitChangesAsync(), Times.Once);
+            enqueuer.Verify(x => x.SendMessageAsync(It.Is<StagingPromotionMessage>(message => message.TargetType == StagingPromotionTargetType.StagingGroup && message.PromotionId == group.ActivePromotionId)), Times.Once);
+        }
+
         [Fact]
         public async Task ResendsStalledGroupWithSamePromotionId()
         {
@@ -530,6 +637,56 @@ namespace NuGetGallery
             Assert.Equal(new[] { "Commit", "Send" }, events);
             telemetry.Verify(service => service.TrackStagingPromotionAccepted(It.IsAny<Guid>(), It.IsAny<Package>(), It.IsAny<bool>()), Times.Never);
             repository.Verify(x => x.CommitChangesAsync(), Times.Once);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task DoesNotCommitOrDispatchWhenAnAcceptanceBatchConflicts(bool symbolConflict)
+        {
+            var group = CreateStagingGroup();
+            var parent = CreateStagedPackage(StagedPackageStatus.Ready, group: group);
+            var symbols = CreateStagedSymbols(parent);
+            var repository = new Mock<IEntityRepository<StagedPackage>>();
+            repository.Setup(x => x.GetAll()).Returns(new[] { parent }.AsQueryable());
+            repository.Setup(x => x.CommitChangesAsync()).Returns(Task.CompletedTask);
+            var database = new Mock<IDatabase>();
+            database.Setup(x => x.ExecuteSqlCommandAsync(It.IsAny<string>(), It.IsAny<object[]>()))
+                .Returns<string, object[]>((sql, parameters) => Task.FromResult(sql.Contains("[StagedSymbolPackages]") == symbolConflict ? 0 : 1));
+            var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
+            var telemetry = new Mock<ITelemetryService>();
+            var target = CreateService(repository, enqueuer, stagedSymbols: new[] { symbols }, telemetry: telemetry, database: database);
+            var transactionCommitted = false;
+            repository.Setup(x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()))
+                .Returns<Func<Task>>(async action =>
+                {
+                    await action();
+                    transactionCommitted = true;
+                });
+
+            Assert.Equal(StagingGroupPromotionResult.Conflict, await target.PromoteGroupAsync(group.Owner, group));
+
+            Assert.False(transactionCommitted);
+            telemetry.Verify(x => x.TrackStagingPromotionAccepted(It.IsAny<Guid>(), It.IsAny<Package>(), It.IsAny<bool>()), Times.Never);
+            enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task ReadOnlyGroupSavePreventsBatchWritesAndDispatch()
+        {
+            var group = CreateStagingGroup();
+            var parent = CreateStagedPackage(StagedPackageStatus.Ready, group: group);
+            var repository = new Mock<IEntityRepository<StagedPackage>>();
+            repository.Setup(x => x.GetAll()).Returns(new[] { parent }.AsQueryable());
+            repository.Setup(x => x.CommitChangesAsync()).ThrowsAsync(new ReadOnlyModeException("Gallery is read-only."));
+            var database = new Mock<IDatabase>(MockBehavior.Strict);
+            var enqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
+            var target = CreateService(repository, enqueuer, database: database);
+
+            await Assert.ThrowsAsync<ReadOnlyModeException>(() => target.PromoteGroupAsync(group.Owner, group));
+
+            database.Verify(x => x.ExecuteSqlCommandAsync(It.IsAny<string>(), It.IsAny<object[]>()), Times.Never);
+            enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
         }
 
         [Fact]
@@ -767,7 +924,8 @@ namespace NuGetGallery
                 enqueuer.Object,
                 repository.Object,
                 symbols.Object,
-                Mock.Of<ITelemetryService>());
+                Mock.Of<ITelemetryService>(),
+                Mock.Of<IEntitiesContext>());
             symbols.Setup(x => x.GetAll()).Returns(() =>
             {
                 attempt.ExpirationDate = DateTime.UtcNow;
@@ -887,7 +1045,8 @@ namespace NuGetGallery
             int? authorizedPackageKey = null,
             IEnumerable<StagedSymbolPackage> stagedSymbols = null,
             bool authorizedSymbols = true,
-            Mock<ITelemetryService> telemetry = null)
+            Mock<ITelemetryService> telemetry = null,
+            Mock<IDatabase> database = null)
         {
             repository.SetReturnsDefault(Array.Empty<StagedPackage>().AsQueryable());
             var authorizationService = new Mock<IPackageStagingAuthorizationService>();
@@ -899,13 +1058,21 @@ namespace NuGetGallery
                 .Setup(x => x.GetEnabledOwners(It.IsAny<User>()))
                 .Returns<User>(currentUser => new[] { currentUser });
             authorizationService.Setup(x => x.CanManage(It.IsAny<User>(), It.IsAny<StagedSymbolPackage>())).Returns(authorizedSymbols);
+            if (database == null)
+            {
+                database = new Mock<IDatabase>();
+                database.Setup(x => x.ExecuteSqlCommandAsync(It.IsAny<string>(), It.IsAny<object[]>()))
+                    .Returns<string, object[]>((sql, parameters) => Task.FromResult((parameters.Length - 3) / 2));
+            }
+            repository.Setup(x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task>>())).Returns<Func<Task>>(action => action());
 
             return new PackageStagingPromotionService(
                 authorizationService.Object,
                 enqueuer.Object,
                 repository.Object,
                 Mock.Of<IEntityRepository<StagedSymbolPackage>>(x => x.GetAll() == (stagedSymbols ?? Array.Empty<StagedSymbolPackage>()).AsQueryable()),
-                telemetry?.Object ?? Mock.Of<ITelemetryService>());
+                telemetry?.Object ?? Mock.Of<ITelemetryService>(),
+                Mock.Of<IEntitiesContext>(context => context.GetDatabase() == database.Object));
         }
 
         private static StagedSymbolPackage CreateStagedSymbols(StagedPackage parent)
