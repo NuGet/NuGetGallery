@@ -31,5 +31,7 @@ namespace NuGetGallery
         public IEnumerable<ManageOrganizationsItemViewModel> Organizations { get; }
 
         public bool HasPendingRequests { get; }
+
+        public bool HasStagingEnabledOrganizationsToDelete { get; set; }
     }
 }

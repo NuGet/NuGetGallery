@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -34,6 +35,7 @@ namespace NuGetGallery
         private readonly IEditableFeatureFlagStorageService _featureFlagService;
         private readonly IAuditingService _auditingService;
         private readonly ITelemetryService _telemetryService;
+        private readonly IStagingBlobCleanupService _stagingBlobCleanup;
 
         public DeleteAccountService(
             IEntityRepository<AccountDelete> accountDeleteRepository,
@@ -51,7 +53,8 @@ namespace NuGetGallery
             ISupportRequestService supportRequestService,
             IEditableFeatureFlagStorageService featureFlagService,
             IAuditingService auditingService,
-            ITelemetryService telemetryService)
+            ITelemetryService telemetryService,
+            IStagingBlobCleanupService stagingBlobCleanup)
         {
             _accountDeleteRepository = accountDeleteRepository ?? throw new ArgumentNullException(nameof(accountDeleteRepository));
             _packageDeleteRepository = packageDeleteRepository ?? throw new ArgumentNullException(nameof(packageDeleteRepository));
@@ -69,6 +72,7 @@ namespace NuGetGallery
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
+            _stagingBlobCleanup = stagingBlobCleanup ?? throw new ArgumentNullException(nameof(stagingBlobCleanup));
         }
 
         public async Task<DeleteAccountStatus> DeleteAccountAsync(User userToBeDeleted,
@@ -112,6 +116,7 @@ namespace NuGetGallery
         private async Task DeleteAccountImplAsync(User userToBeDeleted, User userToExecuteTheDelete, AccountDeletionOrphanPackagePolicy orphanPackagePolicy, bool commitChanges = true)
         {
             await RemoveReservedNamespaces(userToBeDeleted);
+            await RemoveStagingAsync(userToBeDeleted);
             await RemovePackageOwnership(userToBeDeleted, userToExecuteTheDelete, orphanPackagePolicy);
             await RemoveMemberships(userToBeDeleted, userToExecuteTheDelete, orphanPackagePolicy);
             await RemoveSecurityPolicies(userToBeDeleted);
@@ -145,6 +150,63 @@ namespace NuGetGallery
             }
 
             if (commitChanges)
+            {
+                await _entitiesContext.SaveChangesAsync();
+            }
+        }
+
+        private async Task RemoveStagingAsync(User user)
+        {
+            var identities = _entitiesContext.StagedPackageIdentities
+                .Include(identity => identity.Package.PackageRegistration)
+                .Include(identity => identity.Package.SupportedFrameworks)
+                .Include(identity => identity.CurrentStagedPackage)
+                .Where(identity => identity.OwnerKey == user.Key)
+                .ToList();
+            var packages = _entitiesContext.StagedPackages.Where(attempt => attempt.StagedPackageIdentity.OwnerKey == user.Key).ToList();
+            var symbols = _entitiesContext.StagedSymbolPackages
+                .Include(attempt => attempt.SymbolPackage)
+                .Where(attempt => attempt.StagedPackageIdentity.OwnerKey == user.Key)
+                .ToList();
+            var groups = _entitiesContext.StagingGroups.Where(group => group.OwnerKey == user.Key).ToList();
+            var privateSymbols = symbols.Select(attempt => attempt.SymbolPackage).Where(symbol => symbol.StatusKey == PackageStatus.Staged).Distinct().ToList();
+            var privatePackages = identities.Where(StagingDeletionService.IsUnpublishedPackage).Select(identity => identity.Package).ToList();
+
+            foreach (var identity in identities)
+            {
+                _stagingBlobCleanup.QueuePackageFiles(identity.Key);
+                _stagingBlobCleanup.QueueSymbolFiles(identity.Key);
+                identity.CurrentStagedPackageKey = null;
+                identity.CurrentStagedPackage = null;
+                identity.CurrentStagedSymbolPackageKey = null;
+                identity.CurrentStagedSymbolPackage = null;
+                identity.StagingGroupKey = null;
+                identity.StagingGroup = null;
+            }
+
+            // Break the current-attempt circular references before removing staging and ordinary rows.
+            if (identities.Count > 0)
+            {
+                await _entitiesContext.SaveChangesAsync();
+            }
+
+            _entitiesContext.StagedPackages.RemoveRange(packages);
+            _entitiesContext.StagedSymbolPackages.RemoveRange(symbols);
+            _entitiesContext.StagedPackageIdentities.RemoveRange(identities);
+            _entitiesContext.SymbolPackages.RemoveRange(privateSymbols);
+            foreach (var package in privatePackages)
+            {
+                var authors = _entitiesContext.Set<PackageAuthor>().Where(author => author.PackageKey == package.Key).ToList();
+                var dependencies = _entitiesContext.PackageDependencies.Where(dependency => dependency.PackageKey == package.Key).ToList();
+                _entitiesContext.Set<PackageAuthor>().RemoveRange(authors);
+                _entitiesContext.PackageDependencies.RemoveRange(dependencies);
+                _entitiesContext.PackageFrameworks.RemoveRange(package.SupportedFrameworks.ToList());
+                package.PackageRegistration.Packages.Remove(package);
+                _entitiesContext.Packages.Remove(package);
+            }
+
+            _entitiesContext.StagingGroups.RemoveRange(groups);
+            if (identities.Count > 0 || groups.Count > 0)
             {
                 await _entitiesContext.SaveChangesAsync();
             }

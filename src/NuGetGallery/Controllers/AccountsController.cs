@@ -403,7 +403,7 @@ namespace NuGetGallery
         protected List<DeleteAccountListPackageItemViewModel> GetOwnedPackagesViewModels(User account)
         {
             return PackageService
-                 .FindPackagesByAnyMatchingOwner(account, includeUnlisted: true)
+                 .FindPackagesForAccountDeletion(account)
                  .Select(p => CreateDeleteAccountListPackageItemViewModel(p, account, GetCurrentUser()))
                  .ToList();
         }

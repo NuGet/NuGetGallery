@@ -556,6 +556,21 @@ namespace NuGetGallery
             return GetPackagesForOwners(ownerKeys, includeUnlisted, includeVersions);
         }
 
+        /// <summary>
+        /// Finds ordinary packages for account deletion, excluding never-published staging.
+        /// </summary>
+        public IEnumerable<Package> FindPackagesForAccountDeletion(User user)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            var ownerKeys = user.Organizations.Select(membership => membership.OrganizationKey).ToList();
+            ownerKeys.Insert(0, user.Key);
+            return GetPackagesForOwners(ownerKeys, includeUnlisted: true, includeVersions: false, excludeUnpublished: true);
+        }
+
         public (IReadOnlyCollection<Package> Packages, long TotalDownloadCount, int PackageCount) FindPackagesByProfile(
             User user,
             int page,
@@ -612,10 +627,25 @@ namespace NuGetGallery
             return (packages.ToList(), downloadCount, packageCount);
         }
 
-        private IEnumerable<Package> GetPackagesForOwners(IEnumerable<int> ownerKeys, bool includeUnlisted, bool includeVersions)
+        private IEnumerable<Package> GetPackagesForOwners(IEnumerable<int> ownerKeys, bool includeUnlisted, bool includeVersions, bool excludeUnpublished = false)
         {
             IQueryable<Package> packages = _packageRepository.GetAll()
                 .Where(p => p.PackageRegistration.Owners.Any(o => ownerKeys.Contains(o.Key)));
+
+            if (excludeUnpublished)
+            {
+                var identities = _entitiesContext.StagedPackageIdentities
+                    .Include(identity => identity.Package)
+                    .Include(identity => identity.CurrentStagedPackage)
+                    .Where(identity => identity.Package.PackageRegistration.Owners.Any(owner => ownerKeys.Contains(owner.Key)))
+                    .ToList();
+                var unpublishedPackageKeys = identities.Where(StagingDeletionService.IsUnpublishedPackage).Select(identity => identity.Key).ToList();
+                packages = packages.Where(package => package.PackageStatusKey != PackageStatus.Staged);
+                if (unpublishedPackageKeys.Count > 0)
+                {
+                    packages = packages.Where(package => !unpublishedPackageKeys.Contains(package.Key));
+                }
+            }
 
             if (!includeUnlisted)
             {
@@ -737,6 +767,34 @@ namespace NuGetGallery
             {
                 return false;
             }
+
+            var hasStagedVersions = packageRegistration.Packages.Any(package => package.PackageStatusKey == PackageStatus.Staged);
+            var hasDeletedVersions = packageRegistration.Packages.Any(package => package.PackageStatusKey == PackageStatus.Deleted);
+            if (hasStagedVersions || hasDeletedVersions)
+            {
+                var deletedOwnerKeys = new List<int> { ownerToRemove.Key };
+                foreach (var membership in ownerToRemove.Organizations)
+                {
+                    var hasOtherMembers = membership.Organization.Members.Any(member => !member.Member.MatchesUser(ownerToRemove));
+                    if (!hasOtherMembers)
+                    {
+                        deletedOwnerKeys.Add(membership.OrganizationKey);
+                    }
+                }
+
+                var identities = _entitiesContext.StagedPackageIdentities
+                    .Include(identity => identity.Package)
+                    .Include(identity => identity.CurrentStagedPackage)
+                    .Where(identity => identity.Package.PackageRegistrationKey == packageRegistration.Key)
+                    .Where(identity => deletedOwnerKeys.Contains(identity.OwnerKey))
+                    .ToList();
+                var removedPackageKeys = new HashSet<int>(identities.Where(StagingDeletionService.IsUnpublishedPackage).Select(identity => identity.Key));
+                if (packageRegistration.Packages.All(package => removedPackageKeys.Contains(package.Key)))
+                {
+                    return false;
+                }
+            }
+
             return WillPackageBeOrphanedIfOwnerRemovedHelper(packageRegistration.Owners, ownerToRemove);
         }
 
