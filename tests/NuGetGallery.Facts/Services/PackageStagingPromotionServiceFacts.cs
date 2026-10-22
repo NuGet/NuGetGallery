@@ -95,7 +95,7 @@ namespace NuGetGallery
                     }
                     else
                     {
-                        var artifactResponse = StagingArtifactResponse.FromPackage(parent, parent.ExpirationDate, "management");
+                        var artifactResponse = StagingArtifactResponse.FromPackage(parent, "management");
                         Assert.False(artifactResponse.CanPromote);
                         Assert.Equal(StagingPublicationPolicy.GetBlocker(parent.StagedPackageIdentity).Code, Assert.Single(artifactResponse.Blockers).Code);
                     }

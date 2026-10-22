@@ -72,7 +72,7 @@ namespace NuGetGallery
                 fixture.Enqueuer.Verify(service => service.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
                 if (!resend && !restriction.StartsWith("requester-", StringComparison.Ordinal))
                 {
-                    var response = StagingArtifactResponse.FromSymbolPackage(fixture.Attempt, fixture.Attempt.ExpirationDate, "management");
+                    var response = StagingArtifactResponse.FromSymbolPackage(fixture.Attempt, "management");
                     Assert.False(response.CanPromote);
                     Assert.Equal(StagingPublicationPolicy.GetBlocker(fixture.Attempt.StagedPackageIdentity).Code, Assert.Single(response.Blockers).Code);
                 }
