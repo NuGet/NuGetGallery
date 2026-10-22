@@ -64,6 +64,24 @@ namespace NuGetGallery
             Assert.Equal(bytes, Assert.Single(fixture.Files).Value);
         }
 
+        [Fact]
+        public async Task RemovesOnlyTheFailedAttemptJsonAndAllowsRepeatedCleanup()
+        {
+            var fixture = new Fixture();
+            var failed = CreateBackup();
+            var other = CreateBackup();
+            other.PackageDeleteKey = 11;
+            await fixture.Service.SaveAsync(failed);
+            await fixture.Service.SaveAsync(other);
+
+            await fixture.Service.DeleteAsync(10, 20);
+            await fixture.Service.DeleteAsync(10, 20);
+
+            Assert.Null(await fixture.Service.GetAsync(10, 20));
+            Assert.NotNull(await fixture.Service.GetAsync(11, 20));
+            Assert.Equal("package-delete-backups/11/20/package-delete-backup.json", Assert.Single(fixture.Files).Key);
+        }
+
         private static PackageDeleteBackup CreateBackup()
         {
             return new PackageDeleteBackup
@@ -101,6 +119,12 @@ namespace NuGetGallery
                 Storage.Setup(s => s.GetFileAsync(It.IsAny<string>(), It.IsAny<string>()))
                     .Returns<string, string>((folder, name) => Task.FromResult<Stream>(Files.TryGetValue(folder + "/" + name, out var bytes)
                         ? new MemoryStream(bytes) : null));
+                Storage.Setup(s => s.DeleteFileAsync(CoreConstants.Folders.PackageDeleteBackupsFolderName, It.IsAny<string>()))
+                    .Returns<string, string>((folder, name) =>
+                    {
+                        Files.Remove(folder + "/" + name);
+                        return Task.CompletedTask;
+                    });
                 Service = new PackageDeleteBackupService(Storage.Object);
             }
         }
