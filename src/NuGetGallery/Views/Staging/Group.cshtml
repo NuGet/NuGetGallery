@@ -322,7 +322,7 @@
                                                     <a data-bind="attr: { href: MoveUrl }">Move</a>
                                                 </li>
                                                 <!-- /ko -->
-                                                <li data-bind="visible: !IsBusy() && !IsExpired">
+                                                <li data-bind="visible: CanReplace && !IsBusy()">
                                                     <a href="#"
                                                        class="staging-replace-trigger"
                                                        data-bind="click: ChooseReplacement">Replace&hellip;</a>
@@ -491,6 +491,7 @@
             package.CanManage,
             package.CanDelete,
             DeleteDisabledReasonId = "staged-delete-disabled-" + index,
+            package.CanReplace,
             package.CanPromote,
             package.ReplacesPublishedSymbols,
             package.IncludesStagedSymbols,

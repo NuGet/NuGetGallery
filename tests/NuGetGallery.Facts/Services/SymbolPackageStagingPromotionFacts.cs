@@ -60,6 +60,7 @@ namespace NuGetGallery
         [InlineData("published-attempt", PackageStagingPromotionResult.NotReady)]
         [InlineData("grouped", PackageStagingPromotionResult.Grouped)]
         [InlineData("expired", PackageStagingPromotionResult.NotReady)]
+        [InlineData("ownership-lost", PackageStagingPromotionResult.NotReady)]
         public async Task KeepsAcceptanceAndApiEligibilityAligned(string blocker, PackageStagingPromotionResult expected)
         {
             var fixture = new Fixture();
@@ -91,6 +92,9 @@ namespace NuGetGallery
                 case "expired":
                     fixture.Attempt.ExpirationDate = DateTime.UtcNow;
                     break;
+                case "ownership-lost":
+                    identity.Package.PackageRegistration.Owners.Clear();
+                    break;
                 default:
                     throw new InvalidOperationException($"Unknown test blocker '{blocker}'.");
             }
@@ -111,6 +115,15 @@ namespace NuGetGallery
             Assert.Null(fixture.Attempt.ActivePromotionId);
             fixture.Repository.Verify(x => x.CommitChangesAsync(), Times.Never);
             fixture.Enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
+            if (blocker == "ownership-lost")
+            {
+                Assert.Equal("RegistrationOwnershipLost", Assert.Single(response.Blockers).Code);
+                var deadline = fixture.Attempt.ExpirationDate;
+                identity.Package.PackageRegistration.Owners.Add(fixture.Owner);
+                Assert.True(StagingArtifactResponse.FromSymbolPackage(fixture.Attempt, "management").CanPromote);
+                Assert.Equal(PackageStagingPromotionResult.Accepted, await fixture.Service.PromoteSymbolPackageAsync(fixture.Owner, fixture.Attempt));
+                Assert.Equal(deadline, fixture.Attempt.ExpirationDate);
+            }
         }
 
         [Theory]
@@ -162,6 +175,7 @@ namespace NuGetGallery
             var promotionId = fixture.Attempt.ActivePromotionId;
             var expirationDate = DateTime.UtcNow.AddDays(-1);
             fixture.Attempt.ExpirationDate = expirationDate;
+            fixture.Attempt.StagedPackageIdentity.Package.PackageRegistration.Owners.Clear();
             Assert.Equal(StagedPackageStatus.Promoting, fixture.Attempt.Status);
             Assert.True(StagedSymbolPackagePromotionEligibility.CanResend(fixture.Attempt));
             fixture.Enqueuer.Setup(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>())).Returns(Task.CompletedTask);
@@ -286,6 +300,7 @@ namespace NuGetGallery
             internal Fixture()
             {
                 var package = new Package { Key = 2, PackageStatusKey = PackageStatus.Available, PackageRegistration = new PackageRegistration { Id = "PackageA" }, NormalizedVersion = "1.0.0" };
+                package.PackageRegistration.Owners.Add(Owner);
                 var identity = new StagedPackageIdentity { Key = package.Key, Package = package, Owner = Owner, OwnerKey = Owner.Key, CurrentStagedSymbolPackageKey = 3 };
                 Attempt = new StagedSymbolPackage
                 {

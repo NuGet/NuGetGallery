@@ -45,6 +45,8 @@ namespace NuGetGallery
 
         public bool CanDelete { get; set; }
 
+        public bool CanReplace { get; set; }
+
         public bool CanPromote { get; set; }
 
         public bool ReplacesPublishedSymbols { get; set; }
