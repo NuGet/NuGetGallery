@@ -32,6 +32,11 @@ public class Program
     private const string JobConfigurationArgument = "-Configuration";
     private const string JobSleepArgument = "-Sleep";
     private const string GalleryMaintenanceSleepMilliseconds = "60000";
+#if DEBUG
+    private const string BuildConfiguration = "Debug";
+#else
+    private const string BuildConfiguration = "Release";
+#endif
 
     public static void Main(string[] args)
     {
@@ -357,13 +362,7 @@ public class Program
 
         // ─── GalleryTools config (needed for seeding in all profiles) ───────────────
 
-        var galleryToolsBin = Path.Combine(srcDir, "GalleryTools", "bin",
-        #if DEBUG
-            "Debug",
-        #else
-            "Release",
-        #endif
-            "net472");
+        var galleryToolsBin = Path.Combine(srcDir, "GalleryTools", "bin", BuildConfiguration, "net472");
         GenerateGalleryToolsConfig(galleryToolsBin, azuriteConnStr,
             config.GalleryDb.ConnectionString, config.GalleryBaseAddress,
             packages: config.Containers.Packages, auditing: config.Containers.Auditing,
@@ -521,7 +520,7 @@ public class Program
 
         var searchIndexNames = new[] { config.SearchIndexes.Search, config.SearchIndexes.Hijack };
 
-        // Wait for the DB bootstrap and resulting indexes/cursor before starting Search consumers.
+        // Wait for fresh bootstrap or confirmation of existing indexes/cursor before starting Search consumers.
         var searchIndexReady = builder.AddProject<Projects.NuGetGallery_AppHost_Tools>("search-index-ready")
             .WithArgs("search-index-available")
             .WaitFor(search)
@@ -582,18 +581,19 @@ public class Program
                     Development = new
                     {
                         ReplaceContainersAndIndexes = false,
-                        ReuseContainersAndIndexes = true,
                     },
                 },
             });
 
-        var db2azuresearch = builder.AddProject<Projects.NuGet_Jobs_Db2AzureSearch>("db2azuresearch")
-            .WithArgs("-Configuration", db2searchConfigPath, "-Once", "true")
+        var db2searchExe = Path.Combine(srcDir, "NuGet.Jobs.Db2AzureSearch", "bin", BuildConfiguration, "net472", "NuGet.Jobs.Db2AzureSearch.exe");
+        var db2azuresearch = builder.AddProject<Projects.NuGetGallery_AppHost_Tools>("db2azuresearch")
+            .WithArgs("bootstrap-search", db2searchExe, db2searchConfigPath)
             .WaitForCompletion(catalogIndexReady)
             .WaitForCompletion(seedBlobs)
             .WaitForCompletion(dbMigrateGallery)
             .WaitFor(search)
             .WithParentRelationship(pipelineGroup);
+        WithAppHostEnv(db2azuresearch, config, azuriteConnStr, azuriteBase, searchServiceName);
 
         searchIndexReady.WaitForCompletion(db2azuresearch);
 
