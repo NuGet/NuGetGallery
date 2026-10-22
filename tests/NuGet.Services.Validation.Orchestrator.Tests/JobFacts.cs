@@ -89,6 +89,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             builder.RegisterInstance(publicStorage.Object).Keyed<ICoreFileStorageService>("PackageStorage");
             builder.RegisterInstance(validationStorage.Object).As<ICoreFileStorageService>();
             builder.RegisterInstance(Mock.Of<ILogger<StagedSymbolPackagePromotionService>>()).As<ILogger<StagedSymbolPackagePromotionService>>();
+            builder.RegisterInstance(Mock.Of<NuGet.Services.Logging.ITelemetryClient>()).As<NuGet.Services.Logging.ITelemetryClient>();
             using (var container = builder.Build())
             {
                 await container.Resolve<IStagedSymbolPackagePromotionService>().CompleteAsync(attempt.Key, promotionId);

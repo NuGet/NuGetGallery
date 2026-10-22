@@ -117,6 +117,14 @@ namespace NuGet.Services.DatabaseMigration.Facts
 
                         dbMigrator.Update("AddPackageStaging");
 
+                        command.CommandText = @"SELECT COUNT(*) FROM sys.columns AS c
+                            INNER JOIN sys.tables AS t ON t.object_id = c.object_id
+                            WHERE t.name IN (N'StagedPackages', N'StagedSymbolPackages', N'StagingGroups')
+                              AND c.name = N'PromotionAcceptedAt'
+                              AND TYPE_NAME(c.user_type_id) = N'datetime2'
+                              AND c.scale = 7 AND c.is_nullable = 1";
+                        Assert.Equal(3, await command.ExecuteScalarAsync());
+
                         command.CommandText = @"SELECT COUNT(*) FROM dbo.Users
                             WHERE (Username = N'StagingActive' AND NotifyPackageStaged = 1)
                                OR (Username = N'StagingDeleted' AND NotifyPackageStaged = 0)";

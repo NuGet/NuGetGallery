@@ -95,7 +95,11 @@ namespace NuGetGallery
             Assert.True(response.CanPromote);
             Assert.Empty(response.Blockers);
             var committed = new TaskCompletionSource<bool>();
-            fixture.Repository.Setup(x => x.CommitChangesAsync()).Returns(committed.Task);
+            var before = DateTime.UtcNow;
+            fixture.Attempt.PromotionAcceptedAt = before.AddDays(-1);
+            fixture.Repository.Setup(x => x.CommitChangesAsync())
+                .Callback(() => Assert.InRange(fixture.Attempt.PromotionAcceptedAt.Value, before, DateTime.UtcNow))
+                .Returns(committed.Task);
             StagingPromotionMessage message = null;
             fixture.Enqueuer.Setup(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()))
                 .Callback<StagingPromotionMessage>(value => message = value)
@@ -103,6 +107,7 @@ namespace NuGetGallery
 
             var promotion = fixture.Service.PromoteSymbolPackageAsync(fixture.Owner, fixture.Attempt);
             fixture.Enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), Times.Never);
+            fixture.Telemetry.Verify(service => service.TrackStagingPromotionAccepted(It.IsAny<Guid>(), It.IsAny<Package>(), It.IsAny<bool>()), Times.Never);
             committed.SetResult(true);
 
             Assert.Equal(PackageStagingPromotionResult.Accepted, await promotion);
@@ -114,6 +119,7 @@ namespace NuGetGallery
             Assert.Equal(fixture.Attempt.Key, message.TargetKey);
             Assert.Equal(PackageStatus.Available, fixture.Attempt.StagedPackageIdentity.Package.PackageStatusKey);
             Assert.Equal(PackageStatus.Staged, fixture.Attempt.SymbolPackage.StatusKey);
+            fixture.Telemetry.Verify(service => service.TrackStagingPromotionAccepted(fixture.Attempt.ActivePromotionId.Value, fixture.Attempt.StagedPackageIdentity.Package, true), Times.Once);
         }
 
         [Theory]
@@ -238,6 +244,8 @@ namespace NuGetGallery
             }
 
             var promotionId = fixture.Attempt.ActivePromotionId;
+            var acceptedAt = fixture.Attempt.PromotionAcceptedAt;
+            Assert.NotNull(acceptedAt);
             var expirationDate = DateTime.UtcNow.AddDays(-1);
             fixture.Attempt.ExpirationDate = expirationDate;
             Assert.Equal(StagedPackageStatus.Promoting, fixture.Attempt.Status);
@@ -245,11 +253,13 @@ namespace NuGetGallery
             fixture.Enqueuer.Setup(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>())).Returns(Task.CompletedTask);
             Assert.Equal(PackageStagingPromotionResult.Accepted, await fixture.Service.ResendSymbolPackageAsync(fixture.Owner, fixture.Attempt));
             Assert.Equal(promotionId, fixture.Attempt.ActivePromotionId);
+            Assert.Equal(acceptedAt, fixture.Attempt.PromotionAcceptedAt);
             Assert.Equal(expirationDate, fixture.Attempt.ExpirationDate);
             Assert.False(StagedSymbolPackagePromotionEligibility.CanResend(fixture.Attempt));
             fixture.Enqueuer.Verify(x => x.SendMessageAsync(It.Is<StagingPromotionMessage>(message =>
                 message.PromotionId == promotionId && message.TargetKey == fixture.Attempt.Key && message.TargetType == StagingPromotionTargetType.StagedSymbolPackage)), Times.Exactly(2));
             fixture.Repository.Verify(x => x.CommitChangesAsync(), Times.Exactly(deliveryFailed ? 3 : 2));
+            fixture.Telemetry.Verify(service => service.TrackStagingPromotionAccepted(promotionId.Value, fixture.Attempt.StagedPackageIdentity.Package, true), Times.Once);
         }
 
         [Fact]
@@ -346,6 +356,7 @@ namespace NuGetGallery
             Assert.Equal(PackageStagingPromotionResult.Conflict, await fixture.Service.PromoteSymbolPackageAsync(fixture.Owner, fixture.Attempt));
 
             fixture.Enqueuer.Verify(x => x.SendMessageAsync(It.IsAny<StagingPromotionMessage>()), duringRecovery ? Times.Once() : Times.Never());
+            fixture.Telemetry.Verify(service => service.TrackStagingPromotionAccepted(It.IsAny<Guid>(), It.IsAny<Package>(), true), duringRecovery ? Times.Once() : Times.Never());
         }
 
         private class Fixture
@@ -380,8 +391,10 @@ namespace NuGetGallery
                 Authorization.Setup(x => x.CanManage(Owner, Attempt)).Returns(true);
                 Repository.Setup(x => x.CommitChangesAsync()).Returns(Task.CompletedTask);
                 var packages = Mock.Of<IEntityRepository<StagedPackage>>(x => x.GetAll() == Array.Empty<StagedPackage>().AsQueryable());
-                Service = new PackageStagingPromotionService(Authorization.Object, Enqueuer.Object, packages, Repository.Object);
+                Service = new PackageStagingPromotionService(Authorization.Object, Enqueuer.Object, packages, Repository.Object, Telemetry.Object);
             }
+
+            public Mock<ITelemetryService> Telemetry { get; } = new Mock<ITelemetryService>();
         }
     }
 }

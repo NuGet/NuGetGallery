@@ -70,6 +70,7 @@
   </ItemGroup>
   
   <ItemGroup>
+    <ProjectReference Include="..\NuGet.Services.Contracts\NuGet.Services.Contracts.csproj" />
     <ProjectReference Include="..\NuGet.Services.Entities\NuGet.Services.Entities.csproj" />
     <ProjectReference Include="..\NuGet.Services.FeatureFlags\NuGet.Services.FeatureFlags.csproj" />
   </ItemGroup>

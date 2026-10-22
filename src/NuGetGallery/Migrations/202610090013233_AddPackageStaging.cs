@@ -48,6 +48,7 @@
                         WarnedExpirationDate = c.DateTime(precision: 7, storeType: "datetime2"),
                         MutationRevision = c.Long(nullable: false, defaultValue: 0),
                         ActivePromotionId = c.Guid(),
+                        PromotionAcceptedAt = c.DateTime(precision: 7, storeType: "datetime2"),
                         PromotionMessageSentDate = c.DateTime(),
                         UploadedDate = c.DateTime(nullable: false),
                         RowVersion = c.Binary(nullable: false, fixedLength: true, timestamp: true, storeType: "rowversion"),
@@ -70,6 +71,7 @@
                         WarnedExpirationDate = c.DateTime(precision: 7, storeType: "datetime2"),
                         UploadedDate = c.DateTime(nullable: false),
                         ActivePromotionId = c.Guid(),
+                        PromotionAcceptedAt = c.DateTime(precision: 7, storeType: "datetime2"),
                         PromotionMessageSentDate = c.DateTime(),
                         MutationRevision = c.Int(nullable: false, defaultValue: 0),
                         RowVersion = c.Binary(nullable: false, fixedLength: true, timestamp: true, storeType: "rowversion"),
@@ -93,6 +95,7 @@
                         WarnedExpirationDate = c.DateTime(precision: 7, storeType: "datetime2"),
                         MutationRevision = c.Long(nullable: false, defaultValue: 0),
                         ActivePromotionId = c.Guid(),
+                        PromotionAcceptedAt = c.DateTime(precision: 7, storeType: "datetime2"),
                         PromotionMessageSentDate = c.DateTime(),
                         RowVersion = c.Binary(nullable: false, fixedLength: true, timestamp: true, storeType: "rowversion"),
                     })

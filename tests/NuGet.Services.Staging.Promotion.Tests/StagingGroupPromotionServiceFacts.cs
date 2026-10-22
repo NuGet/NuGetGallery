@@ -53,6 +53,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
             Assert.Empty(context.StagedPackages);
             Assert.Same(context.StagingGroup, Assert.Single(context.StagingGroups));
             Assert.Null(context.StagingGroup.ActivePromotionId);
+            Assert.Null(context.StagingGroup.PromotionAcceptedAt);
             Assert.Null(context.StagedPackage.StagedPackageIdentity.CurrentStagedPackageKey);
             Assert.Null(context.StagedPackage.StagedPackageIdentity.StagingGroupKey);
             Assert.Null(completedMember.StagedPackageIdentity.CurrentStagedPackageKey);
@@ -85,6 +86,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
             Assert.Equal(failedMember.Key, failedMember.StagedPackageIdentity.CurrentStagedPackageKey);
             Assert.Equal(context.StagingGroup.Key, failedMember.StagedPackageIdentity.StagingGroupKey);
             Assert.Null(failedMember.ActivePromotionId);
+            Assert.Null(failedMember.PromotionAcceptedAt);
             context.StagedPackageRepository.Verify(x => x.DeleteOnCommit(context.StagedPackage), Times.Once);
             context.StagedPackageRepository.Verify(x => x.DeleteOnCommit(failedMember), Times.Never);
             context.BlobCleanup.Verify(service => service.QueuePackageFiles(It.Is<IReadOnlyCollection<int>>(keys => keys.Count == 1 && keys.Contains(42))), Times.Once);
@@ -292,6 +294,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 {
                     Key = 7,
                     ActivePromotionId = PromotionId,
+                    PromotionAcceptedAt = DateTime.UtcNow.AddMinutes(-1),
                 };
                 StagingGroups = new List<StagingGroup> { StagingGroup };
                 StagedPackages = new List<StagedPackage>();
@@ -397,6 +400,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
                     StagedPackageIdentity = identity,
                     Status = status,
                     ActivePromotionId = PromotionId,
+                    PromotionAcceptedAt = StagingGroup.PromotionAcceptedAt,
                 };
                 identity.CurrentStagedPackageKey = stagedPackage.Key;
                 identity.CurrentStagedPackage = stagedPackage;

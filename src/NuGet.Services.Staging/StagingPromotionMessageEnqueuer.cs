@@ -50,7 +50,9 @@ namespace NuGet.Services.Staging
                 throw new ArgumentNullException(nameof(message));
             }
 
-            await _topicClient.Value.SendAsync(_serializer.Serialize(message));
+            var brokeredMessage = _serializer.Serialize(message);
+            brokeredMessage.ScheduledEnqueueTimeUtc = DateTimeOffset.UtcNow;
+            await _topicClient.Value.SendAsync(brokeredMessage);
         }
     }
 }

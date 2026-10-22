@@ -19,16 +19,20 @@ namespace NuGetGallery
         public async Task CreatesTheClientOnFirstSendAndReusesIt()
         {
             var message = StagingPromotionMessage.ForPackage(Guid.NewGuid(), 42);
-            var serialized = Mock.Of<IBrokeredMessage>();
+            var serialized = new ServiceBusMessageWrapper("promotion");
             var serializer = new Mock<IBrokeredMessageSerializer<StagingPromotionMessage>>();
             serializer.Setup(x => x.Serialize(message)).Returns(serialized);
             var client = new Mock<ITopicClient>();
-            client.Setup(x => x.SendAsync(serialized)).Returns(Task.CompletedTask);
+            var before = DateTimeOffset.UtcNow;
+            client.Setup(x => x.SendAsync(serialized))
+                .Callback(() => Assert.InRange(serialized.ScheduledEnqueueTimeUtc, before, DateTimeOffset.UtcNow))
+                .Returns(Task.CompletedTask);
             var deferred = new Lazy<ITopicClient>(() => client.Object);
             var target = new StagingPromotionMessageEnqueuer(deferred, serializer.Object);
             Assert.False(deferred.IsValueCreated);
 
             await target.SendMessageAsync(message);
+            serialized.ScheduledEnqueueTimeUtc = DateTimeOffset.UtcNow.AddDays(-1);
             await target.SendMessageAsync(message);
 
             Assert.True(deferred.IsValueCreated);

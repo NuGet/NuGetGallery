@@ -11,15 +11,61 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Newtonsoft.Json.Linq;
 using NuGet.Services.Entities;
 using NuGet.Services.Staging;
 using NuGetGallery;
+using Serilog;
+using Serilog.Events;
 using Xunit;
 
 namespace NuGet.Services.Staging.Promotion.Tests
 {
     public class StagedPackagePromotionMessageHandlerFacts
     {
+        [Fact]
+        public async Task RecordsPublicationOnlyAfterTheEnclosingTransactionReturns()
+        {
+            var observations = new List<LogEvent>();
+            var sink = new Mock<Serilog.Core.ILogEventSink>();
+            sink.Setup(target => target.Emit(It.IsAny<LogEvent>())).Callback<LogEvent>(observation => observations.Add(observation));
+            using (var logger = new LoggerConfiguration().WriteTo.Sink(sink.Object).CreateLogger())
+            using (var factory = new LoggerFactory())
+            {
+                factory.AddSerilog(logger);
+                var context = new TestContext(logger: factory.CreateLogger<StagedPackagePromotionMessageHandler>());
+                var transactionCompleted = new TaskCompletionSource<bool>();
+                context.StagedPackageRepository.Setup(repository => repository.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()))
+                    .Returns(async (Func<Task> action) =>
+                    {
+                        await action();
+                        await transactionCompleted.Task;
+                    });
+
+                var publicationTask = context.Target.HandleAsync(context.Message);
+
+                Assert.Equal(PackageStatus.Available, context.Package.PackageStatusKey);
+                Assert.DoesNotContain(observations, observation => observation.Properties.ContainsKey("PublicationMilestone"));
+                Assert.Empty(context.TelemetryClient.Invocations);
+                var before = DateTime.UtcNow;
+                transactionCompleted.SetResult(true);
+                Assert.True(await publicationTask);
+
+                var publication = Assert.Single(observations.Where(observation => observation.Properties.ContainsKey("PublicationMilestone")));
+                var payload = JObject.Parse(publication.RenderMessage());
+                Assert.Equal("StagingPromotion.GalleryPublished", (string)payload["EventName"]);
+                Assert.Equal(context.PromotionId.ToString(), (string)payload["PromotionId"]);
+                Assert.Equal("Example.Package", (string)payload["PackageId"]);
+                Assert.Equal("1.2.3", (string)payload["PackageVersion"]);
+                Assert.Equal("Package", (string)payload["ArtifactType"]);
+                Assert.InRange((DateTime)payload["OccurredAt"], before, DateTime.UtcNow);
+                Assert.Equal(context.StagedPackage.PromotionAcceptedAt, (DateTime?)payload["PromotionAcceptedAt"]);
+                context.TelemetryClient.Verify(client => client.TrackMetric("StagingPromotion.AcceptedToGallerySeconds",
+                    ((DateTime)payload["OccurredAt"] - context.StagedPackage.PromotionAcceptedAt.Value).TotalSeconds,
+                    It.Is<IDictionary<string, string>>(properties => properties.Count == 1 && properties["ArtifactType"] == "Package")), Times.Once);
+            }
+        }
+
         [Theory]
         [InlineData("owner-locked")]
         [InlineData("owner-unconfirmed")]
@@ -157,6 +203,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
 
             Assert.True(firstHandled);
             Assert.True(duplicateHandled);
+            Assert.Single(context.Publications);
             context.PackageFileStorageService.Verify(
                 x => x.CopyFileAsync(
                     context.SourceUri,
@@ -188,6 +235,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
             await Assert.ThrowsAsync<InvalidOperationException>(() => context.Target.HandleAsync(context.Message));
 
             Assert.Equal(PackageStatus.Available, context.Package.PackageStatusKey);
+            Assert.Single(context.Publications);
             if (grouped)
             {
                 Assert.Same(context.StagedPackage, Assert.Single(context.StagedPackages));
@@ -661,6 +709,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 () => context.Target.HandleAsync(context.Message));
 
             Assert.Same(expected, actual);
+            Assert.Empty(context.Publications);
             Assert.Equal(StagedPackageStatus.Promoting, context.StagedPackage.Status);
             context.PackageFileStorageService.Verify(
                 x => x.DeleteFileAsync(
@@ -814,7 +863,8 @@ namespace NuGet.Services.Staging.Promotion.Tests
 
         private class TestContext
         {
-            public TestContext(int packageKey = 11, int attemptKey = 42, string packageId = "Example.Package", Guid? promotionId = null)
+            public TestContext(int packageKey = 11, int attemptKey = 42, string packageId = "Example.Package", Guid? promotionId = null,
+                ILogger<StagedPackagePromotionMessageHandler> logger = null)
             {
                 Content = Encoding.UTF8.GetBytes("validated package content");
                 SourceUri = new Uri("https://example.test/staging/validated.nupkg");
@@ -847,6 +897,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
                     StagedPackageIdentity = StagedPackageIdentity,
                     Status = StagedPackageStatus.Promoting,
                     ActivePromotionId = PromotionId,
+                    PromotionAcceptedAt = DateTime.UtcNow.AddMinutes(-1),
                     ValidatedBlobPath = "example.package/1.2.3/validated.nupkg",
                     ValidatedBlobETag = "\"validated\"",
                     UploadedBlobPath = "example.package/1.2.3/uploaded.nupkg",
@@ -919,7 +970,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
                     .Setup(x => x.TryFinalizeAsync(It.IsAny<int>(), It.IsAny<Guid>()))
                     .Returns(Task.CompletedTask);
                 MessageEnqueuer = new Mock<IStagingPromotionMessageEnqueuer>();
-                Target = CreateTarget(Lease.Object);
+                Target = CreateTarget(Lease.Object, logger);
             }
 
             public string FileName => $"{Package.PackageRegistration.Id.ToLowerInvariant()}.{Package.NormalizedVersion}.nupkg";
@@ -936,7 +987,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
                     StagedPackageRepository.Object, symbols.Object, lease, Mock.Of<ILogger<StagingPromotionMessageHandler>>());
             }
 
-            private StagedPackagePromotionMessageHandler CreateTarget(IStagingPromotionLease lease)
+            private StagedPackagePromotionMessageHandler CreateTarget(IStagingPromotionLease lease, ILogger<StagedPackagePromotionMessageHandler> logger = null)
             {
                 return new StagedPackagePromotionMessageHandler(
                     StagedPackageRepository.Object,
@@ -952,8 +1003,17 @@ namespace NuGet.Services.Staging.Promotion.Tests
                     BlobCleanup.Object,
                     Notifications.Object,
                     lease,
-                    Mock.Of<ILogger<StagedPackagePromotionMessageHandler>>());
+                    logger ?? Logger.Object,
+                    TelemetryClient.Object);
             }
+
+            public Mock<ILogger<StagedPackagePromotionMessageHandler>> Logger { get; } = new Mock<ILogger<StagedPackagePromotionMessageHandler>>();
+
+            public Mock<NuGet.Services.Logging.ITelemetryClient> TelemetryClient { get; } = new Mock<NuGet.Services.Logging.ITelemetryClient>();
+
+            public IEnumerable<JObject> Publications => Logger.Invocations
+                .Where(invocation => invocation.Method.Name == "Log" && ((EventId)invocation.Arguments[1]).Name == "StagingPromotion.GalleryPublished")
+                .Select(invocation => JObject.Parse(invocation.Arguments[2].ToString()));
 
             public StagedSymbolPackage AddAcceptedSymbols()
             {

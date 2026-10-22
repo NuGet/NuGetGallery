@@ -21,6 +21,7 @@ namespace NuGetGallery
         private readonly IStagingPromotionMessageEnqueuer _messageEnqueuer;
         private readonly IEntityRepository<StagedPackage> _stagedPackageRepository;
         private readonly IEntityRepository<StagedSymbolPackage> _stagedSymbolPackageRepository;
+        private readonly ITelemetryService _telemetryService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PackageStagingPromotionService"/> class.
@@ -29,16 +30,19 @@ namespace NuGetGallery
         /// <param name="messageEnqueuer">The promotion message enqueuer.</param>
         /// <param name="stagedPackageRepository">The staged-package repository.</param>
         /// <param name="stagedSymbolPackageRepository">The staged-symbol repository.</param>
+        /// <param name="telemetryService">The Gallery telemetry service.</param>
         public PackageStagingPromotionService(
             IPackageStagingAuthorizationService authorizationService,
             IStagingPromotionMessageEnqueuer messageEnqueuer,
             IEntityRepository<StagedPackage> stagedPackageRepository,
-            IEntityRepository<StagedSymbolPackage> stagedSymbolPackageRepository)
+            IEntityRepository<StagedSymbolPackage> stagedSymbolPackageRepository,
+            ITelemetryService telemetryService)
         {
             _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
             _messageEnqueuer = messageEnqueuer ?? throw new ArgumentNullException(nameof(messageEnqueuer));
             _stagedPackageRepository = stagedPackageRepository ?? throw new ArgumentNullException(nameof(stagedPackageRepository));
             _stagedSymbolPackageRepository = stagedSymbolPackageRepository ?? throw new ArgumentNullException(nameof(stagedSymbolPackageRepository));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
         }
 
         /// <inheritdoc />
@@ -91,12 +95,15 @@ namespace NuGetGallery
                     return PackageStagingPromotionResult.NotReady;
                 }
 
+                var acceptedAt = DateTime.UtcNow;
                 stagedPackage.ActivePromotionId = promotionId;
-                stagedPackage.PromotionMessageSentDate = DateTime.UtcNow;
+                stagedPackage.PromotionAcceptedAt = acceptedAt;
+                stagedPackage.PromotionMessageSentDate = acceptedAt;
                 stagedPackage.Status = StagedPackageStatus.Promoting;
                 if (symbols != null && !StagingExpirationPolicy.HasExpired(symbols))
                 {
                     symbols.ActivePromotionId = promotionId;
+                    symbols.PromotionAcceptedAt = acceptedAt;
                     symbols.Status = StagedPackageStatus.Promoting;
                     symbols.PromotionMessageSentDate = null;
                 }
@@ -107,6 +114,12 @@ namespace NuGetGallery
             {
                 exception.Log();
                 return PackageStagingPromotionResult.Conflict;
+            }
+
+            _telemetryService.TrackStagingPromotionAccepted(promotionId, stagedPackage.StagedPackageIdentity.Package, symbols: false);
+            if (symbols?.ActivePromotionId == promotionId && symbols.Status == StagedPackageStatus.Promoting)
+            {
+                _telemetryService.TrackStagingPromotionAccepted(promotionId, stagedPackage.StagedPackageIdentity.Package, symbols: true);
             }
 
             if (!await TrySendMessageAsync(StagingPromotionMessage.ForPackage(promotionId, stagedPackage.Key)))
@@ -209,8 +222,9 @@ namespace NuGetGallery
             }
 
             stagedSymbolPackage.ActivePromotionId = Guid.NewGuid();
+            stagedSymbolPackage.PromotionAcceptedAt = DateTime.UtcNow;
             stagedSymbolPackage.Status = StagedPackageStatus.Promoting;
-            return await SendSymbolPromotionAsync(stagedSymbolPackage);
+            return await SendSymbolPromotionAsync(stagedSymbolPackage, accepted: true);
         }
 
         /// <inheritdoc />
@@ -241,7 +255,7 @@ namespace NuGetGallery
                 return PackageStagingPromotionResult.NotReady;
             }
 
-            return await SendSymbolPromotionAsync(stagedSymbolPackage);
+            return await SendSymbolPromotionAsync(stagedSymbolPackage, accepted: false);
         }
 
         /// <inheritdoc />
@@ -332,17 +346,21 @@ namespace NuGetGallery
                     return StagingGroupPromotionResult.NotReady;
                 }
 
+                var acceptedAt = DateTime.UtcNow;
                 group.ActivePromotionId = promotionId;
-                group.PromotionMessageSentDate = DateTime.UtcNow;
+                group.PromotionAcceptedAt = acceptedAt;
+                group.PromotionMessageSentDate = acceptedAt;
                 foreach (var stagedPackage in stagedPackages)
                 {
                     stagedPackage.ActivePromotionId = promotionId;
+                    stagedPackage.PromotionAcceptedAt = acceptedAt;
                     stagedPackage.Status = StagedPackageStatus.Promoting;
                 }
 
                 foreach (var symbol in stagedSymbols)
                 {
                     symbol.ActivePromotionId = promotionId;
+                    symbol.PromotionAcceptedAt = acceptedAt;
                     symbol.Status = StagedPackageStatus.Promoting;
                     symbol.PromotionMessageSentDate = null;
                 }
@@ -353,6 +371,16 @@ namespace NuGetGallery
             {
                 exception.Log();
                 return StagingGroupPromotionResult.Conflict;
+            }
+
+            foreach (var stagedPackage in stagedPackages)
+            {
+                _telemetryService.TrackStagingPromotionAccepted(promotionId, stagedPackage.StagedPackageIdentity.Package, symbols: false);
+            }
+
+            foreach (var symbol in stagedSymbols)
+            {
+                _telemetryService.TrackStagingPromotionAccepted(promotionId, symbol.StagedPackageIdentity.Package, symbols: true);
             }
 
             if (!await TrySendMessageAsync(StagingPromotionMessage.ForGroup(promotionId, group.Key)))
@@ -454,7 +482,7 @@ namespace NuGetGallery
             return false;
         }
 
-        private async Task<PackageStagingPromotionResult> SendSymbolPromotionAsync(StagedSymbolPackage attempt)
+        private async Task<PackageStagingPromotionResult> SendSymbolPromotionAsync(StagedSymbolPackage attempt, bool accepted)
         {
             var promotionId = attempt.ActivePromotionId.Value;
             try
@@ -466,6 +494,11 @@ namespace NuGetGallery
             {
                 exception.Log();
                 return PackageStagingPromotionResult.Conflict;
+            }
+
+            if (accepted)
+            {
+                _telemetryService.TrackStagingPromotionAccepted(promotionId, attempt.StagedPackageIdentity.Package, symbols: true);
             }
 
             if (await TrySendMessageAsync(StagingPromotionMessage.ForSymbolPackage(promotionId, attempt.Key)))

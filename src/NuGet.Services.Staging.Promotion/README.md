@@ -30,6 +30,61 @@ attempt and carry the promotion ID used to reject stale deliveries.
 Published parents enter the normal catalog/V3 pipeline. Catalog generation,
 registration, and search indexing are separate jobs, not part of promotion.
 
+## Publication timing
+
+`StagingPromotion.AcceptedToGallerySeconds` measures time from promotion
+acceptance to committed Gallery publication. The parent worker and symbol
+publication service emit it after the publication transaction succeeds, with
+`ArtifactType` (`Package` or `Symbols`) as the only dimension.
+
+For hourly publication counts and average duration:
+
+```kusto
+customMetrics
+| where timestamp >= ago(24h)
+| where name == "StagingPromotion.AcceptedToGallerySeconds"
+| summarize Publications = sum(valueCount),
+    AverageSeconds = sum(valueSum) / sum(valueCount)
+    by ArtifactType = tostring(customDimensions.ArtifactType), bin(timestamp, 1h)
+| order by timestamp desc
+```
+
+Query the promotion worker and symbols orchestrator in one environment. If they
+use separate Application Insights resources, replace `customMetrics` with a
+`union` of their `app("resource").customMetrics` tables. Counts reflect recorded
+latency samples, not an authoritative count of all publications.
+
+The start time is persisted as nullable UTC `PromotionAcceptedAt` with the
+accepted state. Groups and their accepted artifacts share one timestamp, as do
+parents and paired symbols. Resends preserve it. Missing timestamps or
+future timestamps produce a warning and no duration sample; publication proceeds.
+Successful cleanup deletes the temporary staging records, not permanent history.
+
+### Optional V3 diagnosis
+
+`StagingPromotion.Accepted` and `StagingPromotion.GalleryPublished` JSON traces
+identify individual promotions; the publication trace includes `PromotionAcceptedAt`.
+For V3 origin timing, correlate it by package ID/version with Catalog2Dnx's existing
+`Commit: {Id}/{Version}` logs after Gallery publication, scoped to one destination
+feed. Matching is best-effort: missing logs, deletion, or reprocessing can affect
+the match. It does not establish CDN downloadability, search/registration readiness,
+or PDB readiness.
+
+### Worker diagnostics
+
+The Service Bus processor also emits:
+
+| Metric | Measurement / dimensions |
+| --- | --- |
+| `StagingPromotion.MessageDeliveryLagSeconds` | Scheduled enqueue time to delivery; includes retry delays. `MessageType`. |
+| `StagingPromotion.MessageEnqueueLagSeconds` | Scheduled enqueue time to actual enqueue. `MessageType`. |
+| `StagingPromotion.MessageHandlerDurationSeconds` | Per-delivery processing through completion acknowledgement. `MessageType`, `Handled`. |
+| `StagingPromotion.MessageLockLost` | Lock-loss count. `MessageType`. |
+
+`Handled=True` means consumed, not necessarily published. Promotion/package IDs
+are not metric dimensions. These metrics cover promotion messages only.
+Every send refreshes the enqueue timestamp, including resends.
+
 ## Configuration and execution
 
 Run the job with its environment-specific JSON configuration:
