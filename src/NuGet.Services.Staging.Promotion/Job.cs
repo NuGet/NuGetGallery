@@ -38,8 +38,9 @@ namespace NuGet.Services.Staging.Promotion
             services.Configure<PromotionConfiguration>(configurationRoot.GetSection(PromotionConfigurationSectionName));
             services.Configure<PromotionEmailConfiguration>(configurationRoot.GetSection("Email"));
             services.Configure<PackageValidationServiceBusConfiguration>(configurationRoot.GetSection(PackageValidationServiceBusSectionName));
-            SetupDefaultSubscriptionProcessorConfiguration(services, configurationRoot);
             services.Configure<SubscriptionProcessorConfiguration>(configuration => configuration.MaxConcurrentCalls = 1);
+            SetupDefaultSubscriptionProcessorConfiguration(services, configurationRoot);
+            services.AddOptions<SubscriptionProcessorConfiguration>().Validate(configuration => configuration.MaxConcurrentCalls > 0, "ServiceBus.MaxConcurrentCalls must be greater than zero.");
 
             services.AddScoped<IEntitiesContext>(serviceProvider =>
             {

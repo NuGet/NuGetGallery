@@ -42,6 +42,7 @@ Run the job with its environment-specific JSON configuration:
 | --- | --- |
 | `GalleryDb` | Gallery SQL connection. |
 | `ServiceBus` | Promotion topic connection, topic path, and subscription name. |
+| `ServiceBus.MaxConcurrentCalls` | Maximum concurrent promotion message handlers per process. Defaults to `1`; must be greater than zero. |
 | `Promotion` | `PackageStorageConnectionString`, `StagingStorageConnectionString`, and `FlatContainerStorageConnectionString`. |
 | `PackageValidationServiceBus` | Symbols-orchestrator topic connection and path. |
 | `Email` | Email topic, sender settings, and package/account link templates. |
@@ -56,8 +57,11 @@ orchestrator.
 ## Concurrency and recovery
 
 Instances in multiple regions actively consume the same subscription. Each
-message has its own dependency-injection scope and database context; the current
-limit is one message per instance, not globally.
+message has its own dependency-injection scope and database context.
+`ServiceBus.MaxConcurrentCalls` sets the limit per instance, not globally.
+Omitting the setting keeps the default of one; zero or negative values fail
+startup. Configuration changes require restarting the job. This setting does
+not change symbols-orchestrator, ingestion, or downstream V3 concurrency.
 
 Parent and symbol requests share a distributed lease keyed by staging package
 identity. Group dispatch has a separate group lease, allowing different children
