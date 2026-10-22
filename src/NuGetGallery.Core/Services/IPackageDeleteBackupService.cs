@@ -25,5 +25,10 @@ namespace NuGetGallery
         /// Does not check undo eligibility or verify package binary contents. Reading leaves the backup unchanged.
         /// </remarks>
         Task<PackageDeleteBackup> GetAsync(int packageDeleteKey, int packageKey);
+
+        /// <summary>
+        /// Removes JSON written by a failed deletion attempt. Does not remove archive backups.
+        /// </summary>
+        Task DeleteAsync(int packageDeleteKey, int packageKey);
     }
 }
