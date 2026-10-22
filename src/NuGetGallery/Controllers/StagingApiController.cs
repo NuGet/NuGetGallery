@@ -226,7 +226,7 @@ namespace NuGetGallery
                 return Error(HttpStatusCode.Forbidden, "StagingOwnerUnavailable", "Staging is not available for the API key owner.");
             }
 
-            var summaryPage = _packageStagingManagementService.GetStagingGroupSummaryPage(stagingOwner, page, pageSize);
+            var summaryPage = _packageStagingManagementService.GetStagingGroupSummaryPage(stagingOwner, scopes, page, pageSize);
             var responses = summaryPage.Items
                 .Select(summary => StagingGroupResponse.FromGroup(
                     summary.Group,
@@ -260,7 +260,7 @@ namespace NuGetGallery
                 return Error(HttpStatusCode.Forbidden, "StagingOwnerUnavailable", "Staging is not available for the API key owner.");
             }
 
-            var packagePage = _packageStagingManagementService.GetStagingGroupPackagePage(stagingOwner, groupId, page, pageSize);
+            var packagePage = _packageStagingManagementService.GetStagingGroupPackagePage(stagingOwner, scopes, groupId, page, pageSize);
             if (packagePage == null)
             {
                 return Error(HttpStatusCode.NotFound, "GroupNotFound", "The staging group was not found.");
@@ -282,7 +282,7 @@ namespace NuGetGallery
 
             var stagingGroupResponse = StagingGroupResponse.FromGroup(
                 group, packagePage.TotalCount, packagePage.AllPackagesReady, expirationDate, managementUrl,
-                packagePage.SymbolCount, packagePage.HasRegistrationOwnershipLoss);
+                packagePage.SymbolCount, packagePage.HasRegistrationOwnershipLoss, packagePage.HasLockedRegistration);
             var response = new StagingGroupDetailResponse(stagingGroupResponse, artifacts, page, pageSize, packagePage.TotalCount);
 
             return JsonContent(response);
@@ -305,13 +305,15 @@ namespace NuGetGallery
                 return Error(HttpStatusCode.NotFound, "GroupNotFound", "The staging group was not found.");
             }
 
-            var result = await _packageStagingManagementService.DeleteStagingGroupAsync(stagingOwner, group);
+            var result = await _packageStagingManagementService.DeleteStagingGroupAsync(stagingOwner, scopes, group);
             switch (result.Type)
             {
                 case StagingGroupDeletionResultType.Deleted:
                     return new HttpStatusCodeResult(HttpStatusCode.NoContent);
                 case StagingGroupDeletionResultType.Conflict:
                     return Error(HttpStatusCode.Conflict, "GroupPromotionInProgress", "The staging group cannot be deleted while package promotion is active.");
+                case StagingGroupDeletionResultType.NotFound:
+                    return Error(HttpStatusCode.NotFound, "GroupNotFound", "The staging group was not found.");
                 default:
                     throw new InvalidOperationException($"Unexpected staging group deletion result: {result.Type}");
             }

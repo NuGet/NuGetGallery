@@ -913,6 +913,11 @@ namespace NuGetGallery
                 return RedirectToActionPermanent("DisplayPackage", new { id = id, version = normalized });
             }
 
+            if (!string.IsNullOrEmpty(normalized) && _packageService.IsDeletedStagingPackage(id, normalized))
+            {
+                return HttpNotFound();
+            }
+
             IReadOnlyCollection<Package> allVersions;
 
             bool hasMoreVersions = false;
@@ -2436,6 +2441,11 @@ namespace NuGetGallery
             _telemetryService.TrackFullVersionListLoadRequest();
 
             string normalized = NuGetVersionFormatter.Normalize(version);
+
+            if (!string.IsNullOrEmpty(normalized) && _packageService.IsDeletedStagingPackage(id, normalized))
+            {
+                return HttpNotFound();
+            }
 
             IReadOnlyCollection<Package> allVersions = _packageService.FindPackagesById(id,
                 includePackageRegistration: true,

@@ -130,7 +130,9 @@ namespace NuGetGallery
         /// Removes a group and its private members, preserving published content and accepted promotions.
         /// The caller commits the surrounding transaction.
         /// </summary>
-        public async Task<StagingGroupDeletionResult> DeleteGroupAsync(StagingGroup group)
+        /// <param name="group">The group to delete.</param>
+        /// <param name="canDeletePackageIds">An optional authorization check for all affected package IDs. Omit for trusted owner or maintenance operations.</param>
+        public async Task<StagingGroupDeletionResult> DeleteGroupAsync(StagingGroup group, Func<IEnumerable<string>, bool> canDeletePackageIds = null)
         {
             if (group == null)
             {
@@ -149,21 +151,41 @@ namespace NuGetGallery
                 .ToList();
             var stagedSymbols = _symbols.GetAll()
                 .Include(symbol => symbol.SymbolPackage)
+                .Include(symbol => symbol.StagedPackageIdentity.Package.PackageRegistration)
                 .Where(symbol => symbol.StagedPackageIdentity.OwnerKey == group.OwnerKey && symbol.StagedPackageIdentity.StagingGroupKey == group.Key)
                 .Where(symbol => symbol.StagedPackageIdentity.CurrentStagedSymbolPackageKey == symbol.Key)
                 .Where(symbol => symbol.SymbolPackage.StatusKey == PackageStatus.Staged || symbol.Status == StagedPackageStatus.Succeeded || (symbol.Status == StagedPackageStatus.Promoting && symbol.SymbolPackage.StatusKey == PackageStatus.Available))
                 .ToList();
             var affectedCount = stagedPackages.Count + stagedSymbols.Count;
+            var symbolMembers = _symbols.GetAll()
+                .Where(symbol => symbol.StagedPackageIdentity.OwnerKey == group.OwnerKey && symbol.StagedPackageIdentity.StagingGroupKey == group.Key)
+                .Where(symbol => symbol.SymbolPackage.StatusKey == PackageStatus.Staged)
+                .Select(symbol => new
+                {
+                    Attempt = symbol,
+                    Identity = symbol.StagedPackageIdentity,
+                    SymbolPackage = symbol.SymbolPackage,
+                    PackageId = symbol.StagedPackageIdentity.Package.PackageRegistration.Id,
+                })
+                .ToList();
+            var affectedPackageIds = groupedAttempts
+                .Where(attempt => attempt.Status != StagedPackageStatus.Superseded && attempt.Status != StagedPackageStatus.Deleted)
+                .Where(attempt => attempt.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Staged || attempt.Status == StagedPackageStatus.Succeeded)
+                .Select(attempt => attempt.StagedPackageIdentity.Package.PackageRegistration.Id)
+                .Concat(stagedSymbols.Select(attempt => attempt.StagedPackageIdentity.Package.PackageRegistration.Id))
+                .Concat(symbolMembers.Select(member => member.PackageId))
+                .Distinct();
+
+            if (canDeletePackageIds != null && !canDeletePackageIds(affectedPackageIds))
+            {
+                return StagingGroupDeletionResult.NotFound();
+            }
+
             if (group.ActivePromotionId.HasValue || groupedAttempts.Any(package => package.Status == StagedPackageStatus.Promoting) || stagedSymbols.Any(symbol => symbol.Status == StagedPackageStatus.Promoting))
             {
                 return StagingGroupDeletionResult.Conflict(affectedCount);
             }
 
-            var symbolMembers = _symbols.GetAll()
-                .Where(symbol => symbol.StagedPackageIdentity.OwnerKey == group.OwnerKey && symbol.StagedPackageIdentity.StagingGroupKey == group.Key)
-                .Where(symbol => symbol.SymbolPackage.StatusKey == PackageStatus.Staged)
-                .Select(symbol => new { Attempt = symbol, Identity = symbol.StagedPackageIdentity, SymbolPackage = symbol.SymbolPackage })
-                .ToList();
             foreach (var identity in symbolMembers.Select(member => member.Identity).Distinct())
             {
                 _blobCleanup.QueueSymbolFiles(identity.Key);

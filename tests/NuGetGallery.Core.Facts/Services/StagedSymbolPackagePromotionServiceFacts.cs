@@ -17,6 +17,67 @@ namespace NuGetGallery
     public class StagedSymbolPackagePromotionServiceFacts
     {
         [Theory]
+        [InlineData("owner-locked")]
+        [InlineData("owner-unconfirmed")]
+        [InlineData("registration-locked")]
+        public async Task PublishingRestrictionsAtStartupFailSymbolsWithoutChangingTheParent(string restriction)
+        {
+            foreach (var grouped in new[] { false, true })
+            {
+                var fixture = new Fixture();
+                if (grouped)
+                {
+                    fixture.AddToGroup();
+                }
+
+                switch (restriction)
+                {
+                    case "owner-locked":
+                        fixture.Identity.Owner.UserStatusKey = UserStatus.Locked;
+                        break;
+                    case "owner-unconfirmed":
+                        fixture.Identity.Owner.EmailAddress = null;
+                        break;
+                    case "registration-locked":
+                        fixture.Parent.PackageRegistration.IsLocked = true;
+                        break;
+                    default:
+                        throw new ArgumentException("Unknown publishing restriction.", nameof(restriction));
+                }
+
+                await fixture.Target.CompleteAsync(fixture.Attempt.Key, fixture.PromotionId);
+                await fixture.Target.CleanUpAsync(fixture.Attempt.Key, fixture.PromotionId);
+
+                Assert.Equal(StagedPackageStatus.PromotionFailed, fixture.Attempt.Status);
+                Assert.Equal(PackageStatus.Staged, fixture.Symbol.StatusKey);
+                Assert.Equal(PackageStatus.Available, fixture.Parent.PackageStatusKey);
+                Assert.Equal(fixture.Attempt.Key, fixture.Identity.CurrentStagedSymbolPackageKey);
+                fixture.Files.Verify(service => service.CopyFileAsync(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IAccessCondition>()), Times.Never);
+                fixture.Files.Verify(service => service.DeleteFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+                fixture.Groups.Verify(service => service.TryFinalizeAsync(It.IsAny<int>(), fixture.PromotionId), grouped ? Times.Once() : Times.Never());
+            }
+        }
+
+        [Fact]
+        public async Task OwnerLockedDuringCopyDoesNotInterruptSymbolPublication()
+        {
+            var fixture = new Fixture();
+            fixture.AddToGroup();
+            fixture.Files.Setup(service => service.CopyFileAsync(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IAccessCondition>()))
+                .Callback(() => fixture.Identity.Owner.UserStatusKey = UserStatus.Locked).Returns(Task.CompletedTask);
+
+            await fixture.Target.CompleteAsync(fixture.Attempt.Key, fixture.PromotionId);
+            await fixture.Target.CleanUpAsync(fixture.Attempt.Key, fixture.PromotionId);
+
+            Assert.Equal(StagedPackageStatus.Succeeded, fixture.Attempt.Status);
+            Assert.Equal(PackageStatus.Available, fixture.Symbol.StatusKey);
+            Assert.Equal(PackageStatus.Available, fixture.Parent.PackageStatusKey);
+            fixture.Files.Verify(service => service.CopyFileAsync(It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IAccessCondition>()), Times.Once);
+            fixture.Files.Verify(service => service.DeleteFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            fixture.Groups.Verify(service => service.TryFinalizeAsync(It.IsAny<int>(), fixture.PromotionId), Times.Once);
+        }
+
+        [Theory]
         [InlineData(false)]
         [InlineData(true)]
         public async Task PublishesImmutableSymbolsAndRetainsAttemptUntilOrchestrationCompletes(bool grouped)
@@ -28,6 +89,7 @@ namespace NuGetGallery
             }
 
             await fixture.Target.CompleteAsync(fixture.Attempt.Key, fixture.PromotionId);
+            fixture.Identity.Owner.UserStatusKey = UserStatus.Locked;
             await fixture.Target.CompleteAsync(fixture.Attempt.Key, fixture.PromotionId);
 
             Assert.Equal(PackageStatus.Available, fixture.Symbol.StatusKey);
@@ -419,7 +481,7 @@ namespace NuGetGallery
                     Key = 42,
                     NormalizedVersion = "1.0.0",
                     PackageStatusKey = PackageStatus.Available,
-                    PackageRegistration = new PackageRegistration { Id = "PackageA", Owners = new[] { new User { Key = 7 } }.ToList() },
+                    PackageRegistration = new PackageRegistration { Id = "PackageA", Owners = new[] { new User { Key = 7, EmailAddress = "owner@example.test" } }.ToList() },
                 };
                 Identity = new StagedPackageIdentity
                 {
