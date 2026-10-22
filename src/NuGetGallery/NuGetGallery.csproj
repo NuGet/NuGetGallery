@@ -668,7 +668,6 @@
     <Compile Include="RequestModels\StagePackageRequest.cs" />
     <Compile Include="RequestModels\StageSymbolPackageRequest.cs" />
     <Compile Include="RequestModels\SimulatedErrorType.cs" />
-    <Compile Include="RequestModels\UpdateStagedPackageRequest.cs" />
     <Compile Include="ResponseModels\StagingGroupResponse.cs" />
     <Compile Include="ResponseModels\StagingArtifactResponse.cs" />
     <Compile Include="ResponseModels\StagingPagedResponse.cs" />
@@ -689,12 +688,14 @@
     <Compile Include="Services\StagedSymbolPackagePromotionEligibility.cs" />
     <Compile Include="Services\StagingOwnershipPolicy.cs" />
     <Compile Include="Services\StagingPromotionResendPolicy.cs" />
+    <Compile Include="Services\StagingPromotionFailure.cs" />
     <Compile Include="Services\PackageStagingStatus.cs" />
     <Compile Include="Services\PackageStagingUploadService.cs" />
     <Compile Include="Services\SymbolPackageStagingUploadService.cs" />
     <Compile Include="Services\SymbolPackageStagingManagementService.cs" />
     <Compile Include="Services\SymbolPackageStagingStatus.cs" />
     <Compile Include="Services\StagingGroupSummary.cs" />
+    <Compile Include="Services\StagingArtifactPage.cs" />
     <Compile Include="Services\StagingGroupAssignment.cs" />
     <Compile Include="Services\StagingExpirationPolicy.cs" />
     <Compile Include="Services\IStagingQuotaService.cs" />

@@ -406,7 +406,8 @@ namespace NuGetGallery
                 var isExpired = StagingExpirationPolicy.HasExpired(attempt);
                 var blockers = StagedSymbolPackagePromotionEligibility.GetBlockers(attempt);
                 var ownershipBlocker = StagingOwnershipPolicy.GetBlocker(identity);
-                var promotionBlocker = ownershipBlocker?.Message;
+                var promotionBlocker = ownershipBlocker?.Message
+                    ?? StagingPromotionFailure.GetBlocker(attempt.Status, symbols: true, identity.StagingGroupKey.HasValue)?.Message;
                 if (promotionBlocker == null && attempt.Status == StagedPackageStatus.Ready && !identity.StagingGroupKey.HasValue)
                 {
                     promotionBlocker = blockers.FirstOrDefault(blocker => blocker.Code != "ParentPackageNotAvailable")?.Message;
@@ -667,7 +668,8 @@ namespace NuGetGallery
                         CanDelete = !isPromotionActive && stagedPackage.Status != StagedPackageStatus.Promoting && identity.CurrentStagedSymbolPackage?.Status != StagedPackageStatus.Promoting,
                         CanReplace = !isPromotionActive && !isExpired && ownershipBlocker == null,
                         CanPromote = stagedPackage.Status == StagedPackageStatus.Ready && !identity.StagingGroupKey.HasValue && !isExpired && ownershipBlocker == null,
-                        PromotionBlocker = ownershipBlocker?.Message,
+                        PromotionBlocker = ownershipBlocker?.Message
+                            ?? StagingPromotionFailure.GetBlocker(stagedPackage.Status, symbols: false, identity.StagingGroupKey.HasValue)?.Message,
                         IncludesStagedSymbols = identity.CurrentStagedSymbolPackage != null
                             && StagedSymbolPackagePromotionEligibility.GetBlockers(identity.CurrentStagedSymbolPackage, stagedPackage).Count == 0,
                         CanResend = !identity.StagingGroupKey.HasValue
@@ -700,6 +702,43 @@ namespace NuGetGallery
                 PromotionFailedCount = orderedStagedPackages.Count(stagedPackage => stagedPackage.Status == StagedPackageStatus.PromotionFailed),
                 Packages = packageViewModels,
             };
+        }
+
+        [HttpGet]
+        public virtual ActionResult ManagePackage(string id, string version)
+        {
+            ValidatePackageIdentity(id, version);
+            var stagedPackage = FindAuthorizedStagedPackage(id, version);
+            if (stagedPackage == null)
+            {
+                return HttpNotFound();
+            }
+
+            return RedirectToStaging(stagedPackage.StagedPackageIdentity);
+        }
+
+        [HttpGet]
+        public virtual ActionResult ManageSymbolPackage(string id, string version)
+        {
+            ValidatePackageIdentity(id, version);
+            var attempt = FindAuthorizedStagedSymbolPackage(id, version);
+            if (attempt == null)
+            {
+                return HttpNotFound();
+            }
+
+            return RedirectToStaging(attempt.StagedPackageIdentity);
+        }
+
+        private RedirectResult RedirectToStaging(StagedPackageIdentity identity)
+        {
+            var owner = identity.Owner.Username;
+            if (identity.StagingGroup != null)
+            {
+                return Redirect(Url.ManageStagingGroup(owner, identity.StagingGroup.Id));
+            }
+
+            return Redirect(Url.ManageUngroupedStaging(owner));
         }
 
         [HttpGet]
