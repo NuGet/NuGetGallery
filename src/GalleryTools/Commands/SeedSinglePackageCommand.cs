@@ -7,6 +7,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
 using Microsoft.Extensions.CommandLineUtils;
+using NuGet.Packaging;
+using NuGet.Services.Entities;
 using NuGetGallery;
 using NuGetGallery.Authentication;
 using NuGetGallery.Infrastructure.Authentication;
@@ -16,6 +18,7 @@ namespace GalleryTools.Commands
     /// <summary>
     /// Creates a user, organization, and pushes a single package via the Gallery HTTP API.
     /// Designed for Aspire AppHost bootstrapping so the V3 pipeline has data to process.
+    /// Marks the available seed package edited so the edited-package catalog cursor can discover it.
     /// </summary>
     public static class SeedSinglePackageCommand
     {
@@ -98,8 +101,27 @@ namespace GalleryTools.Commands
 
             // 4. Push the package via Gallery HTTP API (updates Lucene index)
             await GalleryOperations.PushPackageAsync(baseUrl, apiKey, nupkgPath);
+            await MarkSeedPackageEditedAsync(context, nupkgPath);
 
             return 0;
+        }
+
+        private static async Task MarkSeedPackageEditedAsync(IEntitiesContext context, string nupkgPath)
+        {
+            using (var packageReader = new PackageArchiveReader(nupkgPath))
+            {
+                var identity = packageReader.GetIdentity();
+                var version = identity.Version.ToNormalizedString();
+                var package = context.Packages.SingleOrDefault(p => p.PackageRegistration.Id == identity.Id && p.NormalizedVersion == version);
+                if (package == null || package.PackageStatusKey != PackageStatus.Available)
+                {
+                    throw new InvalidOperationException($"Seed package {identity.Id} {version} must exist and be Available before bootstrapping the catalog.");
+                }
+
+                package.LastEdited = DateTime.UtcNow;
+                await context.SaveChangesAsync();
+                Console.WriteLine($"Marked seed package {identity.Id} {version} edited for catalog processing.");
+            }
         }
     }
 }
