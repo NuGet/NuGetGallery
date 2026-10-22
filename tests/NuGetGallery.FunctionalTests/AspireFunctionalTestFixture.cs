@@ -171,10 +171,7 @@ namespace NuGetGallery.FunctionalTests
                 {
                     try
                     {
-                        await Task.WhenAll(
-                            process.WaitForExitAsync(timeout.Token),
-                            standardOutput,
-                            standardError);
+                        await process.WaitForExitAsync(timeout.Token);
                     }
                     catch (OperationCanceledException) when (!process.HasExited)
                     {
