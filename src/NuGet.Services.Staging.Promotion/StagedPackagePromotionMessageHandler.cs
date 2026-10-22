@@ -31,6 +31,7 @@ namespace NuGet.Services.Staging.Promotion
         private readonly ICoreReadmeFileService _readmeFileService;
         private readonly IStagingBlobCleanupService _blobCleanup;
         private readonly IStagingPromotionNotificationService _notifications;
+        private readonly IStagingPromotionLease _lease;
         private readonly ILogger<StagedPackagePromotionMessageHandler> _logger;
 
         /// <summary>
@@ -48,6 +49,7 @@ namespace NuGet.Services.Staging.Promotion
         /// <param name="readmeFileService">The public embedded-readme file service.</param>
         /// <param name="blobCleanup">The transactional private-file cleanup queue.</param>
         /// <param name="notifications">The per-artifact promotion notification service.</param>
+        /// <param name="lease">The scoped promotion lease protecting publication.</param>
         /// <param name="logger">The logger.</param>
         public StagedPackagePromotionMessageHandler(
             IEntityRepository<StagedPackage> stagedPackageRepository,
@@ -62,6 +64,7 @@ namespace NuGet.Services.Staging.Promotion
             ICoreReadmeFileService readmeFileService,
             IStagingBlobCleanupService blobCleanup,
             IStagingPromotionNotificationService notifications,
+            IStagingPromotionLease lease,
             ILogger<StagedPackagePromotionMessageHandler> logger)
         {
             _stagedPackageRepository = stagedPackageRepository ?? throw new ArgumentNullException(nameof(stagedPackageRepository));
@@ -76,6 +79,7 @@ namespace NuGet.Services.Staging.Promotion
             _readmeFileService = readmeFileService ?? throw new ArgumentNullException(nameof(readmeFileService));
             _blobCleanup = blobCleanup ?? throw new ArgumentNullException(nameof(blobCleanup));
             _notifications = notifications ?? throw new ArgumentNullException(nameof(notifications));
+            _lease = lease ?? throw new ArgumentNullException(nameof(lease));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -162,24 +166,18 @@ namespace NuGet.Services.Staging.Promotion
                     var stagingOwner = stagedPackage.StagedPackageIdentity.Owner;
                     var publishedArtifact = new StagingPromotionArtifact(package, false, true);
                     var streamMetadata = await GetStreamMetadataAsync(stagedPackage);
+                    await _lease.EnsureHeldAsync();
                     var packageFileName = await CopyPackageAsync(package, stagedPackage);
 
-                    try
-                    {
-                        _logger.LogInformation("Updating public package blob properties.");
-                        await SetPackagePropertiesAsync(packageFileName);
-                        await ExtractPackageContentAsync(package, stagedPackage);
+                    await _lease.EnsureHeldAsync();
+                    _logger.LogInformation("Updating public package blob properties.");
+                    await SetPackagePropertiesAsync(packageFileName);
+                    await ExtractPackageContentAsync(package, stagedPackage);
 
-                        _logger.LogInformation("Marking package as available and completing promotion in the database.");
-                        await CompletePromotionAsync(package, stagedPackage, streamMetadata);
-                    }
-                    catch (Exception exception)
-                    {
-                        _logger.LogError(exception, "Failed to publish staged package. Deleting published files.");
-                        await DeletePublishedFilesAsync(package, packageFileName);
-                        _logger.LogInformation("Deleted published files after promotion failure.");
-                        throw;
-                    }
+                    // Copies are retryable. Never delete shared public files after a failed or ambiguous commit.
+                    await _lease.EnsureHeldAsync();
+                    _logger.LogInformation("Marking package as available and completing promotion in the database.");
+                    await CompletePromotionAsync(package, stagedPackage, streamMetadata);
 
                     if (stagingGroupKey.HasValue)
                     {
@@ -443,27 +441,6 @@ namespace NuGet.Services.Staging.Promotion
             {
                 _stagedPackageIdentityRepository.DeleteOnCommit(identity);
                 await _stagedPackageRepository.CommitChangesAsync();
-            }
-        }
-
-        private async Task DeletePublishedFilesAsync(Package package, string packageFileName)
-        {
-            _logger.LogInformation("Deleting public package file.");
-            await _packageFileStorageService.DeleteFileAsync(_packageFileMetadataService.FileFolderName, packageFileName);
-            _logger.LogInformation("Deleted public package file.");
-
-            if (package.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
-            {
-                _logger.LogInformation("Deleting embedded license file.");
-                await _licenseFileService.DeleteLicenseFileAsync(package.Id, package.NormalizedVersion);
-                _logger.LogInformation("Deleted embedded license file.");
-            }
-
-            if (package.HasEmbeddedReadme)
-            {
-                _logger.LogInformation("Deleting embedded readme file.");
-                await _readmeFileService.DeleteReadmeFileAsync(package.Id, package.NormalizedVersion);
-                _logger.LogInformation("Deleted embedded readme file.");
             }
         }
     }
