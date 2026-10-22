@@ -120,7 +120,7 @@ namespace NuGetGallery
                 Assert.Equal("RegistrationOwnershipLost", Assert.Single(response.Blockers).Code);
                 var deadline = fixture.Attempt.ExpirationDate;
                 identity.Package.PackageRegistration.Owners.Add(fixture.Owner);
-                Assert.True(StagingArtifactResponse.FromSymbolPackage(fixture.Attempt, deadline, "management").CanPromote);
+                Assert.True(StagingArtifactResponse.FromSymbolPackage(fixture.Attempt, "management").CanPromote);
                 Assert.Equal(PackageStagingPromotionResult.Accepted, await fixture.Service.PromoteSymbolPackageAsync(fixture.Owner, fixture.Attempt));
                 Assert.Equal(deadline, fixture.Attempt.ExpirationDate);
             }

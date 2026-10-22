@@ -681,7 +681,7 @@ namespace NuGetGallery
             else
             {
                 Assert.Equal(PackageStagingPromotionResult.NotReady, await target.PromotePackageAsync(identity.Owner, parent));
-                var response = StagingArtifactResponse.FromPackage(parent, deadline, "management");
+                var response = StagingArtifactResponse.FromPackage(parent, "management");
                 Assert.False(response.CanPromote);
                 Assert.Equal("RegistrationOwnershipLost", Assert.Single(response.Blockers).Code);
                 Assert.Null(response.Group);
@@ -704,7 +704,7 @@ namespace NuGetGallery
             }
             else
             {
-                Assert.True(StagingArtifactResponse.FromPackage(parent, deadline, "management").CanPromote);
+                Assert.True(StagingArtifactResponse.FromPackage(parent, "management").CanPromote);
                 Assert.Equal(PackageStagingPromotionResult.Accepted, await target.PromotePackageAsync(identity.Owner, parent));
             }
 

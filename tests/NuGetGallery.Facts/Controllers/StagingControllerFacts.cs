@@ -1595,10 +1595,10 @@ namespace NuGetGallery
             }
 
             GetMock<IPackageStagingAuthorizationService>().Setup(service => service.GetEnabledOwner(owner, owner.Username)).Returns(owner);
-            GetMock<IPackageStagingManagementService>().Setup(service => service.GetStagedPackages(owner)).Returns(symbolOnly ? Array.Empty<StagedPackage>() : new[] { parent });
-            GetMock<IPackageStagingManagementService>().Setup(service => service.GetStagingGroups(owner)).Returns(new[] { group });
+            GetMock<IPackageStagingManagementService>().Setup(service => service.GetStagedPackages(owner, owner.Key, grouped ? group.Key : (int?)null)).Returns(symbolOnly ? Array.Empty<StagedPackage>() : new[] { parent });
+            GetMock<IPackageStagingManagementService>().Setup(service => service.GetStagingGroups(owner, owner.Key)).Returns(new[] { group });
             GetMock<IPackageStagingManagementService>().Setup(service => service.FindStagingGroup(owner, group.Id)).Returns(group);
-            GetMock<ISymbolPackageStagingManagementService>().Setup(service => service.GetStagedSymbolPackages(owner)).Returns(new[] { symbols });
+            GetMock<ISymbolPackageStagingManagementService>().Setup(service => service.GetStagedSymbolPackages(owner, owner.Key, grouped ? group.Key : (int?)null)).Returns(new[] { symbols });
             var target = GetController<StagingController>();
             target.SetCurrentUser(owner);
             identity.Package.PackageRegistration.Owners.Clear();
