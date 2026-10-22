@@ -387,6 +387,13 @@ namespace NuGetGallery
         /// <returns>Whether package staging is enabled.</returns>
         bool IsPackageStagingEnabled(User user);
 
+        /// <summary>
+        /// When enabled, newly created API keys offer reduced expiration choices (1, 8, and 30 days)
+        /// and API keys with a duration longer than 30 days are treated as expiring no later than
+        /// the hardcoded cutoff date (see <see cref="NuGetGallery.ApiKeyReductionPolicy"/>).
+        /// </summary>
+        bool IsApiKeyReductionDateEnabled();
+
         // TODO: https://github.com/NuGet/Engineering/issues/6446
         bool IsInvalidPackageIdAllowedForAllPackages();
         bool IsInvalidPackageIdAllowedForExistingPackages();

@@ -257,6 +257,7 @@
     <Compile Include="Extensions\ImageExtensions.cs" />
     <Compile Include="Extensions\UserSafeExceptionExtensions.cs" />
     <Compile Include="Filters\AdminActionAttribute.cs" />
+    <Compile Include="Filters\ElevatedAdminActionAttribute.cs" />
     <Compile Include="Filters\RequiresUserAgentAttribute.cs" />
     <Compile Include="Areas\Admin\Filters\AdminApiAuthAttribute.cs" />
     <Compile Include="Areas\Admin\Authentication\AdminApiBearerAuthenticationMiddleware.cs" />

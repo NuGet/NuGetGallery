@@ -512,10 +512,6 @@ namespace NuGetGallery
                 credentials = new List<CredentialViewModel>();
             }
 
-            var apiKeys = credentials
-                .Select(c => new ApiKeyViewModel(c))
-                .ToList();
-
             // Get package owners (user's self or organizations)
             var owners = new List<ApiKeyOwnerViewModel>
             {
@@ -525,6 +521,12 @@ namespace NuGetGallery
             owners.AddRange(currentUser.Organizations
                 .Select(o => CreateApiKeyOwnerViewModel(currentUser, o.Organization)));
 
+            var isApiKeyReductionDateEnabled = _featureFlagService.IsApiKeyReductionDateEnabled();
+
+            var apiKeys = credentials
+                .Select(c => new ApiKeyViewModel(c, isApiKeyReductionDateEnabled))
+                .ToList();
+
             var model = new ApiKeyListViewModel
             {
                 ApiKeys = apiKeys,
@@ -532,6 +534,7 @@ namespace NuGetGallery
                 PackageOwners = owners.Where(o => o.CanPushNew || o.CanPushExisting || o.CanUnlist || o.CanStage).ToList(),
                 IsDeprecationApiEnabled = IsDeprecateApiEnabled(currentUser),
                 IsApiKeyExpirationRestricted = _featureFlagService.IsApiKeyExpirationRestricted(),
+                IsApiKeyReductionDateEnabled = isApiKeyReductionDateEnabled,
             };
 
             return View("ApiKeys", model);
@@ -1223,7 +1226,7 @@ namespace NuGetGallery
 
             await AuthenticationService.RemoveCredential(user, cred);
 
-            return Json(new ApiKeyViewModel(newCredentialViewModel));
+            return Json(new ApiKeyViewModel(newCredentialViewModel, _featureFlagService.IsApiKeyReductionDateEnabled()));
         }
 
         private static bool CredentialKeyMatches(int? credentialKey, Credential c)
@@ -1401,7 +1404,7 @@ namespace NuGetGallery
 
             var validationResult = await _federatedCredentialService.UpdatePolicyAsync(result.policy, policyCriteria, policyName, policyScopes: policyScopes, policySubjects: policySubjects);
 
-            return await ProcessUpdatePolicyValidationResultAsync(currentUser, validationResult);
+            return ProcessUpdatePolicyValidationResultAsync(currentUser, validationResult);
         }
 
         [HttpPost]
@@ -1426,10 +1429,10 @@ namespace NuGetGallery
             // Updating temp GitHub Actions policy will reset ValidateBy date.
             var validationResult = await _federatedCredentialService.UpdatePolicyAsync(result.policy, result.policy.Criteria, result.policy.PolicyName, result.policy.Scopes);
 
-            return await ProcessUpdatePolicyValidationResultAsync(currentUser, validationResult);
+            return ProcessUpdatePolicyValidationResultAsync(currentUser, validationResult);
         }
 
-        private async Task<JsonResult> ProcessUpdatePolicyValidationResultAsync(User currentUser, FederatedCredentialPolicyValidationResult validationResult)
+        private JsonResult ProcessUpdatePolicyValidationResultAsync(User currentUser, FederatedCredentialPolicyValidationResult validationResult)
         {
             if (validationResult.Type == FederatedCredentialPolicyValidationResultType.Unauthorized)
             {
@@ -1570,7 +1573,7 @@ namespace NuGetGallery
                     newCredentialViewModel.GetCredentialTypeInfo());
             await MessageService.SendMessageAsync(emailMessage);
 
-            return Json(new ApiKeyViewModel(newCredentialViewModel));
+            return Json(new ApiKeyViewModel(newCredentialViewModel, _featureFlagService.IsApiKeyReductionDateEnabled()));
         }
 
         [UIAuthorize]
@@ -1603,7 +1606,7 @@ namespace NuGetGallery
 
             var credentialViewModel = AuthenticationService.DescribeCredential(cred);
 
-            return Json(new ApiKeyViewModel(credentialViewModel));
+            return Json(new ApiKeyViewModel(credentialViewModel, _featureFlagService.IsApiKeyReductionDateEnabled()));
         }
 
         protected override RouteUrlTemplate<string> GetDeleteCertificateForAccountTemplate(string accountName)

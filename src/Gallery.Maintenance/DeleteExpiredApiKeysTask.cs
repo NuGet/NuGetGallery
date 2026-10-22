@@ -16,6 +16,8 @@ namespace Gallery.Maintenance
 {
     internal class DeleteExpiredApiKeysTask : MaintenanceTask
     {
+        internal const int DeleteBatchSize = 1000;
+
         private readonly TimeSpan _commandTimeout = TimeSpan.FromMinutes(5);
 
         /// Query expired ApiKeys <see cref="CredentialTypes.ApiKey"/> of verify.v1 and v5
@@ -39,46 +41,56 @@ DELETE FROM [dbo].[Credentials] WHERE [Key] IN ({0})";
 
         public override async Task RunAsync(Job job)
         {
-            IEnumerable<ApiKey> expiredApiKeys;
+            IEnumerable<ApiKey> expiredApiKeyScopes;
 
             using (var connection = await job.OpenSqlConnectionAsync<GalleryDbConfiguration>())
             {
-                expiredApiKeys = await connection.QueryWithRetryAsync<ApiKey>(
+                expiredApiKeyScopes = await connection.QueryWithRetryAsync<ApiKey>(
                     SelectQuery,
                     commandTimeout: _commandTimeout,
                     maxRetries: 3);
             }
 
-            var credentialKeys = expiredApiKeys.Select(expiredApiKey =>
+            var expiredCredentialKeys = expiredApiKeyScopes.Select(expiredApiKeyScope =>
             {
                 _logger.LogInformation(
                     "Found expired ApiKey: CredentialKey='{credentialKey}' CredentialType='{credentialType}' UserKey='{userKey}', User='{userName}', Subject='{scopeSubject}', Expires={expires}",
-                    expiredApiKey.CredentialKey, expiredApiKey.CredentialType, expiredApiKey.UserKey, expiredApiKey.Username, expiredApiKey.ScopeSubject, expiredApiKey.Expires);
+                    expiredApiKeyScope.CredentialKey,
+                    expiredApiKeyScope.CredentialType,
+                    expiredApiKeyScope.UserKey,
+                    expiredApiKeyScope.Username,
+                    expiredApiKeyScope.ScopeSubject,
+                    expiredApiKeyScope.Expires);
 
-                return expiredApiKey.CredentialKey;
-            });
+                return expiredApiKeyScope.CredentialKey;
+            }).Distinct().ToList();
 
             var rowCount = 0;
-            var expectedRowCount = expiredApiKeys.Count() * 2; // credential and scope.
+            var expectedRowCount = expiredCredentialKeys.Count + expiredApiKeyScopes.Count();
 
             if (expectedRowCount > 0)
             {
                 using (var connection = await job.OpenSqlConnectionAsync<GalleryDbConfiguration>())
                 using (var transaction = connection.BeginTransaction())
-                using (var command = connection.CreateCommand())
                 {
-                    var numKeys = 0;
-                    var parameters = credentialKeys.Select(c => new SqlParameter("@Key" + numKeys++, SqlDbType.Int) { Value = c }).ToArray();
-                    command.Parameters.AddRange(parameters);
+                    foreach (var credentialKeyBatch in GetCredentialKeyBatches(expiredCredentialKeys))
+                    {
+                        using (var command = connection.CreateCommand())
+                        {
+                            var numKeys = 0;
+                            var parameters = credentialKeyBatch.Select(c => new SqlParameter("@Key" + numKeys++, SqlDbType.Int) { Value = c }).ToArray();
+                            command.Parameters.AddRange(parameters);
 
 #pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
-                    command.CommandText = string.Format(DeleteQuery, string.Join(",", parameters.Select(p => p.ParameterName)));
+                            command.CommandText = string.Format(DeleteQuery, string.Join(",", parameters.Select(p => p.ParameterName)));
 #pragma warning restore CA2100 // Review SQL queries for security vulnerabilities
-                    command.CommandType = CommandType.Text;
-                    command.CommandTimeout = (int)_commandTimeout.TotalSeconds;
-                    command.Transaction = transaction;
+                            command.CommandType = CommandType.Text;
+                            command.CommandTimeout = (int)_commandTimeout.TotalSeconds;
+                            command.Transaction = transaction;
 
-                    rowCount = await command.ExecuteNonQueryAsync();
+                            rowCount += await command.ExecuteNonQueryAsync();
+                        }
+                    }
 
                     transaction.Commit();
                 }
@@ -89,6 +101,14 @@ DELETE FROM [dbo].[Credentials] WHERE [Key] IN ({0})";
             if (expectedRowCount != rowCount)
             {
                 throw new Exception($"Expected to delete {expectedRowCount} ApiKeys and Scopes, but only deleted {rowCount}!");
+            }
+        }
+
+        internal static IEnumerable<IReadOnlyList<int>> GetCredentialKeyBatches(IReadOnlyList<int> credentialKeys)
+        {
+            for (var offset = 0; offset < credentialKeys.Count; offset += DeleteBatchSize)
+            {
+                yield return credentialKeys.Skip(offset).Take(DeleteBatchSize).ToList();
             }
         }
     }

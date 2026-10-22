@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
+using NuGet.Jobs.Validation;
 using NuGet.Services.Entities;
 using NuGet.Services.Validation.Issues;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
@@ -182,6 +183,30 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             validator2.Verify(v => v.StartAsync(It.IsAny<INuGetValidationRequest>()), Times.Never);
             validator2.Verify(v => v.GetResponseAsync(It.IsAny<INuGetValidationRequest>()), Times.Never);
             validator2.Verify(v => v.CleanUpAsync(It.IsAny<INuGetValidationRequest>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task DoesNotStartScanAndSignAfterPackageSignatureProcessorFails()
+        {
+            UseDefaultValidatorProvider();
+            AddValidation(
+                ValidatorName.PackageSignatureProcessor,
+                TimeSpan.FromDays(1),
+                validationStatus: ValidationStatus.Failed);
+            Mock<INuGetValidator> scanAndSign = AddValidation(
+                ValidatorName.ScanAndSign,
+                TimeSpan.FromDays(1),
+                requiredValidations: new[] { ValidatorName.PackageSignatureProcessor });
+
+            ValidationSetProcessor processor = CreateProcessor();
+            await processor.ProcessValidationsAsync(ValidationSet);
+
+            scanAndSign.Verify(
+                validator => validator.GetResponseAsync(It.IsAny<INuGetValidationRequest>()),
+                Times.Never);
+            scanAndSign.Verify(
+                validator => validator.StartAsync(It.IsAny<INuGetValidationRequest>()),
+                Times.Never);
         }
 
         [Fact]

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -80,6 +80,18 @@ namespace NuGetGallery
             }
 
             return self.Identity.IsAuthenticated && self.IsInRole(CoreConstants.AdminRoleName);
+        }
+
+        /// <summary>
+        /// Determine if the current user context is a Gallery elevated administrator, which
+        /// requires both the <see cref="CoreConstants.AdminRoleName"/> and
+        /// <see cref="CoreConstants.ElevatedAdminRoleName"/> roles.
+        /// </summary>
+        /// <param name="self">Current user principal.</param>
+        /// <returns>True if Gallery elevated administrator, false otherwise.</returns>
+        public static bool IsElevatedAdministrator(this IPrincipal self)
+        {
+            return self.IsAdministrator() && self.IsInRole(CoreConstants.ElevatedAdminRoleName);
         }
 
         /// <summary>
@@ -247,6 +259,22 @@ namespace NuGetGallery
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Get the specific credential type (e.g. apikey.v2, apikey.v4) used to authenticate.
+        /// </summary>
+        /// <param name="self">Current user principal identity.</param>
+        /// <returns>The credential type, or null if not present.</returns>
+        public static string GetCredentialType(this IIdentity self)
+        {
+            if (self == null)
+            {
+                throw new ArgumentNullException(nameof(self));
+            }
+
+            var identity = self as ClaimsIdentity;
+            return identity?.GetClaimOrDefault(NuGetClaims.CredentialType);
         }
 
         private static string GetScopeClaim(IIdentity self)

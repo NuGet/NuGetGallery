@@ -19,10 +19,12 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using NuGet.Jobs;
+using NuGet.Services.FeatureFlags;
 using NuGet.Services.Messaging;
 using NuGet.Services.Messaging.Email;
 using NuGet.Services.ServiceBus;
 using NuGet.Services.Storage;
+using NuGetGallery;
 
 namespace Gallery.CredentialExpiration
 {
@@ -67,11 +69,19 @@ namespace Gallery.CredentialExpiration
 
         public override async Task Run()
         {
+            var featureFlagRefresher = _serviceProvider.GetRequiredService<IFeatureFlagRefresher>();
+            await featureFlagRefresher.StartIfConfiguredAsync();
+
+            var featureFlagClient = _serviceProvider.GetRequiredService<IFeatureFlagClient>();
+            var isApiKeyReductionEnabled = featureFlagClient.IsEnabled(ApiKeyReductionPolicy.FeatureName, defaultValue: false);
+            DateTime? cutoffDate = isApiKeyReductionEnabled ? ApiKeyReductionPolicy.CutoffUtc : (DateTime?)null;
+
             var jobRunTime = DateTimeOffset.UtcNow;
             // Default values
             var jobCursor = new JobRunTimeCursor( jobCursorTime: jobRunTime, maxProcessedCredentialsTime: jobRunTime );
             var galleryCredentialExpiration = new GalleryCredentialExpiration(this,
-                new CredentialExpirationJobMetadata(jobRunTime, InitializationConfiguration.WarnDaysBeforeExpiration, jobCursor));
+                new CredentialExpirationJobMetadata(jobRunTime, InitializationConfiguration.WarnDaysBeforeExpiration, jobCursor),
+                cutoffDate);
 
             try
             {
@@ -88,7 +98,8 @@ namespace Gallery.CredentialExpiration
                         new JsonSerializerSettings() { MissingMemberHandling = MissingMemberHandling.Error });
 
                     galleryCredentialExpiration = new GalleryCredentialExpiration(this,
-                        new CredentialExpirationJobMetadata(jobRunTime, InitializationConfiguration.WarnDaysBeforeExpiration, jobCursor));
+                        new CredentialExpirationJobMetadata(jobRunTime, InitializationConfiguration.WarnDaysBeforeExpiration, jobCursor),
+                        cutoffDate);
                 }
 
                 // Connect to database
@@ -180,11 +191,13 @@ namespace Gallery.CredentialExpiration
 
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
+            ConfigureFeatureFlagAutofacServices(containerBuilder);
         }
 
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             ConfigureInitializationSection<InitializationConfiguration>(services, configurationRoot);
+            ConfigureFeatureFlagServices(services, configurationRoot);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -337,6 +337,7 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
         {
             public Mock<AuthenticationService> MockAuth { get; private set; }
             public Mock<ILogger> MockLogger { get; private set; }
+            public Mock<IFeatureFlagService> MockFeatureFlagService { get; private set; }
             public IOwinContext OwinContext { get { return base.Context; } }
 
             private TestableApiKeyAuthenticationHandler()
@@ -344,6 +345,7 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                 Logger = (MockLogger = new Mock<ILogger>()).Object;
                 Auth = (MockAuth = new Mock<AuthenticationService>()).Object;
                 CredentialBuilder = new CredentialBuilder();
+                FeatureFlagService = (MockFeatureFlagService = new Mock<IFeatureFlagService>()).Object;
             }
 
             public static Task<TestableApiKeyAuthenticationHandler> CreateAsync()

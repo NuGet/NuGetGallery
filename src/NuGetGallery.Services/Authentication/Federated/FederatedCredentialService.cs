@@ -358,9 +358,9 @@ namespace NuGetGallery.Services.Authentication
 
         public bool IsValidPolicyOwnerForScopes(User user, User packageOwner, IEnumerable<Scope>? scopes)
         {
-            if (scopes == null)
+            if (scopes == null || !scopes.Any())
             {
-                scopes = [ new Scope(packageOwner, NuGetPackagePattern.AllInclusivePattern, NuGetScopes.All) ];
+                scopes = [ new Scope(packageOwner, subject: NuGetPackagePattern.AllInclusivePattern, allowedAction: NuGetScopes.All) ];
             }
 
             return _credentialBuilder.VerifyScopes(user, scopes);
