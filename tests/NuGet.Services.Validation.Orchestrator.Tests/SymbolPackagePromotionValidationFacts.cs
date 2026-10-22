@@ -137,18 +137,6 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         }
 
         [Fact]
-        public async Task PromotionCannotStartUntilExplicitlyEnabled()
-        {
-            var configuration = CreateOrdinaryConfiguration();
-            configuration.EnableStagedSymbolPromotion = false;
-            var fixture = new Fixture(configuration);
-
-            await Assert.ThrowsAsync<NotSupportedException>(() => fixture.CreateSetAsync());
-
-            fixture.Storage.Verify(service => service.CreateValidationSetAsync(It.IsAny<PackageValidationSet>()), Times.Never);
-        }
-
-        [Fact]
         public async Task ValidationAndPromotionUseSeparateSetsForTheSameStagedAttempt()
         {
             var fixture = new Fixture();
@@ -186,20 +174,6 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             Assert.Equal(2, set.PackageValidations.Count);
         }
 
-        [Fact]
-        public async Task PersistedPromotionCannotRunWhileDisabled()
-        {
-            var fixture = new Fixture();
-            var set = await fixture.CreateSetAsync();
-            fixture.Configuration.EnableStagedSymbolPromotion = false;
-            var processor = new ValidationSetProcessor(fixture.Validators.Object, fixture.Storage.Object, Options(fixture.Configuration),
-                Options(new SasDefinitionConfiguration()), fixture.Files.Object, Mock.Of<ITelemetryService>(), Mock.Of<ILogger<ValidationSetProcessor>>());
-
-            await Assert.ThrowsAsync<NotSupportedException>(() => processor.ProcessValidationsAsync(set));
-
-            fixture.Validators.Verify(service => service.GetNuGetValidator(It.IsAny<string>()), Times.Never);
-        }
-
         [Theory]
         [InlineData(StagedPackageStatus.Succeeded)]
         [InlineData(StagedPackageStatus.PromotionFailed)]
@@ -232,7 +206,6 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         {
             return new ValidationConfiguration
             {
-                EnableStagedSymbolPromotion = true,
                 Validations = new List<ValidationConfigurationItem>
                 {
                     new ValidationConfigurationItem { Name = ValidatorName.SymbolScan, ShouldStart = true, FailureBehavior = ValidationFailureBehavior.MustSucceed },

@@ -85,6 +85,11 @@ namespace NuGet.Services.Validation.PackageSigning
                                 IssueCode = ValidationIssueCode.ClientSigningVerificationFailure,
                                 Data = "unknown contract",
                             },
+                            new ValidatorIssue
+                            {
+                                IssueCode = ValidationIssueCode.AuthorSignedAttributesNotCanonical,
+                                Data = "{}",
+                            },
                         },
                     });
 
@@ -93,13 +98,16 @@ namespace NuGet.Services.Validation.PackageSigning
 
                 // Assert
                 Assert.Equal(ValidationStatus.Failed, actual.Status);
-                Assert.Equal(2, actual.Issues.Count);
+                Assert.Equal(3, actual.Issues.Count);
 
                 Assert.Equal((ValidationIssueCode)987, actual.Issues[0].IssueCode);
                 Assert.Equal("{}", actual.Issues[0].Serialize());
 
                 Assert.Equal(ValidationIssueCode.ClientSigningVerificationFailure, actual.Issues[1].IssueCode);
                 Assert.Equal("unknown contract", actual.Issues[1].Serialize());
+
+                Assert.Equal(ValidationIssueCode.AuthorSignedAttributesNotCanonical, actual.Issues[2].IssueCode);
+                Assert.Equal("{}", actual.Issues[2].Serialize());
             }
 
             public static IEnumerable<object[]> PossibleValidationStatuses => possibleValidationStatuses.Select(s => new object[] { s });

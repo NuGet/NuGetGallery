@@ -9,16 +9,30 @@ namespace NuGetGallery
 {
     public class ImmediateStagedPackageValidationMessageEmitter : IStagedPackageValidationMessageEmitter
     {
-        public Task<StagedPackageStatus> StartValidationAsync(StagedPackage stagedPackage)
+        private readonly IStagingBlobService _stagingBlobService;
+
+        public ImmediateStagedPackageValidationMessageEmitter(IStagingBlobService stagingBlobService)
+        {
+            _stagingBlobService = stagingBlobService ?? throw new ArgumentNullException(nameof(stagingBlobService));
+        }
+
+        public async Task<StagedPackageStatus> StartValidationAsync(StagedPackage stagedPackage)
         {
             if (stagedPackage == null)
             {
                 throw new ArgumentNullException(nameof(stagedPackage));
             }
 
-            stagedPackage.ValidatedBlobPath = stagedPackage.UploadedBlobPath;
-            stagedPackage.ValidatedBlobETag = stagedPackage.UploadedBlobETag;
-            return Task.FromResult(StagedPackageStatus.Ready);
+            var package = stagedPackage.StagedPackageIdentity.Package;
+            StagingFileReference file;
+            using (var stream = await _stagingBlobService.OpenPackageFileAsync(stagedPackage.UploadedBlobPath, stagedPackage.UploadedBlobETag))
+            {
+                file = await _stagingBlobService.SaveValidatedPackageFileAsync(package.PackageRegistration.Id, package.NormalizedVersion, stream);
+            }
+
+            stagedPackage.ValidatedBlobPath = file.Path;
+            stagedPackage.ValidatedBlobETag = file.ETag;
+            return StagedPackageStatus.Ready;
         }
     }
 }

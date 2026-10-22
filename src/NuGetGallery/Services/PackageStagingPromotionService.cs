@@ -2,8 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
@@ -17,10 +20,13 @@ namespace NuGetGallery
     /// </summary>
     public class PackageStagingPromotionService : IPackageStagingPromotionService
     {
+        private const int AcceptanceBatchSize = 100;
         private readonly IPackageStagingAuthorizationService _authorizationService;
         private readonly IStagingPromotionMessageEnqueuer _messageEnqueuer;
         private readonly IEntityRepository<StagedPackage> _stagedPackageRepository;
         private readonly IEntityRepository<StagedSymbolPackage> _stagedSymbolPackageRepository;
+        private readonly IEntitiesContext _entitiesContext;
+        private readonly ITelemetryService _telemetryService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PackageStagingPromotionService"/> class.
@@ -29,16 +35,22 @@ namespace NuGetGallery
         /// <param name="messageEnqueuer">The promotion message enqueuer.</param>
         /// <param name="stagedPackageRepository">The staged-package repository.</param>
         /// <param name="stagedSymbolPackageRepository">The staged-symbol repository.</param>
+        /// <param name="telemetryService">The Gallery telemetry service.</param>
+        /// <param name="entitiesContext">The Gallery database context shared with the repositories.</param>
         public PackageStagingPromotionService(
             IPackageStagingAuthorizationService authorizationService,
             IStagingPromotionMessageEnqueuer messageEnqueuer,
             IEntityRepository<StagedPackage> stagedPackageRepository,
-            IEntityRepository<StagedSymbolPackage> stagedSymbolPackageRepository)
+            IEntityRepository<StagedSymbolPackage> stagedSymbolPackageRepository,
+            ITelemetryService telemetryService,
+            IEntitiesContext entitiesContext)
         {
             _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
             _messageEnqueuer = messageEnqueuer ?? throw new ArgumentNullException(nameof(messageEnqueuer));
             _stagedPackageRepository = stagedPackageRepository ?? throw new ArgumentNullException(nameof(stagedPackageRepository));
             _stagedSymbolPackageRepository = stagedSymbolPackageRepository ?? throw new ArgumentNullException(nameof(stagedSymbolPackageRepository));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
+            _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
         }
 
         /// <inheritdoc />
@@ -91,12 +103,15 @@ namespace NuGetGallery
                     return PackageStagingPromotionResult.NotReady;
                 }
 
+                var acceptedAt = DateTime.UtcNow;
                 stagedPackage.ActivePromotionId = promotionId;
-                stagedPackage.PromotionMessageSentDate = DateTime.UtcNow;
+                stagedPackage.PromotionAcceptedAt = acceptedAt;
+                stagedPackage.PromotionMessageSentDate = acceptedAt;
                 stagedPackage.Status = StagedPackageStatus.Promoting;
                 if (symbols != null && !StagingExpirationPolicy.HasExpired(symbols))
                 {
                     symbols.ActivePromotionId = promotionId;
+                    symbols.PromotionAcceptedAt = acceptedAt;
                     symbols.Status = StagedPackageStatus.Promoting;
                     symbols.PromotionMessageSentDate = null;
                 }
@@ -107,6 +122,12 @@ namespace NuGetGallery
             {
                 exception.Log();
                 return PackageStagingPromotionResult.Conflict;
+            }
+
+            _telemetryService.TrackStagingPromotionAccepted(promotionId, stagedPackage.StagedPackageIdentity.Package, symbols: false);
+            if (symbols?.ActivePromotionId == promotionId && symbols.Status == StagedPackageStatus.Promoting)
+            {
+                _telemetryService.TrackStagingPromotionAccepted(promotionId, stagedPackage.StagedPackageIdentity.Package, symbols: true);
             }
 
             if (!await TrySendMessageAsync(StagingPromotionMessage.ForPackage(promotionId, stagedPackage.Key)))
@@ -209,8 +230,9 @@ namespace NuGetGallery
             }
 
             stagedSymbolPackage.ActivePromotionId = Guid.NewGuid();
+            stagedSymbolPackage.PromotionAcceptedAt = DateTime.UtcNow;
             stagedSymbolPackage.Status = StagedPackageStatus.Promoting;
-            return await SendSymbolPromotionAsync(stagedSymbolPackage);
+            return await SendSymbolPromotionAsync(stagedSymbolPackage, accepted: true);
         }
 
         /// <inheritdoc />
@@ -241,7 +263,7 @@ namespace NuGetGallery
                 return PackageStagingPromotionResult.NotReady;
             }
 
-            return await SendSymbolPromotionAsync(stagedSymbolPackage);
+            return await SendSymbolPromotionAsync(stagedSymbolPackage, accepted: false);
         }
 
         /// <inheritdoc />
@@ -269,17 +291,21 @@ namespace NuGetGallery
 
             var stagedPackages = _stagedPackageRepository
                 .GetAll()
+                .AsNoTracking()
                 .Include(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageRegistration.Owners)
-                .Include(stagedPackage => stagedPackage.StagedPackageIdentity.Owner)
+                .Include(stagedPackage => stagedPackage.StagedPackageIdentity.Owner.Roles)
+                .Include(stagedPackage => stagedPackage.StagedPackageIdentity.StagingGroup)
                 .Where(stagedPackage => stagedPackage.StagedPackageIdentity.StagingGroupKey == group.Key)
                 .Where(stagedPackage => stagedPackage.StagedPackageIdentity.CurrentStagedPackageKey == stagedPackage.Key)
                 .Where(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Staged)
                 .Where(stagedPackage => stagedPackage.Status != StagedPackageStatus.Superseded && stagedPackage.Status != StagedPackageStatus.Deleted)
                 .ToList();
             var stagedSymbols = _stagedSymbolPackageRepository.GetAll()
+                .AsNoTracking()
                 .Include(symbol => symbol.SymbolPackage)
                 .Include(symbol => symbol.StagedPackageIdentity.Package.PackageRegistration.Owners)
-                .Include(symbol => symbol.StagedPackageIdentity.Owner)
+                .Include(symbol => symbol.StagedPackageIdentity.Owner.Roles)
+                .Include(symbol => symbol.StagedPackageIdentity.StagingGroup)
                 .Where(symbol => symbol.StagedPackageIdentity.StagingGroupKey == group.Key)
                 .Where(symbol => symbol.StagedPackageIdentity.CurrentStagedSymbolPackageKey == symbol.Key)
                 .ToList();
@@ -332,27 +358,46 @@ namespace NuGetGallery
                     return StagingGroupPromotionResult.NotReady;
                 }
 
+                var acceptedAt = DateTime.UtcNow;
                 group.ActivePromotionId = promotionId;
-                group.PromotionMessageSentDate = DateTime.UtcNow;
+                group.PromotionAcceptedAt = acceptedAt;
+                group.PromotionMessageSentDate = acceptedAt;
                 foreach (var stagedPackage in stagedPackages)
                 {
                     stagedPackage.ActivePromotionId = promotionId;
+                    stagedPackage.PromotionAcceptedAt = acceptedAt;
                     stagedPackage.Status = StagedPackageStatus.Promoting;
                 }
 
                 foreach (var symbol in stagedSymbols)
                 {
                     symbol.ActivePromotionId = promotionId;
+                    symbol.PromotionAcceptedAt = acceptedAt;
                     symbol.Status = StagedPackageStatus.Promoting;
                     symbol.PromotionMessageSentDate = null;
                 }
 
-                await _stagedPackageRepository.CommitChangesAsync();
+                await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
+                {
+                    await _stagedPackageRepository.CommitChangesAsync();
+                    await AcceptGroupAttemptsAsync("StagedPackages", stagedPackages, group, attempt => attempt.RowVersion, clearMessageSentDate: false);
+                    await AcceptGroupAttemptsAsync("StagedSymbolPackages", stagedSymbols, group, attempt => attempt.RowVersion, clearMessageSentDate: true);
+                });
             }
             catch (DbUpdateConcurrencyException exception)
             {
                 exception.Log();
                 return StagingGroupPromotionResult.Conflict;
+            }
+
+            foreach (var stagedPackage in stagedPackages)
+            {
+                _telemetryService.TrackStagingPromotionAccepted(promotionId, stagedPackage.StagedPackageIdentity.Package, symbols: false);
+            }
+
+            foreach (var symbol in stagedSymbols)
+            {
+                _telemetryService.TrackStagingPromotionAccepted(promotionId, symbol.StagedPackageIdentity.Package, symbols: true);
             }
 
             if (!await TrySendMessageAsync(StagingPromotionMessage.ForGroup(promotionId, group.Key)))
@@ -431,6 +476,49 @@ namespace NuGetGallery
             return StagingGroupPromotionResult.Accepted;
         }
 
+        private async Task AcceptGroupAttemptsAsync<T>(
+            string tableName,
+            IReadOnlyList<T> attempts,
+            StagingGroup group,
+            Func<T, byte[]> getRowVersion,
+            bool clearMessageSentDate) where T : class, IEntity
+        {
+            for (var offset = 0; offset < attempts.Count; offset += AcceptanceBatchSize)
+            {
+                var batch = attempts.Skip(offset).Take(AcceptanceBatchSize).ToList();
+                var parameters = new List<object>
+                {
+                    new SqlParameter("@promotionId", group.ActivePromotionId.Value),
+                    new SqlParameter("@acceptedAt", SqlDbType.DateTime2) { Value = group.PromotionAcceptedAt.Value },
+                    new SqlParameter("@status", (int)StagedPackageStatus.Promoting),
+                };
+                var expectedRows = new List<string>();
+                for (var index = 0; index < batch.Count; index++)
+                {
+                    expectedRows.Add($"(@key{index}, @rowVersion{index})");
+                    parameters.Add(new SqlParameter($"@key{index}", batch[index].Key));
+                    parameters.Add(new SqlParameter($"@rowVersion{index}", getRowVersion(batch[index])));
+                }
+
+                var messageSentDateUpdate = string.Empty;
+                if (clearMessageSentDate)
+                {
+                    messageSentDateUpdate = ", [PromotionMessageSentDate] = NULL";
+                }
+
+                var sql = $@"UPDATE attempt
+SET [ActivePromotionId] = @promotionId, [PromotionAcceptedAt] = @acceptedAt, [Status] = @status{messageSentDateUpdate}
+FROM [dbo].[{tableName}] AS attempt
+INNER JOIN (VALUES {string.Join(", ", expectedRows)}) AS expected([Key], [RowVersion])
+    ON attempt.[Key] = expected.[Key] AND attempt.[RowVersion] = expected.[RowVersion]";
+                var rows = await _entitiesContext.GetDatabase().ExecuteSqlCommandAsync(sql, parameters.ToArray());
+                if (rows != batch.Count)
+                {
+                    throw new DbUpdateConcurrencyException("A staging attempt changed before group promotion acceptance was committed.");
+                }
+            }
+        }
+
         private async Task<bool> TrySendMessageAsync(StagingPromotionMessage message)
         {
             try
@@ -454,7 +542,7 @@ namespace NuGetGallery
             return false;
         }
 
-        private async Task<PackageStagingPromotionResult> SendSymbolPromotionAsync(StagedSymbolPackage attempt)
+        private async Task<PackageStagingPromotionResult> SendSymbolPromotionAsync(StagedSymbolPackage attempt, bool accepted)
         {
             var promotionId = attempt.ActivePromotionId.Value;
             try
@@ -466,6 +554,11 @@ namespace NuGetGallery
             {
                 exception.Log();
                 return PackageStagingPromotionResult.Conflict;
+            }
+
+            if (accepted)
+            {
+                _telemetryService.TrackStagingPromotionAccepted(promotionId, attempt.StagedPackageIdentity.Package, symbols: true);
             }
 
             if (await TrySendMessageAsync(StagingPromotionMessage.ForSymbolPackage(promotionId, attempt.Key)))

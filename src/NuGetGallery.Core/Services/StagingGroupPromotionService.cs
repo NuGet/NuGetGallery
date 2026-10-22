@@ -100,20 +100,33 @@ namespace NuGetGallery
                             return;
                         }
 
-                        var activeMembers = _stagedPackageRepository
+                        var activeMembersQuery = _stagedPackageRepository
                             .GetAll()
                             .Include(candidate => candidate.StagedPackageIdentity)
                             .Where(candidate => candidate.StagedPackageIdentity.StagingGroupKey == stagingGroupKey)
                             .Where(candidate => candidate.StagedPackageIdentity.CurrentStagedPackageKey == candidate.Key)
-                            .Where(candidate => candidate.ActivePromotionId == promotionId)
-                            .ToList();
+                            .Where(candidate => candidate.ActivePromotionId == promotionId);
 
-                        var activeSymbols = _stagedSymbolPackageRepository.GetAll()
+                        var activeSymbolsQuery = _stagedSymbolPackageRepository.GetAll()
                             .Include(candidate => candidate.StagedPackageIdentity)
                             .Where(candidate => candidate.StagedPackageIdentity.StagingGroupKey == stagingGroupKey)
                             .Where(candidate => candidate.StagedPackageIdentity.CurrentStagedSymbolPackageKey == candidate.Key)
-                            .Where(candidate => candidate.ActivePromotionId == promotionId)
-                            .ToList();
+                            .Where(candidate => candidate.ActivePromotionId == promotionId);
+
+                        var hasUnfinishedArtifacts = activeMembersQuery.Any(candidate => candidate.Status != StagedPackageStatus.Succeeded && candidate.Status != StagedPackageStatus.PromotionFailed);
+                        if (!hasUnfinishedArtifacts)
+                        {
+                            hasUnfinishedArtifacts = activeSymbolsQuery.Any(candidate => candidate.Status != StagedPackageStatus.Succeeded && candidate.Status != StagedPackageStatus.PromotionFailed);
+                        }
+
+                        if (hasUnfinishedArtifacts)
+                        {
+                            _logger.LogInformation("Group finalization is not ready while accepted artifacts remain unfinished.");
+                            return;
+                        }
+
+                        var activeMembers = activeMembersQuery.ToList();
+                        var activeSymbols = activeSymbolsQuery.ToList();
 
                         var remainingCount = activeMembers.Count(candidate => !IsTerminal(candidate.Status));
                         remainingCount += activeSymbols.Count(candidate => !IsTerminal(candidate.Status));
@@ -155,6 +168,7 @@ namespace NuGetGallery
                             else
                             {
                                 activeMember.ActivePromotionId = null;
+                                activeMember.PromotionAcceptedAt = null;
                             }
                         }
 
@@ -176,6 +190,7 @@ namespace NuGetGallery
                         }
 
                         stagingGroup.ActivePromotionId = null;
+                        stagingGroup.PromotionAcceptedAt = null;
                         stagingGroup.PromotionMessageSentDate = null;
                         await _stagedPackageRepository.CommitChangesAsync();
 

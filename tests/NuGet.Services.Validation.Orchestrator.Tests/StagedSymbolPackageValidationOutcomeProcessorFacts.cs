@@ -384,7 +384,6 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 };
                 var configuration = new ValidationConfiguration
                 {
-                    EnableStagedSymbolPromotion = true,
                     MissingPackageRetryCount = 3,
                     TimeoutValidationSetAfter = TimeSpan.FromHours(1),
                     ValidationMessageRecheckPeriod = TimeSpan.FromMinutes(1),

@@ -12,6 +12,11 @@ namespace NuGetGallery
 {
     public interface ITelemetryService
     {
+        /// <summary>
+        /// Records an artifact's committed promotion acceptance for publication latency correlation.
+        /// </summary>
+        void TrackStagingPromotionAccepted(Guid promotionId, Package package, bool symbols);
+
         void TrackGetPackageDownloadCountFailed(string packageId, string packageVersion);
 
         void TrackGetPackageRegistrationDownloadCountFailed(string packageId);

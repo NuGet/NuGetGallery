@@ -16,6 +16,49 @@ namespace NuGet.Services.Staging.Promotion.Tests
 {
     public class StagingGroupPromotionServiceFacts
     {
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task StopsReadingArtifactsAsSoonAsUnfinishedWorkIsFound(bool unfinishedSymbols)
+        {
+            var context = new TestContext();
+            context.StagedPackage.Status = unfinishedSymbols ? StagedPackageStatus.Succeeded : StagedPackageStatus.Promoting;
+            var secondParent = context.AddMember(43, StagedPackageStatus.Succeeded);
+            context.AddSymbols(unfinishedSymbols ? StagedPackageStatus.Promoting : StagedPackageStatus.Succeeded);
+            secondParent.StagedPackageIdentity.CurrentStagedSymbolPackageKey = 101;
+            context.StagedSymbols.Add(new StagedSymbolPackage
+            {
+                Key = 101,
+                StagedPackageIdentity = secondParent.StagedPackageIdentity,
+                StagedPackageIdentityKey = secondParent.StagedPackageIdentityKey,
+                ActivePromotionId = context.PromotionId,
+                Status = StagedPackageStatus.Succeeded,
+            });
+            var parentsRead = 0;
+            var symbolsRead = 0;
+            context.StagedPackageRepository.Setup(repository => repository.GetAll()).Returns(context.StagedPackages.Select(parent =>
+            {
+                parentsRead++;
+                return parent;
+            }).AsQueryable());
+            context.StagedSymbolPackageRepository.Setup(repository => repository.GetAll()).Returns(context.StagedSymbols.Select(symbol =>
+            {
+                symbolsRead++;
+                return symbol;
+            }).AsQueryable());
+
+            await context.Target.TryFinalizeAsync(context.StagingGroup.Key, context.PromotionId);
+
+            Assert.Equal(unfinishedSymbols ? 2 : 1, parentsRead);
+            Assert.Equal(unfinishedSymbols ? 1 : 0, symbolsRead);
+            Assert.Equal(context.PromotionId, context.StagingGroup.ActivePromotionId);
+            Assert.Equal(2, context.StagedPackages.Count);
+            Assert.Equal(2, context.StagedSymbols.Count);
+            context.StagedPackageRepository.Verify(repository => repository.CommitChangesAsync(), Times.Never);
+            context.BlobCleanup.Verify(service => service.QueuePackageFiles(It.IsAny<int>()), Times.Never);
+            context.BlobCleanup.Verify(service => service.QueueSymbolFiles(It.IsAny<int>()), Times.Never);
+        }
+
         [Fact]
         public async Task RetainsSuccessfulPackageUntilRemainingMembersComplete()
         {
@@ -51,6 +94,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
             Assert.Empty(context.StagedPackages);
             Assert.Same(context.StagingGroup, Assert.Single(context.StagingGroups));
             Assert.Null(context.StagingGroup.ActivePromotionId);
+            Assert.Null(context.StagingGroup.PromotionAcceptedAt);
             Assert.Null(context.StagedPackage.StagedPackageIdentity.CurrentStagedPackageKey);
             Assert.Null(context.StagedPackage.StagedPackageIdentity.StagingGroupKey);
             Assert.Null(completedMember.StagedPackageIdentity.CurrentStagedPackageKey);
@@ -83,6 +127,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
             Assert.Equal(failedMember.Key, failedMember.StagedPackageIdentity.CurrentStagedPackageKey);
             Assert.Equal(context.StagingGroup.Key, failedMember.StagedPackageIdentity.StagingGroupKey);
             Assert.Null(failedMember.ActivePromotionId);
+            Assert.Null(failedMember.PromotionAcceptedAt);
             context.StagedPackageRepository.Verify(x => x.DeleteOnCommit(context.StagedPackage), Times.Once);
             context.StagedPackageRepository.Verify(x => x.DeleteOnCommit(failedMember), Times.Never);
             context.BlobCleanup.Verify(service => service.QueuePackageFiles(failedMember.StagedPackageIdentityKey), Times.Never);
@@ -284,6 +329,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 {
                     Key = 7,
                     ActivePromotionId = PromotionId,
+                    PromotionAcceptedAt = DateTime.UtcNow.AddMinutes(-1),
                 };
                 StagingGroups = new List<StagingGroup> { StagingGroup };
                 StagedPackages = new List<StagedPackage>();
@@ -389,6 +435,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
                     StagedPackageIdentity = identity,
                     Status = status,
                     ActivePromotionId = PromotionId,
+                    PromotionAcceptedAt = StagingGroup.PromotionAcceptedAt,
                 };
                 identity.CurrentStagedPackageKey = stagedPackage.Key;
                 identity.CurrentStagedPackage = stagedPackage;

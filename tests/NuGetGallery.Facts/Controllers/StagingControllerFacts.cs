@@ -717,7 +717,7 @@ namespace NuGetGallery
             {
                 Assert.True(package.IsExpired);
                 Assert.Equal(group.ExpirationDate, package.ExpirationDate);
-                Assert.Equal("Expired - awaiting cleanup", package.Status);
+                Assert.Equal("Expired", package.Status);
                 Assert.True(package.CanManage);
                 Assert.False(package.CanPromote);
                 Assert.Null(package.MoveUrl);

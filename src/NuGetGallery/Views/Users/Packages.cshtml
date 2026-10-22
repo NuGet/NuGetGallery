@@ -41,6 +41,7 @@
 
             @if (Model.IsPackageStagingEnabled)
             {
+                <div data-bind="visible: StagingGroups.Visible">
                 @ViewHelpers.Section(this, "staging-groups", @<text>Staging Groups</text>,
                     @<text>
                         <span data-bind="text: StagingGroups.VisibleGroupsHeading"></span>
@@ -48,18 +49,6 @@
                     @<text>
                         <div class="row user-package-list">
                             <div class="col-md-12">
-                                <div data-bind="foreach: StagingQuotas">
-                                    <p data-bind="visible: Visible">
-                                        <strong data-bind="text: Owner"></strong>:
-                                        Packages: <span data-bind="text: UsedPackages"></span>;
-                                        symbols: <span data-bind="text: UsedSymbols"></span>;
-                                        total: <span data-bind="text: UsedArtifacts"></span> / <span data-bind="text: Limit"></span>
-                                    </p>
-                                </div>
-                                <p class="text-muted">
-                                    Expired staging counts until deleted. Delete expired or unwanted staging to free capacity.
-                                    Replacing staged content does not use additional capacity.
-                                </p>
                                 <div class="staging-groups-actions">
                                     <a class="btn btn-brand" href="@Url.CreateStagingGroup()">
                                         <i class="ms-Icon ms-Icon--Add" aria-hidden="true"></i>
@@ -67,10 +56,10 @@
                                     </a>
                                 </div>
 
-                                <!-- ko if: StagingGroups.Groups.length === 0 -->
+                                <!-- ko ifnot: StagingGroups.VisibleGroupsCount -->
                                 <span>There are no staging groups.</span>
                                 <!-- /ko -->
-                                <!-- ko if: StagingGroups.Groups.length > 0 -->
+                                <!-- ko if: StagingGroups.VisibleGroupsCount -->
                                 <table class="table inner-table">
                                     <thead>
                                         <tr class="manage-package-headings">
@@ -116,6 +105,7 @@
                             </div>
                         </div>
                     </text>, expanded: false)
+                </div>
             }
 
             @ViewHelpers.Section(this, "unlisted", @<text>Unlisted Packages</text>,
@@ -606,7 +596,6 @@
                             .Select(p => GetSerializablePackage(p)),
                          StagingGroups = Model.StagingGroups
                             .Select(g => GetSerializableStagingGroup(g)),
-                         StagingQuotas = Model.StagingQuotas,
                          ReservedNamespaces = Model.ReservedNamespaces.ReservedNamespaces
                             .Select(n => GetSerializableNamespace(n)),
                          RequestsReceived = Model.OwnerRequests.Received.Requests

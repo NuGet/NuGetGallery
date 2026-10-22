@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
 using NuGet.Jobs.Validation;
+using NuGet.Jobs.Validation.Leases;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging;
 using NuGet.Services.Messaging.Email;
@@ -36,8 +37,9 @@ namespace NuGet.Services.Staging.Promotion
             services.Configure<PromotionConfiguration>(configurationRoot.GetSection(PromotionConfigurationSectionName));
             services.Configure<PromotionEmailConfiguration>(configurationRoot.GetSection("Email"));
             services.Configure<PackageValidationServiceBusConfiguration>(configurationRoot.GetSection("PackageValidationServiceBus"));
-            SetupDefaultSubscriptionProcessorConfiguration(services, configurationRoot);
             services.Configure<SubscriptionProcessorConfiguration>(configuration => configuration.MaxConcurrentCalls = 1);
+            SetupDefaultSubscriptionProcessorConfiguration(services, configurationRoot);
+            services.AddOptions<SubscriptionProcessorConfiguration>().Validate(configuration => configuration.MaxConcurrentCalls > 0, "ServiceBus.MaxConcurrentCalls must be greater than zero.");
 
             services.AddScoped<IEntitiesContext>(serviceProvider =>
             {
@@ -53,13 +55,24 @@ namespace NuGet.Services.Staging.Promotion
             services.AddTransient<IBrokeredMessageSerializer<StagingPromotionMessage>, StagingPromotionMessageSerializer>();
             services.AddTransient<NuGet.Services.Validation.IServiceBusMessageSerializer, NuGet.Services.Validation.ServiceBusMessageSerializer>();
             services.AddTransient<NuGet.Services.Messaging.IServiceBusMessageSerializer, NuGet.Services.Messaging.ServiceBusMessageSerializer>();
-            services.AddTransient<ISubscriptionProcessorTelemetryService, SubscriptionProcessorNoTelemetryService>();
+            services.AddTransient<ISubscriptionProcessorTelemetryService, StagingPromotionTelemetryService>();
             services.AddTransient<ICloudBlobContainerInformationProvider, GalleryCloudBlobContainerInformationProvider>();
+            services.AddScoped<IStagingPromotionLease, StagingPromotionLease>();
         }
 
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder, IConfigurationRoot configurationRoot)
         {
             ConfigureDefaultSubscriptionProcessor(containerBuilder);
+
+            containerBuilder.Register(context =>
+                {
+                    var configuration = context.Resolve<IOptionsSnapshot<PromotionConfiguration>>().Value;
+                    var storageMsi = context.Resolve<IOptionsSnapshot<StorageMsiConfiguration>>().Value;
+                    var client = StorageAccountHelper.CreateBlobServiceClient(storageMsi, configuration.StagingStorageConnectionString);
+                    return new CloudBlobLeaseService(client, CoreConstants.Folders.StagingFolderName, "promotion-leases");
+                })
+                .As<ILeaseService>()
+                .SingleInstance();
 
             containerBuilder
                 .Register(context =>

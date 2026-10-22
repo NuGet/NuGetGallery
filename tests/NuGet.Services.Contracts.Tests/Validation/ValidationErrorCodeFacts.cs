@@ -22,6 +22,7 @@ namespace NuGet.Services.Validation
             { 7, ValidationIssueCode.AuthorCounterSignaturesNotSupported },
             { 8, ValidationIssueCode.PackageIsNotSigned },
             { 9, ValidationIssueCode.PackageIsSignedWithUnauthorizedCertificate },
+            { 10, ValidationIssueCode.AuthorSignedAttributesNotCanonical },
             { 250, ValidationIssueCode.SymbolErrorCode_ChecksumDoesNotMatch },
             { 251, ValidationIssueCode.SymbolErrorCode_MatchingAssemblyNotFound},
             { 252, ValidationIssueCode.SymbolErrorCode_PdbIsNotPortable},

@@ -31,7 +31,9 @@ namespace NuGet.Services.Staging.Promotion
         private readonly ICoreReadmeFileService _readmeFileService;
         private readonly IStagingBlobCleanupService _blobCleanup;
         private readonly IStagingPromotionNotificationService _notifications;
+        private readonly IStagingPromotionLease _lease;
         private readonly ILogger<StagedPackagePromotionMessageHandler> _logger;
+        private readonly NuGet.Services.Logging.ITelemetryClient _telemetryClient;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="StagedPackagePromotionMessageHandler"/> class.
@@ -48,7 +50,9 @@ namespace NuGet.Services.Staging.Promotion
         /// <param name="readmeFileService">The public embedded-readme file service.</param>
         /// <param name="blobCleanup">The transactional private-file cleanup queue.</param>
         /// <param name="notifications">The per-artifact promotion notification service.</param>
+        /// <param name="lease">The scoped promotion lease protecting publication.</param>
         /// <param name="logger">The logger.</param>
+        /// <param name="telemetryClient">The publication latency metric client.</param>
         public StagedPackagePromotionMessageHandler(
             IEntityRepository<StagedPackage> stagedPackageRepository,
             IEntityRepository<StagedPackageIdentity> stagedPackageIdentityRepository,
@@ -62,7 +66,9 @@ namespace NuGet.Services.Staging.Promotion
             ICoreReadmeFileService readmeFileService,
             IStagingBlobCleanupService blobCleanup,
             IStagingPromotionNotificationService notifications,
-            ILogger<StagedPackagePromotionMessageHandler> logger)
+            IStagingPromotionLease lease,
+            ILogger<StagedPackagePromotionMessageHandler> logger,
+            NuGet.Services.Logging.ITelemetryClient telemetryClient)
         {
             _stagedPackageRepository = stagedPackageRepository ?? throw new ArgumentNullException(nameof(stagedPackageRepository));
             _stagedPackageIdentityRepository = stagedPackageIdentityRepository ?? throw new ArgumentNullException(nameof(stagedPackageIdentityRepository));
@@ -76,7 +82,9 @@ namespace NuGet.Services.Staging.Promotion
             _readmeFileService = readmeFileService ?? throw new ArgumentNullException(nameof(readmeFileService));
             _blobCleanup = blobCleanup ?? throw new ArgumentNullException(nameof(blobCleanup));
             _notifications = notifications ?? throw new ArgumentNullException(nameof(notifications));
+            _lease = lease ?? throw new ArgumentNullException(nameof(lease));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
         }
 
         /// <inheritdoc />
@@ -160,25 +168,23 @@ namespace NuGet.Services.Staging.Promotion
                     var stagingGroupKey = stagedPackage.StagedPackageIdentity.StagingGroupKey;
                     var stagingOwner = stagedPackage.StagedPackageIdentity.Owner;
                     var publishedArtifact = new StagingPromotionArtifact(package, false, true);
-                    var streamMetadata = await GetStreamMetadataAsync(stagedPackage);
+                    _logger.LogInformation("Reading validated package stream metadata.");
+                    var streamMetadata = await _stagingBlobService.GetPackageStreamMetadataAsync(stagedPackage.ValidatedBlobPath, stagedPackage.ValidatedBlobETag);
+                    await _lease.EnsureHeldAsync();
                     var packageFileName = await CopyPackageAsync(package, stagedPackage);
 
-                    try
-                    {
-                        _logger.LogInformation("Updating public package blob properties.");
-                        await SetPackagePropertiesAsync(packageFileName);
-                        await ExtractPackageContentAsync(package, stagedPackage);
+                    await _lease.EnsureHeldAsync();
+                    _logger.LogInformation("Updating public package blob properties.");
+                    await SetPackagePropertiesAsync(packageFileName);
+                    await ExtractPackageContentAsync(package, stagedPackage);
 
-                        _logger.LogInformation("Marking package as available and completing promotion in the database.");
-                        await CompletePromotionAsync(package, stagedPackage, streamMetadata);
-                    }
-                    catch (Exception exception)
-                    {
-                        _logger.LogError(exception, "Failed to publish staged package. Deleting published files.");
-                        await DeletePublishedFilesAsync(package, packageFileName);
-                        _logger.LogInformation("Deleted published files after promotion failure.");
-                        throw;
-                    }
+                    // Copies are retryable. Never delete shared public files after a failed or ambiguous commit.
+                    await _lease.EnsureHeldAsync();
+                    _logger.LogInformation("Marking package as available and completing promotion in the database.");
+                    await CompletePromotionAsync(package, stagedPackage, streamMetadata);
+
+                    StagingPromotionTelemetry.TrackGalleryPublished(_logger, _telemetryClient, message.PromotionId, package,
+                        stagedPackage.PromotionAcceptedAt, symbols: false);
 
                     if (stagingGroupKey.HasValue)
                     {
@@ -261,20 +267,6 @@ namespace NuGet.Services.Staging.Promotion
 
             stagedPackage.Status = StagedPackageStatus.PromotionFailed;
             await _stagedPackageRepository.CommitChangesAsync();
-        }
-
-        private async Task<PackageStreamMetadata> GetStreamMetadataAsync(StagedPackage stagedPackage)
-        {
-            _logger.LogInformation("Calculating validated package stream metadata.");
-            using (var packageStream = await _stagingBlobService.OpenPackageFileAsync(stagedPackage.ValidatedBlobPath, stagedPackage.ValidatedBlobETag))
-            {
-                return new PackageStreamMetadata
-                {
-                    HashAlgorithm = CoreConstants.Sha512HashAlgorithmId,
-                    Hash = CryptographyService.GenerateHash(packageStream, CoreConstants.Sha512HashAlgorithmId),
-                    Size = packageStream.Length,
-                };
-            }
         }
 
         private async Task<string> CopyPackageAsync(Package package, StagedPackage stagedPackage)
@@ -442,25 +434,5 @@ namespace NuGet.Services.Staging.Promotion
             }
         }
 
-        private async Task DeletePublishedFilesAsync(Package package, string packageFileName)
-        {
-            _logger.LogInformation("Deleting public package file.");
-            await _packageFileStorageService.DeleteFileAsync(_packageFileMetadataService.FileFolderName, packageFileName);
-            _logger.LogInformation("Deleted public package file.");
-
-            if (package.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
-            {
-                _logger.LogInformation("Deleting embedded license file.");
-                await _licenseFileService.DeleteLicenseFileAsync(package.Id, package.NormalizedVersion);
-                _logger.LogInformation("Deleted embedded license file.");
-            }
-
-            if (package.HasEmbeddedReadme)
-            {
-                _logger.LogInformation("Deleting embedded readme file.");
-                await _readmeFileService.DeleteReadmeFileAsync(package.Id, package.NormalizedVersion);
-                _logger.LogInformation("Deleted embedded readme file.");
-            }
-        }
     }
 }

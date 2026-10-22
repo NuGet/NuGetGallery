@@ -3,6 +3,11 @@
     ViewBag.Title = Model.Name;
     ViewBag.Tab = "Packages";
     var showRenameForm = !ViewData.ModelState.IsValid;
+    string expirationDate = null;
+    if (Model.ExpirationDate.HasValue)
+    {
+        expirationDate = DateTime.SpecifyKind(Model.ExpirationDate.Value, DateTimeKind.Utc).ToString("O");
+    }
 }
 
 <section id="staging-group" role="main" class="container main-container page-manage-packages">
@@ -53,7 +58,14 @@
                                 }
                             </h1>
                             @Html.ValidationMessage("Name", new { @class = "text-danger" })
-                            <span class="text-muted">@Model.Id</span>
+                            <span class="text-muted">
+                                @Model.Id
+                                @if (Model.ExpirationDate.HasValue)
+                                {
+                                    <span aria-hidden="true">&middot;</span>
+                                    <span class="text-nowrap">Expires <time datetime="@expirationDate" data-bind="text: ExpirationDateText, attr: { title: ExpirationDateTitle }">@Model.ExpirationDate.Value.ToNuGetShortDateString()</time></span>
+                                }
+                            </span>
                         </div>
                     }
                     @if (!Model.IsPromotionActive || Model.CanResend)
@@ -98,10 +110,6 @@
             }
 
             <div class="staging-group-summary">
-                @if (Model.ExpirationDate.HasValue)
-                {
-                    <span class="text-muted">Expires @Model.ExpirationDate.Value.ToString("MMM d, yyyy HH:mm 'UTC'")</span>
-                }
                 @if (Model.ReadyCount > 0)
                 {
                     <span class="label staging-status staging-status-ready">@Model.ReadyCount ready</span>
@@ -116,7 +124,7 @@
                 }
                 @if (Model.IsExpired)
                 {
-                    @ViewHelpers.AlertWarning(@<text>Expired - awaiting cleanup. This group can no longer be promoted or have its content or membership changed. You can delete it now.</text>)
+                    @ViewHelpers.AlertWarning(@<text>This group has expired. It can no longer be promoted or have its content or membership changed. You can delete it now.</text>)
                 }
                 @if (Model.PromotingCount > 0)
                 {
@@ -205,7 +213,10 @@
                                 <col class="staging-package-version-column" />
                                 <col class="staging-package-status-column" />
                                 <col class="staging-package-listed-column" />
-                                <col class="staging-package-uploaded-column" />
+                                @if (Model.IsUngrouped)
+                                {
+                                    <col class="staging-package-expiration-column" />
+                                }
                                 <col class="staging-package-actions-column" />
                             </colgroup>
                             <thead>
@@ -214,7 +225,10 @@
                                     <th>Version</th>
                                     <th>Status</th>
                                     <th>Listed</th>
-                                    <th>Staged On</th>
+                                    @if (Model.IsUngrouped)
+                                    {
+                                        <th>Expires On</th>
+                                    }
                                     <th><span class="sr-only">Actions</span></th>
                                 </tr>
                             </thead>
@@ -256,7 +270,6 @@
                                             </button>
                                             <!-- /ko -->
                                         </div>
-                                        <div class="small text-muted" data-bind="text: 'Expires ' + ExpirationDate"></div>
                                         <div class="small text-muted" data-bind="visible: PromotionBlocker, text: PromotionBlocker"></div>
                                     </td>
                                     <td class="align-middle staging-package-listed">
@@ -278,7 +291,12 @@
                                         <span class="text-muted" aria-label="Not applicable">N/A</span>
                                         <!-- /ko -->
                                     </td>
-                                    <td class="align-middle" data-bind="text: UploadedDate"></td>
+                                    @if (Model.IsUngrouped)
+                                    {
+                                        <td class="align-middle">
+                                            <time data-bind="text: ExpirationDateText, attr: { datetime: ExpirationDate, title: ExpirationDateTitle }"></time>
+                                        </td>
+                                    }
                                     <td class="text-right align-middle package-controls">
                                         <div class="dropdown staging-package-actions">
                                             <button type="button"
@@ -467,8 +485,7 @@
             ParentStatus = GetStagedPackageStatus(package.ParentStatus),
             Status = GetStagedPackageStatus(package.Status),
             package.StatusClass,
-            UploadedDate = package.UploadedDate.ToNuGetShortDateString(),
-            ExpirationDate = package.ExpirationDate.ToString("MMM d, yyyy HH:mm 'UTC'"),
+            ExpirationDate = DateTime.SpecifyKind(package.ExpirationDate, DateTimeKind.Utc).ToString("O"),
             package.IsExpired,
             HasValidationIssues = package.ValidationIssues.Count > 0,
             ValidationIssuesId = GetStagedValidationIssuesId(index),
@@ -499,6 +516,7 @@
                                       Name = Model.Name,
                                       CanPromote = Model.CanPromote,
                                       CanResend = Model.CanResend,
+                                      ExpirationDate = expirationDate,
                                       Packages = Model.Packages.Select((package, index) => GetSerializableStagedPackage(package, index)),
                                   });
 

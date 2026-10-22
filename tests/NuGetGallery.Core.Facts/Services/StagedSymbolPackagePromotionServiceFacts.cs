@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Newtonsoft.Json.Linq;
 using NuGet.Services.Entities;
 using Xunit;
 
@@ -16,6 +17,55 @@ namespace NuGetGallery
 {
     public class StagedSymbolPackagePromotionServiceFacts
     {
+        [Fact]
+        public async Task RecordsPublicationOnlyAfterTheEnclosingTransactionReturns()
+        {
+            var fixture = new Fixture();
+            fixture.Attempt.PromotionAcceptedAt = DateTime.SpecifyKind(fixture.Attempt.PromotionAcceptedAt.Value, DateTimeKind.Unspecified);
+            var transactionCompleted = new TaskCompletionSource<bool>();
+            fixture.Attempts.Setup(repository => repository.ExecuteInTransactionAsync(It.IsAny<Func<Task>>()))
+                .Returns(async (Func<Task> action) =>
+                {
+                    await action();
+                    await transactionCompleted.Task;
+                });
+
+            var publication = fixture.Target.CompleteAsync(fixture.Attempt.Key, fixture.PromotionId);
+
+            Assert.Equal(PackageStatus.Available, fixture.Symbol.StatusKey);
+            Assert.Empty(fixture.Publications);
+            var before = DateTime.UtcNow;
+            transactionCompleted.SetResult(true);
+            await publication;
+            var observation = Assert.Single(fixture.Publications);
+            Assert.Equal(fixture.PromotionId.ToString(), (string)observation["PromotionId"]);
+            Assert.Equal("PackageA", (string)observation["PackageId"]);
+            Assert.Equal("1.0.0", (string)observation["PackageVersion"]);
+            Assert.Equal("Symbols", (string)observation["ArtifactType"]);
+            Assert.InRange((DateTime)observation["OccurredAt"], before, DateTime.UtcNow);
+            Assert.Equal(fixture.Attempt.PromotionAcceptedAt, (DateTime?)observation["PromotionAcceptedAt"]);
+            Assert.Equal(DateTimeKind.Utc, ((DateTime)observation["PromotionAcceptedAt"]).Kind);
+            fixture.TelemetryClient.Verify(client => client.TrackMetric("StagingPromotion.AcceptedToGallerySeconds",
+                ((DateTime)observation["OccurredAt"] - fixture.Attempt.PromotionAcceptedAt.Value).TotalSeconds,
+                It.Is<IDictionary<string, string>>(properties => properties.Count == 1 && properties["ArtifactType"] == "Symbols")), Times.Once);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task PublishesWithoutFabricatingLatencyWhenAcceptanceTimeIsMissingOrInTheFuture(bool future)
+        {
+            var fixture = new Fixture();
+            fixture.Attempt.PromotionAcceptedAt = future ? DateTime.UtcNow.AddDays(1) : (DateTime?)null;
+
+            await fixture.Target.CompleteAsync(fixture.Attempt.Key, fixture.PromotionId);
+
+            Assert.Equal(PackageStatus.Available, fixture.Symbol.StatusKey);
+            Assert.Single(fixture.Publications);
+            fixture.TelemetryClient.Verify(client => client.TrackMetric(It.IsAny<string>(), It.IsAny<double>(), It.IsAny<IDictionary<string, string>>()), Times.Never);
+            Assert.Contains(fixture.Logger.Invocations, invocation => invocation.Method.Name == "Log" && (LogLevel)invocation.Arguments[0] == LogLevel.Warning);
+        }
+
         [Theory]
         [InlineData("owner-locked")]
         [InlineData("owner-unconfirmed")]
@@ -94,6 +144,7 @@ namespace NuGetGallery
 
             Assert.Equal(PackageStatus.Available, fixture.Symbol.StatusKey);
             Assert.Equal(grouped ? StagedPackageStatus.Promoting : StagedPackageStatus.Succeeded, fixture.Attempt.Status);
+            Assert.Single(fixture.Publications);
             Assert.Equal(PackageStatus.Available, fixture.Parent.PackageStatusKey);
             fixture.Blobs.Verify(service => service.GetPackageReadUriAsync("symbols/43", "etag"), Times.Once);
             fixture.Files.Verify(service => service.CopyFileAsync(Fixture.UploadUri, CoreConstants.Folders.SymbolPackagesFolderName,
@@ -159,6 +210,7 @@ namespace NuGetGallery
 
             Assert.Equal(StagedPackageStatus.PromotionFailed, fixture.Attempt.Status);
             Assert.Equal(PackageStatus.Staged, fixture.Symbol.StatusKey);
+            Assert.Empty(fixture.Publications);
             Assert.Equal(PackageStatus.Available, fixture.Parent.PackageStatusKey);
             Assert.Equal(PackageStatus.Available, fixture.StoredPreviousSymbol.StatusKey);
             Assert.Equal(Fixture.PreviousContent, fixture.PublicContent);
@@ -220,6 +272,7 @@ namespace NuGetGallery
 
             Assert.Equal(StagedPackageStatus.PromotionFailed, fixture.Attempt.Status);
             Assert.Equal(PackageStatus.Staged, fixture.Symbol.StatusKey);
+            Assert.Empty(fixture.Publications);
             if (hasPublicSymbols)
             {
                 Assert.Equal(PackageStatus.Available, fixture.StoredPreviousSymbol.StatusKey);
@@ -244,6 +297,7 @@ namespace NuGetGallery
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.Target.CompleteAsync(fixture.Attempt.Key, fixture.PromotionId));
 
+            Assert.Empty(fixture.Publications);
             fixture.Files.Verify(service => service.DeleteFileAsync(CoreConstants.Folders.SymbolPackagesFolderName, Fixture.FileName),
                 wasCommitted ? Times.Never() : Times.Once());
         }
@@ -460,6 +514,7 @@ namespace NuGetGallery
             if (!grouped && !succeeded)
             {
                 Assert.Null(fixture.Attempt.ActivePromotionId);
+                Assert.Null(fixture.Attempt.PromotionAcceptedAt);
                 Assert.Equal(fixture.Attempt.Key, fixture.Identity.CurrentStagedSymbolPackageKey);
             }
         }
@@ -506,6 +561,7 @@ namespace NuGetGallery
                     SymbolPackage = Symbol,
                     Status = StagedPackageStatus.Promoting,
                     ActivePromotionId = PromotionId,
+                    PromotionAcceptedAt = DateTime.UtcNow.AddMinutes(-1),
                     UploadedBlobPath = "symbols/43",
                     UploadedBlobETag = "etag",
                 };
@@ -525,8 +581,16 @@ namespace NuGetGallery
                     .Callback<SymbolPackage, PackageStatus, bool>((symbol, status, commit) => symbol.StatusKey = status).Returns(Task.CompletedTask);
                 Blobs.Setup(service => service.GetPackageReadUriAsync("symbols/43", "etag")).ReturnsAsync(UploadUri);
                 Target = new StagedSymbolPackagePromotionService(Attempts.Object, Identities.Object, Symbols.Object, SymbolService.Object,
-                    Blobs.Object, Files.Object, Groups.Object, BlobCleanup.Object, Notifications.Object, Mock.Of<ILogger<StagedSymbolPackagePromotionService>>());
+                    Blobs.Object, Files.Object, Groups.Object, BlobCleanup.Object, Notifications.Object, Logger.Object, TelemetryClient.Object);
             }
+
+            public Mock<ILogger<StagedSymbolPackagePromotionService>> Logger { get; } = new Mock<ILogger<StagedSymbolPackagePromotionService>>();
+
+            public Mock<NuGet.Services.Logging.ITelemetryClient> TelemetryClient { get; } = new Mock<NuGet.Services.Logging.ITelemetryClient>();
+
+            public IEnumerable<JObject> Publications => Logger.Invocations
+                .Where(invocation => invocation.Method.Name == "Log" && ((EventId)invocation.Arguments[1]).Name == "StagingPromotion.GalleryPublished")
+                .Select(invocation => JObject.Parse(invocation.Arguments[2].ToString()));
 
             public Guid PromotionId { get; } = Guid.NewGuid();
 

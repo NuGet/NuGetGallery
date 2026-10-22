@@ -27,6 +27,7 @@ namespace NuGetGallery
         private readonly IStagingBlobCleanupService _blobCleanup;
         private readonly IStagingPromotionNotificationService _notifications;
         private readonly ILogger<StagedSymbolPackagePromotionService> _logger;
+        private readonly NuGet.Services.Logging.ITelemetryClient _telemetryClient;
 
         public StagedSymbolPackagePromotionService(
             IEntityRepository<StagedSymbolPackage> attempts,
@@ -38,7 +39,8 @@ namespace NuGetGallery
             IStagingGroupPromotionService groups,
             IStagingBlobCleanupService blobCleanup,
             IStagingPromotionNotificationService notifications,
-            ILogger<StagedSymbolPackagePromotionService> logger)
+            ILogger<StagedSymbolPackagePromotionService> logger,
+            NuGet.Services.Logging.ITelemetryClient telemetryClient)
         {
             _attempts = attempts ?? throw new ArgumentNullException(nameof(attempts));
             _identities = identities ?? throw new ArgumentNullException(nameof(identities));
@@ -50,6 +52,7 @@ namespace NuGetGallery
             _blobCleanup = blobCleanup ?? throw new ArgumentNullException(nameof(blobCleanup));
             _notifications = notifications ?? throw new ArgumentNullException(nameof(notifications));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
         }
 
         public async Task CompleteAsync(int stagedSymbolPackageKey, Guid promotionId)
@@ -133,6 +136,7 @@ namespace NuGetGallery
                 }
             }
 
+            var published = false;
             try
             {
                 await SetCacheControlAsync(folder, name);
@@ -146,6 +150,7 @@ namespace NuGetGallery
                         }
 
                         await _symbolService.UpdateStatusAsync(symbol, PackageStatus.Available, commitChanges: false);
+                        published = true;
                         // Grouped attempts remain Promoting until orchestration completion is durable.
                         if (!attempt.StagedPackageIdentity.StagingGroupKey.HasValue)
                         {
@@ -179,6 +184,12 @@ namespace NuGetGallery
                 }
 
                 throw;
+            }
+
+            if (published)
+            {
+                StagingPromotionTelemetry.TrackGalleryPublished(_logger, _telemetryClient, promotionId, attempt.StagedPackageIdentity.Package,
+                    attempt.PromotionAcceptedAt, symbols: true);
             }
         }
 
@@ -244,6 +255,7 @@ namespace NuGetGallery
             if (attempt.Status == StagedPackageStatus.PromotionFailed)
             {
                 attempt.ActivePromotionId = null;
+                attempt.PromotionAcceptedAt = null;
                 attempt.PromotionMessageSentDate = null;
                 await _attempts.CommitChangesAsync();
                 await _notifications.SendAsync(stagingOwner, result);

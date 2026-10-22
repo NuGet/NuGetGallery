@@ -49,6 +49,11 @@ namespace NuGet.Services.Entities
         public Guid? ActivePromotionId { get; set; }
 
         /// <summary>
+        /// Gets or sets when the current promotion was accepted, in UTC; resends preserve this timestamp.
+        /// </summary>
+        public DateTime? PromotionAcceptedAt { get; set; }
+
+        /// <summary>
         /// Records the last dispatch of an individual promotion.
         /// </summary>
         public DateTime? PromotionMessageSentDate { get; set; }

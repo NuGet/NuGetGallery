@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Security.Principal;
 using System.Web;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
@@ -128,6 +129,7 @@ namespace NuGetGallery
 
         // Package event properties
         public const string AuthenticationMethod = "AuthenticationMethod";
+        public const string CredentialType = "CredentialType";
         public const string ClientVersion = "ClientVersion";
         public const string ProtocolVersion = "ProtocolVersion";
         public const string ClientInformation = "ClientInformation";
@@ -273,6 +275,30 @@ namespace NuGetGallery
             }
 
             _diagnosticsSource.Warning(exception.ToString());
+        }
+
+        public void TrackStagingPromotionAccepted(Guid promotionId, Package package, bool symbols)
+        {
+            if (promotionId == Guid.Empty)
+            {
+                throw new ArgumentException("A promotion ID is required.", nameof(promotionId));
+            }
+
+            if (package == null)
+            {
+                throw new ArgumentNullException(nameof(package));
+            }
+
+            const string eventName = "StagingPromotion.Accepted";
+            _telemetryClient.TrackTrace(JsonConvert.SerializeObject(new
+            {
+                EventName = eventName,
+                PromotionId = promotionId,
+                PackageId = package.PackageRegistration.Id,
+                PackageVersion = package.NormalizedVersion,
+                ArtifactType = symbols ? "Symbols" : "Package",
+                OccurredAt = DateTime.UtcNow,
+            }), LogLevel.Information, new EventId(0, eventName));
         }
 
         public void TrackGetPackageDownloadCountFailed(string packageId, string packageVersion)
@@ -803,6 +829,7 @@ namespace NuGetGallery
                 properties.Add(PackageVersion, packageVersion);
                 properties.Add(AccountCreationDate, GetAccountCreationDate(user));
                 properties.Add(AuthenticationMethod, identity.GetAuthenticationType());
+                properties.Add(CredentialType, identity.GetCredentialType());
                 properties.Add(KeyCreationDate, GetApiKeyCreationDate(user, identity));
                 properties.Add(IsScoped, identity.IsScopedAuthentication().ToString());
                 addProperties?.Invoke(properties);

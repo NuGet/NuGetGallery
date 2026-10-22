@@ -5,6 +5,7 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
+using NuGetGallery.Packaging;
 
 namespace NuGetGallery
 {
@@ -24,12 +25,17 @@ namespace NuGetGallery
             return await SaveFileAsync(packageId, normalizedVersion, packageFile, CoreConstants.NuGetPackageFileExtension);
         }
 
+        public Task<StagingFileReference> SaveValidatedPackageFileAsync(string packageId, string normalizedVersion, Stream packageFile)
+        {
+            return SaveFileAsync(packageId, normalizedVersion, packageFile, CoreConstants.NuGetPackageFileExtension, setHashMetadata: true);
+        }
+
         public async Task<StagingFileReference> SaveSymbolPackageFileAsync(string packageId, string normalizedVersion, Stream symbolPackageFile)
         {
             return await SaveFileAsync(packageId, normalizedVersion, symbolPackageFile, CoreConstants.NuGetSymbolPackageFileExtension);
         }
 
-        private async Task<StagingFileReference> SaveFileAsync(string packageId, string normalizedVersion, Stream packageFile, string extension)
+        private async Task<StagingFileReference> SaveFileAsync(string packageId, string normalizedVersion, Stream packageFile, string extension, bool setHashMetadata = false)
         {
             if (string.IsNullOrWhiteSpace(packageId))
             {
@@ -51,6 +57,13 @@ namespace NuGetGallery
                 throw new ArgumentException("The package stream must be readable, seekable, and positioned at the beginning.", nameof(packageFile));
             }
 
+            string hash = null;
+            if (setHashMetadata)
+            {
+                hash = CryptographyService.GenerateHash(packageFile, CoreConstants.Sha512HashAlgorithmId);
+                packageFile.Position = 0;
+            }
+
             var path = GeneratePackagePath(packageId, normalizedVersion, Guid.NewGuid(), extension);
             await _fileStorageService.SaveFileAsync(
                 CoreConstants.Folders.StagingFolderName,
@@ -58,6 +71,15 @@ namespace NuGetGallery
                 CoreConstants.PackageContentType,
                 packageFile,
                 overwrite: false);
+
+            if (setHashMetadata)
+            {
+                await _fileStorageService.SetMetadataAsync(CoreConstants.Folders.StagingFolderName, path, (_, metadata) =>
+                {
+                    metadata[CoreConstants.Sha512HashAlgorithmId] = hash;
+                    return Task.FromResult(true);
+                });
+            }
 
             var etag = await _fileStorageService.GetETagOrNullAsync(CoreConstants.Folders.StagingFolderName, path);
             if (etag == null)
@@ -121,6 +143,21 @@ namespace NuGetGallery
             }
 
             return file.OpenRead();
+        }
+
+        public Task<PackageStreamMetadata> GetPackageStreamMetadataAsync(string packagePath, string packageETag)
+        {
+            if (string.IsNullOrWhiteSpace(packagePath))
+            {
+                throw new ArgumentNullException(nameof(packagePath));
+            }
+
+            if (string.IsNullOrWhiteSpace(packageETag))
+            {
+                throw new ArgumentNullException(nameof(packageETag));
+            }
+
+            return _fileStorageService.GetPackageStreamMetadataAsync(CoreConstants.Folders.StagingFolderName, packagePath, packageETag);
         }
 
         public async Task<StagingFileReference> CopyPackageFileToStagingAsync(string packageId, string normalizedVersion, Uri packageFileUri)

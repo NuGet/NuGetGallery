@@ -42,8 +42,6 @@ namespace NuGetGallery
         private readonly IFederatedCredentialService _federatedCredentialService;
         private readonly IPackageStagingManagementService _packageStagingManagementService;
         private readonly ISymbolPackageStagingManagementService _symbolPackageStagingManagementService;
-        private readonly IPackageStagingAuthorizationService _packageStagingAuthorizationService;
-        private readonly IStagingQuotaService _stagingQuotaService;
 
         public UsersController(
             IUserService userService,
@@ -68,9 +66,7 @@ namespace NuGetGallery
             IFederatedCredentialService federatedCredentialService,
             IFederatedCredentialRepository federatedCredentialRepository,
             IPackageStagingManagementService packageStagingManagementService,
-            ISymbolPackageStagingManagementService symbolPackageStagingManagementService,
-            IPackageStagingAuthorizationService packageStagingAuthorizationService,
-            IStagingQuotaService stagingQuotaService)
+            ISymbolPackageStagingManagementService symbolPackageStagingManagementService)
             : base(
                   authService,
                   packageService,
@@ -96,8 +92,6 @@ namespace NuGetGallery
             _federatedCredentialService = federatedCredentialService ?? throw new ArgumentNullException(nameof(federatedCredentialService));
             _packageStagingManagementService = packageStagingManagementService ?? throw new ArgumentNullException(nameof(packageStagingManagementService));
             _symbolPackageStagingManagementService = symbolPackageStagingManagementService ?? throw new ArgumentNullException(nameof(symbolPackageStagingManagementService));
-            _packageStagingAuthorizationService = packageStagingAuthorizationService ?? throw new ArgumentNullException(nameof(packageStagingAuthorizationService));
-            _stagingQuotaService = stagingQuotaService ?? throw new ArgumentNullException(nameof(stagingQuotaService));
 
             _listPackageItemRequiredSignerViewModelFactory = new ListPackageItemRequiredSignerViewModelFactory(
                 securityPolicyService, iconUrlProvider, packageVulnerabilitiesService, frameworkCompatibilityFactory, featureFlagService);
@@ -512,10 +506,6 @@ namespace NuGetGallery
                 credentials = new List<CredentialViewModel>();
             }
 
-            var apiKeys = credentials
-                .Select(c => new ApiKeyViewModel(c))
-                .ToList();
-
             // Get package owners (user's self or organizations)
             var owners = new List<ApiKeyOwnerViewModel>
             {
@@ -525,6 +515,12 @@ namespace NuGetGallery
             owners.AddRange(currentUser.Organizations
                 .Select(o => CreateApiKeyOwnerViewModel(currentUser, o.Organization)));
 
+            var isApiKeyReductionDateEnabled = _featureFlagService.IsApiKeyReductionDateEnabled();
+
+            var apiKeys = credentials
+                .Select(c => new ApiKeyViewModel(c, isApiKeyReductionDateEnabled))
+                .ToList();
+
             var model = new ApiKeyListViewModel
             {
                 ApiKeys = apiKeys,
@@ -532,6 +528,7 @@ namespace NuGetGallery
                 PackageOwners = owners.Where(o => o.CanPushNew || o.CanPushExisting || o.CanUnlist || o.CanStage).ToList(),
                 IsDeprecationApiEnabled = IsDeprecateApiEnabled(currentUser),
                 IsApiKeyExpirationRestricted = _featureFlagService.IsApiKeyExpirationRestricted(),
+                IsApiKeyReductionDateEnabled = isApiKeyReductionDateEnabled,
             };
 
             return View("ApiKeys", model);
@@ -573,7 +570,13 @@ namespace NuGetGallery
                     Username = "All packages"
                 },
                 new ListPackageOwnerViewModel(currentUser)
-            }.Concat(currentUser.Organizations.Select(o => new ListPackageOwnerViewModel(o.Organization)));
+                {
+                    IsPackageStagingEnabled = _featureFlagService.IsPackageStagingEnabled(currentUser)
+                }
+            }.Concat(currentUser.Organizations.Select(o => new ListPackageOwnerViewModel(o.Organization)
+            {
+                IsPackageStagingEnabled = _featureFlagService.IsPackageStagingEnabled(o.Organization)
+            }));
 
             var wasAADLoginOrMultiFactorAuthenticated = User.WasMultiFactorAuthenticated() || User.WasAzureActiveDirectoryAccountUsedForSignin();
 
@@ -608,13 +611,8 @@ namespace NuGetGallery
 
             var isPackageStagingEnabled = _packageStagingManagementService.IsEnabled(currentUser);
             var stagingGroups = new List<StagingGroupViewModel>();
-            var stagingQuotas = new List<StagingQuotaUsage>();
             if (isPackageStagingEnabled)
             {
-                stagingQuotas = _packageStagingAuthorizationService.GetEnabledOwners(currentUser)
-                    .OrderBy(owner => owner.Username)
-                    .Select(owner => _stagingQuotaService.GetUsage(owner))
-                    .ToList();
                 var stagedPackageEntities = _packageStagingManagementService.GetStagedPackages(currentUser).ToList();
                 var stagedSymbols = _symbolPackageStagingManagementService.GetStagedSymbolPackages(currentUser);
                 var ungroupedSymbols = stagedSymbols.Where(attempt => !attempt.StagedPackageIdentity.StagingGroupKey.HasValue).ToList();
@@ -684,7 +682,6 @@ namespace NuGetGallery
                 IsManagePackagesVulnerabilitiesEnabled = _featureFlagService.IsManagePackagesVulnerabilitiesEnabled(),
                 IsPackageStagingEnabled = isPackageStagingEnabled,
                 StagingGroups = stagingGroups,
-                StagingQuotas = stagingQuotas,
             };
 
             return View(model);
@@ -1223,7 +1220,7 @@ namespace NuGetGallery
 
             await AuthenticationService.RemoveCredential(user, cred);
 
-            return Json(new ApiKeyViewModel(newCredentialViewModel));
+            return Json(new ApiKeyViewModel(newCredentialViewModel, _featureFlagService.IsApiKeyReductionDateEnabled()));
         }
 
         private static bool CredentialKeyMatches(int? credentialKey, Credential c)
@@ -1401,7 +1398,7 @@ namespace NuGetGallery
 
             var validationResult = await _federatedCredentialService.UpdatePolicyAsync(result.policy, policyCriteria, policyName, policyScopes: policyScopes, policySubjects: policySubjects);
 
-            return await ProcessUpdatePolicyValidationResultAsync(currentUser, validationResult);
+            return ProcessUpdatePolicyValidationResultAsync(currentUser, validationResult);
         }
 
         [HttpPost]
@@ -1426,10 +1423,10 @@ namespace NuGetGallery
             // Updating temp GitHub Actions policy will reset ValidateBy date.
             var validationResult = await _federatedCredentialService.UpdatePolicyAsync(result.policy, result.policy.Criteria, result.policy.PolicyName, result.policy.Scopes);
 
-            return await ProcessUpdatePolicyValidationResultAsync(currentUser, validationResult);
+            return ProcessUpdatePolicyValidationResultAsync(currentUser, validationResult);
         }
 
-        private async Task<JsonResult> ProcessUpdatePolicyValidationResultAsync(User currentUser, FederatedCredentialPolicyValidationResult validationResult)
+        private JsonResult ProcessUpdatePolicyValidationResultAsync(User currentUser, FederatedCredentialPolicyValidationResult validationResult)
         {
             if (validationResult.Type == FederatedCredentialPolicyValidationResultType.Unauthorized)
             {
@@ -1570,7 +1567,7 @@ namespace NuGetGallery
                     newCredentialViewModel.GetCredentialTypeInfo());
             await MessageService.SendMessageAsync(emailMessage);
 
-            return Json(new ApiKeyViewModel(newCredentialViewModel));
+            return Json(new ApiKeyViewModel(newCredentialViewModel, _featureFlagService.IsApiKeyReductionDateEnabled()));
         }
 
         [UIAuthorize]
@@ -1603,7 +1600,7 @@ namespace NuGetGallery
 
             var credentialViewModel = AuthenticationService.DescribeCredential(cred);
 
-            return Json(new ApiKeyViewModel(credentialViewModel));
+            return Json(new ApiKeyViewModel(credentialViewModel, _featureFlagService.IsApiKeyReductionDateEnabled()));
         }
 
         protected override RouteUrlTemplate<string> GetDeleteCertificateForAccountTemplate(string accountName)

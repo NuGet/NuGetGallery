@@ -72,14 +72,6 @@ namespace NuGet.Services.Validation.Orchestrator
             }
 
             var isPromotion = IsPromotionState(attempt.Status);
-            if (isPromotion)
-            {
-                if (!_configuration.EnableStagedSymbolPromotion)
-                {
-                    throw new NotSupportedException("Staged symbol promotion is not enabled.");
-                }
-            }
-
             PackageValidationSet validationSet;
             if (isPromotion && attempt.Status != StagedPackageStatus.Promoting)
             {

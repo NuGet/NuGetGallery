@@ -29,7 +29,5 @@ namespace NuGetGallery
         public bool IsPackageStagingEnabled { get; set; }
 
         public IReadOnlyList<StagingGroupViewModel> StagingGroups { get; set; }
-
-        public IReadOnlyList<StagingQuotaUsage> StagingQuotas { get; set; }
     }
 }
