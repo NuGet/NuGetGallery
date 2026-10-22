@@ -12,7 +12,7 @@ namespace NuGet.Services.Staging
     /// </summary>
     public class StagingPromotionMessageEnqueuer : IStagingPromotionMessageEnqueuer
     {
-        private readonly ITopicClient _topicClient;
+        private readonly Lazy<ITopicClient> _topicClient;
         private readonly IBrokeredMessageSerializer<StagingPromotionMessage> _serializer;
 
         /// <summary>
@@ -23,6 +23,20 @@ namespace NuGet.Services.Staging
         public StagingPromotionMessageEnqueuer(
             ITopicClient topicClient,
             IBrokeredMessageSerializer<StagingPromotionMessage> serializer)
+            : this(new Lazy<ITopicClient>(() => topicClient), serializer)
+        {
+            if (topicClient == null)
+            {
+                throw new ArgumentNullException(nameof(topicClient));
+            }
+        }
+
+        /// <summary>
+        /// Initializes an enqueuer that creates its Service Bus client only when sending a promotion.
+        /// </summary>
+        /// <param name="topicClient">The deferred Service Bus topic client.</param>
+        /// <param name="serializer">The staging promotion message serializer.</param>
+        public StagingPromotionMessageEnqueuer(Lazy<ITopicClient> topicClient, IBrokeredMessageSerializer<StagingPromotionMessage> serializer)
         {
             _topicClient = topicClient ?? throw new ArgumentNullException(nameof(topicClient));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
@@ -36,7 +50,7 @@ namespace NuGet.Services.Staging
                 throw new ArgumentNullException(nameof(message));
             }
 
-            await _topicClient.SendAsync(_serializer.Serialize(message));
+            await _topicClient.Value.SendAsync(_serializer.Serialize(message));
         }
     }
 }

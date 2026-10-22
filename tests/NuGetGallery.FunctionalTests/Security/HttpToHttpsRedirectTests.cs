@@ -11,6 +11,7 @@ using Xunit;
 
 namespace NuGetGallery.FunctionalTests.Security
 {
+    [Collection(GalleryTestCollection.Definition)]
     public class HttpToHttpsRedirectTests
     {
         public static IEnumerable<object[]> UrlsToTest => new[] {
@@ -41,7 +42,7 @@ namespace NuGetGallery.FunctionalTests.Security
         }
 
         [Theory]
-        [MemberData(nameof(GetForAllUrls))]
+        [MemberData(nameof(GetForAllUrls), DisableDiscoveryEnumeration = true)]
         [Priority(0)]
         [Category("CloudServiceTests")]
         public async Task HttpToHttpsRedirectHappensForSupportedMethods(HttpMethod method, string url)
@@ -58,7 +59,7 @@ namespace NuGetGallery.FunctionalTests.Security
         }
 
         [Theory]
-        [MemberData(nameof(NonHeadAndGetForAllUrls))]
+        [MemberData(nameof(NonHeadAndGetForAllUrls), DisableDiscoveryEnumeration = true)]
         [Priority(0)]
         [Category("CloudServiceTests")]
         public async Task HttpRequestsFailureResponseForUnsupportedMethods(HttpMethod method, string url)
@@ -70,7 +71,7 @@ namespace NuGetGallery.FunctionalTests.Security
         }
 
         [Theory]
-        [MemberData(nameof(UrlsToTest))]
+        [MemberData(nameof(UrlsToTest), DisableDiscoveryEnumeration = true)]
         [Priority(0)]
         [Category("P0Tests")]
         public void ForceHttpMethodCorreclyRemovesHttps(string url)
@@ -80,7 +81,7 @@ namespace NuGetGallery.FunctionalTests.Security
         }
 
         [Theory]
-        [MemberData(nameof(UrlsExcludedFromRedirectInCloudService))]
+        [MemberData(nameof(UrlsExcludedFromRedirectInCloudService), DisableDiscoveryEnumeration = true)]
         [Priority(0)]
         [Category("CloudServiceTests")]
         public async Task ExcludedUrlsDontRedirect(string url)
@@ -102,7 +103,7 @@ namespace NuGetGallery.FunctionalTests.Security
         /// to respond with <see cref="HttpStatusCode.MovedPermanently"/>.
         /// </summary>
         [Theory]
-        [MemberData(nameof(RemainingUrlsAndMethodsForAppService))]
+        [MemberData(nameof(RemainingUrlsAndMethodsForAppService), DisableDiscoveryEnumeration = true)]
         [Priority(0)]
         [Category("AppServiceTests")]
         public async Task AllUrlsRedirect(HttpMethod method, string url)

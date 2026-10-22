@@ -32,6 +32,11 @@ public class Program
     private const string JobConfigurationArgument = "-Configuration";
     private const string JobSleepArgument = "-Sleep";
     private const string GalleryMaintenanceSleepMilliseconds = "60000";
+#if DEBUG
+    private const string BuildConfiguration = "Debug";
+#else
+    private const string BuildConfiguration = "Release";
+#endif
 
     public static void Main(string[] args)
     {
@@ -243,6 +248,7 @@ public class Program
             "/userhome:" + iisUserHome)
             .WithHttpEndpoint(port: 80, name: "gallery-http", isProxied: false)
             .WithHttpsEndpoint(port: 443, name: "gallery-https", isProxied: false)
+            .WithHttpHealthCheck("/api/health-probe", endpointName: "gallery-http")
             .WaitForCompletion(dbMigrateGallery)
             .WaitForCompletion(dbMigrateSupport)
             .WaitForCompletion(dbMigrateValidation)
@@ -356,13 +362,7 @@ public class Program
 
         // ─── GalleryTools config (needed for seeding in all profiles) ───────────────
 
-        var galleryToolsBin = Path.Combine(srcDir, "GalleryTools", "bin",
-        #if DEBUG
-            "Debug",
-        #else
-            "Release",
-        #endif
-            "net472");
+        var galleryToolsBin = Path.Combine(srcDir, "GalleryTools", "bin", BuildConfiguration, "net472");
         GenerateGalleryToolsConfig(galleryToolsBin, azuriteConnStr,
             config.GalleryDb.ConnectionString, config.GalleryBaseAddress,
             packages: config.Containers.Packages, auditing: config.Containers.Auditing,
@@ -520,9 +520,7 @@ public class Program
 
         var searchIndexNames = new[] { config.SearchIndexes.Search, config.SearchIndexes.Hijack };
 
-        // Polls Azure Search for indexes + cursor.json in Azurite created by db2azuresearch.
-        // Decouples dependents from db2azuresearch's exit code — if indexes already exist from a
-        // prior run, dependents start immediately even when db2azuresearch fails on "already exists".
+        // Wait for fresh bootstrap or confirmation of existing indexes/cursor before starting Search consumers.
         var searchIndexReady = builder.AddProject<Projects.NuGetGallery_AppHost_Tools>("search-index-ready")
             .WithArgs("search-index-available")
             .WaitFor(search)
@@ -587,13 +585,17 @@ public class Program
                 },
             });
 
-        var db2azuresearch = builder.AddProject<Projects.NuGet_Jobs_Db2AzureSearch>("db2azuresearch")
-            .WithArgs("-Configuration", db2searchConfigPath, "-Once", "true")
+        var db2searchExe = Path.Combine(srcDir, "NuGet.Jobs.Db2AzureSearch", "bin", BuildConfiguration, "net472", "NuGet.Jobs.Db2AzureSearch.exe");
+        var db2azuresearch = builder.AddProject<Projects.NuGetGallery_AppHost_Tools>("db2azuresearch")
+            .WithArgs("bootstrap-search", db2searchExe, db2searchConfigPath)
             .WaitForCompletion(catalogIndexReady)
             .WaitForCompletion(seedBlobs)
             .WaitForCompletion(dbMigrateGallery)
             .WaitFor(search)
             .WithParentRelationship(pipelineGroup);
+        WithAppHostEnv(db2azuresearch, config, azuriteConnStr, azuriteBase, searchServiceName);
+
+        searchIndexReady.WaitForCompletion(db2azuresearch);
 
         builder.AddProject<Projects.NuGet_Jobs_Catalog2AzureSearch>("catalog2azuresearch")
             .WithArgs("-Configuration", catalog2searchConfigPath)
@@ -1037,15 +1039,22 @@ public class Program
     /// </summary>
     static void EnsureAbsolutePhysicalPath(string configPath, string galleryPath)
     {
-        var content = File.ReadAllText(configPath);
-        var absPath = Path.GetFullPath(galleryPath);
+        var doc = XDocument.Load(configPath, LoadOptions.PreserveWhitespace);
+        var site = doc
+            .Descendants("site")
+            .Single(element => string.Equals(
+                (string?)element.Attribute("name"),
+                "NuGet Gallery (localhost)",
+                StringComparison.Ordinal));
+        var virtualDirectory = site
+            .Descendants("virtualDirectory")
+            .Single(element => string.Equals(
+                (string?)element.Attribute("path"),
+                "/",
+                StringComparison.Ordinal));
 
-        const string relativePhysicalPath = @"physicalPath=""..\..\src\NuGetGallery""";
-        if (content.Contains(relativePhysicalPath))
-        {
-            content = content.Replace(relativePhysicalPath, $@"physicalPath=""{absPath}""");
-            File.WriteAllText(configPath, content);
-        }
+        virtualDirectory.SetAttributeValue("physicalPath", Path.GetFullPath(galleryPath));
+        doc.Save(configPath, SaveOptions.DisableFormatting);
     }
 
     /// <summary>
@@ -1101,6 +1110,7 @@ public class Program
                 Setting("Gallery.AzureStorage.Revalidation.ConnectionString", connectionString),
                 Setting("Gallery.AsynchronousPackageValidationEnabled", bool.FalseString),
                 Setting("Gallery.BlockingAsynchronousPackageValidationEnabled", bool.FalseString),
+                Setting("Gallery.StagingQuotaOwnerOverrides", "{\"NugetTestStagingQuotaOrganization\":3}"),
                 Setting("AzureServiceBus.Validation.ConnectionString", ""),
                 Setting("AzureServiceBus.Validation.TopicName", validationTopicName),
                 Setting("AzureServiceBus.SymbolsValidation.ConnectionString", ""),

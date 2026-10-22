@@ -144,6 +144,38 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
         }
 
         [Fact]
+        public async Task ReusesResourcesOnRepeatedBootstrapWithoutDeletingThem()
+        {
+            _developmentConfig.ReuseContainersAndIndexes = true;
+
+            await _target.ExecuteAsync();
+            await _target.ExecuteAsync();
+
+            _blobContainerBuilder.Verify(x => x.CreateIfNotExistsAsync(), Times.Exactly(2));
+            _indexBuilder.Verify(x => x.CreateSearchIndexIfNotExistsAsync(), Times.Exactly(2));
+            _indexBuilder.Verify(x => x.CreateHijackIndexIfNotExistsAsync(), Times.Exactly(2));
+            _blobContainerBuilder.Verify(x => x.DeleteIfExistsAsync(), Times.Never);
+            _indexBuilder.Verify(x => x.DeleteSearchIndexIfExistsAsync(), Times.Never);
+            _indexBuilder.Verify(x => x.DeleteHijackIndexIfExistsAsync(), Times.Never);
+            _blobContainerBuilder.Verify(x => x.CreateAsync(It.IsAny<bool>()), Times.Never);
+            _indexBuilder.Verify(x => x.CreateSearchIndexAsync(), Times.Never);
+            _indexBuilder.Verify(x => x.CreateHijackIndexAsync(), Times.Never);
+        }
+
+        [Fact]
+        public async Task RejectsConflictingReuseAndReplaceBeforeChangingResources()
+        {
+            _developmentConfig.ReuseContainersAndIndexes = true;
+            _developmentConfig.ReplaceContainersAndIndexes = true;
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _target.ExecuteAsync());
+
+            _blobContainerBuilder.VerifyNoOtherCalls();
+            _indexBuilder.VerifyNoOtherCalls();
+            _producer.VerifyNoOtherCalls();
+        }
+
+        [Fact]
         public async Task PushesToIndexesUsingMaximumBatchSize()
         {
             _config.AzureSearchBatchSize = 2;
@@ -243,9 +275,12 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 keys);
         }
 
-        [Fact]
-        public async Task PushesOwnerData()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task PushesOwnerData(bool reuse)
         {
+            _developmentConfig.ReuseContainersAndIndexes = reuse;
             SortedDictionary<string, SortedSet<string>> data = null;
             IAccessCondition accessCondition = null;
             _ownerDataClient
@@ -261,7 +296,14 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
             Assert.Same(_initialAuxiliaryData.Owners, data);
 
-            Assert.Equal("*", accessCondition.IfNoneMatchETag);
+            if (reuse)
+            {
+                Assert.Null(accessCondition.IfNoneMatchETag);
+            }
+            else
+            {
+                Assert.Equal("*", accessCondition.IfNoneMatchETag);
+            }
             Assert.Null(accessCondition.IfMatchETag);
 
             _ownerDataClient.Verify(
@@ -269,9 +311,12 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 Times.Once);
         }
 
-        [Fact]
-        public async Task PushesDownloadData()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task PushesDownloadData(bool reuse)
         {
+            _developmentConfig.ReuseContainersAndIndexes = reuse;
             DownloadData data = null;
             IAccessCondition accessCondition = null;
             _downloadDataClient
@@ -287,7 +332,14 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
             Assert.Same(_initialAuxiliaryData.Downloads, data);
 
-            Assert.Equal("*", accessCondition.IfNoneMatchETag);
+            if (reuse)
+            {
+                Assert.Null(accessCondition.IfNoneMatchETag);
+            }
+            else
+            {
+                Assert.Equal("*", accessCondition.IfNoneMatchETag);
+            }
             Assert.Null(accessCondition.IfMatchETag);
 
             _downloadDataClient.Verify(
@@ -295,9 +347,12 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 Times.Once);
         }
 
-        [Fact]
-        public async Task PushesVerifiedPackagesData()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task PushesVerifiedPackagesData(bool reuse)
         {
+            _developmentConfig.ReuseContainersAndIndexes = reuse;
             HashSet<string> data = null;
             IAccessCondition accessCondition = null;
             _verifiedPackagesDataClient
@@ -313,7 +368,14 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
             Assert.Same(_initialAuxiliaryData.VerifiedPackages, data);
 
-            Assert.Equal("*", accessCondition.IfNoneMatchETag);
+            if (reuse)
+            {
+                Assert.Null(accessCondition.IfNoneMatchETag);
+            }
+            else
+            {
+                Assert.Equal("*", accessCondition.IfNoneMatchETag);
+            }
             Assert.Null(accessCondition.IfMatchETag);
 
             _verifiedPackagesDataClient.Verify(
@@ -321,9 +383,12 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
                 Times.Once);
         }
 
-        [Fact]
-        public async Task PushesPopularityTransferData()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task PushesPopularityTransferData(bool reuse)
         {
+            _developmentConfig.ReuseContainersAndIndexes = reuse;
             PopularityTransferData data = null;
             IAccessCondition accessCondition = null;
             _popularityTransferDataClient
@@ -339,7 +404,14 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
             Assert.Same(_initialAuxiliaryData.PopularityTransfers, data);
 
-            Assert.Equal("*", accessCondition.IfNoneMatchETag);
+            if (reuse)
+            {
+                Assert.Null(accessCondition.IfNoneMatchETag);
+            }
+            else
+            {
+                Assert.Equal("*", accessCondition.IfNoneMatchETag);
+            }
             Assert.Null(accessCondition.IfMatchETag);
 
             _popularityTransferDataClient.Verify(
