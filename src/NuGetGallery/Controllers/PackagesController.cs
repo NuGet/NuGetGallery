@@ -3062,36 +3062,27 @@ namespace NuGetGallery
             }
         }
 
-        private static bool PackageHasNoAadOwners(Package package)
+        private bool PackageHasNoAadOwners(Package package)
         {
-            var owners = package?.PackageRegistration?.Owners;
-            if (owners == null || !owners.Any()) {
+            var registration = package?.PackageRegistration;
+            if (registration == null)
+            {
                 return true;
             }
 
-            // First check direct owner credentials
-            if (owners.Any(o => o.Credentials.GetAzureActiveDirectoryCredential() != null))
+            // Keep these checks in SQL: loading Credentials also materializes unrelated, expired API keys.
+            var owners = _entitiesContext.PackageRegistrations
+                .Where(pr => pr.Key == registration.Key)
+                .SelectMany(pr => pr.Owners);
+
+            if (owners.Any(o => o.Credentials.Any(c => c.Type == CredentialTypes.External.AzureActiveDirectoryAccount)))
             {
                 return false;
             }
 
-            // Check all members of organization owners
-            var orgOwners = owners.Where(o => o is Organization).Select(o => o as Organization);
-            foreach (var orgOwner in orgOwners)
-            {
-                if (orgOwner.Members == null)
-                {
-                    continue;
-                }
-
-                if (orgOwner.Members.Any(m => m.Member?.Credentials != null &&
-                      m.Member.Credentials.GetAzureActiveDirectoryCredential() != null))
-                {
-                    return false;
-                }
-            }
-
-            return true;
+            return !owners.OfType<Organization>()
+                .SelectMany(o => o.Members)
+                .Any(m => m.Member.Credentials.Any(c => c.Type == CredentialTypes.External.AzureActiveDirectoryAccount));
         }
 
         private async Task DeleteUploadedFileForUser(User currentUser, Stream uploadedFileStream)

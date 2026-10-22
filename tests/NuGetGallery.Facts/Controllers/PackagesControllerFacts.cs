@@ -6040,6 +6040,90 @@ namespace NuGetGallery
                 Assert.Equal(expectingSafetyCategories, model.ReasonChoices.Contains(ReportPackageReason.OtherNudityOrPornography));
             }
 
+            [Theory]
+            [InlineData(false, false)]
+            [InlineData(false, true)]
+            [InlineData(true, false)]
+            [InlineData(true, true)]
+            public void QueriesPersistedOwnersWithoutLoadingPackageOwnerNavigation(bool isOrganizationMember, bool hasAadCredential)
+            {
+                var owner = new User
+                {
+                    Credentials = new List<Credential>
+                    {
+                        new Credential
+                        {
+                            Type = hasAadCredential
+                                ? CredentialTypes.External.AzureActiveDirectoryAccount
+                                : CredentialTypes.ApiKey.V5,
+                            Expires = DateTime.UtcNow.AddDays(-1)
+                        }
+                    }
+                };
+                var persistedRegistration = new PackageRegistration { Key = 42 };
+                if (isOrganizationMember)
+                {
+                    persistedRegistration.Owners.Add(new Organization
+                    {
+                        Members = new List<Membership> { new Membership { Member = owner } }
+                    });
+                }
+                else
+                {
+                    persistedRegistration.Owners.Add(owner);
+                }
+
+                var unrelatedRegistration = new PackageRegistration
+                {
+                    Key = 43,
+                    Owners = new List<User>
+                    {
+                        new User
+                        {
+                            Credentials = new List<Credential>
+                            {
+                                new Credential { Type = CredentialTypes.External.AzureActiveDirectoryAccount }
+                            }
+                        }
+                    }
+                };
+                var registration = new Mock<PackageRegistration>();
+                registration.SetupGet(r => r.Owners).Throws(new InvalidOperationException("Owners must not be lazy-loaded."));
+                registration.Object.Key = persistedRegistration.Key;
+                registration.Object.Id = PackageId;
+                var package = new Package { PackageRegistration = registration.Object, Version = PackageVersion };
+                var entitiesContext = new Mock<IEntitiesContext>(MockBehavior.Strict);
+                entitiesContext.Setup(c => c.PackageRegistrations)
+                    .Returns(new[] { unrelatedRegistration, persistedRegistration }.MockDbSet().Object);
+                var featureFlagService = new Mock<IFeatureFlagService>();
+                featureFlagService.Setup(f => f.IsShowReportAbuseSafetyChangesEnabled()).Returns(true);
+
+                var result = GetReportAbuseResult(null, package, featureFlagService, entitiesContext);
+
+                var model = Assert.IsType<ReportAbuseViewModel>(Assert.IsType<ViewResult>(result).Model);
+                Assert.Equal(!hasAadCredential, model.ReasonChoices.Contains(ReportPackageReason.ImminentHarm));
+                registration.VerifyGet(r => r.Owners, Times.Never);
+            }
+
+            [Theory]
+            [InlineData(false, false, false)]
+            [InlineData(false, true, false)]
+            [InlineData(true, true, true)]
+            public void SkipsAadQueriesWhenFeatureFlagsShortCircuit(bool showSafetyChanges, bool allowAadReports, bool includesSafetyCategories)
+            {
+                var package = new Package { PackageRegistration = new PackageRegistration { Id = PackageId }, Version = PackageVersion };
+                var entitiesContext = new Mock<IEntitiesContext>(MockBehavior.Strict);
+                var featureFlagService = new Mock<IFeatureFlagService>();
+                featureFlagService.Setup(f => f.IsShowReportAbuseSafetyChangesEnabled()).Returns(showSafetyChanges);
+                featureFlagService.Setup(f => f.IsAllowAadContentSafetyReportsEnabled()).Returns(allowAadReports);
+
+                var result = GetReportAbuseResult(null, package, featureFlagService, entitiesContext);
+
+                var model = Assert.IsType<ReportAbuseViewModel>(Assert.IsType<ViewResult>(result).Model);
+                Assert.Equal(includesSafetyCategories, model.ReasonChoices.Contains(ReportPackageReason.ImminentHarm));
+                entitiesContext.VerifyGet(c => c.PackageRegistrations, Times.Never);
+            }
+
             private ActionResult GetReportAbuseResult(User currentUser, User owner)
             {
                 var package = new Package
@@ -6054,8 +6138,15 @@ namespace NuGetGallery
             private ActionResult GetReportAbuseResult(User currentUser, Package package) =>
                 GetReportAbuseResult(currentUser, package, featureFlagService: null);
 
-            private ActionResult GetReportAbuseResult(User currentUser, Package package, Mock<IFeatureFlagService> featureFlagService)
+            private ActionResult GetReportAbuseResult(User currentUser, Package package, Mock<IFeatureFlagService> featureFlagService, Mock<IEntitiesContext> entitiesContext = null)
             {
+                if (entitiesContext == null)
+                {
+                    entitiesContext = new Mock<IEntitiesContext>();
+                    entitiesContext.Setup(c => c.PackageRegistrations)
+                        .Returns(new[] { package.PackageRegistration }.MockDbSet().Object);
+                }
+
                 var packageService = new Mock<IPackageService>();
                 packageService.Setup(p => p.FindPackageByIdAndVersionStrict(PackageId, PackageVersion)).Returns(package);
                 var httpContext = new Mock<HttpContextBase>();
@@ -6063,6 +6154,7 @@ namespace NuGetGallery
                     GetConfigurationService(),
                     packageService: packageService,
                     featureFlagService: featureFlagService,
+                    entitiesContext: entitiesContext,
                     httpContext: httpContext);
                 controller.SetCurrentUser(currentUser);
                 TestUtility.SetupUrlHelper(controller, httpContext);
