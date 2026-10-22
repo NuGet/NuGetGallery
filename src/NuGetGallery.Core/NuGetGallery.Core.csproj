@@ -31,6 +31,7 @@
     <Compile Remove="Infrastructure\Mail\Messages\StagedPackageValidationSucceededMessage.cs" />
     <Compile Remove="Infrastructure\Mail\Messages\StagedPackageValidationTakingTooLongMessage.cs" />
     <Compile Remove="Infrastructure\Mail\Messages\StagingPromotionCompletedMessage.cs" />
+    <Compile Remove="Infrastructure\Mail\Messages\StagingExpirationMessage.cs" />
     <Compile Remove="Infrastructure\Mail\Messages\SymbolPackageAddedMessage.cs" />
     <Compile Remove="Infrastructure\Mail\Messages\SymbolPackageValidationFailedMessage.cs" />
     <Compile Remove="Infrastructure\Mail\Messages\SymbolPackageValidationTakingTooLongMessage.cs" />

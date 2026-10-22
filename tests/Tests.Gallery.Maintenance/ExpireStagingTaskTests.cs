@@ -11,6 +11,7 @@ using Gallery.Maintenance;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Services.Entities;
+using NuGet.Services.Messaging.Email;
 using NuGetGallery;
 using Xunit;
 
@@ -45,6 +46,7 @@ namespace Tests.Gallery.Maintenance
             Assert.Equal(PackageStatus.Available, publishedSymbols.SymbolPackage.StatusKey);
             Assert.Contains(publishedSymbols, context.Symbols);
             Assert.Null(published.StagedPackageIdentity.StagingGroupKey);
+            Assert.Contains("staging group Group 1 expired", Assert.Single(context.Notifications).GetSubject());
             context.AssertQueuedFiles(1, packages: 1, symbols: 1);
             context.AssertQueuedFiles(2, packages: 0, symbols: 0);
         }
@@ -57,6 +59,7 @@ namespace Tests.Gallery.Maintenance
             var previous = context.AddSymbols(parent.StagedPackageIdentity, 1);
             previous.Status = StagedPackageStatus.Validating;
             var deadline = previous.ExpirationDate;
+            previous.WarnedExpirationDate = deadline;
 
             await context.RunAsync();
 
@@ -66,8 +69,10 @@ namespace Tests.Gallery.Maintenance
             Assert.NotSame(previous, waiting);
             Assert.Equal(StagedPackageStatus.WaitingForParent, waiting.Status);
             Assert.Equal(deadline, waiting.ExpirationDate);
+            Assert.Equal(deadline, waiting.WarnedExpirationDate);
             Assert.Contains(previous.SymbolPackage, context.SymbolPackages);
             context.AssertQueuedFiles(1, packages: 1, symbols: 0);
+            Assert.Single(context.Notifications);
 
             await context.RunAsync();
 
@@ -100,6 +105,7 @@ namespace Tests.Gallery.Maintenance
             Assert.Null(parent.StagedPackageIdentity.CurrentStagedSymbolPackageKey);
             Assert.Equal(stagedParent, context.Identities.Contains(parent.StagedPackageIdentity));
             context.AssertQueuedFiles(1, packages: stagedParent ? 0 : 1, symbols: 1);
+            Assert.Contains("staged symbol package Package1 1.0.0 expired", Assert.Single(context.Notifications).GetSubject());
         }
 
         [Fact]
@@ -116,23 +122,37 @@ namespace Tests.Gallery.Maintenance
             Assert.Empty(context.SymbolPackages);
             Assert.Null(parent.StagedPackageIdentity.CurrentStagedSymbolPackageKey);
             context.AssertQueuedFiles(1, packages: 1, symbols: 2);
+            Assert.Equal(2, context.Notifications.Count);
         }
 
         [Theory]
         [InlineData("group")]
         [InlineData("parent")]
         [InlineData("symbols")]
-        public async Task AcceptedPromotionRemainsProtectedAfterExpiration(string target)
+        [InlineData("group-member", false)]
+        [InlineData("group-symbols", false)]
+        public async Task AcceptedPromotionRemainsProtectedFromExpirationAndWarnings(string target, bool expired = true)
         {
             var context = new TestContext();
-            var group = target == "group" ? context.AddGroup(1, expired: true) : null;
-            var parent = context.AddPackage(1, group, expired: true);
-            var symbols = context.AddSymbols(parent.StagedPackageIdentity, 1, expired: true);
-            if (group != null)
+            var grouped = target == "group" || target == "group-member" || target == "group-symbols";
+            var group = grouped ? context.AddGroup(1, expired) : null;
+            var parent = context.AddPackage(1, group, expired);
+            var symbols = context.AddSymbols(parent.StagedPackageIdentity, 1, expired);
+            if (!expired)
+            {
+                parent.ExpirationDate = context.Now.AddHours(12);
+                symbols.ExpirationDate = context.Now.AddHours(12);
+                if (group != null)
+                {
+                    group.ExpirationDate = context.Now.AddHours(12);
+                }
+            }
+
+            if (target == "group")
             {
                 group.ActivePromotionId = Guid.NewGuid();
             }
-            else if (target == "parent")
+            else if (target == "parent" || target == "group-member")
             {
                 parent.Status = StagedPackageStatus.Promoting;
             }
@@ -147,6 +167,7 @@ namespace Tests.Gallery.Maintenance
             Assert.Contains(symbols, context.Symbols);
             Assert.Contains(symbols.SymbolPackage, context.SymbolPackages);
             Assert.Empty(context.Cleanups);
+            Assert.Empty(context.Notifications);
             Assert.All(context.Contexts, entities => entities.Verify(value => value.SaveChangesAsync(), Times.Never));
         }
 
@@ -298,10 +319,139 @@ namespace Tests.Gallery.Maintenance
             Assert.Equal(0, context.ActiveContexts);
             Assert.All(context.Contexts, entities => entities.Verify(value => value.Dispose(), Times.Once));
             Assert.DoesNotContain(context.Logger.Invocations, invocation => Equals(invocation.Arguments[0], LogLevel.Warning));
+            Assert.Empty(context.Notifications);
+        }
+
+        [Theory]
+        [InlineData("group")]
+        [InlineData("parent")]
+        [InlineData("symbols")]
+        public async Task WarnsAtTwentyFourHoursOncePerDeadlineAndNotifiesAfterAutomaticDeletion(string target)
+        {
+            var context = new TestContext();
+            var group = target == "group" ? context.AddGroup(1) : null;
+            var parent = context.AddPackage(1, group);
+            var symbols = context.AddSymbols(parent.StagedPackageIdentity, 1);
+            Action<DateTime> setDeadline;
+            Func<DateTime?> getWarnedDeadline;
+            if (group != null)
+            {
+                setDeadline = value => group.ExpirationDate = value;
+                getWarnedDeadline = () => group.WarnedExpirationDate;
+            }
+            else if (target == "parent")
+            {
+                setDeadline = value => parent.ExpirationDate = value;
+                getWarnedDeadline = () => parent.WarnedExpirationDate;
+            }
+            else
+            {
+                parent.StagedPackageIdentity.Package.PackageStatusKey = PackageStatus.Available;
+                parent.StagedPackageIdentity.CurrentStagedPackageKey = null;
+                parent.StagedPackageIdentity.CurrentStagedPackage = null;
+                setDeadline = value => symbols.ExpirationDate = value;
+                getWarnedDeadline = () => symbols.WarnedExpirationDate;
+            }
+
+            setDeadline(context.Now.AddDays(1).AddTicks(1));
+            await context.RunAsync();
+            Assert.Empty(context.Notifications);
+            Assert.Null(getWarnedDeadline());
+
+            setDeadline(context.Now.AddDays(1));
+            await context.RunAsync();
+            Assert.Contains("expires soon", Assert.Single(context.Notifications).GetSubject());
+            Assert.Equal(context.Now.AddDays(1), getWarnedDeadline());
+            Assert.Empty(context.Cleanups);
+            await context.RunAsync();
+            Assert.Single(context.Notifications);
+
+            setDeadline(context.Now.AddHours(23));
+            await context.RunAsync();
+            Assert.Equal(2, context.Notifications.Count);
+            Assert.Equal(context.Now.AddHours(23), getWarnedDeadline());
+
+            setDeadline(context.Now);
+            await context.RunAsync();
+            Assert.Equal(3, context.Notifications.Count);
+            Assert.Contains("expired", context.Notifications.Last().GetSubject());
+            Assert.NotEmpty(context.Cleanups);
+            await context.RunAsync();
+            Assert.Equal(3, context.Notifications.Count);
+        }
+
+        [Theory]
+        [InlineData(false, false)]
+        [InlineData(true, true)]
+        public async Task OptedOutAndDeletedOwnersReceiveNothingButExpirationStillDeletesContent(bool subscribed, bool deleted)
+        {
+            var context = new TestContext();
+            context.Owner.NotifyPackageStaged = subscribed;
+            context.Owner.IsDeleted = deleted;
+            var group = context.AddGroup(1);
+            context.AddPackage(1, group);
+            var parent = context.AddPackage(2);
+            var symbols = context.AddSymbols(parent.StagedPackageIdentity, 2);
+            group.ExpirationDate = context.Now.AddHours(12);
+            parent.ExpirationDate = context.Now.AddHours(12);
+            symbols.ExpirationDate = context.Now.AddHours(12);
+
+            await context.RunAsync();
+
+            Assert.Empty(context.Notifications);
+            Assert.Null(group.WarnedExpirationDate);
+            Assert.Null(parent.WarnedExpirationDate);
+            Assert.Null(symbols.WarnedExpirationDate);
+
+            group.ExpirationDate = context.Now;
+            parent.ExpirationDate = context.Now;
+            symbols.ExpirationDate = context.Now;
+            await context.RunAsync();
+
+            Assert.Empty(context.Groups);
+            Assert.All(context.Packages, attempt => Assert.Equal(StagedPackageStatus.Deleted, attempt.Status));
+            Assert.Empty(context.Symbols);
+            Assert.Empty(context.Notifications);
+        }
+
+        [Fact]
+        public async Task WarningRechecksRefreshedDeadlineBeforeSavingOrSending()
+        {
+            var context = new TestContext();
+            var parent = context.AddPackage(1);
+            parent.ExpirationDate = context.Now.AddHours(12);
+            context.BeforeTransaction = () => parent.ExpirationDate = context.Now.AddDays(2);
+
+            await context.RunAsync();
+
+            Assert.Null(parent.WarnedExpirationDate);
+            Assert.Empty(context.Notifications);
+            Assert.All(context.Contexts, entities => entities.Verify(value => value.SaveChangesAsync(), Times.Never));
         }
 
         private class TestContext
         {
+            public TestContext()
+            {
+                Messages.Setup(service => service.SendMessageAsync(It.IsAny<IEmailBuilder>(), false, false))
+                    .Callback<IEmailBuilder, bool, bool>((message, copySender, discloseSender) =>
+                    {
+                        Transactions[Contexts.Last().Object].Verify(transaction => transaction.Commit(), Times.Once);
+                        if (message.GetRecipients().To.Any())
+                        {
+                            Notifications.Add(message);
+                        }
+                    }).Returns(Task.CompletedTask);
+            }
+
+            public DateTime Now { get; } = DateTime.UtcNow;
+
+            public User Owner { get; } = new User("owner") { Key = 1, EmailAddress = "owner@example.test", NotifyPackageStaged = true };
+
+            public Mock<IMessageService> Messages { get; } = new Mock<IMessageService>();
+
+            public List<IEmailBuilder> Notifications { get; } = new List<IEmailBuilder>();
+
             public List<StagingGroup> Groups { get; } = new List<StagingGroup>();
 
             public List<StagedPackage> Packages { get; } = new List<StagedPackage>();
@@ -330,7 +480,7 @@ namespace Tests.Gallery.Maintenance
 
             public StagingGroup AddGroup(int key, bool expired = false)
             {
-                var group = new StagingGroup { Key = key, OwnerKey = 1, ExpirationDate = DateTime.UtcNow.AddDays(expired ? -1 : 1) };
+                var group = new StagingGroup { Key = key, OwnerKey = 1, Owner = Owner, Id = $"group-{key}", Name = $"Group {key}", ExpirationDate = Now.AddDays(expired ? -1 : 2) };
                 Groups.Add(group);
                 return group;
             }
@@ -341,9 +491,10 @@ namespace Tests.Gallery.Maintenance
                 {
                     Key = key,
                     OwnerKey = 1,
+                    Owner = Owner,
                     StagingGroupKey = group?.Key,
                     StagingGroup = group,
-                    Package = new Package { Key = key, PackageRegistration = new PackageRegistration(), PackageStatusKey = PackageStatus.Staged, Listed = true },
+                    Package = new Package { Key = key, PackageRegistration = new PackageRegistration { Id = $"Package{key}" }, NormalizedVersion = "1.0.0", PackageStatusKey = PackageStatus.Staged, Listed = true },
                     CurrentStagedPackageKey = key,
                 };
                 var attempt = new StagedPackage
@@ -352,7 +503,7 @@ namespace Tests.Gallery.Maintenance
                     StagedPackageIdentityKey = key,
                     StagedPackageIdentity = identity,
                     Status = StagedPackageStatus.Ready,
-                    ExpirationDate = DateTime.UtcNow.AddDays(expired ? -1 : 1),
+                    ExpirationDate = Now.AddDays(expired ? -1 : 2),
                     UploadedBlobPath = $"parent-{key}.nupkg",
                     UploadedBlobETag = $"parent-etag-{key}",
                 };
@@ -372,7 +523,7 @@ namespace Tests.Gallery.Maintenance
                     StagedPackageIdentity = identity,
                     SymbolPackage = symbols,
                     Status = StagedPackageStatus.Ready,
-                    ExpirationDate = DateTime.UtcNow.AddDays(expired ? -1 : 1),
+                    ExpirationDate = Now.AddDays(expired ? -1 : 2),
                     UploadedBlobPath = $"symbols-{key}.snupkg",
                     UploadedBlobETag = $"etag-{key}",
                 };
@@ -386,7 +537,11 @@ namespace Tests.Gallery.Maintenance
             public Task RunAsync()
             {
                 return new ExpireStagingTask(Logger.Object)
-                    .ProcessAsync(CreateContextAsync);
+                    .ProcessAsync(CreateContextAsync, Messages.Object, new MaintenanceEmailConfiguration
+                    {
+                        ManagePackagesUrl = "https://gallery.test/account/Packages",
+                        EmailSettingsUrl = "https://gallery.test/account",
+                    }, Now);
             }
 
             public void AssertQueuedFiles(int identityKey, int packages, int symbols)
