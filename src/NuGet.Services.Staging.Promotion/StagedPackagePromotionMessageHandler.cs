@@ -169,7 +169,8 @@ namespace NuGet.Services.Staging.Promotion
                     var stagingGroupKey = stagedPackage.StagedPackageIdentity.StagingGroupKey;
                     var stagingOwner = stagedPackage.StagedPackageIdentity.Owner;
                     var publishedArtifact = new StagingPromotionArtifact(package, false, true);
-                    var streamMetadata = await GetStreamMetadataAsync(stagedPackage);
+                    _logger.LogInformation("Reading validated package stream metadata.");
+                    var streamMetadata = await _stagingBlobService.GetPackageStreamMetadataAsync(stagedPackage.ValidatedBlobPath, stagedPackage.ValidatedBlobETag);
                     await _lease.EnsureHeldAsync();
                     var packageFileName = await CopyPackageAsync(package, stagedPackage);
 
@@ -268,20 +269,6 @@ namespace NuGet.Services.Staging.Promotion
 
             stagedPackage.Status = StagedPackageStatus.PromotionFailed;
             await _stagedPackageRepository.CommitChangesAsync();
-        }
-
-        private async Task<PackageStreamMetadata> GetStreamMetadataAsync(StagedPackage stagedPackage)
-        {
-            _logger.LogInformation("Calculating validated package stream metadata.");
-            using (var packageStream = await _stagingBlobService.OpenPackageFileAsync(stagedPackage.ValidatedBlobPath, stagedPackage.ValidatedBlobETag))
-            {
-                return new PackageStreamMetadata
-                {
-                    HashAlgorithm = CoreConstants.Sha512HashAlgorithmId,
-                    Hash = CryptographyService.GenerateHash(packageStream, CoreConstants.Sha512HashAlgorithmId),
-                    Size = packageStream.Length,
-                };
-            }
         }
 
         private async Task<string> CopyPackageAsync(Package package, StagedPackage stagedPackage)

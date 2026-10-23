@@ -38,6 +38,20 @@ uses the existing repository save and transaction APIs, so dispatch-failure
 recovery retains normal EF concurrency handling without tracking reconciliation.
 Individual acceptance and resend paths are unchanged. No schema change is required.
 
+Parent promotion reads the final validated blob's stored SHA-512 hash and length
+without downloading its contents. Validation already calculates that hash after
+package processing and stores it as blob metadata, which the copy to staging
+preserves. The metadata read must match `ValidatedBlobETag`; upload metadata and
+the package's pre-validation database hash are not reused. Stored hash metadata
+is required: missing metadata, changed/missing blobs, storage failures, and invalid
+metadata fail the delivery. Promotion never downloads a package just to hash it.
+The immediate-validation development path saves a separate validated blob with
+its hash metadata before returning Ready, preserving the original upload and
+capturing the validated ETag after metadata is written. File-system storage does
+not support this blob-metadata contract; staging uses Azure Blob Storage or
+Azurite. Embedded license/readme extraction still opens the validated package
+when needed, and publication lease checks are unchanged.
+
 ## Publication timing
 
 `StagingPromotion.AcceptedToGallerySeconds` measures time from promotion

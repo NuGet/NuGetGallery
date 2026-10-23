@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
@@ -57,16 +58,63 @@ namespace NuGetGallery
         }
 
         [Fact]
-        public async Task ImmediateEmitterDoesNotStartValidation()
+        public async Task ImmediateEmitterPreservesTheUploadAndPreparesValidatedContentBeforeReady()
         {
-            var target = new ImmediateStagedPackageValidationMessageEmitter();
-            var stagedPackage = new StagedPackage { UploadedBlobPath = "uploaded/package.nupkg", UploadedBlobETag = "upload-etag" };
+            var stream = new MemoryStream(new byte[] { 1, 2, 3 });
+            var storage = new Mock<IStagingBlobService>(MockBehavior.Strict);
+            storage.Setup(service => service.OpenPackageFileAsync("uploaded/package.nupkg", "upload-etag")).ReturnsAsync(stream);
+            storage.Setup(service => service.SaveValidatedPackageFileAsync("PackageA", "1.0.0", stream))
+                .ReturnsAsync(new StagingFileReference("validated/package.nupkg", "validated-etag"));
+            var target = new ImmediateStagedPackageValidationMessageEmitter(storage.Object);
+            var stagedPackage = new StagedPackage
+            {
+                UploadedBlobPath = "uploaded/package.nupkg",
+                UploadedBlobETag = "upload-etag",
+                StagedPackageIdentity = new StagedPackageIdentity
+                {
+                    Package = new Package { PackageRegistration = new PackageRegistration { Id = "PackageA" }, NormalizedVersion = "1.0.0" },
+                },
+            };
 
             var status = await target.StartValidationAsync(stagedPackage);
 
             Assert.Equal(StagedPackageStatus.Ready, status);
-            Assert.Equal(stagedPackage.UploadedBlobPath, stagedPackage.ValidatedBlobPath);
-            Assert.Equal(stagedPackage.UploadedBlobETag, stagedPackage.ValidatedBlobETag);
+            Assert.Equal("uploaded/package.nupkg", stagedPackage.UploadedBlobPath);
+            Assert.Equal("upload-etag", stagedPackage.UploadedBlobETag);
+            Assert.Equal("validated/package.nupkg", stagedPackage.ValidatedBlobPath);
+            Assert.Equal("validated-etag", stagedPackage.ValidatedBlobETag);
+            Assert.False(stream.CanRead);
+            storage.Verify(service => service.SaveValidatedPackageFileAsync("PackageA", "1.0.0", stream), Times.Once);
+        }
+
+        [Fact]
+        public async Task ImmediateEmitterDoesNotRecordValidatedContentWhenPreparationFails()
+        {
+            var stream = new MemoryStream(new byte[] { 1, 2, 3 });
+            var storage = new Mock<IStagingBlobService>();
+            storage.Setup(service => service.OpenPackageFileAsync("uploaded/package.nupkg", "upload-etag")).ReturnsAsync(stream);
+            var expected = new InvalidOperationException("Hash metadata could not be saved.");
+            storage.Setup(service => service.SaveValidatedPackageFileAsync("PackageA", "1.0.0", stream)).ThrowsAsync(expected);
+            var stagedPackage = new StagedPackage
+            {
+                Status = StagedPackageStatus.Validating,
+                UploadedBlobPath = "uploaded/package.nupkg",
+                UploadedBlobETag = "upload-etag",
+                StagedPackageIdentity = new StagedPackageIdentity
+                {
+                    Package = new Package { PackageRegistration = new PackageRegistration { Id = "PackageA" }, NormalizedVersion = "1.0.0" },
+                },
+            };
+            var target = new ImmediateStagedPackageValidationMessageEmitter(storage.Object);
+
+            var actual = await Assert.ThrowsAsync<InvalidOperationException>(() => target.StartValidationAsync(stagedPackage));
+
+            Assert.Same(expected, actual);
+            Assert.Null(stagedPackage.ValidatedBlobPath);
+            Assert.Null(stagedPackage.ValidatedBlobETag);
+            Assert.Equal(StagedPackageStatus.Validating, stagedPackage.Status);
+            Assert.Equal("upload-etag", stagedPackage.UploadedBlobETag);
+            Assert.False(stream.CanRead);
         }
     }
 }
