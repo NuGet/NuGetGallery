@@ -49,7 +49,7 @@ namespace NuGetGallery
             User currentUser,
             bool wasAADLoginOrMultiFactorAuthenticated)
         {
-            _listPackageItemViewModelFactory.Setup(viewModel, package, currentUser);
+            _listPackageItemViewModelFactory.SetupForManagePackages(viewModel, package, currentUser);
             return SetupInternal(viewModel, package, currentUser, wasAADLoginOrMultiFactorAuthenticated);
         }
 

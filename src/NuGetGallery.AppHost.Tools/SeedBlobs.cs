@@ -10,11 +10,18 @@ using Microsoft.Extensions.Configuration;
 /// <summary>
 /// Seeds blobs in Azurite that the Gallery and pipeline jobs expect to exist:
 /// auxiliary blobs, Gallery content files from App_Data, and the V3 service index.
+/// Enables symbol uploads only in profiles that run the symbol-validation pipeline.
 /// </summary>
 static class SeedBlobsTool
 {
 	public static async Task<int> RunAsync(string[] args)
 	{
+		if (args.Length != 1 || string.IsNullOrWhiteSpace(args[0]))
+		{
+			throw new ArgumentException("Expected the AppHost profile.");
+		}
+
+		var profile = args[0];
 		var cfg = new ConfigurationBuilder()
 			.AddEnvironmentVariables()
 			.Build()
@@ -22,6 +29,11 @@ static class SeedBlobsTool
 
 		var blobService = new BlobServiceClient(cfg.StorageConnectionString);
 		var searchBase = cfg.SearchServiceBaseAddress.TrimEnd('/');
+
+		// The validation orchestrator expects these infrastructure containers to
+		// exist before it handles its first message.
+		await blobService.GetBlobContainerClient("validation").CreateIfNotExistsAsync();
+		await blobService.GetBlobContainerClient("validation-leases").CreateIfNotExistsAsync();
 
 		// ── Auxiliary blobs for pipeline jobs ────────────────────────────────
 		await SeedAsync(blobService, cfg.Containers.CdnStats, cfg.AuxiliaryBlobs.DownloadsV1Json,
@@ -48,6 +60,17 @@ static class SeedBlobsTool
 					await SeedPatchedFlagsAsync(blobService, cfg.Containers.Content, file);
 					continue;
 				}
+				if (fileName.Equals("Symbols-Configuration.json", StringComparison.OrdinalIgnoreCase))
+				{
+					var symbolsConfiguration = JsonNode.Parse(await File.ReadAllTextAsync(file))
+						?? throw new InvalidOperationException("The symbols configuration is empty.");
+					symbolsConfiguration["isSymbolsUploadEnabledForAll"] = true;
+					await SeedAsync(blobService, cfg.Containers.Content, fileName,
+						symbolsConfiguration.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+					Console.WriteLine("  (enabled symbol uploads for local/CI tests)");
+					continue;
+				}
+
 				var contentType = Path.GetExtension(file).ToLowerInvariant() switch
 				{
 					".json" => "application/json",
@@ -139,6 +162,10 @@ static class SeedBlobsTool
       "@type": "PackagePublish/2.0.0"
     },
     {
+      "@id": "{{cfg.GalleryBaseAddress}}/api/v3/staging",
+      "@type": "PackageStaging/1.0.0"
+    },
+    {
       "@id": "{{cfg.GalleryBaseAddress}}/packages/{id}/{version}?_src=template",
       "@type": "PackageDetailsUriTemplate/5.1.0",
       "comment": "URI template for package details page."
@@ -207,8 +234,14 @@ static class SeedBlobsTool
 	{
 		var json = JsonNode.Parse(await File.ReadAllTextAsync(filePath))!;
 		var features = json["Features"]!.AsObject();
+		var flights = json["Flights"]!.AsObject();
 
 		features["NuGetGallery.AdminApiSoftDelete"] = "Enabled";
+		flights["NuGetGallery.PackageStaging"]!["Accounts"]!.AsArray().Add("NugetTestAccount");
+		flights["NuGetGallery.PackageStaging"]!["Accounts"]!.AsArray().Add("NugetTestAdminOrganization");
+		flights["NuGetGallery.PackageStaging"]!["Accounts"]!.AsArray().Add("NugetTestCollaboratorOrganization");
+		flights["NuGetGallery.PackageStaging"]!["Accounts"]!.AsArray().Add("NugetTestStagingQuotaOrganization");
+		flights["NuGetGallery.PackageStaging"]!["Accounts"]!.AsArray().Add("NugetTestStagingRestrictedOrganization");
 
 		var patched = json.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
 		await SeedAsync(blobService, containerName, "flags.json", patched);

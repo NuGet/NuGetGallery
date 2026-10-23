@@ -8,7 +8,6 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Globalization;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -551,47 +550,10 @@ namespace NuGetGallery
 
                 using (var packageStream = ReadPackageFromRequest())
                 {
-                    try
+                    var archiveValidationError = ZipArchiveHelpers.GetArchiveValidationError(packageStream);
+                    if (archiveValidationError != null)
                     {
-                        InvalidZipEntry anyInvalidZipEntry = ZipArchiveHelpers.ValidateArchiveEntries(packageStream, out ZipArchiveEntry invalidZipEntry);
-
-                        switch (anyInvalidZipEntry)
-                        {
-                            case InvalidZipEntry.None:
-                                break;
-                            case InvalidZipEntry.InFuture:
-                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
-                                    CultureInfo.CurrentCulture,
-                                    Strings.PackageEntryFromTheFuture,
-                                    invalidZipEntry.Name));
-                            case InvalidZipEntry.DoubleForwardSlashesInPath:
-                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
-                                    CultureInfo.CurrentCulture,
-                                    Strings.PackageEntryWithDoubleForwardSlash,
-                                    invalidZipEntry.Name));
-                            case InvalidZipEntry.DoubleBackwardSlashesInPath:
-                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
-                                    CultureInfo.CurrentCulture,
-                                    Strings.PackageEntryWithDoubleBackSlash,
-                                    invalidZipEntry.Name));
-                            default:
-                                // Generic error message for unknown invalid zip entry
-                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
-                                    CultureInfo.CurrentCulture,
-                                    Strings.InvalidPackageEntry,
-                                    invalidZipEntry.Name));
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        // This is not very elegant to catch every Exception type here. However, the types of exceptions
-                        // that could be thrown when reading a garbage ZIP is undocumented. We've seen ArgumentOutOfRangeException
-                        // get thrown from HttpInputStream and InvalidDataException thrown from ZipArchive.
-                        ex.Log();
-
-                        return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
-                            CultureInfo.CurrentCulture,
-                            Strings.FailedToReadUploadFile));
+                        return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, archiveValidationError);
                     }
 
                     try

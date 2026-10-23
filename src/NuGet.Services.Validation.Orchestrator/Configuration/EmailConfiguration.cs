@@ -38,9 +38,28 @@ namespace NuGet.Services.Validation.Orchestrator
         public string PackageSupportTemplate { get; set; }
 
         /// <summary>
+        /// A required template for private staged package URLs. Should contain two placeholders:
+        /// {0} - for the package id
+        /// {1} - for the normalized package version
+        /// </summary>
+        public string StagedPackageUrlTemplate { get; set; }
+
+        /// <summary>
+        /// A required template for private staged symbol package URLs. Should contain two placeholders:
+        /// {0} - for the package id
+        /// {1} - for the normalized package version
+        /// </summary>
+        public string StagedSymbolPackageUrlTemplate { get; set; }
+
+        /// <summary>
         /// Url for email settings, so user can opt out of receiving email notifications.
         /// </summary>
         public string EmailSettingsUrl { get; set; }
+
+        /// <summary>
+        /// Required Manage Packages URL for terminal staging promotion summaries.
+        /// </summary>
+        public string ManagePackagesUrl { get; set; }
 
         /// <summary>
         /// Url for the announcements github page

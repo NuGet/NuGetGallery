@@ -17,6 +17,7 @@ using Moq;
 
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
+using NuGet.Services.Validation.Issues;
 
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
@@ -600,6 +601,7 @@ namespace NuGetGallery
                 Assert.True(firstPackageOwner.CanPushNew);
                 Assert.True(firstPackageOwner.CanPushExisting);
                 Assert.True(firstPackageOwner.CanUnlist);
+                Assert.True(firstPackageOwner.CanStage);
             }
 
             public static IEnumerable<object[]> OrganizationIsInPackageOwnersIfMember_Data =
@@ -618,6 +620,7 @@ namespace NuGetGallery
                 Assert.True(owner.CanPushNew);
                 Assert.True(owner.CanPushExisting);
                 Assert.True(owner.CanUnlist);
+                Assert.True(owner.CanStage);
             }
 
             public static IEnumerable<object[]> OrganizationIsNotInPackageOwnersIfNotMember_Data =
@@ -2587,11 +2590,11 @@ namespace NuGetGallery
         public class TheDeleteAccountRequestAction : TestContainer
         {
             [Theory]
-            [InlineData(false, false)]
+            [InlineData(false, false, true)]
             [InlineData(false, true)]
             [InlineData(true, false)]
             [InlineData(true, true)]
-            public void ShowsViewWithCorrectData(bool isPackageOrphaned, bool withPendingIssues)
+            public void ShowsViewWithCorrectData(bool isPackageOrphaned, bool withPendingIssues, bool stagingEnabled = false)
             {
                 // Arrange
                 var controller = GetController<UsersController>();
@@ -2600,6 +2603,7 @@ namespace NuGetGallery
 
                 controller.SetCurrentUser(testUser);
                 PackageRegistration packageRegistration = new PackageRegistration();
+                packageRegistration.Id = "Published.Package";
                 packageRegistration.Owners.Add(testUser);
 
                 Package userPackage = new Package()
@@ -2611,7 +2615,36 @@ namespace NuGetGallery
                 };
                 packageRegistration.Packages.Add(userPackage);
 
-                List<Package> userPackages = new List<Package>() { userPackage };
+                var privatePackage = new Package { Key = 2, Version = "2.0.0", PackageStatusKey = PackageStatus.Staged, PackageRegistration = packageRegistration };
+                packageRegistration.Packages.Add(privatePackage);
+                var retiredRegistration = new PackageRegistration { Key = 10, Id = "Retired.Private", Owners = { testUser } };
+                var retiredPackage = new Package
+                {
+                    Key = 3,
+                    Version = "1.0.0",
+                    PackageStatusKey = PackageStatus.Deleted,
+                    PackageRegistration = retiredRegistration,
+                    PackageRegistrationKey = retiredRegistration.Key,
+                };
+                var deletedRegistration = new PackageRegistration { Key = 20, Id = "Deleted.Public", Owners = { testUser } };
+                var deletedPackage = new Package
+                {
+                    Key = 4,
+                    Version = "1.0.0",
+                    PackageStatusKey = PackageStatus.Deleted,
+                    PackageRegistration = deletedRegistration,
+                    PackageRegistrationKey = deletedRegistration.Key,
+                };
+                var context = GetFakeContext();
+                context.Packages.AddRange(new[] { userPackage, privatePackage, retiredPackage, deletedPackage });
+                context.StagedPackageIdentities.Add(new StagedPackageIdentity
+                {
+                    Key = retiredPackage.Key,
+                    Package = retiredPackage,
+                    CurrentStagedPackage = new StagedPackage { Status = StagedPackageStatus.Deleted },
+                });
+                context.StagedPackageIdentities.Add(new StagedPackageIdentity { Key = deletedPackage.Key, Package = deletedPackage });
+
                 List<Issue> issues = new List<Issue>();
                 if (withPendingIssues)
                 {
@@ -2629,11 +2662,12 @@ namespace NuGetGallery
                     .Setup(stub => stub.FindByUsername(testUser.Username, false))
                     .Returns(testUser);
                 GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
-                    .Returns(userPackages);
+                    .Setup(stub => stub.FindPackagesForAccountDeletion(testUser))
+                    .Returns(() => GetService<PackageService>().FindPackagesForAccountDeletion(testUser));
                 GetMock<IPackageService>()
                     .Setup(stub => stub.WillPackageBeOrphanedIfOwnerRemoved(packageRegistration, testUser))
                     .Returns(isPackageOrphaned);
+                GetMock<IFeatureFlagService>().Setup(service => service.IsPackageStagingEnabled(testUser)).Returns(stagingEnabled);
                 GetMock<ISupportRequestService>()
                    .Setup(stub => stub.GetIssues(null, null, null, null))
                    .Returns(issues);
@@ -2648,11 +2682,43 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal(testUser.Username, model.AccountName);
-                var package = Assert.Single(model.Packages);
+                Assert.Equal(new[] { "Deleted.Public", "Published.Package" }, model.Packages.Select(package => package.Id).OrderBy(id => id));
                 GetMock<IIconUrlProvider>()
                     .Verify(iup => iup.GetIconUrlString(It.IsAny<Package>()), Times.AtLeastOnce);
                 Assert.Equal(isPackageOrphaned, model.HasPackagesThatWillBeOrphaned);
                 Assert.Equal(withPendingIssues, model.HasPendingRequests);
+                Assert.Equal(stagingEnabled, model.IsPackageStagingEnabled);
+                Assert.False(model.HasStagingEnabledOrganizationsToDelete);
+            }
+
+            [Theory]
+            [InlineData(true, true, true)]
+            [InlineData(false, true, false)]
+            [InlineData(true, false, false)]
+            public void WarnsAboutOrganizationStagingOnlyWhenTheOrganizationWillBeDeleted(bool lastMember, bool organizationStagingEnabled, bool expectedWarning)
+            {
+                var controller = GetController<UsersController>();
+                var user = Get<Fakes>().User;
+                controller.SetCurrentUser(user);
+                var organization = new Organization("organization") { Key = 100 };
+                var membership = new Membership { Member = user, MemberKey = user.Key, Organization = organization, OrganizationKey = organization.Key };
+                user.Organizations.Add(membership);
+                organization.Members.Add(membership);
+                if (!lastMember)
+                {
+                    organization.Members.Add(new Membership { Member = new User("other") { Key = 200 } });
+                }
+
+                GetMock<IPackageService>().Setup(service => service.FindPackagesForAccountDeletion(user)).Returns(Array.Empty<Package>());
+                GetMock<ISupportRequestService>().Setup(service => service.GetIssues(null, null, null, null)).Returns(Array.Empty<Issue>());
+                GetMock<IFeatureFlagService>().Setup(service => service.IsPackageStagingEnabled(user)).Returns(false);
+                GetMock<IFeatureFlagService>().Setup(service => service.IsPackageStagingEnabled(organization)).Returns(organizationStagingEnabled);
+
+                var result = controller.DeleteRequest();
+                var model = ResultAssert.IsView<DeleteUserViewModel>(result, "DeleteAccount");
+
+                Assert.False(model.IsPackageStagingEnabled);
+                Assert.Equal(expectedWarning, model.HasStagingEnabledOrganizationsToDelete);
             }
         }
 
@@ -2712,7 +2778,7 @@ namespace NuGetGallery
                     .Setup(stub => stub.FindByUsername(userName, false))
                     .Returns(testUser);
                 GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
+                    .Setup(stub => stub.FindPackagesForAccountDeletion(testUser))
                     .Returns(userPackages);
                 GetMock<ISupportRequestService>()
                    .Setup(stub => stub.GetIssues(null, null, null, userName))
@@ -4086,7 +4152,7 @@ namespace NuGetGallery
                     .Setup(stub => stub.FindByUsername(userName, false))
                     .Returns(testUser);
                 GetMock<IPackageService>()
-                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
+                    .Setup(stub => stub.FindPackagesForAccountDeletion(testUser))
                     .Returns(userPackages);
                 GetMock<ISupportRequestService>()
                     .Setup(stub => stub.GetIssues(null, null, null, null))
@@ -4111,6 +4177,9 @@ namespace NuGetGallery
 
             public ThePackagesAction()
             {
+                GetMock<ISymbolPackageStagingManagementService>()
+                    .Setup(x => x.GetStagedSymbolPackages(It.IsAny<User>()))
+                    .Returns(Array.Empty<StagedSymbolPackage>());
                 _testController = GetController<UsersController>();
                 _fakes = Get<Fakes>();
                 _testUser = _fakes.CreateUser(userName);
@@ -4134,6 +4203,227 @@ namespace NuGetGallery
                 };
                 packageRegistration.Packages.Add(userPackage1);
                 return packageRegistration;
+            }
+
+            [Fact]
+            public void IncludesRealStagingGroupSummaries()
+            {
+                var group = new StagingGroup
+                {
+                    Key = 10,
+                    Id = "test-group",
+                    Name = "Test group",
+                    CreatedDate = new DateTime(2026, 9, 10),
+                    Owner = _testUser,
+                    OwnerKey = _testUser.Key,
+                };
+                var readyPackage = CreateStagedPackage(101, "Ready.Package", StagedPackageStatus.Ready);
+                readyPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
+                readyPackage.StagedPackageIdentity.StagingGroup = group;
+                var failedPackage = CreateStagedPackage(202, "Failed.Package", StagedPackageStatus.FailedValidation);
+                failedPackage.StagedPackageIdentity.StagingGroupKey = group.Key;
+                failedPackage.StagedPackageIdentity.StagingGroup = group;
+
+                GetMock<IPackageService>()
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(_testUser, It.IsAny<bool>(), false))
+                    .Returns(new[] { readyPackage.StagedPackageIdentity.Package, failedPackage.StagedPackageIdentity.Package });
+                GetMock<IPackageStagingManagementService>()
+                    .Setup(service => service.IsEnabled(_testUser))
+                    .Returns(true);
+                GetMock<IPackageStagingManagementService>()
+                    .Setup(service => service.GetStagedPackages(_testUser))
+                    .Returns(new[] { readyPackage, failedPackage });
+                GetMock<IPackageStagingManagementService>()
+                    .Setup(service => service.GetStagingGroups(_testUser))
+                    .Returns(new[] { group });
+                GetMock<IValidationService>()
+                    .Setup(service => service.GetStagedPackageValidationIssues(It.IsAny<IReadOnlyCollection<int>>()))
+                    .Returns(new Dictionary<int, IReadOnlyList<ValidationIssue>>());
+
+                var model = ResultAssert.IsView<ManagePackagesViewModel>(_testController.Packages());
+
+                var result = Assert.Single(model.StagingGroups);
+                Assert.Equal(_testUser.Username, result.Owner);
+                Assert.Equal("test-group", result.Id);
+                Assert.Equal("Test group", result.Name);
+                Assert.Contains($"/account/staging/{_testUser.Username}/groups/test-group", result.Url);
+                Assert.Equal(group.CreatedDate, result.CreatedDate);
+                Assert.Equal(2, result.PackageCount);
+                Assert.Equal("1 ready, 1 failed", result.PackageStatusSummary);
+                Assert.Equal("Validation failed", result.Status);
+                Assert.Equal("staging-status-failedvalidation", result.StatusClass);
+            }
+
+            [Theory]
+            [InlineData(false, false)]
+            [InlineData(false, true)]
+            [InlineData(true, false)]
+            [InlineData(true, true)]
+            public void ExposesStagingAvailabilityForEachOwner(bool personalStagingEnabled, bool organizationStagingEnabled)
+            {
+                var organization = new Organization("Organization") { Key = 2 };
+                _testUser.Organizations.Add(new Membership { Member = _testUser, Organization = organization });
+                GetMock<IFeatureFlagService>().Setup(service => service.IsPackageStagingEnabled(_testUser)).Returns(personalStagingEnabled);
+                GetMock<IFeatureFlagService>().Setup(service => service.IsPackageStagingEnabled(organization)).Returns(organizationStagingEnabled);
+                GetMock<IPackageService>()
+                    .Setup(service => service.FindPackagesByAnyMatchingOwner(_testUser, It.IsAny<bool>(), false))
+                    .Returns(Array.Empty<Package>());
+                GetMock<IPackageStagingManagementService>().Setup(service => service.IsEnabled(_testUser)).Returns(personalStagingEnabled || organizationStagingEnabled);
+                GetMock<IPackageStagingManagementService>().Setup(service => service.GetStagedPackages(_testUser)).Returns(Array.Empty<StagedPackage>());
+                GetMock<IPackageStagingManagementService>().Setup(service => service.GetStagingGroups(_testUser)).Returns(Array.Empty<StagingGroup>());
+
+                var model = ResultAssert.IsView<ManagePackagesViewModel>(_testController.Packages());
+
+                Assert.Equal(personalStagingEnabled || organizationStagingEnabled, model.IsPackageStagingEnabled);
+                Assert.Equal(personalStagingEnabled, model.Owners.Single(owner => owner.Username == _testUser.Username).IsPackageStagingEnabled);
+                Assert.Equal(organizationStagingEnabled, model.Owners.Single(owner => owner.Username == organization.Username).IsPackageStagingEnabled);
+            }
+
+            [Fact]
+            public void IncludesOneUngroupedSummaryPerOwnerWithUngroupedPackages()
+            {
+                var organization = new Organization("ZOrganization") { Key = 2 };
+                var personalPackage = CreateStagedPackage(101, "Personal.Package", StagedPackageStatus.Ready);
+                var secondPersonalPackage = CreateStagedPackage(202, "Second.Personal.Package", StagedPackageStatus.Validating);
+                var organizationPackage = CreateStagedPackage(303, "Organization.Package", StagedPackageStatus.Ready);
+                organizationPackage.StagedPackageIdentity.Owner = organization;
+                organizationPackage.StagedPackageIdentity.OwnerKey = organization.Key;
+
+                GetMock<IPackageService>()
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(_testUser, It.IsAny<bool>(), false))
+                    .Returns(new[]
+                    {
+                        personalPackage.StagedPackageIdentity.Package,
+                        secondPersonalPackage.StagedPackageIdentity.Package,
+                        organizationPackage.StagedPackageIdentity.Package,
+                    });
+                GetMock<IPackageStagingManagementService>()
+                    .Setup(service => service.IsEnabled(_testUser))
+                    .Returns(true);
+                GetMock<IPackageStagingManagementService>()
+                    .Setup(service => service.GetStagedPackages(_testUser))
+                    .Returns(new[] { personalPackage, secondPersonalPackage, organizationPackage });
+                GetMock<IPackageStagingManagementService>()
+                    .Setup(service => service.GetStagingGroups(_testUser))
+                    .Returns(Array.Empty<StagingGroup>());
+
+                var model = ResultAssert.IsView<ManagePackagesViewModel>(_testController.Packages());
+
+                Assert.Collection(
+                    model.StagingGroups,
+                    group =>
+                    {
+                        Assert.Equal(_testUser.Username, group.Owner);
+                        Assert.Equal("Ungrouped", group.Name);
+                        Assert.Null(group.Id);
+                        Assert.Equal("Staged packages not in any group", group.Description);
+                        Assert.Contains($"/account/staging/{_testUser.Username}/ungrouped", group.Url);
+                        Assert.Null(group.CreatedDate);
+                        Assert.True(group.IsUngrouped);
+                        Assert.Equal(2, group.PackageCount);
+                        Assert.Equal("1 ready, 1 validating", group.PackageStatusSummary);
+                        Assert.Null(group.Status);
+                        Assert.Null(group.StatusClass);
+                    },
+                    group =>
+                    {
+                        Assert.Equal(organization.Username, group.Owner);
+                        Assert.Equal("Ungrouped", group.Name);
+                        Assert.Equal(1, group.PackageCount);
+                        Assert.Null(group.Status);
+                        Assert.Null(group.StatusClass);
+                    });
+            }
+
+            [Theory]
+            [InlineData(false, StagedPackageStatus.FailedValidation)]
+            [InlineData(true, StagedPackageStatus.FailedValidation)]
+            [InlineData(true, StagedPackageStatus.WaitingForParent)]
+            public void IncludesSummaryWhenOnlySymbolsAreStaged(bool grouped, StagedPackageStatus status)
+            {
+                var identity = CreateStagedPackage(101, "Symbols.Package", StagedPackageStatus.Ready).StagedPackageIdentity;
+                identity.CurrentStagedPackageKey = null;
+                identity.CurrentStagedPackage = null;
+                identity.Package.PackageStatusKey = status == StagedPackageStatus.WaitingForParent ? PackageStatus.Deleted : PackageStatus.Available;
+                var group = new StagingGroup { Key = 10, Id = "release", Name = "Release", Owner = _testUser, OwnerKey = _testUser.Key };
+                if (grouped)
+                {
+                    identity.StagingGroup = group;
+                    identity.StagingGroupKey = group.Key;
+                }
+
+                var attempt = new StagedSymbolPackage { StagedPackageIdentity = identity, Status = status };
+                GetMock<IPackageService>()
+                    .Setup(x => x.FindPackagesByAnyMatchingOwner(_testUser, It.IsAny<bool>(), false))
+                    .Returns(Array.Empty<Package>());
+                GetMock<IPackageStagingManagementService>().Setup(x => x.IsEnabled(_testUser)).Returns(true);
+                GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagedPackages(_testUser)).Returns(Array.Empty<StagedPackage>());
+                GetMock<IPackageStagingManagementService>().Setup(x => x.GetStagingGroups(_testUser)).Returns(grouped ? new[] { group } : Array.Empty<StagingGroup>());
+                GetMock<ISymbolPackageStagingManagementService>().Setup(x => x.GetStagedSymbolPackages(_testUser)).Returns(new[] { attempt });
+
+                var model = ResultAssert.IsView<ManagePackagesViewModel>(_testController.Packages());
+
+                var summary = Assert.Single(model.StagingGroups);
+                Assert.Equal(!grouped, summary.IsUngrouped);
+                Assert.Equal(_testUser.Username, summary.Owner);
+                Assert.Equal(1, summary.PackageCount);
+                Assert.Equal(status == StagedPackageStatus.WaitingForParent ? "1 waiting for parent" : "1 failed", summary.PackageStatusSummary);
+                if (grouped && status == StagedPackageStatus.WaitingForParent)
+                {
+                    Assert.Equal("Waiting for parent", summary.Status);
+                }
+                Assert.Contains(grouped ? $"/account/staging/{_testUser.Username}/groups/release" : $"/account/staging/{_testUser.Username}/ungrouped", summary.Url);
+            }
+
+            [Fact]
+            public void ExcludesStagedPackagesWhenStagingIsDisabled()
+            {
+                GetMock<IPackageService>()
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(_testUser, It.IsAny<bool>(), false))
+                    .Returns(Array.Empty<Package>());
+                GetMock<IPackageStagingManagementService>()
+                    .Setup(service => service.IsEnabled(_testUser))
+                    .Returns(false);
+
+                var model = ResultAssert.IsView<ManagePackagesViewModel>(_testController.Packages());
+
+                Assert.False(model.IsPackageStagingEnabled);
+                Assert.Empty(model.StagingGroups);
+                GetMock<IPackageStagingManagementService>()
+                    .Verify(service => service.IsEnabled(_testUser), Times.Once);
+                GetMock<IPackageStagingManagementService>()
+                    .Verify(service => service.GetStagedPackages(It.IsAny<User>()), Times.Never);
+                GetMock<IPackageStagingManagementService>()
+                    .Verify(service => service.GetStagingGroups(It.IsAny<User>()), Times.Never);
+            }
+
+            private StagedPackage CreateStagedPackage(int key, string id, StagedPackageStatus status)
+            {
+                var package = new Package
+                {
+                    Key = key,
+                    NormalizedVersion = "1.0.0",
+                    PackageRegistration = new PackageRegistration { Id = id },
+                    PackageStatusKey = PackageStatus.Staged,
+                    Listed = false,
+                };
+                var stagedPackageIdentity = new StagedPackageIdentity
+                {
+                    Key = package.Key,
+                    Package = package,
+                    Owner = _testUser,
+                    OwnerKey = _testUser.Key,
+                };
+                var stagedPackage = new StagedPackage
+                {
+                    Key = key,
+                    StagedPackageIdentityKey = stagedPackageIdentity.Key,
+                    StagedPackageIdentity = stagedPackageIdentity,
+                    Status = status,
+                };
+                stagedPackageIdentity.CurrentStagedPackageKey = stagedPackage.Key;
+                stagedPackageIdentity.CurrentStagedPackage = stagedPackage;
+                return stagedPackage;
             }
 
             [Fact]

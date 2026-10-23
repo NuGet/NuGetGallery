@@ -228,6 +228,75 @@ namespace NuGetGallery
         }
 
         [BlobStorageFact]
+        public async Task ValidatedMetadataSurvivesThePrivateStagingCopy()
+        {
+            var content = Encoding.UTF8.GetBytes("final repository-signed package content");
+            string hash;
+            using (var sha512 = SHA512.Create())
+            {
+                hash = Convert.ToBase64String(sha512.ComputeHash(content));
+            }
+            var validationFile = $"{_prefixA}/validated.nupkg";
+            await _targetA.SaveFileAsync(CoreConstants.Folders.ValidationFolderName, validationFile, new MemoryStream(content));
+            await _targetA.SetMetadataAsync(CoreConstants.Folders.ValidationFolderName, validationFile, (stream, metadata) =>
+            {
+                metadata[CoreConstants.Sha512HashAlgorithmId] = hash;
+                return Task.FromResult(true);
+            });
+            var source = await _targetA.GetFileReadUriAsync(CoreConstants.Folders.ValidationFolderName, validationFile, DateTimeOffset.UtcNow.AddMinutes(10));
+            var staging = new StagingBlobService(_targetB);
+            var file = await staging.CopyPackageFileToStagingAsync("Example.Package", "1.2.3", source);
+            try
+            {
+                var metadata = await staging.GetPackageStreamMetadataAsync(file.Path, file.ETag);
+
+                Assert.Equal(hash, metadata.Hash);
+                Assert.Equal(CoreConstants.Sha512HashAlgorithmId, metadata.HashAlgorithm);
+                Assert.Equal(content.Length, metadata.Size);
+                await Assert.ThrowsAsync<InvalidOperationException>(() => staging.GetPackageStreamMetadataAsync(file.Path, "\"different-etag\""));
+                await _targetB.SetMetadataAsync(CoreConstants.Folders.StagingFolderName, file.Path, (stream, values) =>
+                {
+                    values["changed"] = "true";
+                    return Task.FromResult(true);
+                });
+                await Assert.ThrowsAsync<InvalidOperationException>(() => staging.GetPackageStreamMetadataAsync(file.Path, file.ETag));
+            }
+            finally
+            {
+                await _targetB.DeleteFileAsync(CoreConstants.Folders.StagingFolderName, file.Path);
+            }
+        }
+
+        [BlobStorageFact]
+        public async Task SavesValidatedHashBeforeReturningTheStagingETag()
+        {
+            var content = Encoding.UTF8.GetBytes("immediately validated package content");
+            string hash;
+            using (var sha512 = SHA512.Create())
+            {
+                hash = Convert.ToBase64String(sha512.ComputeHash(content));
+            }
+            var staging = new StagingBlobService(_targetA);
+            var file = await staging.SaveValidatedPackageFileAsync("Example.Package", "1.2.3", new MemoryStream(content));
+            try
+            {
+                var metadata = await staging.GetPackageStreamMetadataAsync(file.Path, file.ETag);
+                Assert.Equal(hash, metadata.Hash);
+                Assert.Equal(content.Length, metadata.Size);
+                using (var stream = await staging.OpenPackageFileAsync(file.Path, file.ETag))
+                using (var copied = new MemoryStream())
+                {
+                    await stream.CopyToAsync(copied);
+                    Assert.Equal(content, copied.ToArray());
+                }
+            }
+            finally
+            {
+                await _targetA.DeleteFileAsync(CoreConstants.Folders.StagingFolderName, file.Path);
+            }
+        }
+
+        [BlobStorageFact]
         public async Task OpenWriteAsyncRejectsETagMismatchFoundBeforeUploadStarts()
         {
             // Arrange

@@ -7,12 +7,31 @@ using System.Configuration;
 using System.Linq;
 using Microsoft.Extensions.Options;
 using Moq;
+using NuGet.Jobs.Validation;
 using Xunit;
 
 namespace NuGet.Services.Validation.Orchestrator.Tests
 {
     public class ConfigurationValidatorFacts
     {
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void SymbolsIngesterRequiresPublicPackageStorage(bool shouldStart)
+        {
+            var configuration = new ValidationConfiguration
+            {
+                Validations = new List<ValidationConfigurationItem>
+                {
+                    new ValidationConfigurationItem { Name = ValidatorName.SymbolsIngester, ShouldStart = shouldStart, TrackAfter = TimeSpan.FromSeconds(10) },
+                },
+            };
+
+            var exception = Assert.Throws<ConfigurationErrorsException>(() => Validate(configuration));
+
+            Assert.Contains(nameof(ValidationConfiguration.PackageStorageConnectionString), exception.Message);
+        }
+
         [Fact]
         public void ConfigurationValidatorSmokeTest()
         {

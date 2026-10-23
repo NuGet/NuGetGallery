@@ -11,6 +11,7 @@ using System.Net;
 using System.Threading.Tasks;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Extensions;
+using NuGetGallery.Packaging;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace NuGetGallery
@@ -99,6 +100,49 @@ namespace NuGetGallery
                 // Not found
                 return null;
             }
+        }
+
+        public async Task<PackageStreamMetadata> GetPackageStreamMetadataAsync(string folderName, string fileName, string expectedETag)
+        {
+            if (string.IsNullOrWhiteSpace(folderName))
+            {
+                throw new ArgumentNullException(nameof(folderName));
+            }
+
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                throw new ArgumentNullException(nameof(fileName));
+            }
+
+            if (string.IsNullOrWhiteSpace(expectedETag))
+            {
+                throw new ArgumentNullException(nameof(expectedETag));
+            }
+
+            var container = await GetContainerAsync(folderName);
+            var blob = container.GetBlobReference(fileName);
+            await blob.FetchAttributesAsync();
+            if (!string.Equals(blob.ETag, expectedETag, StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException($"The package blob '{fileName}' has changed.");
+            }
+
+            if (!blob.Metadata.TryGetValue(CoreConstants.Sha512HashAlgorithmId, out var hash))
+            {
+                throw new InvalidOperationException($"The package blob '{fileName}' has no stored SHA-512 hash.");
+            }
+
+            if (string.IsNullOrWhiteSpace(hash) || Convert.FromBase64String(hash).Length != 64 || blob.Properties.Length <= 0)
+            {
+                throw new InvalidOperationException($"The package blob '{fileName}' has invalid stream metadata.");
+            }
+
+            return new PackageStreamMetadata
+            {
+                HashAlgorithm = CoreConstants.Sha512HashAlgorithmId,
+                Hash = hash,
+                Size = blob.Properties.Length,
+            };
         }
 
         public Task CopyFileAsync(

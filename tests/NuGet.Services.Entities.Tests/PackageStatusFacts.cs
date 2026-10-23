@@ -20,6 +20,7 @@ namespace NuGet.Services.Entities.Tests
             { PackageStatus.Deleted, 1 },
             { PackageStatus.Validating, 2 },
             { PackageStatus.FailedValidation, 3 },
+            { PackageStatus.Staged, 4 },
         };
 
         [Fact]
