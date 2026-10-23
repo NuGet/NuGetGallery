@@ -35,6 +35,39 @@ namespace NuGetGallery.ViewModels
             _securityPolicyService = new Mock<ISecurityPolicyService>(MockBehavior.Strict);
         }
 
+        [Theory]
+        [InlineData(false, false)]
+        [InlineData(false, true)]
+        [InlineData(true, false)]
+        [InlineData(true, true)]
+        public void PreservesManagementPermissionsAndVulnerabilityWithoutLoadingUnusedMetadata(bool isOwner, bool isVulnerable)
+        {
+            var owner = isOwner ? _currentUser : _otherUser;
+            var package = new Mock<Package> { CallBase = true };
+            package.Object.PackageRegistration = new PackageRegistration { Id = "PackageA", Owners = new List<User> { owner } };
+            package.Object.Version = "1.0.0";
+            package.Object.PackageStatusKey = PackageStatus.Available;
+            _securityPolicyService.Setup(service => service.IsSubscribed(owner, ControlRequiredSignerPolicy.PolicyName)).Returns(false);
+            var vulnerabilities = new Mock<IPackageVulnerabilitiesService>(MockBehavior.Strict);
+            vulnerabilities.Setup(service => service.IsPackageVulnerable(package.Object)).Returns(isVulnerable);
+            var target = new ListPackageItemRequiredSignerViewModelFactory(
+                _securityPolicyService.Object, Mock.Of<IIconUrlProvider>(), vulnerabilities.Object,
+                Mock.Of<IPackageFrameworkCompatibilityFactory>(MockBehavior.Strict), Mock.Of<IFeatureFlagService>(MockBehavior.Strict));
+
+            var viewModel = target.Create(package.Object, _currentUser, wasAADLoginOrMultiFactorAuthenticated: true);
+
+            Assert.Equal("PackageA", viewModel.Id);
+            Assert.Equal(owner.Username, Assert.Single(viewModel.Owners).Username);
+            Assert.Equal(owner.Username, viewModel.RequiredSigner.Username);
+            Assert.Equal(isOwner, viewModel.CanEdit);
+            Assert.Equal(isOwner, viewModel.CanUnlistOrRelist);
+            Assert.Equal(isOwner, viewModel.CanManageOwners);
+            Assert.Equal(isVulnerable, viewModel.IsVulnerable);
+            package.VerifyGet(value => value.Deprecations, Times.Never);
+            package.VerifyGet(value => value.SupportedFrameworks, Times.Never);
+            package.VerifyGet(value => value.Certificate, Times.Never);
+        }
+
         [Fact]
         public void WhenPackageIsNull_Throws()
         {
