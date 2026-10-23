@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 using NuGet.Services.Entities;
 using Xunit;
 
@@ -32,6 +33,48 @@ namespace NuGetGallery.Auditing
             Assert.Equal("b", record.RegistrationRecord.Id);
             Assert.Equal("c", record.Reason);
             Assert.Equal(AuditedPackageAction.Create, record.Action);
+        }
+
+        [Fact]
+        public void Constructor_WithSoftDeleteCorrelation_SerializesOptionalProperties()
+        {
+            var package = new Package
+            {
+                Key = 20,
+                PackageRegistration = new PackageRegistration { Id = "Example.Package" },
+                Version = "1.0.0"
+            };
+            var record = new PackageAuditRecord(package, AuditedPackageAction.SoftDelete, "reason", "admin-api",
+                packageKey: package.Key, packageDeleteKey: 42, adminInitiated: true);
+
+            var json = JObject.FromObject(record);
+
+            Assert.Equal(20, json["PackageKey"].Value<int>());
+            Assert.Equal(42, json["PackageDeleteKey"].Value<int>());
+            Assert.True(json["AdminInitiated"].Value<bool>());
+            Assert.Equal("admin-api", record.CallerIdentity);
+            Assert.Equal("Package", record.GetResourceType());
+            Assert.Equal("softdelete", record.GetAction());
+        }
+
+        [Fact]
+        public void Constructor_WithoutCorrelation_OmitsOptionalProperties()
+        {
+            var package = new Package
+            {
+                PackageRegistration = new PackageRegistration { Id = "Example.Package" },
+                Version = "1.0.0"
+            };
+            var record = new PackageAuditRecord(package, AuditedPackageAction.SoftDelete, "reason");
+
+            var json = JObject.FromObject(record);
+
+            Assert.Null(record.PackageKey);
+            Assert.Null(record.PackageDeleteKey);
+            Assert.Null(record.AdminInitiated);
+            Assert.Null(json["PackageKey"]);
+            Assert.Null(json["PackageDeleteKey"]);
+            Assert.Null(json["AdminInitiated"]);
         }
 
         [Fact]
