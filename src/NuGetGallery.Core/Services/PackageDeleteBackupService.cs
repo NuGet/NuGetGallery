@@ -69,6 +69,12 @@ namespace NuGetGallery
             }
         }
 
+        public Task DeleteAsync(int packageDeleteKey, int packageKey)
+        {
+            return _storage.DeleteFileAsync(CoreConstants.Folders.PackageDeleteBackupsFolderName,
+                GetBlobName(packageDeleteKey, packageKey));
+        }
+
         private static void ValidateBackup(PackageDeleteBackup backup)
         {
             Require(backup.SchemaVersion == PackageDeleteBackup.CurrentSchemaVersion, "Unsupported deletion backup schema.");

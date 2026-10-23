@@ -648,8 +648,9 @@ namespace NuGetGallery
                 package.NormalizedVersion = NormalizedVersion;
                 package.Hash = "NzMzMS1QNENLNEczSDQ1SA=="; // This hash should not be used.
 
-                await service.StorePackageFileInBackupLocationAsync(package, CreatePackageFileStream());
+                var hash = await service.StorePackageFileInBackupLocationAsync(package, CreatePackageFileStream());
 
+                Assert.Equal(PackageHash, hash);
                 Assert.Equal($"nuget.versioning/4.3.0-beta/{HttpServerUtility.UrlTokenEncode(Convert.FromBase64String(PackageHash))}..nupkg", path);
             }
 
@@ -706,7 +707,7 @@ namespace NuGetGallery
             public async Task WillNotUploadThePackageIfItAlreadyExists()
             {
                 var fileStorageSvc = new Mock<ICoreFileStorageService>();
-                var fakeStream = new MemoryStream();
+                var fakeStream = CreatePackageFileStream();
                 var service = CreateService(fileStorageService: fileStorageSvc);
                 fileStorageSvc
                     .Setup(x => x.FileExistsAsync(It.IsAny<string>(), It.IsAny<string>()))
@@ -714,8 +715,9 @@ namespace NuGetGallery
 
                 var package = CreatePackage();
 
-                await service.StorePackageFileInBackupLocationAsync(package, fakeStream);
+                var hash = await service.StorePackageFileInBackupLocationAsync(package, fakeStream);
 
+                Assert.Equal(PackageHash, hash);
                 fileStorageSvc.Verify(
                     x => x.SaveFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Stream>(), It.IsAny<bool>()),
                     Times.Never);
@@ -725,7 +727,7 @@ namespace NuGetGallery
             public async Task WillSwallowFileAlreadyExistsException()
             {
                 var fileStorageSvc = new Mock<ICoreFileStorageService>();
-                var fakeStream = new MemoryStream();
+                var fakeStream = CreatePackageFileStream();
                 var service = CreateService(fileStorageService: fileStorageSvc);
                 fileStorageSvc
                     .Setup(x => x.SaveFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Stream>(), It.IsAny<bool>()))
@@ -733,8 +735,9 @@ namespace NuGetGallery
 
                 var package = CreatePackage();
 
-                await service.StorePackageFileInBackupLocationAsync(package, fakeStream);
+                var hash = await service.StorePackageFileInBackupLocationAsync(package, fakeStream);
 
+                Assert.Equal(PackageHash, hash);
                 fileStorageSvc.Verify(
                     x => x.SaveFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Stream>(), It.IsAny<bool>()),
                     Times.Once);
