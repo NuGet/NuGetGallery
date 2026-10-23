@@ -557,6 +557,26 @@ namespace NuGetGallery
         }
 
         [Fact]
+        public async Task RedisplaysCreateGroupFormAtOwnerLimit()
+        {
+            var owner = new User("owner") { Key = 1 };
+            GetMock<IPackageStagingAuthorizationService>().Setup(service => service.GetEnabledOwners(owner)).Returns(new[] { owner });
+            GetMock<IPackageStagingAuthorizationService>().Setup(service => service.GetEnabledOwner(owner, owner.Username)).Returns(owner);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(service => service.CreateStagingGroupAsync(owner, "release", "Release"))
+                .ReturnsAsync(CreateStagingGroupResult.GroupLimitExceeded());
+            var target = GetController<StagingController>();
+            target.SetCurrentUser(owner);
+            var model = new CreateStagingGroupViewModel { Owner = owner.Username, Id = "release", Name = "Release" };
+
+            var result = await target.CreateGroup(model);
+
+            Assert.Same(model, ResultAssert.IsView<CreateStagingGroupViewModel>(result));
+            Assert.Equal(new[] { owner.Username }, model.Owners);
+            Assert.Contains(target.ModelState[nameof(model.Owner)].Errors, error => error.ErrorMessage == StagingGroupLimitExceededException.LimitReachedMessage);
+        }
+
+        [Fact]
         public async Task RedisplaysInvalidCreateGroupForm()
         {
             var currentUser = new User("current") { Key = 1 };

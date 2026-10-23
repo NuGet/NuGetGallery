@@ -274,6 +274,14 @@ namespace NuGetGallery
             null, false, null, false, "Test.Package", false, false, false, StagedPackageStatus.Ready)]
         [InlineData(PackageStatus.Staged, true, StagedPackageStatus.Ready, true, false, HttpStatusCode.OK,
             null, false, StagedPackageStatus.Ready, true, "Test.Package", false, false, false, StagedPackageStatus.Ready)]
+        [InlineData(PackageStatus.Available, false, StagedPackageStatus.Ready, true, false, HttpStatusCode.Conflict,
+            "new", false, null, false, "Test.Package", false, false, false, StagedPackageStatus.Validating, true)]
+        [InlineData(PackageStatus.Available, false, StagedPackageStatus.Ready, true, false, HttpStatusCode.Created,
+            "release", false, null, false, "Test.Package", false, false, false, StagedPackageStatus.Validating, true)]
+        [InlineData(PackageStatus.Available, false, StagedPackageStatus.Ready, true, false, HttpStatusCode.Created,
+            null, false, null, false, "Test.Package", false, false, false, StagedPackageStatus.Validating, true)]
+        [InlineData(PackageStatus.Available, true, StagedPackageStatus.Ready, true, false, HttpStatusCode.Conflict,
+            "new", false, StagedPackageStatus.Ready, false, "Test.Package", true, false, false, StagedPackageStatus.Validating, true)]
         public async Task StagesSymbolsForAccessibleParent(
             PackageStatus parentStatus,
             bool hasStagedParent,
@@ -289,7 +297,8 @@ namespace NuGetGallery
             bool identical = false,
             bool expired = false,
             bool quotaReached = false,
-            StagedPackageStatus validationStatus = StagedPackageStatus.Validating)
+            StagedPackageStatus validationStatus = StagedPackageStatus.Validating,
+            bool groupLimitReached = false)
         {
             var currentUser = new User("uploader") { Key = 10 };
             var owner = new User("owner") { Key = 20, EmailAddress = "owner@example.test" };
@@ -387,9 +396,14 @@ namespace NuGetGallery
             var groupRepository = new Mock<IEntityRepository<StagingGroup>>();
             var quota = new Mock<IStagingQuotaService>();
             quota.Setup(service => service.EnsureCapacityAsync(owner)).Returns(Task.CompletedTask);
+            quota.Setup(service => service.EnsureGroupCapacityAsync(owner)).Returns(Task.CompletedTask);
             if (quotaReached)
             {
                 quota.Setup(service => service.EnsureCapacityAsync(owner)).ThrowsAsync(new StagingQuotaExceededException());
+            }
+            if (groupLimitReached)
+            {
+                quota.Setup(service => service.EnsureGroupCapacityAsync(owner)).ThrowsAsync(new StagingGroupLimitExceededException());
             }
             var messages = new Mock<IMessageService>();
             messages.Setup(service => service.SendMessageAsync(It.IsAny<IEmailBuilder>(), It.IsAny<bool>(), It.IsAny<bool>()))
@@ -429,6 +443,24 @@ namespace NuGetGallery
             }
 
             Assert.Equal(expectedStatus, result.StatusCode);
+            if (groupLimitReached)
+            {
+                quota.Verify(service => service.EnsureGroupCapacityAsync(owner), groupId == "new" ? Times.Once() : Times.Never());
+                if (expectedStatus == HttpStatusCode.Conflict)
+                {
+                    Assert.Equal(StagingGroupLimitExceededException.LimitReachedMessage, result.ErrorMessage);
+                    Assert.Null(attempt);
+                    Assert.False(committed);
+                    Assert.Null(identity.StagingGroup);
+                    groupRepository.Verify(service => service.InsertOnCommit(It.IsAny<StagingGroup>()), Times.Never);
+                    repository.Verify(service => service.CommitChangesAsync(), Times.Never);
+                    stagingBlobService.Verify(service => service.SaveSymbolPackageFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<System.IO.Stream>()), Times.Never);
+                    validationMessageEmitter.Verify(service => service.StartValidationAsync(It.IsAny<StagedSymbolPackage>()), Times.Never);
+                    messages.Verify(service => service.SendMessageAsync(It.IsAny<IEmailBuilder>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
+                    return;
+                }
+            }
+
             var stagingUrl = "https://gallery.test/account/staging/symbols/Test.Package/1.0.0/manage";
             messages.Verify(service => service.SendMessageAsync(
                 It.Is<StagedPackageUploadedMessage>(message => message.GetBody(EmailFormat.Markdown).Contains(stagingUrl)),

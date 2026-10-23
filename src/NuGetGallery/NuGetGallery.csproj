@@ -643,6 +643,7 @@
     <Compile Include="Services\StagingQuotaService.cs" />
     <Compile Include="Services\StagingQuotaUsage.cs" />
     <Compile Include="Services\StagingQuotaExceededException.cs" />
+    <Compile Include="Services\StagingGroupLimitExceededException.cs" />
     <Compile Include="Services\StagedSymbolPackageRevalidation.cs" />
     <Compile Include="ViewModels\CreateStagingGroupViewModel.cs" />
     <Compile Include="ViewModels\DeleteStagingGroupViewModel.cs" />

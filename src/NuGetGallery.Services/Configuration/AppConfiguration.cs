@@ -47,6 +47,13 @@ namespace NuGetGallery.Configuration
         public string StagingQuotaOwnerOverrides { get; set; } = "{}";
 
         /// <summary>
+        /// Gets or sets the number of retained staging groups allowed per owner, including empty groups.
+        /// </summary>
+        [DefaultValue(20)]
+        [Range(1, int.MaxValue)]
+        public int StagingGroupLimit { get; set; } = 20;
+
+        /// <summary>
         /// Gets a setting indicating if SSL is required for all operations once logged in.
         /// </summary>
         [DefaultValue(false)]

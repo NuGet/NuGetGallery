@@ -135,6 +135,11 @@ namespace NuGetGallery
                     return groupError;
                 }
 
+                if (group != null && group.Key == 0)
+                {
+                    await _quotaService.EnsureGroupCapacityAsync(target.Owner);
+                }
+
                 return await ProcessUploadAsync(currentUser, httpContext, upload, target, group, listed);
             }
             catch (Exception exception) when (IsInvalidPackage(exception))
@@ -148,6 +153,11 @@ namespace NuGetGallery
                 return PackageStagingResult.Error(HttpStatusCode.Conflict, exception.Message);
             }
             catch (StagingQuotaExceededException exception)
+            {
+                exception.Log();
+                return PackageStagingResult.Error(HttpStatusCode.Conflict, exception.Message);
+            }
+            catch (StagingGroupLimitExceededException exception)
             {
                 exception.Log();
                 return PackageStagingResult.Error(HttpStatusCode.Conflict, exception.Message);

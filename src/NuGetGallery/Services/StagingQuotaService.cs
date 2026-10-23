@@ -15,12 +15,13 @@ using NuGetGallery.Configuration;
 namespace NuGetGallery
 {
     /// <summary>
-    /// Checks owner-wide staging capacity without reserving slots or serializing concurrent uploads.
+    /// Checks owner-wide staging capacity without reserving slots or serializing concurrent creation.
     /// </summary>
     public class StagingQuotaService : IStagingQuotaService
     {
         private readonly IEntitiesContext _entities;
         private readonly int _defaultLimit;
+        private readonly int _groupLimit;
         private readonly Dictionary<string, int> _ownerLimits;
 
         public StagingQuotaService(IEntitiesContext entities, IAppConfiguration configuration)
@@ -36,8 +37,14 @@ namespace NuGetGallery
                 throw new InvalidOperationException("StagingQuotaLimit must be positive.");
             }
 
+            if (configuration.StagingGroupLimit < 1)
+            {
+                throw new InvalidOperationException("StagingGroupLimit must be positive.");
+            }
+
             _defaultLimit = configuration.StagingQuotaLimit;
             _ownerLimits = ReadOwnerLimits(configuration.StagingQuotaOwnerOverrides);
+            _groupLimit = configuration.StagingGroupLimit;
         }
 
         public StagingQuotaUsage GetUsage(User owner)
@@ -55,6 +62,16 @@ namespace NuGetGallery
             if (usage.UsedArtifacts >= usage.Limit)
             {
                 throw new StagingQuotaExceededException();
+            }
+        }
+
+        public async Task EnsureGroupCapacityAsync(User owner)
+        {
+            ValidateOwner(owner);
+            var count = await _entities.StagingGroups.AsNoTracking().CountAsync(group => group.OwnerKey == owner.Key);
+            if (count >= _groupLimit)
+            {
+                throw new StagingGroupLimitExceededException();
             }
         }
 

@@ -198,6 +198,11 @@ namespace NuGetGallery
                     return groupError;
                 }
 
+                if (group != null && group.Key == 0)
+                {
+                    await _quotaService.EnsureGroupCapacityAsync(owner);
+                }
+
                 if (PackageValidationHelper.HasDuplicatedEntries(archive))
                 {
                     return PackageStagingResult.Error(HttpStatusCode.BadRequest, Strings.UploadPackage_PackageContainsDuplicatedEntries);
@@ -332,6 +337,11 @@ namespace NuGetGallery
                 return PackageStagingResult.Error(HttpStatusCode.Conflict, exception.Message);
             }
             catch (StagingQuotaExceededException exception)
+            {
+                exception.Log();
+                return PackageStagingResult.Error(HttpStatusCode.Conflict, exception.Message);
+            }
+            catch (StagingGroupLimitExceededException exception)
             {
                 exception.Log();
                 return PackageStagingResult.Error(HttpStatusCode.Conflict, exception.Message);

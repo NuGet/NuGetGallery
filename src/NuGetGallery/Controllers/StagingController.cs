@@ -102,6 +102,10 @@ namespace NuGetGallery
                     ModelState.AddModelError(nameof(model.Id), "A staging group with this ID already exists.");
                     return View(model);
 
+                case CreateStagingGroupResultType.GroupLimitExceeded:
+                    ModelState.AddModelError(nameof(model.Owner), StagingGroupLimitExceededException.LimitReachedMessage);
+                    return View(model);
+
                 default:
                     throw new InvalidOperationException($"Unknown staging group creation result: {result.Type}.");
             }

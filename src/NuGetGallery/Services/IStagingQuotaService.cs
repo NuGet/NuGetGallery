@@ -7,12 +7,14 @@ using NuGet.Services.Entities;
 namespace NuGetGallery
 {
     /// <summary>
-    /// Reports owner staging usage and checks capacity for one additional private artifact.
+    /// Reports owner staging usage and checks capacity for additional private artifacts or groups.
     /// </summary>
     public interface IStagingQuotaService
     {
         StagingQuotaUsage GetUsage(User owner);
 
         Task EnsureCapacityAsync(User owner);
+
+        Task EnsureGroupCapacityAsync(User owner);
     }
 }

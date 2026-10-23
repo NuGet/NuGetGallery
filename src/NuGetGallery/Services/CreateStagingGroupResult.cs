@@ -50,6 +50,14 @@ namespace NuGetGallery
         {
             return new CreateStagingGroupResult(CreateStagingGroupResultType.GroupAlreadyExists, group: null);
         }
+
+        /// <summary>
+        /// Creates a result indicating that the owner cannot retain another staging group.
+        /// </summary>
+        public static CreateStagingGroupResult GroupLimitExceeded()
+        {
+            return new CreateStagingGroupResult(CreateStagingGroupResultType.GroupLimitExceeded, group: null);
+        }
     }
 
     /// <summary>
@@ -66,5 +74,10 @@ namespace NuGetGallery
         /// The group ID already exists for the owner.
         /// </summary>
         GroupAlreadyExists,
+
+        /// <summary>
+        /// The owner has reached the retained staging group limit.
+        /// </summary>
+        GroupLimitExceeded,
     }
 }

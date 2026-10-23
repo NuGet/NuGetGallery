@@ -30,7 +30,10 @@ namespace NuGetGallery
             [InlineData(StagedPackageStatus.Ready, true, false)]
             [InlineData(StagedPackageStatus.Validating, true, true)]
             [InlineData(StagedPackageStatus.Validating, false, false, true)]
-            public async Task StagesPackage(StagedPackageStatus expectedStatus, bool assignGroup, bool createGroup, bool quotaReached = false)
+            [InlineData(StagedPackageStatus.Validating, true, true, false, true)]
+            [InlineData(StagedPackageStatus.Validating, true, false, false, true)]
+            [InlineData(StagedPackageStatus.Validating, false, false, false, true)]
+            public async Task StagesPackage(StagedPackageStatus expectedStatus, bool assignGroup, bool createGroup, bool quotaReached = false, bool groupLimitReached = false)
             {
                 var currentUser = new User { Key = 17 };
                 var owner = new User { Key = 23, EmailAddress = "owner@example.com" };
@@ -167,9 +170,14 @@ namespace NuGetGallery
 
                 var quota = new Mock<IStagingQuotaService>();
                 quota.Setup(service => service.EnsureCapacityAsync(owner)).Returns(Task.CompletedTask);
+                quota.Setup(service => service.EnsureGroupCapacityAsync(owner)).Returns(Task.CompletedTask);
                 if (quotaReached)
                 {
                     quota.Setup(service => service.EnsureCapacityAsync(owner)).ThrowsAsync(new StagingQuotaExceededException());
+                }
+                if (groupLimitReached)
+                {
+                    quota.Setup(service => service.EnsureGroupCapacityAsync(owner)).ThrowsAsync(new StagingGroupLimitExceededException());
                 }
 
                 var messages = new Mock<IMessageService>();
@@ -203,6 +211,21 @@ namespace NuGetGallery
                         packageFile,
                         assignGroup ? "release" : null,
                         listed: false);
+
+                    quota.Verify(service => service.EnsureGroupCapacityAsync(owner), assignGroup && createGroup ? Times.Once() : Times.Never());
+                    if (groupLimitReached && createGroup)
+                    {
+                        Assert.Equal(HttpStatusCode.Conflict, result.StatusCode);
+                        Assert.Equal(StagingGroupLimitExceededException.LimitReachedMessage, result.ErrorMessage);
+                        Assert.Null(stagedPackage);
+                        Assert.Null(createdGroup);
+                        Assert.Empty(operations);
+                        packageUploadService.VerifyNoOtherCalls();
+                        stagingFiles.Verify(service => service.SavePackageFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Stream>()), Times.Never);
+                        stagedValidationMessageEmitter.Verify(service => service.StartValidationAsync(It.IsAny<StagedPackage>()), Times.Never);
+                        messages.Verify(service => service.SendMessageAsync(It.IsAny<IEmailBuilder>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
+                        return;
+                    }
 
                     quota.Verify(service => service.EnsureCapacityAsync(owner), Times.Once);
                     var stagingUrl = "https://gallery.test/account/staging/package/PackageA/1.0.0/manage";

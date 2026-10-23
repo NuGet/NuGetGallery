@@ -412,6 +412,22 @@ namespace NuGetGallery
             AssertError(target, result, HttpStatusCode.Conflict, "GroupAlreadyExists", "id");
         }
 
+        [Fact]
+        public async Task RejectsGroupCreationAtOwnerLimit()
+        {
+            var currentUser = new User("current") { Key = 1 };
+            var owner = new User("example-org") { Key = 2 };
+            var target = GetController<StagingApiController>();
+            ConfigureCreateGroupRequest(target, currentUser, owner);
+            GetMock<IPackageStagingManagementService>()
+                .Setup(service => service.CreateStagingGroupAsync(owner, "release", "Release"))
+                .ReturnsAsync(CreateStagingGroupResult.GroupLimitExceeded());
+
+            var result = await target.CreateStagingGroup(new CreateStagingGroupRequest { Id = "release", Name = "Release" });
+
+            AssertError(target, result, HttpStatusCode.Conflict, "GroupLimitExceeded");
+        }
+
         [Theory]
         [InlineData(false)]
         [InlineData(true)]

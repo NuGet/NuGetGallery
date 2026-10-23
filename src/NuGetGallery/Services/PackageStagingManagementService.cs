@@ -24,6 +24,7 @@ namespace NuGetGallery
         private readonly IEntityRepository<StagedSymbolPackage> _stagedSymbolPackageRepository;
         private readonly IAppConfiguration _configuration;
         private readonly StagingDeletionService _deletionService;
+        private readonly IStagingQuotaService _quotaService;
 
         public PackageStagingManagementService(
             IPackageStagingAuthorizationService packageStagingAuthorizationService,
@@ -33,7 +34,8 @@ namespace NuGetGallery
             IStagingBlobService stagingBlobService,
             IEntityRepository<StagedSymbolPackage> stagedSymbolPackageRepository,
             StagingDeletionService deletionService,
-            IAppConfiguration configuration)
+            IAppConfiguration configuration,
+            IStagingQuotaService quotaService)
         {
             _packageStagingAuthorizationService = packageStagingAuthorizationService ?? throw new ArgumentNullException(nameof(packageStagingAuthorizationService));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
@@ -43,6 +45,7 @@ namespace NuGetGallery
             _stagedSymbolPackageRepository = stagedSymbolPackageRepository ?? throw new ArgumentNullException(nameof(stagedSymbolPackageRepository));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _deletionService = deletionService ?? throw new ArgumentNullException(nameof(deletionService));
+            _quotaService = quotaService ?? throw new ArgumentNullException(nameof(quotaService));
         }
 
         public PackageStagingStatus GetPackageStatus(User currentUser, IEnumerable<Scope> scopes, string id, string version)
@@ -333,6 +336,21 @@ namespace NuGetGallery
             if (string.IsNullOrWhiteSpace(groupId))
             {
                 throw new ArgumentException(CoreStrings.PackageIsMissingRequiredData, nameof(groupId));
+            }
+
+            if (FindStagingGroup(stagingOwner, groupId) != null)
+            {
+                return CreateStagingGroupResult.GroupAlreadyExists();
+            }
+
+            try
+            {
+                await _quotaService.EnsureGroupCapacityAsync(stagingOwner);
+            }
+            catch (StagingGroupLimitExceededException exception)
+            {
+                exception.Log();
+                return CreateStagingGroupResult.GroupLimitExceeded();
             }
 
             var group = new StagingGroup

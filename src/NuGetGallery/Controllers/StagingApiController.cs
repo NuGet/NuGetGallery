@@ -94,6 +94,8 @@ namespace NuGetGallery
                     return Content(JsonConvert.SerializeObject(response), JsonContentType);
                 case CreateStagingGroupResultType.GroupAlreadyExists:
                     return Error(HttpStatusCode.Conflict, "GroupAlreadyExists", $"A staging group with the ID '{request.Id}' already exists.", "id");
+                case CreateStagingGroupResultType.GroupLimitExceeded:
+                    return Error(HttpStatusCode.Conflict, "GroupLimitExceeded", StagingGroupLimitExceededException.LimitReachedMessage);
                 default:
                     throw new NotImplementedException($"Unexpected staging group creation result: {result.Type}");
             }

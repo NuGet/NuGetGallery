@@ -383,6 +383,39 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task RejectsNewGroupAtOwnerLimitWithoutSaving()
+            {
+                var owner = new User("owner") { Key = 1 };
+                var quota = new Mock<IStagingQuotaService>();
+                quota.Setup(service => service.EnsureGroupCapacityAsync(owner)).ThrowsAsync(new StagingGroupLimitExceededException());
+                var repository = new Mock<IEntityRepository<StagingGroup>>();
+                var target = CreateService(Array.Empty<StagedPackage>(), user => true, stagingGroupRepository: repository, quotaService: quota.Object);
+
+                var result = await target.CreateStagingGroupAsync(owner, "release", "Release");
+
+                Assert.Equal(CreateStagingGroupResultType.GroupLimitExceeded, result.Type);
+                Assert.Null(result.Group);
+                quota.Verify(service => service.EnsureGroupCapacityAsync(owner), Times.Once);
+                repository.Verify(service => service.InsertOnCommit(It.IsAny<StagingGroup>()), Times.Never);
+                repository.Verify(service => service.CommitChangesAsync(), Times.Never);
+            }
+
+            [Fact]
+            public async Task KeepsDuplicateGroupResultAtOwnerLimit()
+            {
+                var owner = new User("owner") { Key = 1 };
+                var existing = CreateStagingGroup(10, "release", "Release", owner);
+                var quota = new Mock<IStagingQuotaService>(MockBehavior.Strict);
+                var target = CreateService(Array.Empty<StagedPackage>(), user => true, stagingGroups: new[] { existing }, quotaService: quota.Object);
+
+                var result = await target.CreateStagingGroupAsync(owner, "RELEASE", "Other name");
+
+                Assert.Equal(CreateStagingGroupResultType.GroupAlreadyExists, result.Type);
+                Assert.Equal("Release", existing.Name);
+                quota.VerifyNoOtherCalls();
+            }
+
+            [Fact]
             public async Task RenamesAnOwnerGroupWithoutChangingItsIdentity()
             {
                 var currentUser = new User("current") { Key = 1 };
@@ -2037,7 +2070,8 @@ namespace NuGetGallery
                 Mock<IEntityRepository<StagedPackageIdentity>> identityRepository = null,
                 Mock<IEntityRepository<SymbolPackage>> symbolRepository = null,
                 IStagingBlobCleanupService blobCleanup = null,
-                Configuration.IAppConfiguration configuration = null)
+                Configuration.IAppConfiguration configuration = null,
+                IStagingQuotaService quotaService = null)
             {
                 var stagedPackagesList = stagedPackages.ToList();
                 var stagedPackagesQuery = stagedPackagesList.AsQueryable();
@@ -2112,7 +2146,8 @@ namespace NuGetGallery
                     stagingBlobService ?? Mock.Of<IStagingBlobService>(),
                     stagedSymbolRepository.Object,
                     deletion,
-                    configuration ?? new Configuration.AppConfiguration());
+                    configuration ?? new Configuration.AppConfiguration(),
+                    quotaService ?? Mock.Of<IStagingQuotaService>());
             }
 
             private static StagingGroup CreateStagingGroup(int key, string id, string name, User owner)

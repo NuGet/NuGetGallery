@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
@@ -119,7 +120,54 @@ namespace NuGetGallery
             Assert.Throws<InvalidOperationException>(() => CreateService(new List<StagedPackage>(), new List<StagedSymbolPackage>(), configuration));
         }
 
-        private static StagingQuotaService CreateService(List<StagedPackage> packages, List<StagedSymbolPackage> symbols, AppConfiguration configuration)
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task LimitsEachOwnerToTwentyRetainedGroupsIncludingEmptyAndExpiredGroups(bool organization)
+        {
+            User owner;
+            if (organization)
+            {
+                owner = new Organization("dotnetframework") { Key = 1 };
+            }
+            else
+            {
+                owner = new User("owner") { Key = 1 };
+            }
+
+            var groups = Enumerable.Range(1, 19)
+                .Select(key => new StagingGroup { Key = key, OwnerKey = owner.Key, ExpirationDate = DateTime.UtcNow.AddDays(-1) })
+                .ToList();
+            groups.Add(new StagingGroup { Key = 100, OwnerKey = 2 });
+            var configuration = new AppConfiguration { StagingQuotaOwnerOverrides = "{\"dotnetframework\":10000}" };
+            var service = CreateService(new List<StagedPackage>(), new List<StagedSymbolPackage>(), configuration, groups);
+
+            await service.EnsureGroupCapacityAsync(owner);
+
+            groups.Add(new StagingGroup { Key = 20, OwnerKey = owner.Key, ActivePromotionId = Guid.NewGuid() });
+            await Assert.ThrowsAsync<StagingGroupLimitExceededException>(() => service.EnsureGroupCapacityAsync(owner));
+            groups.Add(new StagingGroup { Key = 21, OwnerKey = owner.Key });
+            await Assert.ThrowsAsync<StagingGroupLimitExceededException>(() => service.EnsureGroupCapacityAsync(owner));
+
+            groups.RemoveAll(group => group.Key == 20 || group.Key == 21);
+            await service.EnsureGroupCapacityAsync(owner);
+        }
+
+        [Fact]
+        public async Task UsesConfiguredGroupLimitIndependentlyOfArtifactLimit()
+        {
+            var owner = new User("owner") { Key = 1 };
+            var groups = new List<StagingGroup> { new StagingGroup { Key = 1, OwnerKey = owner.Key } };
+            var configuration = new AppConfiguration { StagingGroupLimit = 2, StagingQuotaLimit = 1 };
+            var service = CreateService(new List<StagedPackage>(), new List<StagedSymbolPackage>(), configuration, groups);
+
+            await service.EnsureGroupCapacityAsync(owner);
+            groups.Add(new StagingGroup { Key = 2, OwnerKey = owner.Key });
+            await Assert.ThrowsAsync<StagingGroupLimitExceededException>(() => service.EnsureGroupCapacityAsync(owner));
+            await service.EnsureCapacityAsync(owner);
+        }
+
+        private static StagingQuotaService CreateService(List<StagedPackage> packages, List<StagedSymbolPackage> symbols, AppConfiguration configuration, List<StagingGroup> groups = null)
         {
             var packageSet = new Mock<DbSet<StagedPackage>>().SetupDbSet(packages);
             packageSet.Setup(set => set.AsNoTracking()).Returns(packageSet.Object);
@@ -128,6 +176,9 @@ namespace NuGetGallery
             var entities = new Mock<IEntitiesContext>();
             entities.Setup(context => context.StagedPackages).Returns(packageSet.Object);
             entities.Setup(context => context.StagedSymbolPackages).Returns(symbolSet.Object);
+            var groupSet = new Mock<DbSet<StagingGroup>>().SetupDbSet(groups ?? new List<StagingGroup>());
+            groupSet.Setup(set => set.AsNoTracking()).Returns(groupSet.Object);
+            entities.Setup(context => context.StagingGroups).Returns(groupSet.Object);
             return new StagingQuotaService(entities.Object, configuration);
         }
 
