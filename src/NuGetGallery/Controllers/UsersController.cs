@@ -12,6 +12,7 @@ using System.Web;
 using System.Web.Mvc;
 using NuGet.Services.Entities;
 using NuGet.Services.Messaging.Email;
+using NuGet.Services.Validation.Issues;
 using NuGet.Versioning;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.ViewModels;
@@ -39,6 +40,8 @@ namespace NuGetGallery
         private readonly IFeatureFlagService _featureFlagService;
         private readonly IPackageVulnerabilitiesService _packageVulnerabilitiesService;
         private readonly IFederatedCredentialService _federatedCredentialService;
+        private readonly IPackageStagingManagementService _packageStagingManagementService;
+        private readonly ISymbolPackageStagingManagementService _symbolPackageStagingManagementService;
 
         public UsersController(
             IUserService userService,
@@ -61,7 +64,9 @@ namespace NuGetGallery
             IGravatarProxyService gravatarProxy,
             IPackageFrameworkCompatibilityFactory frameworkCompatibilityFactory,
             IFederatedCredentialService federatedCredentialService,
-            IFederatedCredentialRepository federatedCredentialRepository)
+            IFederatedCredentialRepository federatedCredentialRepository,
+            IPackageStagingManagementService packageStagingManagementService,
+            ISymbolPackageStagingManagementService symbolPackageStagingManagementService)
             : base(
                   authService,
                   packageService,
@@ -85,6 +90,8 @@ namespace NuGetGallery
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _packageVulnerabilitiesService = packageVulnerabilitiesService ?? throw new ArgumentNullException(nameof(packageVulnerabilitiesService));
             _federatedCredentialService = federatedCredentialService ?? throw new ArgumentNullException(nameof(federatedCredentialService));
+            _packageStagingManagementService = packageStagingManagementService ?? throw new ArgumentNullException(nameof(packageStagingManagementService));
+            _symbolPackageStagingManagementService = symbolPackageStagingManagementService ?? throw new ArgumentNullException(nameof(symbolPackageStagingManagementService));
 
             _listPackageItemRequiredSignerViewModelFactory = new ListPackageItemRequiredSignerViewModelFactory(
                 securityPolicyService, iconUrlProvider, packageVulnerabilitiesService, frameworkCompatibilityFactory, featureFlagService);
@@ -135,7 +142,26 @@ namespace NuGetGallery
 
         protected override DeleteAccountViewModel GetDeleteAccountViewModel(User account)
         {
-            return new DeleteUserViewModel(account, PackageService, GetOwnedPackagesViewModels(account), _supportRequestService);
+            var model = new DeleteUserViewModel(account, PackageService, GetOwnedPackagesViewModels(account), _supportRequestService);
+            model.IsPackageStagingEnabled = FeatureFlagService.IsPackageStagingEnabled(account);
+
+            foreach (var membership in account.Organizations)
+            {
+                var organization = membership.Organization;
+                var hasOtherMembers = organization.Members.Any(member => !member.Member.MatchesUser(account));
+                if (hasOtherMembers)
+                {
+                    continue;
+                }
+
+                if (FeatureFlagService.IsPackageStagingEnabled(organization))
+                {
+                    model.HasStagingEnabledOrganizationsToDelete = true;
+                    break;
+                }
+            }
+
+            return model;
         }
 
         [HttpGet]
@@ -499,7 +525,7 @@ namespace NuGetGallery
             {
                 ApiKeys = apiKeys,
                 ExpirationInDaysForApiKeyV1 = _config.ExpirationInDaysForApiKeyV1,
-                PackageOwners = owners.Where(o => o.CanPushNew || o.CanPushExisting || o.CanUnlist).ToList(),
+                PackageOwners = owners.Where(o => o.CanPushNew || o.CanPushExisting || o.CanUnlist || o.CanStage).ToList(),
                 IsDeprecationApiEnabled = IsDeprecateApiEnabled(currentUser),
                 IsApiKeyExpirationRestricted = _featureFlagService.IsApiKeyExpirationRestricted(),
                 IsApiKeyReductionDateEnabled = isApiKeyReductionDateEnabled,
@@ -512,9 +538,10 @@ namespace NuGetGallery
         {
             return new ApiKeyOwnerViewModel(
                 account.Username,
-                ActionsRequiringPermissions.UploadNewPackageId.IsAllowedOnBehalfOfAccount(currentUser, account),
-                ActionsRequiringPermissions.UploadNewPackageVersion.IsAllowedOnBehalfOfAccount(currentUser, account),
-                ActionsRequiringPermissions.UnlistOrRelistPackage.IsAllowedOnBehalfOfAccount(currentUser, account),
+                canPushNew: ActionsRequiringPermissions.UploadNewPackageId.IsAllowedOnBehalfOfAccount(currentUser, account),
+                canPushExisting: ActionsRequiringPermissions.UploadNewPackageVersion.IsAllowedOnBehalfOfAccount(currentUser, account),
+                canUnlist: ActionsRequiringPermissions.UnlistOrRelistPackage.IsAllowedOnBehalfOfAccount(currentUser, account),
+                canStage: ActionsRequiringPermissions.ManageStagedPackage.IsAllowedOnBehalfOfAccount(currentUser, account),
                 packageIds: PackageService.FindPackageRegistrationsByOwner(account)
                                 .Select(p => p.Id)
                                 .OrderBy(i => i)
@@ -543,7 +570,13 @@ namespace NuGetGallery
                     Username = "All packages"
                 },
                 new ListPackageOwnerViewModel(currentUser)
-            }.Concat(currentUser.Organizations.Select(o => new ListPackageOwnerViewModel(o.Organization)));
+                {
+                    IsPackageStagingEnabled = _featureFlagService.IsPackageStagingEnabled(currentUser)
+                }
+            }.Concat(currentUser.Organizations.Select(o => new ListPackageOwnerViewModel(o.Organization)
+            {
+                IsPackageStagingEnabled = _featureFlagService.IsPackageStagingEnabled(o.Organization)
+            }));
 
             var wasAADLoginOrMultiFactorAuthenticated = User.WasMultiFactorAuthenticated() || User.WasAzureActiveDirectoryAccountUsedForSignin();
 
@@ -553,7 +586,7 @@ namespace NuGetGallery
                 p => p.Listed && p.PackageStatusKey == PackageStatus.Available);
 
             var unlistedPackages = GetPackages(packages, currentUser, wasAADLoginOrMultiFactorAuthenticated,
-                p => !p.Listed || p.PackageStatusKey != PackageStatus.Available);
+                p => p.PackageStatusKey != PackageStatus.Staged && (!p.Listed || p.PackageStatusKey != PackageStatus.Available));
 
             // find all received ownership requests
             var userReceived = _packageOwnerRequestService.GetPackageOwnershipRequests(newOwner: currentUser);
@@ -576,6 +609,66 @@ namespace NuGetGallery
 
             var reservedPrefixes = new ReservedNamespaceListViewModel(userReservedNamespaces.Union(organizationsReservedNamespaces).ToArray());
 
+            var isPackageStagingEnabled = _packageStagingManagementService.IsEnabled(currentUser);
+            var stagingGroups = new List<StagingGroupViewModel>();
+            if (isPackageStagingEnabled)
+            {
+                var stagedPackageEntities = _packageStagingManagementService.GetStagedPackages(currentUser).ToList();
+                var stagedSymbols = _symbolPackageStagingManagementService.GetStagedSymbolPackages(currentUser);
+                var ungroupedSymbols = stagedSymbols.Where(attempt => !attempt.StagedPackageIdentity.StagingGroupKey.HasValue).ToList();
+                var symbolsByGroup = stagedSymbols.Where(attempt => attempt.StagedPackageIdentity.StagingGroupKey.HasValue)
+                    .ToLookup(attempt => attempt.StagedPackageIdentity.StagingGroupKey.Value);
+                var stagedPackagesByGroupKey = stagedPackageEntities
+                    .Where(stagedPackage => stagedPackage.StagedPackageIdentity.StagingGroupKey.HasValue)
+                    .GroupBy(stagedPackage => stagedPackage.StagedPackageIdentity.StagingGroupKey.Value)
+                    .ToDictionary(group => group.Key, group => group.ToList());
+
+                stagingGroups = _packageStagingManagementService.GetStagingGroups(currentUser)
+                    .Select(group =>
+                    {
+                        stagedPackagesByGroupKey.TryGetValue(group.Key, out var groupPackages);
+                        return CreateStagingGroupViewModel(
+                            group.Owner.Username,
+                            group.Id,
+                            group.Name,
+                            group.CreatedDate,
+                            groupPackages ?? [],
+                            isUngrouped: false,
+                            url: Url.ManageStagingGroup(group.Owner.Username, group.Id),
+                            symbols: symbolsByGroup[group.Key].ToList(),
+                            group: group);
+                    })
+                    .Concat(stagedPackageEntities
+                        .Where(stagedPackage => !stagedPackage.StagedPackageIdentity.StagingGroupKey.HasValue)
+                        .Select(stagedPackage => stagedPackage.StagedPackageIdentity.Owner)
+                        .Concat(ungroupedSymbols.Select(attempt => attempt.StagedPackageIdentity.Owner))
+                        .GroupBy(owner => owner.Key)
+                        .Select(owners => owners.First())
+                        .Select(owner =>
+                        {
+                            var ownerPackages = stagedPackageEntities
+                                .Where(attempt => attempt.StagedPackageIdentity.OwnerKey == owner.Key && !attempt.StagedPackageIdentity.StagingGroupKey.HasValue)
+                                .ToList();
+                            var ownerSymbols = ungroupedSymbols
+                                .Where(attempt => attempt.StagedPackageIdentity.OwnerKey == owner.Key)
+                                .ToList();
+
+                            return CreateStagingGroupViewModel(
+                                owner.Username,
+                                id: null,
+                                name: "Ungrouped",
+                                createdDate: null,
+                                packages: ownerPackages,
+                                isUngrouped: true,
+                                url: Url.ManageUngroupedStaging(owner.Username),
+                                symbols: ownerSymbols);
+                        }))
+                    .OrderBy(group => group.Owner)
+                    .ThenByDescending(group => group.IsUngrouped)
+                    .ThenBy(group => group.Name)
+                    .ToList();
+            }
+
             var model = new ManagePackagesViewModel
             {
                 User = currentUser,
@@ -586,10 +679,109 @@ namespace NuGetGallery
                 ReservedNamespaces = reservedPrefixes,
                 WasMultiFactorAuthenticated = User.WasMultiFactorAuthenticated(),
                 IsCertificatesUIEnabled = ContentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false,
-                IsManagePackagesVulnerabilitiesEnabled = _featureFlagService.IsManagePackagesVulnerabilitiesEnabled()
+                IsManagePackagesVulnerabilitiesEnabled = _featureFlagService.IsManagePackagesVulnerabilitiesEnabled(),
+                IsPackageStagingEnabled = isPackageStagingEnabled,
+                StagingGroups = stagingGroups,
             };
 
             return View(model);
+        }
+
+        private static StagingGroupViewModel CreateStagingGroupViewModel(
+            string owner,
+            string id,
+            string name,
+            DateTime? createdDate,
+            IReadOnlyList<StagedPackage> packages,
+            bool isUngrouped,
+            string url = null,
+            IReadOnlyList<StagedSymbolPackage> symbols = null,
+            StagingGroup group = null)
+        {
+            var statuses = packages.Select(package => package.Status).ToList();
+            if (symbols != null)
+            {
+                statuses.AddRange(symbols.Select(symbol => symbol.Status));
+            }
+
+            var validatingCount = statuses.Count(status => status == StagedPackageStatus.Validating);
+            var waitingForParentCount = statuses.Count(status => status == StagedPackageStatus.WaitingForParent);
+            var readyCount = statuses.Count(status => status == StagedPackageStatus.Ready);
+            var failedValidationCount = statuses.Count(status => status == StagedPackageStatus.FailedValidation);
+            var status = "Not ready";
+            var statusClass = "label-warning";
+            if (failedValidationCount > 0)
+            {
+                status = "Validation failed";
+                statusClass = "staging-status-failedvalidation";
+            }
+            else if (validatingCount > 0)
+            {
+                status = "Validating";
+                statusClass = "staging-status-validating";
+            }
+            else if (waitingForParentCount > 0)
+            {
+                status = "Waiting for parent";
+            }
+            else if (statuses.Count == 0)
+            {
+                status = "Empty";
+                statusClass = "label-default";
+            }
+            else if (readyCount == statuses.Count)
+            {
+                status = "Ready";
+                statusClass = "staging-status-ready";
+            }
+
+            if (StagingExpirationPolicy.HasExpired(group))
+            {
+                status = "Expired - awaiting cleanup";
+                statusClass = "label-warning";
+            }
+            else if (group == null && (packages.Any(StagingExpirationPolicy.HasExpired) || (symbols != null && symbols.Any(StagingExpirationPolicy.HasExpired))))
+            {
+                status = "Contains expired staging";
+                statusClass = "label-warning";
+            }
+
+            return new StagingGroupViewModel
+            {
+                Owner = owner,
+                Id = id,
+                Name = name,
+                Description = isUngrouped ? "Staged packages not in any group" : null,
+                Url = url,
+                CreatedDate = createdDate,
+                IsUngrouped = isUngrouped,
+                PackageCount = statuses.Count,
+                PackageStatusSummary = GetStagingGroupPackageStatusSummary(
+                    validatingCount,
+                    readyCount,
+                    failedValidationCount,
+                    waitingForParentCount),
+                Status = isUngrouped ? null : status,
+                StatusClass = isUngrouped ? null : statusClass,
+            };
+        }
+
+        private static string GetStagingGroupPackageStatusSummary(int validatingCount, int readyCount, int failedValidationCount, int waitingForParentCount)
+        {
+            var statuses = new[]
+            {
+                FormatStagingGroupPackageStatus(readyCount, "ready"),
+                FormatStagingGroupPackageStatus(validatingCount, "validating"),
+                FormatStagingGroupPackageStatus(failedValidationCount, "failed"),
+                FormatStagingGroupPackageStatus(waitingForParentCount, "waiting for parent"),
+            };
+
+            return string.Join(", ", statuses.Where(status => status != null));
+        }
+
+        private static string FormatStagingGroupPackageStatus(int count, string status)
+        {
+            return count == 0 ? null : $"{count} {status}";
         }
 
         /// <summary>
@@ -1112,9 +1304,10 @@ namespace NuGetGallery
         {
             return new TrustedPublisherPolicyOwnerViewModel(
                 packageOwner.Username,
-                ActionsRequiringPermissions.UploadNewPackageId.IsAllowedOnBehalfOfAccount(currentUser, packageOwner),
-                ActionsRequiringPermissions.UploadNewPackageVersion.IsAllowedOnBehalfOfAccount(currentUser, packageOwner),
-                ActionsRequiringPermissions.UnlistOrRelistPackage.IsAllowedOnBehalfOfAccount(currentUser, packageOwner));
+                canPushNew: ActionsRequiringPermissions.UploadNewPackageId.IsAllowedOnBehalfOfAccount(currentUser, packageOwner),
+                canPushExisting: ActionsRequiringPermissions.UploadNewPackageVersion.IsAllowedOnBehalfOfAccount(currentUser, packageOwner),
+                canUnlist: ActionsRequiringPermissions.UnlistOrRelistPackage.IsAllowedOnBehalfOfAccount(currentUser, packageOwner),
+                canStage: ActionsRequiringPermissions.ManageStagedPackage.IsAllowedOnBehalfOfAccount(currentUser, packageOwner));
         }
 
         private bool IsDeprecateApiEnabled(User currentUser)

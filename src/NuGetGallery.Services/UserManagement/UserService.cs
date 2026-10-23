@@ -322,7 +322,7 @@ namespace NuGetGallery
                 .SingleOrDefault();
         }
 
-        public async Task ChangeEmailSubscriptionAsync(User user, bool emailAllowed, bool notifyPackagePushed)
+        public async Task ChangeEmailSubscriptionAsync(User user, bool emailAllowed, bool notifyPackagePushed, bool notifyPackageStaged)
         {
             if (user == null)
             {
@@ -331,6 +331,7 @@ namespace NuGetGallery
 
             user.EmailAllowed = emailAllowed;
             user.NotifyPackagePushed = notifyPackagePushed;
+            user.NotifyPackageStaged = notifyPackageStaged;
             await UserRepository.CommitChangesAsync();
         }
 
@@ -595,6 +596,7 @@ namespace NuGetGallery
                 UnconfirmedEmailAddress = emailAddress,
                 EmailConfirmationToken = Crypto.GenerateToken(),
                 NotifyPackagePushed = true,
+                NotifyPackageStaged = true,
                 CreatedUtc = DateTimeProvider.UtcNow,
                 Members = new List<Membership>()
             };

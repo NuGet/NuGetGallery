@@ -1,0 +1,441 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
+using System.Data.Entity;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using NuGet.Services.Entities;
+using NuGet.Services.ServiceBus;
+using NuGet.Services.Staging;
+using NuGetGallery;
+using NuGetGallery.Packaging;
+
+namespace NuGet.Services.Staging.Promotion
+{
+    /// <summary>
+    /// Publishes validated staged package content and completes the corresponding Gallery state transition.
+    /// </summary>
+    public class StagedPackagePromotionMessageHandler : IStagingPromotionMessageHandler<StagedPackage>
+    {
+        private readonly IEntityRepository<StagedPackage> _stagedPackageRepository;
+        private readonly IEntityRepository<StagedPackageIdentity> _stagedPackageIdentityRepository;
+        private readonly IStagingGroupPromotionService _stagingGroupPromotionService;
+        private readonly IStagingPromotionMessageEnqueuer _messageEnqueuer;
+        private readonly ICorePackageService _packageService;
+        private readonly IStagingBlobService _stagingBlobService;
+        private readonly ICoreFileStorageService _packageFileStorageService;
+        private readonly IFileMetadataService _packageFileMetadataService;
+        private readonly ICoreLicenseFileService _licenseFileService;
+        private readonly ICoreReadmeFileService _readmeFileService;
+        private readonly IStagingBlobCleanupService _blobCleanup;
+        private readonly IStagingPromotionNotificationService _notifications;
+        private readonly IStagingPromotionLease _lease;
+        private readonly ILogger<StagedPackagePromotionMessageHandler> _logger;
+        private readonly NuGet.Services.Logging.ITelemetryClient _telemetryClient;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StagedPackagePromotionMessageHandler"/> class.
+        /// </summary>
+        /// <param name="stagedPackageRepository">The staged package repository.</param>
+        /// <param name="stagedPackageIdentityRepository">The staging identity repository.</param>
+        /// <param name="stagingGroupPromotionService">The staging group promotion service.</param>
+        /// <param name="messageEnqueuer">The promotion message enqueuer for accepted symbol follow-up work.</param>
+        /// <param name="packageService">The package service.</param>
+        /// <param name="stagingBlobService">The private staging blob service.</param>
+        /// <param name="packageFileStorageService">The public package file storage service.</param>
+        /// <param name="packageFileMetadataService">The public package file naming metadata.</param>
+        /// <param name="licenseFileService">The public embedded-license file service.</param>
+        /// <param name="readmeFileService">The public embedded-readme file service.</param>
+        /// <param name="blobCleanup">The transactional private-file cleanup queue.</param>
+        /// <param name="notifications">The per-artifact promotion notification service.</param>
+        /// <param name="lease">The scoped promotion lease protecting publication.</param>
+        /// <param name="logger">The logger.</param>
+        /// <param name="telemetryClient">The publication latency metric client.</param>
+        public StagedPackagePromotionMessageHandler(
+            IEntityRepository<StagedPackage> stagedPackageRepository,
+            IEntityRepository<StagedPackageIdentity> stagedPackageIdentityRepository,
+            IStagingGroupPromotionService stagingGroupPromotionService,
+            IStagingPromotionMessageEnqueuer messageEnqueuer,
+            ICorePackageService packageService,
+            IStagingBlobService stagingBlobService,
+            ICoreFileStorageService packageFileStorageService,
+            IFileMetadataService packageFileMetadataService,
+            ICoreLicenseFileService licenseFileService,
+            ICoreReadmeFileService readmeFileService,
+            IStagingBlobCleanupService blobCleanup,
+            IStagingPromotionNotificationService notifications,
+            IStagingPromotionLease lease,
+            ILogger<StagedPackagePromotionMessageHandler> logger,
+            NuGet.Services.Logging.ITelemetryClient telemetryClient)
+        {
+            _stagedPackageRepository = stagedPackageRepository ?? throw new ArgumentNullException(nameof(stagedPackageRepository));
+            _stagedPackageIdentityRepository = stagedPackageIdentityRepository ?? throw new ArgumentNullException(nameof(stagedPackageIdentityRepository));
+            _stagingGroupPromotionService = stagingGroupPromotionService ?? throw new ArgumentNullException(nameof(stagingGroupPromotionService));
+            _messageEnqueuer = messageEnqueuer ?? throw new ArgumentNullException(nameof(messageEnqueuer));
+            _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
+            _stagingBlobService = stagingBlobService ?? throw new ArgumentNullException(nameof(stagingBlobService));
+            _packageFileStorageService = packageFileStorageService ?? throw new ArgumentNullException(nameof(packageFileStorageService));
+            _packageFileMetadataService = packageFileMetadataService ?? throw new ArgumentNullException(nameof(packageFileMetadataService));
+            _licenseFileService = licenseFileService ?? throw new ArgumentNullException(nameof(licenseFileService));
+            _readmeFileService = readmeFileService ?? throw new ArgumentNullException(nameof(readmeFileService));
+            _blobCleanup = blobCleanup ?? throw new ArgumentNullException(nameof(blobCleanup));
+            _notifications = notifications ?? throw new ArgumentNullException(nameof(notifications));
+            _lease = lease ?? throw new ArgumentNullException(nameof(lease));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> HandleAsync(StagingPromotionMessage message)
+        {
+            if (message == null)
+            {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            if (message.TargetType != StagingPromotionTargetType.StagedPackage)
+            {
+                throw new ArgumentException("The promotion message must identify a staged package.", nameof(message));
+            }
+
+            using (_logger.BeginScope("Staged package {StagedPackageKey}, promotion {PromotionId}", message.TargetKey, message.PromotionId))
+            {
+                _logger.LogInformation("Processing staged package promotion message.");
+
+                var stagedPackage = _stagedPackageRepository
+                    .GetAll()
+                    .Include(candidate => candidate.StagedPackageIdentity.Package.PackageRegistration.Owners)
+                    .Include(candidate => candidate.StagedPackageIdentity.Owner)
+                    .Include(candidate => candidate.StagedPackageIdentity.StagingGroup)
+                    .Include(candidate => candidate.StagedPackageIdentity.CurrentStagedSymbolPackage)
+                    .SingleOrDefault(candidate => candidate.Key == message.TargetKey);
+                if (stagedPackage?.Status == StagedPackageStatus.Succeeded
+                    && stagedPackage.ActivePromotionId == message.PromotionId
+                    && !stagedPackage.StagedPackageIdentity.StagingGroupKey.HasValue
+                    && stagedPackage.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Available)
+                {
+                    _logger.LogInformation("Resuming symbol promotion handoff and staging cleanup after committed parent publication.");
+                    await SendSymbolFollowUpAndCleanUpAsync(stagedPackage);
+                    return true;
+                }
+
+                if (IsCompletedGroupPromotionAttempt(stagedPackage, message.PromotionId))
+                {
+                    if (stagedPackage.Status == StagedPackageStatus.Succeeded)
+                    {
+                        await SendSymbolFollowUpAsync(stagedPackage);
+                    }
+
+                    _logger.LogInformation("Resuming staging group finalization for an already completed package.");
+                    await _stagingGroupPromotionService.TryFinalizeAsync(stagedPackage.StagedPackageIdentity.StagingGroupKey.Value, message.PromotionId);
+                    return true;
+                }
+
+                if (!IsActivePromotionAttempt(stagedPackage, message.PromotionId))
+                {
+                    _logger.LogInformation("Ignoring inactive staged package promotion attempt.");
+                    return true;
+                }
+
+                var package = stagedPackage.StagedPackageIdentity.Package;
+                using (_logger.BeginScope("Package {PackageId} {PackageVersion}", package.PackageRegistration.Id, package.NormalizedVersion))
+                {
+                    if (!HasValidPromotionState(stagedPackage))
+                    {
+                        _logger.LogWarning("Staged package has invalid promotion state. Marking promotion as failed.");
+
+                        var owner = stagedPackage.StagedPackageIdentity.Owner;
+                        var artifact = new StagingPromotionArtifact(package, symbols: false, succeeded: false);
+                        var symbols = FindAcceptedSymbols(stagedPackage);
+                        await MarkPromotionFailedAsync(stagedPackage);
+
+                        var failedGroupKey = stagedPackage.StagedPackageIdentity.StagingGroupKey;
+                        await _notifications.SendAsync(owner, artifact);
+                        if (symbols != null)
+                        {
+                            await _notifications.SendAsync(owner, new StagingPromotionArtifact(package, true, false));
+                        }
+
+                        if (failedGroupKey.HasValue)
+                        {
+                            await _stagingGroupPromotionService.TryFinalizeAsync(failedGroupKey.Value, message.PromotionId);
+                        }
+
+                        return true;
+                    }
+
+                    var stagingGroupKey = stagedPackage.StagedPackageIdentity.StagingGroupKey;
+                    var stagingOwner = stagedPackage.StagedPackageIdentity.Owner;
+                    var publishedArtifact = new StagingPromotionArtifact(package, false, true);
+                    _logger.LogInformation("Reading validated package stream metadata.");
+                    var streamMetadata = await _stagingBlobService.GetPackageStreamMetadataAsync(stagedPackage.ValidatedBlobPath, stagedPackage.ValidatedBlobETag);
+                    await _lease.EnsureHeldAsync();
+                    var packageFileName = await CopyPackageAsync(package, stagedPackage);
+
+                    await _lease.EnsureHeldAsync();
+                    _logger.LogInformation("Updating public package blob properties.");
+                    await SetPackagePropertiesAsync(packageFileName);
+                    await ExtractPackageContentAsync(package, stagedPackage);
+
+                    // Copies are retryable. Never delete shared public files after a failed or ambiguous commit.
+                    await _lease.EnsureHeldAsync();
+                    _logger.LogInformation("Marking package as available and completing promotion in the database.");
+                    await CompletePromotionAsync(package, stagedPackage, streamMetadata);
+
+                    StagingPromotionTelemetry.TrackGalleryPublished(_logger, _telemetryClient, message.PromotionId, package,
+                        stagedPackage.PromotionAcceptedAt, symbols: false);
+
+                    if (stagingGroupKey.HasValue)
+                    {
+                        await _notifications.SendAsync(stagingOwner, publishedArtifact);
+                        await SendSymbolFollowUpAsync(stagedPackage);
+                        await _stagingGroupPromotionService.TryFinalizeAsync(stagingGroupKey.Value, message.PromotionId);
+                    }
+                    else
+                    {
+                        if (stagedPackage.Status == StagedPackageStatus.Succeeded)
+                        {
+                            // Publication has committed. Dispatch failures must not compensate the public package.
+                            _logger.LogInformation("Parent publication committed. Proceeding to symbol promotion handoff and staging cleanup.");
+                            await SendSymbolFollowUpAndCleanUpAsync(stagedPackage);
+                        }
+
+                        await _notifications.SendAsync(stagingOwner, publishedArtifact);
+                    }
+
+                    _logger.LogInformation("Completed staged package promotion.");
+                    return true;
+                }
+            }
+        }
+
+        private static bool IsActivePromotionAttempt(StagedPackage stagedPackage, Guid promotionId)
+        {
+            return stagedPackage != null
+                && stagedPackage.Status == StagedPackageStatus.Promoting
+                && stagedPackage.ActivePromotionId == promotionId
+                && stagedPackage.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Staged
+                && (!stagedPackage.StagedPackageIdentity.StagingGroupKey.HasValue || stagedPackage.StagedPackageIdentity.StagingGroup?.ActivePromotionId == promotionId);
+        }
+
+        private static bool IsCompletedGroupPromotionAttempt(StagedPackage stagedPackage, Guid promotionId)
+        {
+            if (stagedPackage == null)
+            {
+                return false;
+            }
+
+            if (stagedPackage.ActivePromotionId != promotionId)
+            {
+                return false;
+            }
+
+            var identity = stagedPackage.StagedPackageIdentity;
+            if (!identity.StagingGroupKey.HasValue)
+            {
+                return false;
+            }
+
+            if (identity.StagingGroup?.ActivePromotionId != promotionId)
+            {
+                return false;
+            }
+
+            var packageStatus = identity.Package.PackageStatusKey;
+            if (stagedPackage.Status == StagedPackageStatus.Succeeded)
+            {
+                return packageStatus == PackageStatus.Available;
+            }
+
+            return stagedPackage.Status == StagedPackageStatus.PromotionFailed && packageStatus == PackageStatus.Staged;
+        }
+
+        private static bool HasValidPromotionState(StagedPackage stagedPackage)
+        {
+            return !string.IsNullOrWhiteSpace(stagedPackage.ValidatedBlobPath)
+                && !string.IsNullOrWhiteSpace(stagedPackage.ValidatedBlobETag)
+                && StagingPublicationPolicy.GetBlocker(stagedPackage.StagedPackageIdentity) == null;
+        }
+
+        private async Task MarkPromotionFailedAsync(StagedPackage stagedPackage)
+        {
+            var symbols = FindAcceptedSymbols(stagedPackage);
+            if (symbols != null)
+            {
+                symbols.Status = StagedPackageStatus.PromotionFailed;
+            }
+
+            stagedPackage.Status = StagedPackageStatus.PromotionFailed;
+            await _stagedPackageRepository.CommitChangesAsync();
+        }
+
+        private async Task<string> CopyPackageAsync(Package package, StagedPackage stagedPackage)
+        {
+            _logger.LogInformation("Copying validated package to public storage.");
+            var sourceUri = await _stagingBlobService.GetPackageReadUriAsync(stagedPackage.ValidatedBlobPath, stagedPackage.ValidatedBlobETag);
+
+            var packageFileName = FileNameHelper.BuildFileName(
+                package.PackageRegistration.Id,
+                package.NormalizedVersion,
+                _packageFileMetadataService.FileSavePathTemplate,
+                _packageFileMetadataService.FileExtension);
+
+            await _packageFileStorageService.CopyFileAsync(
+                sourceUri,
+                _packageFileMetadataService.FileFolderName,
+                packageFileName,
+                AccessConditionWrapper.GenerateIfNotExistsCondition());
+
+            return packageFileName;
+        }
+
+        private Task SetPackagePropertiesAsync(string packageFileName)
+        {
+            return _packageFileStorageService.SetPropertiesAsync(
+                _packageFileMetadataService.FileFolderName,
+                packageFileName,
+                (_, properties) =>
+                {
+                    if (!string.Equals(properties.CacheControl, CoreConstants.DefaultCacheControl, StringComparison.OrdinalIgnoreCase))
+                    {
+                        properties.CacheControl = CoreConstants.DefaultCacheControl;
+                        return Task.FromResult(true);
+                    }
+
+                    return Task.FromResult(false);
+                });
+        }
+
+        private async Task ExtractPackageContentAsync(Package package, StagedPackage stagedPackage)
+        {
+            if (package.EmbeddedLicenseType == EmbeddedLicenseFileType.Absent && !package.HasEmbeddedReadme)
+            {
+                _logger.LogInformation("Package has no embedded license or readme to extract.");
+                return;
+            }
+
+            using (var packageStream = await _stagingBlobService.OpenPackageFileAsync(stagedPackage.ValidatedBlobPath, stagedPackage.ValidatedBlobETag))
+            {
+                if (package.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
+                {
+                    _logger.LogInformation("Extracting embedded license.");
+                    await _licenseFileService.ExtractAndSaveLicenseFileAsync(package, packageStream);
+                    _logger.LogInformation("Extracted embedded license.");
+                }
+
+                if (package.HasEmbeddedReadme)
+                {
+                    _logger.LogInformation("Extracting embedded readme.");
+                    await _readmeFileService.ExtractAndSaveReadmeFileAsync(package, packageStream);
+                    _logger.LogInformation("Extracted embedded readme.");
+                }
+            }
+        }
+
+        private async Task CompletePromotionAsync(Package package, StagedPackage stagedPackage, PackageStreamMetadata streamMetadata)
+        {
+            await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
+            {
+                var identity = stagedPackage.StagedPackageIdentity;
+                var stagingGroup = identity.StagingGroup;
+                await _packageService.UpdatePackageStreamMetadataAsync(package, streamMetadata, commitChanges: false);
+                await _packageService.UpdatePackageStatusAsync(package, PackageStatus.Available, commitChanges: false);
+
+                if (stagingGroup == null && FindAcceptedSymbols(stagedPackage) != null)
+                {
+                    stagedPackage.Status = StagedPackageStatus.Succeeded;
+                }
+                else if (stagingGroup == null)
+                {
+                    RemoveStagedPackage(stagedPackage);
+                }
+                else
+                {
+                    _stagingGroupPromotionService.MarkPackageSucceeded(stagedPackage);
+                }
+
+                await _stagedPackageRepository.CommitChangesAsync();
+
+                if (stagingGroup == null && stagedPackage.Status != StagedPackageStatus.Succeeded)
+                {
+                    await DeleteUnusedIdentityAsync(identity);
+                }
+            });
+        }
+
+        private static StagedSymbolPackage FindAcceptedSymbols(StagedPackage stagedPackage)
+        {
+            var identity = stagedPackage.StagedPackageIdentity;
+            var symbols = identity.CurrentStagedSymbolPackage;
+            if (identity.StagingGroupKey.HasValue && identity.StagingGroup?.ActivePromotionId != stagedPackage.ActivePromotionId)
+            {
+                return null;
+            }
+
+            if (symbols?.Status != StagedPackageStatus.Promoting
+                || symbols.ActivePromotionId != stagedPackage.ActivePromotionId
+                || identity.CurrentStagedSymbolPackageKey != symbols.Key)
+            {
+                return null;
+            }
+
+            return symbols;
+        }
+
+        private async Task SendSymbolFollowUpAndCleanUpAsync(StagedPackage stagedPackage)
+        {
+            await SendSymbolFollowUpAsync(stagedPackage);
+
+            await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
+            {
+                var identity = stagedPackage.StagedPackageIdentity;
+                RemoveStagedPackage(stagedPackage);
+                await _stagedPackageRepository.CommitChangesAsync();
+                await DeleteUnusedIdentityAsync(identity);
+            });
+            _logger.LogInformation("Completed parent staging cleanup after publication.");
+        }
+
+        private async Task SendSymbolFollowUpAsync(StagedPackage stagedPackage)
+        {
+            var symbols = FindAcceptedSymbols(stagedPackage);
+            if (symbols != null)
+            {
+                _logger.LogInformation("Dispatching accepted symbol attempt {AttemptKey} after parent publication.", symbols.Key);
+                await _messageEnqueuer.SendMessageAsync(StagingPromotionMessage.ForSymbolPackage(stagedPackage.ActivePromotionId.Value, symbols.Key));
+                symbols.PromotionMessageSentDate = DateTime.UtcNow;
+                _logger.LogInformation("Dispatched accepted symbol attempt {AttemptKey} after parent publication.", symbols.Key);
+
+                if (stagedPackage.StagedPackageIdentity.StagingGroupKey.HasValue)
+                {
+                    await _stagedPackageRepository.CommitChangesAsync();
+                }
+            }
+        }
+
+        private void RemoveStagedPackage(StagedPackage stagedPackage)
+        {
+            var identity = stagedPackage.StagedPackageIdentity;
+            _blobCleanup.QueuePackageFiles(identity.Key);
+            if (!identity.CurrentStagedSymbolPackageKey.HasValue)
+            {
+                _blobCleanup.QueueSymbolFiles(identity.Key);
+            }
+
+            identity.CurrentStagedPackageKey = null;
+            identity.CurrentStagedPackage = null;
+            _stagedPackageRepository.DeleteOnCommit(stagedPackage);
+        }
+
+        private async Task DeleteUnusedIdentityAsync(StagedPackageIdentity identity)
+        {
+            if (!identity.CurrentStagedSymbolPackageKey.HasValue)
+            {
+                _stagedPackageIdentityRepository.DeleteOnCommit(identity);
+                await _stagedPackageRepository.CommitChangesAsync();
+            }
+        }
+    }
+}

@@ -1,0 +1,1139 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using System.Web;
+using System.Web.Mvc;
+using NuGet.Services.Entities;
+using NuGet.Services.Validation.Issues;
+using NuGetGallery.Filters;
+
+namespace NuGetGallery
+{
+    /// <summary>
+    /// Handles signed-in owner management of private staged packages.
+    /// </summary>
+    [UIAuthorize]
+    public class StagingController : AppController
+    {
+        private readonly IPackageStagingAuthorizationService _packageStagingAuthorizationService;
+        private readonly IPackageStagingManagementService _packageStagingManagementService;
+        private readonly ISymbolPackageStagingManagementService _symbolPackageStagingManagementService;
+        private readonly IPackageStagingPromotionService _packageStagingPromotionService;
+        private readonly IPackageStagingUploadService _packageStagingUploadService;
+        private readonly ISymbolPackageStagingUploadService _symbolPackageStagingUploadService;
+        private readonly IValidationService _validationService;
+
+        public StagingController(
+            IPackageStagingAuthorizationService packageStagingAuthorizationService,
+            IPackageStagingManagementService packageStagingManagementService,
+            ISymbolPackageStagingManagementService symbolPackageStagingManagementService,
+            IPackageStagingPromotionService packageStagingPromotionService,
+            IPackageStagingUploadService packageStagingUploadService,
+            ISymbolPackageStagingUploadService symbolPackageStagingUploadService,
+            IValidationService validationService)
+        {
+            _packageStagingAuthorizationService = packageStagingAuthorizationService ?? throw new ArgumentNullException(nameof(packageStagingAuthorizationService));
+            _packageStagingManagementService = packageStagingManagementService ?? throw new ArgumentNullException(nameof(packageStagingManagementService));
+            _symbolPackageStagingManagementService = symbolPackageStagingManagementService ?? throw new ArgumentNullException(nameof(symbolPackageStagingManagementService));
+            _packageStagingPromotionService = packageStagingPromotionService ?? throw new ArgumentNullException(nameof(packageStagingPromotionService));
+            _packageStagingUploadService = packageStagingUploadService ?? throw new ArgumentNullException(nameof(packageStagingUploadService));
+            _symbolPackageStagingUploadService = symbolPackageStagingUploadService ?? throw new ArgumentNullException(nameof(symbolPackageStagingUploadService));
+            _validationService = validationService ?? throw new ArgumentNullException(nameof(validationService));
+        }
+
+        [HttpGet]
+        public virtual ActionResult CreateGroup()
+        {
+            var owners = GetStagingOwnerNames();
+            if (owners.Count == 0)
+            {
+                return HttpNotFound();
+            }
+
+            return View(new CreateStagingGroupViewModel
+            {
+                Owner = owners.SingleOrDefault(owner => string.Equals(owner, GetCurrentUser().Username, StringComparison.OrdinalIgnoreCase)) ?? owners[0],
+                Owners = owners,
+            });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> CreateGroup(CreateStagingGroupViewModel model)
+        {
+            var owners = GetStagingOwnerNames();
+            if (model == null)
+            {
+                model = new CreateStagingGroupViewModel();
+                ModelState.AddModelError(nameof(CreateStagingGroupViewModel.Owner), "The Owner field is required.");
+                ModelState.AddModelError(nameof(CreateStagingGroupViewModel.Id), "The Group ID field is required.");
+            }
+
+            model.Owners = owners;
+
+            if (!string.IsNullOrWhiteSpace(model.Owner) && !owners.Contains(model.Owner, StringComparer.OrdinalIgnoreCase))
+            {
+                return HttpNotFound();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledOwner(GetCurrentUser(), model.Owner);
+            if (stagingOwner == null)
+            {
+                return HttpNotFound();
+            }
+
+            var result = await _packageStagingManagementService.CreateStagingGroupAsync(stagingOwner, model.Id, model.Name);
+            switch (result.Type)
+            {
+                case CreateStagingGroupResultType.Created:
+                    return Redirect(Url.ManageMyStagingGroups());
+
+                case CreateStagingGroupResultType.GroupAlreadyExists:
+                    ModelState.AddModelError(nameof(model.Id), "A staging group with this ID already exists.");
+                    return View(model);
+
+                case CreateStagingGroupResultType.GroupLimitExceeded:
+                    ModelState.AddModelError(nameof(model.Owner), StagingGroupLimitExceededException.LimitReachedMessage);
+                    return View(model);
+
+                default:
+                    throw new InvalidOperationException($"Unknown staging group creation result: {result.Type}.");
+            }
+        }
+
+        [HttpGet]
+        public virtual ActionResult Group(string owner, string groupId)
+        {
+            if (string.IsNullOrWhiteSpace(owner) || string.IsNullOrWhiteSpace(groupId))
+            {
+                return HttpNotFound();
+            }
+
+            var currentUser = GetCurrentUser();
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledOwner(currentUser, owner);
+            if (stagingOwner == null)
+            {
+                return HttpNotFound();
+            }
+
+            var group = _packageStagingManagementService.FindStagingGroup(stagingOwner, groupId);
+            if (group == null)
+            {
+                return HttpNotFound();
+            }
+
+            return GroupView(currentUser, group);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> RenameGroup(string owner, string groupId, RenameStagingGroupViewModel model)
+        {
+            if (string.IsNullOrWhiteSpace(owner) || string.IsNullOrWhiteSpace(groupId))
+            {
+                return HttpNotFound();
+            }
+
+            var currentUser = GetCurrentUser();
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledOwner(currentUser, owner);
+            if (stagingOwner == null)
+            {
+                return HttpNotFound();
+            }
+
+            var group = _packageStagingManagementService.FindStagingGroup(stagingOwner, groupId);
+            if (group == null)
+            {
+                return HttpNotFound();
+            }
+
+            if (model == null)
+            {
+                ModelState.AddModelError(nameof(RenameStagingGroupViewModel.Name), "The Display name field is required.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return GroupView(currentUser, group);
+            }
+
+            group = await _packageStagingManagementService.RenameStagingGroupAsync(stagingOwner, groupId, model.Name);
+            if (group == null)
+            {
+                group = _packageStagingManagementService.FindStagingGroup(stagingOwner, groupId);
+                if (group == null)
+                {
+                    return HttpNotFound();
+                }
+
+                ModelState.AddModelError(string.Empty, "The group changed or promotion started. Refresh and try again.");
+                return GroupView(currentUser, group);
+            }
+
+            return Redirect(Url.ManageStagingGroup(group.Owner.Username, group.Id));
+        }
+
+        /// <summary>
+        /// Begins asynchronous publication of every ready package and symbol artifact in a staging group.
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> PromoteGroup(string owner, string groupId)
+        {
+            if (string.IsNullOrWhiteSpace(owner) || string.IsNullOrWhiteSpace(groupId))
+            {
+                return HttpNotFound();
+            }
+
+            var currentUser = GetCurrentUser();
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledOwner(currentUser, owner);
+            var group = stagingOwner == null ? null : _packageStagingManagementService.FindStagingGroup(stagingOwner, groupId);
+            if (group == null)
+            {
+                return HttpNotFound();
+            }
+
+            var result = await _packageStagingPromotionService.PromoteGroupAsync(currentUser, group);
+            switch (result)
+            {
+                case StagingGroupPromotionResult.Accepted:
+                    break;
+                case StagingGroupPromotionResult.Unauthorized:
+                    return HttpNotFound();
+                case StagingGroupPromotionResult.Empty:
+                    TempData["ErrorMessage"] = "The staging group has no packages or symbols to promote.";
+                    break;
+                case StagingGroupPromotionResult.NotReady:
+                    TempData["ErrorMessage"] = "Every package and symbol in the staging group must be ready and eligible before promotion can begin.";
+                    break;
+                case StagingGroupPromotionResult.Conflict:
+                    TempData["ErrorMessage"] = "The group promotion changed while processing your request. Refresh and check its status.";
+                    break;
+                case StagingGroupPromotionResult.DispatchFailed:
+                    TempData["ErrorMessage"] = "Promotion started, but we couldn't confirm it's being processed. Refresh the page; if it's still in progress, you can retry now.";
+                    break;
+                default:
+                    throw new InvalidOperationException($"Unknown staging group promotion result '{result}'.");
+            }
+
+            return Redirect(Url.ManageStagingGroup(group.Owner.Username, group.Id));
+        }
+
+        /// <summary>
+        /// Resends unfinished work for a stalled group promotion.
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> ResendGroup(string owner, string groupId)
+        {
+            if (string.IsNullOrWhiteSpace(owner) || string.IsNullOrWhiteSpace(groupId))
+            {
+                return HttpNotFound();
+            }
+
+            var currentUser = GetCurrentUser();
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledOwner(currentUser, owner);
+            var group = stagingOwner == null ? null : _packageStagingManagementService.FindStagingGroup(stagingOwner, groupId);
+            if (group == null)
+            {
+                return HttpNotFound();
+            }
+
+            var result = await _packageStagingPromotionService.ResendGroupAsync(currentUser, group);
+            switch (result)
+            {
+                case StagingGroupPromotionResult.Accepted:
+                    break;
+                case StagingGroupPromotionResult.Unauthorized:
+                    return HttpNotFound();
+                case StagingGroupPromotionResult.NotReady:
+                    TempData["ErrorMessage"] = "This group promotion cannot be retried yet. Refresh the page and try again later.";
+                    break;
+                case StagingGroupPromotionResult.Conflict:
+                    TempData["ErrorMessage"] = "The group promotion changed. Refresh the page and try again.";
+                    break;
+                case StagingGroupPromotionResult.DispatchFailed:
+                    TempData["ErrorMessage"] = "We couldn't confirm your retry is being processed. Refresh the page; if the promotion is still in progress, you can retry now.";
+                    break;
+                default:
+                    throw new InvalidOperationException($"Unknown group promotion resend result '{result}'.");
+            }
+
+            return Redirect(Url.ManageStagingGroup(group.Owner.Username, group.Id));
+        }
+
+        [HttpGet]
+        public virtual ActionResult DeleteGroup(string owner, string groupId)
+        {
+            var result = FindStagingGroupSummary(owner, groupId);
+            if (result == null)
+            {
+                return HttpNotFound();
+            }
+
+            return View(CreateDeleteGroupViewModel(result));
+        }
+
+        [HttpPost]
+        [ActionName(nameof(DeleteGroup))]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> DeleteGroupPost(string owner, string groupId)
+        {
+            var summary = FindStagingGroupSummary(owner, groupId);
+            if (summary == null)
+            {
+                return HttpNotFound();
+            }
+
+            var result = await _packageStagingManagementService.DeleteStagingGroupAsync(summary.Group.Owner, summary.Group);
+            switch (result.Type)
+            {
+                case StagingGroupDeletionResultType.Deleted:
+                    return Redirect(Url.ManageMyPackages());
+                case StagingGroupDeletionResultType.Conflict:
+                    ModelState.AddModelError(string.Empty, "The staging group cannot be deleted while package promotion is active.");
+                    var viewModel = CreateDeleteGroupViewModel(summary);
+                    viewModel.PackageCount = result.AffectedPackageCount;
+                    return View(viewModel);
+                default:
+                    throw new InvalidOperationException($"Unknown staging group deletion result '{result.Type}'.");
+            }
+        }
+
+        private StagingGroupSummary FindStagingGroupSummary(string owner, string groupId)
+        {
+            if (string.IsNullOrWhiteSpace(owner) || string.IsNullOrWhiteSpace(groupId))
+            {
+                return null;
+            }
+
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledOwner(GetCurrentUser(), owner);
+            if (stagingOwner == null)
+            {
+                return null;
+            }
+
+            return _packageStagingManagementService
+                .GetStagingGroupSummaries(stagingOwner)
+                .SingleOrDefault(summary => string.Equals(summary.Group.Id, groupId, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static DeleteStagingGroupViewModel CreateDeleteGroupViewModel(StagingGroupSummary summary)
+        {
+            return new DeleteStagingGroupViewModel
+            {
+                Owner = summary.Group.Owner.Username,
+                Id = summary.Group.Id,
+                Name = summary.Group.Name,
+                PackageCount = summary.Packages.Count + summary.Symbols.Count,
+            };
+        }
+
+        private ActionResult GroupView(User currentUser, StagingGroup group)
+        {
+            var stagedPackages = _packageStagingManagementService.GetStagedPackages(currentUser, group.OwnerKey, group.Key);
+            var stagingGroups = _packageStagingManagementService.GetStagingGroups(currentUser, group.OwnerKey);
+
+            var model = CreateGroupViewModel(group.Owner.Username, group.Id, group.Name, null, stagedPackages, stagingGroups, group.ActivePromotionId.HasValue, group.PromotionMessageSentDate);
+            model.ExpirationDate = group.ExpirationDate;
+            model.IsExpired = StagingExpirationPolicy.HasExpired(group);
+            model.CanPromote = model.CanPromote && !model.IsExpired;
+            var stagedSymbols = _symbolPackageStagingManagementService.GetStagedSymbolPackages(currentUser, group.OwnerKey, group.Key);
+            AddSymbolPackages(model, stagedSymbols, stagingGroups);
+            var ownerBlocker = StagingPublicationPolicy.GetOwnerBlocker(group.Owner);
+            model.CanPromote = model.CanPromote && ownerBlocker == null;
+            model.CanResend = model.CanResend && ownerBlocker == null;
+            return View(nameof(Group), model);
+        }
+
+        [HttpGet]
+        public virtual ActionResult Ungrouped(string owner)
+        {
+            if (string.IsNullOrWhiteSpace(owner))
+            {
+                return HttpNotFound();
+            }
+
+            var currentUser = GetCurrentUser();
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledOwner(currentUser, owner);
+            if (stagingOwner == null)
+            {
+                return HttpNotFound();
+            }
+
+            var stagedPackages = _packageStagingManagementService.GetStagedPackages(currentUser, stagingOwner.Key, groupKey: null);
+            var stagingGroups = _packageStagingManagementService.GetStagingGroups(currentUser, stagingOwner.Key);
+            var model = CreateGroupViewModel(stagingOwner.Username, id: null, "Ungrouped", "Staged packages not in any group", stagedPackages, stagingGroups);
+            var stagedSymbols = _symbolPackageStagingManagementService.GetStagedSymbolPackages(currentUser, stagingOwner.Key, groupKey: null);
+            AddSymbolPackages(model, stagedSymbols, stagingGroups);
+
+            return View("Group", model);
+        }
+
+        private void AddSymbolPackages(StagingGroupDetailViewModel model, IReadOnlyList<StagedSymbolPackage> stagedSymbols, IReadOnlyCollection<StagingGroup> stagingGroups)
+        {
+            var requesterBlocker = StagingPublicationPolicy.GetRequesterBlocker(GetCurrentUser());
+            var failedKeys = stagedSymbols
+                .Where(attempt => attempt.Status == StagedPackageStatus.FailedValidation)
+                .Select(attempt => attempt.Key)
+                .ToList();
+            IReadOnlyDictionary<int, IReadOnlyList<ValidationIssue>> findings = new Dictionary<int, IReadOnlyList<ValidationIssue>>();
+            if (failedKeys.Count > 0)
+            {
+                findings = _validationService.GetStagedSymbolPackageValidationIssues(failedKeys);
+            }
+
+            var symbolModels = stagedSymbols.Select(attempt =>
+            {
+                var identity = attempt.StagedPackageIdentity;
+                var package = identity.Package;
+                var parentStatus = package.PackageStatusKey.ToString();
+                string parentUrl = null;
+                if (package.PackageStatusKey == PackageStatus.Available)
+                {
+                    parentUrl = Url.Package(package.PackageRegistration.Id, package.NormalizedVersion);
+                }
+                else if (package.PackageStatusKey == PackageStatus.Staged)
+                {
+                    parentUrl = Url.DownloadStagedPackage(package.Id, package.NormalizedVersion);
+                    parentStatus = identity.CurrentStagedPackage?.Status.ToString();
+                }
+
+                findings.TryGetValue(attempt.Key, out var issues);
+                var canManage = !model.IsPromotionActive && attempt.Status != StagedPackageStatus.Promoting;
+                var isExpired = StagingExpirationPolicy.HasExpired(attempt);
+                var blockers = StagedSymbolPackagePromotionEligibility.GetBlockers(attempt);
+                var ownershipBlocker = StagingOwnershipPolicy.GetBlocker(identity);
+                var publicationBlocker = requesterBlocker ?? StagingPublicationPolicy.GetBlocker(identity);
+                var promotionBlocker = publicationBlocker?.Message
+                    ?? StagingPromotionFailure.GetBlocker(attempt.Status, symbols: true, identity.StagingGroupKey.HasValue)?.Message;
+                if (promotionBlocker == null && attempt.Status == StagedPackageStatus.Ready && !identity.StagingGroupKey.HasValue)
+                {
+                    promotionBlocker = blockers.FirstOrDefault(blocker => blocker.Code != "ParentPackageNotAvailable")?.Message;
+                }
+
+                var hasMoveTarget = identity.StagingGroupKey.HasValue || stagingGroups.Any(group => group.Key != identity.StagingGroupKey);
+                var moveUrl = canManage && !isExpired && hasMoveTarget ? Url.MoveStagedPackage(identity.Owner.Username, package.Id, package.NormalizedVersion) : null;
+                return new PackageStagingViewModel
+                {
+                    Id = package.PackageRegistration.Id,
+                    Version = package.NormalizedVersion,
+                    Owner = identity.Owner.Username,
+                    IsSymbolPackage = true,
+                    ParentStatus = parentStatus,
+                    ParentUrl = parentUrl,
+                    Status = isExpired ? "Expired" : attempt.Status.ToString(),
+                    StatusClass = isExpired || attempt.Status == StagedPackageStatus.WaitingForParent ? "label-warning" : $"staging-status-{attempt.Status.ToString().ToLowerInvariant()}",
+                    UploadedDate = attempt.UploadedDate,
+                    ExpirationDate = StagingExpirationPolicy.GetDeadline(attempt),
+                    IsExpired = isExpired,
+                    ValidationIssues = issues ?? [],
+                    CanManage = canManage,
+                    CanDelete = canManage,
+                    CanReplace = canManage && !isExpired && ownershipBlocker == null,
+                    CanPromote = canManage && requesterBlocker == null && blockers.Count == 0,
+                    ReplacesPublishedSymbols = package.SymbolPackages.Any(symbols => symbols.StatusKey == PackageStatus.Available),
+                    CanResend = requesterBlocker == null && StagedSymbolPackagePromotionEligibility.CanResend(attempt),
+                    PromotionBlocker = promotionBlocker,
+                    MoveUrl = moveUrl,
+                };
+            });
+
+            model.Packages = model.Packages.Concat(symbolModels)
+                .OrderBy(package => package.Id)
+                .ThenBy(package => package.Version)
+                .ThenBy(package => package.IsSymbolPackage)
+                .ToList();
+            model.PackageCount = model.Packages.Count;
+            model.CanResend = model.CanResend && requesterBlocker == null
+                && stagedSymbols.Where(attempt => attempt.Status == StagedPackageStatus.Promoting)
+                    .All(attempt => StagingPublicationPolicy.GetBlocker(attempt.StagedPackageIdentity) == null);
+            model.ReadyCount += stagedSymbols.Count(attempt => attempt.Status == StagedPackageStatus.Ready);
+            model.ValidatingCount += stagedSymbols.Count(attempt => attempt.Status == StagedPackageStatus.Validating);
+            model.WaitingForParentCount += stagedSymbols.Count(attempt => attempt.Status == StagedPackageStatus.WaitingForParent);
+            model.FailedCount += stagedSymbols.Count(attempt => attempt.Status == StagedPackageStatus.FailedValidation || attempt.Status == StagedPackageStatus.PromotionFailed);
+            model.PromotingCount += stagedSymbols.Count(attempt => attempt.Status == StagedPackageStatus.Promoting);
+            model.PromotionFailedCount += stagedSymbols.Count(attempt => attempt.Status == StagedPackageStatus.PromotionFailed);
+            if (model.IsUngrouped)
+            {
+                return;
+            }
+
+            model.CanPromote = false;
+            if (model.IsPromotionActive || model.IsExpired || model.PackageCount == 0 || model.ReadyCount != model.PackageCount)
+            {
+                return;
+            }
+
+            if (model.Packages.Any(package => package.PromotionBlocker != null))
+            {
+                return;
+            }
+
+            foreach (var attempt in stagedSymbols)
+            {
+                var parent = attempt.StagedPackageIdentity.CurrentStagedPackage;
+                var blockers = StagedSymbolPackagePromotionEligibility.GetBlockers(attempt, parent, forGroup: true);
+                if (blockers.Count > 0)
+                {
+                    return;
+                }
+            }
+
+            model.CanPromote = true;
+        }
+
+        [HttpGet]
+        public virtual ActionResult MovePackage(string owner, string id, string version)
+        {
+            ValidatePackageIdentity(id, version);
+            if (string.IsNullOrWhiteSpace(owner))
+            {
+                return HttpNotFound();
+            }
+
+            var currentUser = GetCurrentUser();
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledOwner(currentUser, owner);
+            var identity = FindAuthorizedMoveIdentity(currentUser, stagingOwner, id, version);
+            if (identity == null)
+            {
+                return HttpNotFound();
+            }
+
+            return View(CreateMovePackageViewModel(currentUser, identity));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> MovePackage(string owner, string id, string version, string groupId)
+        {
+            ValidatePackageIdentity(id, version);
+            if (string.IsNullOrWhiteSpace(owner))
+            {
+                return HttpNotFound();
+            }
+
+            var currentUser = GetCurrentUser();
+            var stagingOwner = _packageStagingAuthorizationService.GetEnabledOwner(currentUser, owner);
+            var identity = FindAuthorizedMoveIdentity(currentUser, stagingOwner, id, version);
+            if (identity == null)
+            {
+                return HttpNotFound();
+            }
+
+            var group = string.IsNullOrWhiteSpace(groupId) ? null : _packageStagingManagementService.FindStagingGroup(stagingOwner, groupId);
+            if (!string.IsNullOrWhiteSpace(groupId) && group == null)
+            {
+                ModelState.AddModelError(nameof(MoveStagedPackageViewModel.GroupId), "Select an available staging group.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                var viewModel = CreateMovePackageViewModel(currentUser, identity);
+                viewModel.GroupId = groupId;
+                return View(viewModel);
+            }
+
+            var result = await _packageStagingManagementService.MovePackageIdentityAsync(stagingOwner, identity, group);
+
+            switch (result)
+            {
+                case StagingGroupMembershipResult.Updated:
+                case StagingGroupMembershipResult.Unchanged:
+                    return group == null
+                        ? Redirect(Url.ManageUngroupedStaging(stagingOwner.Username))
+                        : Redirect(Url.ManageStagingGroup(group.Owner.Username, group.Id));
+                case StagingGroupMembershipResult.Conflict:
+                    ModelState.AddModelError(string.Empty, "The staging changed, expired, or is being promoted. Refresh before trying again; delete staging that has expired.");
+                    var viewModel = CreateMovePackageViewModel(currentUser, identity);
+                    viewModel.GroupId = groupId;
+                    return View(viewModel);
+                default:
+                    throw new InvalidOperationException($"Unknown staging group membership result '{result}'.");
+            }
+        }
+
+        private StagedPackageIdentity FindAuthorizedMoveIdentity(User currentUser, User stagingOwner, string id, string version)
+        {
+            if (stagingOwner == null)
+            {
+                return null;
+            }
+
+            var package = _packageStagingManagementService.FindCurrentStagedPackage(id, version);
+            if (package != null)
+            {
+                if (package.StagedPackageIdentity.OwnerKey == stagingOwner.Key && _packageStagingAuthorizationService.CanManage(currentUser, package))
+                {
+                    return package.StagedPackageIdentity;
+                }
+
+                return null;
+            }
+
+            var symbols = _symbolPackageStagingManagementService.FindCurrentStagedSymbolPackage(id, version);
+            if (symbols != null && symbols.StagedPackageIdentity.OwnerKey == stagingOwner.Key && _packageStagingAuthorizationService.CanManage(currentUser, symbols))
+            {
+                return symbols.StagedPackageIdentity;
+            }
+
+            return null;
+        }
+
+        private MoveStagedPackageViewModel CreateMovePackageViewModel(User currentUser, StagedPackageIdentity identity)
+        {
+            var groups = _packageStagingManagementService
+                .GetStagingGroups(currentUser)
+                .Where(group => group.OwnerKey == identity.OwnerKey && group.Key != identity.StagingGroupKey)
+                .Where(group => !StagingExpirationPolicy.HasExpired(group) && !group.ActivePromotionId.HasValue)
+                .OrderBy(group => group.Name)
+                .ThenBy(group => group.Id)
+                .Select(group => new StagingGroupAssignmentViewModel
+                {
+                    Id = group.Id,
+                    Name = group.Name,
+                })
+                .ToList();
+            if (identity.StagingGroupKey.HasValue)
+            {
+                groups.Insert(0, new StagingGroupAssignmentViewModel
+                {
+                    Id = null,
+                    Name = "Ungrouped",
+                });
+            }
+
+            return new MoveStagedPackageViewModel
+            {
+                Owner = identity.Owner.Username,
+                Id = identity.Package.PackageRegistration.Id,
+                Version = identity.Package.NormalizedVersion,
+                Groups = groups,
+                GroupId = groups.FirstOrDefault()?.Id,
+            };
+        }
+
+        private IReadOnlyList<string> GetStagingOwnerNames()
+        {
+            return _packageStagingAuthorizationService
+                .GetEnabledOwners(GetCurrentUser())
+                .Select(owner => owner.Username)
+                .ToList();
+        }
+
+        private StagingGroupDetailViewModel CreateGroupViewModel(
+            string owner,
+            string id,
+            string name,
+            string description,
+            IReadOnlyCollection<StagedPackage> stagedPackages,
+            IReadOnlyCollection<StagingGroup> stagingGroups,
+            bool isPromotionActive = false,
+            DateTime? promotionMessageSentDate = null)
+        {
+            var requesterBlocker = StagingPublicationPolicy.GetRequesterBlocker(GetCurrentUser());
+            var orderedStagedPackages = stagedPackages
+                .OrderBy(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageRegistration.Id)
+                .ThenBy(stagedPackage => stagedPackage.StagedPackageIdentity.Package.NormalizedVersion)
+                .ThenBy(stagedPackage => stagedPackage.Key)
+                .ToList();
+            var failedPackageKeys = orderedStagedPackages
+                .Where(stagedPackage => stagedPackage.Status == StagedPackageStatus.FailedValidation)
+                .Select(stagedPackage => stagedPackage.Key)
+                .ToList();
+            var validationIssues = failedPackageKeys.Count == 0
+                ? new Dictionary<int, IReadOnlyList<ValidationIssue>>()
+                : _validationService.GetStagedPackageValidationIssues(failedPackageKeys);
+            var packageViewModels = orderedStagedPackages
+                .Select(stagedPackage =>
+                {
+                    validationIssues.TryGetValue(stagedPackage.Key, out var issues);
+                    var identity = stagedPackage.StagedPackageIdentity;
+                    var package = identity.Package;
+                    var isExpired = StagingExpirationPolicy.HasExpired(stagedPackage);
+                    var ownershipBlocker = StagingOwnershipPolicy.GetBlocker(identity);
+                    var publicationBlocker = requesterBlocker ?? StagingPublicationPolicy.GetBlocker(identity);
+                    var hasMoveTarget = identity.StagingGroupKey.HasValue || stagingGroups.Any(group => group.Key != identity.StagingGroupKey);
+                    var moveUrl = hasMoveTarget && !isPromotionActive && !isExpired ? Url.MoveStagedPackage(identity.Owner.Username, package.PackageRegistration.Id, package.NormalizedVersion) : null;
+
+                    return new PackageStagingViewModel
+                    {
+                        Id = package.PackageRegistration.Id,
+                        Version = package.NormalizedVersion,
+                        Owner = identity.Owner.Username,
+                        Status = isExpired ? "Expired" : stagedPackage.Status.ToString(),
+                        StatusClass = isExpired ? "label-warning" : $"staging-status-{stagedPackage.Status.ToString().ToLowerInvariant()}",
+                        UploadedDate = stagedPackage.UploadedDate,
+                        ExpirationDate = StagingExpirationPolicy.GetDeadline(stagedPackage),
+                        IsExpired = isExpired,
+                        ValidationIssues = issues ?? [],
+                        Listed = package.Listed,
+                        CanManage = !isPromotionActive,
+                        CanDelete = !isPromotionActive && stagedPackage.Status != StagedPackageStatus.Promoting && identity.CurrentStagedSymbolPackage?.Status != StagedPackageStatus.Promoting,
+                        CanReplace = !isPromotionActive && !isExpired && ownershipBlocker == null,
+                        CanPromote = stagedPackage.Status == StagedPackageStatus.Ready && !identity.StagingGroupKey.HasValue && !isExpired && publicationBlocker == null,
+                        PromotionBlocker = publicationBlocker?.Message
+                            ?? StagingPromotionFailure.GetBlocker(stagedPackage.Status, symbols: false, identity.StagingGroupKey.HasValue)?.Message,
+                        IncludesStagedSymbols = identity.CurrentStagedSymbolPackage != null
+                            && StagedSymbolPackagePromotionEligibility.GetBlockers(identity.CurrentStagedSymbolPackage, stagedPackage).Count == 0,
+                        CanResend = !identity.StagingGroupKey.HasValue
+                            && publicationBlocker == null
+                            && stagedPackage.Status == StagedPackageStatus.Promoting
+                            && stagedPackage.ActivePromotionId.HasValue
+                            && StagingPromotionResendPolicy.IsDue(stagedPackage.PromotionMessageSentDate),
+                        MoveUrl = moveUrl,
+                    };
+                })
+                .ToList();
+
+            return new StagingGroupDetailViewModel
+            {
+                Owner = owner,
+                Id = id,
+                Name = name,
+                Description = description,
+                IsUngrouped = id == null,
+                IsPromotionActive = isPromotionActive,
+                CanPromote = id != null
+                    && requesterBlocker == null
+                    && !isPromotionActive
+                    && orderedStagedPackages.Count > 0
+                    && orderedStagedPackages.All(stagedPackage => stagedPackage.Status == StagedPackageStatus.Ready && !StagingExpirationPolicy.HasExpired(stagedPackage)),
+                CanResend = id != null && isPromotionActive && requesterBlocker == null && StagingPromotionResendPolicy.IsDue(promotionMessageSentDate)
+                    && orderedStagedPackages.Where(package => package.Status == StagedPackageStatus.Promoting)
+                        .All(package => StagingPublicationPolicy.GetBlocker(package.StagedPackageIdentity) == null),
+                PackageCount = packageViewModels.Count,
+                ReadyCount = orderedStagedPackages.Count(stagedPackage => stagedPackage.Status == StagedPackageStatus.Ready),
+                ValidatingCount = orderedStagedPackages.Count(stagedPackage => stagedPackage.Status == StagedPackageStatus.Validating),
+                PromotingCount = orderedStagedPackages.Count(stagedPackage => stagedPackage.Status == StagedPackageStatus.Promoting),
+                FailedCount = orderedStagedPackages.Count(stagedPackage => stagedPackage.Status == StagedPackageStatus.FailedValidation || stagedPackage.Status == StagedPackageStatus.PromotionFailed),
+                PromotionFailedCount = orderedStagedPackages.Count(stagedPackage => stagedPackage.Status == StagedPackageStatus.PromotionFailed),
+                Packages = packageViewModels,
+            };
+        }
+
+        [HttpGet]
+        public virtual ActionResult ManagePackage(string id, string version)
+        {
+            ValidatePackageIdentity(id, version);
+            var stagedPackage = FindAuthorizedStagedPackage(id, version);
+            if (stagedPackage == null)
+            {
+                return HttpNotFound();
+            }
+
+            return RedirectToStaging(stagedPackage.StagedPackageIdentity);
+        }
+
+        [HttpGet]
+        public virtual ActionResult ManageSymbolPackage(string id, string version)
+        {
+            ValidatePackageIdentity(id, version);
+            var attempt = FindAuthorizedStagedSymbolPackage(id, version);
+            if (attempt == null)
+            {
+                return HttpNotFound();
+            }
+
+            return RedirectToStaging(attempt.StagedPackageIdentity);
+        }
+
+        private RedirectResult RedirectToStaging(StagedPackageIdentity identity)
+        {
+            var owner = identity.Owner.Username;
+            if (identity.StagingGroup != null)
+            {
+                return Redirect(Url.ManageStagingGroup(owner, identity.StagingGroup.Id));
+            }
+
+            return Redirect(Url.ManageUngroupedStaging(owner));
+        }
+
+        [HttpGet]
+        public virtual async Task<ActionResult> DownloadPackage(string id, string version)
+        {
+            ValidatePackageIdentity(id, version);
+
+            var stagedPackage = FindAuthorizedStagedPackage(id, version);
+            if (stagedPackage == null)
+            {
+                return HttpNotFound();
+            }
+
+            var content = await _packageStagingManagementService.OpenPackageContentAsync(stagedPackage);
+            if (content == null)
+            {
+                return HttpNotFound();
+            }
+
+            return File(content, CoreConstants.PackageContentType, $"{id}.{version}{CoreConstants.NuGetPackageFileExtension}");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> ReplacePackage(string id, string version, HttpPostedFileBase packageFile)
+        {
+            ValidatePackageIdentity(id, version);
+
+            var stagedPackage = FindAuthorizedStagedPackage(id, version);
+            if (stagedPackage == null)
+            {
+                return HttpNotFound();
+            }
+
+            var identity = stagedPackage.StagedPackageIdentity;
+            var owner = identity.Owner.Username;
+            var groupId = identity.StagingGroup?.Id;
+            var returnUrl = groupId == null ? Url.ManageUngroupedStaging(owner) : Url.ManageStagingGroup(owner, groupId);
+            if (packageFile == null || packageFile.ContentLength == 0)
+            {
+                TempData["ErrorMessage"] = "Select a package file.";
+                return Redirect(returnUrl);
+            }
+
+            var result = await _packageStagingUploadService.ReplacePackageAsync(
+                GetCurrentUser(),
+                HttpContext,
+                stagedPackage,
+                packageFile.InputStream);
+            if (!result.Success)
+            {
+                TempData["ErrorMessage"] = result.ErrorMessage;
+            }
+
+            return Redirect(returnUrl);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> UpdateListed(string id, string version, bool listed)
+        {
+            ValidatePackageIdentity(id, version);
+
+            var stagedPackage = FindAuthorizedStagedPackage(id, version);
+            if (stagedPackage == null)
+            {
+                return HttpNotFound();
+            }
+
+            var updated = await _packageStagingManagementService.UpdateListedAsync(stagedPackage, listed);
+            return new HttpStatusCodeResult(updated ? HttpStatusCode.NoContent : HttpStatusCode.Conflict);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> DeletePackage(string id, string version)
+        {
+            ValidatePackageIdentity(id, version);
+
+            var stagedPackage = FindAuthorizedStagedPackage(id, version);
+            if (stagedPackage == null)
+            {
+                return HttpNotFound();
+            }
+
+            var identity = stagedPackage.StagedPackageIdentity;
+            var owner = identity.Owner.Username;
+            var groupId = identity.StagingGroup?.Id;
+            var returnUrl = groupId == null ? Url.ManageUngroupedStaging(owner) : Url.ManageStagingGroup(owner, groupId);
+            var result = await _packageStagingManagementService.DeletePackageAsync(stagedPackage);
+            switch (result)
+            {
+                case PackageStagingDeletionResult.Deleted:
+                    break;
+                case PackageStagingDeletionResult.PromotionActive:
+                    TempData["ErrorMessage"] = "The staged package cannot be deleted while package promotion is active.";
+                    break;
+                case PackageStagingDeletionResult.Conflict:
+                    TempData["ErrorMessage"] = "The staged package changed. Refresh and try again.";
+                    break;
+                default:
+                    throw new InvalidOperationException($"Unexpected staged package deletion result: {result}");
+            }
+
+            return Redirect(returnUrl);
+        }
+
+        /// <summary>
+        /// Begins asynchronous publication of a ready staged package.
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> PromotePackage(string id, string version)
+        {
+            ValidatePackageIdentity(id, version);
+
+            var stagedPackage = FindAuthorizedStagedPackage(id, version);
+            if (stagedPackage == null)
+            {
+                return HttpNotFound();
+            }
+
+            var result = await _packageStagingPromotionService.PromotePackageAsync(GetCurrentUser(), stagedPackage);
+            switch (result)
+            {
+                case PackageStagingPromotionResult.Accepted:
+                    break;
+                case PackageStagingPromotionResult.Unauthorized:
+                    return HttpNotFound();
+                case PackageStagingPromotionResult.NotReady:
+                    if (!StagingOwnershipPolicy.CanPublish(stagedPackage.StagedPackageIdentity))
+                    {
+                        TempData["ErrorMessage"] = StagingOwnershipPolicy.BlockerMessage;
+                    }
+                    else if (StagingExpirationPolicy.HasExpired(stagedPackage))
+                    {
+                        TempData["ErrorMessage"] = "The staged package has expired. Delete the expired staging before uploading new content.";
+                    }
+                    else
+                    {
+                        TempData["ErrorMessage"] = "The staged package is not ready for promotion.";
+                    }
+                    break;
+                case PackageStagingPromotionResult.Grouped:
+                    TempData["ErrorMessage"] = "Promote this package with its staging group.";
+                    break;
+                case PackageStagingPromotionResult.Conflict:
+                    TempData["ErrorMessage"] = "The package promotion changed while processing your request. Refresh and check its status.";
+                    break;
+                case PackageStagingPromotionResult.DispatchFailed:
+                    TempData["ErrorMessage"] = "Promotion started, but we couldn't confirm it's being processed. Refresh the page; if it's still in progress, you can retry now.";
+                    break;
+                default:
+                    throw new InvalidOperationException($"Unknown package promotion result '{result}'.");
+            }
+
+            return Redirect(Url.ManageUngroupedStaging(stagedPackage.StagedPackageIdentity.Owner.Username));
+        }
+
+        /// <summary>
+        /// Resends a stalled individual package promotion.
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> ResendPackage(string id, string version)
+        {
+            ValidatePackageIdentity(id, version);
+
+            var stagedPackage = FindAuthorizedStagedPackage(id, version);
+            if (stagedPackage == null)
+            {
+                return HttpNotFound();
+            }
+
+            var result = await _packageStagingPromotionService.ResendPackageAsync(GetCurrentUser(), stagedPackage);
+            switch (result)
+            {
+                case PackageStagingPromotionResult.Accepted:
+                    break;
+                case PackageStagingPromotionResult.Unauthorized:
+                    return HttpNotFound();
+                case PackageStagingPromotionResult.NotReady:
+                    TempData["ErrorMessage"] = "This package promotion cannot be retried yet. Refresh the page and try again later.";
+                    break;
+                case PackageStagingPromotionResult.Grouped:
+                    TempData["ErrorMessage"] = "Retry this package's promotion with its staging group.";
+                    break;
+                case PackageStagingPromotionResult.Conflict:
+                    TempData["ErrorMessage"] = "The package promotion changed. Refresh the page and try again.";
+                    break;
+                case PackageStagingPromotionResult.DispatchFailed:
+                    TempData["ErrorMessage"] = "We couldn't confirm your retry is being processed. Refresh the page; if the promotion is still in progress, you can retry now.";
+                    break;
+                default:
+                    throw new InvalidOperationException($"Unknown package promotion resend result '{result}'.");
+            }
+
+            return Redirect(Url.ManageUngroupedStaging(stagedPackage.StagedPackageIdentity.Owner.Username));
+        }
+
+        /// <summary>
+        /// Begins asynchronous publication of ready Ungrouped symbols.
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> PromoteSymbolPackage(string id, string version)
+        {
+            ValidatePackageIdentity(id, version);
+            var attempt = FindAuthorizedStagedSymbolPackage(id, version);
+            if (attempt == null)
+            {
+                return HttpNotFound();
+            }
+
+            var result = await _packageStagingPromotionService.PromoteSymbolPackageAsync(GetCurrentUser(), attempt);
+            return SymbolPromotionResult(attempt, result);
+        }
+
+        /// <summary>
+        /// Resends an active symbol promotion without creating a new ingestion attempt.
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> ResendSymbolPackage(string id, string version)
+        {
+            ValidatePackageIdentity(id, version);
+            var attempt = FindAuthorizedStagedSymbolPackage(id, version);
+            if (attempt == null)
+            {
+                return HttpNotFound();
+            }
+
+            var result = await _packageStagingPromotionService.ResendSymbolPackageAsync(GetCurrentUser(), attempt);
+            return SymbolPromotionResult(attempt, result);
+        }
+
+        private ActionResult SymbolPromotionResult(StagedSymbolPackage attempt, PackageStagingPromotionResult result)
+        {
+            switch (result)
+            {
+                case PackageStagingPromotionResult.Accepted:
+                    break;
+                case PackageStagingPromotionResult.Unauthorized:
+                    return HttpNotFound();
+                case PackageStagingPromotionResult.NotReady:
+                    if (!StagingOwnershipPolicy.CanPublish(attempt.StagedPackageIdentity))
+                    {
+                        TempData["ErrorMessage"] = StagingOwnershipPolicy.BlockerMessage;
+                    }
+                    else
+                    {
+                        TempData["ErrorMessage"] = "These symbols cannot be promoted or retried yet. Refresh and check their status and parent package.";
+                    }
+                    break;
+                case PackageStagingPromotionResult.Grouped:
+                    TempData["ErrorMessage"] = "Symbol promotion is not available for staging groups yet.";
+                    break;
+                case PackageStagingPromotionResult.Conflict:
+                    TempData["ErrorMessage"] = "The symbol promotion changed while processing your request. Refresh and check its status.";
+                    break;
+                case PackageStagingPromotionResult.DispatchFailed:
+                    TempData["ErrorMessage"] = "Promotion started, but we couldn't confirm it's being processed. Refresh the page; if it's still in progress, you can retry now.";
+                    break;
+                default:
+                    throw new InvalidOperationException($"Unknown symbol promotion result '{result}'.");
+            }
+
+            return Redirect(Url.ManageUngroupedStaging(attempt.StagedPackageIdentity.Owner.Username));
+        }
+
+        private static void ValidatePackageIdentity(string id, string version)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+
+            if (string.IsNullOrWhiteSpace(version))
+            {
+                throw new ArgumentNullException(nameof(version));
+            }
+        }
+
+        private StagedPackage FindAuthorizedStagedPackage(string id, string version)
+        {
+            var stagedPackage = _packageStagingManagementService.FindCurrentStagedPackage(id, version);
+            if (stagedPackage == null)
+            {
+                return null;
+            }
+
+            var currentUser = GetCurrentUser();
+            if (!_packageStagingAuthorizationService.CanManage(currentUser, stagedPackage))
+            {
+                return null;
+            }
+
+            return stagedPackage;
+        }
+
+        [HttpGet]
+        public virtual async Task<ActionResult> DownloadSymbolPackage(string id, string version)
+        {
+            ValidatePackageIdentity(id, version);
+            var attempt = FindAuthorizedStagedSymbolPackage(id, version);
+            if (attempt == null)
+            {
+                return HttpNotFound();
+            }
+
+            var content = await _symbolPackageStagingManagementService.OpenPackageContentAsync(attempt);
+            if (content == null)
+            {
+                return HttpNotFound();
+            }
+
+            return File(content, CoreConstants.OctetStreamContentType, $"{id}.{version}.snupkg");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> ReplaceSymbolPackage(string id, string version, HttpPostedFileBase packageFile)
+        {
+            ValidatePackageIdentity(id, version);
+            var attempt = FindAuthorizedStagedSymbolPackage(id, version);
+            if (attempt == null)
+            {
+                return HttpNotFound();
+            }
+
+            var identity = attempt.StagedPackageIdentity;
+            var owner = identity.Owner.Username;
+            var groupId = identity.StagingGroup?.Id;
+            if (packageFile == null || packageFile.ContentLength == 0)
+            {
+                TempData["ErrorMessage"] = "Select a symbol package file.";
+            }
+            else
+            {
+                var result = await _symbolPackageStagingUploadService.ReplaceSymbolPackageAsync(GetCurrentUser(), HttpContext, attempt, packageFile.InputStream);
+                if (!result.Success)
+                {
+                    TempData["ErrorMessage"] = result.ErrorMessage;
+                }
+            }
+
+            return Redirect(groupId == null ? Url.ManageUngroupedStaging(owner) : Url.ManageStagingGroup(owner, groupId));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> DeleteSymbolPackage(string id, string version)
+        {
+            ValidatePackageIdentity(id, version);
+            var attempt = FindAuthorizedStagedSymbolPackage(id, version);
+            if (attempt == null)
+            {
+                return HttpNotFound();
+            }
+
+            if (!await _symbolPackageStagingManagementService.DeletePackageAsync(attempt))
+            {
+                TempData["ErrorMessage"] = "The staged symbols changed or promotion started. Refresh and try again.";
+            }
+
+            return Redirect(Url.ManageMyPackages());
+        }
+
+        private StagedSymbolPackage FindAuthorizedStagedSymbolPackage(string id, string version)
+        {
+            var attempt = _symbolPackageStagingManagementService.FindCurrentStagedSymbolPackage(id, version);
+            if (attempt == null || !_packageStagingAuthorizationService.CanManage(GetCurrentUser(), attempt))
+            {
+                return null;
+            }
+
+            return attempt;
+        }
+    }
+}

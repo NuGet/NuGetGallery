@@ -57,6 +57,34 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
         void TrackValidationSetTimeout(string packageId, string normalizedVersion, Guid validationTrackingId);
 
         /// <summary>
+        /// Tracks upload-to-validation-set creation time separately for staged package and staged symbol validation.
+        /// </summary>
+        /// <remarks>
+        /// Uses DurationToValidationSetCreationSeconds under Orchestrator.StagedPackageValidation.
+        /// or Orchestrator.StagedSymbolPackageValidation. Promotion does not report upload-age creation delays.
+        /// </remarks>
+        void TrackStagingDurationToValidationSetCreation(PackageValidationSet validationSet, TimeSpan duration);
+
+        /// <summary>
+        /// Tracks total duration separately for staged package validation, staged symbol validation, and symbol promotion.
+        /// </summary>
+        /// <remarks>
+        /// Uses TotalDurationSeconds under Orchestrator.StagedPackageValidation.,
+        /// Orchestrator.StagedSymbolPackageValidation., or Orchestrator.StagedSymbolPromotion.
+        /// Properties match ordinary validation: PackageId, NormalizedVersion, ValidationTrackingId, and IsSuccess.
+        /// </remarks>
+        void TrackStagingValidationDuration(PackageValidationSet validationSet, TimeSpan duration, bool isSuccess);
+
+        /// <summary>
+        /// Tracks timeouts separately for staged package validation, staged symbol validation, and symbol promotion.
+        /// </summary>
+        /// <remarks>
+        /// Uses TimedOut under the same staging workflow prefixes as TrackStagingValidationDuration,
+        /// retaining PackageId, NormalizedVersion, and ValidationTrackingId.
+        /// </remarks>
+        void TrackStagingValidationSetTimeout(PackageValidationSet validationSet);
+
+        /// <summary>
         /// A counter metric emitted when a validation is past its validator's <see cref="ValidationConfigurationItem.TrackAfter"/>
         /// configuration.
         /// </summary>

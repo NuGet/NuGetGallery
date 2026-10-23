@@ -400,6 +400,10 @@
     <Compile Include="Migrations\202608031928454_AddFederatedCredentialPolicyScopes.Designer.cs">
       <DependentUpon>202608031928454_AddFederatedCredentialPolicyScopes.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202610090013233_AddPackageStaging.cs" />
+    <Compile Include="Migrations\202610090013233_AddPackageStaging.Designer.cs">
+      <DependentUpon>202610090013233_AddPackageStaging.cs</DependentUpon>
+    </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
     <Compile Include="RequestModels\UpdateListedRequest.cs" />
@@ -601,8 +605,53 @@
     <Compile Include="Migrations\201711021733062_ApiKeyOwnerScope.Designer.cs">
       <DependentUpon>201711021733062_ApiKeyOwnerScope.cs</DependentUpon>
     </Compile>
+    <Compile Include="RequestModels\CreateStagingGroupRequest.cs" />
+    <Compile Include="RequestModels\StagePackageRequest.cs" />
+    <Compile Include="RequestModels\StageSymbolPackageRequest.cs" />
     <Compile Include="RequestModels\SimulatedErrorType.cs" />
+    <Compile Include="ResponseModels\StagingGroupResponse.cs" />
+    <Compile Include="ResponseModels\StagingArtifactResponse.cs" />
+    <Compile Include="ResponseModels\StagingPagedResponse.cs" />
     <Compile Include="Services\AsynchronousValidationMessageEmitter.cs" />
+    <Compile Include="Services\CreateStagingGroupResult.cs" />
+    <Compile Include="Services\IStagedPackageValidationMessageEmitter.cs" />
+    <Compile Include="Services\IStagedSymbolPackageValidationMessageEmitter.cs" />
+    <Compile Include="Services\IPackageStagingAuthorizationService.cs" />
+    <Compile Include="Services\IPackageStagingManagementService.cs" />
+    <Compile Include="Services\IPackageStagingPromotionService.cs" />
+    <Compile Include="Services\IPackageStagingUploadService.cs" />
+    <Compile Include="Services\ISymbolPackageStagingUploadService.cs" />
+    <Compile Include="Services\ISymbolPackageStagingManagementService.cs" />
+    <Compile Include="Services\PackageStagingResult.cs" />
+    <Compile Include="Services\PackageStagingAuthorizationService.cs" />
+    <Compile Include="Services\PackageStagingManagementService.cs" />
+    <Compile Include="Services\PackageStagingPromotionService.cs" />
+    <Compile Include="Services\StagedSymbolPackagePromotionEligibility.cs" />
+    <Compile Include="Services\StagingOwnershipPolicy.cs" />
+    <Compile Include="Services\StagingPromotionResendPolicy.cs" />
+    <Compile Include="Services\StagingPromotionFailure.cs" />
+    <Compile Include="Services\PackageStagingStatus.cs" />
+    <Compile Include="Services\PackageStagingUploadService.cs" />
+    <Compile Include="Services\SymbolPackageStagingUploadService.cs" />
+    <Compile Include="Services\SymbolPackageStagingManagementService.cs" />
+    <Compile Include="Services\SymbolPackageStagingStatus.cs" />
+    <Compile Include="Services\StagingGroupSummary.cs" />
+    <Compile Include="Services\StagingArtifactPage.cs" />
+    <Compile Include="Services\StagingGroupAssignment.cs" />
+    <Compile Include="Services\StagingExpirationPolicy.cs" />
+    <Compile Include="Services\IStagingQuotaService.cs" />
+    <Compile Include="Services\StagingQuotaService.cs" />
+    <Compile Include="Services\StagingQuotaUsage.cs" />
+    <Compile Include="Services\StagingQuotaExceededException.cs" />
+    <Compile Include="Services\StagingGroupLimitExceededException.cs" />
+    <Compile Include="Services\StagedSymbolPackageRevalidation.cs" />
+    <Compile Include="ViewModels\CreateStagingGroupViewModel.cs" />
+    <Compile Include="ViewModels\DeleteStagingGroupViewModel.cs" />
+    <Compile Include="ViewModels\MoveStagedPackageViewModel.cs" />
+    <Compile Include="ViewModels\PackageStagingViewModel.cs" />
+    <Compile Include="ViewModels\RenameStagingGroupViewModel.cs" />
+    <Compile Include="ViewModels\StagingGroupDetailViewModel.cs" />
+    <Compile Include="ViewModels\StagingGroupViewModel.cs" />
     <Compile Include="Infrastructure\Mail\BackgroundMarkdownMessageService.cs" />
     <Compile Include="Services\GalleryContentFileMetadataService.cs" />
     <Compile Include="Services\InvalidLicenseUrlValidationMessage.cs" />
@@ -635,7 +684,11 @@
     <Compile Include="Services\CertificateValidator.cs" />
     <Compile Include="Services\ICertificateService.cs" />
     <Compile Include="Services\ICertificateValidator.cs" />
+    <Compile Include="Services\ImmediateStagedPackageValidationMessageEmitter.cs" />
+    <Compile Include="Services\ImmediateStagedSymbolPackageValidationMessageEmitter.cs" />
     <Compile Include="Services\ImmediateValidationMessageEmitter.cs" />
+    <Compile Include="Services\StagedPackageValidationMessageEmitter.cs" />
+    <Compile Include="Services\StagedSymbolPackageValidationMessageEmitter.cs" />
     <Compile Include="Services\ISymbolPackageService.cs" />
     <Compile Include="Services\PackageCommitResult.cs" />
     <Compile Include="Services\IValidationMessageEmitter.cs" />
@@ -1564,6 +1617,8 @@
     <Compile Include="ViewModels\StatisticsPackagesViewModel.cs" />
     <Compile Include="App_Start\AppActivator.cs" />
     <Compile Include="Controllers\ApiController.cs" />
+    <Compile Include="Controllers\StagingApiController.cs" />
+    <Compile Include="Controllers\StagingController.cs" />
     <Compile Include="Controllers\JsonApiController.cs" />
     <Compile Include="Controllers\PackagesController.cs" />
     <Compile Include="Controllers\AuthenticationController.cs" />
@@ -1793,6 +1848,9 @@
     <EmbeddedResource Include="Migrations\202608031928454_AddFederatedCredentialPolicyScopes.resx">
       <DependentUpon>202608031928454_AddFederatedCredentialPolicyScopes.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202610090013233_AddPackageStaging.resx">
+      <DependentUpon>202610090013233_AddPackageStaging.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
@@ -1993,6 +2051,7 @@
     <Content Include="Scripts\gallery\page-manage-organization.js" />
     <Content Include="Scripts\gallery\page-manage-owners.js" />
     <Content Include="Scripts\gallery\page-manage-packages.js" />
+    <Content Include="Scripts\gallery\page-staging-group.js" />
     <Content Include="Scripts\gallery\page-manage-sponsorship-links.js" />
     <Content Include="Scripts\gallery\page-signin.js" />
     <Content Include="Scripts\gallery\page-support-requests.js" />
@@ -2020,6 +2079,10 @@
     <Content Include="Views\Packages\ReportAbuse.cshtml" />
     <Content Include="Views\Packages\UploadPackage.cshtml" />
     <Content Include="Views\Shared\_ListPackage.cshtml" />
+    <Content Include="Views\Staging\CreateGroup.cshtml" />
+    <Content Include="Views\Staging\DeleteGroup.cshtml" />
+    <Content Include="Views\Staging\Group.cshtml" />
+    <Content Include="Views\Staging\MovePackage.cshtml" />
     <Content Include="Views\Users\Packages.cshtml" />
     <Content Include="App_Code\ViewHelpers.cshtml" />
     <Content Include="Views\Users\PasswordChanged.cshtml" />
@@ -2257,6 +2320,10 @@
     <ProjectReference Include="..\NuGet.Services.ServiceBus\NuGet.Services.ServiceBus.csproj">
       <Project>{8e69eee6-2bdc-48e5-a4ab-32f44ebb2422}</Project>
       <Name>NuGet.Services.ServiceBus</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.Staging\NuGet.Services.Staging.csproj">
+      <Project>{8a35269d-ea22-4319-a514-e41c62c7b8e8}</Project>
+      <Name>NuGet.Services.Staging</Name>
     </ProjectReference>
     <ProjectReference Include="..\NuGet.Services.Sql\NuGet.Services.Sql.csproj">
       <Project>{692cdff5-6301-41bd-b06f-89deee43e23e}</Project>

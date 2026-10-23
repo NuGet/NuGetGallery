@@ -177,6 +177,10 @@ namespace NuGetGallery
                 .Include("~/Scripts/gallery/page-manage-packages.js");
             BundleTable.Bundles.Add(managePackagesScriptBundle);
 
+            var stagingGroupScriptBundle = new ScriptBundle("~/Scripts/gallery/page-staging-group.min.js")
+                .Include("~/Scripts/gallery/page-staging-group.js");
+            BundleTable.Bundles.Add(stagingGroupScriptBundle);
+
             var manageOwnersScriptBundle = new ScriptBundle("~/Scripts/gallery/page-manage-owners.min.js")
                 .Include("~/Scripts/gallery/page-manage-owners.js");
             BundleTable.Bundles.Add(manageOwnersScriptBundle);

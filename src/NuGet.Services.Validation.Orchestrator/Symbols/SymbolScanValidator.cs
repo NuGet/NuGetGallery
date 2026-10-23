@@ -23,11 +23,13 @@ namespace NuGet.Services.Validation.Symbols
     {
         private readonly IValidationEntitiesContext _validationContext;
         private readonly IValidatorStateService _validatorStateService;
+        private readonly IValidationStorageService _validationStorageService;
         private readonly ICoreSymbolPackageService _symbolPackageService;
         private readonly ICriteriaEvaluator<SymbolPackage> _criteriaEvaluator;
         private readonly IScanAndSignEnqueuer _scanAndSignEnqueuer;
         private readonly SymbolScanOnlyConfiguration _configuration;
         private readonly ILogger<ScanAndSignProcessor> _logger;
+        private readonly IEntityService<StagedSymbolPackage> _stagedSymbolPackageEntityService;
 
         public SymbolScanValidator(
             IValidationEntitiesContext validationContext,
@@ -36,10 +38,13 @@ namespace NuGet.Services.Validation.Symbols
             ICriteriaEvaluator<SymbolPackage> criteriaEvaluator,
             IScanAndSignEnqueuer scanAndSignEnqueuer,
             IOptionsSnapshot<SymbolScanOnlyConfiguration> configurationAccessor,
-            ILogger<ScanAndSignProcessor> logger)
+            ILogger<ScanAndSignProcessor> logger,
+            IEntityService<StagedSymbolPackage> stagedSymbolPackageEntityService,
+            IValidationStorageService validationStorageService)
         {
             _validationContext = validationContext ?? throw new ArgumentNullException(nameof(validationContext));
             _validatorStateService = validatorStateService ?? throw new ArgumentNullException(nameof(validatorStateService));
+            _validationStorageService = validationStorageService ?? throw new ArgumentNullException(nameof(validationStorageService));
             _symbolPackageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _criteriaEvaluator = criteriaEvaluator ?? throw new ArgumentNullException(nameof(criteriaEvaluator));
             _scanAndSignEnqueuer = scanAndSignEnqueuer ?? throw new ArgumentNullException(nameof(scanAndSignEnqueuer));
@@ -55,6 +60,7 @@ namespace NuGet.Services.Validation.Symbols
             _configuration = configurationAccessor.Value;
 
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _stagedSymbolPackageEntityService = stagedSymbolPackageEntityService ?? throw new ArgumentNullException(nameof(stagedSymbolPackageEntityService));
 
             configurationAccessor = configurationAccessor ?? throw new ArgumentNullException(nameof(configurationAccessor));
 
@@ -98,7 +104,9 @@ namespace NuGet.Services.Validation.Symbols
                 return validatorStatus.ToNuGetValidationResponse();
             }
 
-            if (ShouldSkipScan(request))
+            var validatingType = await SymbolValidationSetResolver.GetValidatingTypeAsync(_validationStorageService, request);
+            validatorStatus.ValidatingType = validatingType;
+            if (ShouldSkipScan(request, validatingType))
             {
                 return NuGetValidationResponse.Succeeded;
             }
@@ -110,11 +118,20 @@ namespace NuGet.Services.Validation.Symbols
             return status.ToNuGetValidationResponse();
         }
 
-        private bool ShouldSkipScan(INuGetValidationRequest request)
+        private bool ShouldSkipScan(INuGetValidationRequest request, ValidatingType validatingType)
         {
-            var symbolPackage = _symbolPackageService
-                .FindSymbolPackagesByIdAndVersion(request.PackageId,request.PackageVersion)
-                .FirstOrDefault(sp => sp.Key == request.PackageKey);
+            SymbolPackage symbolPackage;
+            if (validatingType == ValidatingType.StagedSymbolPackage)
+            {
+                var attempt = _stagedSymbolPackageEntityService.FindPackageByKey(request.PackageKey);
+                symbolPackage = attempt?.EntityRecord.SymbolPackage;
+            }
+            else
+            {
+                symbolPackage = _symbolPackageService
+                    .FindSymbolPackagesByIdAndVersion(request.PackageId, request.PackageVersion)
+                    .FirstOrDefault(sp => sp.Key == request.PackageKey);
+            }
 
             if (symbolPackage == null)
             {

@@ -97,6 +97,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             {
                 PackageUrlTemplate = "https://example.com/package/{0}/{1}",
                 PackageSupportTemplate = "https://example.com/packageSupport/{0}/{1}",
+                StagedPackageUrlTemplate = "https://example.com/account/staging/package/{0}/{1}",
+                StagedSymbolPackageUrlTemplate = "https://example.com/account/staging/symbols/{0}/{1}",
                 EmailSettingsUrl = ValidSettingsUrl,
                 AnnouncementsUrl = "https://announcements.com",
                 TwitterUrl = "https://twitter.com/nuget",

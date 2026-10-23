@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>NuGet.Services.Staging.Promotion</id>
+    <version>$version$</version>
+    <title>NuGet.Services.Staging.Promotion</title>
+    <authors>.NET Foundation</authors>
+    <owners>.NET Foundation</owners>
+    <description>Promotion processing for validated staged packages.</description>
+    <copyright>Copyright .NET Foundation</copyright>
+  </metadata>
+  <files>
+    <file src="bin\$configuration$\net472\*.*" target="bin"/>
+    <file src="..\NuGet.Services.Validation.Orchestrator\Scripts\Functions.ps1" />
+    <file src="..\NuGet.Services.Validation.Orchestrator\Scripts\PreDeploy.ps1" />
+    <file src="..\NuGet.Services.Validation.Orchestrator\Scripts\PostDeploy.ps1" />
+    <file src="..\NuGet.Services.Validation.Orchestrator\Scripts\nssm.exe" />
+  </files>
+</package>

@@ -185,6 +185,12 @@ namespace NuGet.Services.Validation.Orchestrator
 
         private void TrackTotalValidationDuration(PackageValidationSet validationSet, bool isSuccess)
         {
+            if (validationSet.ValidatingType == ValidatingType.StagedPackage || validationSet.ValidatingType == ValidatingType.StagedSymbolPackage)
+            {
+                _telemetryService.TrackStagingValidationDuration(validationSet, DateTime.UtcNow - validationSet.Created, isSuccess);
+                return;
+            }
+
             _telemetryService.TrackTotalValidationDuration(
                 validationSet.PackageId,
                 validationSet.PackageNormalizedVersion,
@@ -321,7 +327,14 @@ namespace NuGet.Services.Validation.Orchestrator
                     validationSet.PackageNormalizedVersion,
                     validationSetDuration,
                     _validationConfiguration.TimeoutValidationSetAfter);
-                _telemetryService.TrackValidationSetTimeout(validationSet.PackageId, validationSet.PackageNormalizedVersion, validationSet.ValidationTrackingId);
+                if (validationSet.ValidatingType == ValidatingType.StagedPackage || validationSet.ValidatingType == ValidatingType.StagedSymbolPackage)
+                {
+                    _telemetryService.TrackStagingValidationSetTimeout(validationSet);
+                }
+                else
+                {
+                    _telemetryService.TrackValidationSetTimeout(validationSet.PackageId, validationSet.PackageNormalizedVersion, validationSet.ValidationTrackingId);
+                }
             }
         }
     }

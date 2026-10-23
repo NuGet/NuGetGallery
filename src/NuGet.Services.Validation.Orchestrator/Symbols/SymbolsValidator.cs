@@ -16,6 +16,7 @@ namespace NuGet.Services.Validation.Symbols
     public class SymbolsValidator : BaseNuGetValidator, INuGetValidator
     {
         private readonly IValidatorStateService _validatorStateService;
+        private readonly IValidationStorageService _validationStorageService;
         private readonly ISymbolsMessageEnqueuer _symbolMessageEnqueuer;
         private readonly ITelemetryService _telemetryService;
         private readonly ILogger<SymbolsValidator> _logger;
@@ -24,9 +25,11 @@ namespace NuGet.Services.Validation.Symbols
             IValidatorStateService validatorStateService,
             ISymbolsMessageEnqueuer symbolMessageEnqueuer,
             ITelemetryService telemetryService,
-            ILogger<SymbolsValidator> logger)
+            ILogger<SymbolsValidator> logger,
+            IValidationStorageService validationStorageService)
         {
             _validatorStateService = validatorStateService ?? throw new ArgumentNullException(nameof(validatorStateService));
+            _validationStorageService = validationStorageService ?? throw new ArgumentNullException(nameof(validationStorageService));
             _symbolMessageEnqueuer = symbolMessageEnqueuer ?? throw new ArgumentNullException(nameof(symbolMessageEnqueuer));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -69,8 +72,6 @@ namespace NuGet.Services.Validation.Symbols
             }
 
             var validatorStatus = await _validatorStateService.GetStatusAsync(request);
-            // See issue https://github.com/NuGet/NuGetGallery/issues/6249
-            validatorStatus.ValidatingType = ValidatingType.SymbolPackage;
 
             if (validatorStatus.State != ValidationStatus.NotStarted)
             {
@@ -81,6 +82,9 @@ namespace NuGet.Services.Validation.Symbols
 
                 return validatorStatus.ToNuGetValidationResponse();
             }
+
+            // See issue https://github.com/NuGet/NuGetGallery/issues/6249
+            validatorStatus.ValidatingType = await SymbolValidationSetResolver.GetValidatingTypeAsync(_validationStorageService, request);
 
             // Due to race conditions or failure of method TryAddValidatorStatusAsync the same message can be enqueued multiple times
             // Log this information to postmortem evaluate this behavior

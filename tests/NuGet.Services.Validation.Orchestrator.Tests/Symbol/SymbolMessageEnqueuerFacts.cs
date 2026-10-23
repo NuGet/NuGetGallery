@@ -2,7 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json.Linq;
+using NuGet.Services.Entities;
+using NuGet.Services.Validation.Orchestrator;
+using NuGetGallery;
 using NuGet.Jobs.Validation.Symbols.Core;
 using NuGet.Services.ServiceBus;
 using Moq;
@@ -29,11 +35,69 @@ namespace NuGet.Services.Validation.Symbols
             Assert.Equal(_validationRequest.Object.PackageVersion, message.PackageNormalizedVersion);
 
             Assert.Equal(_validationRequest.Object.NupkgUrl, message.SnupkgUrl);
+            Assert.Null(message.ParentPackageUrl);
             _serializer.Verify(
                 x => x.Serialize(It.IsAny<SymbolsValidatorMessage>()),
                 Times.Once);
             _topicClient.Verify(x => x.SendAsync(_brokeredMessage.Object), Times.Once);
             _topicClient.Verify(x => x.SendAsync(It.IsAny<IBrokeredMessage>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task SendsExactStagedParentUrl()
+        {
+            var identity = new StagedPackageIdentity { Package = new Package { PackageStatusKey = PackageStatus.Staged }, CurrentStagedPackageKey = 50, CurrentStagedSymbolPackageKey = 43 };
+            identity.CurrentStagedPackage = new StagedPackage { Key = 50, UploadedBlobPath = "exact-parent.nupkg", UploadedBlobETag = "parent-etag" };
+            var attempt = new StagedSymbolPackage { Key = 43, StagedPackageIdentity = identity, Status = StagedPackageStatus.Validating };
+            _validationRequest.Setup(x => x.PackageKey).Returns(attempt.Key);
+            var storage = new Mock<IValidationStorageService>();
+            storage.Setup(x => x.TryGetParentValidationSetAsync(_validationRequest.Object.ValidationId)).ReturnsAsync(new PackageValidationSet { PackageKey = attempt.Key, ValidatingType = ValidatingType.StagedSymbolPackage });
+            var entities = new Mock<IEntityService<StagedSymbolPackage>>();
+            entities.Setup(x => x.FindPackageByKey(attempt.Key)).Returns(new StagedSymbolPackageValidatingEntity(attempt));
+            var blobs = new Mock<IStagingBlobService>();
+            var uri = new Uri("https://example.test/exact-parent.nupkg");
+            blobs.Setup(x => x.GetPackageReadUriAsync("exact-parent.nupkg", "parent-etag", It.IsAny<DateTimeOffset>())).ReturnsAsync(uri);
+            SymbolsValidatorMessage message = null;
+            _serializer.Setup(x => x.Serialize(It.IsAny<SymbolsValidatorMessage>())).Callback<SymbolsValidatorMessage>(value => message = value).Returns(_brokeredMessage.Object);
+            var configuration = new ValidationConfiguration { TimeoutValidationSetAfter = TimeSpan.FromDays(5) };
+            var target = new SymbolsMessageEnqueuer(
+                _topicClient.Object, _serializer.Object, null, storage.Object, entities.Object, blobs.Object,
+                Mock.Of<IOptionsSnapshot<ValidationConfiguration>>(x => x.Value == configuration));
+            var expectedEndOfAccessLower = DateTimeOffset.UtcNow.Add(configuration.TimeoutValidationSetAfter);
+
+            await target.EnqueueSymbolsValidationMessageAsync(_validationRequest.Object);
+
+            var expectedEndOfAccessUpper = DateTimeOffset.UtcNow.Add(configuration.TimeoutValidationSetAfter);
+            Assert.Equal(uri.AbsoluteUri, message.ParentPackageUrl);
+            blobs.Verify(x => x.GetPackageReadUriAsync(
+                "exact-parent.nupkg",
+                "parent-etag",
+                It.Is<DateTimeOffset>(expiry => expiry >= expectedEndOfAccessLower && expiry <= expectedEndOfAccessUpper)), Times.Once);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("https://example.test/private-parent.nupkg")]
+        public void SerializerPreservesPrivateParentAndSupportsLegacyMessages(string parentPackageUrl)
+        {
+            var message = new SymbolsValidatorMessage(Guid.NewGuid(), 43, "PackageA", "1.0.0", "https://example.test/symbols.snupkg", parentPackageUrl);
+            var serializer = new SymbolsValidatorMessageSerializer();
+            var serialized = serializer.Serialize(message);
+            var body = JObject.Parse(serialized.GetBody());
+            if (parentPackageUrl == null)
+            {
+                body.Remove(nameof(SymbolsValidatorMessage.ParentPackageUrl));
+            }
+
+            var received = new Mock<IReceivedBrokeredMessage>();
+            received.SetupGet(x => x.Properties).Returns(serialized.Properties.ToDictionary(pair => pair.Key, pair => pair.Value));
+            received.Setup(x => x.GetBody()).Returns(body.ToString());
+
+            var result = serializer.Deserialize(received.Object);
+
+            Assert.Equal(message.ValidationId, result.ValidationId);
+            Assert.Equal(message.SnupkgUrl, result.SnupkgUrl);
+            Assert.Equal(parentPackageUrl, result.ParentPackageUrl);
         }
 
         private readonly Mock<ITopicClient> _topicClient;
@@ -62,10 +126,16 @@ namespace NuGet.Services.Validation.Symbols
                 .Setup(x => x.Serialize(It.IsAny<SymbolsValidatorMessage>()))
                 .Returns(() => _brokeredMessage.Object);
 
+            var storage = new Mock<IValidationStorageService>();
+            storage.Setup(x => x.TryGetParentValidationSetAsync(_validationRequest.Object.ValidationId)).ReturnsAsync(new PackageValidationSet { PackageKey = _validationRequest.Object.PackageKey, ValidatingType = ValidatingType.SymbolPackage });
             _target = new SymbolsMessageEnqueuer(
                 _topicClient.Object,
                 _serializer.Object,
-                TimeSpan.FromSeconds(1));
+                TimeSpan.FromSeconds(1),
+                storage.Object,
+                Mock.Of<IEntityService<StagedSymbolPackage>>(),
+                Mock.Of<IStagingBlobService>(),
+                Mock.Of<IOptionsSnapshot<ValidationConfiguration>>(x => x.Value == new ValidationConfiguration()));
         }
     }
 }

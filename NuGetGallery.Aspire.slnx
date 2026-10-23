@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="src/NuGet.Services.Validation.Orchestrator/NuGet.Services.Validation.Orchestrator.csproj" />
   <Project Path="src/Catalog/NuGet.Services.Metadata.Catalog.csproj" />
   <Project Path="src/Ng/Ng.csproj" />
   <Project Path="src/NuGet.Jobs.Catalog2AzureSearch/NuGet.Jobs.Catalog2AzureSearch.csproj" />
@@ -18,6 +19,7 @@
   <Project Path="src/NuGet.Services.V3/NuGet.Services.V3.csproj" />
   <Project Path="src/NuGetGallery.Core/NuGetGallery.Core.csproj" />
   <Project Path="src/Validation.Common.Job/Validation.Common.Job.csproj" />
+  <Project Path="src/Validation.Symbols/Validation.Symbols.Job.csproj" />
   <Project Path="src/NuGetGallery.AppHost/NuGetGallery.AppHost.csproj" />
   <Project Path="src/NuGetGallery.AppHost.Config/NuGetGallery.AppHost.Config.csproj" />
   <Project Path="src/NuGetGallery.AppHost.Tools/NuGetGallery.AppHost.Tools.csproj" />
