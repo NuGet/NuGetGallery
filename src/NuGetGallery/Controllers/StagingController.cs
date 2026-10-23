@@ -428,7 +428,7 @@ namespace NuGetGallery
                     IsSymbolPackage = true,
                     ParentStatus = parentStatus,
                     ParentUrl = parentUrl,
-                    Status = isExpired ? "Expired - awaiting cleanup" : attempt.Status.ToString(),
+                    Status = isExpired ? "Expired" : attempt.Status.ToString(),
                     StatusClass = isExpired || attempt.Status == StagedPackageStatus.WaitingForParent ? "label-warning" : $"staging-status-{attempt.Status.ToString().ToLowerInvariant()}",
                     UploadedDate = attempt.UploadedDate,
                     ExpirationDate = StagingExpirationPolicy.GetDeadline(attempt),
@@ -667,7 +667,7 @@ namespace NuGetGallery
                         Id = package.PackageRegistration.Id,
                         Version = package.NormalizedVersion,
                         Owner = identity.Owner.Username,
-                        Status = isExpired ? "Expired - awaiting cleanup" : stagedPackage.Status.ToString(),
+                        Status = isExpired ? "Expired" : stagedPackage.Status.ToString(),
                         StatusClass = isExpired ? "label-warning" : $"staging-status-{stagedPackage.Status.ToString().ToLowerInvariant()}",
                         UploadedDate = stagedPackage.UploadedDate,
                         ExpirationDate = StagingExpirationPolicy.GetDeadline(stagedPackage),
@@ -879,7 +879,7 @@ namespace NuGetGallery
             switch (result)
             {
                 case PackageStagingPromotionResult.Accepted:
-                    return Redirect(Url.ManageMyPackages());
+                    break;
                 case PackageStagingPromotionResult.Unauthorized:
                     return HttpNotFound();
                 case PackageStagingPromotionResult.NotReady:
@@ -895,19 +895,21 @@ namespace NuGetGallery
                     {
                         TempData["ErrorMessage"] = "The staged package is not ready for promotion.";
                     }
-                    return Redirect(Url.ManageMyPackages());
+                    break;
                 case PackageStagingPromotionResult.Grouped:
                     TempData["ErrorMessage"] = "Promote this package with its staging group.";
-                    return Redirect(Url.ManageMyPackages());
+                    break;
                 case PackageStagingPromotionResult.Conflict:
                     TempData["ErrorMessage"] = "The package promotion changed while processing your request. Refresh and check its status.";
-                    return Redirect(Url.ManageMyPackages());
+                    break;
                 case PackageStagingPromotionResult.DispatchFailed:
                     TempData["ErrorMessage"] = "Promotion started, but we couldn't confirm it's being processed. Refresh the page; if it's still in progress, you can retry now.";
-                    return Redirect(Url.ManageMyPackages());
+                    break;
                 default:
                     throw new InvalidOperationException($"Unknown package promotion result '{result}'.");
             }
+
+            return Redirect(Url.ManageUngroupedStaging(stagedPackage.StagedPackageIdentity.Owner.Username));
         }
 
         /// <summary>

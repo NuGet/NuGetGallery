@@ -717,7 +717,7 @@ namespace NuGetGallery
             {
                 Assert.True(package.IsExpired);
                 Assert.Equal(group.ExpirationDate, package.ExpirationDate);
-                Assert.Equal("Expired - awaiting cleanup", package.Status);
+                Assert.Equal("Expired", package.Status);
                 Assert.True(package.CanManage);
                 Assert.False(package.CanPromote);
                 Assert.Null(package.MoveUrl);
@@ -1512,11 +1512,18 @@ namespace NuGetGallery
                 Times.Once);
         }
 
-        [Fact]
-        public async Task PromotesAuthorizedReadyPackage()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task PromotesAuthorizedReadyPackage(bool organizationOwner)
         {
             var currentUser = new User("current") { Key = 1 };
-            var stagedPackage = CreateStagedPackage(currentUser);
+            User owner = currentUser;
+            if (organizationOwner)
+            {
+                owner = new Organization("organization") { Key = 2 };
+            }
+            var stagedPackage = CreateStagedPackage(owner);
             GetMock<IPackageStagingManagementService>()
                 .Setup(x => x.FindCurrentStagedPackage("PackageA", "1.0.0"))
                 .Returns(stagedPackage);
@@ -1531,7 +1538,7 @@ namespace NuGetGallery
 
             var result = await target.PromotePackage("PackageA", "1.0.0");
 
-            Assert.IsType<RedirectResult>(result);
+            ResultAssert.IsRedirect(result, permanent: false, url: target.Url.ManageUngroupedStaging(owner.Username));
             GetMock<IPackageStagingPromotionService>().Verify(
                 x => x.PromotePackageAsync(currentUser, stagedPackage),
                 Times.Once);
@@ -1569,8 +1576,13 @@ namespace NuGetGallery
                 Times.Once);
         }
 
-        [Fact]
-        public async Task ReportsWhenPackageIsNotReadyForPromotion()
+        [Theory]
+        [InlineData(PackageStagingPromotionResult.NotReady, "The staged package is not ready for promotion.")]
+        [InlineData(PackageStagingPromotionResult.Grouped, "Promote this package with its staging group.")]
+        [InlineData(PackageStagingPromotionResult.Conflict, "The package promotion changed while processing your request. Refresh and check its status.")]
+        [InlineData(PackageStagingPromotionResult.DispatchFailed, "Promotion started, but we couldn't confirm it's being processed. Refresh the page; if it's still in progress, you can retry now.")]
+        [InlineData(PackageStagingPromotionResult.Unauthorized, null)]
+        public async Task ReportsUnsuccessfulPackagePromotion(PackageStagingPromotionResult promotionResult, string expectedErrorMessage)
         {
             var currentUser = new User("current") { Key = 1 };
             var stagedPackage = CreateStagedPackage(currentUser);
@@ -1582,14 +1594,21 @@ namespace NuGetGallery
                 .Returns(true);
             GetMock<IPackageStagingPromotionService>()
                 .Setup(x => x.PromotePackageAsync(currentUser, stagedPackage))
-                .ReturnsAsync(PackageStagingPromotionResult.NotReady);
+                .ReturnsAsync(promotionResult);
             var target = GetController<StagingController>();
             target.SetCurrentUser(currentUser);
 
             var result = await target.PromotePackage("PackageA", "1.0.0");
 
-            Assert.IsType<RedirectResult>(result);
-            Assert.Equal("The staged package is not ready for promotion.", target.TempData["ErrorMessage"]);
+            if (promotionResult == PackageStagingPromotionResult.Unauthorized)
+            {
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
+            else
+            {
+                ResultAssert.IsRedirect(result, permanent: false, url: target.Url.ManageUngroupedStaging(currentUser.Username));
+            }
+            Assert.Equal(expectedErrorMessage, target.TempData["ErrorMessage"]);
         }
 
         [Theory]
