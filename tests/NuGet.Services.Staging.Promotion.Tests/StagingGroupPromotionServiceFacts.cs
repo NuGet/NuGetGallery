@@ -16,6 +16,51 @@ namespace NuGet.Services.Staging.Promotion.Tests
 {
     public class StagingGroupPromotionServiceFacts
     {
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task StopsReadingArtifactsAsSoonAsUnfinishedWorkIsFound(bool unfinishedSymbols)
+        {
+            var context = new TestContext();
+            context.StagedPackage.Status = unfinishedSymbols ? StagedPackageStatus.Succeeded : StagedPackageStatus.Promoting;
+            var secondParent = context.AddMember(43, StagedPackageStatus.Succeeded);
+            context.AddSymbols(unfinishedSymbols ? StagedPackageStatus.Promoting : StagedPackageStatus.Succeeded);
+            secondParent.StagedPackageIdentity.CurrentStagedSymbolPackageKey = 101;
+            context.StagedSymbols.Add(new StagedSymbolPackage
+            {
+                Key = 101,
+                StagedPackageIdentity = secondParent.StagedPackageIdentity,
+                StagedPackageIdentityKey = secondParent.StagedPackageIdentityKey,
+                ActivePromotionId = context.PromotionId,
+                Status = StagedPackageStatus.Succeeded,
+            });
+            var parentsRead = 0;
+            var symbolsRead = 0;
+            context.StagedPackageRepository.Setup(repository => repository.GetAll()).Returns(context.StagedPackages.Select(parent =>
+            {
+                parentsRead++;
+                return parent;
+            }).AsQueryable());
+            context.StagedSymbolPackageRepository.Setup(repository => repository.GetAll()).Returns(context.StagedSymbols.Select(symbol =>
+            {
+                symbolsRead++;
+                return symbol;
+            }).AsQueryable());
+
+            await context.Target.TryFinalizeAsync(context.StagingGroup.Key, context.PromotionId);
+
+            Assert.Equal(unfinishedSymbols ? 2 : 1, parentsRead);
+            Assert.Equal(unfinishedSymbols ? 1 : 0, symbolsRead);
+            Assert.Equal(context.PromotionId, context.StagingGroup.ActivePromotionId);
+            Assert.Equal(2, context.StagedPackages.Count);
+            Assert.Equal(2, context.StagedSymbols.Count);
+            context.StagedPackageRepository.Verify(repository => repository.CommitChangesAsync(), Times.Never);
+            context.BlobCleanup.Verify(service => service.QueuePackageFiles(It.IsAny<int>()), Times.Never);
+            context.BlobCleanup.Verify(service => service.QueueSymbolFiles(It.IsAny<int>()), Times.Never);
+            context.BlobCleanup.Verify(service => service.QueuePackageFiles(It.IsAny<IReadOnlyCollection<int>>()), Times.Never);
+            context.BlobCleanup.Verify(service => service.QueueSymbolFiles(It.IsAny<IReadOnlyCollection<int>>()), Times.Never);
+        }
+
         [Fact]
         public async Task RetainsSuccessfulPackageUntilRemainingMembersComplete()
         {
