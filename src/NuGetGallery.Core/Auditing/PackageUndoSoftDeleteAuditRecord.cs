@@ -11,14 +11,11 @@ namespace NuGetGallery.Auditing
     /// </summary>
     public class PackageUndoSoftDeleteAuditRecord : PackageAuditRecord
     {
-        public int PackageKey { get; }
-
-        public int PackageDeleteKey { get; }
-
         public bool Success { get; }
 
         public PackageUndoSoftDeleteAuditRecord(Package package, int packageDeleteKey, string reason, bool success, string callerIdentity = null)
-            : base(package ?? throw new ArgumentNullException(nameof(package)), AuditedPackageAction.UndoSoftDelete, reason, callerIdentity)
+            : base(package ?? throw new ArgumentNullException(nameof(package)), AuditedPackageAction.UndoSoftDelete, reason, callerIdentity,
+                packageKey: package.Key, packageDeleteKey: packageDeleteKey)
         {
             if (package.Key <= 0)
             {
@@ -35,8 +32,6 @@ namespace NuGetGallery.Auditing
                 throw new ArgumentException("A soft-delete undo reason is required.", nameof(reason));
             }
 
-            PackageKey = package.Key;
-            PackageDeleteKey = packageDeleteKey;
             Success = success;
         }
 
