@@ -288,7 +288,8 @@ namespace NuGetGallery
         {
             var currentUser = new User("current") { Key = 1 };
             var owner = new User("example-org") { Key = 2 };
-            var created = new DateTime(2026, 9, 11, 20, 0, 0, DateTimeKind.Utc);
+            var created = DateTime.UtcNow;
+            var expires = created.AddDays(30);
             var group = new StagingGroup
             {
                 Id = "net10-preview",
@@ -296,7 +297,7 @@ namespace NuGetGallery
                 Owner = owner,
                 OwnerKey = owner.Key,
                 CreatedDate = created,
-                ExpirationDate = new DateTime(2026, 10, 25, 20, 0, 0, DateTimeKind.Utc),
+                ExpirationDate = expires,
             };
             var target = GetController<StagingApiController>();
             ConfigureCreateGroupRequest(target, currentUser, owner);
@@ -321,8 +322,8 @@ namespace NuGetGallery
             Assert.Equal("net10-preview", (string)body["id"]);
             Assert.Equal(".NET 10 Preview", (string)body["name"]);
             Assert.Equal("example-org", (string)body["owner"]);
-            Assert.Equal("2026-09-11T20:00:00.0000000Z", (string)body["created"]);
-            Assert.Equal("2026-10-25T20:00:00.0000000Z", (string)body["expires"]);
+            Assert.Equal(created.ToString("O"), (string)body["created"]);
+            Assert.Equal(expires.ToString("O"), (string)body["expires"]);
             Assert.Equal(0, (int)body["itemCount"]);
             Assert.False((bool)body["canPromote"]);
             Assert.Equal("GroupEmpty", (string)body["blockers"][0]["code"]);
