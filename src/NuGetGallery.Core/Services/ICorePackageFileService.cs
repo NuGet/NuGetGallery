@@ -101,5 +101,13 @@ namespace NuGetGallery
         /// <returns>The Base64-encoded SHA512 hash of the provided stream, even if the backup already exists.</returns>
         Task<string> StorePackageFileInBackupLocationAsync(Package package, Stream packageFile);
 
+        /// <summary>
+        /// Restores a hash-named backup to public or validation storage after verifying its SHA512 hash.
+        /// </summary>
+        /// <param name="package">The package metadata used to locate the backup and destination.</param>
+        /// <param name="backupHash">The Base64-encoded SHA512 hash captured when the backup was stored.</param>
+        /// <param name="validation">Whether to restore to validation storage instead of public storage.</param>
+        Task RestorePackageFileFromBackupAsync(Package package, string backupHash, bool validation);
+
     }
 }

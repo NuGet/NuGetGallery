@@ -666,6 +666,7 @@
     <Compile Include="Services\JsonValidationMessage.cs" />
     <Compile Include="Services\LicenseUrlDeprecationValidationMessage.cs" />
     <Compile Include="Services\PackageDeleteService.cs" />
+    <Compile Include="Services\UndoSoftDeleteService.cs" />
     <Compile Include="Services\PackageDeprecationManagementService.cs" />
     <Compile Include="Services\PackageDeprecationService.cs" />
     <Compile Include="Services\PackageRenameService.cs" />
@@ -1576,6 +1577,7 @@
     <Compile Include="Services\IUpdateListedService.cs" />
     <Compile Include="Services\UpdateListedService.cs" />
     <Compile Include="Services\IPackageDeleteService.cs" />
+    <Compile Include="Services\IUndoSoftDeleteService.cs" />
     <Compile Include="Services\IRawSearchService.cs" />
     <Compile Include="Services\IStatusService.cs" />
     <Compile Include="Services\JsonStatisticsService.cs" />
