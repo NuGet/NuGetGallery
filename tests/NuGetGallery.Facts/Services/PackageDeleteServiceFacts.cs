@@ -964,19 +964,61 @@ namespace NuGetGallery
             {
                 var fixture = new CaptureFixture();
                 var other = CaptureFixture.NewPackage(2);
+                var error = new IOException("JSON unavailable");
                 fixture.Backups.Setup(x => x.SaveAsync(It.Is<PackageDeleteBackup>(b => b.PackageKey == 2)))
-                    .ThrowsAsync(new IOException("JSON unavailable"));
+                    .ThrowsAsync(error);
 
-                await Assert.ThrowsAsync<IOException>(() => fixture.Service.SoftDeletePackagesAsync(
-                    new[] { fixture.Package, other }, null, "reason", "admin-app", true));
+                Assert.Same(error, await Assert.ThrowsAsync<IOException>(() => fixture.Service.SoftDeletePackagesAsync(
+                    new[] { fixture.Package, other }, null, "reason", "admin-app", true)));
 
                 fixture.VerifyNoCleanup();
-                Assert.Empty(fixture.Saved);
+                Assert.Equal(fixture.Package.Key, Assert.Single(fixture.Saved).PackageKey);
                 Assert.Empty(fixture.Deletions);
-                fixture.Backups.Verify(x => x.DeleteAsync(100, 1), Times.Once);
-                fixture.Backups.Verify(x => x.DeleteAsync(100, 2), Times.Once);
+                fixture.Backups.Verify(x => x.DeleteAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
                 Assert.True(fixture.Package.Listed);
+                Assert.True(other.Listed);
+                Assert.Equal(PackageStatus.Available, fixture.Package.PackageStatusKey);
+                Assert.Equal(PackageStatus.Available, other.PackageStatusKey);
                 fixture.PackageService.Verify(x => x.UpdatePackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), false), Times.Never);
+            }
+
+            [Fact]
+            public async Task EntireBatchIsArchivedAndSavedBeforeAnyCleanup()
+            {
+                var fixture = new CaptureFixture();
+                var other = CaptureFixture.NewPackage(2);
+
+                await fixture.Service.SoftDeletePackagesAsync(
+                    new[] { fixture.Package, other }, null, "reason", "admin-app", true);
+
+                Assert.Equal(new[] { 1, 2 }, fixture.Saved.Select(b => b.PackageKey));
+                Assert.Equal(4, fixture.Archived.Count);
+                Assert.True(fixture.Events.LastIndexOf("save-archive") < fixture.Events.IndexOf("cleanup"));
+                Assert.True(fixture.Events.LastIndexOf("save-json") < fixture.Events.IndexOf("cleanup"));
+                fixture.Transaction.Verify(x => x.Commit(), Times.Once);
+            }
+
+            [Fact]
+            public async Task SecondPackageArchiveFailureLeavesEntireBatchUntouched()
+            {
+                var fixture = new CaptureFixture();
+                var other = CaptureFixture.NewPackage(2);
+                var error = new IOException("archive unavailable");
+                fixture.Files.Setup(x => x.StorePackageFileInBackupLocationAsync(other, It.IsAny<Stream>()))
+                    .ThrowsAsync(error);
+
+                Assert.Same(error, await Assert.ThrowsAsync<IOException>(() => fixture.Service.SoftDeletePackagesAsync(
+                    new[] { fixture.Package, other }, null, "reason", "admin-app", true)));
+
+                fixture.VerifyNoCleanup();
+                Assert.Equal(fixture.Package.Key, Assert.Single(fixture.Saved).PackageKey);
+                Assert.Empty(fixture.Deletions);
+                Assert.True(fixture.Package.Listed);
+                Assert.True(other.Listed);
+                Assert.Equal(PackageStatus.Available, fixture.Package.PackageStatusKey);
+                Assert.Equal(PackageStatus.Available, other.PackageStatusKey);
+                fixture.PackageService.Verify(x => x.UpdatePackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), false), Times.Never);
+                fixture.Backups.Verify(x => x.DeleteAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
             }
 
             [Theory]
@@ -1008,55 +1050,6 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task SqlFailureRemovesJsonAndTheNextRequestCapturesCurrentInputsFromTheTop()
-            {
-                var fixture = new CaptureFixture();
-                fixture.PackageRepository.SetupSequence(x => x.CommitChangesAsync())
-                    .ThrowsAsync(new InvalidOperationException("SQL failure"))
-                    .Returns(Task.CompletedTask);
-
-                await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.DeleteAsync());
-                Assert.Empty(fixture.Saved);
-                Assert.Empty(fixture.Deletions);
-                fixture.Backups.Verify(x => x.DeleteAsync(100, 1), Times.Once);
-
-                // A new request reads current SQL and storage. It does not load or recover the failed attempt.
-                fixture.ReloadAfterRollback();
-                fixture.Files.Setup(x => x.DownloadPackageFileAsync(It.IsAny<Package>()))
-                    .ReturnsAsync(() => new MemoryStream(new byte[] { 5 }));
-                fixture.Files.Setup(x => x.DownloadReadMeMdFileAsync(It.IsAny<Package>())).ReturnsAsync("Current README");
-
-                await fixture.DeleteAsync();
-
-                var retry = Assert.Single(fixture.Saved);
-                Assert.Equal(101, retry.PackageDeleteKey);
-                Assert.NotEqual(CaptureFixture.PublicHash, retry.PublicBackupHash);
-                Assert.Equal("Current README", retry.ExternalReadmeMarkdown);
-                Assert.True(retry.Listed);
-                Assert.Contains(fixture.Package, Assert.Single(fixture.Deletions).Packages);
-                fixture.Backups.Verify(x => x.GetAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
-            }
-
-            [Fact]
-            public async Task RetryDoesNotRecoverMissingInputsFromAnOlderAttempt()
-            {
-                var fixture = new CaptureFixture();
-                fixture.PackageRepository.Setup(x => x.CommitChangesAsync()).ThrowsAsync(new InvalidOperationException("SQL failure"));
-                await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.DeleteAsync());
-                Assert.Empty(fixture.Saved);
-                fixture.ReloadAfterRollback();
-                fixture.Files.Setup(x => x.DownloadPackageFileAsync(It.IsAny<Package>())).ReturnsAsync((Stream)null);
-                fixture.Events.Clear();
-
-                await Assert.ThrowsAsync<InvalidDataException>(() => fixture.DeleteAsync());
-
-                Assert.Empty(fixture.Saved);
-                Assert.Empty(fixture.Deletions);
-                Assert.DoesNotContain("cleanup", fixture.Events);
-                fixture.Backups.Verify(x => x.GetAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
-            }
-
-            [Fact]
             public async Task AlreadyDeletedPackageCannotReplaceCommittedBackup()
             {
                 var fixture = new CaptureFixture();
@@ -1085,34 +1078,39 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task FileRemovalFailureRollsBackAndRemovesAttemptJson()
+            public async Task FileRemovalFailureRetainsRecoveryDataAndPropagatesOriginalError()
             {
                 var fixture = new CaptureFixture();
+                var error = new IOException("storage deletion failed");
                 fixture.Files.Setup(x => x.DeleteValidationPackageFileAsync(It.IsAny<string>(), It.IsAny<string>()))
-                    .ThrowsAsync(new IOException("storage deletion failed"));
+                    .ThrowsAsync(error);
 
-                await Assert.ThrowsAsync<IOException>(() => fixture.DeleteAsync());
+                Assert.Same(error, await Assert.ThrowsAsync<IOException>(() => fixture.DeleteAsync()));
 
-                Assert.Empty(fixture.Saved);
+                Assert.Single(fixture.Saved);
+                fixture.VerifyArchivesCaptured();
                 Assert.Empty(fixture.Deletions);
+                Assert.Contains("cleanup", fixture.Events);
                 Assert.DoesNotContain("commit", fixture.Events);
-                fixture.Backups.Verify(x => x.DeleteAsync(100, 1), Times.Once);
+                fixture.Backups.Verify(x => x.DeleteAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+                fixture.Transaction.Verify(x => x.Dispose(), Times.Once);
                 fixture.PackageService.Verify(x => x.UpdatePackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), false), Times.Never);
             }
 
             [Fact]
-            public async Task JsonCleanupFailureReportsBothErrors()
+            public async Task SqlFailureNeverAttemptsJsonDeletionAndPropagatesOriginalError()
             {
                 var fixture = new CaptureFixture();
                 var sqlError = new InvalidOperationException("SQL failure");
-                var cleanupError = new IOException("JSON deletion failed");
                 fixture.PackageRepository.Setup(x => x.CommitChangesAsync()).ThrowsAsync(sqlError);
-                fixture.Backups.Setup(x => x.DeleteAsync(It.IsAny<int>(), It.IsAny<int>())).ThrowsAsync(cleanupError);
 
-                var error = await Assert.ThrowsAsync<AggregateException>(() => fixture.DeleteAsync());
+                var error = await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.DeleteAsync());
 
-                Assert.Equal(new Exception[] { sqlError, cleanupError }, error.InnerExceptions);
+                Assert.Same(sqlError, error);
+                Assert.Single(fixture.Saved);
+                fixture.VerifyArchivesCaptured();
                 Assert.Empty(fixture.Deletions);
+                fixture.Backups.Verify(x => x.DeleteAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
             }
 
             [Fact]
@@ -1150,6 +1148,7 @@ namespace NuGetGallery
                 public Package Package = NewPackage(1);
                 public readonly List<PackageDelete> Deletions = new List<PackageDelete>();
                 public readonly List<PackageDeleteBackup> Saved = new List<PackageDeleteBackup>();
+                public readonly List<string> Archived = new List<string>();
                 public readonly List<string> Events = new List<string>();
                 public readonly Mock<IPackageFileService> Files = new Mock<IPackageFileService>();
                 public readonly Mock<ISymbolPackageFileService> SymbolFiles = new Mock<ISymbolPackageFileService>();
@@ -1158,6 +1157,7 @@ namespace NuGetGallery
                 public readonly Mock<IEntityRepository<Package>> PackageRepository = new Mock<IEntityRepository<Package>>();
                 public readonly Mock<IPackageService> PackageService = new Mock<IPackageService>();
                 public readonly Mock<IAuditingService> Auditing = new Mock<IAuditingService>();
+                public readonly Mock<IDbContextTransaction> Transaction = new Mock<IDbContextTransaction>();
                 public readonly IPackageDeleteService Service;
                 public Mock<IDatabase> Database;
 
@@ -1172,15 +1172,29 @@ namespace NuGetGallery
                     Files.Setup(x => x.DownloadValidationPackageFileAsync(It.IsAny<Package>())).ReturnsAsync(() => new MemoryStream(new byte[] { 2 }));
                     Files.Setup(x => x.DownloadReadMeMdFileAsync(It.IsAny<Package>())).ReturnsAsync(Readme);
                     Files.Setup(x => x.StorePackageFileInBackupLocationAsync(It.IsAny<Package>(), It.IsAny<Stream>()))
-                        .Returns<Package, Stream>((p, s) => Task.FromResult(CryptographyService.GenerateHash(s, CoreConstants.Sha512HashAlgorithmId)));
+                        .Returns<Package, Stream>((p, s) =>
+                        {
+                            var hash = CryptographyService.GenerateHash(s, CoreConstants.Sha512HashAlgorithmId);
+                            Archived.Add(hash);
+                            Events.Add("save-archive");
+                            return Task.FromResult(hash);
+                        });
                     Files.Setup(x => x.DeletePackageFileAsync(It.IsAny<string>(), It.IsAny<string>()))
                         .Callback(() => Events.Add("cleanup")).Returns(Task.CompletedTask);
                     var validator = new PackageDeleteBackupService(new Mock<ICoreFileStorageService>().Object);
                     Backups.Setup(x => x.SaveAsync(It.IsAny<PackageDeleteBackup>()))
                         .Returns<PackageDeleteBackup>(async b => { await validator.SaveAsync(b); Saved.Add(b); Events.Add("save-json"); });
-                    Backups.Setup(x => x.DeleteAsync(It.IsAny<int>(), It.IsAny<int>()))
-                        .Callback<int, int>((d, p) => Saved.RemoveAll(b => b.PackageDeleteKey == d && b.PackageKey == p))
-                        .Returns(Task.CompletedTask);
+                    var committed = false;
+                    var deletionCount = 0;
+                    Transaction.Setup(x => x.Commit()).Callback(() => { committed = true; Events.Add("commit"); });
+                    Transaction.Setup(x => x.Dispose()).Callback(() =>
+                    {
+                        // Model rolled-back SQL rows only. Tracked entities and storage stay changed.
+                        if (!committed)
+                        {
+                            Deletions.RemoveRange(deletionCount, Deletions.Count - deletionCount);
+                        }
+                    });
                     Service = CreateService(packageRepository: PackageRepository, packageDeletesRepository: DeleteRepository,
                         packageService: PackageService, packageFileService: Files, symbolPackageFileService: SymbolFiles,
                         packageDeleteBackupService: Backups, auditingService: Auditing,
@@ -1189,18 +1203,9 @@ namespace NuGetGallery
                             Database = database;
                             database.Setup(x => x.BeginTransaction()).Returns(() =>
                             {
-                                var committed = false;
-                                var deletionCount = Deletions.Count;
-                                var transaction = new Mock<IDbContextTransaction>();
-                                transaction.Setup(x => x.Commit()).Callback(() => { committed = true; Events.Add("commit"); });
-                                transaction.Setup(x => x.Dispose()).Callback(() =>
-                                {
-                                    if (!committed)
-                                    {
-                                        Deletions.RemoveRange(deletionCount, Deletions.Count - deletionCount);
-                                    }
-                                });
-                                return transaction.Object;
+                                committed = false;
+                                deletionCount = Deletions.Count;
+                                return Transaction.Object;
                             });
                         });
                 }
@@ -1212,11 +1217,6 @@ namespace NuGetGallery
                         : Service.SoftDeletePackagesAsync(new[] { Package }, new User("owner"), "reason", "owner");
                 }
 
-                public void ReloadAfterRollback()
-                {
-                    Package = NewPackage(Package.Key);
-                }
-
                 public void VerifyNoCleanup()
                 {
                     Files.Verify(x => x.DeletePackageFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
@@ -1224,6 +1224,11 @@ namespace NuGetGallery
                     Files.Verify(x => x.DeleteReadMeMdFileAsync(It.IsAny<Package>()), Times.Never);
                     SymbolFiles.Verify(x => x.DeletePackageFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
                     SymbolFiles.Verify(x => x.DeleteValidationPackageFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+                }
+
+                public void VerifyArchivesCaptured()
+                {
+                    Assert.Equal(new[] { PublicHash, ValidationHash }, Archived);
                 }
 
                 public static Package NewPackage(int key)

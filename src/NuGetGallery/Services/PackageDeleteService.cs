@@ -279,103 +279,84 @@ namespace NuGetGallery
                 Reason = reason,
                 Signature = signature
             };
-            var backupPackageKeys = new List<int>();
-
-            try
+            using (new SuspendDbExecutionStrategy())
+            using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
             {
-                using (new SuspendDbExecutionStrategy())
-                using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
+                // Increase command timeout
+                _entitiesContext.SetCommandTimeout(seconds: 300);
+
+                _packageDeletesRepository.InsertOnCommit(packageDelete);
+
+                if (captureForUndo)
                 {
-                    // Increase command timeout
-                    _entitiesContext.SetCommandTimeout(seconds: 300);
-
-                    _packageDeletesRepository.InsertOnCommit(packageDelete);
-
-                    if (captureForUndo)
+                    foreach (var package in packageList)
                     {
-                        foreach (var package in packageList)
+                        if (package.Key <= 0 || package.PackageStatusKey == PackageStatus.Deleted)
                         {
-                            if (package.Key <= 0 || package.PackageStatusKey == PackageStatus.Deleted)
-                            {
-                                throw new InvalidOperationException("Only persisted, non-deleted packages can be captured for admin deletion.");
-                            }
-                        }
-
-                        // Flush only to obtain the identity. The transaction is not committed until deletion succeeds.
-                        await _packageDeletesRepository.CommitChangesAsync();
-
-                        foreach (var package in packageList)
-                        {
-                            var backup = await CaptureSoftDeleteBackupAsync(package, packageDelete);
-                            // A failed upload may still have written the blob, so include it in failure cleanup.
-                            backupPackageKeys.Add(package.Key);
-                            await _packageDeleteBackupService.SaveAsync(backup);
-                        }
-
-                        foreach (var package in packageList)
-                        {
-                            await DeletePackageFilesAsync(package);
+                            throw new InvalidOperationException("Only persisted, non-deleted packages can be captured for admin deletion.");
                         }
                     }
-                    else
+
+                    // Flush only to obtain the identity. The transaction is not committed until deletion succeeds.
+                    await _packageDeletesRepository.CommitChangesAsync();
+
+                    // Back up the whole batch before removing any files or changing package state.
+                    // Retain backups on failure; file recovery follows the existing manual process.
+                    foreach (var package in packageList)
                     {
-                        await BackupPackageBinaries(packageList);
+                        var backup = await CaptureSoftDeleteBackupAsync(package, packageDelete);
+                        await _packageDeleteBackupService.SaveAsync(backup);
                     }
 
                     foreach (var package in packageList)
                     {
-                        /// We do not call <see cref="IPackageService.MarkPackageUnlistedAsync(Package, bool)"/> here
-                        /// because that writes an audit entry. Additionally, the latest bits are already updated by
-                        /// the package status change.
-                        package.Listed = false;
+                        await DeletePackageFilesAsync(package);
+                    }
+                }
+                else
+                {
+                    await BackupPackageBinaries(packageList);
+                }
 
-                        await _packageService.UpdatePackageStatusAsync(
-                            package,
+                foreach (var package in packageList)
+                {
+                    /// We do not call <see cref="IPackageService.MarkPackageUnlistedAsync(Package, bool)"/> here
+                    /// because that writes an audit entry. Additionally, the latest bits are already updated by
+                    /// the package status change.
+                    package.Listed = false;
+
+                    await _packageService.UpdatePackageStatusAsync(
+                        package,
+                        PackageStatus.Deleted,
+                        commitChanges: false);
+
+                    UnlinkPackageDeprecations(package);
+
+                    // Mark all associated symbol packages for deletion.
+                    foreach (var symbolPackage in package.SymbolPackages)
+                    {
+                        await _symbolPackageService.UpdateStatusAsync(
+                            symbolPackage,
                             PackageStatus.Deleted,
                             commitChanges: false);
-
-                        UnlinkPackageDeprecations(package);
-
-                        // Mark all associated symbol packages for deletion.
-                        foreach (var symbolPackage in package.SymbolPackages)
-                        {
-                            await _symbolPackageService.UpdateStatusAsync(
-                                symbolPackage,
-                                PackageStatus.Deleted,
-                                commitChanges: false);
-                        }
-
-                        packageDelete.Packages.Add(package);
-
-                        var auditRecord = captureForUndo
-                            ? new PackageAuditRecord(package, AuditedPackageAction.SoftDelete, reason, signature,
-                                packageKey: package.Key, packageDeleteKey: packageDelete.Key, adminInitiated: true)
-                            : CreateAuditRecord(package, package.PackageRegistration, AuditedPackageAction.SoftDelete, reason);
-                        await _auditingService.SaveAuditRecordAsync(auditRecord);
-
-                        _telemetryService.TrackPackageDelete(package, isHardDelete: false);
                     }
 
-                    // Commit changes
-                    await _packageRepository.CommitChangesAsync();
-                    await _symbolPackageRepository.CommitChangesAsync();
-                    await _packageDeletesRepository.CommitChangesAsync();
-                    transaction.Commit();
-                }
-            }
-            catch (Exception deletionError)
-            {
-                // SQL has rolled back. Remove this attempt's JSON; a later request starts from current inputs.
-                try
-                {
-                    await Task.WhenAll(backupPackageKeys.Select(key => _packageDeleteBackupService.DeleteAsync(packageDelete.Key, key)));
-                }
-                catch (Exception cleanupError)
-                {
-                    throw new AggregateException("Soft deletion failed and its backup JSON could not be fully removed.", deletionError, cleanupError);
+                    packageDelete.Packages.Add(package);
+
+                    var auditRecord = captureForUndo
+                        ? new PackageAuditRecord(package, AuditedPackageAction.SoftDelete, reason, signature,
+                            packageKey: package.Key, packageDeleteKey: packageDelete.Key, adminInitiated: true)
+                        : CreateAuditRecord(package, package.PackageRegistration, AuditedPackageAction.SoftDelete, reason);
+                    await _auditingService.SaveAuditRecordAsync(auditRecord);
+
+                    _telemetryService.TrackPackageDelete(package, isHardDelete: false);
                 }
 
-                throw;
+                // Commit changes
+                await _packageRepository.CommitChangesAsync();
+                await _symbolPackageRepository.CommitChangesAsync();
+                await _packageDeletesRepository.CommitChangesAsync();
+                transaction.Commit();
             }
 
             // Force refresh the index
