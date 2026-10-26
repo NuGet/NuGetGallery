@@ -762,6 +762,230 @@ namespace NuGetGallery
             }
         }
 
+        public class TheRestorePackageFileFromBackupAsyncMethod : FactsBase
+        {
+            private readonly string _backupFileName = BuildBackupFileName(Id, NormalizedVersion, PackageHash);
+            private readonly MemoryStream _backup = CreatePackageFileStream();
+
+            public TheRestorePackageFileFromBackupAsyncMethod()
+            {
+                _fileStorageService
+                    .Setup(x => x.GetFileAsync(CoreConstants.Folders.PackageBackupsFolderName, _backupFileName))
+                    .ReturnsAsync(_backup);
+            }
+
+            [Fact]
+            public async Task RejectsNullPackage()
+            {
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(
+                    () => _service.RestorePackageFileFromBackupAsync(null, PackageHash, false));
+
+                Assert.Equal("package", ex.ParamName);
+                _fileStorageService.VerifyNoOtherCalls();
+            }
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            [InlineData("not-base64")]
+            [InlineData("NzMzMS1QNENLNEczSDQ1SA==")]
+            public async Task RejectsInvalidHashBeforeAccessingStorage(string hash)
+            {
+                var ex = await Assert.ThrowsAsync<InvalidDataException>(
+                    () => _service.RestorePackageFileFromBackupAsync(_package, hash, false));
+
+                Assert.Contains("Base64-encoded SHA512", ex.Message);
+                _fileStorageService.VerifyNoOtherCalls();
+            }
+
+            [Theory]
+            [InlineData(0)]
+            [InlineData(1)]
+            [InlineData(2)]
+            public async Task RejectsMissingPackageData(int missingField)
+            {
+                if (missingField == 0)
+                {
+                    _package.PackageRegistration = null;
+                }
+                else if (missingField == 1)
+                {
+                    _package.PackageRegistration.Id = null;
+                }
+                else
+                {
+                    _package.Version = null;
+                    _package.NormalizedVersion = null;
+                }
+
+                var ex = await Assert.ThrowsAsync<ArgumentException>(
+                    () => _service.RestorePackageFileFromBackupAsync(_package, PackageHash, false));
+
+                Assert.Equal("package", ex.ParamName);
+                _fileStorageService.VerifyNoOtherCalls();
+            }
+
+            [Theory]
+            [InlineData(false, false)]
+            [InlineData(false, true)]
+            [InlineData(true, false)]
+            [InlineData(true, true)]
+            public async Task RestoresVerifiedBytesUsingMetadata(bool validation, bool symbols)
+            {
+                IFileMetadataService metadata = symbols
+                    ? (IFileMetadataService)new SymbolPackageFileMetadataService()
+                    : new PackageFileMetadataService();
+                var service = new CorePackageFileService(_fileStorageService.Object, metadata);
+                var backupFileName = string.Format(
+                    metadata.FileBackupSavePathTemplate,
+                    LowercaseId,
+                    LowercaseVersion,
+                    HttpServerUtility.UrlTokenEncode(Convert.FromBase64String(PackageHash)),
+                    metadata.FileExtension);
+                var fileName = string.Format(metadata.FileSavePathTemplate, LowercaseId, LowercaseVersion, metadata.FileExtension);
+                var folder = validation ? metadata.ValidationFolderName : metadata.FileFolderName;
+                _fileStorageService
+                    .Setup(x => x.GetFileAsync(metadata.FileBackupsFolderName, backupFileName))
+                    .ReturnsAsync(_backup);
+                _fileStorageService
+                    .Setup(x => x.SaveFileAsync(folder, fileName, It.IsAny<Stream>(), false))
+                    .Callback<string, string, Stream, bool>((_, __, stream, ___) =>
+                    {
+                        // A seekable download is reused, not copied into another MemoryStream.
+                        Assert.Same(_backup, stream);
+                        Assert.Equal(0, stream.Position);
+                        using (var reader = new StreamReader(stream, Encoding.ASCII, false, 1024, leaveOpen: true))
+                        {
+                            Assert.Equal(PackageContent, reader.ReadToEnd());
+                        }
+                    })
+                    .Completes();
+                _package.Hash = "The database hash must not be used.";
+                _backup.Position = _backup.Length;
+
+                await service.RestorePackageFileFromBackupAsync(_package, PackageHash, validation);
+
+                _fileStorageService.Verify(x => x.GetFileAsync(metadata.FileBackupsFolderName, backupFileName), Times.Once);
+                _fileStorageService.Verify(x => x.SaveFileAsync(folder, fileName, It.IsAny<Stream>(), false), Times.Once);
+                _fileStorageService.Verify(
+                    x => x.SaveFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Stream>(), It.IsAny<bool>()), Times.Once);
+                Assert.False(_backup.CanRead);
+            }
+
+            [Fact]
+            public async Task NormalizesVersionWhenNormalizedVersionIsMissing()
+            {
+                _package.NormalizedVersion = null;
+
+                await _service.RestorePackageFileFromBackupAsync(_package, PackageHash, false);
+
+                _fileStorageService.Verify(
+                    x => x.GetFileAsync(CoreConstants.Folders.PackageBackupsFolderName, _backupFileName), Times.Once);
+                _fileStorageService.Verify(
+                    x => x.SaveFileAsync(PackagesFolderName, ValidationFileName, It.IsAny<Stream>(), false), Times.Once);
+            }
+
+            [Fact]
+            public async Task MissingBackupFailsBeforeWriting()
+            {
+                _fileStorageService
+                    .Setup(x => x.GetFileAsync(CoreConstants.Folders.PackageBackupsFolderName, _backupFileName))
+                    .ReturnsAsync((Stream)null);
+
+                var ex = await Assert.ThrowsAsync<FileNotFoundException>(
+                    () => _service.RestorePackageFileFromBackupAsync(_package, PackageHash, false));
+
+                Assert.Contains("backup archive", ex.Message);
+                Assert.Equal(_backupFileName, ex.FileName);
+                VerifyNoWrites();
+            }
+
+            [Fact]
+            public async Task CorruptBackupFailsEvenWhenDestinationMatches()
+            {
+                var corruptBackup = new MemoryStream(new byte[] { 1, 2, 3 });
+                _fileStorageService
+                    .Setup(x => x.GetFileAsync(CoreConstants.Folders.PackageBackupsFolderName, _backupFileName))
+                    .ReturnsAsync(corruptBackup);
+                _fileStorageService
+                    .Setup(x => x.GetFileAsync(PackagesFolderName, ValidationFileName))
+                    .ReturnsAsync(CreatePackageFileStream());
+
+                var ex = await Assert.ThrowsAsync<InvalidDataException>(
+                    () => _service.RestorePackageFileFromBackupAsync(_package, PackageHash, false));
+
+                Assert.Contains("backup archive", ex.Message);
+                Assert.False(corruptBackup.CanRead);
+                _fileStorageService.Verify(x => x.GetFileAsync(PackagesFolderName, ValidationFileName), Times.Never);
+                VerifyNoWrites();
+            }
+
+            [Theory]
+            [InlineData(false, false)]
+            [InlineData(false, true)]
+            [InlineData(true, false)]
+            [InlineData(true, true)]
+            public async Task ExistingDestinationIsAcceptedOnlyWhenHashMatches(bool validation, bool matches)
+            {
+                var folder = validation ? ValidationFolderName : PackagesFolderName;
+                var destination = matches ? CreatePackageFileStream() : new MemoryStream(new byte[] { 1 });
+                _fileStorageService.Setup(x => x.GetFileAsync(folder, ValidationFileName)).ReturnsAsync(destination);
+
+                if (matches)
+                {
+                    await _service.RestorePackageFileFromBackupAsync(_package, PackageHash, validation);
+                }
+                else
+                {
+                    var ex = await Assert.ThrowsAsync<InvalidDataException>(
+                        () => _service.RestorePackageFileFromBackupAsync(_package, PackageHash, validation));
+                    Assert.Contains("restore destination", ex.Message);
+                }
+
+                Assert.False(destination.CanRead);
+                Assert.False(_backup.CanRead);
+                VerifyNoWrites();
+            }
+
+            [Fact]
+            public async Task ConcurrentDestinationCreationFailsWithoutOverwrite()
+            {
+                var expected = new FileAlreadyExistsException("A competing writer created the file.");
+                _fileStorageService.Setup(x => x.SaveFileAsync(PackagesFolderName, ValidationFileName, It.IsAny<Stream>(), false))
+                    .ThrowsAsync(expected);
+
+                var actual = await Assert.ThrowsAsync<FileAlreadyExistsException>(
+                    () => _service.RestorePackageFileFromBackupAsync(_package, PackageHash, false));
+
+                Assert.Same(expected, actual);
+                _fileStorageService.Verify(x => x.GetFileAsync(PackagesFolderName, ValidationFileName), Times.Once);
+                _fileStorageService.Verify(
+                    x => x.SaveFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Stream>(), true), Times.Never);
+                Assert.False(_backup.CanRead);
+            }
+
+            [Fact]
+            public async Task OtherStorageFailuresPropagateAndDisposeBackup()
+            {
+                var expected = new IOException("Storage failed.");
+                _fileStorageService.Setup(x => x.SaveFileAsync(PackagesFolderName, ValidationFileName, It.IsAny<Stream>(), false))
+                    .ThrowsAsync(expected);
+
+                var actual = await Assert.ThrowsAsync<IOException>(
+                    () => _service.RestorePackageFileFromBackupAsync(_package, PackageHash, false));
+
+                Assert.Same(expected, actual);
+                Assert.False(_backup.CanRead);
+            }
+
+            private void VerifyNoWrites()
+            {
+                _fileStorageService.Verify(
+                    x => x.SaveFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Stream>(), It.IsAny<bool>()), Times.Never);
+            }
+
+        }
+
         static string BuildFileName(
             string id,
             string version, string extension, string path)
