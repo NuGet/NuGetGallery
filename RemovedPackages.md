@@ -264,6 +264,7 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    IR.OscarUI                                 |    10/27/2026    |   Potentially Malicious  |
 |    IR.Infrastructure.Core                     |    10/27/2026    |   Potentially Malicious  |
 |    IR.iplus32                                 |    10/27/2026    |   Potentially Malicious  |
+|    Web3TotalButton                            |    10/27/2026    |   Malware  |
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.
