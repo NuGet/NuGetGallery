@@ -23,5 +23,15 @@ namespace NuGet.Services.Validation
         /// An entity whose validation was requested using the validation protocol.
         /// </summary>
         Generic = 2,
+
+        /// <summary>
+        /// The entity is a staged NuGet package.
+        /// </summary>
+        StagedPackage = 3,
+
+        /// <summary>
+        /// An immutable staged symbols upload, separate from the published symbols package.
+        /// </summary>
+        StagedSymbolPackage = 4,
     }
 }

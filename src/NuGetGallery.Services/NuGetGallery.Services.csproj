@@ -15,6 +15,7 @@
     <Compile Remove="Helpers\*.cs" />
     <Compile Remove="Mail\**\*.cs" />
     <Compile Remove="PackageManagement\*.cs" />
+    <Compile Remove="PackageStaging\*.cs" />
     <Compile Remove="Permissions\*.cs" />
     <Compile Remove="Properties\*.cs" />
     <Compile Remove="Providers\*.cs" />
@@ -37,6 +38,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\NuGet.Services.Staging\NuGet.Services.Staging.csproj" />
     <ProjectReference Include="..\NuGetGallery.Core\NuGetGallery.Core.csproj" />
   </ItemGroup>
 

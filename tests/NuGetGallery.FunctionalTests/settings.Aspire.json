@@ -1,0 +1,8 @@
+{
+  "DefaultSecurityPoliciesEnforced": true,
+  "TestPackageLock": true,
+  "TyposquattingCheckAndBlockUsers": false,
+  "HasSearchService": false,
+  "HasStatisticsService": false,
+  "HasManyVersions": false
+}

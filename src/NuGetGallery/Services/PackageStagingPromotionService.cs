@@ -1,0 +1,615 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Threading.Tasks;
+using Azure.Messaging.ServiceBus;
+using NuGet.Services.Entities;
+using NuGet.Services.Staging;
+
+namespace NuGetGallery
+{
+    /// <summary>
+    /// Accepts and enqueues package, symbol, and staging group promotion requests.
+    /// </summary>
+    public class PackageStagingPromotionService : IPackageStagingPromotionService
+    {
+        private const int AcceptanceBatchSize = 100;
+        private readonly IPackageStagingAuthorizationService _authorizationService;
+        private readonly IStagingPromotionMessageEnqueuer _messageEnqueuer;
+        private readonly IEntityRepository<StagedPackage> _stagedPackageRepository;
+        private readonly IEntityRepository<StagedSymbolPackage> _stagedSymbolPackageRepository;
+        private readonly IEntitiesContext _entitiesContext;
+        private readonly ITelemetryService _telemetryService;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PackageStagingPromotionService"/> class.
+        /// </summary>
+        /// <param name="authorizationService">The staged-package authorization service.</param>
+        /// <param name="messageEnqueuer">The promotion message enqueuer.</param>
+        /// <param name="stagedPackageRepository">The staged-package repository.</param>
+        /// <param name="stagedSymbolPackageRepository">The staged-symbol repository.</param>
+        /// <param name="telemetryService">The Gallery telemetry service.</param>
+        /// <param name="entitiesContext">The Gallery database context shared with the repositories.</param>
+        public PackageStagingPromotionService(
+            IPackageStagingAuthorizationService authorizationService,
+            IStagingPromotionMessageEnqueuer messageEnqueuer,
+            IEntityRepository<StagedPackage> stagedPackageRepository,
+            IEntityRepository<StagedSymbolPackage> stagedSymbolPackageRepository,
+            ITelemetryService telemetryService,
+            IEntitiesContext entitiesContext)
+        {
+            _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
+            _messageEnqueuer = messageEnqueuer ?? throw new ArgumentNullException(nameof(messageEnqueuer));
+            _stagedPackageRepository = stagedPackageRepository ?? throw new ArgumentNullException(nameof(stagedPackageRepository));
+            _stagedSymbolPackageRepository = stagedSymbolPackageRepository ?? throw new ArgumentNullException(nameof(stagedSymbolPackageRepository));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
+            _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
+        }
+
+        /// <inheritdoc />
+        public async Task<PackageStagingPromotionResult> PromotePackageAsync(User currentUser, StagedPackage stagedPackage)
+        {
+            if (currentUser == null)
+            {
+                throw new ArgumentNullException(nameof(currentUser));
+            }
+
+            if (stagedPackage == null)
+            {
+                throw new ArgumentNullException(nameof(stagedPackage));
+            }
+
+            if (!_authorizationService.CanManage(currentUser, stagedPackage))
+            {
+                return PackageStagingPromotionResult.Unauthorized;
+            }
+
+            if (stagedPackage.StagedPackageIdentity.StagingGroupKey.HasValue)
+            {
+                return PackageStagingPromotionResult.Grouped;
+            }
+
+            if (stagedPackage.Status != StagedPackageStatus.Ready || StagingExpirationPolicy.HasExpired(stagedPackage))
+            {
+                return PackageStagingPromotionResult.NotReady;
+            }
+
+            if (StagingPublicationPolicy.GetRequesterBlocker(currentUser) != null || StagingPublicationPolicy.GetBlocker(stagedPackage.StagedPackageIdentity) != null)
+            {
+                return PackageStagingPromotionResult.NotReady;
+            }
+
+            var symbols = _stagedSymbolPackageRepository.GetAll()
+                .Include(attempt => attempt.SymbolPackage)
+                .Include(attempt => attempt.StagedPackageIdentity.Package)
+                .SingleOrDefault(attempt => attempt.Key == stagedPackage.StagedPackageIdentity.CurrentStagedSymbolPackageKey);
+            if (symbols != null && (!_authorizationService.CanManage(currentUser, symbols) || StagedSymbolPackagePromotionEligibility.GetBlockers(symbols, stagedPackage).Count > 0))
+            {
+                symbols = null;
+            }
+
+            var promotionId = Guid.NewGuid();
+            try
+            {
+                if (StagingExpirationPolicy.HasExpired(stagedPackage))
+                {
+                    return PackageStagingPromotionResult.NotReady;
+                }
+
+                var acceptedAt = DateTime.UtcNow;
+                stagedPackage.ActivePromotionId = promotionId;
+                stagedPackage.PromotionAcceptedAt = acceptedAt;
+                stagedPackage.PromotionMessageSentDate = acceptedAt;
+                stagedPackage.Status = StagedPackageStatus.Promoting;
+                if (symbols != null && !StagingExpirationPolicy.HasExpired(symbols))
+                {
+                    symbols.ActivePromotionId = promotionId;
+                    symbols.PromotionAcceptedAt = acceptedAt;
+                    symbols.Status = StagedPackageStatus.Promoting;
+                    symbols.PromotionMessageSentDate = null;
+                }
+
+                await _stagedPackageRepository.CommitChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException exception)
+            {
+                exception.Log();
+                return PackageStagingPromotionResult.Conflict;
+            }
+
+            _telemetryService.TrackStagingPromotionAccepted(promotionId, stagedPackage.StagedPackageIdentity.Package, symbols: false);
+            if (symbols?.ActivePromotionId == promotionId && symbols.Status == StagedPackageStatus.Promoting)
+            {
+                _telemetryService.TrackStagingPromotionAccepted(promotionId, stagedPackage.StagedPackageIdentity.Package, symbols: true);
+            }
+
+            if (!await TrySendMessageAsync(StagingPromotionMessage.ForPackage(promotionId, stagedPackage.Key)))
+            {
+                return await MakePackageImmediatelyRetryableAsync(stagedPackage);
+            }
+
+            return PackageStagingPromotionResult.Accepted;
+        }
+
+        /// <inheritdoc />
+        public async Task<PackageStagingPromotionResult> ResendPackageAsync(User currentUser, StagedPackage stagedPackage)
+        {
+            if (currentUser == null)
+            {
+                throw new ArgumentNullException(nameof(currentUser));
+            }
+
+            if (stagedPackage == null)
+            {
+                throw new ArgumentNullException(nameof(stagedPackage));
+            }
+
+            if (!_authorizationService.CanManage(currentUser, stagedPackage))
+            {
+                return PackageStagingPromotionResult.Unauthorized;
+            }
+
+            if (stagedPackage.StagedPackageIdentity.StagingGroupKey.HasValue)
+            {
+                return PackageStagingPromotionResult.Grouped;
+            }
+
+            if (stagedPackage.Status != StagedPackageStatus.Promoting || !stagedPackage.ActivePromotionId.HasValue)
+            {
+                return PackageStagingPromotionResult.NotReady;
+            }
+
+            if (!StagingPromotionResendPolicy.IsDue(stagedPackage.PromotionMessageSentDate))
+            {
+                return PackageStagingPromotionResult.NotReady;
+            }
+
+            if (StagingPublicationPolicy.GetRequesterBlocker(currentUser) != null || StagingPublicationPolicy.GetBlocker(stagedPackage.StagedPackageIdentity) != null)
+            {
+                return PackageStagingPromotionResult.NotReady;
+            }
+
+            var promotionId = stagedPackage.ActivePromotionId.Value;
+            try
+            {
+                stagedPackage.PromotionMessageSentDate = DateTime.UtcNow;
+                await _stagedPackageRepository.CommitChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException exception)
+            {
+                exception.Log();
+                return PackageStagingPromotionResult.Conflict;
+            }
+
+            if (!await TrySendMessageAsync(StagingPromotionMessage.ForPackage(promotionId, stagedPackage.Key)))
+            {
+                return await MakePackageImmediatelyRetryableAsync(stagedPackage);
+            }
+
+            return PackageStagingPromotionResult.Accepted;
+        }
+
+        /// <inheritdoc />
+        public async Task<PackageStagingPromotionResult> PromoteSymbolPackageAsync(User currentUser, StagedSymbolPackage stagedSymbolPackage)
+        {
+            if (currentUser == null)
+            {
+                throw new ArgumentNullException(nameof(currentUser));
+            }
+
+            if (stagedSymbolPackage == null)
+            {
+                throw new ArgumentNullException(nameof(stagedSymbolPackage));
+            }
+
+            if (!_authorizationService.CanManage(currentUser, stagedSymbolPackage))
+            {
+                return PackageStagingPromotionResult.Unauthorized;
+            }
+
+            if (stagedSymbolPackage.StagedPackageIdentity.StagingGroupKey.HasValue)
+            {
+                return PackageStagingPromotionResult.Grouped;
+            }
+
+            if (StagingPublicationPolicy.GetRequesterBlocker(currentUser) != null || StagedSymbolPackagePromotionEligibility.GetBlockers(stagedSymbolPackage).Count > 0)
+            {
+                return PackageStagingPromotionResult.NotReady;
+            }
+
+            if (StagingExpirationPolicy.HasExpired(stagedSymbolPackage))
+            {
+                return PackageStagingPromotionResult.NotReady;
+            }
+
+            stagedSymbolPackage.ActivePromotionId = Guid.NewGuid();
+            stagedSymbolPackage.PromotionAcceptedAt = DateTime.UtcNow;
+            stagedSymbolPackage.Status = StagedPackageStatus.Promoting;
+            return await SendSymbolPromotionAsync(stagedSymbolPackage, accepted: true);
+        }
+
+        /// <inheritdoc />
+        public async Task<PackageStagingPromotionResult> ResendSymbolPackageAsync(User currentUser, StagedSymbolPackage stagedSymbolPackage)
+        {
+            if (currentUser == null)
+            {
+                throw new ArgumentNullException(nameof(currentUser));
+            }
+
+            if (stagedSymbolPackage == null)
+            {
+                throw new ArgumentNullException(nameof(stagedSymbolPackage));
+            }
+
+            if (!_authorizationService.CanManage(currentUser, stagedSymbolPackage))
+            {
+                return PackageStagingPromotionResult.Unauthorized;
+            }
+
+            if (stagedSymbolPackage.StagedPackageIdentity.StagingGroupKey.HasValue)
+            {
+                return PackageStagingPromotionResult.Grouped;
+            }
+
+            if (StagingPublicationPolicy.GetRequesterBlocker(currentUser) != null || !StagedSymbolPackagePromotionEligibility.CanResend(stagedSymbolPackage))
+            {
+                return PackageStagingPromotionResult.NotReady;
+            }
+
+            return await SendSymbolPromotionAsync(stagedSymbolPackage, accepted: false);
+        }
+
+        /// <inheritdoc />
+        public async Task<StagingGroupPromotionResult> PromoteGroupAsync(User currentUser, StagingGroup group)
+        {
+            if (currentUser == null)
+            {
+                throw new ArgumentNullException(nameof(currentUser));
+            }
+
+            if (group == null)
+            {
+                throw new ArgumentNullException(nameof(group));
+            }
+
+            if (!_authorizationService.GetEnabledOwners(currentUser).Any(owner => owner.Key == group.OwnerKey))
+            {
+                return StagingGroupPromotionResult.Unauthorized;
+            }
+
+            if (StagingExpirationPolicy.HasExpired(group) || StagingPublicationPolicy.GetRequesterBlocker(currentUser) != null || StagingPublicationPolicy.GetOwnerBlocker(group.Owner) != null)
+            {
+                return StagingGroupPromotionResult.NotReady;
+            }
+
+            var stagedPackages = _stagedPackageRepository
+                .GetAll()
+                .AsNoTracking()
+                .Include(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageRegistration.Owners)
+                .Include(stagedPackage => stagedPackage.StagedPackageIdentity.Owner.Roles)
+                .Include(stagedPackage => stagedPackage.StagedPackageIdentity.StagingGroup)
+                .Where(stagedPackage => stagedPackage.StagedPackageIdentity.StagingGroupKey == group.Key)
+                .Where(stagedPackage => stagedPackage.StagedPackageIdentity.CurrentStagedPackageKey == stagedPackage.Key)
+                .Where(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageStatusKey == PackageStatus.Staged)
+                .Where(stagedPackage => stagedPackage.Status != StagedPackageStatus.Superseded && stagedPackage.Status != StagedPackageStatus.Deleted)
+                .ToList();
+            var stagedSymbols = _stagedSymbolPackageRepository.GetAll()
+                .AsNoTracking()
+                .Include(symbol => symbol.SymbolPackage)
+                .Include(symbol => symbol.StagedPackageIdentity.Package.PackageRegistration.Owners)
+                .Include(symbol => symbol.StagedPackageIdentity.Owner.Roles)
+                .Include(symbol => symbol.StagedPackageIdentity.StagingGroup)
+                .Where(symbol => symbol.StagedPackageIdentity.StagingGroupKey == group.Key)
+                .Where(symbol => symbol.StagedPackageIdentity.CurrentStagedSymbolPackageKey == symbol.Key)
+                .ToList();
+
+            if (stagedPackages.Count + stagedSymbols.Count == 0)
+            {
+                return StagingGroupPromotionResult.Empty;
+            }
+
+            if (stagedPackages.Any(stagedPackage => !_authorizationService.CanManage(currentUser, stagedPackage)))
+            {
+                return StagingGroupPromotionResult.Unauthorized;
+            }
+
+            if (stagedSymbols.Any(symbol => !_authorizationService.CanManage(currentUser, symbol)))
+            {
+                return StagingGroupPromotionResult.Unauthorized;
+            }
+
+            if (stagedPackages.Any(stagedPackage => stagedPackage.Status != StagedPackageStatus.Ready))
+            {
+                return StagingGroupPromotionResult.NotReady;
+            }
+
+            if (stagedPackages.Any(stagedPackage => StagingPublicationPolicy.GetBlocker(stagedPackage.StagedPackageIdentity) != null))
+            {
+                return StagingGroupPromotionResult.NotReady;
+            }
+
+            foreach (var symbol in stagedSymbols)
+            {
+                var parent = stagedPackages.SingleOrDefault(package => package.StagedPackageIdentityKey == symbol.StagedPackageIdentityKey);
+                var blockers = StagedSymbolPackagePromotionEligibility.GetBlockers(symbol, parent, forGroup: true);
+                if (blockers.Count > 0)
+                {
+                    return StagingGroupPromotionResult.NotReady;
+                }
+            }
+
+            if (group.ActivePromotionId.HasValue)
+            {
+                return StagingGroupPromotionResult.Conflict;
+            }
+
+            var promotionId = Guid.NewGuid();
+            try
+            {
+                if (StagingExpirationPolicy.HasExpired(group))
+                {
+                    return StagingGroupPromotionResult.NotReady;
+                }
+
+                var acceptedAt = DateTime.UtcNow;
+                group.ActivePromotionId = promotionId;
+                group.PromotionAcceptedAt = acceptedAt;
+                group.PromotionMessageSentDate = acceptedAt;
+                foreach (var stagedPackage in stagedPackages)
+                {
+                    stagedPackage.ActivePromotionId = promotionId;
+                    stagedPackage.PromotionAcceptedAt = acceptedAt;
+                    stagedPackage.Status = StagedPackageStatus.Promoting;
+                }
+
+                foreach (var symbol in stagedSymbols)
+                {
+                    symbol.ActivePromotionId = promotionId;
+                    symbol.PromotionAcceptedAt = acceptedAt;
+                    symbol.Status = StagedPackageStatus.Promoting;
+                    symbol.PromotionMessageSentDate = null;
+                }
+
+                await _stagedPackageRepository.ExecuteInTransactionAsync(async () =>
+                {
+                    await _stagedPackageRepository.CommitChangesAsync();
+                    await AcceptGroupAttemptsAsync("StagedPackages", stagedPackages, group, attempt => attempt.RowVersion, clearMessageSentDate: false);
+                    await AcceptGroupAttemptsAsync("StagedSymbolPackages", stagedSymbols, group, attempt => attempt.RowVersion, clearMessageSentDate: true);
+                });
+            }
+            catch (DbUpdateConcurrencyException exception)
+            {
+                exception.Log();
+                return StagingGroupPromotionResult.Conflict;
+            }
+
+            foreach (var stagedPackage in stagedPackages)
+            {
+                _telemetryService.TrackStagingPromotionAccepted(promotionId, stagedPackage.StagedPackageIdentity.Package, symbols: false);
+            }
+
+            foreach (var symbol in stagedSymbols)
+            {
+                _telemetryService.TrackStagingPromotionAccepted(promotionId, symbol.StagedPackageIdentity.Package, symbols: true);
+            }
+
+            if (!await TrySendMessageAsync(StagingPromotionMessage.ForGroup(promotionId, group.Key)))
+            {
+                return await MakeGroupImmediatelyRetryableAsync(group);
+            }
+
+            return StagingGroupPromotionResult.Accepted;
+        }
+
+        /// <inheritdoc />
+        public async Task<StagingGroupPromotionResult> ResendGroupAsync(User currentUser, StagingGroup group)
+        {
+            if (currentUser == null)
+            {
+                throw new ArgumentNullException(nameof(currentUser));
+            }
+
+            if (group == null)
+            {
+                throw new ArgumentNullException(nameof(group));
+            }
+
+            if (!_authorizationService.GetEnabledOwners(currentUser).Any(owner => owner.Key == group.OwnerKey))
+            {
+                return StagingGroupPromotionResult.Unauthorized;
+            }
+
+            if (!group.ActivePromotionId.HasValue || !StagingPromotionResendPolicy.IsDue(group.PromotionMessageSentDate))
+            {
+                return StagingGroupPromotionResult.NotReady;
+            }
+
+            if (StagingPublicationPolicy.GetRequesterBlocker(currentUser) != null || StagingPublicationPolicy.GetOwnerBlocker(group.Owner) != null)
+            {
+                return StagingGroupPromotionResult.NotReady;
+            }
+
+            var promotionId = group.ActivePromotionId.Value;
+            var pendingParents = _stagedPackageRepository.GetAll()
+                .Include(package => package.StagedPackageIdentity.Owner)
+                .Include(package => package.StagedPackageIdentity.Package.PackageRegistration.Owners)
+                .Where(package => package.StagedPackageIdentity.StagingGroupKey == group.Key
+                    && package.ActivePromotionId == promotionId
+                    && package.Status == StagedPackageStatus.Promoting)
+                .ToList();
+            var pendingSymbols = _stagedSymbolPackageRepository.GetAll()
+                .Include(symbol => symbol.StagedPackageIdentity.Owner)
+                .Include(symbol => symbol.StagedPackageIdentity.Package.PackageRegistration.Owners)
+                .Where(symbol => symbol.StagedPackageIdentity.StagingGroupKey == group.Key
+                    && symbol.ActivePromotionId == promotionId
+                    && symbol.Status == StagedPackageStatus.Promoting)
+                .ToList();
+            if (pendingParents.Any(package => StagingPublicationPolicy.GetBlocker(package.StagedPackageIdentity) != null)
+                || pendingSymbols.Any(symbol => StagingPublicationPolicy.GetBlocker(symbol.StagedPackageIdentity) != null))
+            {
+                return StagingGroupPromotionResult.NotReady;
+            }
+
+            try
+            {
+                group.PromotionMessageSentDate = DateTime.UtcNow;
+                await _stagedPackageRepository.CommitChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException exception)
+            {
+                exception.Log();
+                return StagingGroupPromotionResult.Conflict;
+            }
+
+            if (!await TrySendMessageAsync(StagingPromotionMessage.ForGroup(promotionId, group.Key)))
+            {
+                return await MakeGroupImmediatelyRetryableAsync(group);
+            }
+
+            return StagingGroupPromotionResult.Accepted;
+        }
+
+        private async Task AcceptGroupAttemptsAsync<T>(
+            string tableName,
+            IReadOnlyList<T> attempts,
+            StagingGroup group,
+            Func<T, byte[]> getRowVersion,
+            bool clearMessageSentDate) where T : class, IEntity
+        {
+            for (var offset = 0; offset < attempts.Count; offset += AcceptanceBatchSize)
+            {
+                var batch = attempts.Skip(offset).Take(AcceptanceBatchSize).ToList();
+                var parameters = new List<object>
+                {
+                    new SqlParameter("@promotionId", group.ActivePromotionId.Value),
+                    new SqlParameter("@acceptedAt", SqlDbType.DateTime2) { Value = group.PromotionAcceptedAt.Value },
+                    new SqlParameter("@status", (int)StagedPackageStatus.Promoting),
+                };
+                var expectedRows = new List<string>();
+                for (var index = 0; index < batch.Count; index++)
+                {
+                    expectedRows.Add($"(@key{index}, @rowVersion{index})");
+                    parameters.Add(new SqlParameter($"@key{index}", batch[index].Key));
+                    parameters.Add(new SqlParameter($"@rowVersion{index}", getRowVersion(batch[index])));
+                }
+
+                var messageSentDateUpdate = string.Empty;
+                if (clearMessageSentDate)
+                {
+                    messageSentDateUpdate = ", [PromotionMessageSentDate] = NULL";
+                }
+
+                var sql = $@"UPDATE attempt
+SET [ActivePromotionId] = @promotionId, [PromotionAcceptedAt] = @acceptedAt, [Status] = @status{messageSentDateUpdate}
+FROM [dbo].[{tableName}] AS attempt
+INNER JOIN (VALUES {string.Join(", ", expectedRows)}) AS expected([Key], [RowVersion])
+    ON attempt.[Key] = expected.[Key] AND attempt.[RowVersion] = expected.[RowVersion]";
+                var rows = await _entitiesContext.GetDatabase().ExecuteSqlCommandAsync(sql, parameters.ToArray());
+                if (rows != batch.Count)
+                {
+                    throw new DbUpdateConcurrencyException("A staging attempt changed before group promotion acceptance was committed.");
+                }
+            }
+        }
+
+        private async Task<bool> TrySendMessageAsync(StagingPromotionMessage message)
+        {
+            try
+            {
+                await _messageEnqueuer.SendMessageAsync(message);
+                return true;
+            }
+            catch (ServiceBusException exception)
+            {
+                exception.Log();
+            }
+            catch (TimeoutException exception)
+            {
+                exception.Log();
+            }
+            catch (OperationCanceledException exception)
+            {
+                exception.Log();
+            }
+
+            return false;
+        }
+
+        private async Task<PackageStagingPromotionResult> SendSymbolPromotionAsync(StagedSymbolPackage attempt, bool accepted)
+        {
+            var promotionId = attempt.ActivePromotionId.Value;
+            try
+            {
+                attempt.PromotionMessageSentDate = DateTime.UtcNow;
+                await _stagedSymbolPackageRepository.CommitChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException exception)
+            {
+                exception.Log();
+                return PackageStagingPromotionResult.Conflict;
+            }
+
+            if (accepted)
+            {
+                _telemetryService.TrackStagingPromotionAccepted(promotionId, attempt.StagedPackageIdentity.Package, symbols: true);
+            }
+
+            if (await TrySendMessageAsync(StagingPromotionMessage.ForSymbolPackage(promotionId, attempt.Key)))
+            {
+                return PackageStagingPromotionResult.Accepted;
+            }
+
+            try
+            {
+                attempt.PromotionMessageSentDate = StagingPromotionResendPolicy.GetRetryableSentDate();
+                await _stagedSymbolPackageRepository.CommitChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException exception)
+            {
+                exception.Log();
+                return PackageStagingPromotionResult.Conflict;
+            }
+
+            return PackageStagingPromotionResult.DispatchFailed;
+        }
+
+        private async Task<PackageStagingPromotionResult> MakePackageImmediatelyRetryableAsync(StagedPackage stagedPackage)
+        {
+            try
+            {
+                stagedPackage.PromotionMessageSentDate = StagingPromotionResendPolicy.GetRetryableSentDate();
+                await _stagedPackageRepository.CommitChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException exception)
+            {
+                exception.Log();
+                return PackageStagingPromotionResult.Conflict;
+            }
+
+            return PackageStagingPromotionResult.DispatchFailed;
+        }
+
+        private async Task<StagingGroupPromotionResult> MakeGroupImmediatelyRetryableAsync(StagingGroup group)
+        {
+            try
+            {
+                group.PromotionMessageSentDate = StagingPromotionResendPolicy.GetRetryableSentDate();
+                await _stagedPackageRepository.CommitChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException exception)
+            {
+                exception.Log();
+                return StagingGroupPromotionResult.Conflict;
+            }
+
+            return StagingGroupPromotionResult.DispatchFailed;
+        }
+    }
+}

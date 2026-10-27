@@ -6,6 +6,7 @@ namespace NuGetGallery
     public static class CoreConstants
     {
         public const string AdminRoleName = "Admins";
+        public const string ElevatedAdminRoleName = "ElevatedAdmins";
 
         public const string PackageFileSavePathTemplate = "{0}.{1}{2}";
         public const string PackageFileBackupSavePathTemplate = "{0}/{1}/{2}.{3}";
@@ -42,6 +43,7 @@ namespace NuGetGallery
             public const string RevalidationFolderName = "revalidation";
             public const string SymbolPackagesFolderName = "symbol-packages";
             public const string SymbolPackageBackupsFolderName = "symbol-package-backups";
+            public const string StagingFolderName = "staging";
             public const string FlatContainerFolderName = "v3-flatcontainer";
         }
 

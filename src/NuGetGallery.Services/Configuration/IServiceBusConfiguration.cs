@@ -28,6 +28,17 @@ namespace NuGetGallery.Configuration
         string AccountDeleter_TopicName { get; set; }
 
         /// <summary>
+        /// The connection string to use when connecting to the staging promotion topic. This connection string should
+        /// not contain the topic name and only needs the "Send" privilege.
+        /// </summary>
+        string StagingPromotion_ConnectionString { get; set; }
+
+        /// <summary>
+        /// The staging promotion topic name used with <see cref="StagingPromotion_ConnectionString"/>.
+        /// </summary>
+        string StagingPromotion_TopicName { get; set; }
+
+        /// <summary>
         /// The connection string to use when connecting to the validation topic. This connection string should not
         /// contain the topic name as the name is explicitly specified by <see cref="Validation_TopicName"/>. This
         /// connection string only needs to have the "Send" privilege. This topic is used for requesting asynchronous

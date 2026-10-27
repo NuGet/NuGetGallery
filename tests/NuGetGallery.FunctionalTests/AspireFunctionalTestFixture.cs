@@ -7,6 +7,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Aspire.Hosting;
+using Aspire.Hosting.ApplicationModel;
 using Aspire.Hosting.Testing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -73,12 +74,29 @@ namespace NuGetGallery.FunctionalTests
                     {
                         await OpenDashboardAsync(_application, timeout.Token);
                     }
+                    Console.WriteLine("AppHost started. Waiting for Gallery readiness.");
                     await _application.ResourceNotifications.WaitForResourceHealthyAsync(
                         "gallery",
+                        WaitBehavior.StopOnResourceUnavailable,
                         timeout.Token);
+
+                    if (Environment.GetEnvironmentVariable("APPHOST_PROFILE") == "full")
+                    {
+                        foreach (var resource in new[] { "validation-orchestrator", "symbols-orchestrator", "symbols-validator", "staging-promotion-worker" })
+                        {
+                            Console.WriteLine($"Waiting for worker '{resource}'.");
+                            var state = await _application.ResourceNotifications.WaitForResourceAsync(
+                                resource,
+                                new[] { KnownResourceStates.Running, KnownResourceStates.Exited, KnownResourceStates.FailedToStart },
+                                timeout.Token);
+                            Assert.True(state == KnownResourceStates.Running, $"Worker '{resource}' did not start: {state}.");
+                        }
+                    }
                 }
 
+                Console.WriteLine("Gallery resources ready. Seeding functional-test data.");
                 await SeedFunctionalTestDataAsync();
+                Console.WriteLine("Functional-test data seeded.");
                 Environment.SetEnvironmentVariable(
                     EnvironmentSettings.ConfigurationFilePathVariableName,
                     _settingsPath);
@@ -206,10 +224,7 @@ namespace NuGetGallery.FunctionalTests
                 {
                     try
                     {
-                        await Task.WhenAll(
-                            process.WaitForExitAsync(timeout.Token),
-                            standardOutput,
-                            standardError);
+                        await process.WaitForExitAsync(timeout.Token);
                     }
                     catch (OperationCanceledException) when (!process.HasExited)
                     {

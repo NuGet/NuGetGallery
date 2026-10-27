@@ -11,6 +11,11 @@ namespace NuGetGallery.Configuration
 {
     public class AppConfiguration : IAppConfiguration
     {
+        /// <summary>
+        /// The maximum configurable staging lifetime in days.
+        /// </summary>
+        public const int MaxStagingExpirationDays = 365;
+
         private string _ExternalBrandingMessage;
 
         [DefaultValue(ServicesConstants.DevelopmentEnvironment)]
@@ -18,6 +23,35 @@ namespace NuGetGallery.Configuration
 
         [DefaultValue("")]
         public string WarningBanner { get; set; }
+
+        /// <summary>
+        /// Gets or sets the lifetime in days granted by a staging content or membership change.
+        /// </summary>
+        /// <value>A lifetime from 1 to 365 days, defaulting to 30 days.</value>
+        [DefaultValue(30)]
+        [Range(1, MaxStagingExpirationDays)]
+        public int StagingExpirationDays { get; set; } = 30;
+
+        /// <summary>
+        /// Gets or sets the default number of private artifacts allowed per staging owner.
+        /// </summary>
+        [DefaultValue(350)]
+        [Range(1, int.MaxValue)]
+        public int StagingQuotaLimit { get; set; } = 350;
+
+        /// <summary>
+        /// Gets or sets a JSON object mapping staging owner usernames to positive artifact limits.
+        /// </summary>
+        [DefaultValue("{}")]
+        [Required]
+        public string StagingQuotaOwnerOverrides { get; set; } = "{}";
+
+        /// <summary>
+        /// Gets or sets the number of retained staging groups allowed per owner, including empty groups.
+        /// </summary>
+        [DefaultValue(20)]
+        [Range(1, int.MaxValue)]
+        public int StagingGroupLimit { get; set; } = 20;
 
         /// <summary>
         /// Gets a setting indicating if SSL is required for all operations once logged in.

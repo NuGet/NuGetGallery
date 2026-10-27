@@ -27,6 +27,8 @@ namespace NuGetGallery
         public string AccountName => User.Username;
 
         public bool HasPackagesThatWillBeOrphaned { get; }
+
+        public bool IsPackageStagingEnabled { get; set; }
     }
 
     public class DeleteAccountListPackageItemViewModel : ListPackageItemViewModel

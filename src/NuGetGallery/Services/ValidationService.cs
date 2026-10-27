@@ -92,6 +92,37 @@ namespace NuGetGallery
             return GetValidationIssues(package.Key, package.PackageStatusKey, ValidatingType.Package);
         }
 
+        public IReadOnlyDictionary<int, IReadOnlyList<ValidationIssue>> GetStagedPackageValidationIssues(IReadOnlyCollection<int> stagedPackageKeys)
+        {
+            return GetStagedValidationIssues(stagedPackageKeys, ValidatingType.StagedPackage);
+        }
+
+        public IReadOnlyDictionary<int, IReadOnlyList<ValidationIssue>> GetStagedSymbolPackageValidationIssues(IReadOnlyCollection<int> stagedSymbolPackageKeys)
+        {
+            return GetStagedValidationIssues(stagedSymbolPackageKeys, ValidatingType.StagedSymbolPackage);
+        }
+
+        private IReadOnlyDictionary<int, IReadOnlyList<ValidationIssue>> GetStagedValidationIssues(IReadOnlyCollection<int> stagedPackageKeys, ValidatingType validatingType)
+        {
+            if (stagedPackageKeys == null)
+            {
+                throw new ArgumentNullException(nameof(stagedPackageKeys));
+            }
+
+            if (stagedPackageKeys.Count == 0)
+            {
+                return new Dictionary<int, IReadOnlyList<ValidationIssue>>();
+            }
+
+            return _validationSets.GetAll()
+                .Where(set =>
+                    set.PackageKey.HasValue &&
+                    stagedPackageKeys.Contains(set.PackageKey.Value) &&
+                    set.ValidatingType == validatingType)
+                .Include(set => set.PackageValidations.Select(validation => validation.PackageValidationIssues))
+                .ToDictionary(set => set.PackageKey.Value, set => set.GetValidationIssues());
+        }
+
         public IReadOnlyList<ValidationIssue> GetLatestPackageValidationIssues(SymbolPackage symbolPackage)
         {
             if (symbolPackage == null)
