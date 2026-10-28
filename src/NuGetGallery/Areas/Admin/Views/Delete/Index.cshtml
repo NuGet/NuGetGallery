@@ -1,18 +1,19 @@
 ﻿@model NuGetGallery.DeletePackagesRequest
 
 @{
-    ViewBag.Title = "Delete packages";
+    ViewBag.Title = "Delete or restore packages";
 }
 
 <section role="main" class="container main-container">
-    <h2>Delete packages</h2>
+    <h2>Delete or restore packages</h2>
 
     <p>
         If you would like to reflow a hard-deleted package, go to <a href="@Url.Action(actionName: "Reflow", controllerName: "Delete")">this page</a> instead.
     </p>
 
     <form>
-        <textarea placeholder="Search for packages to delete (e.g. jQuery 1.8.0)" autocomplete="off" autofocus style="width: 100%;" rows="5" class="textarea-brand" data-bind="value: searchQuery"></textarea><br />
+        <label for="package-search">Packages to delete or restore</label>
+        <textarea id="package-search" placeholder="Search for packages (e.g. jQuery 1.8.0)" autocomplete="off" autofocus style="width: 100%;" rows="5" class="textarea-brand" data-bind="value: searchQuery"></textarea><br />
         <input type="button" class="btn-brand-secondary" value="Search" data-bind="click: search" />
     </form>
 
@@ -21,7 +22,7 @@
         <table class="table" id="searchResults" style="display: none" data-bind="visible: searchResults().length > 0" aria-label="Search results">
             <thead>
                 <tr>
-                    <th><input type="checkbox" class="brand-checkbox" data-bind="click: toggleSelectAll, checked: selectAllState" /></th>
+                    <th><input type="checkbox" class="brand-checkbox" aria-label="Select all packages" data-bind="click: toggleSelectAll, checked: selectAllState" /></th>
                     <th>Package</th>
                     <th>Version</th>
                     <th>Downloads</th>
@@ -33,7 +34,7 @@
             </thead>
             <tbody data-bind="foreach: searchResults">
                 <tr>
-                    <td><input type="checkbox" class="brand-checkbox" name="Packages[]" data-bind="checked: Selected, value: $parent.generateValue($data)" /></td>
+                    <td><input type="checkbox" class="brand-checkbox" name="Packages[]" data-bind="checked: Selected, value: $parent.generateValue($data), attr: { 'aria-label': 'Select ' + PackageId + ' ' + PackageVersionNormalized }" /></td>
                     <td><a href="#" data-bind="text: PackageId, attr: { href: $parent.generatePackageUrl($data) }"></a></td>
                     <td><span data-bind="text: PackageVersionNormalized"></span></td>
                     <td><span data-bind="text: DownloadCount"></span></td>
@@ -41,7 +42,7 @@
                     <td><span data-bind="text: Listed"></span></td>
                     <td><span data-bind="text: PackageStatus"></span></td>
                     <td data-bind="foreach: Owners">
-                        <a data-bind="text: Username, attr: { href: ProfileUrl }" />
+                        <a data-bind="text: Username, attr: { href: ProfileUrl }"></a>
                     </td>
                 </tr>
             </tbody>
@@ -50,8 +51,57 @@
             <p>No packages found.</p>
         </div>
 
-        <div class="danger-zone" style="display: none;" data-bind="visible: arePackagesSelected">
-            @Html.Partial("_DeletePackage")
+        <div style="display: none" data-bind="visible: operationMessage() && operationSucceeded()">
+            @ViewHelpers.AlertSuccess(@<text><span data-bind="text: operationMessage"></span></text>, isAlertRole: true)
+        </div>
+        <div style="display: none" data-bind="visible: operationMessage() && !operationSucceeded()">
+            @ViewHelpers.AlertDanger(@<text><span data-bind="text: operationMessage"></span></text>)
+        </div>
+
+        <div class="danger-zone" style="display: none;" data-bind="visible: selectedAction() !== null">
+            <div class="form-group" role="radiogroup" aria-labelledby="deleted-action-label" data-bind="visible: allDeleted">
+                <label id="deleted-action-label">Action for deleted versions</label>
+                <div>
+                    <label class="radio-inline" for="deleted-action-delete">
+                        <input type="radio" id="deleted-action-delete" name="DeletedPackageAction" value="delete" data-bind="checked: deletedPackageAction" />
+                        Delete
+                    </label>
+                    <label class="radio-inline" for="deleted-action-undo">
+                        <input type="radio" id="deleted-action-undo" name="DeletedPackageAction" value="undo" data-bind="checked: deletedPackageAction" />
+                        Undo soft delete
+                    </label>
+                </div>
+            </div>
+            <div style="display: none" data-bind="visible: selectedAction() === 'delete'">
+                @Html.Partial("_DeletePackage")
+            </div>
+        </div>
+    }
+
+    <div style="display: none" data-bind="visible: selectedAction() === 'undo'">
+        <p role="status" aria-live="polite" data-bind="visible: previewPending">Checking recovery data for the selected versions...</p>
+        <div role="status" aria-live="polite" style="display: none" data-bind="visible: undoUnavailable">
+            @ViewHelpers.AlertWarning(@<text><span data-bind="text: undoUnavailable"></span></text>)
+        </div>
+    </div>
+
+    @using (Html.BeginForm("Undo", "Delete", new { area = "Admin" }, FormMethod.Post, new { id = "undo-form", style = "display: none", data_bind = "visible: undoRecoveryAvailable" }))
+    {
+        @Html.AntiForgeryToken()
+        <div style="display: none" data-bind="foreach: undoPreview">
+            <input type="hidden" data-bind="value: Id, attr: { name: 'Packages[' + $index() + '].Id' }" />
+            <input type="hidden" data-bind="value: Version, attr: { name: 'Packages[' + $index() + '].Version' }" />
+            <input type="hidden" data-bind="value: PackageDeleteKey, attr: { name: 'Packages[' + $index() + '].PackageDeleteKey' }" />
+        </div>
+        <div class="form-group">
+            <label for="undo-reason">Reason</label>
+            <textarea id="undo-reason" name="Reason" class="form-control textarea-brand" rows="3" required maxlength="1000"></textarea>
+        </div>
+        <hr />
+        <p>This restores the saved package state and files. Validation and NuGet V3 feed/search updates may take time.</p>
+        <hr />
+        <div class="form-group">
+            <input type="submit" class="btn btn-brand-danger form-control" value="I understand the consequences, restore this package" data-bind="enable: undoRecoveryAvailable() && !undoPending()" />
         </div>
     }
 </section>
@@ -59,14 +109,35 @@
 @section BottomScripts {
     <script>
         $(document).ready(function() {
+            'use strict';
+
             var viewModel = function () {
                 var $self = this;
+                var previewRequest;
+                var selectionVersion = 0;
+                var operationMessageTimeout;
 
                 this.searchQuery = ko.observable('');
                 $self.doneSearching = ko.observable(false);
+                this.undoPending = ko.observable(false);
+                this.previewPending = ko.observable(false);
+                this.undoPreview = ko.observableArray([]);
+                this.undoUnavailable = ko.observable('');
+                this.operationMessage = ko.observable('');
+                this.operationSucceeded = ko.observable(false);
+                this.deletedPackageAction = ko.observable('delete');
+
+                this.operationMessage.subscribe(function(message) {
+                    window.clearTimeout(operationMessageTimeout);
+                    if (message && $self.operationSucceeded()) {
+                        operationMessageTimeout = window.setTimeout(function() {
+                            $self.operationMessage('');
+                        }, 5000);
+                    }
+                });
 
                 this.search = function () {
-                    $self.doneSearching = ko.observable(false);
+                    $self.doneSearching(false);
                     $.ajax({
                             url: '@Url.Action("Search", "Delete", new {area = "Admin"})?query=' + encodeURIComponent($self.searchQuery()),
                             cache: false,
@@ -95,23 +166,123 @@
                     return true;
                 };
 
-                this.generateValue = function(package) {
-                    return package.PackageId + '|' + package.PackageVersionNormalized;
+                this.generateValue = function(pkg) {
+                    return pkg.PackageId + '|' + pkg.PackageVersionNormalized;
                 };
 
-                this.generatePackageUrl = function(package) {
-                    return '/packages/' + package.PackageId + '/' + package.PackageVersionNormalized;
+                this.generatePackageUrl = function(pkg) {
+                    return '/packages/' + encodeURIComponent(pkg.PackageId) + '/' + encodeURIComponent(pkg.PackageVersionNormalized);
                 };
 
                 this.searchResults = ko.observableArray([]);
 
-                this.arePackagesSelected = ko.computed(function() {
-                    for (var i = 0; i < $self.searchResults().length; i++) {
-                        if ($self.searchResults()[i].Selected()) {
-                            return true;
-                        }
+                this.selectedPackages = ko.computed(function() {
+                    return ko.utils.arrayFilter($self.searchResults(), function(pkg) {
+                        return pkg.Selected();
+                    });
+                });
+
+                this.allDeleted = ko.computed(function() {
+                    var selected = $self.selectedPackages();
+                    return selected.length > 0 && selected.every(function(pkg) {
+                        return pkg.PackageStatus === 'Deleted';
+                    });
+                });
+
+                this.allDeleted.subscribe(function() {
+                    $self.deletedPackageAction('delete');
+                });
+
+                this.selectedAction = ko.computed(function() {
+                    if ($self.selectedPackages().length === 0) {
+                        return null;
                     }
-                    return false;
+                    return $self.allDeleted() ? $self.deletedPackageAction() : 'delete';
+                });
+
+                this.undoRecoveryAvailable = ko.computed(function() {
+                    return $self.selectedAction() === 'undo' && !$self.previewPending() && !$self.undoUnavailable()
+                        && $self.undoPreview().length === $self.selectedPackages().length;
+                });
+
+                $('#delete-form').submit(function(event) {
+                    if ($self.selectedAction() !== 'delete' || $self.undoPending()) {
+                        event.preventDefault();
+                    }
+                });
+
+                ko.computed(function() {
+                    var selected = $self.selectedPackages();
+                    var showUndo = $self.selectedAction() === 'undo';
+                    var currentVersion = ++selectionVersion;
+                    if (previewRequest) {
+                        previewRequest.abort();
+                    }
+                    $self.undoPreview.removeAll();
+                    $self.undoUnavailable('');
+                    $self.previewPending(false);
+                    if (!showUndo) {
+                        return;
+                    }
+
+                    var data = {
+                        __RequestVerificationToken: $('#undo-form input[name="__RequestVerificationToken"]').val()
+                    };
+                    for (var i = 0; i < selected.length; i++) {
+                        data['packages[' + i + '].Id'] = selected[i].PackageId;
+                        data['packages[' + i + '].Version'] = selected[i].PackageVersionNormalized;
+                    }
+
+                    $self.previewPending(true);
+                    previewRequest = $.ajax({
+                        url: '@Url.Action("PreviewUndo", "Delete", new { area = "Admin" })',
+                        type: 'POST',
+                        dataType: 'json',
+                        data: data
+                    }).done(function(result) {
+                        if (currentVersion !== selectionVersion) {
+                            return;
+                        }
+                        if (result.Success) {
+                            $self.undoPreview(result.Packages);
+                        } else {
+                            $self.undoUnavailable(result.Message);
+                        }
+                    }).fail(function(xhr, status) {
+                        if (currentVersion === selectionVersion && status !== 'abort') {
+                            $self.undoUnavailable('Unable to check recovery data. Refresh the selection and try again.');
+                        }
+                    }).always(function() {
+                        if (currentVersion === selectionVersion) {
+                            $self.previewPending(false);
+                        }
+                    });
+                });
+
+                $('#undo-form').submit(function(event) {
+                    event.preventDefault();
+                    if (!$self.undoRecoveryAvailable() || $self.undoPending()
+                        || !window.confirm('Undo soft deletion for all selected versions using the saved state and files?')) {
+                        return;
+                    }
+
+                    var data = $(this).serialize();
+                    $self.undoPending(true);
+                    $.ajax({
+                        url: this.action,
+                        type: 'POST',
+                        dataType: 'json',
+                        data: data
+                    }).done(function(result) {
+                        $self.operationSucceeded(result.Success);
+                        $self.operationMessage(result.Message);
+                    }).fail(function() {
+                        $self.operationSucceeded(false);
+                        $self.operationMessage('Unable to confirm undo results. Check the refreshed package statuses before retrying; some packages may already be restored.');
+                    }).always(function() {
+                        $self.undoPending(false);
+                        $self.search();
+                    });
                 });
 
                 this.selectAllState.subscribe(function() {

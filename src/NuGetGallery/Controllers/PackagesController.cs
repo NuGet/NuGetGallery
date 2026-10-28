@@ -2165,9 +2165,18 @@ namespace NuGetGallery
                 // Perform delete
                 if (deletePackagesRequest.SoftDelete)
                 {
-                    await _packageDeleteService.SoftDeletePackagesAsync(
-                        packagesToDelete, GetCurrentUser(), EnumHelper.GetDescription(deletePackagesRequest.Reason.Value),
-                        deletePackagesRequest.Signature, captureForUndo: true);
+                    try
+                    {
+                        await _packageDeleteService.SoftDeletePackagesAsync(
+                            packagesToDelete, GetCurrentUser(), EnumHelper.GetDescription(deletePackagesRequest.Reason.Value),
+                            deletePackagesRequest.Signature, captureForUndo: true);
+                    }
+                    catch (UserSafeException exception)
+                    {
+                        _telemetryService.TraceException(exception);
+                        TempData["ErrorMessage"] = exception.Message;
+                        return RedirectToAction("Index", "Delete", new { area = "Admin" });
+                    }
                 }
                 else
                 {

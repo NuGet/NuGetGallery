@@ -15,15 +15,18 @@ namespace NuGetGallery.Areas.Admin.Controllers
     {
         private readonly IPackageService _packageService;
         private readonly IPackageDeleteService _packageDeleteService;
+        private readonly IUndoSoftDeleteBatchService _undoSoftDeleteBatchService;
         private readonly ITelemetryService _telemetryService;
 
         public DeleteController(
             IPackageService packageService,
             IPackageDeleteService packageDeleteService,
+            IUndoSoftDeleteBatchService undoSoftDeleteBatchService,
             ITelemetryService telemetryService)
         {
             _packageService = packageService;
             _packageDeleteService = packageDeleteService;
+            _undoSoftDeleteBatchService = undoSoftDeleteBatchService;
             _telemetryService = telemetryService;
         }
 
@@ -57,6 +60,73 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
             
             return Json(results, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        [ElevatedAdminAction]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> PreviewUndo(List<UndoPackageRequest> packages)
+        {
+            try
+            {
+                var backups = await _undoSoftDeleteBatchService.PreviewAsync(packages);
+                return Json(new
+                {
+                    Success = true,
+                    Packages = backups.Select(backup => new
+                    {
+                        Id = backup.PackageId,
+                        Version = backup.NormalizedVersion,
+                        backup.PackageDeleteKey
+                    }).ToList()
+                });
+            }
+            catch (Exception exception)
+            {
+                _telemetryService.TraceException(exception);
+                return Json(new { Success = false, Message = exception.GetUserSafeMessage() });
+            }
+        }
+
+        [HttpPost]
+        [ElevatedAdminAction]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> Undo(UndoPackagesRequest request)
+        {
+            if (request == null || !ModelState.IsValid)
+            {
+                return Json(new
+                {
+                    Success = false,
+                    Message = ModelState.Values.SelectMany(state => state.Errors)
+                        .Select(error => error.ErrorMessage)
+                        .FirstOrDefault(message => !string.IsNullOrWhiteSpace(message)) ?? "The undo request is invalid."
+                });
+            }
+
+            try
+            {
+                var result = await _undoSoftDeleteBatchService.UndoAsync(
+                    request.Packages, request.Reason, User.Identity.Name);
+                if (!result.Success)
+                {
+                    _telemetryService.TraceException(result.Exception);
+                }
+
+                return Json(new
+                {
+                    result.Success,
+                    Message = result.Success
+                        ? "Successfully restored the selected packages. Feed and search updates may take time to appear."
+                        : $"Undo reported errors: {result.FailedPackage.Id} {result.FailedPackage.Version}: {result.Exception.GetUserSafeMessage()}"
+                            + " Remaining versions were not attempted. Refresh package statuses before retrying."
+                });
+            }
+            catch (Exception exception)
+            {
+                _telemetryService.TraceException(exception);
+                return Json(new { Success = false, Message = exception.GetUserSafeMessage() });
+            }
         }
 
         [HttpGet]
