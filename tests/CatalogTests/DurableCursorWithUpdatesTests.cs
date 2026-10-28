@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Newtonsoft.Json;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using Xunit;
@@ -181,6 +182,72 @@ namespace CatalogTests
 
             _storage.Verify(s => s.LoadStringStorageContentAsync(It.IsAny<Uri>(), It.IsAny<CancellationToken>()), Times.Once);
             _storage.Verify(s => s.SaveAsync(It.IsAny<Uri>(), It.IsAny<StorageContent>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Theory]
+        [InlineData(59, false)]
+        [InlineData(60, true)]
+        public async Task FlushPendingHistoryAsync_RespectsUpdateInterval(int secondsSinceLastUpdate, bool shouldFlush)
+        {
+            var now = new DateTime(2026, 1, 1, 1, 0, 0, DateTimeKind.Utc).AddSeconds(secondsSinceLastUpdate);
+            var persistedValue = "2026-01-01T01:00:30.0000000";
+            _storageContent = new StringStorageContent("{\"value\":\"" + persistedValue + "\"," +
+                "\"minIntervalBeforeToReadUpdate\":\"00:00:01\"," +
+                "\"updates\":[{\"timeStamp\":\"2026-01-01T01:00:00.0000000Z\",\"value\":\"2026-01-01T01:00:00.0000000\"}]}",
+                storageDateTimeInUtc: now);
+
+            await _cursor.FlushPendingHistoryAsync(CancellationToken.None);
+
+            if (shouldFlush)
+            {
+                var saved = JsonConvert.DeserializeObject<CursorValueWithUpdates>(((StringStorageContent)_savedStorageContent).Content);
+                Assert.Equal(persistedValue, saved.Value);
+                Assert.Equal(persistedValue, saved.Updates[0].Value);
+                Assert.Equal(now, saved.Updates[0].TimeStamp);
+                Assert.Equal("2026-01-01T01:00:00.0000000", saved.Updates[1].Value);
+                _storage.Verify(s => s.SaveAsync(It.IsAny<Uri>(), It.IsAny<StorageContent>(), It.IsAny<CancellationToken>()), Times.Once);
+            }
+            else
+            {
+                _storage.Verify(s => s.SaveAsync(It.IsAny<Uri>(), It.IsAny<StorageContent>(), It.IsAny<CancellationToken>()), Times.Never);
+            }
+        }
+
+        [Fact]
+        public async Task FlushPendingHistoryAsync_DoesNotWriteWhenHistoryIsCurrent()
+        {
+            _storageContent = new StringStorageContent("{\"value\":\"2026-01-01T01:00:30.0000000\"," +
+                "\"minIntervalBeforeToReadUpdate\":\"00:00:01\"," +
+                "\"updates\":[{\"timeStamp\":\"2026-01-01T01:01:00.0000000Z\",\"value\":\"2026-01-01T01:00:30.0000000\"}]}",
+                storageDateTimeInUtc: new DateTime(2026, 1, 1, 1, 2, 0, DateTimeKind.Utc));
+
+            await _cursor.FlushPendingHistoryAsync(CancellationToken.None);
+
+            _storage.Verify(s => s.SaveAsync(It.IsAny<Uri>(), It.IsAny<StorageContent>(), It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task FlushPendingHistoryAsync_InitializesMissingHistoryWithoutNewProgress()
+        {
+            var now = new DateTime(2026, 1, 1, 1, 0, 30, DateTimeKind.Utc);
+            var persistedValue = "2026-01-01T00:59:00.0000000";
+            _storageContent = new StringStorageContent("{\"value\":\"" + persistedValue + "\"}", storageDateTimeInUtc: now);
+
+            await _cursor.FlushPendingHistoryAsync(CancellationToken.None);
+
+            var saved = JsonConvert.DeserializeObject<CursorValueWithUpdates>(((StringStorageContent)_savedStorageContent).Content);
+            Assert.Equal(persistedValue, saved.Value);
+            var update = Assert.Single(saved.Updates);
+            Assert.Equal(persistedValue, update.Value);
+            Assert.Equal(now, update.TimeStamp);
+        }
+
+        [Fact]
+        public async Task FlushPendingHistoryAsync_DoesNotCreateAnUninitializedCursor()
+        {
+            await _cursor.FlushPendingHistoryAsync(CancellationToken.None);
+
+            _storage.Verify(s => s.SaveAsync(It.IsAny<Uri>(), It.IsAny<StorageContent>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]

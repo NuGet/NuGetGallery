@@ -67,6 +67,44 @@ namespace NuGet.Services.Metadata.Catalog
                 cursorValueWithUpdates.Updates = GetUpdates(cursorValueWithUpdates, storageContent.StorageDateTimeInUtc);
             }
 
+            await WriteCursorAsync(cursorValueWithUpdates, cancellationToken);
+        }
+
+        /// <summary>
+        /// Publishes persisted progress missing from cursor history once the update interval permits it.
+        /// Call during idle iterations so dependent jobs can read the final cursor value.
+        /// </summary>
+        public async Task FlushPendingHistoryAsync(CancellationToken cancellationToken)
+        {
+            var storageContent = await _storage.LoadStringStorageContentAsync(_address, cancellationToken);
+            if (storageContent == null || storageContent.Content == null)
+            {
+                return;
+            }
+
+            var cursorValueWithUpdates = JsonConvert.DeserializeObject<CursorValueWithUpdates>(storageContent.Content, CursorValueWithUpdates.SerializerSettings);
+
+            _logger.LogInformation("Read the cursor value: {CursorValue} with the count of updates: {CursorUpdatesCount}, at {Address}.",
+                cursorValueWithUpdates.Value, cursorValueWithUpdates.Updates.Count, _address.AbsoluteUri);
+
+            var latestUpdate = cursorValueWithUpdates.Updates.OrderByDescending(update => update.TimeStamp).FirstOrDefault();
+            if (latestUpdate != null && latestUpdate.Value == cursorValueWithUpdates.Value)
+            {
+                return;
+            }
+
+            cursorValueWithUpdates.MinIntervalBeforeToReadUpdate = _minIntervalBeforeToReadUpdate;
+            cursorValueWithUpdates.Updates = GetUpdates(cursorValueWithUpdates, storageContent.StorageDateTimeInUtc);
+            if (cursorValueWithUpdates.Updates.FirstOrDefault()?.Value != cursorValueWithUpdates.Value)
+            {
+                return;
+            }
+
+            await WriteCursorAsync(cursorValueWithUpdates, cancellationToken);
+        }
+
+        private async Task WriteCursorAsync(CursorValueWithUpdates cursorValueWithUpdates, CancellationToken cancellationToken)
+        {
             var content = new StringStorageContent(JsonConvert.SerializeObject(cursorValueWithUpdates, CursorValueWithUpdates.SerializerSettings),
                 "application/json", Constants.NoStoreCacheControl);
 

@@ -18,7 +18,7 @@ namespace Ng.Jobs
     public class Catalog2DnxJob : LoopingNgJob
     {
         private CommitCollector _collector;
-        private ReadWriteCursor _front;
+        private DurableCursorWithUpdates _front;
         private ReadCursor _back;
         private Uri _destination;
 
@@ -121,6 +121,8 @@ namespace Ng.Jobs
                     run = await _collector.RunAsync(_front, _back, cancellationToken);
                 }
                 while (run);
+
+                await _front.FlushPendingHistoryAsync(cancellationToken);
             }
         }
     }
