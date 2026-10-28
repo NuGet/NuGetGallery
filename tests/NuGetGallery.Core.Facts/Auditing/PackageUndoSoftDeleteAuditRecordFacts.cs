@@ -40,6 +40,7 @@ namespace NuGetGallery.Auditing
             Assert.Equal("mistaken deletion", entry["Record"]["Reason"].Value<string>());
             Assert.True(entry["Record"]["Success"].Value<bool>());
             Assert.Null(entry["Record"]["Outcome"]);
+            Assert.Null(entry["Record"]["Signature"]);
             Assert.Equal("admin-api", entry["Record"]["CallerIdentity"].Value<string>());
             Assert.NotNull(entry["Actor"]["TimestampUtc"]);
             Assert.NotNull(entry["Actor"]["OnBehalfOf"]);
@@ -48,6 +49,8 @@ namespace NuGetGallery.Auditing
 
             entry = JObject.Parse(Encoding.UTF8.GetString(stream.ToArray()));
             Assert.False(entry["Record"]["Success"].Value<bool>());
+            Assert.Null(entry["Record"]["Signature"]);
+            Assert.Equal("admin-api", entry["Record"]["CallerIdentity"].Value<string>());
             blob.Verify(b => b.OpenWriteAsync(It.IsAny<IAccessCondition>(), null), Times.Exactly(2));
         }
 
