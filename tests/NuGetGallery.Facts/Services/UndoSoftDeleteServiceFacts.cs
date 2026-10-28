@@ -171,6 +171,37 @@ namespace NuGetGallery
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
+        public async Task AuditsAuthenticatedCallerAndReason(bool failReflow)
+        {
+            var fixture = new Fixture();
+            if (failReflow)
+            {
+                fixture.Dependency<IReflowPackageService>().Setup(x => x.ReflowAsync(
+                    fixture.Package.Id, "1.0.0", "Restore", "admin"))
+                    .ThrowsAsync(new IOException("Reflow failed"));
+            }
+
+            var operation = fixture.Service.UndoAsync(fixture.Package, 10, "Restore", "admin");
+            if (failReflow)
+            {
+                await Assert.ThrowsAsync<IOException>(() => operation);
+            }
+            else
+            {
+                await operation;
+            }
+
+            fixture.Dependency<IAuditingService>().Verify(x => x.SaveAuditRecordAsync(
+                It.Is<PackageUndoSoftDeleteAuditRecord>(record => record.Success == !failReflow
+                    && record.Reason == "Restore"
+                    && record.CallerIdentity == "admin")), Times.Once);
+            fixture.Dependency<IReflowPackageService>().Verify(x => x.ReflowAsync(
+                fixture.Package.Id, "1.0.0", "Restore", "admin"), Times.Once);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
         public async Task RestoresExternalOrEmbeddedContent(bool embedded)
         {
             var fixture = new Fixture();

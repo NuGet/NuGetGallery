@@ -269,6 +269,35 @@ namespace NuGetGallery
                 return;
             }
 
+            // Repeat admin deletes only reflow the deletion, preserving the original recovery data.
+            var packagesToReflow = captureForUndo
+                ? packageList.Where(p => p.PackageStatusKey == PackageStatus.Deleted).ToList()
+                : new List<Package>();
+            var packagesToDelete = captureForUndo
+                ? packageList.Where(p => p.PackageStatusKey != PackageStatus.Deleted).ToList()
+                : packageList;
+
+            if (!captureForUndo || packagesToDelete.Count > 0)
+            {
+                await SoftDeletePackagesWithBackupAsync(packagesToDelete, deletedBy, reason, signature, captureForUndo);
+            }
+
+            // Re-issuing a soft delete reflows its V3 deletion through a fresh audit entry.
+            // Do not create a new deletion association or overwrite the original recovery data.
+            foreach (var package in packagesToReflow)
+            {
+                await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(
+                    package, AuditedPackageAction.SoftDelete, reason, signature,
+                    packageKey: package.Key, adminInitiated: true));
+                _telemetryService.TrackPackageDelete(package, isHardDelete: false);
+            }
+
+            UpdateSearchIndex();
+        }
+
+        private async Task SoftDeletePackagesWithBackupAsync(
+            List<Package> packageList, User deletedBy, string reason, string signature, bool captureForUndo)
+        {
             var packageDelete = new PackageDelete
             {
                 // Match SQL datetime precision in the JSON and deletion row.
@@ -289,14 +318,6 @@ namespace NuGetGallery
 
                 if (captureForUndo)
                 {
-                    foreach (var package in packageList)
-                    {
-                        if (package.Key <= 0 || package.PackageStatusKey == PackageStatus.Deleted)
-                        {
-                            throw new InvalidOperationException("Only persisted, non-deleted packages can be captured for admin deletion.");
-                        }
-                    }
-
                     // Flush only to obtain the identity. The transaction is not committed until deletion succeeds.
                     await _packageDeletesRepository.CommitChangesAsync();
 
@@ -358,9 +379,6 @@ namespace NuGetGallery
                 await _packageDeletesRepository.CommitChangesAsync();
                 transaction.Commit();
             }
-
-            // Force refresh the index
-            UpdateSearchIndex();
         }
 
         public async Task HardDeletePackagesAsync(IEnumerable<Package> packages, User deletedBy, string reason, string signature, bool deleteEmptyPackageRegistration)
@@ -575,6 +593,17 @@ namespace NuGetGallery
                 ValidationBackupHash = await BackupFromValidationsContainerAsync(_packageFileService, package),
                 IncomingDeprecationKeys = package.AlternativeOf.Select(d => d.Key).ToList()
             };
+
+            // Require the archive needed to restore the original state before deleting any files.
+            var isAvailable = package.PackageStatusKey == PackageStatus.Available;
+            var requiredBackupHash = isAvailable ? backup.PublicBackupHash : backup.ValidationBackupHash;
+            if (requiredBackupHash == null)
+            {
+                var location = isAvailable ? "public" : "validation";
+                throw new UserSafeException(
+                    $"Cannot soft-delete {backup.PackageId} {backup.NormalizedVersion}: the {location} package file is missing from the configured storage. "
+                    + "No packages were deleted by this request. Restore the missing file before trying again.");
+            }
 
             if (package.HasReadMe && !package.HasEmbeddedReadme)
             {
