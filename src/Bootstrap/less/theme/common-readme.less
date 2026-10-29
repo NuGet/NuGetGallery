@@ -43,6 +43,31 @@
     font-size: @font-size-base;
   }
 
+  // Copy button for code blocks, see page-display-package.js
+  .readme-code-block {
+    position: relative;
+
+    .readme-copy-button {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    &:hover .readme-copy-button,
+    .readme-copy-button:focus {
+      opacity: 1;
+    }
+
+    // Devices without hover (e.g. touch screens) always show the copy button.
+    @media (hover: none) {
+      .readme-copy-button {
+        opacity: 1;
+      }
+    }
+  }
+
   pre {
     code.hljs {
       background-color: var(--neutralBackground1Rest);
