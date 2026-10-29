@@ -259,6 +259,16 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    DIP.Infrastructure 99.0.0                 |    08/11/2026    |   Malware  |
 |    lookwater.client.app                       |    09/25/2026    |   Untrustworthy  |
 |    lookwater.js.app                           |    09/25/2026    |   Untrustworthy  |
+|    IR.Infrastructure.DataService.Core         |    10/27/2026    |   Potentially Malicious  |
+|    IR.DantUI                                  |    10/27/2026    |   Potentially Malicious  |
+|    IR.OscarUI                                 |    10/27/2026    |   Potentially Malicious  |
+|    IR.Infrastructure.Core                     |    10/27/2026    |   Potentially Malicious  |
+|    IR.iplus32                                 |    10/27/2026    |   Potentially Malicious  |
+|    Web3TotalButton                            |    10/27/2026    |   Malware  |
+|    Hardhat.Env 1.0.0                          |    10/29/2026    |   Malware  |
+|    EnvParse.Kit 1.0.0                         |    10/29/2026    |   Malware  |
+|    DotEnv.Lite 1.0.0                          |    10/29/2026    |   Malware  |
+|    Mcp.EnvTools 1.0.0                         |    10/29/2026    |   Malware  |
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.
