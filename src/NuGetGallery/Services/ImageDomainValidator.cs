@@ -10,6 +10,7 @@ namespace NuGetGallery
     {
         private static readonly TimeSpan RegexTimeout = TimeSpan.FromMinutes(1);
         private static readonly Regex GithubBadgeUrlRegEx = new Regex("^(https|http):\\/\\/github\\.com\\/[^/]+\\/[^/]+(\\/actions)?\\/workflows\\/.*badge\\.svg", RegexOptions.IgnoreCase, RegexTimeout);
+        private static readonly Regex GithubCodespacesBadgeUrlRegEx = new Regex("^(https|http):\\/\\/github\\.com\\/codespaces\\/badge\\.svg$", RegexOptions.IgnoreCase, RegexTimeout);
 
         private readonly IContentObjectService _contentObjectService;
         public ImageDomainValidator (IContentObjectService contentObjectService)
@@ -61,7 +62,8 @@ namespace NuGetGallery
         {
             try
             {
-                 return GithubBadgeUrlRegEx.IsMatch(uri.OriginalString);
+                return GithubBadgeUrlRegEx.IsMatch(uri.OriginalString) ||
+                    GithubCodespacesBadgeUrlRegEx.IsMatch(uri.OriginalString);
             }
             catch (RegexMatchTimeoutException)
             {
