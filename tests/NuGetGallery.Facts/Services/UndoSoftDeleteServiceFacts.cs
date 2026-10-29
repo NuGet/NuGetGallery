@@ -128,7 +128,7 @@ namespace NuGetGallery
             fixture.Backup.Symbols.Add(new SymbolPackageDeleteBackup
             {
                 SymbolPackageKey = 30,
-                PackageStatusKey = status,
+                SymbolPackageStatusKey = status,
                 PublicBackupHash = "public-symbols",
                 ValidationBackupHash = "private-symbols"
             });

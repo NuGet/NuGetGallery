@@ -186,7 +186,7 @@ namespace NuGetGallery
         {
             if (!_configuration.AsynchronousPackageValidationEnabled
                 && (backup.PackageStatusKey == PackageStatus.Validating
-                    || backup.Symbols.Any(s => s.PackageStatusKey == PackageStatus.Validating)))
+                    || backup.Symbols.Any(s => s.SymbolPackageStatusKey == PackageStatus.Validating)))
             {
                 throw new InvalidOperationException("Asynchronous validation must be enabled to restore a validating package.");
             }
@@ -198,7 +198,7 @@ namespace NuGetGallery
             {
                 var symbol = package.SymbolPackages.Single(s => s.Key == saved.SymbolPackageKey);
                 var published = symbol.Published;
-                await _symbolPackageService.UpdateStatusAsync(symbol, saved.PackageStatusKey, commitChanges: false);
+                await _symbolPackageService.UpdateStatusAsync(symbol, saved.SymbolPackageStatusKey, commitChanges: false);
                 symbol.Published = published;
             }
 
@@ -226,7 +226,7 @@ namespace NuGetGallery
                 await _validation.RevalidateAsync(package);
             }
 
-            foreach (var saved in backup.Symbols.Where(s => s.PackageStatusKey == PackageStatus.Validating))
+            foreach (var saved in backup.Symbols.Where(s => s.SymbolPackageStatusKey == PackageStatus.Validating))
             {
                 var symbol = package.SymbolPackages.Single(s => s.Key == saved.SymbolPackageKey);
                 if (symbol.StatusKey == PackageStatus.Validating)
@@ -248,7 +248,7 @@ namespace NuGetGallery
 
             foreach (var saved in backup.Symbols)
             {
-                var privateSymbols = saved.PackageStatusKey != PackageStatus.Available;
+                var privateSymbols = saved.SymbolPackageStatusKey != PackageStatus.Available;
                 await _symbolFiles.RestorePackageFileFromBackupAsync(package,
                     privateSymbols ? saved.ValidationBackupHash : saved.PublicBackupHash, privateSymbols);
             }
