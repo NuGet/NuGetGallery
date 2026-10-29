@@ -91,7 +91,7 @@ namespace NuGetGallery
             {
                 Require(symbol != null && symbol.SymbolPackageKey > 0 && symbolKeys.Add(symbol.SymbolPackageKey),
                     "Invalid or duplicate symbol key.");
-                ValidateBackupHashes(symbol.PackageStatusKey, symbol.PublicBackupHash, symbol.ValidationBackupHash);
+                ValidateBackupHashes(symbol.SymbolPackageStatusKey, symbol.PublicBackupHash, symbol.ValidationBackupHash);
             }
 
             var deprecationKeys = new HashSet<int>();

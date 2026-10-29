@@ -933,6 +933,7 @@ namespace NuGetGallery
                 Assert.Equal(CaptureFixture.Readme, backup.ExternalReadmeMarkdown);
                 Assert.Equal(new[] { 50 }, backup.IncomingDeprecationKeys);
                 Assert.Equal(new[] { 20, 21 }, backup.Symbols.Select(s => s.SymbolPackageKey));
+                Assert.Equal(new[] { PackageStatus.Available, PackageStatus.Validating }, backup.Symbols.Select(s => s.SymbolPackageStatusKey));
                 Assert.NotEqual(backup.Symbols[0].PublicBackupHash, backup.Symbols[1].ValidationBackupHash);
                 Assert.True(fixture.Events.IndexOf("identity-flush") < fixture.Events.IndexOf("save-json"));
                 Assert.True(fixture.Events.IndexOf("save-json") < fixture.Events.IndexOf("cleanup"));

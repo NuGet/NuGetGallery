@@ -5,8 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Moq;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NuGet.Services.Entities;
 using Xunit;
 
@@ -22,7 +25,7 @@ namespace NuGetGallery
             backup.ExternalReadmeMarkdown = "# README\r\n雪 😀 \"quoted\" \\path\n[link](https://example.test)";
             backup.Symbols.Add(new SymbolPackageDeleteBackup
             {
-                SymbolPackageKey = 31, PackageStatusKey = PackageStatus.Available,
+                SymbolPackageKey = 31, SymbolPackageStatusKey = PackageStatus.Available,
                 PublicBackupHash = Convert.ToBase64String(Enumerable.Repeat((byte)2, 64).ToArray()),
             });
             backup.IncomingDeprecationKeys.Add(50);
@@ -41,12 +44,16 @@ namespace NuGetGallery
             Assert.Equal(backup.ValidationBackupHash, actual.ValidationBackupHash);
             var symbol = Assert.Single(actual.Symbols);
             Assert.Equal(31, symbol.SymbolPackageKey);
-            Assert.Equal(PackageStatus.Available, symbol.PackageStatusKey);
+            Assert.Equal(PackageStatus.Available, symbol.SymbolPackageStatusKey);
             Assert.Equal(backup.Symbols[0].PublicBackupHash, symbol.PublicBackupHash);
             Assert.Null(symbol.ValidationBackupHash);
             Assert.Equal(50, Assert.Single(actual.IncomingDeprecationKeys));
             Assert.Equal(CoreConstants.JsonContentType, fixture.ContentType);
             Assert.Equal("package-delete-backups/10/20/package-delete-backup.json", Assert.Single(fixture.Files).Key);
+            var json = JObject.Parse(Encoding.UTF8.GetString(Assert.Single(fixture.Files).Value));
+            Assert.Equal("Available", (string)json["PackageStatusKey"]);
+            Assert.Equal("Available", (string)json["Symbols"][0]["SymbolPackageStatusKey"]);
+            Assert.Null(json["Symbols"][0]["PackageStatusKey"]);
 
             backup.Listed = false;
 
@@ -59,9 +66,35 @@ namespace NuGetGallery
             await fixture.Service.GetAsync(10, 20);
             Assert.Equal(bytes, Assert.Single(fixture.Files).Value);
 
-            backup.Symbols[0].PackageStatusKey = PackageStatus.Deleted;
+            backup.Symbols[0].SymbolPackageStatusKey = PackageStatus.Deleted;
             await Assert.ThrowsAsync<InvalidDataException>(() => fixture.Service.SaveAsync(backup));
             Assert.Equal(bytes, Assert.Single(fixture.Files).Value);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task RejectsSymbolBackupWithoutRequiredStatus(bool usesLegacyStatusName)
+        {
+            var fixture = new Fixture();
+            var backup = CreateBackup();
+            backup.Symbols.Add(new SymbolPackageDeleteBackup
+            {
+                SymbolPackageKey = 31, SymbolPackageStatusKey = PackageStatus.Available,
+                PublicBackupHash = Convert.ToBase64String(new byte[64]),
+            });
+            await fixture.Service.SaveAsync(backup);
+            var file = Assert.Single(fixture.Files);
+            var json = JObject.Parse(Encoding.UTF8.GetString(file.Value));
+            var symbol = (JObject)json["Symbols"][0];
+            symbol.Remove("SymbolPackageStatusKey");
+            if (usesLegacyStatusName)
+            {
+                symbol["PackageStatusKey"] = "Available";
+            }
+            fixture.Files[file.Key] = Encoding.UTF8.GetBytes(json.ToString());
+
+            await Assert.ThrowsAsync<JsonSerializationException>(() => fixture.Service.GetAsync(10, 20));
         }
 
         [Fact]

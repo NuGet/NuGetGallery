@@ -595,7 +595,7 @@ namespace NuGetGallery
                 var entry = new SymbolPackageDeleteBackup
                 {
                     SymbolPackageKey = symbol.Key,
-                    PackageStatusKey = symbol.StatusKey,
+                    SymbolPackageStatusKey = symbol.StatusKey,
                     PublicBackupHash = publicHash,
                     ValidationBackupHash = validationHash
                 };

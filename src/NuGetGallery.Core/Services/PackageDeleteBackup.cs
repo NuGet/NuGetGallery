@@ -70,7 +70,7 @@ namespace NuGetGallery
 
         // Pre-delete state: Available, Validating or FailedValidation.
         [JsonProperty(Required = Required.Always)]
-        public PackageStatus PackageStatusKey { get; set; }
+        public PackageStatus SymbolPackageStatusKey { get; set; }
 
         // Actual SHA512 of this row's public symbol file; use existing symbol backup paths. Null if absent.
         [JsonProperty(Required = Required.AllowNull)]
