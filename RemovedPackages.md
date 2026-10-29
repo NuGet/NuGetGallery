@@ -269,6 +269,11 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    EnvParse.Kit 1.0.0                         |    10/29/2026    |   Malware  |
 |    DotEnv.Lite 1.0.0                          |    10/29/2026    |   Malware  |
 |    Mcp.EnvTools 1.0.0                         |    10/29/2026    |   Malware  |
+|    miniClockLibrary                           |    10/29/2026    |   Malware  |
+|    SplashLibrary                              |    10/29/2026    |   Malware  |
+|    miniClickerLibrary                         |    10/29/2026    |   Malware  |
+|    miniClickerLib                             |    10/29/2026    |   Malware  |
+|    3018                                       |    10/29/2026    |   Malware  |
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.
