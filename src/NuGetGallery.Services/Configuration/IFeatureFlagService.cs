@@ -84,6 +84,13 @@ namespace NuGetGallery
         bool IsDisplayFuGetLinksEnabled();
 
         /// <summary>
+        /// Whether the "Per day average" download metric on a package's details page is computed from
+        /// the trailing 6-week download statistics rather than dividing lifetime downloads by the age
+        /// of the oldest available version. See https://github.com/NuGet/NuGetGallery/issues/10931.
+        /// </summary>
+        bool IsRecentDownloadsPerDayEnabled();
+
+        /// <summary>
         /// Whether or not a nugettrends.com link is visible on a package's details page.
         /// </summary>
         bool IsDisplayNuGetTrendsLinksEnabled();
