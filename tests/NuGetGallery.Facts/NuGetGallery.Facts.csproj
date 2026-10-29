@@ -7,9 +7,6 @@
     <EmbeddedResource Include="..\..\src\NuGetGallery\Views\Packages\_ValidationIssue.cshtml">
       <Link>Views\Packages\_ValidationIssue.cshtml</Link>
     </EmbeddedResource>
-    <EmbeddedResource Include="..\..\src\NuGetGallery\App_Data\Files\Content\Trusted-Image-Domains.json">
-      <Link>App_Data\Files\Content\Trusted-Image-Domains.json</Link>
-    </EmbeddedResource>
     <EmbeddedResource Include="TestData\certificate.cer" />
     <EmbeddedResource Include="TestData\icon.png" />
     <EmbeddedResource Include="TestData\icon.jpg" />
