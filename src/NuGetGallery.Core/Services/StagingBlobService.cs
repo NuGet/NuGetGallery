@@ -1,0 +1,222 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
+using System.Globalization;
+using System.IO;
+using System.Threading.Tasks;
+using NuGetGallery.Packaging;
+
+namespace NuGetGallery
+{
+    public class StagingBlobService : IStagingBlobService
+    {
+        private static readonly TimeSpan ReadAccessDuration = TimeSpan.FromMinutes(10);
+
+        private readonly ICoreFileStorageService _fileStorageService;
+
+        public StagingBlobService(ICoreFileStorageService fileStorageService)
+        {
+            _fileStorageService = fileStorageService ?? throw new ArgumentNullException(nameof(fileStorageService));
+        }
+
+        public async Task<StagingFileReference> SavePackageFileAsync(string packageId, string normalizedVersion, Stream packageFile)
+        {
+            return await SaveFileAsync(packageId, normalizedVersion, packageFile, CoreConstants.NuGetPackageFileExtension);
+        }
+
+        public Task<StagingFileReference> SaveValidatedPackageFileAsync(string packageId, string normalizedVersion, Stream packageFile)
+        {
+            return SaveFileAsync(packageId, normalizedVersion, packageFile, CoreConstants.NuGetPackageFileExtension, setHashMetadata: true);
+        }
+
+        public async Task<StagingFileReference> SaveSymbolPackageFileAsync(string packageId, string normalizedVersion, Stream symbolPackageFile)
+        {
+            return await SaveFileAsync(packageId, normalizedVersion, symbolPackageFile, CoreConstants.NuGetSymbolPackageFileExtension);
+        }
+
+        private async Task<StagingFileReference> SaveFileAsync(string packageId, string normalizedVersion, Stream packageFile, string extension, bool setHashMetadata = false)
+        {
+            if (string.IsNullOrWhiteSpace(packageId))
+            {
+                throw new ArgumentNullException(nameof(packageId));
+            }
+
+            if (string.IsNullOrWhiteSpace(normalizedVersion))
+            {
+                throw new ArgumentNullException(nameof(normalizedVersion));
+            }
+
+            if (packageFile == null)
+            {
+                throw new ArgumentNullException(nameof(packageFile));
+            }
+
+            if (!packageFile.CanRead || !packageFile.CanSeek || packageFile.Position != 0)
+            {
+                throw new ArgumentException("The package stream must be readable, seekable, and positioned at the beginning.", nameof(packageFile));
+            }
+
+            string hash = null;
+            if (setHashMetadata)
+            {
+                hash = CryptographyService.GenerateHash(packageFile, CoreConstants.Sha512HashAlgorithmId);
+                packageFile.Position = 0;
+            }
+
+            var path = GeneratePackagePath(packageId, normalizedVersion, Guid.NewGuid(), extension);
+            await _fileStorageService.SaveFileAsync(
+                CoreConstants.Folders.StagingFolderName,
+                path,
+                CoreConstants.PackageContentType,
+                packageFile,
+                overwrite: false);
+
+            if (setHashMetadata)
+            {
+                await _fileStorageService.SetMetadataAsync(CoreConstants.Folders.StagingFolderName, path, (_, metadata) =>
+                {
+                    metadata[CoreConstants.Sha512HashAlgorithmId] = hash;
+                    return Task.FromResult(true);
+                });
+            }
+
+            var etag = await _fileStorageService.GetETagOrNullAsync(CoreConstants.Folders.StagingFolderName, path);
+            if (etag == null)
+            {
+                throw new InvalidOperationException($"The staged package blob '{path}' was not found after it was saved.");
+            }
+
+            return new StagingFileReference(path, etag);
+        }
+
+        public Task<Uri> GetPackageReadUriAsync(string packagePath, string packageETag)
+        {
+            return GetPackageReadUriAsync(packagePath, packageETag, DateTimeOffset.UtcNow.Add(ReadAccessDuration));
+        }
+
+        public async Task<Uri> GetPackageReadUriAsync(string packagePath, string packageETag, DateTimeOffset endOfAccess)
+        {
+            if (string.IsNullOrWhiteSpace(packagePath))
+            {
+                throw new ArgumentNullException(nameof(packagePath));
+            }
+
+            if (string.IsNullOrWhiteSpace(packageETag))
+            {
+                throw new ArgumentNullException(nameof(packageETag));
+            }
+
+            if (endOfAccess <= DateTimeOffset.UtcNow)
+            {
+                throw new ArgumentOutOfRangeException(nameof(endOfAccess), "Read access must expire in the future.");
+            }
+
+            var currentETag = await _fileStorageService.GetETagOrNullAsync(CoreConstants.Folders.StagingFolderName, packagePath);
+            if (!string.Equals(currentETag, packageETag, StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException($"The staged package blob '{packagePath}' has changed or no longer exists.");
+            }
+
+            return await _fileStorageService.GetFileReadUriAsync(
+                CoreConstants.Folders.StagingFolderName,
+                packagePath,
+                endOfAccess);
+        }
+
+        public async Task<Stream> OpenPackageFileAsync(string packagePath, string packageETag)
+        {
+            if (string.IsNullOrWhiteSpace(packagePath))
+            {
+                throw new ArgumentNullException(nameof(packagePath));
+            }
+
+            if (string.IsNullOrWhiteSpace(packageETag))
+            {
+                throw new ArgumentNullException(nameof(packageETag));
+            }
+
+            var file = await _fileStorageService.GetFileReferenceAsync(CoreConstants.Folders.StagingFolderName, packagePath);
+            if (file == null || !string.Equals(file.ContentId, packageETag, StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException($"The staged package blob '{packagePath}' has changed or no longer exists.");
+            }
+
+            return file.OpenRead();
+        }
+
+        public Task<PackageStreamMetadata> GetPackageStreamMetadataAsync(string packagePath, string packageETag)
+        {
+            if (string.IsNullOrWhiteSpace(packagePath))
+            {
+                throw new ArgumentNullException(nameof(packagePath));
+            }
+
+            if (string.IsNullOrWhiteSpace(packageETag))
+            {
+                throw new ArgumentNullException(nameof(packageETag));
+            }
+
+            return _fileStorageService.GetPackageStreamMetadataAsync(CoreConstants.Folders.StagingFolderName, packagePath, packageETag);
+        }
+
+        public async Task<StagingFileReference> CopyPackageFileToStagingAsync(string packageId, string normalizedVersion, Uri packageFileUri)
+        {
+            if (string.IsNullOrWhiteSpace(packageId))
+            {
+                throw new ArgumentNullException(nameof(packageId));
+            }
+
+            if (string.IsNullOrWhiteSpace(normalizedVersion))
+            {
+                throw new ArgumentNullException(nameof(normalizedVersion));
+            }
+
+            if (packageFileUri == null)
+            {
+                throw new ArgumentNullException(nameof(packageFileUri));
+            }
+
+            var path = GeneratePackagePath(packageId, normalizedVersion, Guid.NewGuid());
+            await _fileStorageService.CopyFileAsync(
+                packageFileUri,
+                CoreConstants.Folders.StagingFolderName,
+                path,
+                AccessConditionWrapper.GenerateIfNotExistsCondition());
+
+            var etag = await _fileStorageService.GetETagOrNullAsync(CoreConstants.Folders.StagingFolderName, path);
+            if (etag == null)
+            {
+                throw new InvalidOperationException($"The staged package blob '{path}' was not found after it was copied.");
+            }
+
+            return new StagingFileReference(path, etag);
+        }
+
+        internal static string GeneratePackagePath(string packageId, string normalizedVersion, Guid fileId)
+        {
+            return GeneratePackagePath(packageId, normalizedVersion, fileId, CoreConstants.NuGetPackageFileExtension);
+        }
+
+        internal static string GeneratePackagePath(string packageId, string normalizedVersion, Guid fileId, string extension)
+        {
+            if (packageId.IndexOf('/') >= 0)
+            {
+                throw new ArgumentException("The package ID cannot contain a slash.", nameof(packageId));
+            }
+
+            if (normalizedVersion.IndexOf('/') >= 0)
+            {
+                throw new ArgumentException("The package version cannot contain a slash.", nameof(normalizedVersion));
+            }
+
+            return string.Format(
+                CultureInfo.InvariantCulture,
+                "{0}/{1}/{2:N}{3}",
+                packageId.ToLowerInvariant(),
+                normalizedVersion.ToLowerInvariant(),
+                fileId,
+                extension);
+        }
+    }
+}

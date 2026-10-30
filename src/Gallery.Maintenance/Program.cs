@@ -8,10 +8,10 @@ namespace Gallery.Maintenance
 {
     public class Program
     {
-        public static async Task Main(string[] args)
+        public static Task<int> Main(string[] args)
         {
             var job = new Job();
-            await JobRunner.Run(job, args);
+            return JobRunner.Run(job, args);
         }
     }
 }

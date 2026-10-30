@@ -28,6 +28,8 @@ namespace NuGetGallery
 
         public bool IsNewAccount2FAEnforcementEnabled { get; set; }
 
+        public bool IsPackageStagingEnabled { get; set; }
+
         public ChangeEmailViewModel ChangeEmail { get; set; }
 
         public ChangeNotificationsViewModel ChangeNotifications { get; set; }

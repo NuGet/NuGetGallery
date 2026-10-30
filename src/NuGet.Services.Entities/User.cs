@@ -99,6 +99,12 @@ namespace NuGet.Services.Entities
         [DefaultValue(true)]
         public bool NotifyPackagePushed { get; set; }
 
+        /// <summary>
+        /// Gets or sets whether the account receives optional staging notifications.
+        /// </summary>
+        [DefaultValue(true)]
+        public bool NotifyPackageStaged { get; set; } = true;
+
         public bool Confirmed
         {
             get { return !String.IsNullOrEmpty(EmailAddress); }

@@ -13,6 +13,11 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
 {
     public class FakeTelemetryService : ITelemetryService
     {
+        public void TrackStagingPromotionAccepted(Guid promotionId, Package package, bool symbols)
+        {
+            throw new NotImplementedException();
+        }
+
         public void TraceException(Exception exception)
         {
             throw new NotImplementedException();

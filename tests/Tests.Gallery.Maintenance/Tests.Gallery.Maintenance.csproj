@@ -4,6 +4,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Gallery.Maintenance\Gallery.Maintenance.csproj" />
+    <ProjectReference Include="..\..\src\NuGet.Services.Testing.Entities\NuGet.Services.Testing.Entities.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" />

@@ -12,6 +12,7 @@ using Newtonsoft.Json.Linq;
 using NuGet.Services.Entities;
 using NuGetGallery;
 using NuGetGallery.Authentication;
+using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure.Authentication;
 
 namespace GalleryTools.Commands
@@ -82,6 +83,8 @@ namespace GalleryTools.Commands
             const string adminOrgName = "NugetTestAdminOrganization";
             const string collaboratorOrgName = "NugetTestCollaboratorOrganization";
             const string testDataOrgName = "NuGetTestData";
+            const string stagingQuotaOrgName = "NugetTestStagingQuotaOrganization";
+            const string stagingRestrictedOrgName = "NugetTestStagingRestrictedOrganization";
 
             const string adminApiLockUserTarget = "AdminApiLockTarget";
 
@@ -94,6 +97,10 @@ namespace GalleryTools.Commands
             await ops.EnsureOrganizationAsync(testDataOrgName, admin: testAccount, collaborator: null);
             await ops.EnsureOrganizationAsync(adminOrgName, admin: testAccount, collaborator: null);
             await ops.EnsureOrganizationAsync(collaboratorOrgName, admin: orgAdmin, collaborator: testAccount);
+            var stagingQuotaOrg = await ops.EnsureOrganizationAsync(stagingQuotaOrgName, admin: testAccount, collaborator: null);
+            var stagingRestrictedOrg = await ops.EnsureOrganizationAsync(stagingRestrictedOrgName, admin: testAccount, collaborator: null);
+            stagingRestrictedOrg.EmailAddress = $"{stagingRestrictedOrgName}@localhost";
+            stagingRestrictedOrg.UserStatusKey = UserStatus.Unlocked;
 
             // ─── 3. Create API keys ──────────────────────────────────────────────────
             var testDataOrgEntity = context.Users.First(u => u.Username == testDataOrgName);
@@ -101,6 +108,8 @@ namespace GalleryTools.Commands
             var apiKeyPush = ops.CreateApiKey(testAccount, "CI Push", scopeActions: new[] { NuGetScopes.PackagePush }, scopeOwner: testAccount);
             var apiKeyPushVersion = ops.CreateApiKey(testAccount, "CI Push Version", scopeActions: new[] { NuGetScopes.PackagePushVersion }, scopeOwner: testAccount);
             var apiKeyUnlist = ops.CreateApiKey(testAccount, "CI Unlist", scopeActions: new[] { NuGetScopes.PackageUnlist }, scopeOwner: testAccount);
+            var apiKeyStage = ops.CreateApiKey(testAccount, "CI Stage", scopeActions: new[] { NuGetScopes.PackageStage }, scopeOwner: testAccount);
+            var apiKeyStagePattern = ops.CreateApiKey(testAccount, "CI Stage Pattern", scopeActions: new[] { NuGetScopes.PackageStage }, scopeOwner: testAccount, subjects: new[] { "StagingFunctional.Allowed.*" });
 
             // Org API keys: credential on testAccount, scoped to the org
             var testDataOrgApiKey = ops.CreateApiKey(testAccount, "CI TestData Org Push", scopeActions: new[] { NuGetScopes.PackagePush }, scopeOwner: testDataOrgEntity);
@@ -109,6 +118,10 @@ namespace GalleryTools.Commands
 
             var adminOrgApiKey = ops.CreateApiKey(testAccount, "CI Admin Org", scopeActions: null, scopeOwner: adminOrgEntity);
             var collabOrgApiKey = ops.CreateApiKey(testAccount, "CI Collaborator Org", scopeActions: null, scopeOwner: collabOrgEntity);
+            var adminOrgStageApiKey = ops.CreateApiKey(testAccount, "CI Admin Org Stage", scopeActions: new[] { NuGetScopes.PackageStage }, scopeOwner: adminOrgEntity);
+            var collabOrgStageApiKey = ops.CreateApiKey(testAccount, "CI Collaborator Org Stage", scopeActions: new[] { NuGetScopes.PackageStage }, scopeOwner: collabOrgEntity);
+            var stagingQuotaApiKey = ops.CreateApiKey(testAccount, "CI Quota Org Stage", scopeActions: new[] { NuGetScopes.PackageStage }, scopeOwner: stagingQuotaOrg);
+            var stagingRestrictedApiKey = ops.CreateApiKey(testAccount, "CI Restricted Org Stage", scopeActions: new[] { NuGetScopes.PackageStage }, scopeOwner: stagingRestrictedOrg);
 
             await context.SaveChangesAsync();
             Console.WriteLine("All API keys created.");
@@ -156,6 +169,16 @@ namespace GalleryTools.Commands
                 new JProperty("HasSearchService", false),
                 new JProperty("HasStatisticsService", false),
                 new JProperty("HasManyVersions", false),
+                new JProperty("StagingDatabaseConnectionString", container.Resolve<IAppConfiguration>().SqlConnectionString),
+                new JProperty("OrganizationAdminAccount", new JObject(
+                    new JProperty("Name", orgAdminUser),
+                    new JProperty("Password", orgAdminPassword))),
+                new JProperty("StagingQuotaOrganization", new JObject(
+                    new JProperty("Name", stagingQuotaOrgName),
+                    new JProperty("ApiKeyStage", stagingQuotaApiKey))),
+                new JProperty("StagingRestrictedOrganization", new JObject(
+                    new JProperty("Name", stagingRestrictedOrgName),
+                    new JProperty("ApiKeyStage", stagingRestrictedApiKey))),
                 new JProperty("Account", new JObject(
                     new JProperty("Name", testUser),
                     new JProperty("Email", testEmail),
@@ -163,13 +186,17 @@ namespace GalleryTools.Commands
                     new JProperty("ApiKey", accountApiKey),
                     new JProperty("ApiKeyPush", apiKeyPush),
                     new JProperty("ApiKeyPushVersion", apiKeyPushVersion),
-                    new JProperty("ApiKeyUnlist", apiKeyUnlist))),
+                    new JProperty("ApiKeyUnlist", apiKeyUnlist),
+                    new JProperty("ApiKeyStage", apiKeyStage),
+                    new JProperty("ApiKeyStagePattern", apiKeyStagePattern))),
                 new JProperty("AdminOrganization", new JObject(
                     new JProperty("Name", adminOrgName),
-                    new JProperty("ApiKey", adminOrgApiKey))),
+                    new JProperty("ApiKey", adminOrgApiKey),
+                    new JProperty("ApiKeyStage", adminOrgStageApiKey))),
                 new JProperty("CollaboratorOrganization", new JObject(
                     new JProperty("Name", collaboratorOrgName),
-                    new JProperty("ApiKey", collabOrgApiKey))),
+                    new JProperty("ApiKey", collabOrgApiKey),
+                    new JProperty("ApiKeyStage", collabOrgStageApiKey))),
                 new JProperty("AdminApi", new JObject(
                     new JProperty("AllowedTenantId", "your-tid"),
                     new JProperty("AllowedClientId", "your-azp"),

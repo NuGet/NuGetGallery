@@ -581,24 +581,26 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
                 Assert.True(result.IsErrorDisclosable); // we disclose the error for expired policies
-                Assert.Contains("expired", result.Error);
-                Assert.Contains(policy.PolicyName, result.Error);
+                Assert.Equal($"The policy 'Temporary Policy' has expired. Sign in and renew the trust policy on the Trusted Publishing page.", result.Error);
             }
 
             [Theory]
-            [InlineData("repository_owner")]
-            [InlineData("repository_owner_id")]
-            [InlineData("repository")]
-            [InlineData("repository_id")]
-            [InlineData("event_name")]
-            public async Task RejectsMissingRequiredClaim(string claim)
+            [InlineData("repository_owner", true)]
+            [InlineData("repository_owner", false)]
+            [InlineData("repository", true)]
+            [InlineData("repository", false)]
+            [InlineData("event_name", true)]
+            [InlineData("event_name", false)]
+            [InlineData("repository_owner_id", true)]
+            [InlineData("repository_id", true)]
+            public async Task RejectsMissingRequiredClaim(string claim, bool isPermanentlyEnabled)
             {
                 // Arrange
                 var createdBy = new User("test-user");
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.GitHubActions,
-                    Criteria = TokenTestHelper.PermanentPolicyCriteria,
+                    Criteria = isPermanentlyEnabled ? TokenTestHelper.PermanentPolicyCriteria : TokenTestHelper.TemporaryPolicyCriteria,
                     CreatedBy = createdBy
                 };
 
@@ -612,21 +614,25 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, resultEmpty.Type);
                 Assert.True(resultEmpty.IsErrorDisclosable);
-                Assert.Contains(claim, resultEmpty.Error);
+                Assert.Equal($"The JSON Web Token is missing the required claim '{claim}'.", resultEmpty.Error);
+                AssertNoPolicyUpdate(resultEmpty, policy, isPermanentlyEnabled);
                 Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, resultMissing.Type);
                 Assert.True(resultMissing.IsErrorDisclosable);
-                Assert.Contains(claim, resultMissing.Error);
+                Assert.Equal($"The JSON Web Token is missing the required claim '{claim}'.", resultMissing.Error);
+                AssertNoPolicyUpdate(resultMissing, policy, isPermanentlyEnabled);
             }
 
-            [Fact]
-            public async Task RejectsBannedEventName()
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task RejectsBannedEventName(bool isPermanentlyEnabled)
             {
                 // Arrange
                 var createdBy = new User("test-user");
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.GitHubActions,
-                    Criteria = TokenTestHelper.PermanentPolicyCriteria,
+                    Criteria = isPermanentlyEnabled ? TokenTestHelper.PermanentPolicyCriteria : TokenTestHelper.TemporaryPolicyCriteria,
                     CreatedBy = createdBy
                 };
                 Configuration.Setup(c => c.BannedGitHubActionsEvents).Returns(["bad_one"]);
@@ -639,31 +645,18 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
                 Assert.True(result.IsErrorDisclosable);
-                Assert.Contains("bad_one", result.Error);
+                Assert.Equal($"The GitHub Actions event 'bad_one' is not allowed.", result.Error);
+                AssertNoPolicyUpdate(result, policy, isPermanentlyEnabled);
             }
 
             [Theory]
+            [InlineData("repository_owner", true)]
             [InlineData("repository_owner", false)]
-            [InlineData("repository_owner_id", false)]
+            [InlineData("repository", true)]
             [InlineData("repository", false)]
-            [InlineData("repository_id", false)]
-            [InlineData("environment", true)]
-            public Task RejectsMismatchedClaim(string claim, bool isErrorDisclosable)
-            {
-                const string mismatchedValue = "mismatched-value";
-                return TestRejectsMismatchedClaim(claim, mismatchedValue, mismatchedValue, isErrorDisclosable);
-            }
-
-            [Fact]
-            public Task RejectsMismatchedWorkflowRefClaim()
-            {
-                const string mismatchedValue = "mismatched.yml";
-                return TestRejectsMismatchedClaim("job_workflow_ref",
-                    $"test-owner/test-repo/.github/workflows/{mismatchedValue}@refs/heads/main",
-                    mismatchedValue, isErrorDisclosable: true);
-            }
-
-            private async Task TestRejectsMismatchedClaim(string claim, string claimValue, string valueInError, bool isErrorDisclosable)
+            [InlineData("repository_owner_id", true)]
+            [InlineData("repository_id", true)]
+            public async Task RejectsMismatchedClaim(string claim, bool isPermanentlyEnabled)
             {
                 // Arrange
                 var createdBy = new User("test-user");
@@ -671,30 +664,89 @@ namespace NuGetGallery.Services.Authentication
                 {
                     PolicyName = "TestPolicy",
                     Type = FederatedCredentialType.GitHubActions,
-                    Criteria = TokenTestHelper.PermanentPolicyCriteria,
+                    Criteria = isPermanentlyEnabled ? TokenTestHelper.PermanentPolicyCriteria : TokenTestHelper.TemporaryPolicyCriteria,
                     CreatedBy = createdBy
                 };
 
-                var token = TokenTestHelper.CreateTestJwtWithCustomClaimValue(claim, claimValue);
+                var token = TokenTestHelper.CreateTestJwtWithCustomClaimValue(claim, "mismatched");
 
                 // Act
                 var result = await Target.EvaluatePolicyAsync(policy, token);
 
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
-                Assert.Equal(isErrorDisclosable, result.IsErrorDisclosable);
+                Assert.False(result.IsErrorDisclosable);
+                Assert.Equal($"The JSON Web Token claim '{claim}' has value 'mismatched' which does not match the policy.", result.Error);
+                AssertNoPolicyUpdate(result, policy, isPermanentlyEnabled);
+            }
 
-                if (!isErrorDisclosable)
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task RejectsMismatchedEnvironmentClaim(bool isPermanentlyEnabled)
+            {
+                // Arrange
+                var createdBy = new User("test-user");
+                var policy = new FederatedCredentialPolicy
                 {
-                    // Non-disclosable error string should contain the claim name and the mismatched value.
-                    Assert.Contains(claim, result.Error);
-                    Assert.Contains(valueInError, result.Error);
+                    PolicyName = "TestPolicy",
+                    Type = FederatedCredentialType.GitHubActions,
+                    Criteria = isPermanentlyEnabled ? TokenTestHelper.PermanentPolicyCriteria : TokenTestHelper.TemporaryPolicyCriteria,
+                    CreatedBy = createdBy
+                };
+
+                var token = TokenTestHelper.CreateTestJwtWithCustomClaimValue("environment", "mismatched");
+
+                // Act
+                var result = await Target.EvaluatePolicyAsync(policy, token);
+
+                // Assert
+                Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
+                Assert.Equal(isPermanentlyEnabled, result.IsErrorDisclosable);
+                Assert.Equal("Environment mismatch for policy 'TestPolicy': expected 'production', actual 'mismatched'", result.Error);
+                AssertNoPolicyUpdate(result, policy, isPermanentlyEnabled);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task RejectsMismatchedWorkflowRefClaim(bool isPermanentlyEnabled)
+            {
+                // Arrange
+                var createdBy = new User("test-user");
+                var policy = new FederatedCredentialPolicy
+                {
+                    PolicyName = "TestPolicy",
+                    Type = FederatedCredentialType.GitHubActions,
+                    Criteria = isPermanentlyEnabled ? TokenTestHelper.PermanentPolicyCriteria : TokenTestHelper.TemporaryPolicyCriteria,
+                    CreatedBy = createdBy
+                };
+
+                var token = TokenTestHelper.CreateTestJwtWithCustomClaimValue("job_workflow_ref", "test-owner/test-repo/.github/workflows/mismatched.yml@refs/heads/main");
+
+                // Act
+                var result = await Target.EvaluatePolicyAsync(policy, token);
+
+                // Assert
+                Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
+                Assert.Equal(isPermanentlyEnabled, result.IsErrorDisclosable);
+                Assert.Equal($"Workflow mismatch for policy 'TestPolicy': expected 'test.yml', actual 'mismatched.yml'", result.Error);
+                AssertNoPolicyUpdate(result, policy, isPermanentlyEnabled);
+            }
+
+            private void AssertNoPolicyUpdate(FederatedCredentialPolicyResult result, FederatedCredentialPolicy policy, bool isPermanentlyEnabled)
+            {
+                FederatedCredentialRepository.Verify(x => x.SavePoliciesAsync(), Times.Never);
+                AuditingService.Verify(x => x.SaveAuditRecordAsync(It.IsAny<FederatedCredentialPolicyAuditRecord>()), Times.Never);
+
+                // No change on the policy criteria
+                if (!isPermanentlyEnabled)
+                {
+                    Assert.Equal(TokenTestHelper.TemporaryPolicyCriteria, policy.Criteria);
                 }
                 else
                 {
-                    // Disclosable error string should contain the policy name and claim value.
-                    Assert.Contains(policy.PolicyName, result.Error);
-                    Assert.Contains(valueInError, result.Error);
+                    Assert.Equal(TokenTestHelper.PermanentPolicyCriteria, policy.Criteria);
                 }
             }
 

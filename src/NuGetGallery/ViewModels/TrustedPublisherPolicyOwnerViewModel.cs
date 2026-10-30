@@ -5,17 +5,19 @@ namespace NuGetGallery
 {
     public class TrustedPublisherPolicyOwnerViewModel
     {
-        public TrustedPublisherPolicyOwnerViewModel(string owner, bool canPushNew, bool canPushExisting, bool canUnlist)
+        public TrustedPublisherPolicyOwnerViewModel(string owner, bool canPushNew, bool canPushExisting, bool canUnlist, bool canStage)
         {
             Owner = owner;
             CanPushNew = canPushNew;
             CanPushExisting = canPushExisting;
             CanUnlist = canUnlist;
+            CanStage = canStage;
         }
 
         public string Owner { get; }
-        public bool CanPushNew { set; get; }
-        public bool CanPushExisting { set; get; }
-        public bool CanUnlist { set; get; }
+        public bool CanPushNew { get; }
+        public bool CanPushExisting { get; }
+        public bool CanUnlist { get; }
+        public bool CanStage { get; }
     }
 }

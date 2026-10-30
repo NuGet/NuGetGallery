@@ -156,6 +156,95 @@ namespace NuGetGallery
             }
         }
 
+        /// <summary>
+        /// Covers deleted staging privacy in full and reduced public version lists.
+        /// </summary>
+        public class TheDisplayPackageVersionsMethods : TestContainer
+        {
+            private readonly PackageService _service;
+
+            public TheDisplayPackageVersionsMethods()
+            {
+                var context = GetFakeContext();
+                var registration = new PackageRegistration { Key = 1, Id = "Package" };
+                for (var version = 1; version <= 6; version++)
+                {
+                    var package = new Package
+                    {
+                        Key = version,
+                        PackageRegistration = registration,
+                        PackageRegistrationKey = registration.Key,
+                        Version = $"{version}.0.0",
+                        NormalizedVersion = $"{version}.0.0",
+                        PackageStatusKey = PackageStatus.Deleted,
+                    };
+                    if (version == 1)
+                    {
+                        package.PackageStatusKey = PackageStatus.Available;
+                        package.IsLatestSemVer2 = true;
+                        package.IsLatestStableSemVer2 = true;
+                    }
+
+                    registration.Packages.Add(package);
+                    context.Packages.Add(package);
+                    if (version < 3)
+                    {
+                        continue;
+                    }
+
+                    var identity = new StagedPackageIdentity { Key = package.Key, Package = package };
+                    if (version == 3)
+                    {
+                        identity.CurrentStagedPackage = new StagedPackage { Status = StagedPackageStatus.Succeeded };
+                    }
+                    else if (version >= 5)
+                    {
+                        identity.CurrentStagedPackage = new StagedPackage { Status = StagedPackageStatus.Deleted };
+                    }
+
+                    context.StagedPackageIdentities.Add(identity);
+                }
+
+                _service = GetService<PackageService>();
+            }
+
+            [Fact]
+            public void HidesDeletedPrivateVersionsWithoutChangingOrdinaryOrPromotedDeletedVersions()
+            {
+                var packages = _service.FindPackagesById("Package", includePackageRegistration: true, includeDeprecations: true, includeSupportedFrameworks: true);
+
+                Assert.Equal(new[] { 1, 2, 3, 4 }, packages.Select(package => package.Key));
+                Assert.True(_service.IsDeletedStagingPackage("Package", "05.0.0"));
+                Assert.False(_service.IsDeletedStagingPackage("OtherPackage", "5.0.0"));
+                Assert.False(_service.IsDeletedStagingPackage("Package", "7.0.0"));
+                foreach (var package in packages)
+                {
+                    Assert.False(_service.IsDeletedStagingPackage("Package", package.NormalizedVersion));
+                }
+
+                Assert.Equal(6, _service.FindPackagesById("Package").Count);
+                Assert.NotNull(_service.FindPackageByIdAndVersionStrict("Package", "5.0.0"));
+            }
+
+            [Fact]
+            public void ExcludesDeletedPrivateVersionsBeforeCountingAndDoesNotReinsertRequestedPrivateVersion()
+            {
+                var result = _service.FindLatestVersionsById("Package", "5.0.0", true, true, true, maxCount: 4);
+
+                Assert.Equal(new[] { 4, 3, 2, 1 }, result.Packages.Select(package => package.Key));
+                Assert.False(result.HasMoreResults);
+            }
+
+            [Fact]
+            public void RetainsLatestAndRequestedPublicVersionsWhenTheListIsReduced()
+            {
+                var result = _service.FindLatestVersionsById("Package", "2.0.0", true, true, true, maxCount: 2);
+
+                Assert.Equal(new[] { 1, 2 }, result.Packages.Select(package => package.Key));
+                Assert.True(result.HasMoreResults);
+            }
+        }
+
         public class TheAddPackageOwnerMethod
         {
             [Fact]
@@ -1726,6 +1815,71 @@ namespace NuGetGallery
                 => InternalReturnsVersionsWhenIncludedVersionsIsTrue_IncludeUnlistedFalse(currentUser, packageOwner);
         }
 
+        /// <summary>
+        /// Covers deletion-page selection independently of ordinary owner listings.
+        /// </summary>
+        public class TheFindPackagesForAccountDeletionMethod : TestContainer
+        {
+            [Fact]
+            public void ExcludesPrivateVersionsBeforeSelectingRegistrationRepresentatives()
+            {
+                var owner = new User("owner") { Key = 1 };
+                var organization = new Organization("organization") { Key = 2 };
+                owner.Organizations.Add(new Membership { Organization = organization, OrganizationKey = organization.Key, Member = owner });
+                var registration = new PackageRegistration { Key = 10, Owners = { owner } };
+                var publicPackage = new Package
+                {
+                    Key = 100,
+                    PackageRegistration = registration,
+                    PackageRegistrationKey = registration.Key,
+                    PackageStatusKey = PackageStatus.Deleted,
+                    Listed = false,
+                };
+                var activePackage = new Package
+                {
+                    Key = 101,
+                    PackageRegistration = registration,
+                    PackageRegistrationKey = registration.Key,
+                    PackageStatusKey = PackageStatus.Staged,
+                    Listed = false,
+                };
+                var retiredPackage = new Package
+                {
+                    Key = 102,
+                    PackageRegistration = registration,
+                    PackageRegistrationKey = registration.Key,
+                    PackageStatusKey = PackageStatus.Deleted,
+                    Listed = false,
+                };
+                var organizationRegistration = new PackageRegistration { Key = 20, Owners = { organization } };
+                var organizationPackage = new Package
+                {
+                    Key = 200,
+                    PackageRegistration = organizationRegistration,
+                    PackageRegistrationKey = organizationRegistration.Key,
+                    PackageStatusKey = PackageStatus.Available,
+                    Listed = false,
+                };
+                var otherRegistration = new PackageRegistration { Key = 30, Owners = { new User("other") { Key = 3 } } };
+                var otherPackage = new Package { Key = 300, PackageRegistration = otherRegistration, PackageRegistrationKey = otherRegistration.Key };
+                var context = GetFakeContext();
+                context.Packages.AddRange(new[] { publicPackage, activePackage, retiredPackage, organizationPackage, otherPackage });
+                context.StagedPackageIdentities.Add(new StagedPackageIdentity
+                {
+                    Key = retiredPackage.Key,
+                    Package = retiredPackage,
+                    CurrentStagedPackage = new StagedPackage { Status = StagedPackageStatus.Deleted },
+                });
+                context.StagedPackageIdentities.Add(new StagedPackageIdentity { Key = publicPackage.Key, Package = publicPackage });
+                var service = GetService<PackageService>();
+
+                var packages = service.FindPackagesForAccountDeletion(owner);
+
+                Assert.Equal(new[] { publicPackage.Key, organizationPackage.Key }, packages.Select(package => package.Key).OrderBy(key => key));
+                Assert.Contains(retiredPackage, service.FindPackagesByAnyMatchingOwner(owner, includeUnlisted: true));
+            }
+        }
+
         public abstract class TheFindPackagesByOwnersMethodsBase : TestContainer
         {
             public static IEnumerable<object[]> TestData_RoleVariants
@@ -2612,6 +2766,38 @@ namespace NuGetGallery
 
                 // Assert expected result
                 Assert.False(result);
+            }
+
+            [Theory]
+            [InlineData(PackageStatus.Staged, StagedPackageStatus.Ready, false, false)]
+            [InlineData(PackageStatus.Deleted, StagedPackageStatus.Deleted, false, false)]
+            [InlineData(PackageStatus.Deleted, null, false, true)]
+            [InlineData(PackageStatus.Staged, StagedPackageStatus.Ready, true, true)]
+            public void AccountDeletionOnlyCountsVersionsThatWillRemain(PackageStatus status, StagedPackageStatus? stagedStatus, bool withPublicVersion, bool expectedOrphan)
+            {
+                var owner = new User("owner") { Key = 1 };
+                var registration = new PackageRegistration { Key = 10 };
+                registration.Owners.Add(owner);
+                var package = new Package { Key = 100, PackageRegistration = registration, PackageRegistrationKey = registration.Key, PackageStatusKey = status };
+                registration.Packages.Add(package);
+                if (withPublicVersion)
+                {
+                    registration.Packages.Add(new Package { Key = 101, PackageRegistration = registration, PackageStatusKey = PackageStatus.Available });
+                }
+
+                var entities = new FakeEntitiesContext();
+                var identity = new StagedPackageIdentity { Key = package.Key, Package = package, Owner = owner, OwnerKey = owner.Key };
+                if (stagedStatus.HasValue)
+                {
+                    identity.CurrentStagedPackage = new StagedPackage { Key = 200, Status = stagedStatus.Value };
+                }
+
+                entities.StagedPackageIdentities.Add(identity);
+                var context = new Mock<IEntitiesContext>();
+                context.Setup(value => value.StagedPackageIdentities).Returns(entities.StagedPackageIdentities);
+                var service = CreateService(context: context);
+
+                Assert.Equal(expectedOrphan, service.WillPackageBeOrphanedIfOwnerRemoved(registration, owner));
             }
 
             private void AddMemberToOrganization(Organization organization, User member)
@@ -3582,6 +3768,88 @@ namespace NuGetGallery
                 auditingService.Verify(x => x.SaveAuditRecordAsync(
                     It.IsAny<PackageRegistrationAuditRecord>()), Times.Never);
                 telemetryService.Verify(x => x.TrackRequiredSignerSet(It.IsAny<string>()), Times.Never);
+            }
+        }
+
+        public class TheReplacePackageMetadataForStagedPackageMethod
+        {
+            [Fact]
+            public void RejectsNullStagedPackage()
+            {
+                var service = CreateService();
+
+                var exception = Assert.Throws<ArgumentNullException>(() => service.ReplacePackageMetadataForStagedPackage(
+                    stagedPackage: null,
+                    packageArchive: null,
+                    packageMetadata: null,
+                    packageStreamMetadata: null,
+                    user: null));
+
+                Assert.Equal("stagedPackage", exception.ParamName);
+            }
+
+            [Fact]
+            public void RejectsMissingPackageReference()
+            {
+                var service = CreateService();
+                var stagedPackage = new StagedPackage();
+
+                var exception = Assert.Throws<ArgumentException>(() => service.ReplacePackageMetadataForStagedPackage(
+                    stagedPackage,
+                    packageArchive: null,
+                    packageMetadata: null,
+                    packageStreamMetadata: null,
+                    user: null));
+
+                Assert.Equal("stagedPackage", exception.ParamName);
+            }
+
+            [Theory]
+            [InlineData(PackageStatus.Available, StagedPackageStatus.Ready)]
+            [InlineData(PackageStatus.Staged, StagedPackageStatus.Superseded)]
+            [InlineData(PackageStatus.Deleted, StagedPackageStatus.Ready)]
+            public void RejectsIneligibleState(PackageStatus packageStatus, StagedPackageStatus stagedPackageStatus)
+            {
+                var service = CreateService();
+                var stagedPackage = new StagedPackage
+                {
+                    StagedPackageIdentity = new StagedPackageIdentity { Package = new Package { PackageStatusKey = packageStatus } },
+                    Status = stagedPackageStatus,
+                };
+
+                var exception = Assert.Throws<ArgumentException>(() => service.ReplacePackageMetadataForStagedPackage(
+                    stagedPackage,
+                    packageArchive: null,
+                    packageMetadata: null,
+                    packageStreamMetadata: null,
+                    user: null));
+
+                Assert.Equal("stagedPackage", exception.ParamName);
+            }
+
+            [Theory]
+            [InlineData(PackageStatus.Staged, StagedPackageStatus.Validating)]
+            [InlineData(PackageStatus.Staged, StagedPackageStatus.Ready)]
+            [InlineData(PackageStatus.Staged, StagedPackageStatus.FailedValidation)]
+            [InlineData(PackageStatus.Staged, StagedPackageStatus.PromotionFailed)]
+            [InlineData(PackageStatus.Deleted, StagedPackageStatus.Deleted)]
+            public void AcceptsEligibleState(PackageStatus packageStatus, StagedPackageStatus stagedPackageStatus)
+            {
+                var service = CreateService();
+                var stagedPackage = new StagedPackage
+                {
+                    StagedPackageIdentity = new StagedPackageIdentity { Package = new Package { PackageStatusKey = packageStatus } },
+                    Status = stagedPackageStatus,
+                };
+
+                var exception = Assert.Throws<ArgumentNullException>(() => service.ReplacePackageMetadataForStagedPackage(
+                    stagedPackage,
+                    packageArchive: null,
+                    packageMetadata: null,
+                    packageStreamMetadata: null,
+                    user: null));
+
+                Assert.Equal("packageArchive", exception.ParamName);
             }
         }
 

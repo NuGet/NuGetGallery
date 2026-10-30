@@ -1,0 +1,199 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Newtonsoft.Json;
+using NuGet.Services.Entities;
+
+namespace NuGetGallery
+{
+    /// <summary>
+    /// Represents a staging group returned by the public API.
+    /// </summary>
+    public class StagingGroupResponse
+    {
+        private StagingGroupResponse()
+        {
+        }
+
+        [JsonProperty("id")]
+        public string Id { get; private set; }
+
+        [JsonProperty("name")]
+        public string Name { get; private set; }
+
+        [JsonProperty("owner")]
+        public string Owner { get; private set; }
+
+        [JsonProperty("created")]
+        public string Created { get; private set; }
+
+        [JsonProperty("expires")]
+        public string Expires { get; private set; }
+
+        [JsonProperty("itemCount")]
+        public int ItemCount { get; private set; }
+
+        [JsonProperty("canPromote")]
+        public bool CanPromote { get; private set; }
+
+        [JsonProperty("blockers")]
+        public IReadOnlyList<StagingBlockerResponse> Blockers { get; private set; }
+
+        [JsonProperty("managementUrl")]
+        public string ManagementUrl { get; private set; }
+
+        public static StagingGroupResponse FromNewGroup(StagingGroup group, DateTime expirationDate, string managementUrl)
+        {
+            return FromGroup(group, Array.Empty<StagedPackage>(), expirationDate, managementUrl);
+        }
+
+        public static StagingGroupResponse FromGroup(
+            StagingGroup group,
+            IReadOnlyCollection<StagedPackage> packages,
+            DateTime expirationDate,
+            string managementUrl,
+            IReadOnlyCollection<StagedSymbolPackage> symbols = null)
+        {
+            if (group == null)
+            {
+                throw new ArgumentNullException(nameof(group));
+            }
+
+            if (packages == null)
+            {
+                throw new ArgumentNullException(nameof(packages));
+            }
+
+            symbols = symbols ?? Array.Empty<StagedSymbolPackage>();
+            var hasLockedRegistration = packages.Any(package => package.StagedPackageIdentity.Package.PackageRegistration.IsLocked)
+                || symbols.Any(symbol => symbol.StagedPackageIdentity.Package.PackageRegistration.IsLocked);
+            var hasRegistrationOwnershipLoss = packages.Any(package => !StagingOwnershipPolicy.CanPublish(package.StagedPackageIdentity))
+                || symbols.Any(symbol => !StagingOwnershipPolicy.CanPublish(symbol.StagedPackageIdentity));
+            var allReady = !hasRegistrationOwnershipLoss && packages.All(package => package.Status == StagedPackageStatus.Ready);
+            if (allReady)
+            {
+                foreach (var symbol in symbols)
+                {
+                    var parent = packages.SingleOrDefault(package => package.StagedPackageIdentityKey == symbol.StagedPackageIdentityKey);
+                    var blockers = StagedSymbolPackagePromotionEligibility.GetBlockers(symbol, parent, forGroup: true);
+                    if (blockers.Count > 0)
+                    {
+                        allReady = false;
+                        break;
+                    }
+                }
+            }
+
+            return FromGroup(group, packages.Count + symbols.Count, allReady, expirationDate, managementUrl, symbols.Count, hasRegistrationOwnershipLoss, hasLockedRegistration);
+        }
+
+        public static StagingGroupResponse FromGroup(
+            StagingGroup group,
+            int itemCount,
+            bool allPackagesReady,
+            DateTime expirationDate,
+            string managementUrl,
+            int symbolCount = 0,
+            bool hasRegistrationOwnershipLoss = false,
+            bool hasLockedRegistration = false)
+        {
+            if (group == null)
+            {
+                throw new ArgumentNullException(nameof(group));
+            }
+
+            if (itemCount < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(itemCount));
+            }
+
+            if (symbolCount < 0 || symbolCount > itemCount)
+            {
+                throw new ArgumentOutOfRangeException(nameof(symbolCount));
+            }
+
+            var isExpired = StagingExpirationPolicy.HasExpired(group);
+            var ownerBlocker = StagingPublicationPolicy.GetOwnerBlocker(group.Owner);
+            var canPromote = itemCount > 0 && allPackagesReady && !hasRegistrationOwnershipLoss && !hasLockedRegistration && ownerBlocker == null && !group.ActivePromotionId.HasValue && !isExpired;
+            IReadOnlyList<StagingBlockerResponse> blockers = Array.Empty<StagingBlockerResponse>();
+            if (group.ActivePromotionId.HasValue)
+            {
+                blockers = new[]
+                {
+                    new StagingBlockerResponse("GroupPromotionInProgress", "The staging group is being promoted."),
+                };
+            }
+            else if (isExpired)
+            {
+                blockers = new[]
+                {
+                    new StagingBlockerResponse("StagingExpired", "The staging group has expired. Delete it before creating new staging."),
+                };
+            }
+            else if (itemCount == 0)
+            {
+                blockers = new[]
+                {
+                    new StagingBlockerResponse("GroupEmpty", "The staging group does not contain any packages or symbols."),
+                };
+            }
+            else if (ownerBlocker != null)
+            {
+                blockers = new[] { new StagingBlockerResponse(ownerBlocker.Code, ownerBlocker.Message) };
+            }
+            else if (hasLockedRegistration)
+            {
+                blockers = new[] { new StagingBlockerResponse("PackageRegistrationLocked", "One or more package IDs in this group are locked. Contact support before promoting staged content.") };
+            }
+            else if (hasRegistrationOwnershipLoss)
+            {
+                blockers = new[]
+                {
+                    new StagingBlockerResponse("RegistrationOwnershipLost", "The staging owner no longer owns one or more package IDs in this group. Restore registration ownership before promoting. You can still download or delete the staged content."),
+                };
+            }
+            else if (!canPromote)
+            {
+                blockers = new[]
+                {
+                    new StagingBlockerResponse("GroupNotReady", "One or more packages or symbols in the staging group are not ready or eligible."),
+                };
+            }
+
+            return new StagingGroupResponse
+            {
+                Id = group.Id,
+                Name = group.Name,
+                Owner = group.Owner.Username,
+                Created = group.CreatedDate.ToUtcIso8601String(),
+                Expires = expirationDate.ToUtcIso8601String(),
+                ItemCount = itemCount,
+                CanPromote = canPromote,
+                Blockers = blockers,
+                ManagementUrl = managementUrl,
+            };
+        }
+
+    }
+
+    /// <summary>
+    /// Represents a reason that a staging resource cannot be promoted.
+    /// </summary>
+    public class StagingBlockerResponse
+    {
+        public StagingBlockerResponse(string code, string message)
+        {
+            Code = code;
+            Message = message;
+        }
+
+        [JsonProperty("code")]
+        public string Code { get; }
+
+        [JsonProperty("message")]
+        public string Message { get; }
+    }
+}
