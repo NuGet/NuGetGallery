@@ -47,7 +47,7 @@ namespace NuGetGallery
             var backup = await fixture.Service.GetBackupAsync(fixture.Package);
 
             Assert.Same(fixture.Backup, backup);
-            fixture.Backups.Verify(x => x.GetAsync(10, 20), Times.Once);
+            fixture.Backups.Verify(x => x.GetAsync("Example.Package", "1.0.0", 10, 20), Times.Once);
             fixture.Backups.VerifyNoOtherCalls();
         }
 
@@ -83,8 +83,36 @@ namespace NuGetGallery
 
             Assert.Null(await fixture.Service.GetBackupAsync(fixture.Package));
 
-            fixture.Backups.Verify(x => x.GetAsync(11, 20), Times.Once);
-            fixture.Backups.Verify(x => x.GetAsync(10, 20), Times.Never);
+            fixture.Backups.Verify(x => x.GetAsync("Example.Package", "1.0.0", 11, 20), Times.Once);
+            fixture.Backups.Verify(x => x.GetAsync("Example.Package", "1.0.0", 10, 20), Times.Never);
+        }
+
+        [Fact]
+        public async Task RejectsEarlierDeletionAfterPackageIsDeletedAgain()
+        {
+            var fixture = new Fixture();
+            var newer = new PackageDelete { Key = 11, DeletedOn = fixture.Deletion.DeletedOn.AddMinutes(1) };
+            newer.Packages.Add(fixture.Package);
+            fixture.Deletion.Packages.Clear();
+            fixture.Deletions.Setup(x => x.GetAll()).Returns(new[] { fixture.Deletion, newer }.AsQueryable());
+            var newerBackup = new PackageDeleteBackup
+            {
+                PackageDeleteKey = 11,
+                PackageKey = fixture.Package.Key,
+                PackageId = fixture.Package.Id,
+                NormalizedVersion = fixture.Package.NormalizedVersion,
+                DeletedOnUtc = newer.DeletedOn
+            };
+            fixture.Backups.Setup(x => x.GetAsync("Example.Package", "1.0.0", 11, 20)).ReturnsAsync(newerBackup);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.Service.UndoAsync(fixture.Package, 10, "Restore"));
+
+            fixture.Backups.Verify(x => x.GetAsync("Example.Package", "1.0.0", 10, 20), Times.Never);
+            fixture.Backups.Verify(x => x.GetAsync("Example.Package", "1.0.0", 11, 20), Times.Once);
+            fixture.Dependency<IPackageFileService>().Verify(x => x.RestorePackageFileFromBackupAsync(
+                It.IsAny<Package>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
+            Assert.Equal(PackageStatus.Deleted, fixture.Package.PackageStatusKey);
+            fixture.Transaction.Verify(x => x.Commit(), Times.Never);
         }
 
         [Theory]
@@ -405,7 +433,7 @@ namespace NuGetGallery
                     PublicBackupHash = "public-package",
                     ValidationBackupHash = "private-package"
                 };
-                Backups.Setup(x => x.GetAsync(10, 20)).ReturnsAsync(Backup);
+                Backups.Setup(x => x.GetAsync("Example.Package", "1.0.0", 10, 20)).ReturnsAsync(Backup);
                 GetMock<IAppConfiguration>().SetupGet(x => x.AsynchronousPackageValidationEnabled).Returns(true);
                 GetMock<IPackageService>().Setup(x => x.UpdatePackageStatusAsync(Package, It.IsAny<PackageStatus>(), false))
                     .Callback<Package, PackageStatus, bool>((package, status, _) => package.PackageStatusKey = status)

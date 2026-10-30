@@ -1166,8 +1166,8 @@ namespace NuGetGallery
                 Assert.Equal(lastEdited, fixture.Package.LastEdited);
                 Assert.Equal(lastUpdated, fixture.Package.LastUpdated);
                 fixture.Backups.Verify(x => x.SaveAsync(It.IsAny<PackageDeleteBackup>()), Times.Once);
-                fixture.Backups.Verify(x => x.GetAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
-                fixture.Backups.Verify(x => x.DeleteAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+                fixture.Backups.Verify(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+                fixture.Backups.Verify(x => x.DeleteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
                 fixture.Database.Verify(x => x.BeginTransaction(), Times.Once);
                 Assert.Equal(2, audits.Count);
                 Assert.NotSame(audits[0], audits[1]);
