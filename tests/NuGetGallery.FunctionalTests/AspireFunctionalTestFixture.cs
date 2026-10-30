@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
 using Aspire.Hosting.Testing;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace NuGetGallery.FunctionalTests
@@ -16,6 +18,7 @@ namespace NuGetGallery.FunctionalTests
     public sealed class AspireFunctionalTestFixture : IAsyncLifetime
     {
         internal const string CloudTestWorkerEnvironmentVariable = "CloudTestWorkerCustomVstestExe";
+        internal const string DashboardEnvironmentVariable = "NUGET_PLAYWRIGHT_ASPIRE_DASHBOARD";
         internal const string HarnessEnvironmentVariable = "NUGET_PLAYWRIGHT_ASPIRE_HARNESS";
         private static readonly TimeSpan StartupTimeout = TimeSpan.FromMinutes(10);
         private readonly string _settingsPath = Path.Combine(
@@ -55,11 +58,22 @@ namespace NuGetGallery.FunctionalTests
             {
                 using (var timeout = new CancellationTokenSource(StartupTimeout))
                 {
+                    var enableDashboard = bool.TryParse(
+                        Environment.GetEnvironmentVariable(DashboardEnvironmentVariable),
+                        out var dashboardEnabled)
+                        && dashboardEnabled;
                     var builder = await DistributedApplicationTestingBuilder
-                        .CreateAsync<Projects.NuGetGallery_AppHost>(timeout.Token);
+                        .CreateAsync<Projects.NuGetGallery_AppHost>(
+                            Array.Empty<string>(),
+                            (options, _) => options.DisableDashboard = !enableDashboard,
+                            timeout.Token);
 
                     _application = await builder.BuildAsync(timeout.Token);
                     await _application.StartAsync(timeout.Token);
+                    if (enableDashboard)
+                    {
+                        await OpenDashboardAsync(_application, timeout.Token);
+                    }
                     Console.WriteLine("AppHost started. Waiting for Gallery readiness.");
                     await _application.ResourceNotifications.WaitForResourceHealthyAsync(
                         "gallery",
@@ -117,6 +131,45 @@ namespace NuGetGallery.FunctionalTests
                 RestoreEnvironment();
                 DeleteSettingsFile();
             }
+        }
+
+        private static async Task OpenDashboardAsync(
+            DistributedApplication application,
+            CancellationToken cancellationToken)
+        {
+            const string dashboardResourceName = "aspire-dashboard";
+            await application.ResourceNotifications.WaitForResourceHealthyAsync(
+                dashboardResourceName,
+                cancellationToken);
+
+            Uri dashboardUrl;
+            try
+            {
+                dashboardUrl = application.GetEndpoint(dashboardResourceName, "https");
+            }
+            catch (ArgumentException)
+            {
+                dashboardUrl = application.GetEndpoint(dashboardResourceName, "http");
+            }
+
+            var browserToken = application.Services
+                .GetRequiredService<IConfiguration>()["AppHost:BrowserToken"];
+            if (!string.IsNullOrEmpty(browserToken))
+            {
+                var dashboardUrlBuilder = new UriBuilder(dashboardUrl)
+                {
+                    Path = $"{dashboardUrl.AbsolutePath.TrimEnd('/')}/login",
+                    Query = $"t={Uri.EscapeDataString(browserToken)}",
+                };
+                dashboardUrl = dashboardUrlBuilder.Uri;
+            }
+
+            Console.WriteLine($"Aspire Dashboard: {dashboardUrl.GetLeftPart(UriPartial.Path)}");
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = dashboardUrl.AbsoluteUri,
+                UseShellExecute = true,
+            });
         }
 
         private async Task SeedFunctionalTestDataAsync()

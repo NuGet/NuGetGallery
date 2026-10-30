@@ -1,0 +1,17 @@
+{
+  "servers": {
+    "playwright": {
+      "type": "stdio",
+      "command": "powershell.exe",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\tools\\Start-PlaywrightMcp.ps1",
+        "-OutputDirectory",
+        "${workspaceFolder}\\tests\\TestResults\\playwright-mcp"
+      ]
+    }
+  }
+}
