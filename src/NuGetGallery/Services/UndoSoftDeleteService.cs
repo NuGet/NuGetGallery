@@ -97,7 +97,8 @@ namespace NuGetGallery
                 return null;
             }
 
-            var backup = await _backups.GetAsync(deletion.Key, package.Key);
+            var backup = await _backups.GetAsync(
+                package.PackageRegistration.Id, package.NormalizedVersion, deletion.Key, package.Key);
             if (backup == null
                 || backup.DeletedOnUtc != deletion.DeletedOn
                 || !StringComparer.OrdinalIgnoreCase.Equals(backup.PackageId, package.PackageRegistration.Id)
