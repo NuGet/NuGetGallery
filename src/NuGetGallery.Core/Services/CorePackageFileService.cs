@@ -144,7 +144,7 @@ namespace NuGetGallery
             return _fileStorageService.FileExistsAsync(_metadata.ValidationFolderName, fileName);
         }
 
-        public async Task StorePackageFileInBackupLocationAsync(Package package, Stream packageFile)
+        public async Task<string> StorePackageFileInBackupLocationAsync(Package package, Stream packageFile)
         {
             if (package == null)
             {
@@ -191,7 +191,7 @@ namespace NuGetGallery
             // we know the upload isn't necessary.
             if (await _fileStorageService.FileExistsAsync(_metadata.FileBackupsFolderName, fileName))
             {
-                return;
+                return hash;
             }
 
             try
@@ -201,8 +201,10 @@ namespace NuGetGallery
             catch (FileAlreadyExistsException)
             {
                 // If the package file already exists, swallow the exception since we know the content is the same.
-                return;
+                return hash;
             }
+
+            return hash;
         }
 
         private static string BuildBackupFileName(string id, string version, string hash, string extension, string fileBackupSavePathTemplate)

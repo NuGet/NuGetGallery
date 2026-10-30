@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Data.SqlTypes;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.Entities;
@@ -55,6 +56,7 @@ namespace NuGetGallery
         private readonly IEntityRepository<SymbolPackage> _symbolPackageRepository;
         private readonly ICoreLicenseFileService _coreLicenseFileService;
         private readonly ICoreReadmeFileService _coreReadmeFileService;
+        private readonly IPackageDeleteBackupService _packageDeleteBackupService;
 
         public PackageDeleteService(
             IEntityRepository<Package> packageRepository,
@@ -72,7 +74,8 @@ namespace NuGetGallery
             ISymbolPackageService symbolPackageService,
             IEntityRepository<SymbolPackage> symbolPackageRepository,
             ICoreLicenseFileService coreLicenseFileService,
-            ICoreReadmeFileService coreReadmeFileService)
+            ICoreReadmeFileService coreReadmeFileService,
+            IPackageDeleteBackupService packageDeleteBackupService)
         {
             _packageRepository = packageRepository ?? throw new ArgumentNullException(nameof(packageRepository));
             _packageRegistrationRepository = packageRegistrationRepository ?? throw new ArgumentNullException(nameof(packageRegistrationRepository));
@@ -90,6 +93,7 @@ namespace NuGetGallery
             _symbolPackageRepository = symbolPackageRepository ?? throw new ArgumentNullException(nameof(symbolPackageRepository));
             _coreLicenseFileService = coreLicenseFileService ?? throw new ArgumentNullException(nameof(coreLicenseFileService));
             _coreReadmeFileService = coreReadmeFileService ?? throw new ArgumentNullException(nameof(coreReadmeFileService));
+            _packageDeleteBackupService = packageDeleteBackupService ?? throw new ArgumentNullException(nameof(packageDeleteBackupService));
 
             if (config.HourLimitWithMaximumDownloads.HasValue
                 && config.StatisticsUpdateFrequencyInHours.HasValue
@@ -250,34 +254,71 @@ namespace NuGetGallery
             return false;
         }
 
-        public async Task SoftDeletePackagesAsync(IEnumerable<Package> packages, User deletedBy, string reason, string signature)
+        public Task SoftDeletePackagesAsync(IEnumerable<Package> packages, User deletedBy, string reason, string signature)
         {
+            return SoftDeletePackagesAsync(packages, deletedBy, reason, signature, captureForUndo: false);
+        }
+
+        public async Task SoftDeletePackagesAsync(IEnumerable<Package> packages, User deletedBy, string reason, string signature, bool captureForUndo)
+        {
+            var packageList = captureForUndo
+                ? packages.GroupBy(p => p.Key).Select(g => g.First()).OrderBy(p => p.Key).ToList()
+                : packages.ToList();
+            if (captureForUndo && packageList.Count == 0)
+            {
+                return;
+            }
+
+            var packageDelete = new PackageDelete
+            {
+                // Match SQL datetime precision in the JSON and deletion row.
+                DeletedOn = captureForUndo
+                    ? DateTime.SpecifyKind(new SqlDateTime(DateTime.UtcNow).Value, DateTimeKind.Utc)
+                    : DateTime.UtcNow,
+                DeletedBy = deletedBy,
+                Reason = reason,
+                Signature = signature
+            };
             using (new SuspendDbExecutionStrategy())
             using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
             {
                 // Increase command timeout
                 _entitiesContext.SetCommandTimeout(seconds: 300);
 
-                // Keep package registrations
-                var packageRegistrations = packages
-                    .GroupBy(p => p.PackageRegistration)
-                    .Select(g => g.First().PackageRegistration)
-                    .ToList();
+                _packageDeletesRepository.InsertOnCommit(packageDelete);
 
-                // Backup the package binaries and remove from main storage
-                // We're doing this early in the process as we need the metadata to still exist in the DB.
-                await BackupPackageBinaries(packages);
-
-                // Store the soft delete in the database
-                var packageDelete = new PackageDelete
+                if (captureForUndo)
                 {
-                    DeletedOn = DateTime.UtcNow,
-                    DeletedBy = deletedBy,
-                    Reason = reason,
-                    Signature = signature
-                };
+                    foreach (var package in packageList)
+                    {
+                        if (package.Key <= 0 || package.PackageStatusKey == PackageStatus.Deleted)
+                        {
+                            throw new InvalidOperationException("Only persisted, non-deleted packages can be captured for admin deletion.");
+                        }
+                    }
 
-                foreach (var package in packages)
+                    // Flush only to obtain the identity. The transaction is not committed until deletion succeeds.
+                    await _packageDeletesRepository.CommitChangesAsync();
+
+                    // Back up the whole batch before removing any files or changing package state.
+                    // Retain backups on failure; file recovery follows the existing manual process.
+                    foreach (var package in packageList)
+                    {
+                        var backup = await CaptureSoftDeleteBackupAsync(package, packageDelete);
+                        await _packageDeleteBackupService.SaveAsync(backup);
+                    }
+
+                    foreach (var package in packageList)
+                    {
+                        await DeletePackageFilesAsync(package);
+                    }
+                }
+                else
+                {
+                    await BackupPackageBinaries(packageList);
+                }
+
+                foreach (var package in packageList)
                 {
                     /// We do not call <see cref="IPackageService.MarkPackageUnlistedAsync(Package, bool)"/> here
                     /// because that writes an audit entry. Additionally, the latest bits are already updated by
@@ -302,12 +343,14 @@ namespace NuGetGallery
 
                     packageDelete.Packages.Add(package);
 
-                    await _auditingService.SaveAuditRecordAsync(CreateAuditRecord(package, package.PackageRegistration, AuditedPackageAction.SoftDelete, reason));
+                    var auditRecord = captureForUndo
+                        ? new PackageAuditRecord(package, AuditedPackageAction.SoftDelete, reason, signature,
+                            packageKey: package.Key, packageDeleteKey: packageDelete.Key, adminInitiated: true)
+                        : CreateAuditRecord(package, package.PackageRegistration, AuditedPackageAction.SoftDelete, reason);
+                    await _auditingService.SaveAuditRecordAsync(auditRecord);
 
                     _telemetryService.TrackPackageDelete(package, isHardDelete: false);
                 }
-
-                _packageDeletesRepository.InsertOnCommit(packageDelete);
 
                 // Commit changes
                 await _packageRepository.CommitChangesAsync();
@@ -472,44 +515,95 @@ namespace NuGetGallery
                 await BackupFromPackagesContainerAsync(_packageFileService, package);
                 await BackupFromPackagesContainerAsync(_symbolPackageFileService, package);
 
-                var id = package.PackageRegistration.Id;
-                var version = string.IsNullOrEmpty(package.NormalizedVersion)
-                            ? NuGetVersion.Parse(package.Version).ToNormalizedString()
-                            : package.NormalizedVersion;
-
-                await _packageFileService.DeletePackageFileAsync(id, version);
-                // we didn't backup license file before deleting it because it is backed up as part of the package
-                await _coreLicenseFileService.DeleteLicenseFileAsync(id, version);
-                await _symbolPackageFileService.DeletePackageFileAsync(id, version);
-
-                await _packageFileService.DeleteValidationPackageFileAsync(id, version);
-                await _symbolPackageFileService.DeleteValidationPackageFileAsync(id, version);
-
-                // Delete readme file for this package.
-                await TryDeleteReadMeMdFile(package);
+                await DeletePackageFilesAsync(package);
             }
         }
 
-        private async Task BackupFromValidationsContainerAsync(ICorePackageFileService fileService, Package package)
+        private async Task DeletePackageFilesAsync(Package package)
+        {
+            var id = package.PackageRegistration.Id;
+            var version = NuGetVersionFormatter.GetNormalizedPackageVersion(package);
+
+            await _packageFileService.DeletePackageFileAsync(id, version);
+            // License content is preserved inside the package archive.
+            await _coreLicenseFileService.DeleteLicenseFileAsync(id, version);
+            await _symbolPackageFileService.DeletePackageFileAsync(id, version);
+            await _packageFileService.DeleteValidationPackageFileAsync(id, version);
+            await _symbolPackageFileService.DeleteValidationPackageFileAsync(id, version);
+            await TryDeleteReadMeMdFile(package);
+        }
+
+        private async Task<string> BackupFromValidationsContainerAsync(ICorePackageFileService fileService, Package package)
         {
             using (var packageStream = await fileService.DownloadValidationPackageFileAsync(package))
             {
                 if (packageStream != null)
                 {
-                    await fileService.StorePackageFileInBackupLocationAsync(package, packageStream);
+                    return await fileService.StorePackageFileInBackupLocationAsync(package, packageStream);
                 }
             }
+
+            return null;
         }
 
-        private async Task BackupFromPackagesContainerAsync(ICorePackageFileService fileService, Package package)
+        private async Task<string> BackupFromPackagesContainerAsync(ICorePackageFileService fileService, Package package)
         {
             using (var packageStream = await fileService.DownloadPackageFileAsync(package))
             {
                 if (packageStream != null)
                 {
-                    await fileService.StorePackageFileInBackupLocationAsync(package, packageStream);
+                    return await fileService.StorePackageFileInBackupLocationAsync(package, packageStream);
                 }
             }
+
+            return null;
+        }
+
+        private async Task<PackageDeleteBackup> CaptureSoftDeleteBackupAsync(
+            Package package, PackageDelete packageDelete)
+        {
+            var backup = new PackageDeleteBackup
+            {
+                PackageDeleteKey = packageDelete.Key,
+                PackageKey = package.Key,
+                PackageId = package.PackageRegistration.Id,
+                NormalizedVersion = NuGetVersionFormatter.GetNormalizedPackageVersion(package),
+                DeletedOnUtc = packageDelete.DeletedOn,
+                PackageStatusKey = package.PackageStatusKey,
+                Listed = package.Listed,
+                PublicBackupHash = await BackupFromPackagesContainerAsync(_packageFileService, package),
+                ValidationBackupHash = await BackupFromValidationsContainerAsync(_packageFileService, package),
+                IncomingDeprecationKeys = package.AlternativeOf.Select(d => d.Key).ToList()
+            };
+
+            if (package.HasReadMe && !package.HasEmbeddedReadme)
+            {
+                backup.ExternalReadmeMarkdown = await _packageFileService.DownloadReadMeMdFileAsync(package);
+            }
+
+            var publicSymbolHash = await BackupFromPackagesContainerAsync(_symbolPackageFileService, package);
+            var validationSymbolHash = await BackupFromValidationsContainerAsync(_symbolPackageFileService, package);
+            var symbols = package.SymbolPackages.Where(s => s.StatusKey != PackageStatus.Deleted).ToList();
+            var availableCount = symbols.Count(s => s.StatusKey == PackageStatus.Available);
+            var privateCount = symbols.Count(s => s.StatusKey != PackageStatus.Available);
+            foreach (var symbol in symbols)
+            {
+                var publicHash = (symbol.StatusKey == PackageStatus.Available && availableCount == 1)
+                    || symbol.Hash == publicSymbolHash ? publicSymbolHash : null;
+                var validationHash = (symbol.StatusKey != PackageStatus.Available && privateCount == 1)
+                    || symbol.Hash == validationSymbolHash ? validationSymbolHash : null;
+                var entry = new SymbolPackageDeleteBackup
+                {
+                    SymbolPackageKey = symbol.Key,
+                    SymbolPackageStatusKey = symbol.StatusKey,
+                    PublicBackupHash = publicHash,
+                    ValidationBackupHash = validationHash
+                };
+
+                backup.Symbols.Add(entry);
+            }
+
+            return backup;
         }
 
         /// <summary>

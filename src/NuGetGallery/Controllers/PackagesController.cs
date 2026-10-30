@@ -2167,7 +2167,7 @@ namespace NuGetGallery
                 {
                     await _packageDeleteService.SoftDeletePackagesAsync(
                         packagesToDelete, GetCurrentUser(), EnumHelper.GetDescription(deletePackagesRequest.Reason.Value),
-                        deletePackagesRequest.Signature);
+                        deletePackagesRequest.Signature, captureForUndo: true);
                 }
                 else
                 {

@@ -11134,6 +11134,35 @@ namespace NuGetGallery
 
         public class TheDeleteMethod : TestContainer
         {
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task OnlyAdminSoftDeletionOptsIntoRecoveryCapture(bool softDelete)
+            {
+                var package = new Package { PackageRegistration = new PackageRegistration { Id = "Test.Package" }, Version = "1.0.0" };
+                var packages = new Mock<IPackageService>();
+                packages.Setup(x => x.FindPackageByIdAndVersionStrict("Test.Package", "1.0.0")).Returns(package);
+                var deletions = new Mock<IPackageDeleteService>();
+                var user = TestUtility.FakeUser;
+                var controller = CreateController(GetConfigurationService(), packageService: packages, packageDeleteService: deletions);
+                controller.SetCurrentUser(user);
+                var request = new DeletePackagesRequest
+                {
+                    Packages = new List<string> { "Test.Package|1.0.0" },
+                    Reason = ReportPackageReason.ContainsPrivateAndConfidentialData,
+                    Signature = "admin",
+                    SoftDelete = softDelete
+                };
+
+                var result = await controller.Delete(request);
+
+                Assert.IsType<RedirectResult>(result);
+                deletions.Verify(x => x.SoftDeletePackagesAsync(It.Is<IEnumerable<Package>>(p => p.Contains(package)),
+                    user, It.IsAny<string>(), "admin", true), softDelete ? Times.Once() : Times.Never());
+                deletions.Verify(x => x.HardDeletePackagesAsync(It.IsAny<IEnumerable<Package>>(), user,
+                    It.IsAny<string>(), "admin", false), softDelete ? Times.Never() : Times.Once());
+            }
+
             [Fact]
             public void RedirectsToManageAction()
             {
