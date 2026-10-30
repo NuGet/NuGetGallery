@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using NuGet.Services.Entities;
 using NuGet.Versioning;
+using NuGetGallery.Packaging;
 
 namespace NuGetGallery
 {
@@ -37,20 +38,20 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(backup));
             }
 
-            var blobName = GetBlobName(backup.PackageDeleteKey, backup.PackageKey);
+            var blobName = GetBlobName(backup.PackageId, backup.NormalizedVersion, backup.PackageDeleteKey, backup.PackageKey);
             ValidateBackup(backup);
             var json = JsonConvert.SerializeObject(backup, SerializerSettings);
             using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(json)))
             {
-                await _storage.SaveFileAsync(CoreConstants.Folders.PackageDeleteBackupsFolderName,
+                await _storage.SaveFileAsync(CoreConstants.Folders.PackageBackupsFolderName,
                     blobName, CoreConstants.JsonContentType, stream);
             }
         }
 
-        public async Task<PackageDeleteBackup> GetAsync(int packageDeleteKey, int packageKey)
+        public async Task<PackageDeleteBackup> GetAsync(string packageId, string normalizedVersion, int packageDeleteKey, int packageKey)
         {
-            var blobName = GetBlobName(packageDeleteKey, packageKey);
-            using (var stream = await _storage.GetFileAsync(CoreConstants.Folders.PackageDeleteBackupsFolderName, blobName))
+            var blobName = GetBlobName(packageId, normalizedVersion, packageDeleteKey, packageKey);
+            using (var stream = await _storage.GetFileAsync(CoreConstants.Folders.PackageBackupsFolderName, blobName))
             {
                 if (stream == null)
                 {
@@ -61,7 +62,9 @@ namespace NuGetGallery
                 {
                     var backup = JsonConvert.DeserializeObject<PackageDeleteBackup>(await reader.ReadToEndAsync(), SerializerSettings);
                     Require(backup != null, "Deletion backup must contain a JSON document.");
-                    Require(backup.PackageDeleteKey == packageDeleteKey && backup.PackageKey == packageKey,
+                    Require(backup.PackageDeleteKey == packageDeleteKey && backup.PackageKey == packageKey
+                        && StringComparer.OrdinalIgnoreCase.Equals(backup.PackageId, packageId)
+                        && StringComparer.OrdinalIgnoreCase.Equals(backup.NormalizedVersion, normalizedVersion),
                         "Deletion backup identity does not match the requested deletion and package.");
                     ValidateBackup(backup);
                     return backup;
@@ -69,10 +72,10 @@ namespace NuGetGallery
             }
         }
 
-        public Task DeleteAsync(int packageDeleteKey, int packageKey)
+        public Task DeleteAsync(string packageId, string normalizedVersion, int packageDeleteKey, int packageKey)
         {
-            return _storage.DeleteFileAsync(CoreConstants.Folders.PackageDeleteBackupsFolderName,
-                GetBlobName(packageDeleteKey, packageKey));
+            return _storage.DeleteFileAsync(CoreConstants.Folders.PackageBackupsFolderName,
+                GetBlobName(packageId, normalizedVersion, packageDeleteKey, packageKey));
         }
 
         private static void ValidateBackup(PackageDeleteBackup backup)
@@ -123,8 +126,19 @@ namespace NuGetGallery
             }
         }
 
-        private static string GetBlobName(int packageDeleteKey, int packageKey)
+        private static string GetBlobName(string packageId, string normalizedVersion, int packageDeleteKey, int packageKey)
         {
+            if (string.IsNullOrWhiteSpace(packageId) || !PackageIdValidator.IsValidPackageIdForRead(packageId))
+            {
+                throw new ArgumentException("A valid package ID is required.", nameof(packageId));
+            }
+
+            if (!NuGetVersion.TryParse(normalizedVersion, out var version)
+                || !string.Equals(version.ToNormalizedString(), normalizedVersion, StringComparison.Ordinal))
+            {
+                throw new ArgumentException("A normalized package version is required.", nameof(normalizedVersion));
+            }
+
             if (packageDeleteKey <= 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(packageDeleteKey));
@@ -135,7 +149,9 @@ namespace NuGetGallery
                 throw new ArgumentOutOfRangeException(nameof(packageKey));
             }
 
-            return string.Format(CultureInfo.InvariantCulture, "{0}/{1}/package-delete-backup.json", packageDeleteKey, packageKey);
+            // Share the archive's package/version prefix, but identify metadata by deletion rather than content hash.
+            return string.Format(CultureInfo.InvariantCulture, "{0}/{1}/package-delete-backup-{2}-{3}.json",
+                packageId.ToLowerInvariant(), normalizedVersion.ToLowerInvariant(), packageDeleteKey, packageKey);
         }
     }
 }

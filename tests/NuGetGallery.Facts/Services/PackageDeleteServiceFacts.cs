@@ -939,7 +939,7 @@ namespace NuGetGallery
                 Assert.True(fixture.Events.IndexOf("save-json") < fixture.Events.IndexOf("cleanup"));
                 Assert.True(fixture.Events.IndexOf("cleanup") < fixture.Events.IndexOf("commit"));
                 fixture.Database.Verify(x => x.BeginTransaction(), Times.Once);
-                fixture.Backups.Verify(x => x.DeleteAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+                fixture.Backups.Verify(x => x.DeleteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
                 fixture.Auditing.Verify(x => x.SaveAuditRecordAsync(It.Is<PackageAuditRecord>(a =>
                     a.PackageKey == fixture.Package.Key && a.PackageDeleteKey == deletion.Key && a.AdminInitiated == true
                     && a.Action == AuditedPackageAction.SoftDelete && a.GetResourceType() == "Package")), Times.Once);
@@ -975,7 +975,7 @@ namespace NuGetGallery
                 fixture.VerifyNoCleanup();
                 Assert.Equal(fixture.Package.Key, Assert.Single(fixture.Saved).PackageKey);
                 Assert.Empty(fixture.Deletions);
-                fixture.Backups.Verify(x => x.DeleteAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+                fixture.Backups.Verify(x => x.DeleteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
                 Assert.True(fixture.Package.Listed);
                 Assert.True(other.Listed);
                 Assert.Equal(PackageStatus.Available, fixture.Package.PackageStatusKey);
@@ -1019,7 +1019,7 @@ namespace NuGetGallery
                 Assert.Equal(PackageStatus.Available, fixture.Package.PackageStatusKey);
                 Assert.Equal(PackageStatus.Available, other.PackageStatusKey);
                 fixture.PackageService.Verify(x => x.UpdatePackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), false), Times.Never);
-                fixture.Backups.Verify(x => x.DeleteAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+                fixture.Backups.Verify(x => x.DeleteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
             }
 
             [Theory]
@@ -1093,7 +1093,7 @@ namespace NuGetGallery
                 Assert.Empty(fixture.Deletions);
                 Assert.Contains("cleanup", fixture.Events);
                 Assert.DoesNotContain("commit", fixture.Events);
-                fixture.Backups.Verify(x => x.DeleteAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+                fixture.Backups.Verify(x => x.DeleteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
                 fixture.Transaction.Verify(x => x.Dispose(), Times.Once);
                 fixture.PackageService.Verify(x => x.UpdatePackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), false), Times.Never);
             }
@@ -1111,7 +1111,7 @@ namespace NuGetGallery
                 Assert.Single(fixture.Saved);
                 fixture.VerifyArchivesCaptured();
                 Assert.Empty(fixture.Deletions);
-                fixture.Backups.Verify(x => x.DeleteAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+                fixture.Backups.Verify(x => x.DeleteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
             }
 
             [Fact]

@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 namespace NuGetGallery
 {
     /// <summary>
-    /// Stores and retrieves deletion backup JSON. Does not store package binaries or perform undo.
+    /// Stores and retrieves deletion backup JSON alongside package archives in the private package backup container.
+    /// Each deletion has a separate JSON document. Does not store package binaries or perform undo.
     /// </summary>
     public interface IPackageDeleteBackupService
     {
@@ -18,17 +19,18 @@ namespace NuGetGallery
         Task SaveAsync(PackageDeleteBackup backup);
 
         /// <summary>
-        /// Loads deletion backup JSON for the specified deletion and package, validating its structure and keys.
+        /// Loads deletion backup JSON from the package ID and normalized version prefix,
+        /// validating its structure, identity and keys.
         /// </summary>
         /// <returns>The saved backup, or null if no JSON backup exists.</returns>
         /// <remarks>
         /// Does not check undo eligibility or verify package binary contents. Reading leaves the backup unchanged.
         /// </remarks>
-        Task<PackageDeleteBackup> GetAsync(int packageDeleteKey, int packageKey);
+        Task<PackageDeleteBackup> GetAsync(string packageId, string normalizedVersion, int packageDeleteKey, int packageKey);
 
         /// <summary>
         /// Removes JSON written by a failed deletion attempt. Does not remove archive backups.
         /// </summary>
-        Task DeleteAsync(int packageDeleteKey, int packageKey);
+        Task DeleteAsync(string packageId, string normalizedVersion, int packageDeleteKey, int packageKey);
     }
 }

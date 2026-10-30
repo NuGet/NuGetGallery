@@ -35,7 +35,6 @@ namespace NuGetGallery
             public const string UserCertificatesFolderName = "user-certificates";
             public const string ContentFolderName = "content";
             public const string PackageBackupsFolderName = "package-backups";
-            public const string PackageDeleteBackupsFolderName = "package-delete-backups";
             public const string PackageReadMesFolderName = "readmes";
             public const string PackagesFolderName = "packages";
             public const string PackagesContentFolderName = "packages-content";
