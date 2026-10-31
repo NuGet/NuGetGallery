@@ -105,7 +105,7 @@ namespace CatalogTests
             _storageContent = new StringStorageContent("{\"value\":\"2026-01-01T00:59:00.0000000\"}");
 
             var exception = await Assert.ThrowsAsync<ArgumentNullException>(() => _cursor.SaveAsync(CancellationToken.None));
-            Assert.Equal("StorageDateTimeInUtc", exception.ParamName);
+            Assert.Equal("storageDateTimeInUtc", exception.ParamName);
 
             _storage.Verify(s => s.LoadStringStorageContentAsync(It.IsAny<Uri>(), It.IsAny<CancellationToken>()), Times.Once);
             _storage.Verify(s => s.SaveAsync(It.IsAny<Uri>(), It.IsAny<StorageContent>(), It.IsAny<CancellationToken>()), Times.Never);
