@@ -23,10 +23,50 @@ namespace CatalogTests
         }
 
         [Fact]
-        public async Task GetValueInJsonAsync()
+        public async Task GetValueInJsonAsync_WithoutStorageDateTime()
+        {
+            _response.Headers.Date = null;
+
+            var exception = await Assert.ThrowsAsync<ArgumentNullException>(() => _cursor.GetValueInJsonAsync(_response));
+            Assert.Equal("storageDateTimeInUtc", exception.ParamName);
+        }
+
+        [Theory]
+        [InlineData("{\"value\":\"2026-01-01T01:00:00.0000000\"}")]
+        [InlineData("{\"timeStamp\":\"2026-01-01T01:00:30.0000000Z\",\"value\":\"2026-01-01T01:00:00.0000000\"}")]
+        [InlineData("{\"timeStamp\":\"2026-01-01T01:00:30.0000000Z\",\"value\":\"2026-01-01T01:00:00.0000000\",\"updates\":[]}")]
+        [InlineData("{\"timeStamp\":\"2026-01-01T01:00:30.0000000Z\"," +
+                     "\"value\":\"2026-01-01T01:00:00.0000000\"," +
+                     "\"updates\":[{\"timeStamp\":\"2026-01-01T00:59:31.0000000Z\",\"value\":\"2026-01-01T00:59:00.0000000\"}," +
+                                  "{\"timeStamp\":\"2026-01-01T00:58:30.0000000Z\",\"value\":\"2026-01-01T00:58:00.0000000\"}," +
+                                  "{\"timeStamp\":\"2026-01-01T00:57:30.0000000Z\",\"value\":\"2026-01-01T00:57:00.0000000\"}]}")]
+        public async Task GetValueInJsonAsync_WithoutMinInterval(string content)
         {
             _response.Headers.Date = new DateTimeOffset(2026, 1, 1, 1, 0, 30, TimeSpan.Zero);
-            _response.Content = new StringContent("{\"value\":\"2026-01-01T01:00:00.0000000\"," +
+            _response.Content = new StringContent(content);
+
+            Assert.Equal("{\"value\":\"2026-01-01T01:00:00.0000000\"}", await _cursor.GetValueInJsonAsync(_response));
+        }
+
+        [Fact]
+        public async Task GetValueInJsonAsync_WithCursorValue()
+        {
+            _response.Headers.Date = new DateTimeOffset(2026, 1, 1, 1, 0, 30, TimeSpan.Zero);
+            _response.Content = new StringContent("{\"timeStamp\":\"2026-01-01T00:59:29.0000000Z\"," +
+                                                   "\"value\":\"2026-01-01T00:59:00.0000000\"," +
+                                                   "\"minIntervalBeforeToReadUpdate\":\"00:01:01\"," +
+                                                   "\"updates\":[{\"timeStamp\":\"2026-01-01T00:58:30.0000000Z\",\"value\":\"2026-01-01T00:58:00.0000000\"}," +
+                                                                "{\"timeStamp\":\"2026-01-01T00:57:30.0000000Z\",\"value\":\"2026-01-01T00:57:00.0000000\"}]}");
+
+            Assert.Equal("{\"value\":\"2026-01-01T00:59:00.0000000\"}", await _cursor.GetValueInJsonAsync(_response));
+        }
+
+        [Fact]
+        public async Task GetValueInJsonAsync_WithUpdates()
+        {
+            _response.Headers.Date = new DateTimeOffset(2026, 1, 1, 1, 0, 30, TimeSpan.Zero);
+            _response.Content = new StringContent("{\"timeStamp\":\"2026-01-01T00:59:30.0000000Z\"," +
+                                                   "\"value\":\"2026-01-01T00:59:00.0000000\"," +
                                                    "\"minIntervalBeforeToReadUpdate\":\"00:01:01\"," +
                                                    "\"updates\":[{\"timeStamp\":\"2026-01-01T00:59:30.0000000Z\",\"value\":\"2026-01-01T00:59:00.0000000\"}," +
                                                                 "{\"timeStamp\":\"2026-01-01T00:58:30.0000000Z\",\"value\":\"2026-01-01T00:58:00.0000000\"}," +
@@ -35,21 +75,9 @@ namespace CatalogTests
             Assert.Equal("{\"value\":\"2026-01-01T00:58:00.0000000\"}", await _cursor.GetValueInJsonAsync(_response));
         }
 
-        [Fact]
-        public async Task GetValueInJsonAsync_WithoutMinInterval()
-        {
-            _response.Headers.Date = new DateTimeOffset(2026, 1, 1, 0, 59, 30, TimeSpan.Zero);
-            _response.Content = new StringContent("{\"value\":\"2026-01-01T01:00:00.0000000\"," +
-                                                   "\"updates\":[{\"timeStamp\":\"2026-01-01T00:59:30.0000000Z\",\"value\":\"2026-01-01T00:59:00.0000000\"}," +
-                                                                "{\"timeStamp\":\"2026-01-01T00:58:30.0000000Z\",\"value\":\"2026-01-01T00:58:00.0000000\"}]}");
-
-            Assert.Equal("{\"value\":\"2026-01-01T00:59:00.0000000\"}", await _cursor.GetValueInJsonAsync(_response));
-        }
-
         [Theory]
-        [InlineData("{\"value\":\"2026-01-01T01:00:00.0000000\"}")]
-        [InlineData("{\"value\":\"2026-01-01T01:00:00.0000000\",\"updates\":[]}")]
-        [InlineData("{\"value\":\"2026-01-01T01:00:00.0000000\"," +
+        [InlineData("{\"timeStamp\":\"2026-01-01T00:59:30.0000000Z\", " +
+                     "\"value\":\"2026-01-01T00:59:00.0000000\"," +
                      "\"minIntervalBeforeToReadUpdate\":\"00:01:01\"," +
                      "\"updates\":[{\"timeStamp\":\"2026-01-01T00:59:30.0000000Z\",\"value\":\"2026-01-01T00:59:00.0000000\"}]}")]
         public async Task GetValueInJsonAsync_UnableToFindCursorUpdate(string content)
@@ -59,15 +87,6 @@ namespace CatalogTests
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => _cursor.GetValueInJsonAsync(_response));
             Assert.Equal("Unable to find the cursor update.", exception.Message);
-        }
-
-        [Fact]
-        public async Task GetValueInJsonAsync_WithoutStorageDateTime()
-        {
-            _response.Headers.Date = null;
-
-            var exception = await Assert.ThrowsAsync<ArgumentNullException>(() => _cursor.GetValueInJsonAsync(_response));
-            Assert.Equal("storageDateTimeInUtc", exception.ParamName);
         }
     }
 }

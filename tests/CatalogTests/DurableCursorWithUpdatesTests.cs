@@ -80,19 +80,17 @@ namespace CatalogTests
             _storage.Verify(s => s.SaveAsync(It.IsAny<Uri>(), It.IsAny<StorageContent>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
-        [Theory]
-        [InlineData("{\"value\":\"2026-01-01T00:59:00.0000000\"}")]
-        [InlineData("{\"value\":\"2026-01-01T00:59:00.0000000\",\"minIntervalBeforeToReadUpdate\":\"00:00:01\"}")]
-        [InlineData("{\"value\":\"2026-01-01T00:59:00.0000000\",\"updates\":[]}")]
-        [InlineData("{\"value\":\"2026-01-01T00:59:00.0000000\",\"minIntervalBeforeToReadUpdate\":\"00:00:01\",\"updates\":[]}")]
-        public async Task SaveAsync_WithEmptyUpdatesInStorage(string content)
+        [Fact]
+        public async Task SaveAsync_WithDifferentMinInterval()
         {
-            _storageContent = new StringStorageContent(content, storageDateTimeInUtc: new DateTime(2026, 1, 1, 1, 0, 30, DateTimeKind.Utc));
+            _storageContent = new StringStorageContent("{\"timeStamp\":\"2026-01-01T00:59:30.0000000Z\",\"value\":\"2026-01-01T00:59:00.0000000\",\"minIntervalBeforeToReadUpdate\":\"01:01:01\"}",
+                storageDateTimeInUtc: new DateTime(2026, 1, 1, 1, 0, 30, DateTimeKind.Utc));
             await _cursor.SaveAsync(CancellationToken.None);
 
             Assert.NotNull(_savedStorageContent);
             Assert.IsType<StringStorageContent>(_savedStorageContent);
-            Assert.Equal("{\"value\":\"2026-01-01T01:00:00.0000000\"," +
+            Assert.Equal("{\"timeStamp\":\"2026-01-01T01:00:30.0000000Z\"," +
+                          "\"value\":\"2026-01-01T01:00:00.0000000\"," +
                           "\"minIntervalBeforeToReadUpdate\":\"00:00:01\"," +
                           "\"updates\":[{\"timeStamp\":\"2026-01-01T01:00:30.0000000Z\",\"value\":\"2026-01-01T01:00:00.0000000\"}]}",
                 (_savedStorageContent as StringStorageContent).Content);
@@ -102,15 +100,52 @@ namespace CatalogTests
         }
 
         [Fact]
-        public async Task SaveAsync_WithDifferentMinInterval()
+        public async Task SaveAsync_WithoutStorageDateTime()
         {
-            _storageContent = new StringStorageContent("{\"value\":\"2026-01-01T00:59:00.0000000\",\"minIntervalBeforeToReadUpdate\":\"01:01:01\"}",
+            _storageContent = new StringStorageContent("{\"value\":\"2026-01-01T00:59:00.0000000\"}");
+
+            var exception = await Assert.ThrowsAsync<ArgumentNullException>(() => _cursor.SaveAsync(CancellationToken.None));
+            Assert.Equal("StorageDateTimeInUtc", exception.ParamName);
+
+            _storage.Verify(s => s.LoadStringStorageContentAsync(It.IsAny<Uri>(), It.IsAny<CancellationToken>()), Times.Once);
+            _storage.Verify(s => s.SaveAsync(It.IsAny<Uri>(), It.IsAny<StorageContent>(), It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task SaveAsync_WithEmptyCursorTimestampInStorage()
+        {
+            _storageContent = new StringStorageContent("{\"value\":\"2026-01-01T00:59:00.0000000\",\"minIntervalBeforeToReadUpdate\":\"00:00:01\"," +
+                "\"updates\":[{\"timeStamp\":\"2026-01-01T00:59:30.0000000Z\",\"value\":\"2026-01-01T00:59:00.0000000\"}]}",
                 storageDateTimeInUtc: new DateTime(2026, 1, 1, 1, 0, 30, DateTimeKind.Utc));
             await _cursor.SaveAsync(CancellationToken.None);
 
             Assert.NotNull(_savedStorageContent);
             Assert.IsType<StringStorageContent>(_savedStorageContent);
-            Assert.Equal("{\"value\":\"2026-01-01T01:00:00.0000000\"," +
+            Assert.Equal("{\"timeStamp\":\"2026-01-01T01:00:30.0000000Z\"," +
+                          "\"value\":\"2026-01-01T01:00:00.0000000\"," +
+                          "\"minIntervalBeforeToReadUpdate\":\"00:00:01\"," +
+                          "\"updates\":[{\"timeStamp\":\"2026-01-01T01:00:30.0000000Z\",\"value\":\"2026-01-01T01:00:00.0000000\"}," +
+                                       "{\"timeStamp\":\"2026-01-01T00:59:30.0000000Z\",\"value\":\"2026-01-01T00:59:00.0000000\"}]}",
+                (_savedStorageContent as StringStorageContent).Content);
+
+            _storage.Verify(s => s.LoadStringStorageContentAsync(It.IsAny<Uri>(), It.IsAny<CancellationToken>()), Times.Once);
+            _storage.Verify(s => s.SaveAsync(It.IsAny<Uri>(), It.IsAny<StorageContent>(), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Theory]
+        [InlineData("{\"timeStamp\":\"2026-01-01T00:59:30.0000000Z\",\"value\":\"2026-01-01T00:59:00.0000000\"}")]
+        [InlineData("{\"timeStamp\":\"2026-01-01T00:59:30.0000000Z\",\"value\":\"2026-01-01T00:59:00.0000000\",\"minIntervalBeforeToReadUpdate\":\"00:00:01\"}")]
+        [InlineData("{\"timeStamp\":\"2026-01-01T00:59:30.0000000Z\",\"value\":\"2026-01-01T00:59:00.0000000\",\"updates\":[]}")]
+        [InlineData("{\"timeStamp\":\"2026-01-01T00:59:30.0000000Z\",\"value\":\"2026-01-01T00:59:00.0000000\",\"minIntervalBeforeToReadUpdate\":\"00:00:01\",\"updates\":[]}")]
+        public async Task SaveAsync_WithEmptyUpdatesInStorage(string content)
+        {
+            _storageContent = new StringStorageContent(content, storageDateTimeInUtc: new DateTime(2026, 1, 1, 1, 0, 30, DateTimeKind.Utc));
+            await _cursor.SaveAsync(CancellationToken.None);
+
+            Assert.NotNull(_savedStorageContent);
+            Assert.IsType<StringStorageContent>(_savedStorageContent);
+            Assert.Equal("{\"timeStamp\":\"2026-01-01T01:00:30.0000000Z\"," +
+                          "\"value\":\"2026-01-01T01:00:00.0000000\"," +
                           "\"minIntervalBeforeToReadUpdate\":\"00:00:01\"," +
                           "\"updates\":[{\"timeStamp\":\"2026-01-01T01:00:30.0000000Z\",\"value\":\"2026-01-01T01:00:00.0000000\"}]}",
                 (_savedStorageContent as StringStorageContent).Content);
@@ -120,53 +155,65 @@ namespace CatalogTests
         }
 
         [Theory]
-        [InlineData("{\"value\":\"2026-01-01T00:59:00.0000000\"," +
+        [InlineData("{\"timeStamp\":\"2026-01-01T00:59:30.0000000Z\"," +
+                     "\"value\":\"2026-01-01T00:59:00.0000000\"," +
                      "\"minIntervalBeforeToReadUpdate\":\"00:00:01\"," +
                      "\"updates\":[{\"timeStamp\":\"2026-01-01T00:59:30.0000000Z\",\"value\":\"2026-01-01T00:59:00.0000000\"}]}",
-                    "{\"value\":\"2026-01-01T01:00:00.0000000\"," +
+                    "{\"timeStamp\":\"2026-01-01T01:00:30.0000000Z\"," +
+                     "\"value\":\"2026-01-01T01:00:00.0000000\"," +
                      "\"minIntervalBeforeToReadUpdate\":\"00:00:01\"," +
                      "\"updates\":[{\"timeStamp\":\"2026-01-01T01:00:30.0000000Z\",\"value\":\"2026-01-01T01:00:00.0000000\"}," +
                                   "{\"timeStamp\":\"2026-01-01T00:59:30.0000000Z\",\"value\":\"2026-01-01T00:59:00.0000000\"}]}")]
-        [InlineData("{\"value\":\"2026-01-01T00:59:00.0000000\"," +
+        [InlineData("{\"timeStamp\":\"2026-01-01T00:59:30.0000000Z\"," +
+                     "\"value\":\"2026-01-01T00:59:00.0000000\"," +
                      "\"minIntervalBeforeToReadUpdate\":\"00:00:01\"," +
                      "\"updates\":[{\"timeStamp\":\"2026-01-01T00:59:30.0000000Z\",\"value\":\"2026-01-01T00:59:00.0000000\"}," +
                                   "{\"timeStamp\":\"2026-01-01T00:58:30.0000000Z\",\"value\":\"2026-01-01T00:58:00.0000000\"}]}",
-                    "{\"value\":\"2026-01-01T01:00:00.0000000\"," +
+                    "{\"timeStamp\":\"2026-01-01T01:00:30.0000000Z\"," +
+                     "\"value\":\"2026-01-01T01:00:00.0000000\"," +
                      "\"minIntervalBeforeToReadUpdate\":\"00:00:01\"," +
                      "\"updates\":[{\"timeStamp\":\"2026-01-01T01:00:30.0000000Z\",\"value\":\"2026-01-01T01:00:00.0000000\"}," +
                                   "{\"timeStamp\":\"2026-01-01T00:59:30.0000000Z\",\"value\":\"2026-01-01T00:59:00.0000000\"}]}")]
-        [InlineData("{\"value\":\"2026-01-01T00:59:00.0000000\"," +
+        [InlineData("{\"timeStamp\":\"2026-01-01T00:59:30.0000000Z\"," +
+                     "\"value\":\"2026-01-01T00:59:00.0000000\"," +
                      "\"minIntervalBeforeToReadUpdate\":\"00:00:01\"," +
                      "\"updates\":[{\"timeStamp\":\"2026-01-01T00:59:30.0000000Z\",\"value\":\"2026-01-01T00:59:00.0000000\"}," +
                                   "{\"timeStamp\":\"2026-01-01T00:58:30.0000000Z\",\"value\":\"2026-01-01T00:58:00.0000000\"}," +
                                   "{\"timeStamp\":\"2026-01-01T00:57:30.0000000Z\",\"value\":\"2026-01-01T00:57:00.0000000\"}]}",
-                    "{\"value\":\"2026-01-01T01:00:00.0000000\"," +
+                    "{\"timeStamp\":\"2026-01-01T01:00:30.0000000Z\"," +
+                     "\"value\":\"2026-01-01T01:00:00.0000000\"," +
                      "\"minIntervalBeforeToReadUpdate\":\"00:00:01\"," +
                      "\"updates\":[{\"timeStamp\":\"2026-01-01T01:00:30.0000000Z\",\"value\":\"2026-01-01T01:00:00.0000000\"}," +
                                   "{\"timeStamp\":\"2026-01-01T00:59:30.0000000Z\",\"value\":\"2026-01-01T00:59:00.0000000\"}]}")]
-        [InlineData("{\"value\":\"2026-01-01T00:59:00.0000000\"," +
+        [InlineData("{\"timeStamp\":\"2026-01-01T00:59:30.0000000Z\"," +
+                     "\"value\":\"2026-01-01T00:59:00.0000000\"," +
                      "\"minIntervalBeforeToReadUpdate\":\"00:00:01\"," +
                      "\"updates\":[{\"timeStamp\":\"2026-01-01T00:58:30.0000000Z\",\"value\":\"2026-01-01T00:58:00.0000000\"}," +
                                   "{\"timeStamp\":\"2026-01-01T00:57:30.0000000Z\",\"value\":\"2026-01-01T00:57:00.0000000\"}," +
                                   "{\"timeStamp\":\"2026-01-01T00:59:30.0000000Z\",\"value\":\"2026-01-01T00:59:00.0000000\"}]}",
-                    "{\"value\":\"2026-01-01T01:00:00.0000000\"," +
+                    "{\"timeStamp\":\"2026-01-01T01:00:30.0000000Z\"," +
+                     "\"value\":\"2026-01-01T01:00:00.0000000\"," +
                      "\"minIntervalBeforeToReadUpdate\":\"00:00:01\"," +
                      "\"updates\":[{\"timeStamp\":\"2026-01-01T01:00:30.0000000Z\",\"value\":\"2026-01-01T01:00:00.0000000\"}," +
                                   "{\"timeStamp\":\"2026-01-01T00:59:30.0000000Z\",\"value\":\"2026-01-01T00:59:00.0000000\"}]}")]
-        [InlineData("{\"value\":\"2026-01-01T00:59:00.0000000\"," +
+        [InlineData("{\"timeStamp\":\"2026-01-01T00:59:31.0000000Z\"," +
+                     "\"value\":\"2026-01-01T00:59:00.0000000\"," +
                      "\"minIntervalBeforeToReadUpdate\":\"00:00:01\"," +
                      "\"updates\":[{\"timeStamp\":\"2026-01-01T00:59:31.0000000Z\",\"value\":\"2026-01-01T00:59:00.0000000\"}," +
                                   "{\"timeStamp\":\"2026-01-01T00:58:30.0000000Z\",\"value\":\"2026-01-01T00:58:00.0000000\"}]}",
-                    "{\"value\":\"2026-01-01T01:00:00.0000000\"," +
+                    "{\"timeStamp\":\"2026-01-01T01:00:30.0000000Z\"," +
+                     "\"value\":\"2026-01-01T01:00:00.0000000\"," +
                      "\"minIntervalBeforeToReadUpdate\":\"00:00:01\"," +
                      "\"updates\":[{\"timeStamp\":\"2026-01-01T00:59:31.0000000Z\",\"value\":\"2026-01-01T00:59:00.0000000\"}," +
                                   "{\"timeStamp\":\"2026-01-01T00:58:30.0000000Z\",\"value\":\"2026-01-01T00:58:00.0000000\"}]}")]
-        [InlineData("{\"value\":\"2026-01-01T00:59:00.0000000\"," +
+        [InlineData("{\"timeStamp\":\"2026-01-01T00:59:31.0000000Z\"," +
+                     "\"value\":\"2026-01-01T00:59:00.0000000\"," +
                      "\"minIntervalBeforeToReadUpdate\":\"00:00:01\"," +
                      "\"updates\":[{\"timeStamp\":\"2026-01-01T00:59:31.0000000Z\",\"value\":\"2026-01-01T00:59:00.0000000\"}," +
                                   "{\"timeStamp\":\"2026-01-01T00:58:30.0000000Z\",\"value\":\"2026-01-01T00:58:00.0000000\"}," +
                                   "{\"timeStamp\":\"2026-01-01T00:57:30.0000000Z\",\"value\":\"2026-01-01T00:57:00.0000000\"}]}",
-                    "{\"value\":\"2026-01-01T01:00:00.0000000\"," +
+                    "{\"timeStamp\":\"2026-01-01T01:00:30.0000000Z\"," +
+                     "\"value\":\"2026-01-01T01:00:00.0000000\"," +
                      "\"minIntervalBeforeToReadUpdate\":\"00:00:01\"," +
                      "\"updates\":[{\"timeStamp\":\"2026-01-01T00:59:31.0000000Z\",\"value\":\"2026-01-01T00:59:00.0000000\"}," +
                                   "{\"timeStamp\":\"2026-01-01T00:58:30.0000000Z\",\"value\":\"2026-01-01T00:58:00.0000000\"}]}")]
@@ -181,18 +228,6 @@ namespace CatalogTests
 
             _storage.Verify(s => s.LoadStringStorageContentAsync(It.IsAny<Uri>(), It.IsAny<CancellationToken>()), Times.Once);
             _storage.Verify(s => s.SaveAsync(It.IsAny<Uri>(), It.IsAny<StorageContent>(), It.IsAny<CancellationToken>()), Times.Once);
-        }
-
-        [Fact]
-        public async Task SaveAsync_WithoutStorageDateTime()
-        {
-            _storageContent = new StringStorageContent("{\"value\":\"2026-01-01T00:59:00.0000000\"}");
-
-            var exception = await Assert.ThrowsAsync<ArgumentNullException>(() => _cursor.SaveAsync(CancellationToken.None));
-            Assert.Equal("storageDateTimeInUtc", exception.ParamName);
-
-            _storage.Verify(s => s.LoadStringStorageContentAsync(It.IsAny<Uri>(), It.IsAny<CancellationToken>()), Times.Once);
-            _storage.Verify(s => s.SaveAsync(It.IsAny<Uri>(), It.IsAny<StorageContent>(), It.IsAny<CancellationToken>()), Times.Never);
         }
     }
 }
