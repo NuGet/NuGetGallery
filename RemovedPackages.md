@@ -274,6 +274,8 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    miniClickerLibrary                         |    10/29/2026    |   Malware  |
 |    miniClickerLib                             |    10/29/2026    |   Malware  |
 |    3018                                       |    10/29/2026    |   Malware  |
+|    VS_Builder.MSBuildAnalyzer                 |    11/02/2026    |   Malware  |
+|    VS_Builder.WinUI3Controls                  |    11/02/2026    |   Malware  |
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.
