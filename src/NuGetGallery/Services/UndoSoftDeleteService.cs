@@ -287,10 +287,9 @@ namespace NuGetGallery
             var deprecations = _entitiesContext.Deprecations.Where(d => keys.Contains(d.Key)).ToList();
             foreach (var deprecation in deprecations)
             {
-                // Keep newer replacement choices and edits, and never recreate removed deprecation rows.
+                // Keep newer replacement choices and never recreate removed deprecation rows.
                 if (deprecation.AlternatePackageKey.HasValue
-                    || deprecation.AlternatePackageRegistrationKey != package.PackageRegistration.Key
-                    || deprecation.Package.LastEdited > backup.DeletedOnUtc)
+                    || deprecation.AlternatePackageRegistrationKey.HasValue)
                 {
                     continue;
                 }

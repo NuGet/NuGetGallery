@@ -85,7 +85,7 @@
         </div>
     </div>
 
-    @using (Html.BeginForm("Undo", "Delete", new { area = "Admin" }, FormMethod.Post, new { id = "undo-form", style = "display: none", data_bind = "visible: undoRecoveryAvailable" }))
+    @using (Html.BeginForm("Undo", "Delete", new { area = "Admin" }, FormMethod.Post, new { id = "undo-form", style = "display: none", data_bind = "visible: undoRecoveryAvailable", novalidate = "novalidate" }))
     {
         @Html.AntiForgeryToken()
         <div style="display: none" data-bind="foreach: undoPreview">
@@ -93,9 +93,12 @@
             <input type="hidden" data-bind="value: Version, attr: { name: 'Packages[' + $index() + '].Version' }" />
             <input type="hidden" data-bind="value: PackageDeleteKey, attr: { name: 'Packages[' + $index() + '].PackageDeleteKey' }" />
         </div>
+        <div id="undo-validation-message" style="display: none" data-bind="visible: undoValidationMessage">
+            @ViewHelpers.AlertDanger(@<text><span data-bind="text: undoValidationMessage"></span></text>)
+        </div>
         <div class="form-group">
             <label for="undo-reason">Reason</label>
-            <textarea id="undo-reason" name="Reason" class="form-control textarea-brand" rows="3" required maxlength="1000"></textarea>
+            <textarea id="undo-reason" name="Reason" class="form-control textarea-brand" rows="3" required maxlength="1000" aria-describedby="undo-validation-message"></textarea>
         </div>
         <hr />
         <p>This restores the saved package state and files. Validation and NuGet V3 feed/search updates may take time.</p>
@@ -123,6 +126,7 @@
                 this.previewPending = ko.observable(false);
                 this.undoPreview = ko.observableArray([]);
                 this.undoUnavailable = ko.observable('');
+                this.undoValidationMessage = ko.observable('');
                 this.operationMessage = ko.observable('');
                 this.operationSucceeded = ko.observable(false);
                 this.deletedPackageAction = ko.observable('delete');
@@ -220,6 +224,8 @@
                     }
                     $self.undoPreview.removeAll();
                     $self.undoUnavailable('');
+                    $self.undoValidationMessage('');
+                    $('#undo-reason').removeAttr('aria-invalid');
                     $self.previewPending(false);
                     if (!showUndo) {
                         return;
@@ -261,8 +267,26 @@
 
                 $('#undo-form').submit(function(event) {
                     event.preventDefault();
-                    if (!$self.undoRecoveryAvailable() || $self.undoPending()
-                        || !window.confirm('Undo soft deletion for all selected versions using the saved state and files?')) {
+                    if (!$self.undoRecoveryAvailable() || $self.undoPending()) {
+                        return;
+                    }
+
+                    var $reason = $('#undo-reason');
+                    var reason = $reason.val();
+                    $self.undoValidationMessage('');
+                    $reason.removeAttr('aria-invalid');
+                    if (!reason || !reason.trim()) {
+                        $self.undoValidationMessage('A reason is required.');
+                        $reason.attr('aria-invalid', 'true').focus();
+                        return;
+                    }
+                    if (reason.length > 1000) {
+                        $self.undoValidationMessage('The reason must be 1000 characters or fewer.');
+                        $reason.attr('aria-invalid', 'true').focus();
+                        return;
+                    }
+
+                    if (!window.confirm('Undo soft deletion for all selected versions using the saved state and files?')) {
                         return;
                     }
 
@@ -283,6 +307,11 @@
                         $self.undoPending(false);
                         $self.search();
                     });
+                });
+
+                $('#undo-reason').on('input', function() {
+                    $self.undoValidationMessage('');
+                    $(this).removeAttr('aria-invalid');
                 });
 
                 this.selectAllState.subscribe(function() {

@@ -257,15 +257,15 @@ namespace NuGetGallery
         public async Task RestoresRetainedDeprecationsWithoutOverwritingNewerChoices()
         {
             var fixture = new Fixture();
-            var rows = Enumerable.Range(40, 4).Select(key => new PackageDeprecation
+            var rows = Enumerable.Range(40, 5).Select(key => new PackageDeprecation
             {
                 Key = key,
-                AlternatePackageRegistrationKey = fixture.Package.PackageRegistration.Key,
                 Package = new Package { Key = key + 100, LastEdited = fixture.Deletion.DeletedOn.AddDays(-1) }
             }).ToArray();
             rows[1].AlternatePackageKey = 999;
             rows[2].AlternatePackageRegistrationKey = 999;
             rows[3].Package.LastEdited = fixture.Deletion.DeletedOn.AddDays(1);
+            rows[4].AlternatePackageRegistrationKey = fixture.Package.PackageRegistration.Key;
             fixture.Context.Deprecations.AddRange(rows);
             fixture.Backup.IncomingDeprecationKeys.AddRange(rows.Select(d => d.Key));
             fixture.Backup.IncomingDeprecationKeys.Add(404);
@@ -275,10 +275,14 @@ namespace NuGetGallery
             Assert.Equal(fixture.Package.Key, rows[0].AlternatePackageKey);
             Assert.Equal(999, rows[1].AlternatePackageKey);
             Assert.Null(rows[2].AlternatePackageKey);
-            Assert.Null(rows[3].AlternatePackageKey);
-            Assert.Equal(4, fixture.Context.Deprecations.Count());
+            Assert.Equal(fixture.Package.Key, rows[3].AlternatePackageKey);
+            Assert.Null(rows[4].AlternatePackageKey);
+            Assert.Equal(fixture.Package.PackageRegistration.Key, rows[4].AlternatePackageRegistrationKey);
+            Assert.Equal(5, fixture.Context.Deprecations.Count());
             fixture.Dependency<IPackageUpdateService>().Verify(x => x.UpdatePackagesAsync(
-                It.Is<IReadOnlyList<Package>>(p => p.Count == 1 && p[0] == rows[0].Package), true), Times.Once);
+                It.Is<IReadOnlyList<Package>>(p => p.Count == 2
+                    && p[0] == rows[0].Package
+                    && p[1] == rows[3].Package), true), Times.Once);
         }
 
         [Fact]
