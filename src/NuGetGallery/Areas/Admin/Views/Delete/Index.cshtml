@@ -55,7 +55,12 @@
             @ViewHelpers.AlertSuccess(@<text><span data-bind="text: operationMessage"></span></text>, isAlertRole: true)
         </div>
         <div style="display: none" data-bind="visible: operationMessage() && !operationSucceeded()">
-            @ViewHelpers.AlertDanger(@<text><span data-bind="text: operationMessage"></span></text>)
+            @ViewHelpers.AlertDanger(@<text>
+                <span data-bind="text: operationMessage"></span>
+                <ul data-bind="visible: operationFailures().length > 0, foreach: operationFailures">
+                    <li><strong data-bind="text: Id + '/' + Version"></strong>: <span data-bind="text: Message"></span></li>
+                </ul>
+            </text>)
         </div>
 
         <div class="danger-zone" style="display: none;" data-bind="visible: selectedAction() !== null">
@@ -127,11 +132,15 @@
                 this.undoUnavailable = ko.observable('');
                 this.undoValidationMessage = ko.observable('');
                 this.operationMessage = ko.observable('');
+                this.operationFailures = ko.observableArray([]);
                 this.operationSucceeded = ko.observable(false);
                 this.deletedPackageAction = ko.observable('delete');
 
                 this.operationMessage.subscribe(function(message) {
                     window.clearTimeout(operationMessageTimeout);
+                    if (!message) {
+                        $self.operationFailures.removeAll();
+                    }
                     if (message && $self.operationSucceeded()) {
                         operationMessageTimeout = window.setTimeout(function() {
                             $self.operationMessage('');
@@ -294,6 +303,7 @@
                     }
 
                     var data = $(this).serialize();
+                    $self.operationMessage('');
                     $self.undoPending(true);
                     $.ajax({
                         url: this.action,
@@ -302,6 +312,9 @@
                         data: data
                     }).done(function(result) {
                         $self.operationSucceeded(result.Success);
+                        $self.operationFailures(ko.utils.arrayFilter(result.Results || [], function(entry) {
+                            return !entry.Success;
+                        }));
                         $self.operationMessage(result.Message);
                     }).fail(function() {
                         $self.operationSucceeded(false);
