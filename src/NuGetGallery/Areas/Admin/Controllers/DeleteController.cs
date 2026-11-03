@@ -69,16 +69,11 @@ namespace NuGetGallery.Areas.Admin.Controllers
         {
             try
             {
-                var backups = await _undoSoftDeleteBatchService.PreviewAsync(packages);
+                var selection = await _undoSoftDeleteBatchService.PreviewAsync(packages);
                 return Json(new
                 {
                     Success = true,
-                    Packages = backups.Select(backup => new
-                    {
-                        Id = backup.PackageId,
-                        Version = backup.NormalizedVersion,
-                        backup.PackageDeleteKey
-                    }).ToList()
+                    Packages = selection
                 });
             }
             catch (Exception exception)
@@ -108,18 +103,26 @@ namespace NuGetGallery.Areas.Admin.Controllers
             {
                 var result = await _undoSoftDeleteBatchService.UndoAsync(
                     request.Packages, request.Reason, User.Identity.Name);
-                if (!result.Success)
+                var failures = result.Results.Where(entry => !entry.Success).ToList();
+                foreach (var failure in failures)
                 {
-                    _telemetryService.TraceException(result.Exception);
+                    _telemetryService.TraceException(failure.Exception);
                 }
 
                 return Json(new
                 {
                     result.Success,
+                    Results = result.Results.Select(entry => new
+                    {
+                        entry.Package.Id,
+                        entry.Package.Version,
+                        entry.Success,
+                        Message = entry.Success ? null : entry.Exception.GetUserSafeMessage()
+                    }).ToList(),
                     Message = result.Success
                         ? "Successfully restored the selected packages. Feed and search updates may take time to appear."
-                        : $"Undo reported errors: {result.FailedPackage.Id} {result.FailedPackage.Version}: {result.Exception.GetUserSafeMessage()}"
-                            + " Remaining versions were not attempted. Refresh package statuses before retrying."
+                        : $"Completed undo for {result.RestoredCount} of {result.Results.Count} packages. Failed to restore one or more packages: "
+                            + string.Join(", ", failures.Select(failure => $"{failure.Package.Id}/{failure.Package.Version}"))
                 });
             }
             catch (Exception exception)

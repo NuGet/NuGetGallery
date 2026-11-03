@@ -14,8 +14,8 @@ namespace NuGetGallery
         Task<PackageDeleteBackup> GetBackupAsync(Package package);
 
         /// <summary>
-        /// Undoes the specified committed deletion. Repeating a completed undo makes no changes.
+        /// Undoes the latest committed deletion. Repeating a completed undo makes no changes.
         /// </summary>
-        Task UndoAsync(Package package, int packageDeleteKey, string reason, string callerIdentity = null);
+        Task UndoAsync(Package package, string reason, string callerIdentity = null);
     }
 }

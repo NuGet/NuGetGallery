@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using NuGet.Services.Entities;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
@@ -77,10 +78,10 @@ namespace NuGetGallery
                 return null;
             }
 
-            return await ReadBackupAsync(package);
+            return await ReadBackupAsync(package, GetLatestDeletion(package));
         }
 
-        private async Task<PackageDeleteBackup> ReadBackupAsync(Package package)
+        private PackageDelete GetLatestDeletion(Package package)
         {
             if (package.Key <= 0 || package.PackageRegistration == null)
             {
@@ -88,10 +89,14 @@ namespace NuGetGallery
             }
 
             // Recovery JSON alone is not proof of a committed deletion. Failed attempts also retain JSON.
-            var deletion = _packageDeletes.GetAll()
+            return _packageDeletes.GetAll()
                 .Where(d => d.Packages.Any(p => p.Key == package.Key))
                 .OrderByDescending(d => d.Key)
                 .FirstOrDefault();
+        }
+
+        private async Task<PackageDeleteBackup> ReadBackupAsync(Package package, PackageDelete deletion)
+        {
             if (deletion == null)
             {
                 return null;
@@ -100,6 +105,8 @@ namespace NuGetGallery
             var backup = await _backups.GetAsync(
                 package.PackageRegistration.Id, package.NormalizedVersion, deletion.Key, package.Key);
             if (backup == null
+                || backup.PackageDeleteKey != deletion.Key
+                || backup.PackageKey != package.Key
                 || backup.DeletedOnUtc != deletion.DeletedOn
                 || !StringComparer.OrdinalIgnoreCase.Equals(backup.PackageId, package.PackageRegistration.Id)
                 || !StringComparer.OrdinalIgnoreCase.Equals(backup.NormalizedVersion, package.NormalizedVersion))
@@ -116,21 +123,18 @@ namespace NuGetGallery
             return backup;
         }
 
-        public async Task UndoAsync(Package package, int packageDeleteKey, string reason, string callerIdentity = null)
+        public async Task UndoAsync(Package package, string reason, string callerIdentity = null)
         {
             if (package == null)
             {
                 throw new ArgumentNullException(nameof(package));
-            }
-            if (packageDeleteKey <= 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(packageDeleteKey));
             }
             if (string.IsNullOrWhiteSpace(reason))
             {
                 throw new ArgumentException("An undo reason is required.", nameof(reason));
             }
 
+            int? packageDeleteKey = null;
             try
             {
                 if (_configuration.ReadOnlyMode)
@@ -148,14 +152,25 @@ namespace NuGetGallery
                     {
                         throw new InvalidOperationException("The package state changed. Reload the package before retrying undo.");
                     }
-                    backup = await ReadBackupAsync(package);
-                    if (backup == null || backup.PackageDeleteKey != packageDeleteKey)
-                    {
-                        throw new InvalidOperationException("The package has no matching recovery data for this deletion.");
-                    }
                     if (package.PackageStatusKey != PackageStatus.Deleted)
                     {
                         return;
+                    }
+
+                    var deletion = GetLatestDeletion(package);
+                    packageDeleteKey = deletion?.Key;
+                    try
+                    {
+                        backup = await ReadBackupAsync(package, deletion);
+                    }
+                    catch (Exception exception) when (exception is InvalidDataException
+                        || exception is JsonException || exception is FormatException)
+                    {
+                        throw new UserSafeException("The latest committed deletion has invalid or unsupported recovery data. Undo cannot restore this package.", exception);
+                    }
+                    if (backup == null)
+                    {
+                        throw new UserSafeException("The package has no matching recovery data for its latest committed deletion. Undo cannot restore this package.");
                     }
 
                     await RestoreStateAsync(package, backup);
@@ -165,15 +180,18 @@ namespace NuGetGallery
                 await ReflowOrRevalidateAsync(package, backup, reason, callerIdentity);
 
                 await _auditing.SaveAuditRecordAsync(new PackageUndoSoftDeleteAuditRecord(
-                    package, packageDeleteKey, reason, success: true, callerIdentity: callerIdentity));
+                    package, packageDeleteKey.Value, reason, success: true, callerIdentity: callerIdentity));
             }
             catch (Exception exception)
             {
                 _diagnostics.ExceptionEvent(exception);
                 try
                 {
-                    await _auditing.SaveAuditRecordAsync(new PackageUndoSoftDeleteAuditRecord(
-                        package, packageDeleteKey, reason, success: false, callerIdentity: callerIdentity));
+                    if (packageDeleteKey.HasValue)
+                    {
+                        await _auditing.SaveAuditRecordAsync(new PackageUndoSoftDeleteAuditRecord(
+                            package, packageDeleteKey.Value, reason, success: false, callerIdentity: callerIdentity));
+                    }
                 }
                 catch (Exception auditException)
                 {
@@ -189,7 +207,7 @@ namespace NuGetGallery
                 && (backup.PackageStatusKey == PackageStatus.Validating
                     || backup.Symbols.Any(s => s.SymbolPackageStatusKey == PackageStatus.Validating)))
             {
-                throw new InvalidOperationException("Asynchronous validation must be enabled to restore a validating package.");
+                throw new UserSafeException("Asynchronous validation must be enabled to restore a validating package.");
             }
 
             await RestoreFilesAsync(package, backup);

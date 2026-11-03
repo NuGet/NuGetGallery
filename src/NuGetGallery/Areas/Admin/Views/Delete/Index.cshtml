@@ -91,7 +91,6 @@
         <div style="display: none" data-bind="foreach: undoPreview">
             <input type="hidden" data-bind="value: Id, attr: { name: 'Packages[' + $index() + '].Id' }" />
             <input type="hidden" data-bind="value: Version, attr: { name: 'Packages[' + $index() + '].Version' }" />
-            <input type="hidden" data-bind="value: PackageDeleteKey, attr: { name: 'Packages[' + $index() + '].PackageDeleteKey' }" />
         </div>
         <div id="undo-validation-message" style="display: none" data-bind="visible: undoValidationMessage">
             @ViewHelpers.AlertDanger(@<text><span data-bind="text: undoValidationMessage"></span></text>)

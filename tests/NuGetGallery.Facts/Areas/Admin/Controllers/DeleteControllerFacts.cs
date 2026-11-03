@@ -76,16 +76,15 @@ namespace NuGetGallery.Areas.Admin.Controllers
         public class ThePreviewUndoMethod : FactsBase
         {
             [Fact]
-            public async Task ReturnsOnlySelectedVersionsAndTheirDeletionKeys()
+            public async Task ReturnsOnlySelectedVersionsWithoutPinningDeletionKeys()
             {
                 var requests = CreateUndoRequest().Packages.Take(1).ToList();
                 _batch.Setup(x => x.PreviewAsync(requests)).ReturnsAsync(new[]
                 {
-                    new PackageDeleteBackup
+                    new UndoPackageRequest
                     {
-                        PackageId = requests[0].Id,
-                        NormalizedVersion = requests[0].Version,
-                        PackageDeleteKey = 12
+                        Id = requests[0].Id,
+                        Version = requests[0].Version
                     }
                 });
 
@@ -95,7 +94,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 var package = Assert.Single(result["Packages"]);
                 Assert.Equal("NuGet.Versioning", package.Value<string>("Id"));
                 Assert.Equal("4.4.0", package.Value<string>("Version"));
-                Assert.Equal(12, package.Value<int>("PackageDeleteKey"));
+                Assert.Null(package["PackageDeleteKey"]);
                 _batch.Verify(x => x.PreviewAsync(requests), Times.Once);
                 _packageService.VerifyNoOtherCalls();
             }
@@ -124,13 +123,16 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 request.Reason = new string('a', 1000);
                 ValidateRequest(request);
                 _batch.Setup(x => x.UndoAsync(request.Packages, request.Reason, "admin"))
-                    .ReturnsAsync(new UndoSoftDeleteBatchResult());
+                    .ReturnsAsync(new UndoSoftDeleteBatchResult(request.Packages
+                        .Select(package => new UndoSoftDeletePackageResult(package)).ToList()));
 
                 var result = GetJson(await _target.Undo(request));
 
                 Assert.True(_target.ModelState.IsValid);
                 Assert.True(result.Value<bool>("Success"));
                 Assert.Equal("Successfully restored the selected packages. Feed and search updates may take time to appear.", result.Value<string>("Message"));
+                Assert.Equal(2, result["Results"].Count());
+                Assert.All(result["Results"], entry => Assert.True(entry.Value<bool>("Success")));
                 _batch.Verify(x => x.UndoAsync(request.Packages, request.Reason, "admin"), Times.Once);
                 _packageService.VerifyNoOtherCalls();
                 _packageDeleteService.VerifyNoOtherCalls();
@@ -178,10 +180,10 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
 
             [Fact]
-            public async Task ReportsPreflightErrors()
+            public async Task ReportsRequestErrors()
             {
                 var request = CreateUndoRequest();
-                var exception = new UserSafeException("The selected deletion changed.");
+                var exception = new UserSafeException("A package version cannot be selected more than once.");
                 _batch.Setup(x => x.UndoAsync(request.Packages, request.Reason, "admin")).ThrowsAsync(exception);
 
                 var result = GetJson(await _target.Undo(request));
@@ -192,20 +194,33 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
 
             [Fact]
-            public async Task UndoFormatsTheBatchFailureAndTracesTheOriginalException()
+            public async Task UndoFormatsEveryFailureAndTracesOriginalExceptions()
             {
                 var request = CreateUndoRequest();
+                request.Packages.Add(new UndoPackageRequest { Id = "Other.Package", Version = "2.0.0" });
                 var exception = new UserSafeException("Reflow failed.");
+                var missingRecovery = new UserSafeException("Recovery data is unavailable.");
                 _batch.Setup(x => x.UndoAsync(request.Packages, request.Reason, "admin"))
-                    .ReturnsAsync(new UndoSoftDeleteBatchResult(request.Packages[1], exception));
+                    .ReturnsAsync(new UndoSoftDeleteBatchResult(new[]
+                    {
+                        new UndoSoftDeletePackageResult(request.Packages[0]),
+                        new UndoSoftDeletePackageResult(request.Packages[1], exception),
+                        new UndoSoftDeletePackageResult(request.Packages[2], missingRecovery)
+                    }));
 
                 var result = GetJson(await _target.Undo(request));
 
                 Assert.False(result.Value<bool>("Success"));
-                Assert.Contains("NuGet.Versioning 4.3.0: Reflow failed.", result.Value<string>("Message"));
-                Assert.Contains("Remaining versions were not attempted", result.Value<string>("Message"));
+                Assert.Contains("Completed undo for 1 of 3 packages.", result.Value<string>("Message"));
+                Assert.Contains("Failed to restore one or more packages: NuGet.Versioning/4.3.0, Other.Package/2.0.0", result.Value<string>("Message"));
+                var entries = result["Results"].ToList();
+                Assert.True(entries[0].Value<bool>("Success"));
+                Assert.False(entries[1].Value<bool>("Success"));
+                Assert.Equal(exception.Message, entries[1].Value<string>("Message"));
+                Assert.Equal(missingRecovery.Message, entries[2].Value<string>("Message"));
                 _batch.Verify(x => x.UndoAsync(request.Packages, request.Reason, "admin"), Times.Once);
                 _telemetryService.Verify(x => x.TraceException(exception), Times.Once);
+                _telemetryService.Verify(x => x.TraceException(missingRecovery), Times.Once);
                 _packageService.VerifyNoOtherCalls();
             }
         }
@@ -293,8 +308,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     Packages = _packages.Select(p => new UndoPackageRequest
                     {
                         Id = p.PackageRegistration.Id,
-                        Version = p.NormalizedVersion,
-                        PackageDeleteKey = p.Key + 10
+                        Version = p.NormalizedVersion
                     }).ToList()
                 };
             }

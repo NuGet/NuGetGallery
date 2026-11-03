@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Moq;
+using Newtonsoft.Json;
 using NuGet.Services.Entities;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
@@ -17,26 +18,6 @@ namespace NuGetGallery
 {
     public class UndoSoftDeleteServiceFacts
     {
-        [Fact]
-        public async Task GetBackupRejectsNullPackage()
-        {
-            var fixture = new Fixture();
-
-            var exception = await Assert.ThrowsAsync<ArgumentNullException>(() => fixture.Service.GetBackupAsync(null));
-
-            Assert.Equal("package", exception.ParamName);
-        }
-
-        [Fact]
-        public async Task UndoRejectsNullPackage()
-        {
-            var fixture = new Fixture();
-
-            var exception = await Assert.ThrowsAsync<ArgumentNullException>(() => fixture.Service.UndoAsync(null, 10, "Restore"));
-
-            Assert.Equal("package", exception.ParamName);
-        }
-
         [Fact]
         public async Task ReturnsBackupForMatchingCommittedDeletionAndRetainedSymbols()
         {
@@ -52,25 +33,40 @@ namespace NuGetGallery
         }
 
         [Fact]
-        public async Task NonDeletedPackageDoesNotReadRecoveryJson()
+        public async Task NonDeletedPackageDoesNotReadRecoveryOrStartFollowUp()
         {
             var fixture = new Fixture();
             fixture.Package.PackageStatusKey = PackageStatus.Available;
 
             Assert.Null(await fixture.Service.GetBackupAsync(fixture.Package));
+            await fixture.Service.UndoAsync(fixture.Package, "Restore");
 
+            fixture.Deletions.VerifyNoOtherCalls();
             fixture.Backups.VerifyNoOtherCalls();
+            fixture.Dependency<IPackageFileService>().VerifyNoOtherCalls();
+            fixture.Dependency<ISymbolPackageFileService>().VerifyNoOtherCalls();
+            fixture.Dependency<IReflowPackageService>().VerifyNoOtherCalls();
+            fixture.Dependency<IValidationService>().VerifyNoOtherCalls();
+            fixture.Dependency<IAuditingService>().VerifyNoOtherCalls();
+            fixture.Transaction.Verify(x => x.Commit(), Times.Never);
         }
 
         [Fact]
-        public async Task FailedAttemptJsonWithoutCommittedAssociationDoesNotEnableUndo()
+        public async Task RecoveryWithoutCommittedDeletionDoesNotEnablePreviewOrUndo()
         {
             var fixture = new Fixture();
             fixture.Deletion.Packages.Clear();
 
             Assert.Null(await fixture.Service.GetBackupAsync(fixture.Package));
+            var exception = await Assert.ThrowsAsync<UserSafeException>(() => fixture.Service.UndoAsync(
+                fixture.Package, "Restore"));
 
+            Assert.Contains("latest committed deletion", exception.Message);
+            fixture.Deletions.Verify(x => x.GetAll(), Times.Exactly(2));
             fixture.Backups.VerifyNoOtherCalls();
+            fixture.Dependency<IPackageFileService>().VerifyNoOtherCalls();
+            fixture.Dependency<IAuditingService>().VerifyNoOtherCalls();
+            fixture.Transaction.Verify(x => x.Commit(), Times.Never);
         }
 
         [Fact]
@@ -88,12 +84,11 @@ namespace NuGetGallery
         }
 
         [Fact]
-        public async Task RejectsEarlierDeletionAfterPackageIsDeletedAgain()
+        public async Task RestoresLatestCommittedDeletionWithoutReadingOlderBackup()
         {
             var fixture = new Fixture();
             var newer = new PackageDelete { Key = 11, DeletedOn = fixture.Deletion.DeletedOn.AddMinutes(1) };
             newer.Packages.Add(fixture.Package);
-            fixture.Deletion.Packages.Clear();
             fixture.Deletions.Setup(x => x.GetAll()).Returns(new[] { fixture.Deletion, newer }.AsQueryable());
             var newerBackup = new PackageDeleteBackup
             {
@@ -101,18 +96,80 @@ namespace NuGetGallery
                 PackageKey = fixture.Package.Key,
                 PackageId = fixture.Package.Id,
                 NormalizedVersion = fixture.Package.NormalizedVersion,
-                DeletedOnUtc = newer.DeletedOn
+                DeletedOnUtc = newer.DeletedOn,
+                PackageStatusKey = PackageStatus.Available,
+                PublicBackupHash = "newer-public-package",
+                Listed = true
             };
             fixture.Backups.Setup(x => x.GetAsync("Example.Package", "1.0.0", 11, 20)).ReturnsAsync(newerBackup);
 
-            await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.Service.UndoAsync(fixture.Package, 10, "Restore"));
+            await fixture.Service.UndoAsync(fixture.Package, "Restore", "admin");
 
             fixture.Backups.Verify(x => x.GetAsync("Example.Package", "1.0.0", 10, 20), Times.Never);
             fixture.Backups.Verify(x => x.GetAsync("Example.Package", "1.0.0", 11, 20), Times.Once);
+            fixture.Deletions.Verify(x => x.GetAll(), Times.Once);
             fixture.Dependency<IPackageFileService>().Verify(x => x.RestorePackageFileFromBackupAsync(
-                It.IsAny<Package>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
+                fixture.Package, "newer-public-package", false), Times.Once);
+            Assert.Equal(PackageStatus.Available, fixture.Package.PackageStatusKey);
+            Assert.True(fixture.Package.Listed);
+            fixture.Transaction.Verify(x => x.Commit(), Times.Once);
+            fixture.Dependency<IAuditingService>().Verify(x => x.SaveAuditRecordAsync(
+                It.Is<PackageUndoSoftDeleteAuditRecord>(r => r.Success && r.PackageDeleteKey == 11
+                    && r.Reason == "Restore" && r.CallerIdentity == "admin")), Times.Once);
+        }
+
+        [Theory]
+        [InlineData("missing")]
+        [InlineData("malformed")]
+        [InlineData("unsupported")]
+        [InlineData("invalid-hash")]
+        public async Task InvalidLatestRecoveryIsAuditedBeforeAnyFileChanges(string failure)
+        {
+            var fixture = new Fixture();
+            var newer = new PackageDelete { Key = 11, DeletedOn = fixture.Deletion.DeletedOn.AddMinutes(1) };
+            newer.Packages.Add(fixture.Package);
+            fixture.Deletions.Setup(x => x.GetAll()).Returns(new[] { fixture.Deletion, newer }.AsQueryable());
+            var read = fixture.Backups.Setup(x => x.GetAsync("Example.Package", "1.0.0", 11, 20));
+            Exception expected = null;
+            switch (failure)
+            {
+                case "missing":
+                    read.ReturnsAsync((PackageDeleteBackup)null);
+                    break;
+                case "malformed":
+                    expected = new JsonSerializationException("Invalid recovery JSON");
+                    break;
+                case "unsupported":
+                    expected = new InvalidDataException("Unsupported deletion backup schema.");
+                    break;
+                case "invalid-hash":
+                    expected = new FormatException("Invalid backup hash");
+                    break;
+            }
+            if (expected != null)
+            {
+                read.ThrowsAsync(expected);
+            }
+
+            var exception = await Assert.ThrowsAsync<UserSafeException>(() => fixture.Service.UndoAsync(
+                fixture.Package, "Restore", "admin"));
+
+            Assert.Contains("latest committed deletion", exception.Message);
+            Assert.Same(expected, exception.InnerException);
+            fixture.Backups.Verify(x => x.GetAsync("Example.Package", "1.0.0", 11, 20), Times.Once);
+            fixture.Backups.Verify(x => x.GetAsync("Example.Package", "1.0.0", 10, 20), Times.Never);
+            fixture.Deletions.Verify(x => x.GetAll(), Times.Once);
+            fixture.Dependency<IPackageFileService>().VerifyNoOtherCalls();
+            fixture.Dependency<ISymbolPackageFileService>().VerifyNoOtherCalls();
+            fixture.Dependency<ICoreLicenseFileService>().VerifyNoOtherCalls();
+            fixture.Dependency<ICoreReadmeFileService>().VerifyNoOtherCalls();
+            fixture.Dependency<IReflowPackageService>().VerifyNoOtherCalls();
+            fixture.Dependency<IValidationService>().VerifyNoOtherCalls();
             Assert.Equal(PackageStatus.Deleted, fixture.Package.PackageStatusKey);
             fixture.Transaction.Verify(x => x.Commit(), Times.Never);
+            fixture.Dependency<IAuditingService>().Verify(x => x.SaveAuditRecordAsync(
+                It.Is<PackageUndoSoftDeleteAuditRecord>(r => !r.Success && r.PackageDeleteKey == 11
+                    && r.Reason == "Restore" && r.CallerIdentity == "admin")), Times.Once);
         }
 
         [Theory]
@@ -120,6 +177,8 @@ namespace NuGetGallery
         [InlineData("version")]
         [InlineData("timestamp")]
         [InlineData("symbol")]
+        [InlineData("deletion-key")]
+        [InlineData("package-key")]
         public async Task BackupConflictsDoNotEnableUndo(string conflict)
         {
             var fixture = new Fixture();
@@ -137,15 +196,27 @@ namespace NuGetGallery
                 case "symbol":
                     fixture.Backup.Symbols.Add(new SymbolPackageDeleteBackup { SymbolPackageKey = 999 });
                     break;
+                case "deletion-key":
+                    fixture.Backup.PackageDeleteKey = 9;
+                    break;
+                case "package-key":
+                    fixture.Backup.PackageKey = 19;
+                    break;
             }
 
             Assert.Null(await fixture.Service.GetBackupAsync(fixture.Package));
+
+            await Assert.ThrowsAsync<UserSafeException>(() => fixture.Service.UndoAsync(fixture.Package, "Restore"));
+
+            fixture.Dependency<IPackageFileService>().VerifyNoOtherCalls();
+            fixture.Dependency<ISymbolPackageFileService>().VerifyNoOtherCalls();
+            fixture.Transaction.Verify(x => x.Commit(), Times.Never);
+            fixture.Dependency<IAuditingService>().Verify(x => x.SaveAuditRecordAsync(
+                It.Is<PackageUndoSoftDeleteAuditRecord>(r => !r.Success && r.PackageDeleteKey == 10)), Times.Once);
         }
 
         [Theory]
         [InlineData(PackageStatus.Available, true)]
-        [InlineData(PackageStatus.Available, false)]
-        [InlineData(PackageStatus.Validating, true)]
         [InlineData(PackageStatus.Validating, false)]
         [InlineData(PackageStatus.FailedValidation, false)]
         public async Task RestoresSavedStateAndListingWithoutChangingPublicationHistory(PackageStatus status, bool listed)
@@ -168,8 +239,8 @@ namespace NuGetGallery
             fixture.Package.SymbolPackages.Add(symbol);
             fixture.Package.SymbolPackages.Add(olderSymbol);
 
-            await fixture.Service.UndoAsync(fixture.Package, 10, "Restore package", "admin");
-            await fixture.Service.UndoAsync(fixture.Package, 10, "Restore package", "admin");
+            await fixture.Service.UndoAsync(fixture.Package, "Restore package", "admin");
+            await fixture.Service.UndoAsync(fixture.Package, "Restore package", "admin");
 
             Assert.Equal(status, fixture.Package.PackageStatusKey);
             Assert.Equal(listed, fixture.Package.Listed);
@@ -191,40 +262,11 @@ namespace NuGetGallery
             fixture.Dependency<IValidationService>().Verify(x => x.RevalidateAsync(symbol),
                 status == PackageStatus.Validating ? Times.Once() : Times.Never());
             fixture.Backups.Verify(x => x.SaveAsync(It.IsAny<PackageDeleteBackup>()), Times.Never);
+            fixture.Backups.Verify(x => x.GetAsync("Example.Package", "1.0.0", 10, 20), Times.Once);
+            fixture.Deletions.Verify(x => x.GetAll(), Times.Once);
             fixture.Dependency<IAuditingService>().Verify(x => x.SaveAuditRecordAsync(
-                It.Is<PackageUndoSoftDeleteAuditRecord>(r => r.Success)), Times.Once);
+                It.Is<PackageUndoSoftDeleteAuditRecord>(r => r.Success && r.PackageDeleteKey == 10)), Times.Once);
             fixture.Transaction.Verify(x => x.Commit(), Times.Once);
-        }
-
-        [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public async Task AuditsAuthenticatedCallerAndReason(bool failReflow)
-        {
-            var fixture = new Fixture();
-            if (failReflow)
-            {
-                fixture.Dependency<IReflowPackageService>().Setup(x => x.ReflowAsync(
-                    fixture.Package.Id, "1.0.0", "Restore", "admin"))
-                    .ThrowsAsync(new IOException("Reflow failed"));
-            }
-
-            var operation = fixture.Service.UndoAsync(fixture.Package, 10, "Restore", "admin");
-            if (failReflow)
-            {
-                await Assert.ThrowsAsync<IOException>(() => operation);
-            }
-            else
-            {
-                await operation;
-            }
-
-            fixture.Dependency<IAuditingService>().Verify(x => x.SaveAuditRecordAsync(
-                It.Is<PackageUndoSoftDeleteAuditRecord>(record => record.Success == !failReflow
-                    && record.Reason == "Restore"
-                    && record.CallerIdentity == "admin")), Times.Once);
-            fixture.Dependency<IReflowPackageService>().Verify(x => x.ReflowAsync(
-                fixture.Package.Id, "1.0.0", "Restore", "admin"), Times.Once);
         }
 
         [Theory]
@@ -243,7 +285,7 @@ namespace NuGetGallery
                     .ReturnsAsync(new MemoryStream());
             }
 
-            await fixture.Service.UndoAsync(fixture.Package, 10, "Restore content");
+            await fixture.Service.UndoAsync(fixture.Package, "Restore content");
 
             fixture.Dependency<IPackageFileService>().Verify(x => x.SaveReadMeMdFileAsync(
                 fixture.Package, "# Restored README"), embedded ? Times.Never() : Times.Once());
@@ -270,7 +312,7 @@ namespace NuGetGallery
             fixture.Backup.IncomingDeprecationKeys.AddRange(rows.Select(d => d.Key));
             fixture.Backup.IncomingDeprecationKeys.Add(404);
 
-            await fixture.Service.UndoAsync(fixture.Package, 10, "Restore recommendation");
+            await fixture.Service.UndoAsync(fixture.Package, "Restore recommendation");
 
             Assert.Equal(fixture.Package.Key, rows[0].AlternatePackageKey);
             Assert.Equal(999, rows[1].AlternatePackageKey);
@@ -285,33 +327,52 @@ namespace NuGetGallery
                     && p[1] == rows[3].Package), true), Times.Once);
         }
 
-        [Fact]
-        public async Task FailedReflowIsReportedWithoutRepeatingFollowUpOnAnotherUndo()
+        [Theory]
+        [InlineData(PackageStatus.Available)]
+        [InlineData(PackageStatus.Validating)]
+        public async Task FailedFollowUpIsAuditedWithoutRepeatingItOnAnotherUndo(PackageStatus status)
         {
             var fixture = new Fixture();
-            fixture.Dependency<IReflowPackageService>().Setup(x => x.ReflowAsync(
-                fixture.Package.Id, "1.0.0", "Restore", null))
-                .ThrowsAsync(new IOException("Reflow failed"));
+            fixture.Backup.PackageStatusKey = status;
+            fixture.Backup.Listed = false;
+            var expected = new IOException("Follow-up failed");
+            if (status == PackageStatus.Available)
+            {
+                fixture.Dependency<IReflowPackageService>().Setup(x => x.ReflowAsync(
+                    fixture.Package.Id, "1.0.0", "Restore", "admin")).ThrowsAsync(expected);
+            }
+            else
+            {
+                fixture.Dependency<IValidationService>().Setup(x => x.RevalidateAsync(fixture.Package))
+                    .ThrowsAsync(expected);
+            }
 
-            await Assert.ThrowsAsync<IOException>(() => fixture.Service.UndoAsync(fixture.Package, 10, "Restore"));
-            Assert.Equal(PackageStatus.Available, fixture.Package.PackageStatusKey);
-            await fixture.Service.UndoAsync(fixture.Package, 10, "Restore");
+            var actual = await Assert.ThrowsAsync<IOException>(() => fixture.Service.UndoAsync(fixture.Package, "Restore", "admin"));
+            Assert.Same(expected, actual);
+            Assert.Equal(status, fixture.Package.PackageStatusKey);
+            await fixture.Service.UndoAsync(fixture.Package, "Restore", "admin");
 
+            Assert.False(fixture.Package.Listed);
+            var validation = status == PackageStatus.Validating;
             fixture.Dependency<IPackageFileService>().Verify(x => x.RestorePackageFileFromBackupAsync(
-                fixture.Package, "public-package", false), Times.Once);
+                fixture.Package, validation ? "private-package" : "public-package", validation), Times.Once);
             fixture.Dependency<IReflowPackageService>().Verify(x => x.ReflowAsync(
-                fixture.Package.Id, "1.0.0", "Restore", null), Times.Once);
+                fixture.Package.Id, "1.0.0", "Restore", "admin"), validation ? Times.Never() : Times.Once());
+            fixture.Dependency<IValidationService>().Verify(x => x.RevalidateAsync(fixture.Package),
+                validation ? Times.Once() : Times.Never());
+            fixture.Backups.Verify(x => x.GetAsync("Example.Package", "1.0.0", 10, 20), Times.Once);
+            fixture.Deletions.Verify(x => x.GetAll(), Times.Once);
             fixture.Backups.Verify(x => x.SaveAsync(It.IsAny<PackageDeleteBackup>()), Times.Never);
             fixture.Transaction.Verify(x => x.Commit(), Times.Once);
             fixture.Dependency<IAuditingService>().Verify(x => x.SaveAuditRecordAsync(
-                It.Is<PackageUndoSoftDeleteAuditRecord>(r => !r.Success)), Times.Once);
+                It.Is<PackageUndoSoftDeleteAuditRecord>(r => !r.Success && r.PackageDeleteKey == 10
+                    && r.Reason == "Restore" && r.CallerIdentity == "admin")), Times.Once);
             fixture.Dependency<IAuditingService>().Verify(x => x.SaveAuditRecordAsync(
                 It.Is<PackageUndoSoftDeleteAuditRecord>(r => r.Success)), Times.Never);
         }
 
         [Theory]
         [InlineData("read-only")]
-        [InlineData("stale-deletion")]
         [InlineData("changed-state")]
         [InlineData("validation-disabled")]
         public async Task RejectsUnsafeRequestsBeforeRestoringFiles(string conflict)
@@ -321,9 +382,6 @@ namespace NuGetGallery
             {
                 case "read-only":
                     fixture.Dependency<IAppConfiguration>().SetupGet(x => x.ReadOnlyMode).Returns(true);
-                    break;
-                case "stale-deletion":
-                    fixture.Backup.PackageDeleteKey = 9;
                     break;
                 case "changed-state":
                     fixture.Context.Packages.Remove(fixture.Package);
@@ -335,35 +393,10 @@ namespace NuGetGallery
                     break;
             }
 
-            await Assert.ThrowsAnyAsync<Exception>(() => fixture.Service.UndoAsync(fixture.Package, 10, "Restore"));
+            await Assert.ThrowsAnyAsync<Exception>(() => fixture.Service.UndoAsync(fixture.Package, "Restore"));
 
             fixture.Dependency<IPackageFileService>().VerifyNoOtherCalls();
             fixture.Transaction.Verify(x => x.Commit(), Times.Never);
-        }
-
-        [Fact]
-        public async Task FailedValidationRequestIsReportedWithoutRepeatingFollowUpOnAnotherUndo()
-        {
-            var fixture = new Fixture();
-            fixture.Backup.PackageStatusKey = PackageStatus.Validating;
-            fixture.Backup.Listed = false;
-            fixture.Dependency<IValidationService>().Setup(x => x.RevalidateAsync(fixture.Package))
-                .ThrowsAsync(new IOException("Queue unavailable"));
-
-            await Assert.ThrowsAsync<IOException>(() => fixture.Service.UndoAsync(fixture.Package, 10, "Restore"));
-            Assert.Equal(PackageStatus.Validating, fixture.Package.PackageStatusKey);
-            await fixture.Service.UndoAsync(fixture.Package, 10, "Restore");
-
-            Assert.False(fixture.Package.Listed);
-            fixture.Dependency<IValidationService>().Verify(x => x.RevalidateAsync(fixture.Package), Times.Once);
-            fixture.Dependency<IPackageFileService>().Verify(x => x.RestorePackageFileFromBackupAsync(
-                fixture.Package, "private-package", true), Times.Once);
-            fixture.Backups.Verify(x => x.SaveAsync(It.IsAny<PackageDeleteBackup>()), Times.Never);
-            fixture.Transaction.Verify(x => x.Commit(), Times.Once);
-            fixture.Dependency<IAuditingService>().Verify(x => x.SaveAuditRecordAsync(
-                It.Is<PackageUndoSoftDeleteAuditRecord>(r => !r.Success)), Times.Once);
-            fixture.Dependency<IAuditingService>().Verify(x => x.SaveAuditRecordAsync(
-                It.Is<PackageUndoSoftDeleteAuditRecord>(r => r.Success)), Times.Never);
         }
 
         [Theory]
@@ -383,7 +416,7 @@ namespace NuGetGallery
                     fixture.Package, "public-package", false)).ThrowsAsync(expected);
             }
 
-            var actual = await Assert.ThrowsAsync<IOException>(() => fixture.Service.UndoAsync(fixture.Package, 10, "Restore"));
+            var actual = await Assert.ThrowsAsync<IOException>(() => fixture.Service.UndoAsync(fixture.Package, "Restore"));
 
             Assert.Same(expected, actual);
             fixture.Dependency<IValidationService>().VerifyNoOtherCalls();
