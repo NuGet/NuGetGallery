@@ -8,8 +8,6 @@ namespace NuGetGallery
 {
     public interface IUndoSoftDeleteBatchService
     {
-        Task<IReadOnlyList<UndoPackageRequest>> PreviewAsync(IReadOnlyList<UndoPackageRequest> requests);
-
         Task<UndoSoftDeleteBatchResult> UndoAsync(
             IReadOnlyList<UndoPackageRequest> requests, string reason, string callerIdentity);
     }

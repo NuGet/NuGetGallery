@@ -65,27 +65,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
         [HttpPost]
         [ElevatedAdminAction]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> PreviewUndo(List<UndoPackageRequest> packages)
-        {
-            try
-            {
-                var selection = await _undoSoftDeleteBatchService.PreviewAsync(packages);
-                return Json(new
-                {
-                    Success = true,
-                    Packages = selection
-                });
-            }
-            catch (Exception exception)
-            {
-                _telemetryService.TraceException(exception);
-                return Json(new { Success = false, Message = exception.GetUserSafeMessage() });
-            }
-        }
-
-        [HttpPost]
-        [ElevatedAdminAction]
-        [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> Undo(UndoPackagesRequest request)
         {
             if (request == null || !ModelState.IsValid)

@@ -83,19 +83,12 @@
         </div>
     }
 
-    <div style="display: none" data-bind="visible: selectedAction() === 'undo'">
-        <p role="status" aria-live="polite" data-bind="visible: previewPending">Preparing the selected versions for restore...</p>
-        <div role="status" aria-live="polite" style="display: none" data-bind="visible: undoUnavailable">
-            @ViewHelpers.AlertWarning(@<text><span data-bind="text: undoUnavailable"></span></text>)
-        </div>
-    </div>
-
     @using (Html.BeginForm("Undo", "Delete", new { area = "Admin" }, FormMethod.Post, new { id = "undo-form", style = "display: none", data_bind = "visible: undoSelectionReady", novalidate = "novalidate" }))
     {
         @Html.AntiForgeryToken()
-        <div style="display: none" data-bind="foreach: undoPreview">
-            <input type="hidden" data-bind="value: Id, attr: { name: 'Packages[' + $index() + '].Id' }" />
-            <input type="hidden" data-bind="value: Version, attr: { name: 'Packages[' + $index() + '].Version' }" />
+        <div style="display: none" data-bind="foreach: selectedPackages">
+            <input type="hidden" data-bind="value: PackageId, attr: { name: 'Packages[' + $index() + '].Id' }" />
+            <input type="hidden" data-bind="value: PackageVersionNormalized, attr: { name: 'Packages[' + $index() + '].Version' }" />
         </div>
         <div id="undo-validation-message" style="display: none" data-bind="visible: undoValidationMessage">
             @ViewHelpers.AlertDanger(@<text><span data-bind="text: undoValidationMessage"></span></text>)
@@ -120,16 +113,11 @@
 
             var viewModel = function () {
                 var $self = this;
-                var previewRequest;
-                var selectionVersion = 0;
                 var operationMessageTimeout;
 
                 this.searchQuery = ko.observable('');
                 $self.doneSearching = ko.observable(false);
                 this.undoPending = ko.observable(false);
-                this.previewPending = ko.observable(false);
-                this.undoPreview = ko.observableArray([]);
-                this.undoUnavailable = ko.observable('');
                 this.undoValidationMessage = ko.observable('');
                 this.operationMessage = ko.observable('');
                 this.operationFailures = ko.observableArray([]);
@@ -217,8 +205,7 @@
                 });
 
                 this.undoSelectionReady = ko.computed(function() {
-                    return $self.selectedAction() === 'undo' && !$self.previewPending() && !$self.undoUnavailable()
-                        && $self.undoPreview().length === $self.selectedPackages().length;
+                    return $self.selectedAction() === 'undo' && $self.selectedPackages().length > 0;
                 });
 
                 $('#delete-form').submit(function(event) {
@@ -227,55 +214,13 @@
                     }
                 });
 
-                ko.computed(function() {
-                    var selected = $self.selectedPackages();
-                    var showUndo = $self.selectedAction() === 'undo';
-                    var currentVersion = ++selectionVersion;
-                    if (previewRequest) {
-                        previewRequest.abort();
-                    }
-                    $self.undoPreview.removeAll();
-                    $self.undoUnavailable('');
+                function clearUndoValidation() {
                     $self.undoValidationMessage('');
                     $('#undo-reason').removeAttr('aria-invalid');
-                    $self.previewPending(false);
-                    if (!showUndo) {
-                        return;
-                    }
+                }
 
-                    var data = {
-                        __RequestVerificationToken: $('#undo-form input[name="__RequestVerificationToken"]').val()
-                    };
-                    for (var i = 0; i < selected.length; i++) {
-                        data['packages[' + i + '].Id'] = selected[i].PackageId;
-                        data['packages[' + i + '].Version'] = selected[i].PackageVersionNormalized;
-                    }
-
-                    $self.previewPending(true);
-                    previewRequest = $.ajax({
-                        url: '@Url.Action("PreviewUndo", "Delete", new { area = "Admin" })',
-                        type: 'POST',
-                        dataType: 'json',
-                        data: data
-                    }).done(function(result) {
-                        if (currentVersion !== selectionVersion) {
-                            return;
-                        }
-                        if (result.Success) {
-                            $self.undoPreview(result.Packages);
-                        } else {
-                            $self.undoUnavailable(result.Message);
-                        }
-                    }).fail(function(xhr, status) {
-                        if (currentVersion === selectionVersion && status !== 'abort') {
-                            $self.undoUnavailable('Unable to prepare the selected versions. Refresh the selection and try again.');
-                        }
-                    }).always(function() {
-                        if (currentVersion === selectionVersion) {
-                            $self.previewPending(false);
-                        }
-                    });
-                });
+                $self.selectedPackages.subscribe(clearUndoValidation);
+                $self.selectedAction.subscribe(clearUndoValidation);
 
                 $('#undo-form').submit(function(event) {
                     event.preventDefault();
@@ -325,10 +270,7 @@
                     });
                 });
 
-                $('#undo-reason').on('input', function() {
-                    $self.undoValidationMessage('');
-                    $(this).removeAttr('aria-invalid');
-                });
+                $('#undo-reason').on('input', clearUndoValidation);
 
                 this.selectAllState.subscribe(function() {
                     var state = $self.selectAllState();

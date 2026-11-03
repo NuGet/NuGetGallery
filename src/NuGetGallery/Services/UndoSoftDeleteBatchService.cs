@@ -13,25 +13,11 @@ namespace NuGetGallery
 {
     public class UndoSoftDeleteBatchService : IUndoSoftDeleteBatchService
     {
-        private readonly IPackageService _packageService;
         private readonly ILifetimeScope _scope;
 
-        public UndoSoftDeleteBatchService(IPackageService packageService, ILifetimeScope scope)
+        public UndoSoftDeleteBatchService(ILifetimeScope scope)
         {
-            _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _scope = scope ?? throw new ArgumentNullException(nameof(scope));
-        }
-
-        public Task<IReadOnlyList<UndoPackageRequest>> PreviewAsync(IReadOnlyList<UndoPackageRequest> requests)
-        {
-            var selection = NormalizeRequests(requests);
-            foreach (var request in selection)
-            {
-                var package = FindDeletedPackage(_packageService, request);
-                request.Id = package.PackageRegistration.Id;
-                request.Version = package.NormalizedVersion;
-            }
-            return Task.FromResult<IReadOnlyList<UndoPackageRequest>>(selection);
         }
 
         public async Task<UndoSoftDeleteBatchResult> UndoAsync(

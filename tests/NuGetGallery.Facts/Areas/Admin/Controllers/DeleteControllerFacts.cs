@@ -73,46 +73,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
         }
 
-        public class ThePreviewUndoMethod : FactsBase
-        {
-            [Fact]
-            public async Task ReturnsSelectedPackageIdentities()
-            {
-                var requests = CreateUndoRequest().Packages.Take(1).ToList();
-                _batch.Setup(x => x.PreviewAsync(requests)).ReturnsAsync(new[]
-                {
-                    new UndoPackageRequest
-                    {
-                        Id = requests[0].Id,
-                        Version = requests[0].Version
-                    }
-                });
-
-                var result = GetJson(await _target.PreviewUndo(requests));
-
-                Assert.True(result.Value<bool>("Success"));
-                var package = Assert.Single(result["Packages"]);
-                Assert.Equal("NuGet.Versioning", package.Value<string>("Id"));
-                Assert.Equal("4.4.0", package.Value<string>("Version"));
-                _batch.Verify(x => x.PreviewAsync(requests), Times.Once);
-                _packageService.VerifyNoOtherCalls();
-            }
-
-            [Fact]
-            public async Task ReportsSelectionErrors()
-            {
-                var requests = CreateUndoRequest().Packages;
-                var exception = new UserSafeException("Package 1.0.0 was not found. Refresh the selection.");
-                _batch.Setup(x => x.PreviewAsync(requests)).ThrowsAsync(exception);
-
-                var result = GetJson(await _target.PreviewUndo(requests));
-
-                Assert.False(result.Value<bool>("Success"));
-                Assert.Equal(exception.Message, result.Value<string>("Message"));
-                _telemetryService.Verify(x => x.TraceException(exception), Times.Once);
-            }
-        }
-
         public class TheUndoMethod : FactsBase
         {
             [Fact]
@@ -211,12 +171,10 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
         }
 
-        [Theory]
-        [InlineData(nameof(DeleteController.PreviewUndo))]
-        [InlineData(nameof(DeleteController.Undo))]
-        public void UndoEndpointsRequirePostElevationAndAntiForgery(string methodName)
+        [Fact]
+        public void UndoRequiresPostElevationAndAntiForgery()
         {
-            var method = typeof(DeleteController).GetMethod(methodName);
+            var method = typeof(DeleteController).GetMethod(nameof(DeleteController.Undo));
             Assert.True(Attribute.IsDefined(method, typeof(HttpPostAttribute)));
             Assert.True(Attribute.IsDefined(method, typeof(ElevatedAdminActionAttribute)));
             Assert.True(Attribute.IsDefined(method, typeof(ValidateAntiForgeryTokenAttribute)));

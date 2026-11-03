@@ -14,36 +14,6 @@ namespace NuGetGallery
 {
     public class UndoSoftDeleteBatchServiceFacts
     {
-        public class ThePreviewAsyncMethod : FactsBase
-        {
-            [Fact]
-            public async Task ReturnsCanonicalIdentitiesWithoutReadingRecoveryData()
-            {
-                Entries[0].Package.PackageRegistration.Id = "Canonical.Package";
-                Requests[0].Id = " Package ";
-                Requests[0].Version = " 1.0 ";
-
-                IReadOnlyList<UndoPackageRequest> result = await Target.PreviewAsync(Requests);
-
-                Assert.Equal(new[] { "preview find 0", "preview find 1", "preview find 2" }, Calls);
-                Assert.Equal(3, result.Count);
-                for (var i = 0; i < result.Count; i++)
-                {
-                    Assert.IsType<UndoPackageRequest>(result[i]);
-                    Assert.NotSame(Requests[i], result[i]);
-                    Assert.Equal(Entries[i].Package.PackageRegistration.Id, result[i].Id);
-                    Assert.Equal(Entries[i].Package.NormalizedVersion, result[i].Version);
-                    PreviewPackages.Verify(x => x.FindPackageByIdAndVersionStrict("Package", Entries[i].Package.NormalizedVersion), Times.Once);
-                    Entries[i].Undo.VerifyNoOtherCalls();
-                }
-                Assert.Equal(" Package ", Requests[0].Id);
-                Assert.Equal(" 1.0 ", Requests[0].Version);
-                PreviewPackages.VerifyNoOtherCalls();
-                Assert.Equal(0, ScopeCount);
-                Assert.Equal(0, ContextCount);
-            }
-        }
-
         public class TheUndoAsyncMethod : FactsBase
         {
             [Fact]
@@ -170,7 +140,6 @@ namespace NuGetGallery
                         break;
                 }
 
-                await Assert.ThrowsAsync<UserSafeException>(() => Target.PreviewAsync(requests));
                 await Assert.ThrowsAsync<UserSafeException>(() => Target.UndoAsync(requests, Reason, Caller));
 
                 AssertNoWork();
@@ -184,7 +153,6 @@ namespace NuGetGallery
             protected readonly Entry[] Entries;
             protected readonly UndoPackageRequest[] Requests;
             protected readonly List<string> Calls = new List<string>();
-            protected readonly Mock<IPackageService> PreviewPackages = new Mock<IPackageService>(MockBehavior.Strict);
             protected readonly IContainer Container;
             protected readonly UndoSoftDeleteBatchService Target;
             protected int ScopeCount;
@@ -208,8 +176,6 @@ namespace NuGetGallery
                     var index = i;
                     var entry = Entries[i];
                     entry.Context.Setup(x => x.Dispose()).Callback(() => entry.ContextDisposed = true);
-                    PreviewPackages.Setup(x => x.FindPackageByIdAndVersionStrict("Package", entry.Package.NormalizedVersion))
-                        .Callback(() => Calls.Add("preview find " + index)).Returns(entry.Package);
                     entry.Packages.Setup(x => x.FindPackageByIdAndVersionStrict("Package", entry.Package.NormalizedVersion))
                         .Callback(() => Calls.Add("find " + index)).Returns(entry.Package);
                     entry.Undo.Setup(x => x.UndoAsync(entry.Package, Reason, Caller))
@@ -246,7 +212,7 @@ namespace NuGetGallery
                     var entry = Entries[ScopeCount++];
                     args.LifetimeScope.CurrentScopeEnding += (scopeSender, scopeArgs) => entry.ScopeEnded = true;
                 };
-                Target = new UndoSoftDeleteBatchService(PreviewPackages.Object, Container);
+                Target = new UndoSoftDeleteBatchService(Container);
             }
 
             protected void AssertOutcomes(UndoSoftDeleteBatchResult result, IReadOnlyList<Exception> exceptions)
@@ -276,7 +242,6 @@ namespace NuGetGallery
                     Assert.True(entry.ScopeEnded);
                     entry.Context.Verify(x => x.Dispose(), Times.Once);
                 }
-                PreviewPackages.VerifyNoOtherCalls();
             }
 
             protected void AssertNoWork()
@@ -284,7 +249,6 @@ namespace NuGetGallery
                 Assert.Empty(Calls);
                 Assert.Equal(0, ScopeCount);
                 Assert.Equal(0, ContextCount);
-                PreviewPackages.VerifyNoOtherCalls();
                 foreach (var entry in Entries)
                 {
                     entry.Packages.VerifyNoOtherCalls();
