@@ -17,9 +17,9 @@ namespace NuGetGallery.Frameworks
     {
         public string PackageId { get; set; }
         public string PackageVersion { get; set; }
-        public PackageFrameworkCompatibilityData Net { get; set; }
-        public PackageFrameworkCompatibilityData NetCore { get; set; }
-        public PackageFrameworkCompatibilityData NetStandard { get; set; }
-        public PackageFrameworkCompatibilityData NetFramework { get; set; }
+        public PackageFrameworkCompatibilityBadgeData Net { get; set; }
+        public PackageFrameworkCompatibilityBadgeData NetCore { get; set; }
+        public PackageFrameworkCompatibilityBadgeData NetStandard { get; set; }
+        public PackageFrameworkCompatibilityBadgeData NetFramework { get; set; }
     }
 }

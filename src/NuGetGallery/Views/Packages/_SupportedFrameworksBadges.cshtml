@@ -30,7 +30,7 @@
         NetFramework
     }
 
-    public string GetBadgeTooltip(FrameworkContext context, PackageFrameworkCompatibilityData tfmCompatibilityData)
+    public string GetBadgeTooltip(FrameworkContext context, PackageFrameworkCompatibilityBadgeData tfmCompatibilityData)
     {
         var badgeVersion = tfmCompatibilityData.Framework.GetBadgeVersion();
         string tfmType = GetFrameworkProductName(context);
@@ -40,17 +40,28 @@
             return string.Format(String.SupportedFrameworks_EmptyVersion_Template_Tooltip, tfmType);
         }
 
+        var tfmName = tfmType + " " + badgeVersion;
+
+        if (tfmCompatibilityData.EarliestFramework != null)
+        {
+            var earliestTfmName = tfmType + " " + tfmCompatibilityData.EarliestFramework.GetBadgeVersion();
+            var rangeToolTipTemplate = tfmCompatibilityData.IsComputed
+                ? String.SupportedFrameworks_Computed_Range_Tooltip
+                : String.SupportedFrameworks_Asset_Range_Tooltip;
+
+            return string.Format(rangeToolTipTemplate, tfmName, earliestTfmName);
+        }
+
         var toolTipTemplate = tfmCompatibilityData.IsComputed
             ? String.SupportedFrameworks_Computed_Tooltip
             : String.SupportedFrameworks_Asset_Tooltip;
 
-        var tfmName = tfmType + " " + badgeVersion;
         var toolTip = string.Format(toolTipTemplate, tfmName);
 
         return toolTip;
     }
 
-    public string GetBadgeDisplayName(FrameworkContext context, PackageFrameworkCompatibilityData tfmCompatibilityData)
+    public string GetBadgeDisplayName(FrameworkContext context, PackageFrameworkCompatibilityBadgeData tfmCompatibilityData)
     {
         var badgeVersion = tfmCompatibilityData.Framework.GetBadgeVersion();
         string displayName = GetFrameworkProductName(context);
@@ -58,6 +69,15 @@
         if (badgeVersion.IsEmpty())
         {
             return displayName;
+        }
+
+        // When the package supports more than one framework version for this .NET product, show the full
+        // min-max range (e.g. ".NET 6.0–10.0") instead of just the latest, so consumers can see both the
+        // minimum supported version (compatibility floor) and the latest supported version (modern capability).
+        if (tfmCompatibilityData.EarliestFramework != null)
+        {
+            var earliestBadgeVersion = tfmCompatibilityData.EarliestFramework.GetBadgeVersion();
+            return displayName + " " + earliestBadgeVersion + "\u2013" + badgeVersion;
         }
 
         return displayName + " " + badgeVersion;
@@ -81,7 +101,7 @@
     }
 }
 
-@helper DisplayFrameworkBadge(PackageFrameworkCompatibilityData tfmCompatibilityData, FrameworkContext context, int? itemIndex, string eventName)
+@helper DisplayFrameworkBadge(PackageFrameworkCompatibilityBadgeData tfmCompatibilityData, FrameworkContext context, int? itemIndex, string eventName)
 {
     <a href=@Url.FrameworksTab(Model.PackageId, Model.PackageVersion)
        @if (itemIndex.HasValue) { @: data-track="@eventName" data-track-value="@itemIndex" data-click-source="FrameworkBadge"
