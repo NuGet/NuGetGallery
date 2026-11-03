@@ -26,10 +26,13 @@ namespace NuGetGallery.Auditing
                 "Undeprecate",
                 "Reflow",
                 "FailValidation",
-                "SymbolsFailValidation"
+                "SymbolsFailValidation",
+                "UndoSoftDelete"
             };
 
             Verify(typeof(AuditedPackageAction), expectedNames);
+            Assert.Equal(14, (int)AuditedPackageAction.SymbolsFailValidation);
+            Assert.Equal(15, (int)AuditedPackageAction.UndoSoftDelete);
         }
     }
 }

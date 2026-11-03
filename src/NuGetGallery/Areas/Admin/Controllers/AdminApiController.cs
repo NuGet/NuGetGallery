@@ -308,7 +308,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     acceptedPackages,
                     deletedBy: null,
                     reason: request.Reason,
-                    signature: callerIdentity);
+                    signature: callerIdentity,
+                    captureForUndo: true);
             }
             catch (Exception ex)
             {

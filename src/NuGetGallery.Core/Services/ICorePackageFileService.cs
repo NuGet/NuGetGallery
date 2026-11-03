@@ -98,6 +98,8 @@ namespace NuGetGallery
         /// <summary>
         /// Copies the contents of the package represented by the stream into the file storage backup location.
         /// </summary>
-        Task StorePackageFileInBackupLocationAsync(Package package, Stream packageFile);
+        /// <returns>The Base64-encoded SHA512 hash of the provided stream, even if the backup already exists.</returns>
+        Task<string> StorePackageFileInBackupLocationAsync(Package package, Stream packageFile);
+
     }
 }

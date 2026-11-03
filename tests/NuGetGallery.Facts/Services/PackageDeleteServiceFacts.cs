@@ -36,8 +36,10 @@ namespace NuGetGallery
             Mock<IEntityRepository<SymbolPackage>> symbolPackageRepository = null,
             Mock<ICoreLicenseFileService> coreLicenseFileService = null,
             Mock<ICoreReadmeFileService> coreReadmeFileService = null, 
+            Mock<IPackageDeleteBackupService> packageDeleteBackupService = null,
             Action<Mock<TestPackageDeleteService>> setup = null,
-            bool useRealConstructor = false)
+            bool useRealConstructor = false,
+            Action<Mock<IDatabase>> configureDatabase = null)
         {
             packageRepository = packageRepository ?? new Mock<IEntityRepository<Package>>();
             packageRegistrationRepository = packageRegistrationRepository ?? new Mock<IEntityRepository<PackageRegistration>>();
@@ -46,6 +48,7 @@ namespace NuGetGallery
             entitiesContext = entitiesContext ?? new Mock<IEntitiesContext>();
             var database = new Mock<IDatabase>();
             database.Setup(x => x.BeginTransaction()).Returns(() => new Mock<IDbContextTransaction>().Object);
+            configureDatabase?.Invoke(database);
             entitiesContext.Setup(m => m.GetDatabase()).Returns(database.Object);
 
             packageService = packageService ?? new Mock<IPackageService>();
@@ -65,6 +68,7 @@ namespace NuGetGallery
             symbolPackageRepository = symbolPackageRepository ?? new Mock<IEntityRepository<SymbolPackage>>();
             coreLicenseFileService = coreLicenseFileService ?? new Mock<ICoreLicenseFileService>();
             coreReadmeFileService = coreReadmeFileService ?? new Mock<ICoreReadmeFileService>();
+            packageDeleteBackupService = packageDeleteBackupService ?? new Mock<IPackageDeleteBackupService>();
 
             if (useRealConstructor)
             {
@@ -84,7 +88,8 @@ namespace NuGetGallery
                     symbolPackageService.Object,
                     symbolPackageRepository.Object,
                     coreLicenseFileService.Object,
-                    coreReadmeFileService.Object);
+                    coreReadmeFileService.Object,
+                    packageDeleteBackupService.Object);
             }
             else
             {
@@ -104,7 +109,8 @@ namespace NuGetGallery
                     symbolPackageService.Object,
                     symbolPackageRepository.Object,
                     coreLicenseFileService.Object,
-                    coreReadmeFileService.Object);
+                    coreReadmeFileService.Object,
+                    packageDeleteBackupService.Object);
 
                 packageDeleteService.CallBase = true;
 
@@ -138,7 +144,8 @@ namespace NuGetGallery
                 ISymbolPackageService symbolPackageService,
                 IEntityRepository<SymbolPackage> symbolPackageRepository,
                 ICoreLicenseFileService coreLicenseFileService,
-                ICoreReadmeFileService coreReadmeFileService) : base(
+                ICoreReadmeFileService coreReadmeFileService,
+                IPackageDeleteBackupService packageDeleteBackupService) : base(
                     packageRepository,
                     packageRegistrationRepository,
                     packageDeletesRepository,
@@ -154,7 +161,8 @@ namespace NuGetGallery
                     symbolPackageService,
                     symbolPackageRepository,
                     coreLicenseFileService,
-                    coreReadmeFileService)
+                    coreReadmeFileService,
+                    packageDeleteBackupService)
             {
             }
 
@@ -888,6 +896,364 @@ namespace NuGetGallery
                 await service.SoftDeletePackagesAsync(new[] { package }, user, reason, signature);
 
                 telemetryService.Verify(x => x.TrackPackageDelete(package, false));
+            }
+        }
+
+        public class TheAdminSoftDeleteCapture
+        {
+            [Theory]
+            [InlineData(PackageStatus.Available, true)]
+            [InlineData(PackageStatus.Validating, false)]
+            [InlineData(PackageStatus.FailedValidation, true)]
+            public async Task CapturesOriginalStateBeforeCleanup(PackageStatus status, bool listed)
+            {
+                var fixture = new CaptureFixture();
+                fixture.Package.PackageStatusKey = status;
+                fixture.Package.Listed = listed;
+                fixture.Package.AlternativeOf.Add(new PackageDeprecation { Key = 50 });
+                fixture.Package.SymbolPackages.Add(new SymbolPackage { Key = 20, StatusKey = PackageStatus.Available });
+                fixture.Package.SymbolPackages.Add(new SymbolPackage { Key = 21, StatusKey = PackageStatus.Validating });
+                fixture.Package.SymbolPackages.Add(new SymbolPackage { Key = 22, StatusKey = PackageStatus.Deleted });
+                fixture.SymbolFiles.Setup(x => x.DownloadPackageFileAsync(fixture.Package)).ReturnsAsync(() => new MemoryStream(new byte[] { 3 }));
+                fixture.SymbolFiles.Setup(x => x.DownloadValidationPackageFileAsync(fixture.Package)).ReturnsAsync(() => new MemoryStream(new byte[] { 4 }));
+                fixture.SymbolFiles.Setup(x => x.StorePackageFileInBackupLocationAsync(fixture.Package, It.IsAny<Stream>()))
+                    .Returns<Package, Stream>((p, s) => Task.FromResult(CryptographyService.GenerateHash(s, CoreConstants.Sha512HashAlgorithmId)));
+
+                await fixture.DeleteAsync();
+
+                var backup = Assert.Single(fixture.Saved);
+                var deletion = Assert.Single(fixture.Deletions);
+                Assert.Equal(deletion.Key, backup.PackageDeleteKey);
+                Assert.Equal(deletion.DeletedOn, backup.DeletedOnUtc);
+                Assert.Equal(fixture.Package.Key, backup.PackageKey);
+                Assert.Equal(status, backup.PackageStatusKey);
+                Assert.Equal(listed, backup.Listed);
+                Assert.Equal(CaptureFixture.PublicHash, backup.PublicBackupHash);
+                Assert.Equal(CaptureFixture.ValidationHash, backup.ValidationBackupHash);
+                Assert.Equal(CaptureFixture.Readme, backup.ExternalReadmeMarkdown);
+                Assert.Equal(new[] { 50 }, backup.IncomingDeprecationKeys);
+                Assert.Equal(new[] { 20, 21 }, backup.Symbols.Select(s => s.SymbolPackageKey));
+                Assert.Equal(new[] { PackageStatus.Available, PackageStatus.Validating }, backup.Symbols.Select(s => s.SymbolPackageStatusKey));
+                Assert.NotEqual(backup.Symbols[0].PublicBackupHash, backup.Symbols[1].ValidationBackupHash);
+                Assert.True(fixture.Events.IndexOf("identity-flush") < fixture.Events.IndexOf("save-json"));
+                Assert.True(fixture.Events.IndexOf("save-json") < fixture.Events.IndexOf("cleanup"));
+                Assert.True(fixture.Events.IndexOf("cleanup") < fixture.Events.IndexOf("commit"));
+                fixture.Database.Verify(x => x.BeginTransaction(), Times.Once);
+                fixture.Backups.Verify(x => x.DeleteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+                fixture.Auditing.Verify(x => x.SaveAuditRecordAsync(It.Is<PackageAuditRecord>(a =>
+                    a.PackageKey == fixture.Package.Key && a.PackageDeleteKey == deletion.Key && a.AdminInitiated == true
+                    && a.Action == AuditedPackageAction.SoftDelete && a.GetResourceType() == "Package")), Times.Once);
+                Assert.False(fixture.Package.Listed);
+            }
+
+            [Fact]
+            public async Task OwnerDeletionDoesNotCaptureRecoveryJson()
+            {
+                var fixture = new CaptureFixture();
+
+                await fixture.DeleteAsync(admin: false);
+
+                Assert.Empty(fixture.Saved);
+                fixture.Backups.Verify(x => x.SaveAsync(It.IsAny<PackageDeleteBackup>()), Times.Never);
+                fixture.Auditing.Verify(x => x.SaveAuditRecordAsync(It.Is<PackageAuditRecord>(a =>
+                    a.Action == AuditedPackageAction.SoftDelete && a.PackageKey == null
+                    && a.PackageDeleteKey == null && a.AdminInitiated == null)), Times.Once);
+            }
+
+            [Fact]
+            public async Task CaptureFailureDoesNotRemoveAnyFilesInTheBatch()
+            {
+                var fixture = new CaptureFixture();
+                var other = CaptureFixture.NewPackage(2);
+                var error = new IOException("JSON unavailable");
+                fixture.Backups.Setup(x => x.SaveAsync(It.Is<PackageDeleteBackup>(b => b.PackageKey == 2)))
+                    .ThrowsAsync(error);
+
+                Assert.Same(error, await Assert.ThrowsAsync<IOException>(() => fixture.Service.SoftDeletePackagesAsync(
+                    new[] { fixture.Package, other }, null, "reason", "admin-app", true)));
+
+                fixture.VerifyNoCleanup();
+                Assert.Equal(fixture.Package.Key, Assert.Single(fixture.Saved).PackageKey);
+                Assert.Empty(fixture.Deletions);
+                fixture.Backups.Verify(x => x.DeleteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+                Assert.True(fixture.Package.Listed);
+                Assert.True(other.Listed);
+                Assert.Equal(PackageStatus.Available, fixture.Package.PackageStatusKey);
+                Assert.Equal(PackageStatus.Available, other.PackageStatusKey);
+                fixture.PackageService.Verify(x => x.UpdatePackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), false), Times.Never);
+            }
+
+            [Fact]
+            public async Task EntireBatchIsArchivedAndSavedBeforeAnyCleanup()
+            {
+                var fixture = new CaptureFixture();
+                var other = CaptureFixture.NewPackage(2);
+
+                await fixture.Service.SoftDeletePackagesAsync(
+                    new[] { fixture.Package, other }, null, "reason", "admin-app", true);
+
+                Assert.Equal(new[] { 1, 2 }, fixture.Saved.Select(b => b.PackageKey));
+                Assert.Equal(4, fixture.Archived.Count);
+                Assert.True(fixture.Events.LastIndexOf("save-archive") < fixture.Events.IndexOf("cleanup"));
+                Assert.True(fixture.Events.LastIndexOf("save-json") < fixture.Events.IndexOf("cleanup"));
+                fixture.Transaction.Verify(x => x.Commit(), Times.Once);
+            }
+
+            [Fact]
+            public async Task SecondPackageArchiveFailureLeavesEntireBatchUntouched()
+            {
+                var fixture = new CaptureFixture();
+                var other = CaptureFixture.NewPackage(2);
+                var error = new IOException("archive unavailable");
+                fixture.Files.Setup(x => x.StorePackageFileInBackupLocationAsync(other, It.IsAny<Stream>()))
+                    .ThrowsAsync(error);
+
+                Assert.Same(error, await Assert.ThrowsAsync<IOException>(() => fixture.Service.SoftDeletePackagesAsync(
+                    new[] { fixture.Package, other }, null, "reason", "admin-app", true)));
+
+                fixture.VerifyNoCleanup();
+                Assert.Equal(fixture.Package.Key, Assert.Single(fixture.Saved).PackageKey);
+                Assert.Empty(fixture.Deletions);
+                Assert.True(fixture.Package.Listed);
+                Assert.True(other.Listed);
+                Assert.Equal(PackageStatus.Available, fixture.Package.PackageStatusKey);
+                Assert.Equal(PackageStatus.Available, other.PackageStatusKey);
+                fixture.PackageService.Verify(x => x.UpdatePackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), false), Times.Never);
+                fixture.Backups.Verify(x => x.DeleteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+            }
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            [InlineData(" ")]
+            public async Task MissingOrBlankExternalReadmeDoesNotBlockDeletion(string readme)
+            {
+                var fixture = new CaptureFixture();
+                fixture.Files.Setup(x => x.DownloadReadMeMdFileAsync(fixture.Package)).ReturnsAsync(readme);
+
+                await fixture.DeleteAsync();
+
+                Assert.Equal(readme, Assert.Single(fixture.Saved).ExternalReadmeMarkdown);
+                fixture.Files.Verify(x => x.DeletePackageFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+                fixture.PackageService.Verify(x => x.UpdatePackageStatusAsync(fixture.Package, PackageStatus.Deleted, false), Times.Once);
+                Assert.Contains("commit", fixture.Events);
+            }
+
+            [Fact]
+            public async Task MissingRequiredPackageFileBlocksCleanup()
+            {
+                var fixture = new CaptureFixture();
+                fixture.Files.Setup(x => x.DownloadPackageFileAsync(fixture.Package)).ReturnsAsync((Stream)null);
+
+                await Assert.ThrowsAsync<InvalidDataException>(() => fixture.DeleteAsync());
+
+                fixture.VerifyNoCleanup();
+            }
+
+            [Fact]
+            public async Task AlreadyDeletedPackageCannotReplaceCommittedBackup()
+            {
+                var fixture = new CaptureFixture();
+                fixture.Package.PackageStatusKey = PackageStatus.Deleted;
+
+                await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.DeleteAsync());
+
+                Assert.Empty(fixture.Deletions);
+                Assert.Empty(fixture.Saved);
+                fixture.VerifyNoCleanup();
+            }
+
+            [Fact]
+            public async Task IdentityFlushFailureDoesNotRemoveFilesOrCreateJson()
+            {
+                var fixture = new CaptureFixture();
+                fixture.DeleteRepository.Setup(x => x.CommitChangesAsync())
+                    .ThrowsAsync(new InvalidOperationException("identity SQL failure"));
+
+                await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.DeleteAsync());
+
+                fixture.VerifyNoCleanup();
+                Assert.Empty(fixture.Saved);
+                Assert.Empty(fixture.Deletions);
+                fixture.Backups.Verify(x => x.SaveAsync(It.IsAny<PackageDeleteBackup>()), Times.Never);
+            }
+
+            [Fact]
+            public async Task FileRemovalFailureRetainsRecoveryDataAndPropagatesOriginalError()
+            {
+                var fixture = new CaptureFixture();
+                var error = new IOException("storage deletion failed");
+                fixture.Files.Setup(x => x.DeleteValidationPackageFileAsync(It.IsAny<string>(), It.IsAny<string>()))
+                    .ThrowsAsync(error);
+
+                Assert.Same(error, await Assert.ThrowsAsync<IOException>(() => fixture.DeleteAsync()));
+
+                Assert.Single(fixture.Saved);
+                fixture.VerifyArchivesCaptured();
+                Assert.Empty(fixture.Deletions);
+                Assert.Contains("cleanup", fixture.Events);
+                Assert.DoesNotContain("commit", fixture.Events);
+                fixture.Backups.Verify(x => x.DeleteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+                fixture.Transaction.Verify(x => x.Dispose(), Times.Once);
+                fixture.PackageService.Verify(x => x.UpdatePackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), false), Times.Never);
+            }
+
+            [Fact]
+            public async Task SqlFailureNeverAttemptsJsonDeletionAndPropagatesOriginalError()
+            {
+                var fixture = new CaptureFixture();
+                var sqlError = new InvalidOperationException("SQL failure");
+                fixture.PackageRepository.Setup(x => x.CommitChangesAsync()).ThrowsAsync(sqlError);
+
+                var error = await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.DeleteAsync());
+
+                Assert.Same(sqlError, error);
+                Assert.Single(fixture.Saved);
+                fixture.VerifyArchivesCaptured();
+                Assert.Empty(fixture.Deletions);
+                fixture.Backups.Verify(x => x.DeleteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+            }
+
+            [Fact]
+            public async Task AmbiguousSymbolMappingBlocksCleanup()
+            {
+                var fixture = new CaptureFixture();
+                fixture.Package.SymbolPackages.Add(new SymbolPackage { Key = 20, StatusKey = PackageStatus.Available, Hash = "different" });
+                fixture.Package.SymbolPackages.Add(new SymbolPackage { Key = 21, StatusKey = PackageStatus.Available, Hash = "different" });
+                fixture.SymbolFiles.Setup(x => x.DownloadPackageFileAsync(fixture.Package)).ReturnsAsync(() => new MemoryStream(new byte[] { 3 }));
+                fixture.SymbolFiles.Setup(x => x.StorePackageFileInBackupLocationAsync(fixture.Package, It.IsAny<Stream>()))
+                    .ReturnsAsync(CaptureFixture.PublicHash);
+
+                await Assert.ThrowsAsync<InvalidDataException>(() => fixture.DeleteAsync());
+
+                fixture.VerifyNoCleanup();
+            }
+
+            [Fact]
+            public async Task EmbeddedReadmeDoesNotReadExternalMarkdown()
+            {
+                var fixture = new CaptureFixture();
+                fixture.Package.EmbeddedReadmeType = EmbeddedReadmeFileType.Markdown;
+
+                await fixture.DeleteAsync();
+
+                Assert.Null(Assert.Single(fixture.Saved).ExternalReadmeMarkdown);
+                fixture.Files.Verify(x => x.DownloadReadMeMdFileAsync(It.IsAny<Package>()), Times.Never);
+            }
+
+            private class CaptureFixture
+            {
+                public const string Readme = "# Original README\nUnicode: \u03bb, quotes: \"text\"";
+                public static readonly string PublicHash = Hash(new byte[] { 1 });
+                public static readonly string ValidationHash = Hash(new byte[] { 2 });
+                public Package Package = NewPackage(1);
+                public readonly List<PackageDelete> Deletions = new List<PackageDelete>();
+                public readonly List<PackageDeleteBackup> Saved = new List<PackageDeleteBackup>();
+                public readonly List<string> Archived = new List<string>();
+                public readonly List<string> Events = new List<string>();
+                public readonly Mock<IPackageFileService> Files = new Mock<IPackageFileService>();
+                public readonly Mock<ISymbolPackageFileService> SymbolFiles = new Mock<ISymbolPackageFileService>();
+                public readonly Mock<IPackageDeleteBackupService> Backups = new Mock<IPackageDeleteBackupService>();
+                public readonly Mock<IEntityRepository<PackageDelete>> DeleteRepository = new Mock<IEntityRepository<PackageDelete>>();
+                public readonly Mock<IEntityRepository<Package>> PackageRepository = new Mock<IEntityRepository<Package>>();
+                public readonly Mock<IPackageService> PackageService = new Mock<IPackageService>();
+                public readonly Mock<IAuditingService> Auditing = new Mock<IAuditingService>();
+                public readonly Mock<IDbContextTransaction> Transaction = new Mock<IDbContextTransaction>();
+                public readonly IPackageDeleteService Service;
+                public Mock<IDatabase> Database;
+
+                public CaptureFixture()
+                {
+                    var nextDeletionKey = 100;
+                    DeleteRepository.Setup(x => x.InsertOnCommit(It.IsAny<PackageDelete>()))
+                        .Callback<PackageDelete>(d => { d.Key = nextDeletionKey++; Deletions.Add(d); });
+                    DeleteRepository.Setup(x => x.CommitChangesAsync())
+                        .Callback(() => Events.Add("identity-flush")).Returns(Task.CompletedTask);
+                    Files.Setup(x => x.DownloadPackageFileAsync(It.IsAny<Package>())).ReturnsAsync(() => new MemoryStream(new byte[] { 1 }));
+                    Files.Setup(x => x.DownloadValidationPackageFileAsync(It.IsAny<Package>())).ReturnsAsync(() => new MemoryStream(new byte[] { 2 }));
+                    Files.Setup(x => x.DownloadReadMeMdFileAsync(It.IsAny<Package>())).ReturnsAsync(Readme);
+                    Files.Setup(x => x.StorePackageFileInBackupLocationAsync(It.IsAny<Package>(), It.IsAny<Stream>()))
+                        .Returns<Package, Stream>((p, s) =>
+                        {
+                            var hash = CryptographyService.GenerateHash(s, CoreConstants.Sha512HashAlgorithmId);
+                            Archived.Add(hash);
+                            Events.Add("save-archive");
+                            return Task.FromResult(hash);
+                        });
+                    Files.Setup(x => x.DeletePackageFileAsync(It.IsAny<string>(), It.IsAny<string>()))
+                        .Callback(() => Events.Add("cleanup")).Returns(Task.CompletedTask);
+                    var validator = new PackageDeleteBackupService(new Mock<ICoreFileStorageService>().Object);
+                    Backups.Setup(x => x.SaveAsync(It.IsAny<PackageDeleteBackup>()))
+                        .Returns<PackageDeleteBackup>(async b => { await validator.SaveAsync(b); Saved.Add(b); Events.Add("save-json"); });
+                    var committed = false;
+                    var deletionCount = 0;
+                    Transaction.Setup(x => x.Commit()).Callback(() => { committed = true; Events.Add("commit"); });
+                    Transaction.Setup(x => x.Dispose()).Callback(() =>
+                    {
+                        // Model rolled-back SQL rows only. Tracked entities and storage stay changed.
+                        if (!committed)
+                        {
+                            Deletions.RemoveRange(deletionCount, Deletions.Count - deletionCount);
+                        }
+                    });
+                    Service = CreateService(packageRepository: PackageRepository, packageDeletesRepository: DeleteRepository,
+                        packageService: PackageService, packageFileService: Files, symbolPackageFileService: SymbolFiles,
+                        packageDeleteBackupService: Backups, auditingService: Auditing,
+                        configureDatabase: database =>
+                        {
+                            Database = database;
+                            database.Setup(x => x.BeginTransaction()).Returns(() =>
+                            {
+                                committed = false;
+                                deletionCount = Deletions.Count;
+                                return Transaction.Object;
+                            });
+                        });
+                }
+
+                public Task DeleteAsync(bool admin = true)
+                {
+                    return admin
+                        ? Service.SoftDeletePackagesAsync(new[] { Package }, null, "reason", "admin-app", true)
+                        : Service.SoftDeletePackagesAsync(new[] { Package }, new User("owner"), "reason", "owner");
+                }
+
+                public void VerifyNoCleanup()
+                {
+                    Files.Verify(x => x.DeletePackageFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+                    Files.Verify(x => x.DeleteValidationPackageFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+                    Files.Verify(x => x.DeleteReadMeMdFileAsync(It.IsAny<Package>()), Times.Never);
+                    SymbolFiles.Verify(x => x.DeletePackageFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+                    SymbolFiles.Verify(x => x.DeleteValidationPackageFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+                }
+
+                public void VerifyArchivesCaptured()
+                {
+                    Assert.Equal(new[] { PublicHash, ValidationHash }, Archived);
+                }
+
+                public static Package NewPackage(int key)
+                {
+                    return new Package
+                    {
+                        Key = key,
+                        PackageRegistration = new PackageRegistration { Id = "Test.Package" },
+                        Version = "1.0.0",
+                        NormalizedVersion = "1.0.0",
+                        PackageStatusKey = PackageStatus.Available,
+                        Listed = true,
+                        HasReadMe = true,
+                        Hash = "database-hash-is-not-used"
+                    };
+                }
+
+                private static string Hash(byte[] bytes)
+                {
+                    using (var stream = new MemoryStream(bytes))
+                    {
+                        return CryptographyService.GenerateHash(stream, CoreConstants.Sha512HashAlgorithmId);
+                    }
+                }
             }
         }
 

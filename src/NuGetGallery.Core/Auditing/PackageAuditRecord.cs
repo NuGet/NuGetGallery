@@ -1,9 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Linq;
+using Newtonsoft.Json;
 using NuGet.Services.Entities;
 using NuGetGallery.Auditing.AuditedEntities;
-using System.Linq;
 
 namespace NuGetGallery.Auditing
 {
@@ -20,6 +21,15 @@ namespace NuGetGallery.Auditing
         public string Reason { get; }
 
         public string CallerIdentity { get; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public int? PackageKey { get; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public int? PackageDeleteKey { get; }
+
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public bool? AdminInitiated { get; }
 
         public PackageAuditRecord(
             string id, string version, string hash,
@@ -51,7 +61,8 @@ namespace NuGetGallery.Auditing
                   reason: reason)
         { }
 
-        public PackageAuditRecord(Package package, AuditedPackageAction action, string reason, string callerIdentity = null)
+        public PackageAuditRecord(Package package, AuditedPackageAction action, string reason, string callerIdentity = null,
+            int? packageKey = null, int? packageDeleteKey = null, bool? adminInitiated = null)
             : this(package.PackageRegistration.Id,
                   package.Version,
                   package.Hash,
@@ -62,6 +73,9 @@ namespace NuGetGallery.Auditing
                   reason: reason,
                   callerIdentity: callerIdentity)
         {
+            PackageKey = packageKey;
+            PackageDeleteKey = packageDeleteKey;
+            AdminInitiated = adminInitiated;
             PackageRecord = AuditedPackage.CreateFrom(package);
             RegistrationRecord = AuditedPackageRegistration.CreateFrom(package.PackageRegistration);
             DeprecationRecord = package.Deprecations
