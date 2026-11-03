@@ -1039,28 +1039,211 @@ namespace NuGetGallery
                 Assert.Contains("commit", fixture.Events);
             }
 
-            [Fact]
-            public async Task MissingRequiredPackageFileBlocksCleanup()
+            [Theory]
+            [InlineData(PackageStatus.Available)]
+            [InlineData(PackageStatus.Validating)]
+            public async Task MissingRequiredPackageFileBlocksCleanup(PackageStatus status)
             {
                 var fixture = new CaptureFixture();
-                fixture.Files.Setup(x => x.DownloadPackageFileAsync(fixture.Package)).ReturnsAsync((Stream)null);
+                fixture.Package.PackageStatusKey = status;
+                if (status == PackageStatus.Available)
+                {
+                    fixture.Files.Setup(x => x.DownloadPackageFileAsync(fixture.Package)).ReturnsAsync((Stream)null);
+                }
+                else
+                {
+                    fixture.Files.Setup(x => x.DownloadValidationPackageFileAsync(fixture.Package)).ReturnsAsync((Stream)null);
+                }
 
-                await Assert.ThrowsAsync<InvalidDataException>(() => fixture.DeleteAsync());
+                var exception = await Assert.ThrowsAsync<UserSafeException>(() => fixture.DeleteAsync());
 
+                Assert.Contains("Test.Package 1.0.0", exception.Message);
+                Assert.Contains(status == PackageStatus.Available ? "public package file" : "validation package file", exception.Message);
+                Assert.Contains("No packages were deleted", exception.Message);
                 fixture.VerifyNoCleanup();
+                Assert.Empty(fixture.Saved);
+                Assert.Empty(fixture.Deletions);
+                Assert.Equal(status, fixture.Package.PackageStatusKey);
+                Assert.True(fixture.Package.Listed);
+                fixture.Transaction.Verify(x => x.Commit(), Times.Never);
             }
 
             [Fact]
-            public async Task AlreadyDeletedPackageCannotReplaceCommittedBackup()
+            public async Task MissingSecondPackageFileLeavesTheWholeBatchUntouched()
+            {
+                var fixture = new CaptureFixture();
+                var other = CaptureFixture.NewPackage(2);
+                fixture.Files.Setup(x => x.DownloadPackageFileAsync(other)).ReturnsAsync((Stream)null);
+
+                await Assert.ThrowsAsync<UserSafeException>(() => fixture.Service.SoftDeletePackagesAsync(
+                    new[] { fixture.Package, other }, null, "reason", "admin-app", true));
+
+                fixture.VerifyNoCleanup();
+                Assert.Equal(fixture.Package.Key, Assert.Single(fixture.Saved).PackageKey);
+                Assert.Empty(fixture.Deletions);
+                Assert.Equal(PackageStatus.Available, fixture.Package.PackageStatusKey);
+                Assert.Equal(PackageStatus.Available, other.PackageStatusKey);
+                Assert.True(fixture.Package.Listed);
+                Assert.True(other.Listed);
+                fixture.Transaction.Verify(x => x.Commit(), Times.Never);
+            }
+
+            [Fact]
+            public async Task AlreadyDeletedPackageReflowsWithoutRecoveryDataOrServingFiles()
             {
                 var fixture = new CaptureFixture();
                 fixture.Package.PackageStatusKey = PackageStatus.Deleted;
+                fixture.Package.Listed = false;
+                var symbol = new SymbolPackage { Key = 20, StatusKey = PackageStatus.Deleted };
+                fixture.Package.SymbolPackages.Add(symbol);
+                var deprecation = new PackageDeprecation { Key = 50, AlternatePackage = fixture.Package };
+                fixture.Package.AlternativeOf.Add(deprecation);
+                var originalDeletion = new PackageDelete { Key = 42, DeletedOn = DateTime.UtcNow.AddDays(-1) };
+                originalDeletion.Packages.Add(fixture.Package);
+                fixture.Deletions.Add(originalDeletion);
+                fixture.Files.Setup(x => x.DownloadPackageFileAsync(It.IsAny<Package>())).ReturnsAsync((Stream)null);
+                fixture.Files.Setup(x => x.DownloadValidationPackageFileAsync(It.IsAny<Package>())).ReturnsAsync((Stream)null);
 
-                await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.DeleteAsync());
+                await fixture.DeleteAsync();
 
+                Assert.Same(originalDeletion, Assert.Single(fixture.Deletions));
+                Assert.Same(fixture.Package, Assert.Single(originalDeletion.Packages));
+                Assert.Empty(fixture.Saved);
+                Assert.Empty(fixture.Archived);
+                fixture.VerifyNoCleanup();
+                fixture.Files.VerifyNoOtherCalls();
+                fixture.SymbolFiles.VerifyNoOtherCalls();
+                fixture.Backups.VerifyNoOtherCalls();
+                fixture.DeleteRepository.VerifyNoOtherCalls();
+                fixture.PackageRepository.VerifyNoOtherCalls();
+                fixture.SymbolRepository.VerifyNoOtherCalls();
+                fixture.SymbolService.VerifyNoOtherCalls();
+                fixture.PackageService.VerifyNoOtherCalls();
+                fixture.Licenses.VerifyNoOtherCalls();
+                fixture.Readmes.VerifyNoOtherCalls();
+                fixture.Database.Verify(x => x.BeginTransaction(), Times.Never);
+                Assert.Equal(PackageStatus.Deleted, fixture.Package.PackageStatusKey);
+                Assert.False(fixture.Package.Listed);
+                Assert.Equal(PackageStatus.Deleted, symbol.StatusKey);
+                Assert.Same(deprecation, Assert.Single(fixture.Package.AlternativeOf));
+                Assert.Same(fixture.Package, deprecation.AlternatePackage);
+                fixture.Auditing.Verify(x => x.SaveAuditRecordAsync(It.Is<PackageAuditRecord>(a =>
+                    a.Action == AuditedPackageAction.SoftDelete && a.Id == "Test.Package" && a.Version == "1.0.0"
+                    && a.Reason == "reason" && a.CallerIdentity == "admin-app"
+                    && a.PackageKey == fixture.Package.Key && a.PackageDeleteKey == null && a.AdminInitiated == true)), Times.Once);
+                fixture.Telemetry.Verify(x => x.TrackPackageDelete(fixture.Package, false), Times.Once);
+                fixture.Indexing.Verify(x => x.UpdateIndex(true), Times.Once);
+            }
+
+            [Fact]
+            public async Task RepeatDeletePreservesCommittedRecoveryDataAndWritesAFreshAudit()
+            {
+                var fixture = new CaptureFixture();
+                var audits = new List<PackageAuditRecord>();
+                fixture.Auditing.Setup(x => x.SaveAuditRecordAsync(It.IsAny<AuditRecord>()))
+                    .Callback<AuditRecord>(record => audits.Add((PackageAuditRecord)record)).Returns(Task.CompletedTask);
+                await fixture.DeleteAsync();
+                var originalDeletion = Assert.Single(fixture.Deletions);
+                var originalBackup = Assert.Single(fixture.Saved);
+                var fileCalls = fixture.Files.Invocations.Count;
+                var symbolFileCalls = fixture.SymbolFiles.Invocations.Count;
+                var lastEdited = fixture.Package.LastEdited;
+                var lastUpdated = fixture.Package.LastUpdated;
+                fixture.Package.PackageStatusKey = PackageStatus.Deleted;
+
+                await fixture.Service.SoftDeletePackagesAsync(
+                    new[] { fixture.Package, fixture.Package }, null, "reflow reason", "reflow admin", true);
+
+                Assert.Same(originalDeletion, Assert.Single(fixture.Deletions));
+                Assert.Same(fixture.Package, Assert.Single(originalDeletion.Packages));
+                Assert.Same(originalBackup, Assert.Single(fixture.Saved));
+                Assert.Equal(originalDeletion.Key, originalBackup.PackageDeleteKey);
+                Assert.Equal(originalDeletion.DeletedOn, originalBackup.DeletedOnUtc);
+                Assert.Equal("reason", originalDeletion.Reason);
+                Assert.Equal("admin-app", originalDeletion.Signature);
+                Assert.Equal(fileCalls, fixture.Files.Invocations.Count);
+                Assert.Equal(symbolFileCalls, fixture.SymbolFiles.Invocations.Count);
+                Assert.Equal(lastEdited, fixture.Package.LastEdited);
+                Assert.Equal(lastUpdated, fixture.Package.LastUpdated);
+                fixture.Backups.Verify(x => x.SaveAsync(It.IsAny<PackageDeleteBackup>()), Times.Once);
+                fixture.Backups.Verify(x => x.GetAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+                fixture.Backups.Verify(x => x.DeleteAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+                fixture.Database.Verify(x => x.BeginTransaction(), Times.Once);
+                Assert.Equal(2, audits.Count);
+                Assert.NotSame(audits[0], audits[1]);
+                Assert.Equal(originalDeletion.Key, audits[0].PackageDeleteKey);
+                Assert.Null(audits[1].PackageDeleteKey);
+                Assert.Equal(AuditedPackageAction.SoftDelete, audits[1].Action);
+                Assert.Equal("reflow reason", audits[1].Reason);
+                Assert.Equal("reflow admin", audits[1].CallerIdentity);
+            }
+
+            [Fact]
+            public async Task MixedBatchCapturesOnlyActivePackagesAndReflowsDeletedPackagesAfterCommit()
+            {
+                var fixture = new CaptureFixture();
+                var deleted = CaptureFixture.NewPackage(2);
+                deleted.PackageStatusKey = PackageStatus.Deleted;
+                deleted.Listed = false;
+                var originalDeletion = new PackageDelete { Key = 42 };
+                originalDeletion.Packages.Add(deleted);
+                fixture.Deletions.Add(originalDeletion);
+                fixture.Auditing.Setup(x => x.SaveAuditRecordAsync(It.Is<PackageAuditRecord>(a => a.PackageKey == deleted.Key)))
+                    .Callback(() => fixture.Events.Add("reflow")).Returns(Task.CompletedTask);
+
+                await fixture.Service.SoftDeletePackagesAsync(
+                    new[] { deleted, fixture.Package, deleted }, null, "reason", "admin-app", true);
+
+                Assert.Equal(fixture.Package.Key, Assert.Single(fixture.Saved).PackageKey);
+                Assert.Equal(2, fixture.Deletions.Count);
+                Assert.Same(deleted, Assert.Single(originalDeletion.Packages));
+                Assert.Same(fixture.Package, Assert.Single(fixture.Deletions[1].Packages));
+                Assert.True(fixture.Events.IndexOf("commit") < fixture.Events.IndexOf("reflow"));
+                fixture.Files.Verify(x => x.DownloadPackageFileAsync(deleted), Times.Never);
+                fixture.Files.Verify(x => x.DownloadValidationPackageFileAsync(deleted), Times.Never);
+                fixture.PackageService.Verify(x => x.UpdatePackageStatusAsync(deleted, It.IsAny<PackageStatus>(), It.IsAny<bool>()), Times.Never);
+                fixture.Auditing.Verify(x => x.SaveAuditRecordAsync(It.Is<PackageAuditRecord>(a =>
+                    a.Action == AuditedPackageAction.SoftDelete && a.PackageKey == deleted.Key && a.PackageDeleteKey == null)), Times.Once);
+                fixture.Indexing.Verify(x => x.UpdateIndex(true), Times.Once);
+            }
+
+            [Fact]
+            public async Task MixedBatchCaptureFailureDoesNotPublishRepeatDeletionAudits()
+            {
+                var fixture = new CaptureFixture();
+                var deleted = CaptureFixture.NewPackage(2);
+                deleted.PackageStatusKey = PackageStatus.Deleted;
+                fixture.Files.Setup(x => x.DownloadPackageFileAsync(fixture.Package)).ReturnsAsync((Stream)null);
+
+                await Assert.ThrowsAsync<UserSafeException>(() => fixture.Service.SoftDeletePackagesAsync(
+                    new[] { deleted, fixture.Package }, null, "reason", "admin-app", true));
+
+                fixture.VerifyNoCleanup();
                 Assert.Empty(fixture.Deletions);
                 Assert.Empty(fixture.Saved);
-                fixture.VerifyNoCleanup();
+                fixture.Auditing.Verify(x => x.SaveAuditRecordAsync(It.IsAny<AuditRecord>()), Times.Never);
+                fixture.Indexing.Verify(x => x.UpdateIndex(It.IsAny<bool>()), Times.Never);
+                fixture.Transaction.Verify(x => x.Commit(), Times.Never);
+            }
+
+            [Fact]
+            public async Task RepeatDeletionAuditFailureIsPropagatedWithoutChangingRecoveryData()
+            {
+                var fixture = new CaptureFixture();
+                await fixture.DeleteAsync();
+                var originalDeletion = Assert.Single(fixture.Deletions);
+                var originalBackup = Assert.Single(fixture.Saved);
+                fixture.Package.PackageStatusKey = PackageStatus.Deleted;
+                var error = new IOException("audit storage unavailable");
+                fixture.Auditing.Setup(x => x.SaveAuditRecordAsync(It.IsAny<AuditRecord>())).ThrowsAsync(error);
+
+                Assert.Same(error, await Assert.ThrowsAsync<IOException>(() => fixture.DeleteAsync()));
+
+                Assert.Same(originalDeletion, Assert.Single(fixture.Deletions));
+                Assert.Same(originalBackup, Assert.Single(fixture.Saved));
+                Assert.Same(fixture.Package, Assert.Single(originalDeletion.Packages));
+                fixture.Database.Verify(x => x.BeginTransaction(), Times.Once);
+                fixture.Backups.Verify(x => x.SaveAsync(It.IsAny<PackageDeleteBackup>()), Times.Once);
             }
 
             [Fact]
@@ -1157,6 +1340,12 @@ namespace NuGetGallery
                 public readonly Mock<IEntityRepository<PackageDelete>> DeleteRepository = new Mock<IEntityRepository<PackageDelete>>();
                 public readonly Mock<IEntityRepository<Package>> PackageRepository = new Mock<IEntityRepository<Package>>();
                 public readonly Mock<IPackageService> PackageService = new Mock<IPackageService>();
+                public readonly Mock<IEntityRepository<SymbolPackage>> SymbolRepository = new Mock<IEntityRepository<SymbolPackage>>();
+                public readonly Mock<ISymbolPackageService> SymbolService = new Mock<ISymbolPackageService>();
+                public readonly Mock<ICoreLicenseFileService> Licenses = new Mock<ICoreLicenseFileService>();
+                public readonly Mock<ICoreReadmeFileService> Readmes = new Mock<ICoreReadmeFileService>();
+                public readonly Mock<IIndexingService> Indexing = new Mock<IIndexingService>();
+                public readonly Mock<ITelemetryService> Telemetry = new Mock<ITelemetryService>();
                 public readonly Mock<IAuditingService> Auditing = new Mock<IAuditingService>();
                 public readonly Mock<IDbContextTransaction> Transaction = new Mock<IDbContextTransaction>();
                 public readonly IPackageDeleteService Service;
@@ -1198,6 +1387,9 @@ namespace NuGetGallery
                     });
                     Service = CreateService(packageRepository: PackageRepository, packageDeletesRepository: DeleteRepository,
                         packageService: PackageService, packageFileService: Files, symbolPackageFileService: SymbolFiles,
+                        symbolPackageRepository: SymbolRepository, symbolPackageService: SymbolService,
+                        coreLicenseFileService: Licenses, coreReadmeFileService: Readmes,
+                        indexingService: Indexing, telemetryService: Telemetry,
                         packageDeleteBackupService: Backups, auditingService: Auditing,
                         configureDatabase: database =>
                         {
