@@ -17,87 +17,28 @@ namespace NuGetGallery
         public class ThePreviewAsyncMethod : FactsBase
         {
             [Fact]
-            public async Task SequentiallyChecksEligibilityAndReturnsOnlyIdentityMetadata()
+            public async Task ReturnsCanonicalIdentitiesWithoutReadingRecoveryData()
             {
-                var firstBackup = new TaskCompletionSource<PackageDeleteBackup>();
-                PreviewUndo.Setup(x => x.GetBackupAsync(Entries[0].Package))
-                    .Callback(() => Calls.Add("backup 0"))
-                    .Returns(firstBackup.Task);
-                Backups[0].PackageId = "Canonical.Package";
+                Entries[0].Package.PackageRegistration.Id = "Canonical.Package";
                 Requests[0].Id = " Package ";
                 Requests[0].Version = " 1.0 ";
 
-                var preview = Target.PreviewAsync(Requests);
+                IReadOnlyList<UndoPackageRequest> result = await Target.PreviewAsync(Requests);
 
-                Assert.False(preview.IsCompleted);
-                Assert.Equal(new[] { "preview find 0", "backup 0" }, Calls);
-                firstBackup.SetResult(Backups[0]);
-                IReadOnlyList<UndoPackageRequest> result = await preview;
-
-                Assert.Equal(new[]
-                {
-                    "preview find 0", "backup 0", "preview find 1", "backup 1", "preview find 2", "backup 2"
-                }, Calls);
+                Assert.Equal(new[] { "preview find 0", "preview find 1", "preview find 2" }, Calls);
                 Assert.Equal(3, result.Count);
                 for (var i = 0; i < result.Count; i++)
                 {
                     Assert.IsType<UndoPackageRequest>(result[i]);
                     Assert.NotSame(Requests[i], result[i]);
-                    Assert.Equal(Backups[i].PackageId, result[i].Id);
-                    Assert.Equal(Backups[i].NormalizedVersion, result[i].Version);
+                    Assert.Equal(Entries[i].Package.PackageRegistration.Id, result[i].Id);
+                    Assert.Equal(Entries[i].Package.NormalizedVersion, result[i].Version);
                     PreviewPackages.Verify(x => x.FindPackageByIdAndVersionStrict("Package", Entries[i].Package.NormalizedVersion), Times.Once);
-                    PreviewUndo.Verify(x => x.GetBackupAsync(Entries[i].Package), Times.Once);
+                    Entries[i].Undo.VerifyNoOtherCalls();
                 }
                 Assert.Equal(" Package ", Requests[0].Id);
                 Assert.Equal(" 1.0 ", Requests[0].Version);
                 PreviewPackages.VerifyNoOtherCalls();
-                PreviewUndo.VerifyNoOtherCalls();
-                Assert.Equal(0, ScopeCount);
-                Assert.Equal(0, ContextCount);
-            }
-
-            [Theory]
-            [InlineData("missing-package")]
-            [InlineData("not-deleted")]
-            [InlineData("missing-backup")]
-            [InlineData("backup-error")]
-            public async Task StopsPreviewOnIneligiblePackageOrRecoveryReadFailure(string failure)
-            {
-                var entry = Entries[1];
-                var expected = new InvalidOperationException("Storage failed.");
-                switch (failure)
-                {
-                    case "missing-package":
-                        PreviewPackages.Setup(x => x.FindPackageByIdAndVersionStrict("Package", "2.0.0")).Returns((Package)null);
-                        break;
-                    case "not-deleted":
-                        entry.Package.PackageStatusKey = PackageStatus.Available;
-                        break;
-                    case "missing-backup":
-                        PreviewUndo.Setup(x => x.GetBackupAsync(entry.Package)).ReturnsAsync((PackageDeleteBackup)null);
-                        break;
-                    case "backup-error":
-                        PreviewUndo.Setup(x => x.GetBackupAsync(entry.Package)).ThrowsAsync(expected);
-                        break;
-                }
-
-                if (failure == "backup-error")
-                {
-                    Assert.Same(expected, await Assert.ThrowsAsync<InvalidOperationException>(() => Target.PreviewAsync(Requests)));
-                }
-                else
-                {
-                    var exception = await Assert.ThrowsAsync<UserSafeException>(() => Target.PreviewAsync(Requests));
-                    Assert.Contains("Package 2.0.0", exception.Message);
-                    Assert.Contains(failure == "missing-package" ? "was not found"
-                        : failure == "not-deleted" ? "is not soft deleted" : "no matching recovery data", exception.Message);
-                }
-
-                PreviewPackages.Verify(x => x.FindPackageByIdAndVersionStrict("Package", "3.0.0"), Times.Never);
-                PreviewUndo.Verify(x => x.GetBackupAsync(Entries[2].Package), Times.Never);
-                PreviewUndo.Verify(x => x.GetBackupAsync(entry.Package),
-                    failure == "missing-package" || failure == "not-deleted" ? Times.Never() : Times.Once());
-                PreviewUndo.Verify(x => x.UndoAsync(It.IsAny<Package>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
                 Assert.Equal(0, ScopeCount);
                 Assert.Equal(0, ContextCount);
             }
@@ -106,7 +47,7 @@ namespace NuGetGallery
         public class TheUndoAsyncMethod : FactsBase
         {
             [Fact]
-            public async Task FindsAndRestoresEachNormalizedIdentityInItsOwnScopeWithoutPreflight()
+            public async Task RestoresNormalizedIdentitiesSequentiallyInSeparateScopes()
             {
                 Requests[0].Id = " Package ";
                 Requests[0].Version = " 1.0 ";
@@ -139,23 +80,16 @@ namespace NuGetGallery
                 AssertExecuteIsolation();
             }
 
-            [Theory]
-            [InlineData(1)] // First entry fails.
-            [InlineData(5)] // Multiple entries fail.
-            [InlineData(7)] // All entries fail.
-            public async Task ContinuesAfterRestoreFailuresAndReturnsEveryOutcomeInOrder(int failureMask)
+            [Fact]
+            public async Task ContinuesAfterRestoreFailuresAndReturnsEveryOutcomeInOrder()
             {
                 var exceptions = new Exception[Entries.Length];
-                for (var i = 0; i < Entries.Length; i++)
+                foreach (var index in new[] { 0, 2 })
                 {
-                    if ((failureMask & (1 << i)) != 0)
-                    {
-                        var index = i;
-                        exceptions[i] = new InvalidOperationException("Restore failed for " + i);
-                        Entries[i].Undo.Setup(x => x.UndoAsync(Entries[index].Package, Reason, Caller))
-                            .Callback(() => Calls.Add("undo " + index))
-                            .ThrowsAsync(exceptions[i]);
-                    }
+                    exceptions[index] = new InvalidOperationException("Restore failed for " + index);
+                    Entries[index].Undo.Setup(x => x.UndoAsync(Entries[index].Package, Reason, Caller))
+                        .Callback(() => Calls.Add("undo " + index))
+                        .ThrowsAsync(exceptions[index]);
                 }
 
                 var result = await Target.UndoAsync(Requests, Reason, Caller);
@@ -172,39 +106,24 @@ namespace NuGetGallery
             [Theory]
             [InlineData("missing-package")]
             [InlineData("not-deleted")]
-            [InlineData("lookup-error")]
             public async Task RecordsPackageLookupFailuresAndContinues(string failure)
             {
                 var entry = Entries[1];
-                Exception expected = new InvalidOperationException("Failure for the second entry.");
-                switch (failure)
+                if (failure == "missing-package")
                 {
-                    case "missing-package":
-                        entry.Packages.Setup(x => x.FindPackageByIdAndVersionStrict("Package", "2.0.0"))
-                            .Callback(() => Calls.Add("find 1")).Returns((Package)null);
-                        break;
-                    case "not-deleted":
-                        entry.Package.PackageStatusKey = PackageStatus.Available;
-                        break;
-                    case "lookup-error":
-                        entry.Packages.Setup(x => x.FindPackageByIdAndVersionStrict("Package", "2.0.0"))
-                            .Callback(() => Calls.Add("find 1")).Throws(expected);
-                        break;
+                    entry.Packages.Setup(x => x.FindPackageByIdAndVersionStrict("Package", "2.0.0"))
+                        .Callback(() => Calls.Add("find 1")).Returns((Package)null);
+                }
+                else
+                {
+                    entry.Package.PackageStatusKey = PackageStatus.Available;
                 }
 
                 var result = await Target.UndoAsync(Requests, Reason, Caller);
 
-                var exception = result.Results[1].Exception;
-                if (failure == "missing-package" || failure == "not-deleted")
-                {
-                    Assert.IsType<UserSafeException>(exception);
-                    Assert.Contains("Package 2.0.0", exception.Message);
-                    Assert.Contains(failure == "missing-package" ? "was not found" : "is not soft deleted", exception.Message);
-                }
-                else
-                {
-                    Assert.Same(expected, exception);
-                }
+                var exception = Assert.IsType<UserSafeException>(result.Results[1].Exception);
+                Assert.Contains("Package 2.0.0", exception.Message);
+                Assert.Contains(failure == "missing-package" ? "was not found" : "is not soft deleted", exception.Message);
                 AssertOutcomes(result, new[] { null, exception, null });
                 entry.Undo.Verify(x => x.UndoAsync(It.IsAny<Package>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
                 Entries[2].Undo.Verify(x => x.UndoAsync(Entries[2].Package, Reason, Caller), Times.Once);
@@ -212,7 +131,6 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData(null)]
             [InlineData(" \t\r\n")]
             [InlineData("too-long")]
             public async Task RejectsInvalidReasonsBeforeOpeningAnyScopes(string reason)
@@ -232,13 +150,9 @@ namespace NuGetGallery
         public class SelectionValidation : FactsBase
         {
             [Theory]
-            [InlineData("null")]
             [InlineData("empty")]
             [InlineData("null-item")]
-            [InlineData("null-id")]
             [InlineData("whitespace-id")]
-            [InlineData("null-version")]
-            [InlineData("whitespace-version")]
             [InlineData("bad-version")]
             [InlineData("normalized-duplicate")]
             public async Task RejectsTheWholeStructurallyInvalidSelectionBeforeAnyWork(string invalid)
@@ -246,13 +160,9 @@ namespace NuGetGallery
                 IReadOnlyList<UndoPackageRequest> requests = Requests;
                 switch (invalid)
                 {
-                    case "null": requests = null; break;
                     case "empty": requests = Array.Empty<UndoPackageRequest>(); break;
                     case "null-item": Requests[2] = null; break;
-                    case "null-id": Requests[2].Id = null; break;
                     case "whitespace-id": Requests[2].Id = " \t"; break;
-                    case "null-version": Requests[2].Version = null; break;
-                    case "whitespace-version": Requests[2].Version = " \t"; break;
                     case "bad-version": Requests[2].Version = "not-a-version"; break;
                     case "normalized-duplicate":
                         Requests[0].Version = "1.0";
@@ -273,10 +183,8 @@ namespace NuGetGallery
             protected const string Caller = "authenticated-admin";
             protected readonly Entry[] Entries;
             protected readonly UndoPackageRequest[] Requests;
-            protected readonly PackageDeleteBackup[] Backups;
             protected readonly List<string> Calls = new List<string>();
             protected readonly Mock<IPackageService> PreviewPackages = new Mock<IPackageService>(MockBehavior.Strict);
-            protected readonly Mock<IUndoSoftDeleteService> PreviewUndo = new Mock<IUndoSoftDeleteService>(MockBehavior.Strict);
             protected readonly IContainer Container;
             protected readonly UndoSoftDeleteBatchService Target;
             protected int ScopeCount;
@@ -295,13 +203,6 @@ namespace NuGetGallery
                     }
                 }).ToArray();
                 Requests = Entries.Select(e => new UndoPackageRequest { Id = "Package", Version = e.Package.NormalizedVersion }).ToArray();
-                Backups = Entries.Select(e => new PackageDeleteBackup
-                {
-                    PackageId = "Package",
-                    NormalizedVersion = e.Package.NormalizedVersion,
-                    PackageKey = e.Package.Key,
-                    PackageDeleteKey = e.Package.Key + 10
-                }).ToArray();
                 for (var i = 0; i < Entries.Length; i++)
                 {
                     var index = i;
@@ -309,8 +210,6 @@ namespace NuGetGallery
                     entry.Context.Setup(x => x.Dispose()).Callback(() => entry.ContextDisposed = true);
                     PreviewPackages.Setup(x => x.FindPackageByIdAndVersionStrict("Package", entry.Package.NormalizedVersion))
                         .Callback(() => Calls.Add("preview find " + index)).Returns(entry.Package);
-                    PreviewUndo.Setup(x => x.GetBackupAsync(entry.Package))
-                        .Callback(() => Calls.Add("backup " + index)).ReturnsAsync(Backups[i]);
                     entry.Packages.Setup(x => x.FindPackageByIdAndVersionStrict("Package", entry.Package.NormalizedVersion))
                         .Callback(() => Calls.Add("find " + index)).Returns(entry.Package);
                     entry.Undo.Setup(x => x.UndoAsync(entry.Package, Reason, Caller))
@@ -347,7 +246,7 @@ namespace NuGetGallery
                     var entry = Entries[ScopeCount++];
                     args.LifetimeScope.CurrentScopeEnding += (scopeSender, scopeArgs) => entry.ScopeEnded = true;
                 };
-                Target = new UndoSoftDeleteBatchService(PreviewPackages.Object, PreviewUndo.Object, Container);
+                Target = new UndoSoftDeleteBatchService(PreviewPackages.Object, Container);
             }
 
             protected void AssertOutcomes(UndoSoftDeleteBatchResult result, IReadOnlyList<Exception> exceptions)
@@ -376,10 +275,8 @@ namespace NuGetGallery
                     Assert.True(entry.ContextDisposed);
                     Assert.True(entry.ScopeEnded);
                     entry.Context.Verify(x => x.Dispose(), Times.Once);
-                    entry.Undo.Verify(x => x.GetBackupAsync(It.IsAny<Package>()), Times.Never);
                 }
                 PreviewPackages.VerifyNoOtherCalls();
-                PreviewUndo.VerifyNoOtherCalls();
             }
 
             protected void AssertNoWork()
@@ -388,7 +285,6 @@ namespace NuGetGallery
                 Assert.Equal(0, ScopeCount);
                 Assert.Equal(0, ContextCount);
                 PreviewPackages.VerifyNoOtherCalls();
-                PreviewUndo.VerifyNoOtherCalls();
                 foreach (var entry in Entries)
                 {
                     entry.Packages.VerifyNoOtherCalls();

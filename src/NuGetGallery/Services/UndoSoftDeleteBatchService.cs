@@ -14,33 +14,24 @@ namespace NuGetGallery
     public class UndoSoftDeleteBatchService : IUndoSoftDeleteBatchService
     {
         private readonly IPackageService _packageService;
-        private readonly IUndoSoftDeleteService _undoSoftDeleteService;
         private readonly ILifetimeScope _scope;
 
-        public UndoSoftDeleteBatchService(
-            IPackageService packageService, IUndoSoftDeleteService undoSoftDeleteService, ILifetimeScope scope)
+        public UndoSoftDeleteBatchService(IPackageService packageService, ILifetimeScope scope)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
-            _undoSoftDeleteService = undoSoftDeleteService ?? throw new ArgumentNullException(nameof(undoSoftDeleteService));
             _scope = scope ?? throw new ArgumentNullException(nameof(scope));
         }
 
-        public async Task<IReadOnlyList<UndoPackageRequest>> PreviewAsync(IReadOnlyList<UndoPackageRequest> requests)
+        public Task<IReadOnlyList<UndoPackageRequest>> PreviewAsync(IReadOnlyList<UndoPackageRequest> requests)
         {
             var selection = NormalizeRequests(requests);
             foreach (var request in selection)
             {
                 var package = FindDeletedPackage(_packageService, request);
-                var backup = await _undoSoftDeleteService.GetBackupAsync(package);
-                if (backup == null)
-                {
-                    throw new UserSafeException($"{request.Id} {request.Version} has no matching recovery data for its latest committed deletion. Undo soft delete is unavailable.");
-                }
-                // Return identities only. Do not retain README content for the entire selection.
-                request.Id = backup.PackageId;
-                request.Version = backup.NormalizedVersion;
+                request.Id = package.PackageRegistration.Id;
+                request.Version = package.NormalizedVersion;
             }
-            return selection;
+            return Task.FromResult<IReadOnlyList<UndoPackageRequest>>(selection);
         }
 
         public async Task<UndoSoftDeleteBatchResult> UndoAsync(

@@ -19,68 +19,20 @@ namespace NuGetGallery
     public class UndoSoftDeleteServiceFacts
     {
         [Fact]
-        public async Task ReturnsBackupForMatchingCommittedDeletionAndRetainedSymbols()
-        {
-            var fixture = new Fixture();
-            fixture.Package.SymbolPackages.Add(new SymbolPackage { Key = 30, StatusKey = PackageStatus.Deleted });
-            fixture.Backup.Symbols.Add(new SymbolPackageDeleteBackup { SymbolPackageKey = 30 });
-
-            var backup = await fixture.Service.GetBackupAsync(fixture.Package);
-
-            Assert.Same(fixture.Backup, backup);
-            fixture.Backups.Verify(x => x.GetAsync("Example.Package", "1.0.0", 10, 20), Times.Once);
-            fixture.Backups.VerifyNoOtherCalls();
-        }
-
-        [Fact]
-        public async Task NonDeletedPackageDoesNotReadRecoveryOrStartFollowUp()
-        {
-            var fixture = new Fixture();
-            fixture.Package.PackageStatusKey = PackageStatus.Available;
-
-            Assert.Null(await fixture.Service.GetBackupAsync(fixture.Package));
-            await fixture.Service.UndoAsync(fixture.Package, "Restore");
-
-            fixture.Deletions.VerifyNoOtherCalls();
-            fixture.Backups.VerifyNoOtherCalls();
-            fixture.Dependency<IPackageFileService>().VerifyNoOtherCalls();
-            fixture.Dependency<ISymbolPackageFileService>().VerifyNoOtherCalls();
-            fixture.Dependency<IReflowPackageService>().VerifyNoOtherCalls();
-            fixture.Dependency<IValidationService>().VerifyNoOtherCalls();
-            fixture.Dependency<IAuditingService>().VerifyNoOtherCalls();
-            fixture.Transaction.Verify(x => x.Commit(), Times.Never);
-        }
-
-        [Fact]
-        public async Task RecoveryWithoutCommittedDeletionDoesNotEnablePreviewOrUndo()
+        public async Task RecoveryWithoutCommittedDeletionCannotBeRestored()
         {
             var fixture = new Fixture();
             fixture.Deletion.Packages.Clear();
 
-            Assert.Null(await fixture.Service.GetBackupAsync(fixture.Package));
             var exception = await Assert.ThrowsAsync<UserSafeException>(() => fixture.Service.UndoAsync(
                 fixture.Package, "Restore"));
 
             Assert.Contains("latest committed deletion", exception.Message);
-            fixture.Deletions.Verify(x => x.GetAll(), Times.Exactly(2));
+            fixture.Deletions.Verify(x => x.GetAll(), Times.Once);
             fixture.Backups.VerifyNoOtherCalls();
             fixture.Dependency<IPackageFileService>().VerifyNoOtherCalls();
             fixture.Dependency<IAuditingService>().VerifyNoOtherCalls();
             fixture.Transaction.Verify(x => x.Commit(), Times.Never);
-        }
-
-        [Fact]
-        public async Task LatestDeletionWithoutJsonDoesNotFallBackToOlderBackup()
-        {
-            var fixture = new Fixture();
-            var newer = new PackageDelete { Key = 11, DeletedOn = fixture.Deletion.DeletedOn.AddMinutes(1) };
-            newer.Packages.Add(fixture.Package);
-            fixture.Deletions.Setup(x => x.GetAll()).Returns(new[] { fixture.Deletion, newer }.AsQueryable());
-
-            Assert.Null(await fixture.Service.GetBackupAsync(fixture.Package));
-
-            fixture.Backups.Verify(x => x.GetAsync("Example.Package", "1.0.0", 11, 20), Times.Once);
-            fixture.Backups.Verify(x => x.GetAsync("Example.Package", "1.0.0", 10, 20), Times.Never);
         }
 
         [Fact]
@@ -204,10 +156,9 @@ namespace NuGetGallery
                     break;
             }
 
-            Assert.Null(await fixture.Service.GetBackupAsync(fixture.Package));
-
             await Assert.ThrowsAsync<UserSafeException>(() => fixture.Service.UndoAsync(fixture.Package, "Restore"));
 
+            fixture.Backups.Verify(x => x.GetAsync("Example.Package", "1.0.0", 10, 20), Times.Once);
             fixture.Dependency<IPackageFileService>().VerifyNoOtherCalls();
             fixture.Dependency<ISymbolPackageFileService>().VerifyNoOtherCalls();
             fixture.Transaction.Verify(x => x.Commit(), Times.Never);

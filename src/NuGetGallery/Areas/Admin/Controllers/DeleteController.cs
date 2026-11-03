@@ -121,7 +121,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     }).ToList(),
                     Message = result.Success
                         ? "Successfully restored the selected packages. Feed and search updates may take time to appear."
-                        : $"Completed undo for {result.RestoredCount} of {result.Results.Count} packages. Failed to restore one or more packages: "
+                        : $"Completed undo for {result.RestoredCount} of {result.Results.Count} packages. Failed to restore: "
                             + string.Join(", ", failures.Select(failure => $"{failure.Package.Id}/{failure.Package.Version}"))
                 });
             }

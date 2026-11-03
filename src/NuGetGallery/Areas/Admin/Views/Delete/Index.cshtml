@@ -79,13 +79,13 @@
     }
 
     <div style="display: none" data-bind="visible: selectedAction() === 'undo'">
-        <p role="status" aria-live="polite" data-bind="visible: previewPending">Checking recovery data for the selected versions...</p>
+        <p role="status" aria-live="polite" data-bind="visible: previewPending">Preparing the selected versions for restore...</p>
         <div role="status" aria-live="polite" style="display: none" data-bind="visible: undoUnavailable">
             @ViewHelpers.AlertWarning(@<text><span data-bind="text: undoUnavailable"></span></text>)
         </div>
     </div>
 
-    @using (Html.BeginForm("Undo", "Delete", new { area = "Admin" }, FormMethod.Post, new { id = "undo-form", style = "display: none", data_bind = "visible: undoRecoveryAvailable", novalidate = "novalidate" }))
+    @using (Html.BeginForm("Undo", "Delete", new { area = "Admin" }, FormMethod.Post, new { id = "undo-form", style = "display: none", data_bind = "visible: undoSelectionReady", novalidate = "novalidate" }))
     {
         @Html.AntiForgeryToken()
         <div style="display: none" data-bind="foreach: undoPreview">
@@ -100,10 +100,10 @@
             <textarea id="undo-reason" name="Reason" class="form-control textarea-brand" rows="3" required maxlength="1000" aria-describedby="undo-validation-message"></textarea>
         </div>
         <hr />
-        <p>This restores the saved package state and files. Validation and NuGet V3 feed/search updates may take time.</p>
+        <p>Each selected version is restored independently using its saved package state and files. Versions without valid recovery data will fail. Validation and NuGet V3 feed/search updates may take time.</p>
         <hr />
         <div class="form-group">
-            <input type="submit" class="btn btn-brand-danger form-control" value="I understand the consequences, restore this package" data-bind="enable: undoRecoveryAvailable() && !undoPending()" />
+            <input type="submit" class="btn btn-brand-danger form-control" value="I understand the consequences, restore this package" data-bind="enable: undoSelectionReady() && !undoPending()" />
         </div>
     }
 </section>
@@ -137,6 +137,10 @@
                             $self.operationMessage('');
                         }, 5000);
                     }
+                });
+
+                $('.main-container').on('click input change', 'input:not([type="hidden"]), textarea, select, button, a', function() {
+                    $self.operationMessage('');
                 });
 
                 this.search = function () {
@@ -203,7 +207,7 @@
                     return $self.allDeleted() ? $self.deletedPackageAction() : 'delete';
                 });
 
-                this.undoRecoveryAvailable = ko.computed(function() {
+                this.undoSelectionReady = ko.computed(function() {
                     return $self.selectedAction() === 'undo' && !$self.previewPending() && !$self.undoUnavailable()
                         && $self.undoPreview().length === $self.selectedPackages().length;
                 });
@@ -255,7 +259,7 @@
                         }
                     }).fail(function(xhr, status) {
                         if (currentVersion === selectionVersion && status !== 'abort') {
-                            $self.undoUnavailable('Unable to check recovery data. Refresh the selection and try again.');
+                            $self.undoUnavailable('Unable to prepare the selected versions. Refresh the selection and try again.');
                         }
                     }).always(function() {
                         if (currentVersion === selectionVersion) {
@@ -266,7 +270,7 @@
 
                 $('#undo-form').submit(function(event) {
                     event.preventDefault();
-                    if (!$self.undoRecoveryAvailable() || $self.undoPending()) {
+                    if (!$self.undoSelectionReady() || $self.undoPending()) {
                         return;
                     }
 

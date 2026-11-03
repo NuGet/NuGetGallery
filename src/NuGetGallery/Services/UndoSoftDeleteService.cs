@@ -66,21 +66,6 @@ namespace NuGetGallery
             _diagnostics = diagnostics?.SafeGetSource(nameof(UndoSoftDeleteService)) ?? throw new ArgumentNullException(nameof(diagnostics));
         }
 
-        public async Task<PackageDeleteBackup> GetBackupAsync(Package package)
-        {
-            if (package == null)
-            {
-                throw new ArgumentNullException(nameof(package));
-            }
-
-            if (package.PackageStatusKey != PackageStatus.Deleted)
-            {
-                return null;
-            }
-
-            return await ReadBackupAsync(package, GetLatestDeletion(package));
-        }
-
         private PackageDelete GetLatestDeletion(Package package)
         {
             if (package.Key <= 0 || package.PackageRegistration == null)

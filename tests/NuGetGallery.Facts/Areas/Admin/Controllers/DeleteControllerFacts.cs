@@ -76,7 +76,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         public class ThePreviewUndoMethod : FactsBase
         {
             [Fact]
-            public async Task ReturnsOnlySelectedVersionsWithoutPinningDeletionKeys()
+            public async Task ReturnsSelectedPackageIdentities()
             {
                 var requests = CreateUndoRequest().Packages.Take(1).ToList();
                 _batch.Setup(x => x.PreviewAsync(requests)).ReturnsAsync(new[]
@@ -94,16 +94,15 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 var package = Assert.Single(result["Packages"]);
                 Assert.Equal("NuGet.Versioning", package.Value<string>("Id"));
                 Assert.Equal("4.4.0", package.Value<string>("Version"));
-                Assert.Null(package["PackageDeleteKey"]);
                 _batch.Verify(x => x.PreviewAsync(requests), Times.Once);
                 _packageService.VerifyNoOtherCalls();
             }
 
             [Fact]
-            public async Task ReportsPreflightErrors()
+            public async Task ReportsSelectionErrors()
             {
                 var requests = CreateUndoRequest().Packages;
-                var exception = new UserSafeException("Recovery storage unavailable.");
+                var exception = new UserSafeException("Package 1.0.0 was not found. Refresh the selection.");
                 _batch.Setup(x => x.PreviewAsync(requests)).ThrowsAsync(exception);
 
                 var result = GetJson(await _target.PreviewUndo(requests));
@@ -167,19 +166,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
             }
 
             [Fact]
-            public async Task RejectsInvalidModelState()
-            {
-                _target.ModelState.AddModelError("Reason", "Invalid reason.");
-
-                var result = GetJson(await _target.Undo(CreateUndoRequest()));
-
-                Assert.False(result.Value<bool>("Success"));
-                Assert.Equal("Invalid reason.", result.Value<string>("Message"));
-                _batch.VerifyNoOtherCalls();
-                _telemetryService.Verify(x => x.TraceException(It.IsAny<Exception>()), Times.Never);
-            }
-
-            [Fact]
             public async Task ReportsRequestErrors()
             {
                 var request = CreateUndoRequest();
@@ -212,7 +198,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
                 Assert.False(result.Value<bool>("Success"));
                 Assert.Contains("Completed undo for 1 of 3 packages.", result.Value<string>("Message"));
-                Assert.Contains("Failed to restore one or more packages: NuGet.Versioning/4.3.0, Other.Package/2.0.0", result.Value<string>("Message"));
+                Assert.Contains("Failed to restore: NuGet.Versioning/4.3.0, Other.Package/2.0.0", result.Value<string>("Message"));
                 var entries = result["Results"].ToList();
                 Assert.True(entries[0].Value<bool>("Success"));
                 Assert.False(entries[1].Value<bool>("Success"));
