@@ -12,7 +12,5 @@ namespace NuGetGallery
 
         [Required]
         public string Version { get; set; }
-
-        public int PackageDeleteKey { get; set; }
     }
 }

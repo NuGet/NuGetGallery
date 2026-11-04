@@ -11134,6 +11134,88 @@ namespace NuGetGallery
 
         public class TheDeleteMethod : TestContainer
         {
+            [Fact]
+            public async Task ReportsMissingRecoverySourceOnTheAdminPage()
+            {
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = "Test.Package" },
+                    Version = "1.0.0",
+                    PackageStatusKey = PackageStatus.Available
+                };
+                var packages = new Mock<IPackageService>();
+                packages.Setup(x => x.FindPackageByIdAndVersionStrict("Test.Package", "1.0.0")).Returns(package);
+                var deletions = new Mock<IPackageDeleteService>();
+                var exception = new UserSafeException("Cannot soft-delete Test.Package 1.0.0: the public package file is missing from the configured storage.");
+                deletions.Setup(x => x.SoftDeletePackagesAsync(
+                    It.IsAny<IEnumerable<Package>>(), It.IsAny<User>(), It.IsAny<string>(), It.IsAny<string>(), true))
+                    .ThrowsAsync(exception);
+                var telemetry = new Mock<ITelemetryService>();
+                var controller = CreateController(GetConfigurationService(), packageService: packages,
+                    packageDeleteService: deletions, telemetryService: telemetry);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var result = await controller.Delete(new DeletePackagesRequest
+                {
+                    Packages = new List<string> { "Test.Package|1.0.0" },
+                    Reason = ReportPackageReason.Other,
+                    Signature = "admin",
+                    SoftDelete = true
+                });
+
+                var redirect = Assert.IsType<RedirectToRouteResult>(result);
+                Assert.Equal("Admin", redirect.RouteValues["area"]);
+                Assert.Equal("Delete", redirect.RouteValues["controller"]);
+                Assert.Equal("Index", redirect.RouteValues["action"]);
+                Assert.Equal(exception.Message, controller.TempData["ErrorMessage"]);
+                Assert.Null(controller.TempData["Message"]);
+                telemetry.Verify(x => x.TraceException(exception), Times.Once);
+            }
+
+            [Fact]
+            public async Task SoftDeleteIncludesAlreadyDeletedVersionsForReflow()
+            {
+                var deleted = new Package
+                {
+                    Key = 1,
+                    PackageRegistration = new PackageRegistration { Id = "Test.Package" },
+                    Version = "1.0.0",
+                    PackageStatusKey = PackageStatus.Deleted
+                };
+                var active = new Package
+                {
+                    Key = 2,
+                    PackageRegistration = deleted.PackageRegistration,
+                    Version = "2.0.0",
+                    PackageStatusKey = PackageStatus.Available
+                };
+                var packages = new Mock<IPackageService>();
+                packages.Setup(x => x.FindPackageByIdAndVersionStrict("Test.Package", "1.0.0")).Returns(deleted);
+                packages.Setup(x => x.FindPackageByIdAndVersionStrict("Test.Package", "2.0.0")).Returns(active);
+                var deletions = new Mock<IPackageDeleteService>();
+                var user = TestUtility.FakeUser;
+                var controller = CreateController(GetConfigurationService(), packageService: packages, packageDeleteService: deletions);
+                controller.SetCurrentUser(user);
+                var request = new DeletePackagesRequest
+                {
+                    Packages = new List<string> { "Test.Package|1.0.0", "Test.Package|2.0.0" },
+                    Reason = ReportPackageReason.Other,
+                    Signature = "admin",
+                    SoftDelete = true
+                };
+                var result = await controller.Delete(request);
+
+                Assert.IsType<RedirectResult>(result);
+                var expected = new[] { deleted, active };
+                deletions.Verify(x => x.SoftDeletePackagesAsync(
+                    It.Is<IEnumerable<Package>>(selected => selected.SequenceEqual(expected)),
+                    user, It.IsAny<string>(), "admin", true), Times.Once);
+                deletions.Verify(x => x.HardDeletePackagesAsync(
+                    It.IsAny<IEnumerable<Package>>(), It.IsAny<User>(), It.IsAny<string>(),
+                    It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
+                Assert.Equal(PackageStatus.Deleted, deleted.PackageStatusKey);
+            }
+
             [Theory]
             [InlineData(true)]
             [InlineData(false)]

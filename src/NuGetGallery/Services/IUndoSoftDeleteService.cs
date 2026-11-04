@@ -9,13 +9,8 @@ namespace NuGetGallery
     public interface IUndoSoftDeleteService
     {
         /// <summary>
-        /// Gets recovery data matching the package's latest committed deletion, or null if it is not eligible.
+        /// Undoes the latest committed deletion. Repeating a completed undo makes no changes.
         /// </summary>
-        Task<PackageDeleteBackup> GetBackupAsync(Package package);
-
-        /// <summary>
-        /// Undoes the specified committed deletion. Repeating a completed undo makes no changes.
-        /// </summary>
-        Task UndoAsync(Package package, int packageDeleteKey, string reason, string callerIdentity = null);
+        Task UndoAsync(Package package, string reason, string callerIdentity = null);
     }
 }
