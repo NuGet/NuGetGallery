@@ -7,6 +7,8 @@
         "api.dependabot.com",
         "api.travis-ci.com",
         "api.reuse.software",
+        "api.scorecard.dev",
+        "api.securityscorecards.dev",
         "badgen.net",
         "badges.gitter.im",
         "caniuse.bitsofco.de",
