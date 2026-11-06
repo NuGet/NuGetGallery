@@ -276,6 +276,17 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    3018                                       |    10/29/2026    |   Malware  |
 |    VS_Builder.MSBuildAnalyzer                 |    11/02/2026    |   Malware  |
 |    VS_Builder.WinUI3Controls                  |    11/02/2026    |   Malware  |
+|    HappyOne.MSBuildAnalyzer                   |    11/06/2026    |   Malware  |
+|    HappyOne.WinUI3Controls                    |    11/06/2026    |   Malware  |
+|    RevertButtonIcon                           |    11/06/2026    |   Malware  |
+|    SetButtonColor                             |    11/06/2026    |   Malware  |
+|    InitializeCustomButton                     |    11/06/2026    |   Malware  |
+|    HappyLee.HelloWorldUtil                    |    11/06/2026    |   Malware  |
+|    WinUI3IconButton                           |    11/06/2026    |   Malware  |
+|    WindowsAccentColorName                     |    11/06/2026    |   Malware  |
+|    StyledAppButton                            |    11/06/2026    |   Malware  |
+|    StyledComponent                            |    11/06/2026    |   Malware  |
+|    HelloHappyNuGet                            |    11/06/2026    |   Malware  |
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.
