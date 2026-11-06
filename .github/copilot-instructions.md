@@ -72,6 +72,18 @@ For agent-owned browser validation, use the in-test Aspire harness:
 
 Both runners use the same suite fixture. It is Windows-only and uses fixed Gallery ports 80/443, so do not run functional-test processes concurrently or alongside `Start-AspireHost.ps1`. When `CloudTestWorkerCustomVstestExe` is present, the fixture uses the externally hosted Gallery configured by `ConfigurationFilePath` instead of starting Aspire. Builds with `ConfigurationFilePath` set omit the Aspire harness dependencies because CloudTest supplies the host. Pass `-AppHostProfile full` to the Playwright runner only when local Azure Search prerequisites are available. Statistics-service and read-only-mode browser tests remain on their separately configured paths.
 
+#### Agentic Gallery UI validation
+
+For user-visible Gallery changes, follow the test contract in `tests\NuGetGallery.FunctionalTests\Playwright\README.md`:
+
+1. Inspect the implementation, existing browser tests, and shared helpers before editing.
+2. Add or update a committed C# Playwright test under `tests\NuGetGallery.FunctionalTests\Playwright`.
+3. Use Playwright MCP against the local Gallery when accessibility-tree inspection, reproduction, screenshots, or interactive debugging materially helps. MCP exploration does not replace the committed test.
+4. Run `.\tests\Scripts\RunGalleryPlaywrightTests.ps1 -Configuration Release`, fix the implementation or test when it fails, and rerun until the normal non-debug suite passes.
+5. Report the exact command and passed, failed, and skipped counts in the pull request.
+
+Use `-Headed`, `-PwDebug`, and `-Dashboard` only while diagnosing behavior. Finish with the default `ci-gallery` profile unless the scenario specifically requires the Azure Search-backed `full` profile. Never run this harness concurrently with another functional-test process or `Start-AspireHost.ps1` because the Gallery binds fixed ports 80/443.
+
 ### Frontend assets
 
 Change Gallery styles in `src\Bootstrap\less`, not generated CSS. Then run:
