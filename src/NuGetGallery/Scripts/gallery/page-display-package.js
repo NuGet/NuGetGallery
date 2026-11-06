@@ -112,34 +112,40 @@ $(function () {
         });
     }
 
+    // Show the "Copied." popover of a copy button
+    function showCopiedPopover(copyButton) {
+        var copyButtonDom = copyButton.get(0);
+
+        copyButton.popover('show');
+
+        // Windows Narrator does not announce popovers' content. See: https://github.com/twbs/bootstrap/issues/18618
+        // We can force Narrator to announce the popover's content by "flashing"
+        // the copy button's ARIA label.
+        var originalLabel = copyButtonDom.ariaLabel;
+        copyButtonDom.ariaLabel = "";
+
+        setTimeout(function () {
+            copyButton.popover('destroy');
+
+            // We need to restore the copy button's original ARIA label.
+            // Wait 0.15 seconds for the popover to fade away first.
+            // Otherwise, the screen reader will re-announce the popover's content.
+            setTimeout(function () {
+                copyButtonDom.ariaLabel = originalLabel;
+            }, 200);
+        }, 1500);
+    }
+
     // Configure package manager copy buttons
     function configureCopyButton(id) {
         var copyButton = $('#' + id + '-button');
-        var copyButtonDom = copyButton.get(0);
         copyButton.popover({ trigger: 'manual' });
 
         copyButton.click(function () {
             var text = $('#' + id + '-text .install-command-row').text().trim();
             window.nuget.copyTextToClipboard(text, copyButton);
 
-            copyButton.popover('show');
-
-            // Windows Narrator does not announce popovers' content. See: https://github.com/twbs/bootstrap/issues/18618
-            // We can force Narrator to announce the popover's content by "flashing"
-            // the copy button's ARIA label.
-            var originalLabel = copyButtonDom.ariaLabel;
-            copyButtonDom.ariaLabel = "";
-
-            setTimeout(function () {
-                copyButton.popover('destroy');
-
-                // We need to restore the copy button's original ARIA label.
-                // Wait 0.15 seconds for the popover to fade away first.
-                // Otherwise, the screen reader will re-announce the popover's content.
-                setTimeout(function () {
-                    copyButtonDom.ariaLabel = originalLabel;
-                }, 200);
-            }, 1500);
+            showCopiedPopover(copyButton);
 
             window.nuget.sendMetric("CopyInstallCommand", 1, {
                 ButtonId: id,
@@ -153,6 +159,31 @@ $(function () {
     {
         configureCopyButton(packageManagers[i]);
     }
+
+    // Configure copy buttons for code blocks in the README
+    $('#readme-container pre').each(function () {
+        var codeBlock = $(this);
+        var copyButton = $('<button class="btn btn-brand-icon readme-copy-button" type="button"' +
+            ' data-toggle="popover" data-placement="bottom" data-content="Copied."' +
+            ' aria-label="Copy code to clipboard" title="Copy">' +
+            '<span class="ms-Icon ms-Icon--Copy" aria-hidden="true"></span>' +
+            '</button>');
+
+        codeBlock.wrap('<div class="readme-code-block"></div>');
+        codeBlock.after(copyButton);
+        copyButton.popover({ trigger: 'manual' });
+
+        copyButton.click(function () {
+            window.nuget.copyTextToClipboard(codeBlock.text().replace(/\n$/, ''), copyButton);
+
+            showCopiedPopover(copyButton);
+
+            window.nuget.sendMetric("CopyReadmeCodeBlock", 1, {
+                PackageId: packageId,
+                PackageVersion: packageVersion
+            });
+        });
+    });
 
     // Restore previously selected package manager and body tab.
     var storage = window['localStorage'];
