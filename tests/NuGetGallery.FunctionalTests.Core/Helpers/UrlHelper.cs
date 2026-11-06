@@ -187,6 +187,11 @@ namespace NuGetGallery.FunctionalTests
             return BaseUrl + @"Packages/" + packageId + "/" + version;
         }
 
+        public static string GetPackageManagePageUrl(string packageId, string version = "1.0.0")
+        {
+            return GetPackagePageUrl(packageId, version) + "/Manage";
+        }
+
         public static string GetPackageDeletePageUrl(string packageId, string version = "1.0.0")
         {
             return BaseUrl + @"Packages/" + packageId + "/" + version + "/Delete";
@@ -218,6 +223,5 @@ namespace NuGetGallery.FunctionalTests
         }
     }
 }
-
 
 

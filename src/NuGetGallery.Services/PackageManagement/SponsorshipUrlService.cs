@@ -67,6 +67,12 @@ namespace NuGetGallery
 		// Read existing entries before starting transaction (no DB access needed)
 		var existingEntries = GetSponsorshipUrlEntriesInternal(packageRegistration).ToList();
 
+		if (existingEntries.Any(entry =>
+			string.Equals(entry.Url, validatedUrl, StringComparison.OrdinalIgnoreCase)))
+		{
+			throw new SponsorshipUrlValidationException("Sponsorship URL already exists.");
+		}
+
 		// Check URL count limit
 		if (existingEntries.Count >= maxLinks)
 		{

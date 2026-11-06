@@ -366,6 +366,35 @@ namespace NuGetGallery.Services
 					service.AddSponsorshipUrlAsync(packageRegistration, longUrl, user));
 				Assert.Contains("too long", ex.Message);
 			}
+
+			[Theory]
+			[InlineData(
+				"https://github.com/sponsors/testuser",
+				"https://github.com/sponsors/testuser")]
+			[InlineData(
+				"https://github.com/sponsors/testuser",
+				"http://GITHUB.com/sponsors/TestUser")]
+			public async Task ThrowsSponsorshipUrlValidationExceptionForDuplicateUrl(
+				string existingUrl,
+				string duplicateUrl)
+			{
+				// Arrange
+				var sponsorshipData = new[]
+				{
+					new { url = existingUrl, timestamp = DateTime.UtcNow }
+				};
+				var packageRegistration = CreatePackageRegistration(
+					sponsorshipUrls: JsonConvert.SerializeObject(sponsorshipData));
+				var service = CreateService();
+				var user = CreateUser();
+
+				// Act
+				var ex = await Assert.ThrowsAsync<SponsorshipUrlValidationException>(() =>
+					service.AddSponsorshipUrlAsync(packageRegistration, duplicateUrl, user));
+
+				// Assert
+				Assert.Equal("Sponsorship URL already exists.", ex.Message);
+			}
 		}
 
 		public class TheRemoveSponsorshipUrlAsyncMethod
