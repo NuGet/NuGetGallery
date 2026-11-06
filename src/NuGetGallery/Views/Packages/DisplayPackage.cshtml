@@ -854,6 +854,11 @@
                         }
                         else
                         {
+                            if (Model.ReadMeFailedToRender)
+                            {
+                                @ViewHelpers.AlertDanger(@<text>The package README could not be rendered. The package description is shown below.</text>)
+                            }
+
                             if (Model.CanDisplayPrivateMetadata && Model.CanDisplayReadmeWarning)
                             {
                                 @ViewHelpers.AlertWarning(@<text>Your package is missing a README. Please update your package to <a href='https://aka.ms/nuget-include-readme'>include a README</a> or <a href=@Url.ManagePackage(Model)>add a README here</a>.</text>);
