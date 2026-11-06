@@ -23,5 +23,6 @@ namespace NuGetGallery.Auditing
         Reflow,
         FailValidation,
         SymbolsFailValidation,
+        UndoSoftDelete,
     }
 }

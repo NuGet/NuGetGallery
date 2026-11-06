@@ -78,6 +78,7 @@ namespace NuGetGallery.Auditing
                 data.Add(new object[] { CreatePackageAuditRecord(AuditedPackageAction.Edit), false });
                 data.Add(new object[] { CreatePackageAuditRecord(AuditedPackageAction.List), false });
                 data.Add(new object[] { CreatePackageAuditRecord(AuditedPackageAction.SoftDelete), true });
+                data.Add(new object[] { CreatePackageAuditRecord(AuditedPackageAction.UndoSoftDelete), true });
 #pragma warning disable CS0618
                 data.Add(new object[] { CreatePackageAuditRecord(AuditedPackageAction.UndoEdit), false });
 #pragma warning restore

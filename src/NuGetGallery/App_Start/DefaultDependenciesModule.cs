@@ -364,6 +364,14 @@ namespace NuGetGallery
                 .As<IPackageDeleteService>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<UndoSoftDeleteService>()
+                .As<IUndoSoftDeleteService>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<UndoSoftDeleteBatchService>()
+                .As<IUndoSoftDeleteBatchService>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<UpdateListedService>()
                 .As<IUpdateListedService>()
                 .InstancePerLifetimeScope();

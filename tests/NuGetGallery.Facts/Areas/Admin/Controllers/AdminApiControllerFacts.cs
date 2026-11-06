@@ -1260,7 +1260,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
                         It.Is<IEnumerable<Package>>(p => new List<Package>(p).Count == 1),
                         null,
                         "malware",
-                        "test-app"),
+                        "test-app",
+                        true),
                     Times.Once);
             }
 

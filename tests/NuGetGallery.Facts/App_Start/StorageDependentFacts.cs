@@ -72,6 +72,7 @@ namespace NuGetGallery
             Assert.Contains(typeof(CertificateService), implementationToInterface.Keys);
             Assert.Contains(typeof(ContentService), implementationToInterface.Keys);
             Assert.Contains(typeof(PackageFileService), implementationToInterface.Keys);
+            Assert.Contains(typeof(PackageDeleteBackupService), implementationToInterface.Keys);
             Assert.Contains(typeof(StagingBlobService), implementationToInterface.Keys);
             Assert.Contains(typeof(SymbolPackageFileService), implementationToInterface.Keys);
             Assert.Contains(typeof(UploadFileService), implementationToInterface.Keys);
@@ -80,10 +81,11 @@ namespace NuGetGallery
             Assert.Contains(typeof(RevalidationStateService), implementationToInterface.Keys);
             Assert.Contains(typeof(EditableFeatureFlagFileStorageService), implementationToInterface.Keys);
             Assert.Contains(typeof(EditableLoginConfigurationFileStorageService), implementationToInterface.Keys);
-            Assert.Equal(11, implementationToInterface.Count);
+            Assert.Equal(12, implementationToInterface.Count);
             Assert.Equal(typeof(ICertificateService), implementationToInterface[typeof(CertificateService)]);
             Assert.Equal(typeof(IContentService), implementationToInterface[typeof(ContentService)]);
             Assert.Equal(typeof(IPackageFileService), implementationToInterface[typeof(PackageFileService)]);
+            Assert.Equal(typeof(IPackageDeleteBackupService), implementationToInterface[typeof(PackageDeleteBackupService)]);
             Assert.Equal(typeof(IStagingBlobService), implementationToInterface[typeof(StagingBlobService)]);
             Assert.Equal(typeof(ISymbolPackageFileService), implementationToInterface[typeof(SymbolPackageFileService)]);
             Assert.Equal(typeof(IUploadFileService), implementationToInterface[typeof(UploadFileService)]);
@@ -108,6 +110,7 @@ namespace NuGetGallery
             Assert.Equal(typeToConnectionString[typeof(CertificateService)], config.AzureStorage_UserCertificates_ConnectionString);
             Assert.Equal(typeToConnectionString[typeof(ContentService)], config.AzureStorage_Content_ConnectionString);
             Assert.Equal(typeToConnectionString[typeof(PackageFileService)], config.AzureStorage_Packages_ConnectionString);
+            Assert.Equal(typeToConnectionString[typeof(PackageDeleteBackupService)], config.AzureStorage_Packages_ConnectionString);
             Assert.Equal(typeToConnectionString[typeof(UploadFileService)], config.AzureStorage_Uploads_ConnectionString);
             Assert.Equal(typeToConnectionString[typeof(CoreLicenseFileService)], config.AzureStorage_FlatContainer_ConnectionString);
             Assert.Equal(typeToConnectionString[typeof(CoreReadmeFileService)], config.AzureStorage_FlatContainer_ConnectionString);
@@ -130,6 +133,8 @@ namespace NuGetGallery
             // Assert
             var typeToBindingKey = dependents.ToDictionary(x => x.ImplementationType, x => x.BindingKey);
             Assert.Equal(typeToBindingKey[typeof(PackageFileService)], typeToBindingKey[typeof(UploadFileService)]);
+            Assert.Equal(typeToBindingKey[typeof(PackageFileService)], typeToBindingKey[typeof(PackageDeleteBackupService)]);
+            Assert.False(dependents.Single(d => d.ImplementationType == typeof(PackageDeleteBackupService)).IsSingleInstance);
         }
 
         private static IAppConfiguration GetConfiguration()

@@ -213,6 +213,12 @@ namespace NuGetGallery
 		{
 			public FactsBase()
 			{
+				var appConfiguration = new Mock<IAppConfiguration>();
+				var galleryConfigurationService = new Mock<IGalleryConfigurationService>();
+				galleryConfigurationService.SetupGet(x => x.Current).Returns(appConfiguration.Object);
+				galleryConfigurationService.Setup(x => x.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost");
+				UrlHelperExtensions.SetConfigurationService(galleryConfigurationService.Object);
+
 				IconUrlProvider = new Mock<IIconUrlProvider>();
 				PackageFrameworkCompatibilityFactory = new Mock<IPackageFrameworkCompatibilityFactory>();
 				FeatureFlagService = new Mock<IFeatureFlagService>();
