@@ -405,6 +405,10 @@
     <Compile Include="Migrations\202610090013233_AddPackageStaging.Designer.cs">
       <DependentUpon>202610090013233_AddPackageStaging.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202611070018282_RestoreUniquePackageKeyIndexOnPackageDeprecations.cs" />
+    <Compile Include="Migrations\202611070018282_RestoreUniquePackageKeyIndexOnPackageDeprecations.Designer.cs">
+      <DependentUpon>202611070018282_RestoreUniquePackageKeyIndexOnPackageDeprecations.cs</DependentUpon>
+    </Compile>
     <Compile Include="Modules\CookieComplianceHttpModule.cs" />
     <Compile Include="RequestModels\DeletePackagesApiRequest.cs" />
     <Compile Include="RequestModels\UpdateListedRequest.cs" />
@@ -1857,6 +1861,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202610090013233_AddPackageStaging.resx">
       <DependentUpon>202610090013233_AddPackageStaging.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202611070018282_RestoreUniquePackageKeyIndexOnPackageDeprecations.resx">
+      <DependentUpon>202611070018282_RestoreUniquePackageKeyIndexOnPackageDeprecations.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
