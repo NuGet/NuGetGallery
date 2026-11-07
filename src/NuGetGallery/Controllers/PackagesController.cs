@@ -64,12 +64,9 @@ namespace NuGetGallery
         private static readonly TimeSpan IsIndexedCheckUntil = TimeSpan.FromDays(1);
 
         /// <summary>
-        /// The trailing window, in days, over which the "Per day average" download metric is computed when
-        /// recent download statistics are available. This MUST match the window in the report stored proc
-        /// dbo.DownloadReportRecentPopularityDetailByPackage (DATEADD(day, -42, ...)). That date filter is
-        /// inclusive of both ends (43 calendar dates), but the most recent date is a partial, ETL-lagged
-        /// bucket, so ~42 full days of data are captured; 42 also matches the report's documented 6-week
-        /// window. The per-package report carries no date dimension, so the window can't be read back here.
+        /// The trailing window, in days, that the recent-popularity report covers: its documented 6-week
+        /// window, matching DATEADD(day, -42, ...) in dbo.DownloadReportRecentPopularityDetailByPackage.
+        /// The per-package report carries no date dimension, so the window is fixed here, not read back.
         /// </summary>
         private const int RecentDownloadWindowInDays = 42;
 
@@ -1053,7 +1050,7 @@ namespace NuGetGallery
 
             if (_featureFlagService.IsRecentDownloadsPerDayEnabled())
             {
-                await SetRecentDownloadsPerDayAsync(model, id, hasCompleteVersionHistory: !hasMoreVersions);
+                await SetRecentDownloadsPerDayAsync(model, id);
             }
 
             if (model.IsGitHubUsageEnabled = _featureFlagService.IsGitHubUsageEnabled(currentUser))
@@ -1207,14 +1204,12 @@ namespace NuGetGallery
         /// This reflects a package's current popularity, unlike the factory's lifetime figure which divides
         /// total downloads by the age of the oldest available version and over-states packages that release
         /// frequently or unlist/delete old versions. See https://github.com/NuGet/NuGetGallery/issues/10931.
+        /// The total is always divided by the full window so the metric has a single, consistent meaning
+        /// ("6 week per day average") regardless of a package's age; a package younger than the window is
+        /// understated, but for such packages the lifetime total is the more useful figure anyway.
         /// When recent statistics are unavailable the model keeps the lifetime figure as a fallback.
         /// </summary>
-        /// <param name="hasCompleteVersionHistory">
-        /// True when <see cref="DisplayPackageViewModel.TotalDaysSinceCreated"/> was computed from the package's
-        /// full version history and can be trusted as its true age. When only a capped subset of versions was
-        /// loaded (reduced version lists), the age is unreliable, so the full window is used instead.
-        /// </param>
-        private async Task SetRecentDownloadsPerDayAsync(DisplayPackageViewModel model, string id, bool hasCompleteVersionHistory)
+        private async Task SetRecentDownloadsPerDayAsync(DisplayPackageViewModel model, string id)
         {
             // No statistics source configured (e.g. NullStatisticsService); keep the lifetime fallback.
             if (_statisticsService == NullStatisticsService.Instance)
@@ -1227,15 +1222,7 @@ namespace NuGetGallery
                 var recentDownloads = await GetRecentDownloadCountAsync(id);
                 if (recentDownloads.HasValue)
                 {
-                    // For a package younger than the window, divide only by the days it has existed; otherwise a
-                    // brand-new package's average is understated, since the report only contains downloads from
-                    // the days the package existed. Only trust the age when the full version history was loaded:
-                    // with a capped list (reduced version lists) the computed age can be far too small, which
-                    // would instead over-state a frequently-releasing package, so fall back to the full window.
-                    var windowDays = hasCompleteVersionHistory
-                        ? Math.Max(1, Math.Min(RecentDownloadWindowInDays, model.TotalDaysSinceCreated))
-                        : RecentDownloadWindowInDays;
-                    var downloadsPerDay = recentDownloads.Value / windowDays;
+                    var downloadsPerDay = recentDownloads.Value / RecentDownloadWindowInDays;
                     model.DownloadsPerDay = downloadsPerDay;
                     model.DownloadsPerDayLabel = downloadsPerDay < 1 ? "<1" : downloadsPerDay.ToNuGetNumberString();
                 }

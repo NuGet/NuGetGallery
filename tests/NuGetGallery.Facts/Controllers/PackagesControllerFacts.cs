@@ -1152,7 +1152,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WhenPackageYoungerThanWindowDividesByPackageAgeNotFullWindow()
+            public async Task WhenPackageYoungerThanWindowStillDividesByFullWindow()
             {
                 // Arrange
                 var packageService = new Mock<IPackageService>();
@@ -1180,7 +1180,8 @@ namespace NuGetGallery
                     .Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
                     .Returns(package);
 
-                // 1,000 downloads for a package only ~10 days old => 100 per day, not 1000/42 (23).
+                // Always a 6-week per day average: 1,000 downloads for a ~10-day-old package => 1000/42 = 23,
+                // regardless of the package's apparent age, so the metric has one consistent meaning.
                 var report = new StatisticsPackagesReport
                 {
                     Facts = new List<StatisticsFact>
@@ -1197,64 +1198,8 @@ namespace NuGetGallery
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
-                Assert.Equal(100L, model.DownloadsPerDay);
+                Assert.Equal(23L, model.DownloadsPerDay);
             }
-
-            [Fact]
-            public async Task WhenVersionListIsCappedUsesFullWindowNotApparentAge()
-            {
-                // Arrange: reduced version lists means only the latest versions are loaded, so the apparent
-                // age is unreliable. A frequently-releasing but old package must not be divided by that age.
-                var featureFlagService = new Mock<IFeatureFlagService>();
-                featureFlagService.SetReturnsDefault<bool>(true);
-                featureFlagService.Setup(ff => ff.IsReducedVersionListsEnabled()).Returns(true);
-
-                var packageService = new Mock<IPackageService>();
-                var statisticsService = new Mock<IStatisticsService>();
-
-                var package = new Package()
-                {
-                    PackageRegistration = new PackageRegistration() { Id = "Foo", Owners = new List<User>() },
-                    Version = "1.0.0",
-                    NormalizedVersion = "1.0.0",
-                    PackageStatusKey = PackageStatus.Available,
-                    // The loaded (capped) versions span only ~5 days, but the package is actually old.
-                    Created = DateTime.UtcNow.AddDays(-5),
-                };
-                var packages = new List<Package> { package };
-
-                packageService
-                    .Setup(ps => ps.FindLatestVersionsById(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>()))
-                    .Returns(new LatestPackageVersionsResult { Packages = packages, HasMoreResults = true });
-                packageService
-                    .Setup(p => p.FilterLatestPackage(It.IsAny<IReadOnlyCollection<Package>>(), SemVerLevelKey.SemVer2, true))
-                    .Returns(package);
-
-                var report = new StatisticsPackagesReport
-                {
-                    Facts = new List<StatisticsFact> { new StatisticsFact(new Dictionary<string, string>(), 4200) },
-                };
-                statisticsService
-                    .Setup(s => s.GetPackageDownloadsByVersion("Foo"))
-                    .ReturnsAsync(report);
-
-                var controller = CreateController(
-                    GetConfigurationService(),
-                    packageService: packageService,
-                    statisticsService: statisticsService,
-                    featureFlagService: featureFlagService);
-                controller.SetCurrentUser(TestUtility.FakeUser);
-
-                // Act
-                var result = await controller.DisplayPackage("Foo", null);
-
-                // Assert: full 42-day window used (4200/42 = 100), not the misleading 5-day apparent age (840).
-                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
-                Assert.Equal(100L, model.DownloadsPerDay);
-            }
-
-            [Fact]
-            public async Task WhenRecentDownloadsPerDayDisabledDoesNotReadStatistics()
             {
                 // Arrange
                 var packageService = new Mock<IPackageService>();
