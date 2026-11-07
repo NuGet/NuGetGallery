@@ -62,6 +62,18 @@ namespace NuGetGallery
         /// </summary>
         private static readonly TimeSpan IsIndexedCheckUntil = TimeSpan.FromDays(1);
 
+        /// <summary>
+        /// The trailing window, in days, that the recent-popularity report covers: its documented 6-week
+        /// window, matching DATEADD(day, -42, ...) in dbo.DownloadReportRecentPopularityDetailByPackage.
+        /// The per-package report carries no date dimension, so the window is fixed here, not read back.
+        /// </summary>
+        private const int RecentDownloadWindowInDays = 42;
+
+        /// <summary>
+        /// How long a package's recent download total is cached before the statistics report is re-read.
+        /// </summary>
+        private static readonly TimeSpan RecentDownloadStatisticsCacheDuration = TimeSpan.FromHours(1);
+
         private static readonly IReadOnlyList<ReportPackageReason> ReportAbuseReasons = new[]
         {
             ReportPackageReason.ViolatesALicenseIOwn,
@@ -151,6 +163,7 @@ namespace NuGetGallery
         private readonly IPackageFrameworkCompatibilityFactory _compatibilityFactory;
         private readonly IReflowPackageService _reflowPackageService;
         private readonly DisplayPackageViewModelFactory _displayPackageViewModelFactory;
+        private readonly IStatisticsService _statisticsService;
         private readonly DisplayLicenseViewModelFactory _displayLicenseViewModelFactory;
         private readonly ListPackageItemViewModelFactory _listPackageItemViewModelFactory;
         private readonly ManagePackageViewModelFactory _managePackageViewModelFactory;
@@ -193,7 +206,8 @@ namespace NuGetGallery
             IMarkdownService markdownService,
             IPackageFrameworkCompatibilityFactory compatibilityFactory,
             ISponsorshipUrlService sponsorshipUrlService,
-            IReflowPackageService reflowPackageService)
+            IReflowPackageService reflowPackageService,
+            IStatisticsService statisticsService)
         {
             _packageFilter = packageFilter;
             _packageService = packageService;
@@ -232,6 +246,7 @@ namespace NuGetGallery
             _abTestService = abTestService ?? throw new ArgumentNullException(nameof(abTestService));
             _iconUrlProvider = iconUrlProvider ?? throw new ArgumentNullException(nameof(iconUrlProvider));
             _reflowPackageService = reflowPackageService ?? throw new ArgumentNullException(nameof(reflowPackageService));
+            _statisticsService = statisticsService ?? throw new ArgumentNullException(nameof(statisticsService));
 
             _displayPackageViewModelFactory = new DisplayPackageViewModelFactory(_iconUrlProvider, _compatibilityFactory, featureFlagService, sponsorshipUrlService);
             _displayLicenseViewModelFactory = new DisplayLicenseViewModelFactory(_iconUrlProvider, _markdownService, _featureFlagService);
@@ -1018,6 +1033,11 @@ namespace NuGetGallery
                 model.PackageDependents = GetPackageDependents(id);
             }
 
+            if (_featureFlagService.IsRecentDownloadsPerDayEnabled())
+            {
+                await SetRecentDownloadsPerDayAsync(model, id);
+            }
+
             if (model.IsGitHubUsageEnabled = _featureFlagService.IsGitHubUsageEnabled(currentUser))
             {
                 var gitHubUsage = _contentObjectService.GitHubUsageConfiguration.GetPackageInformation(id);
@@ -1161,6 +1181,78 @@ namespace NuGetGallery
                 // https://github.com/NuGet/NuGetGallery/issues/4718
             }
             return dependents;
+        }
+
+        /// <summary>
+        /// Overrides the model's "Per day average" download metric with one computed from the trailing
+        /// <see cref="RecentDownloadWindowInDays"/>-day download statistics, when those are available.
+        /// This reflects a package's current popularity, unlike the factory's lifetime figure which divides
+        /// total downloads by the age of the oldest available version and over-states packages that release
+        /// frequently or unlist/delete old versions. See https://github.com/NuGet/NuGetGallery/issues/10931.
+        /// The total is always divided by the full window so the metric has a single, consistent meaning
+        /// ("6 week per day average") regardless of a package's age; a package younger than the window is
+        /// understated, but for such packages the lifetime total is the more useful figure anyway.
+        /// When recent statistics are unavailable the model keeps the lifetime figure as a fallback.
+        /// </summary>
+        private async Task SetRecentDownloadsPerDayAsync(DisplayPackageViewModel model, string id)
+        {
+            // No statistics source configured (e.g. NullStatisticsService); keep the lifetime fallback.
+            if (_statisticsService == NullStatisticsService.Instance)
+            {
+                return;
+            }
+
+            try
+            {
+                var recentDownloads = await GetRecentDownloadCountAsync(id);
+                if (recentDownloads.HasValue)
+                {
+                    var downloadsPerDay = recentDownloads.Value / RecentDownloadWindowInDays;
+                    model.DownloadsPerDay = downloadsPerDay;
+                }
+            }
+            catch (Exception ex)
+            {
+                // A statistics hiccup must never break the package details page; fall back to the
+                // lifetime average already set on the model.
+                _telemetryService.TraceException(ex);
+            }
+        }
+
+        /// <summary>
+        /// Returns the total number of downloads for the package over the trailing statistics window,
+        /// or null when no recent statistics report is available. The result is cached per web instance
+        /// for <see cref="RecentDownloadStatisticsCacheDuration"/> to avoid a report read on every request.
+        /// </summary>
+        private async Task<long?> GetRecentDownloadCountAsync(string id)
+        {
+            var cacheKey = "RecentDownloads_" + id.ToLowerInvariant();
+            var cached = HttpContext.Cache.Get(cacheKey);
+            if (cached != null)
+            {
+                var cachedValue = (long)cached;
+                return cachedValue < 0 ? (long?)null : cachedValue;
+            }
+
+            // -1 is a sentinel meaning "no recent statistics available" so that packages without a
+            // recent-popularity report are cached too and don't trigger a report read on every request.
+            var recentDownloads = -1L;
+            var report = await _statisticsService.GetPackageDownloadsByVersion(id);
+            if (report?.Facts != null && report.Facts.Count > 0)
+            {
+                recentDownloads = report.Facts.Sum(fact => fact.Amount);
+            }
+
+            // note: this is a per instance cache
+            HttpContext.Cache.Add(
+                cacheKey,
+                recentDownloads,
+                null,
+                DateTime.UtcNow.Add(RecentDownloadStatisticsCacheDuration),
+                Cache.NoSlidingExpiration,
+                CacheItemPriority.Default, null);
+
+            return recentDownloads < 0 ? (long?)null : recentDownloads;
         }
 
         [HttpGet]
