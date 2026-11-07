@@ -1148,7 +1148,6 @@ namespace NuGetGallery
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal(200L, model.DownloadsPerDay);
-                Assert.Equal("200", model.DownloadsPerDayLabel);
             }
 
             [Fact]

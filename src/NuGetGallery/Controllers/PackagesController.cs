@@ -1224,7 +1224,6 @@ namespace NuGetGallery
                 {
                     var downloadsPerDay = recentDownloads.Value / RecentDownloadWindowInDays;
                     model.DownloadsPerDay = downloadsPerDay;
-                    model.DownloadsPerDayLabel = downloadsPerDay < 1 ? "<1" : downloadsPerDay.ToNuGetNumberString();
                 }
             }
             catch (Exception ex)
