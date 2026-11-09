@@ -99,12 +99,19 @@ namespace NuGetGallery
                 return null;
             }
 
-            if (package.PackageStatusKey == PackageStatus.Deleted && backup.Symbols.Any(saved => !package.SymbolPackages.Any(symbol =>
-                symbol.Key == saved.SymbolPackageKey && symbol.StatusKey == PackageStatus.Deleted)))
+            var savedSymbolKeys = backup.Symbols.Select(saved => saved.SymbolPackageKey).ToList();
+            var existingSymbols = _entitiesContext.SymbolPackages
+                .Where(symbol => savedSymbolKeys.Contains(symbol.Key))
+                .Select(symbol => new { symbol.Key, symbol.PackageKey, symbol.StatusKey })
+                .ToList();
+            if (package.PackageStatusKey == PackageStatus.Deleted
+                && existingSymbols.Any(symbol => symbol.PackageKey != package.Key || symbol.StatusKey != PackageStatus.Deleted))
             {
                 return null;
             }
 
+            backup.Symbols.RemoveAll(saved =>
+                !existingSymbols.Any(symbol => symbol.Key == saved.SymbolPackageKey));
             return backup;
         }
 

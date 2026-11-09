@@ -129,6 +129,7 @@ namespace NuGetGallery
         [InlineData("version")]
         [InlineData("timestamp")]
         [InlineData("symbol")]
+        [InlineData("symbol-package")]
         [InlineData("deletion-key")]
         [InlineData("package-key")]
         public async Task BackupConflictsDoNotEnableUndo(string conflict)
@@ -147,6 +148,11 @@ namespace NuGetGallery
                     break;
                 case "symbol":
                     fixture.Backup.Symbols.Add(new SymbolPackageDeleteBackup { SymbolPackageKey = 999 });
+                    fixture.Context.SymbolPackages.Add(new SymbolPackage { Key = 999, PackageKey = fixture.Package.Key, StatusKey = PackageStatus.Available });
+                    break;
+                case "symbol-package":
+                    fixture.Backup.Symbols.Add(new SymbolPackageDeleteBackup { SymbolPackageKey = 999 });
+                    fixture.Context.SymbolPackages.Add(new SymbolPackage { Key = 999, PackageKey = 999, StatusKey = PackageStatus.Deleted });
                     break;
                 case "deletion-key":
                     fixture.Backup.PackageDeleteKey = 9;
@@ -164,6 +170,44 @@ namespace NuGetGallery
             fixture.Transaction.Verify(x => x.Commit(), Times.Never);
             fixture.Dependency<IAuditingService>().Verify(x => x.SaveAuditRecordAsync(
                 It.Is<PackageUndoSoftDeleteAuditRecord>(r => !r.Success && r.PackageDeleteKey == 10)), Times.Once);
+        }
+
+        [Theory]
+        [InlineData(PackageStatus.Available, false)]
+        [InlineData(PackageStatus.Validating, false)]
+        [InlineData(PackageStatus.FailedValidation, true)]
+        public async Task RestoresPackageWithoutSymbolsRemovedByCleanup(PackageStatus symbolStatus, bool staleNavigation)
+        {
+            var fixture = new Fixture();
+            var saved = new SymbolPackageDeleteBackup
+            {
+                SymbolPackageKey = 30,
+                SymbolPackageStatusKey = symbolStatus,
+                PublicBackupHash = "public-symbols",
+                ValidationBackupHash = "private-symbols"
+            };
+            fixture.Backup.Symbols.Add(saved);
+            fixture.Dependency<IAppConfiguration>().SetupGet(x => x.AsynchronousPackageValidationEnabled).Returns(false);
+            if (staleNavigation)
+            {
+                fixture.Package.SymbolPackages.Add(new SymbolPackage { Key = 30, PackageKey = fixture.Package.Key, StatusKey = PackageStatus.Deleted });
+            }
+
+            await fixture.Service.UndoAsync(fixture.Package, "Restore", "admin");
+
+            Assert.Equal(PackageStatus.Available, fixture.Package.PackageStatusKey);
+            Assert.Empty(fixture.Backup.Symbols);
+            fixture.Dependency<IPackageFileService>().Verify(x => x.RestorePackageFileFromBackupAsync(
+                fixture.Package, "public-package", false), Times.Once);
+            fixture.Dependency<ISymbolPackageFileService>().VerifyNoOtherCalls();
+            fixture.Dependency<ISymbolPackageService>().VerifyNoOtherCalls();
+            fixture.Dependency<IValidationService>().VerifyNoOtherCalls();
+            fixture.Dependency<IReflowPackageService>().Verify(x => x.ReflowAsync(
+                fixture.Package.Id, "1.0.0", "Restore", "admin"), Times.Once);
+            fixture.Backups.Verify(x => x.SaveAsync(It.IsAny<PackageDeleteBackup>()), Times.Never);
+            fixture.Transaction.Verify(x => x.Commit(), Times.Once);
+            fixture.Dependency<IAuditingService>().Verify(x => x.SaveAuditRecordAsync(
+                It.Is<PackageUndoSoftDeleteAuditRecord>(record => record.Success)), Times.Once);
         }
 
         [Theory]
@@ -185,10 +229,18 @@ namespace NuGetGallery
             var published = fixture.Deletion.DeletedOn.AddDays(-1);
             fixture.Package.Published = published;
             fixture.Package.DownloadCount = 123;
-            var symbol = new SymbolPackage { Key = 30, StatusKey = PackageStatus.Deleted, Published = published };
+            var symbol = new SymbolPackage { Key = 30, PackageKey = fixture.Package.Key, StatusKey = PackageStatus.Deleted, Published = published };
             var olderSymbol = new SymbolPackage { Key = 29, StatusKey = PackageStatus.Deleted };
             fixture.Package.SymbolPackages.Add(symbol);
             fixture.Package.SymbolPackages.Add(olderSymbol);
+            fixture.Context.SymbolPackages.Add(symbol);
+            fixture.Backup.Symbols.Add(new SymbolPackageDeleteBackup
+            {
+                SymbolPackageKey = 31,
+                SymbolPackageStatusKey = status,
+                PublicBackupHash = "missing-public-symbols",
+                ValidationBackupHash = "missing-private-symbols"
+            });
 
             await fixture.Service.UndoAsync(fixture.Package, "Restore package", "admin");
             await fixture.Service.UndoAsync(fixture.Package, "Restore package", "admin");
@@ -205,6 +257,8 @@ namespace NuGetGallery
                 fixture.Package, validation ? "private-package" : "public-package", validation), Times.Once);
             fixture.Dependency<ISymbolPackageFileService>().Verify(x => x.RestorePackageFileFromBackupAsync(
                 fixture.Package, validation ? "private-symbols" : "public-symbols", validation), Times.Once);
+            fixture.Dependency<ISymbolPackageFileService>().VerifyNoOtherCalls();
+            Assert.Equal(30, Assert.Single(fixture.Backup.Symbols).SymbolPackageKey);
             fixture.Dependency<IReflowPackageService>().Verify(x => x.ReflowAsync(
                 fixture.Package.Id, "1.0.0", "Restore package", "admin"),
                 status == PackageStatus.Available ? Times.Once() : Times.Never());

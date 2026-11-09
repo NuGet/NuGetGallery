@@ -261,8 +261,9 @@ namespace NuGetGallery
 
         public async Task SoftDeletePackagesAsync(IEnumerable<Package> packages, User deletedBy, string reason, string signature, bool captureForUndo)
         {
+            // Capture and delete each package once, preserving its first occurrence in the input.
             var packageList = captureForUndo
-                ? packages.GroupBy(p => p.Key).Select(g => g.First()).OrderBy(p => p.Key).ToList()
+                ? packages.GroupBy(p => p.Key).Select(g => g.First()).ToList()
                 : packages.ToList();
             if (captureForUndo && packageList.Count == 0)
             {
