@@ -1199,6 +1199,9 @@ namespace NuGetGallery
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
                 Assert.Equal(23L, model.DownloadsPerDay);
             }
+
+            [Fact]
+            public async Task WhenRecentDownloadsPerDayDisabled_DoesNotQueryStatistics()
             {
                 // Arrange
                 var packageService = new Mock<IPackageService>();
