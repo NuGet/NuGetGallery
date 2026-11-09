@@ -7,10 +7,12 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Services.Entities;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
+using NuGetGallery.Diagnostics;
 using Xunit;
 
 namespace NuGetGallery
@@ -39,7 +41,8 @@ namespace NuGetGallery
             Mock<IPackageDeleteBackupService> packageDeleteBackupService = null,
             Action<Mock<TestPackageDeleteService>> setup = null,
             bool useRealConstructor = false,
-            Action<Mock<IDatabase>> configureDatabase = null)
+            Action<Mock<IDatabase>> configureDatabase = null,
+            Mock<IDiagnosticsService> diagnostics = null)
         {
             packageRepository = packageRepository ?? new Mock<IEntityRepository<Package>>();
             packageRegistrationRepository = packageRegistrationRepository ?? new Mock<IEntityRepository<PackageRegistration>>();
@@ -69,6 +72,7 @@ namespace NuGetGallery
             coreLicenseFileService = coreLicenseFileService ?? new Mock<ICoreLicenseFileService>();
             coreReadmeFileService = coreReadmeFileService ?? new Mock<ICoreReadmeFileService>();
             packageDeleteBackupService = packageDeleteBackupService ?? new Mock<IPackageDeleteBackupService>();
+            diagnostics = diagnostics ?? new Mock<IDiagnosticsService>();
 
             if (useRealConstructor)
             {
@@ -89,7 +93,8 @@ namespace NuGetGallery
                     symbolPackageRepository.Object,
                     coreLicenseFileService.Object,
                     coreReadmeFileService.Object,
-                    packageDeleteBackupService.Object);
+                    packageDeleteBackupService.Object,
+                    diagnostics.Object);
             }
             else
             {
@@ -110,7 +115,8 @@ namespace NuGetGallery
                     symbolPackageRepository.Object,
                     coreLicenseFileService.Object,
                     coreReadmeFileService.Object,
-                    packageDeleteBackupService.Object);
+                    packageDeleteBackupService.Object,
+                    diagnostics.Object);
 
                 packageDeleteService.CallBase = true;
 
@@ -145,7 +151,8 @@ namespace NuGetGallery
                 IEntityRepository<SymbolPackage> symbolPackageRepository,
                 ICoreLicenseFileService coreLicenseFileService,
                 ICoreReadmeFileService coreReadmeFileService,
-                IPackageDeleteBackupService packageDeleteBackupService) : base(
+                IPackageDeleteBackupService packageDeleteBackupService,
+                IDiagnosticsService diagnostics) : base(
                     packageRepository,
                     packageRegistrationRepository,
                     packageDeletesRepository,
@@ -162,7 +169,8 @@ namespace NuGetGallery
                     symbolPackageRepository,
                     coreLicenseFileService,
                     coreReadmeFileService,
-                    packageDeleteBackupService)
+                    packageDeleteBackupService,
+                    diagnostics)
             {
             }
 
@@ -981,6 +989,11 @@ namespace NuGetGallery
                 Assert.Equal(PackageStatus.Available, fixture.Package.PackageStatusKey);
                 Assert.Equal(PackageStatus.Available, other.PackageStatusKey);
                 fixture.PackageService.Verify(x => x.UpdatePackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), false), Times.Never);
+                fixture.Diagnostics.Verify(x => x.TraceEvent(LogLevel.Information, It.IsAny<EventId>(),
+                    It.Is<string>(message => message.Contains("Saving recovery snapshot") && message.Contains("Test.Package 1.0.0")
+                        && message.Contains("package key 2, deletion key 100")),
+                    It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()), Times.Once);
+                fixture.Diagnostics.Verify(x => x.ExceptionEvent(error), Times.Once);
             }
 
             [Fact]
@@ -1348,11 +1361,14 @@ namespace NuGetGallery
                 public readonly Mock<ITelemetryService> Telemetry = new Mock<ITelemetryService>();
                 public readonly Mock<IAuditingService> Auditing = new Mock<IAuditingService>();
                 public readonly Mock<IDbContextTransaction> Transaction = new Mock<IDbContextTransaction>();
+                public readonly Mock<IDiagnosticsSource> Diagnostics = new Mock<IDiagnosticsSource>();
                 public readonly IPackageDeleteService Service;
                 public Mock<IDatabase> Database;
 
                 public CaptureFixture()
                 {
+                    var diagnostics = new Mock<IDiagnosticsService>();
+                    diagnostics.Setup(x => x.GetSource(nameof(PackageDeleteService))).Returns(Diagnostics.Object);
                     var nextDeletionKey = 100;
                     DeleteRepository.Setup(x => x.InsertOnCommit(It.IsAny<PackageDelete>()))
                         .Callback<PackageDelete>(d => { d.Key = nextDeletionKey++; Deletions.Add(d); });
@@ -1390,7 +1406,7 @@ namespace NuGetGallery
                         symbolPackageRepository: SymbolRepository, symbolPackageService: SymbolService,
                         coreLicenseFileService: Licenses, coreReadmeFileService: Readmes,
                         indexingService: Indexing, telemetryService: Telemetry,
-                        packageDeleteBackupService: Backups, auditingService: Auditing,
+                        packageDeleteBackupService: Backups, auditingService: Auditing, diagnostics: diagnostics,
                         configureDatabase: database =>
                         {
                             Database = database;

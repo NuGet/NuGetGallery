@@ -11,6 +11,7 @@ using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
+using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery
 {
@@ -57,6 +58,7 @@ namespace NuGetGallery
         private readonly ICoreLicenseFileService _coreLicenseFileService;
         private readonly ICoreReadmeFileService _coreReadmeFileService;
         private readonly IPackageDeleteBackupService _packageDeleteBackupService;
+        private readonly IDiagnosticsSource _diagnostics;
 
         public PackageDeleteService(
             IEntityRepository<Package> packageRepository,
@@ -75,7 +77,8 @@ namespace NuGetGallery
             IEntityRepository<SymbolPackage> symbolPackageRepository,
             ICoreLicenseFileService coreLicenseFileService,
             ICoreReadmeFileService coreReadmeFileService,
-            IPackageDeleteBackupService packageDeleteBackupService)
+            IPackageDeleteBackupService packageDeleteBackupService,
+            IDiagnosticsService diagnostics)
         {
             _packageRepository = packageRepository ?? throw new ArgumentNullException(nameof(packageRepository));
             _packageRegistrationRepository = packageRegistrationRepository ?? throw new ArgumentNullException(nameof(packageRegistrationRepository));
@@ -94,6 +97,7 @@ namespace NuGetGallery
             _coreLicenseFileService = coreLicenseFileService ?? throw new ArgumentNullException(nameof(coreLicenseFileService));
             _coreReadmeFileService = coreReadmeFileService ?? throw new ArgumentNullException(nameof(coreReadmeFileService));
             _packageDeleteBackupService = packageDeleteBackupService ?? throw new ArgumentNullException(nameof(packageDeleteBackupService));
+            _diagnostics = diagnostics?.SafeGetSource(nameof(PackageDeleteService)) ?? throw new ArgumentNullException(nameof(diagnostics));
 
             if (config.HourLimitWithMaximumDownloads.HasValue
                 && config.StatisticsUpdateFrequencyInHours.HasValue
@@ -278,15 +282,26 @@ namespace NuGetGallery
                 ? packageList.Where(p => p.PackageStatusKey != PackageStatus.Deleted).ToList()
                 : packageList;
 
+            _diagnostics.Information($"Starting soft deletion for {packagesToDelete.Count} packages; recovery capture: {captureForUndo}; repeat deletions to reflow: {packagesToReflow.Count}.");
             if (!captureForUndo || packagesToDelete.Count > 0)
             {
-                await SoftDeletePackagesWithBackupAsync(packagesToDelete, deletedBy, reason, signature, captureForUndo);
+                try
+                {
+                    await SoftDeletePackagesWithBackupAsync(packagesToDelete, deletedBy, reason, signature, captureForUndo);
+                }
+                catch (Exception exception)
+                {
+                    _diagnostics.Error($"Soft deletion failed for a batch of {packagesToDelete.Count} packages; recovery capture: {captureForUndo}.");
+                    _diagnostics.ExceptionEvent(exception);
+                    throw;
+                }
             }
 
             // Re-issuing a soft delete reflows its V3 deletion through a fresh audit entry.
             // Do not create a new deletion association or overwrite the original recovery data.
             foreach (var package in packagesToReflow)
             {
+                TraceDelete(package, null, "Reflowing repeat deletion without changing recovery data");
                 await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(
                     package, AuditedPackageAction.SoftDelete, reason, signature,
                     packageKey: package.Key, adminInitiated: true));
@@ -294,6 +309,7 @@ namespace NuGetGallery
             }
 
             UpdateSearchIndex();
+            _diagnostics.Information($"Soft deletion completed for {packageList.Count} packages.");
         }
 
         private async Task SoftDeletePackagesWithBackupAsync(
@@ -320,18 +336,23 @@ namespace NuGetGallery
                 if (captureForUndo)
                 {
                     // Flush only to obtain the identity. The transaction is not committed until deletion succeeds.
+                    _diagnostics.Information($"Allocating deletion identity for {packageList.Count} recovery snapshots.");
                     await _packageDeletesRepository.CommitChangesAsync();
+                    _diagnostics.Information($"Allocated deletion key {packageDelete.Key} for {packageList.Count} recovery snapshots.");
 
                     // Back up the whole batch before removing any files or changing package state.
                     // Retain backups on failure; file recovery follows the existing manual process.
                     foreach (var package in packageList)
                     {
                         var backup = await CaptureSoftDeleteBackupAsync(package, packageDelete);
+                        TraceDelete(package, packageDelete.Key, "Saving recovery snapshot");
                         await _packageDeleteBackupService.SaveAsync(backup);
+                        TraceDelete(package, packageDelete.Key, "Recovery snapshot saved");
                     }
 
                     foreach (var package in packageList)
                     {
+                        TraceDelete(package, packageDelete.Key, "Removing files after recovery snapshots were saved");
                         await DeletePackageFilesAsync(package);
                     }
                 }
@@ -342,6 +363,7 @@ namespace NuGetGallery
 
                 foreach (var package in packageList)
                 {
+                    TraceDelete(package, packageDelete.Key, "Updating package and symbol database state to Deleted");
                     /// We do not call <see cref="IPackageService.MarkPackageUnlistedAsync(Package, bool)"/> here
                     /// because that writes an audit entry. Additionally, the latest bits are already updated by
                     /// the package status change.
@@ -378,7 +400,9 @@ namespace NuGetGallery
                 await _packageRepository.CommitChangesAsync();
                 await _symbolPackageRepository.CommitChangesAsync();
                 await _packageDeletesRepository.CommitChangesAsync();
+                _diagnostics.Information($"Committing deletion key {packageDelete.Key}, package count {packageList.Count}.");
                 transaction.Commit();
+                _diagnostics.Information($"Committed deletion key {packageDelete.Key}, package count {packageList.Count}.");
             }
         }
 
@@ -581,6 +605,7 @@ namespace NuGetGallery
         private async Task<PackageDeleteBackup> CaptureSoftDeleteBackupAsync(
             Package package, PackageDelete packageDelete)
         {
+            TraceDelete(package, packageDelete.Key, "Capturing recovery state and backing up package archives");
             var backup = new PackageDeleteBackup
             {
                 PackageDeleteKey = packageDelete.Key,
@@ -668,6 +693,11 @@ namespace NuGetGallery
         {
             // Force refresh the index
             _indexingService.UpdateIndex(true);
+        }
+
+        private void TraceDelete(Package package, int? packageDeleteKey, string message)
+        {
+            _diagnostics.Information($"Soft deletion for {package.PackageRegistration?.Id} {package.NormalizedVersion} (package key {package.Key}, deletion key {packageDeleteKey}): {message}.");
         }
 
         protected virtual PackageAuditRecord CreateAuditRecord(Package package, PackageRegistration packageRegistration, AuditedPackageAction action, string reason)

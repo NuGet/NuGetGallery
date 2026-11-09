@@ -38,8 +38,9 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(backup));
             }
 
-            var blobName = GetBlobName(backup.PackageId, backup.NormalizedVersion, backup.PackageDeleteKey, backup.PackageKey);
+            ValidateArguments(backup.PackageId, backup.NormalizedVersion, backup.PackageDeleteKey, backup.PackageKey);
             ValidateBackup(backup);
+            var blobName = GetBlobName(backup.PackageId, backup.NormalizedVersion, backup.PackageDeleteKey, backup.PackageKey);
             var json = JsonConvert.SerializeObject(backup, SerializerSettings);
             using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(json)))
             {
@@ -50,6 +51,7 @@ namespace NuGetGallery
 
         public async Task<PackageDeleteBackup> GetAsync(string packageId, string normalizedVersion, int packageDeleteKey, int packageKey)
         {
+            ValidateArguments(packageId, normalizedVersion, packageDeleteKey, packageKey);
             var blobName = GetBlobName(packageId, normalizedVersion, packageDeleteKey, packageKey);
             using (var stream = await _storage.GetFileAsync(CoreConstants.Folders.PackageBackupsFolderName, blobName))
             {
@@ -74,6 +76,7 @@ namespace NuGetGallery
 
         public Task DeleteAsync(string packageId, string normalizedVersion, int packageDeleteKey, int packageKey)
         {
+            ValidateArguments(packageId, normalizedVersion, packageDeleteKey, packageKey);
             return _storage.DeleteFileAsync(CoreConstants.Folders.PackageBackupsFolderName,
                 GetBlobName(packageId, normalizedVersion, packageDeleteKey, packageKey));
         }
@@ -126,7 +129,7 @@ namespace NuGetGallery
             }
         }
 
-        private static string GetBlobName(string packageId, string normalizedVersion, int packageDeleteKey, int packageKey)
+        private static void ValidateArguments(string packageId, string normalizedVersion, int packageDeleteKey, int packageKey)
         {
             if (string.IsNullOrWhiteSpace(packageId) || !PackageIdValidator.IsValidPackageIdForRead(packageId))
             {
@@ -148,7 +151,10 @@ namespace NuGetGallery
             {
                 throw new ArgumentOutOfRangeException(nameof(packageKey));
             }
+        }
 
+        private static string GetBlobName(string packageId, string normalizedVersion, int packageDeleteKey, int packageKey)
+        {
             // Share the archive's package/version prefix, but identify metadata by deletion rather than content hash.
             return string.Format(CultureInfo.InvariantCulture, "{0}/{1}/package-delete-backup-{2}-{3}.json",
                 packageId.ToLowerInvariant(), normalizedVersion.ToLowerInvariant(), packageDeleteKey, packageKey);

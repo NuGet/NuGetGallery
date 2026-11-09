@@ -6,11 +6,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json;
 using NuGet.Services.Entities;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
+using NuGetGallery.Diagnostics;
 using NuGetGallery.Framework;
 using Xunit;
 
@@ -429,6 +431,11 @@ namespace NuGetGallery
             fixture.Backups.Verify(x => x.SaveAsync(It.IsAny<PackageDeleteBackup>()), Times.Never);
             fixture.Dependency<IAuditingService>().Verify(x => x.SaveAuditRecordAsync(
                 It.Is<PackageUndoSoftDeleteAuditRecord>(r => !r.Success)), Times.Once);
+            fixture.Diagnostics.Verify(x => x.TraceEvent(LogLevel.Error, It.IsAny<EventId>(),
+                It.Is<string>(message => message.Contains("Soft-delete undo failed for Example.Package 1.0.0")
+                    && message.Contains("package key 20, deletion key 10")),
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()), Times.Once);
+            fixture.Diagnostics.Verify(x => x.ExceptionEvent(expected), Times.Once);
         }
 
         private class Fixture : TestContainer
@@ -449,6 +456,7 @@ namespace NuGetGallery
             public readonly Mock<IEntityRepository<PackageDelete>> Deletions;
             public readonly Mock<IPackageDeleteBackupService> Backups;
             public readonly Mock<IDbContextTransaction> Transaction = new Mock<IDbContextTransaction>();
+            public readonly Mock<IDiagnosticsSource> Diagnostics = new Mock<IDiagnosticsSource>();
             public readonly FakeEntitiesContext Context;
             public readonly PackageDeleteBackup Backup;
             public readonly UndoSoftDeleteService Service;
@@ -490,6 +498,7 @@ namespace NuGetGallery
                 GetMock<IReflowPackageService>().Setup(x => x.ReflowAsync(Package.Id, "1.0.0", It.IsAny<string>(), It.IsAny<string>()))
                     .ReturnsAsync(Package);
                 GetMock<IAuditingService>();
+                GetMock<IDiagnosticsService>().Setup(x => x.GetSource(nameof(UndoSoftDeleteService))).Returns(Diagnostics.Object);
                 Service = Get<UndoSoftDeleteService>();
             }
 
