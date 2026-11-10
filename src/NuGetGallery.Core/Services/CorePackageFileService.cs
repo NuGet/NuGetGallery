@@ -4,6 +4,7 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Web;
@@ -246,14 +247,14 @@ namespace NuGetGallery
                     throw new FileNotFoundException("The package backup archive was not found.", backupFileName);
                 }
 
-                VerifyRestoreHash(backup, backupHash, "backup archive");
+                VerifyRestoreHash(backup, hashBytes, "backup archive");
                 backup.Position = 0;
 
                 using (var destination = await _fileStorageService.GetFileAsync(destinationFolder, fileName))
                 {
                     if (destination != null)
                     {
-                        VerifyRestoreHash(destination, backupHash, "restore destination");
+                        VerifyRestoreHash(destination, hashBytes, "restore destination");
                         return;
                     }
                 }
@@ -262,14 +263,14 @@ namespace NuGetGallery
             }
         }
 
-        private static void VerifyRestoreHash(Stream stream, string expectedHash, string description)
+        private static void VerifyRestoreHash(Stream stream, byte[] expectedHash, string description)
         {
             stream.Position = 0;
 
-            using (var sha512 = SHA512.Create())
+            using (var hashAlgorithm = HashAlgorithm.Create(CoreConstants.Sha512HashAlgorithmId))
             {
-                var actualHash = Convert.ToBase64String(sha512.ComputeHash(stream));
-                if (!string.Equals(actualHash, expectedHash, StringComparison.Ordinal))
+                var actualHash = hashAlgorithm.ComputeHash(stream);
+                if (!actualHash.SequenceEqual(expectedHash))
                 {
                     throw new InvalidDataException($"The package {description} does not match the captured SHA512 backup hash.");
                 }

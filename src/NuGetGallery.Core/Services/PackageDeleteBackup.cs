@@ -42,11 +42,17 @@ namespace NuGetGallery
         [JsonProperty(Required = Required.Always)]
         public bool Listed { get; set; }
 
-        // Actual SHA512 of the public file; existing backup conventions determine its path. Null if absent.
+        /// <summary>
+        /// Gets or sets the Base64-encoded SHA512 hash of the public package file.
+        /// Existing backup conventions determine its path. Null when the file was absent.
+        /// </summary>
         [JsonProperty(Required = Required.AllowNull)]
         public string PublicBackupHash { get; set; }
 
-        // Actual SHA512 of the private validation file, which may differ from the public file. Null if absent.
+        /// <summary>
+        /// Gets or sets the Base64-encoded SHA512 hash of the private validation package file,
+        /// which may differ from the public file. Null when the file was absent.
+        /// </summary>
         [JsonProperty(Required = Required.AllowNull)]
         public string ValidationBackupHash { get; set; }
 
@@ -72,11 +78,17 @@ namespace NuGetGallery
         [JsonProperty(Required = Required.Always)]
         public PackageStatus SymbolPackageStatusKey { get; set; }
 
-        // Actual SHA512 of this row's public symbol file; use existing symbol backup paths. Null if absent.
+        /// <summary>
+        /// Gets or sets the Base64-encoded SHA512 hash of this row's public symbol file.
+        /// Existing symbol backup conventions determine its path. Null when the file was absent.
+        /// </summary>
         [JsonProperty(Required = Required.AllowNull)]
         public string PublicBackupHash { get; set; }
 
-        // Actual SHA512 of this row's private validation symbol file. Null if absent.
+        /// <summary>
+        /// Gets or sets the Base64-encoded SHA512 hash of this row's private validation symbol file.
+        /// Null when the file was absent.
+        /// </summary>
         [JsonProperty(Required = Required.AllowNull)]
         public string ValidationBackupHash { get; set; }
     }

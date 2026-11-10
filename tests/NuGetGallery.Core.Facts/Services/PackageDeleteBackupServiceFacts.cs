@@ -233,14 +233,21 @@ namespace NuGetGallery
 
         [Theory]
         [InlineData(0, 20, "packageDeleteKey")]
+        [InlineData(-1, 20, "packageDeleteKey")]
         [InlineData(10, 0, "packageKey")]
+        [InlineData(10, -1, "packageKey")]
         public async Task RejectsNonPositiveKeysBeforeAccessingStorage(int deletionKey, int packageKey, string parameter)
         {
             var fixture = new Fixture();
+            var backup = CreateBackup();
+            backup.PackageDeleteKey = deletionKey;
+            backup.PackageKey = packageKey;
 
+            var save = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => fixture.Service.SaveAsync(backup));
             var get = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => fixture.Service.GetAsync("Example.Package", "1.0.0", deletionKey, packageKey));
             var delete = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => fixture.Service.DeleteAsync("Example.Package", "1.0.0", deletionKey, packageKey));
 
+            Assert.Equal(parameter, save.ParamName);
             Assert.Equal(parameter, get.ParamName);
             Assert.Equal(parameter, delete.ParamName);
             fixture.Storage.VerifyNoOtherCalls();

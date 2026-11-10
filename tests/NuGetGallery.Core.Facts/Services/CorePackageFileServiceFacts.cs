@@ -872,6 +872,28 @@ namespace NuGetGallery
                 Assert.False(_backup.CanRead);
             }
 
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task AcceptsEquivalentBase64HashWithWhitespace(bool destinationExists)
+            {
+                var backupHash = PackageHash.Insert(12, "\r\n ");
+                if (destinationExists)
+                {
+                    _fileStorageService
+                        .Setup(x => x.GetFileAsync(PackagesFolderName, ValidationFileName))
+                        .ReturnsAsync(CreatePackageFileStream());
+                }
+
+                await _service.RestorePackageFileFromBackupAsync(_package, backupHash, false);
+
+                _fileStorageService.Verify(
+                    x => x.GetFileAsync(CoreConstants.Folders.PackageBackupsFolderName, _backupFileName), Times.Once);
+                _fileStorageService.Verify(
+                    x => x.SaveFileAsync(PackagesFolderName, ValidationFileName, It.IsAny<Stream>(), false),
+                    destinationExists ? Times.Never() : Times.Once());
+            }
+
             [Fact]
             public async Task NormalizesVersionWhenNormalizedVersionIsMissing()
             {

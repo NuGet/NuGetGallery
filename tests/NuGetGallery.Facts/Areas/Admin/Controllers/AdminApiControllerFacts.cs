@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -36,7 +38,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
             Mock<IFeatureFlagService> featureFlagService = null,
             Mock<IUpdateListedService> updateListedService = null,
             ValidationAdminService validationAdminService = null,
-            Mock<IValidationService> validationService = null)
+            Mock<IValidationService> validationService = null,
+            Mock<IUndoSoftDeleteBatchService> undoSoftDeleteBatchService = null)
         {
             packageService ??= new Mock<IPackageService>();
             reflowPackageService ??= new Mock<IReflowPackageService>();
@@ -47,6 +50,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             updateListedService ??= new Mock<IUpdateListedService>();
             validationAdminService ??= CreateValidationAdminService();
             validationService ??= new Mock<IValidationService>();
+            undoSoftDeleteBatchService ??= new Mock<IUndoSoftDeleteBatchService>();
 
             var controller = new AdminApiController(
                 packageService.Object,
@@ -56,6 +60,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 packageDeleteService.Object,
                 featureFlagService.Object,
                 updateListedService.Object,
+                undoSoftDeleteBatchService.Object,
                 validationAdminService,
                 validationService.Object);
 
@@ -1229,8 +1234,10 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 Assert.Equal(AdminSoftDeletePackageStatus.NotFound, response.Results[0].Status);
             }
 
-            [Fact]
-            public async Task Returns202WithAcceptedPackagesAsync()
+            [Theory]
+            [InlineData(null)]
+            [InlineData("false")]
+            public async Task Returns202WithAcceptedPackagesAsync(string undoDelete)
             {
                 var request = new AdminSoftDeletePackageRequest
                 {
@@ -1245,6 +1252,11 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     callerAzp: "test-app",
                     packageService: _packageServiceMock,
                     packageDeleteService: _packageDeleteServiceMock);
+
+                if (undoDelete != null)
+                {
+                    request.UndoDelete = bool.Parse(undoDelete);
+                }
 
                 var result = await controller.SoftDeletePackageAsync(request) as JsonResult;
 
@@ -1347,6 +1359,174 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 Assert.Equal(AdminSoftDeletePackageStatus.NotFound, response.Results[0].Status);
             }
 
+        }
+
+        public class TheUndoSoftDeletePackageMethod
+        {
+            private readonly Mock<IUndoSoftDeleteBatchService> _undo = new Mock<IUndoSoftDeleteBatchService>(MockBehavior.Strict);
+            private readonly Mock<IPackageDeleteService> _delete = new Mock<IPackageDeleteService>(MockBehavior.Strict);
+            private readonly Mock<IPackageService> _packages = new Mock<IPackageService>(MockBehavior.Strict);
+            private readonly Mock<IFeatureFlagService> _flags = new Mock<IFeatureFlagService>();
+
+            private AdminApiController CreateUndoController()
+            {
+                _flags.Setup(service => service.IsAdminApiSoftDeleteEnabled()).Returns(true);
+                return CreateController(
+                    callerAzp: "test-app",
+                    packageService: _packages,
+                    packageDeleteService: _delete,
+                    featureFlagService: _flags,
+                    undoSoftDeleteBatchService: _undo);
+            }
+
+            private static AdminSoftDeletePackageRequest CreateRequest()
+            {
+                return new AdminSoftDeletePackageRequest
+                {
+                    Packages = [new AdminSoftDeletePackageIdentity { Id = " Example.Package ", Version = " 1.0 " }],
+                    Reason = "Restore accidental deletion",
+                    UndoDelete = true
+                };
+            }
+
+            [Theory]
+            [InlineData(null, false)]
+            [InlineData("false", false)]
+            [InlineData("true", true)]
+            public void BindsOptionalUndoDelete(string value, bool expected)
+            {
+                var controller = CreateUndoController();
+                var request = BindRequest(controller, value);
+
+                Assert.True(controller.ModelState.IsValid);
+                Assert.Equal(expected, request.UndoDelete);
+            }
+
+            [Fact]
+            public async Task RejectsInvalidBooleanWithoutDeleting()
+            {
+                var controller = CreateUndoController();
+                var request = BindRequest(controller, "invalid");
+
+                Assert.False(controller.ModelState.IsValid);
+                Assert.NotNull(await controller.SoftDeletePackageAsync(request));
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+                _undo.VerifyNoOtherCalls();
+                _delete.VerifyNoOtherCalls();
+            }
+
+            private static AdminSoftDeletePackageRequest BindRequest(AdminApiController controller, string undoDelete)
+            {
+                var values = new NameValueCollection
+                {
+                    { "Packages[0].Id", "Example.Package" },
+                    { "Packages[0].Version", "1.0.0" },
+                    { "Reason", "Restore accidental deletion" }
+                };
+                if (undoDelete != null)
+                {
+                    values.Add("UndoDelete", undoDelete);
+                }
+
+                var context = new ModelBindingContext
+                {
+                    ModelMetadata = ModelMetadataProviders.Current.GetMetadataForType(null, typeof(AdminSoftDeletePackageRequest)),
+                    ModelState = controller.ModelState,
+                    ValueProvider = new NameValueCollectionValueProvider(values, CultureInfo.InvariantCulture)
+                };
+                return (AdminSoftDeletePackageRequest)new DefaultModelBinder().BindModel(controller.ControllerContext, context);
+            }
+
+            [Theory]
+            [InlineData(true, true, HttpStatusCode.Accepted)]
+            [InlineData(true, false, HttpStatusCode.Accepted)]
+            [InlineData(false, false, HttpStatusCode.BadRequest)]
+            public async Task ReturnsIndependentUndoResults(bool firstSucceeds, bool secondSucceeds, HttpStatusCode expectedStatus)
+            {
+                var controller = CreateUndoController();
+                var request = CreateRequest();
+                request.Packages.Add(new AdminSoftDeletePackageIdentity { Id = "Other.Package", Version = "2.0" });
+                _undo.Setup(service => service.UndoAsync(It.IsAny<IReadOnlyList<UndoPackageRequest>>(), request.Reason, "test-app"))
+                    .ReturnsAsync((IReadOnlyList<UndoPackageRequest> packages, string reason, string caller) =>
+                        new UndoSoftDeleteBatchResult([
+                            new UndoSoftDeletePackageResult(packages[0], firstSucceeds ? null : new UserSafeException("Recovery data is missing.")),
+                            new UndoSoftDeletePackageResult(packages[1], secondSucceeds ? null : new InvalidOperationException("Internal details"))
+                        ]));
+
+                var result = Assert.IsType<JsonResult>(await controller.SoftDeletePackageAsync(request));
+
+                Assert.Equal((int)expectedStatus, controller.Response.StatusCode);
+                var response = GetResponseData<AdminSoftDeletePackageResponse>(result);
+                Assert.Equal(2, response.Results.Count);
+                Assert.Equal("Example.Package", response.Results[0].Id);
+                Assert.Equal("1.0.0", response.Results[0].Version);
+                Assert.Equal(firstSucceeds ? AdminSoftDeletePackageStatus.Accepted : AdminSoftDeletePackageStatus.Failed, response.Results[0].Status);
+                Assert.Equal(secondSucceeds ? AdminSoftDeletePackageStatus.Accepted : AdminSoftDeletePackageStatus.Failed, response.Results[1].Status);
+                Assert.DoesNotContain("Internal details", JsonConvert.SerializeObject(result.Data));
+                _undo.Verify(service => service.UndoAsync(It.IsAny<IReadOnlyList<UndoPackageRequest>>(), request.Reason, "test-app"), Times.Once);
+                _delete.VerifyNoOtherCalls();
+                _packages.VerifyNoOtherCalls();
+            }
+
+            [Fact]
+            public async Task DeduplicatesAndNormalizesBeforeUndo()
+            {
+                var controller = CreateUndoController();
+                var request = CreateRequest();
+                request.Packages.Add(new AdminSoftDeletePackageIdentity { Id = "example.package", Version = "1.0.0" });
+                _undo.Setup(service => service.UndoAsync(
+                    It.Is<IReadOnlyList<UndoPackageRequest>>(packages => packages.Count == 1
+                        && packages[0].Id == "Example.Package" && packages[0].Version == "1.0.0"),
+                    request.Reason, "test-app"))
+                    .ReturnsAsync((IReadOnlyList<UndoPackageRequest> packages, string reason, string caller) =>
+                        new UndoSoftDeleteBatchResult([new UndoSoftDeletePackageResult(packages[0])]));
+
+                Assert.IsType<JsonResult>(await controller.SoftDeletePackageAsync(request));
+                Assert.Equal((int)HttpStatusCode.Accepted, controller.Response.StatusCode);
+                _undo.VerifyAll();
+            }
+
+            [Fact]
+            public async Task ReportsBatchExceptionWithoutFallingBackToDelete()
+            {
+                var controller = CreateUndoController();
+                var request = CreateRequest();
+                _undo.Setup(service => service.UndoAsync(It.IsAny<IReadOnlyList<UndoPackageRequest>>(), request.Reason, "test-app"))
+                    .ThrowsAsync(new InvalidOperationException("Internal details"));
+
+                var result = Assert.IsType<JsonResult>(await controller.SoftDeletePackageAsync(request));
+
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+                Assert.Equal(AdminSoftDeletePackageStatus.Failed, Assert.Single(GetResponseData<AdminSoftDeletePackageResponse>(result).Results).Status);
+                _delete.VerifyNoOtherCalls();
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void AppliesUndoReasonLimitOnlyToUndo(bool undoDelete)
+            {
+                var controller = CreateUndoController();
+                var request = CreateRequest();
+                request.UndoDelete = undoDelete;
+                request.Reason = new string('a', 1001);
+                ValidateModel(controller, request);
+
+                Assert.Equal(!undoDelete, controller.ModelState.IsValid);
+            }
+
+            [Fact]
+            public async Task RespectsExistingFeatureGate()
+            {
+                var controller = CreateUndoController();
+                _flags.Setup(service => service.IsAdminApiSoftDeleteEnabled()).Returns(false);
+
+                var result = Assert.IsType<HttpStatusCodeResult>(await controller.SoftDeletePackageAsync(CreateRequest()));
+
+                Assert.Equal((int)HttpStatusCode.NotFound, result.StatusCode);
+                _undo.VerifyNoOtherCalls();
+                _delete.VerifyNoOtherCalls();
+            }
         }
 
         public class TheUpdateListedMethod : TestContainer

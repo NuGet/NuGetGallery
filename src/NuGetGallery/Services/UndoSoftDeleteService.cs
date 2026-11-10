@@ -110,8 +110,12 @@ namespace NuGetGallery
                 return null;
             }
 
-            backup.Symbols.RemoveAll(saved =>
+            var removedSymbols = backup.Symbols.RemoveAll(saved =>
                 !existingSymbols.Any(symbol => symbol.Key == saved.SymbolPackageKey));
+            if (removedSymbols > 0)
+            {
+                TraceRestore(backup, $"Skipping {removedSymbols} symbol records no longer present in the database");
+            }
             return backup;
         }
 
@@ -129,6 +133,7 @@ namespace NuGetGallery
             int? packageDeleteKey = null;
             try
             {
+                _diagnostics.Information($"Starting soft-delete undo for {package.PackageRegistration?.Id} {package.NormalizedVersion} (package key {package.Key}).");
                 if (_configuration.ReadOnlyMode)
                 {
                     throw new ReadOnlyModeException("Soft-delete undo is unavailable in read-only mode.");
@@ -146,11 +151,13 @@ namespace NuGetGallery
                     }
                     if (package.PackageStatusKey != PackageStatus.Deleted)
                     {
+                        _diagnostics.Information($"Skipping soft-delete undo for package key {package.Key}: current status is {package.PackageStatusKey}.");
                         return;
                     }
 
                     var deletion = GetLatestDeletion(package);
                     packageDeleteKey = deletion?.Key;
+                    _diagnostics.Information($"Reading recovery snapshot for {package.PackageRegistration?.Id} {package.NormalizedVersion} (package key {package.Key}, deletion key {packageDeleteKey}).");
                     try
                     {
                         backup = await ReadBackupAsync(package, deletion);
@@ -165,17 +172,22 @@ namespace NuGetGallery
                         throw new UserSafeException("The package has no matching recovery data for its latest committed deletion. Undo cannot restore this package.");
                     }
 
+                    TraceRestore(backup, $"Recovery snapshot loaded; restoring status {backup.PackageStatusKey} and {backup.Symbols.Count} symbol records");
                     await RestoreStateAsync(package, backup);
+                    TraceRestore(backup, "Committing restored database state");
                     transaction.Commit();
+                    TraceRestore(backup, "Restored database state committed");
                 }
 
                 await ReflowOrRevalidateAsync(package, backup, reason, callerIdentity);
 
                 await _auditing.SaveAuditRecordAsync(new PackageUndoSoftDeleteAuditRecord(
                     package, packageDeleteKey.Value, reason, success: true, callerIdentity: callerIdentity));
+                TraceRestore(backup, "Undo completed and success audit saved");
             }
             catch (Exception exception)
             {
+                _diagnostics.Error($"Soft-delete undo failed for {package.PackageRegistration?.Id} {package.NormalizedVersion} (package key {package.Key}, deletion key {packageDeleteKey}).");
                 _diagnostics.ExceptionEvent(exception);
                 try
                 {
@@ -187,6 +199,7 @@ namespace NuGetGallery
                 }
                 catch (Exception auditException)
                 {
+                    _diagnostics.Error($"Failed to save undo failure audit for package key {package.Key}, deletion key {packageDeleteKey}.");
                     _diagnostics.ExceptionEvent(auditException);
                 }
                 throw;
@@ -226,6 +239,7 @@ namespace NuGetGallery
             // Reflow owns its transaction, so run follow-up only after committing the restored state.
             if (backup.PackageStatusKey == PackageStatus.Available)
             {
+                TraceRestore(backup, "Reflowing restored available package");
                 var restored = await _reflow.ReflowAsync(package.Id, package.NormalizedVersion, reason, callerIdentity);
                 if (restored == null)
                 {
@@ -234,6 +248,7 @@ namespace NuGetGallery
             }
             else if (backup.PackageStatusKey == PackageStatus.Validating && package.PackageStatusKey == PackageStatus.Validating)
             {
+                TraceRestore(backup, "Submitting restored package for validation");
                 await _validation.RevalidateAsync(package);
             }
 
@@ -242,9 +257,11 @@ namespace NuGetGallery
                 var symbol = package.SymbolPackages.Single(s => s.Key == saved.SymbolPackageKey);
                 if (symbol.StatusKey == PackageStatus.Validating)
                 {
+                    TraceRestore(backup, $"Submitting symbol key {symbol.Key} for validation");
                     await _validation.RevalidateAsync(symbol);
                 }
             }
+            TraceRestore(backup, "Reflow and validation submission follow-up completed");
         }
 
         private async Task RestoreFilesAsync(Package package, PackageDeleteBackup backup)
@@ -254,6 +271,7 @@ namespace NuGetGallery
             {
                 throw new InvalidOperationException("A private package cannot be restored over an existing public archive.");
             }
+            TraceRestore(backup, $"Starting file restoration; validation destination: {validation}");
             await _packageFiles.RestorePackageFileFromBackupAsync(package,
                 validation ? backup.ValidationBackupHash : backup.PublicBackupHash, validation);
 
@@ -288,6 +306,12 @@ namespace NuGetGallery
             {
                 await _packageFiles.SaveReadMeMdFileAsync(package, backup.ExternalReadmeMarkdown);
             }
+            TraceRestore(backup, "File restoration completed");
+        }
+
+        private void TraceRestore(PackageDeleteBackup backup, string message)
+        {
+            _diagnostics.Information($"Soft-delete undo for {backup.PackageId} {backup.NormalizedVersion} (package key {backup.PackageKey}, deletion key {backup.PackageDeleteKey}): {message}.");
         }
 
         private List<Package> RestoreDeprecations(Package package, PackageDeleteBackup backup)
