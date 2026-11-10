@@ -64,7 +64,14 @@ namespace NuGet.Services.Metadata.Catalog
             cursorValueWithUpdates.MinIntervalBeforeToReadUpdate = _minIntervalBeforeToReadUpdate;
             if (storageContent != null)
             {
-                cursorValueWithUpdates.Updates = GetUpdates(cursorValueWithUpdates, storageContent.StorageDateTimeInUtc);
+                var storageDateTimeInUtc = storageContent.StorageDateTimeInUtc;
+                if (!storageDateTimeInUtc.HasValue)
+                {
+                    throw new ArgumentNullException(nameof(storageDateTimeInUtc));
+                }
+
+                cursorValueWithUpdates.TimeStamp = storageDateTimeInUtc.Value;
+                cursorValueWithUpdates.Updates = GetUpdates(cursorValueWithUpdates, storageDateTimeInUtc.Value);
             }
 
             var content = new StringStorageContent(JsonConvert.SerializeObject(cursorValueWithUpdates, CursorValueWithUpdates.SerializerSettings),
@@ -76,17 +83,12 @@ namespace NuGet.Services.Metadata.Catalog
                 cursorValueWithUpdates.Value, cursorValueWithUpdates.Updates.Count, _address.AbsoluteUri);
         }
 
-        private IList<CursorValueUpdate> GetUpdates(CursorValueWithUpdates cursorValueWithUpdates, DateTime? storageDateTimeInUtc)
+        private IList<CursorValueUpdate> GetUpdates(CursorValueWithUpdates cursorValueWithUpdates, DateTime storageDateTimeInUtc)
         {
-            if (!storageDateTimeInUtc.HasValue)
-            {
-                throw new ArgumentNullException(nameof(storageDateTimeInUtc));
-            }
-
             var updates = cursorValueWithUpdates.Updates.OrderByDescending(u => u.TimeStamp).ToList();
-            if (updates.Count == 0 || (updates.Count > 0 && (storageDateTimeInUtc.Value - updates.First().TimeStamp >= _minIntervalBetweenTwoUpdates)))
+            if (updates.Count == 0 || (updates.Count > 0 && (storageDateTimeInUtc - updates.First().TimeStamp >= _minIntervalBetweenTwoUpdates)))
             {
-                var update = new CursorValueUpdate(storageDateTimeInUtc.Value, cursorValueWithUpdates.Value);
+                var update = new CursorValueUpdate(storageDateTimeInUtc, cursorValueWithUpdates.Value);
                 updates.Insert(0, update);
 
                 _logger.LogInformation("Added the cursor update with timeStamp: {TimeStamp} and value: {UpdateValue}.",

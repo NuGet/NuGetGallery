@@ -14,6 +14,9 @@ namespace NuGet.Services.Metadata.Catalog
             DateFormatString = "O"
         };
 
+        [JsonProperty("timeStamp", NullValueHandling = NullValueHandling.Ignore)]
+        public DateTime? TimeStamp { get; set; }
+
         [JsonProperty("value")]
         public string Value { get; set; }
 
