@@ -1,0 +1,40 @@
+name: Copilot Setup Steps
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+jobs:
+  copilot-setup-steps:
+    runs-on: windows-2025-vs2026
+    timeout-minutes: 59
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Configure build environment
+        shell: pwsh
+        run: |
+          "DOTNET_SKIP_FIRST_TIME_EXPERIENCE=true" >> $env:GITHUB_ENV
+          "DOTNET_NOLOGO=true" >> $env:GITHUB_ENV
+          "NuGetAudit=false" >> $env:GITHUB_ENV
+
+      - name: Build AppHost
+        shell: pwsh
+        run: dotnet build src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj --configuration Release
+
+      - name: Setup Gallery development environment
+        shell: pwsh
+        run: .\tools\Setup-DevEnvironment.ps1
+
+      - name: Build Gallery functional tests and install Playwright
+        shell: pwsh
+        run: .\tests\Scripts\BuildGalleryFunctionalTests.ps1 -Configuration Release
