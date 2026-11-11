@@ -4,6 +4,8 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Web;
 using NuGet.Services.Entities;
@@ -144,7 +146,7 @@ namespace NuGetGallery
             return _fileStorageService.FileExistsAsync(_metadata.ValidationFolderName, fileName);
         }
 
-        public async Task StorePackageFileInBackupLocationAsync(Package package, Stream packageFile)
+        public async Task<string> StorePackageFileInBackupLocationAsync(Package package, Stream packageFile)
         {
             if (package == null)
             {
@@ -183,7 +185,7 @@ namespace NuGetGallery
             var fileName = BuildBackupFileName(
                 package.PackageRegistration.Id,
                 version,
-                hash,
+                Convert.FromBase64String(hash),
                 _metadata.FileExtension,
                 _metadata.FileBackupSavePathTemplate);
 
@@ -191,7 +193,7 @@ namespace NuGetGallery
             // we know the upload isn't necessary.
             if (await _fileStorageService.FileExistsAsync(_metadata.FileBackupsFolderName, fileName))
             {
-                return;
+                return hash;
             }
 
             try
@@ -201,11 +203,81 @@ namespace NuGetGallery
             catch (FileAlreadyExistsException)
             {
                 // If the package file already exists, swallow the exception since we know the content is the same.
-                return;
+                return hash;
+            }
+
+            return hash;
+        }
+
+        public async Task RestorePackageFileFromBackupAsync(Package package, string backupHash, bool validation)
+        {
+            var fileName = FileNameHelper.BuildFileName(package, _metadata.FileSavePathTemplate, _metadata.FileExtension);
+
+            // Validate the Base64 format and SHA512 length before using the captured hash in a storage path.
+            byte[] hashBytes;
+            try
+            {
+                hashBytes = Convert.FromBase64String(backupHash ?? string.Empty);
+            }
+            catch (FormatException ex)
+            {
+                throw new InvalidDataException("The backup hash must be a Base64-encoded SHA512 hash.", ex);
+            }
+
+            if (hashBytes.Length != 64)
+            {
+                throw new InvalidDataException("The backup hash must be a Base64-encoded SHA512 hash.");
+            }
+
+            var version = string.IsNullOrEmpty(package.NormalizedVersion)
+                ? NuGetVersion.Parse(package.Version).ToNormalizedString()
+                : package.NormalizedVersion;
+            var backupFileName = BuildBackupFileName(
+                package.PackageRegistration.Id,
+                version,
+                hashBytes,
+                _metadata.FileExtension,
+                _metadata.FileBackupSavePathTemplate);
+            var destinationFolder = validation ? _metadata.ValidationFolderName : _metadata.FileFolderName;
+
+            using (var backup = await _fileStorageService.GetFileAsync(_metadata.FileBackupsFolderName, backupFileName))
+            {
+                if (backup == null)
+                {
+                    throw new FileNotFoundException("The package backup archive was not found.", backupFileName);
+                }
+
+                VerifyRestoreHash(backup, hashBytes, "backup archive");
+                backup.Position = 0;
+
+                using (var destination = await _fileStorageService.GetFileAsync(destinationFolder, fileName))
+                {
+                    if (destination != null)
+                    {
+                        VerifyRestoreHash(destination, hashBytes, "restore destination");
+                        return;
+                    }
+                }
+
+                await _fileStorageService.SaveFileAsync(destinationFolder, fileName, backup, overwrite: false);
             }
         }
 
-        private static string BuildBackupFileName(string id, string version, string hash, string extension, string fileBackupSavePathTemplate)
+        private static void VerifyRestoreHash(Stream stream, byte[] expectedHash, string description)
+        {
+            stream.Position = 0;
+
+            using (var hashAlgorithm = HashAlgorithm.Create(CoreConstants.Sha512HashAlgorithmId))
+            {
+                var actualHash = hashAlgorithm.ComputeHash(stream);
+                if (!actualHash.SequenceEqual(expectedHash))
+                {
+                    throw new InvalidDataException($"The package {description} does not match the captured SHA512 backup hash.");
+                }
+            }
+        }
+
+        private static string BuildBackupFileName(string id, string version, byte[] hashBytes, string extension, string fileBackupSavePathTemplate)
         {
             if (id == null)
             {
@@ -217,12 +289,10 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(version));
             }
 
-            if (hash == null)
+            if (hashBytes == null)
             {
-                throw new ArgumentNullException(nameof(hash));
+                throw new ArgumentNullException(nameof(hashBytes));
             }
-
-            var hashBytes = Convert.FromBase64String(hash);
 
             return string.Format(
                 CultureInfo.InvariantCulture,
