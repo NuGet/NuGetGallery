@@ -287,6 +287,11 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    StyledAppButton                            |    11/06/2026    |   Malware  |
 |    StyledComponent                            |    11/06/2026    |   Malware  |
 |    HelloHappyNuGet                            |    11/06/2026    |   Malware  |
+|    asms.probec                                |    11/11/2026    |   Malware  |
+|    asms.import.contracts                      |    11/11/2026    |   Malware  |
+|    asms.probeb                                |    11/11/2026    |   Malware  |
+|    autostoremanagementsystem.import.contracts |    11/11/2026    |   Malware  |
+|    ElementLogic                               |    11/11/2026    |   Malware  |
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.
