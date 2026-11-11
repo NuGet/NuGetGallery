@@ -108,7 +108,6 @@ namespace NuGetGallery
                 // divide the total download count by this number
                 viewModel.TotalDaysSinceCreated = Convert.ToInt32(Math.Max(1, Math.Round((DateTime.UtcNow - packageHistory.Min(p => p.Created)).TotalDays)));
                 viewModel.DownloadsPerDay = viewModel.TotalDownloadCount / viewModel.TotalDaysSinceCreated; // for the package
-                viewModel.DownloadsPerDayLabel = viewModel.DownloadsPerDay < 1 ? "<1" : viewModel.DownloadsPerDay.ToNuGetNumberString();
 
                 // Lazily load the package types from the database.
                 viewModel.IsDotnetToolPackageType = isDotnetTool;
