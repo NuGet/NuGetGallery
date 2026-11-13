@@ -15,6 +15,7 @@ using NuGet.Versioning;
 using NuGetGallery.Areas.Admin.Filters;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Areas.Admin.Services;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
@@ -31,6 +32,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         private readonly IUndoSoftDeleteBatchService _undoSoftDeleteBatchService;
         private readonly ValidationAdminService _validationAdminService;
         private readonly IValidationService _validationService;
+        private readonly IAppConfiguration _appConfiguration;
 
         public AdminApiController(
             IPackageService packageService,
@@ -42,7 +44,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
             IUpdateListedService updateListedService,
             IUndoSoftDeleteBatchService undoSoftDeleteBatchService,
             ValidationAdminService validationAdminService = null,
-            IValidationService validationService = null)
+            IValidationService validationService = null,
+            IAppConfiguration appConfiguration = null)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _reflowPackageService = reflowPackageService ?? throw new ArgumentNullException(nameof(reflowPackageService));
@@ -54,6 +57,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             _undoSoftDeleteBatchService = undoSoftDeleteBatchService ?? throw new ArgumentNullException(nameof(undoSoftDeleteBatchService));
             _validationAdminService = validationAdminService;
             _validationService = validationService;
+            _appConfiguration = appConfiguration;
         }
 
         [HttpPost]
@@ -480,7 +484,11 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 });
             }
 
-            return Json(HttpStatusCode.OK, new AdminPendingValidationsResponse { Results = results }, JsonRequestBehavior.AllowGet);
+            // A large validation backlog can exceed the default JavaScriptSerializer maxJsonLength,
+            // which would make this endpoint fail exactly when it is needed most.
+            var response = Json(HttpStatusCode.OK, new AdminPendingValidationsResponse { Results = results }, JsonRequestBehavior.AllowGet);
+            response.MaxJsonLength = _appConfiguration?.MaxJsonLengthOverride;
+            return response;
         }
 
         [HttpPost]
