@@ -42,6 +42,98 @@ namespace NuGetGallery.Services.Authentication
                 Assert.Null(result.PolicyPropertyName);
             }
 
+            [Theory]
+            [InlineData(null, FederatedCredentialType.EntraIdServicePrincipal)]
+            [InlineData("", FederatedCredentialType.EntraIdServicePrincipal)]
+            [InlineData("   ", FederatedCredentialType.EntraIdServicePrincipal)]
+            [InlineData(null, FederatedCredentialType.AzureDevOps)]
+            [InlineData("", FederatedCredentialType.AzureDevOps)]
+            [InlineData("   ", FederatedCredentialType.AzureDevOps)]
+            public void RejectsEmptyOrWhitespaceCriteria(string? criteria, FederatedCredentialType type)
+            {
+                // Arrange
+                var user = new User("test-user");
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = type,
+                    PackageOwner = user,
+                    Criteria = criteria
+                };
+
+                // Act
+                var result = Target.ValidatePolicy(policy);
+
+                // Assert
+                Assert.Equal(FederatedCredentialPolicyValidationResultType.BadRequest, result.Type);
+                Assert.Equal($"Criteria must be provided for {type} policies.", result.UserMessage);
+                Assert.Equal(nameof(FederatedCredentialPolicy.Criteria), result.PolicyPropertyName);
+            }
+
+            [Theory]
+            [InlineData(FederatedCredentialType.EntraIdServicePrincipal)]
+            [InlineData(FederatedCredentialType.AzureDevOps)]
+            public void RejectsInvalidJsonCriteria(FederatedCredentialType type)
+            {
+                // Arrange
+                var user = new User("test-user");
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = type,
+                    PackageOwner = user,
+                    Criteria = "invalid json"
+                };
+
+                // Act & Assert
+                Assert.ThrowsAny<Exception>(() => Target.ValidatePolicy(policy));
+            }
+
+            [Theory]
+            [InlineData(FederatedCredentialType.EntraIdServicePrincipal)]
+            [InlineData(FederatedCredentialType.AzureDevOps)]
+            public void RejectsNullCriteriaObject(FederatedCredentialType type)
+            {
+                // Arrange
+                var user = new User("test-user");
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = type,
+                    PackageOwner = user,
+                    Criteria = "null"
+                };
+
+                // Act
+                var result = Target.ValidatePolicy(policy);
+
+                // Assert
+                Assert.Equal(FederatedCredentialPolicyValidationResultType.BadRequest, result.Type);
+                Assert.Equal($"Invalid criteria format for {type} policy.", result.UserMessage);
+                Assert.Equal(nameof(FederatedCredentialPolicy.Criteria), result.PolicyPropertyName);
+            }
+
+            [Theory]
+            [InlineData(FederatedCredentialType.EntraIdServicePrincipal, """{"tid":"c311b905-19a2-483e-a014-41d0fcdc99cf","oid":"d17083b8-74e0-46c6-b69f-764da2e6fc0e"}""")]
+            [InlineData(FederatedCredentialType.AzureDevOps, """{"organizationId":"0c25520f-c7eb-4bc1-919c-3870a18620ef","pipelineId":"12345"}""")]
+            public void CallsBaseValidatePolicyForValidInput(FederatedCredentialType type, string criteria)
+            {
+                // Arrange
+                var user = new User("test-user");
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = type,
+                    PackageOwner = user,
+                    Criteria = criteria,
+                };
+
+                AllowedTenantIds = [TenantId.ToString()];
+
+                // Act
+                var result = Target.ValidatePolicy(policy);
+
+                // Assert
+                Assert.Equal(FederatedCredentialPolicyValidationResultType.Success, result.Type);
+                // The fact that we get Success indicates base.ValidatePolicy() was called and succeeded
+            }
+
             [Fact]
             public void RejectsWhenFederatedCredentialsDisabled()
             {
@@ -65,75 +157,8 @@ namespace NuGetGallery.Services.Authentication
                 Assert.Equal(nameof(FederatedCredentialPolicy.PackageOwner), result.PolicyPropertyName);
             }
 
-            [Theory]
-            [InlineData(null)]
-            [InlineData("")]
-            [InlineData("   ")]
-            public void RejectsEmptyOrWhitespaceCriteria(string? criteria)
-            {
-                // Arrange
-                var user = new User("test-user");
-                var policy = new FederatedCredentialPolicy
-                {
-                    Type = FederatedCredentialType.EntraIdServicePrincipal,
-                    PackageOwner = user,
-                    Criteria = criteria
-                };
-
-                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(user)).Returns(true);
-
-                // Act
-                var result = Target.ValidatePolicy(policy);
-
-                // Assert
-                Assert.Equal(FederatedCredentialPolicyValidationResultType.BadRequest, result.Type);
-                Assert.Equal("Criteria must be provided for Entra ID service principal policies.", result.UserMessage);
-                Assert.Equal(nameof(FederatedCredentialPolicy.Criteria), result.PolicyPropertyName);
-            }
-
             [Fact]
-            public void RejectsInvalidJsonCriteria()
-            {
-                // Arrange
-                var user = new User("test-user");
-                var policy = new FederatedCredentialPolicy
-                {
-                    Type = FederatedCredentialType.EntraIdServicePrincipal,
-                    PackageOwner = user,
-                    Criteria = "invalid json"
-                };
-
-                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(user)).Returns(true);
-
-                // Act & Assert
-                Assert.ThrowsAny<Exception>(() => Target.ValidatePolicy(policy));
-            }
-
-            [Fact]
-            public void RejectsNullCriteriaObject()
-            {
-                // Arrange
-                var user = new User("test-user");
-                var policy = new FederatedCredentialPolicy
-                {
-                    Type = FederatedCredentialType.EntraIdServicePrincipal,
-                    PackageOwner = user,
-                    Criteria = "null"
-                };
-
-                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(user)).Returns(true);
-
-                // Act
-                var result = Target.ValidatePolicy(policy);
-
-                // Assert
-                Assert.Equal(FederatedCredentialPolicyValidationResultType.BadRequest, result.Type);
-                Assert.Equal("Invalid criteria format for Entra ID service principal policy.", result.UserMessage);
-                Assert.Equal(nameof(FederatedCredentialPolicy.Criteria), result.PolicyPropertyName);
-            }
-
-            [Fact]
-            public void RejectsNotAllowedTenant()
+            public void RejectsNotAllowedTenantForEntraIdServicePrincipalPolicy()
             {
                 // Arrange
                 var user = new User("test-user");
@@ -145,7 +170,6 @@ namespace NuGetGallery.Services.Authentication
                     Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(notAllowedTenantId, ObjectId))
                 };
 
-                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(user)).Returns(true);
                 AllowedTenantIds = [TenantId.ToString()]; // Only allow the default tenant
 
                 // Act
@@ -158,7 +182,7 @@ namespace NuGetGallery.Services.Authentication
             }
 
             [Fact]
-            public void RejectsWhenNoTenantsAllowed()
+            public void RejectsWhenNoTenantsAllowedForEntraIdServicePrincipalPolicy()
             {
                 // Arrange
                 var user = new User("test-user");
@@ -169,7 +193,6 @@ namespace NuGetGallery.Services.Authentication
                     Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId))
                 };
 
-                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(user)).Returns(true);
                 AllowedTenantIds = []; // No tenants allowed
 
                 // Act
@@ -182,7 +205,7 @@ namespace NuGetGallery.Services.Authentication
             }
 
             [Fact]
-            public void AcceptsValidPolicyWithAllowedTenant()
+            public void AcceptsValidPolicyWithAllowedTenantForEntraIdServicePrincipalPolicy()
             {
                 // Arrange
                 var user = new User("test-user");
@@ -193,7 +216,6 @@ namespace NuGetGallery.Services.Authentication
                     Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId))
                 };
 
-                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(user)).Returns(true);
                 AllowedTenantIds = [TenantId.ToString()];
 
                 // Act
@@ -207,7 +229,7 @@ namespace NuGetGallery.Services.Authentication
             }
 
             [Fact]
-            public void AcceptsValidPolicyWhenAllTenantsAllowed()
+            public void AcceptsValidPolicyWhenAllTenantsAllowedForEntraIdServicePrincipalPolicy()
             {
                 // Arrange
                 var user = new User("test-user");
@@ -218,7 +240,6 @@ namespace NuGetGallery.Services.Authentication
                     Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId))
                 };
 
-                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(user)).Returns(true);
                 AllowedTenantIds = ["all"]; // All tenants allowed
 
                 // Act
@@ -232,7 +253,7 @@ namespace NuGetGallery.Services.Authentication
             }
 
             [Fact]
-            public void AcceptsValidPolicyWithCaseInsensitiveTenantMatching()
+            public void AcceptsValidPolicyWithCaseInsensitiveTenantMatchingForEntraIdServicePrincipalPolicy()
             {
                 // Arrange
                 var user = new User("test-user");
@@ -243,7 +264,6 @@ namespace NuGetGallery.Services.Authentication
                     Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId))
                 };
 
-                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(user)).Returns(true);
                 AllowedTenantIds = [TenantId.ToString().ToUpperInvariant()]; // Uppercase tenant ID
 
                 // Act
@@ -257,7 +277,7 @@ namespace NuGetGallery.Services.Authentication
             }
 
             [Fact]
-            public void AcceptsValidPolicyWithMultipleAllowedTenants()
+            public void AcceptsValidPolicyWithMultipleAllowedTenantsForEntraIdServicePrincipalPolicy()
             {
                 // Arrange
                 var user = new User("test-user");
@@ -268,7 +288,6 @@ namespace NuGetGallery.Services.Authentication
                     Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId))
                 };
 
-                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(user)).Returns(true);
                 AllowedTenantIds = [
                     "d8f0bfc3-5def-4079-b08c-618832b6ae16",
                     TenantId.ToString(),
@@ -286,26 +305,52 @@ namespace NuGetGallery.Services.Authentication
             }
 
             [Fact]
-            public void CallsBaseValidatePolicyForValidInput()
+            public void RejectsWhenAzureDevOpsCredentialsDisabled()
             {
                 // Arrange
                 var user = new User("test-user");
                 var policy = new FederatedCredentialPolicy
                 {
-                    Type = FederatedCredentialType.EntraIdServicePrincipal,
+                    Type = FederatedCredentialType.AzureDevOps,
                     PackageOwner = user,
-                    Criteria = JsonSerializer.Serialize(new EntraIdServicePrincipalCriteria(TenantId, ObjectId))
+                    Criteria = """{"organizationId":"7346afa9-c5f0-474b-a335-b2f802b69012","pipelineId":"12345"}"""
                 };
 
-                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(user)).Returns(true);
-                AllowedTenantIds = [TenantId.ToString()];
+                FeatureFlagService.Setup(x => x.CanUseAzureDevOpsCredentials(user)).Returns(false);
+                // Act
+                var result = Target.ValidatePolicy(policy);
+
+                // Assert
+                Assert.Equal(FederatedCredentialPolicyValidationResultType.BadRequest, result.Type);
+                Assert.Equal("The package owner 'test-user' is not enabled to use Azure DevOps credentials.", result.UserMessage);
+                Assert.Equal(nameof(FederatedCredentialPolicy.PackageOwner), result.PolicyPropertyName);
+            }
+
+            [Theory]
+            [InlineData("""{"organizationId":"   ","pipelineId":" "}""",
+                        "Invalid criteria format for AzureDevOps policy: The organization ID and pipeline ID are empty.")]
+            [InlineData("""{"organizationId":"","pipelineId":"12345"}""",
+                        "Invalid criteria format for AzureDevOps policy: The organization ID is empty.")]
+            [InlineData("""{"organizationId":"0c25520f-c7eb-4bc1-919c-3870a18620ef","pipelineId":""}""",
+                        "Invalid criteria format for AzureDevOps policy: The pipeline ID is empty.")]
+            public void RejectsInvalidCriteriaForAzureDevOpsPolicy(string criteria, string expectedUserMessage)
+            {
+                // Arrange
+                var user = new User("test-user");
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = FederatedCredentialType.AzureDevOps,
+                    PackageOwner = user,
+                    Criteria = criteria,
+                };
 
                 // Act
                 var result = Target.ValidatePolicy(policy);
 
                 // Assert
-                Assert.Equal(FederatedCredentialPolicyValidationResultType.Success, result.Type);
-                // The fact that we get Success indicates base.ValidatePolicy() was called and succeeded
+                Assert.Equal(FederatedCredentialPolicyValidationResultType.BadRequest, result.Type);
+                Assert.Equal(expectedUserMessage, result.UserMessage);
+                Assert.Equal(nameof(FederatedCredentialPolicy.Criteria), result.PolicyPropertyName);
             }
         }
 
@@ -845,6 +890,8 @@ namespace NuGetGallery.Services.Authentication
             JsonWebTokenHandler = new Mock<JsonWebTokenHandler>();
             Configuration = new Mock<IFederatedCredentialConfiguration>();
             FeatureFlagService = new Mock<IFeatureFlagService>();
+            FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(It.IsAny<User>())).Returns(true);
+            FeatureFlagService.Setup(x => x.CanUseAzureDevOpsCredentials(It.IsAny<User>())).Returns(true);
 
             TenantId = new Guid("c311b905-19a2-483e-a014-41d0fcdc99cf");
             ObjectId = new Guid("d17083b8-74e0-46c6-b69f-764da2e6fc0e");

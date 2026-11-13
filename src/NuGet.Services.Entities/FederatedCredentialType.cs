@@ -31,5 +31,11 @@ namespace NuGet.Services.Entities
         /// is identified by namespace path, project path, and optionally a ref and environment.
         /// </summary>
         GitLab = 3,
+
+        /// <summary>
+        /// This credential type applies to Azure DevOps pipelines. The pipeline is identified by organization ID
+        /// and pipeline (definition) ID.
+        /// </summary>
+        AzureDevOps = 4,
     }
 }
