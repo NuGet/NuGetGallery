@@ -389,5 +389,10 @@ namespace GitHubVulnerabilities2Db.Fakes
         {
             throw new NotImplementedException();
         }
+
+        public bool CanUseAzureDevOpsCredentials(User user)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

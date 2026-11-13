@@ -133,6 +133,7 @@
                                 <td>@RenderUsername(policy.PackageOwner)</td>
                                 <td>@{if (policy.Type == FederatedCredentialType.EntraIdServicePrincipal) { <code>EntraId</code> }
                                       else if (policy.Type == FederatedCredentialType.GitHubActions) { <code>GitHubActions</code> }
+                                      else if (policy.Type == FederatedCredentialType.AzureDevOps) { <code>AzureDevOps</code> }
                                       else { <code>Unknown</code> }
                                     }
                                 </td>
@@ -348,7 +349,6 @@
     </p>
 </section>
 
-
 @section BottomScripts {
     <script type="text/javascript">
         function setPolicyCriteriaTemplate(replace) {
@@ -362,6 +362,11 @@
                     policyCriteria =
                         JSON.stringify(
                             { owner: 'contoso', ownerId: '123456 (optional)', repository: 'contoso-sdk', repositoryId: '123456 (optional)', workflow: 'release.yml', environment: 'deployment (optional)' });
+                    break;
+                case '@(FederatedCredentialType.AzureDevOps)':
+                    policyCriteria =
+                        JSON.stringify(
+                            { organizationId: 'organization ID', pipelineId: 'pipeline ID' });
                     break;
                 default:
                     policyCriteria = "{}"

@@ -161,5 +161,7 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
         public bool IsInvalidPackageIdAllowedForExistingPackages() => throw new NotImplementedException();
 
         public bool IsApiKeyExpirationRestricted() => throw new NotImplementedException();
+
+        public bool CanUseAzureDevOpsCredentials(User user) => throw new NotImplementedException();
     }
 }

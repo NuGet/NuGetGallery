@@ -388,5 +388,10 @@ namespace NuGetGallery.AccountDeleter
         {
             throw new NotImplementedException();
         }
+
+        public bool CanUseAzureDevOpsCredentials(User user)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
