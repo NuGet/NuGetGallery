@@ -292,6 +292,7 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    asms.probeb                                |    11/11/2026    |   Malware  |
 |    autostoremanagementsystem.import.contracts |    11/11/2026    |   Malware  |
 |    ElementLogic                               |    11/11/2026    |   Malware  |
+|    rdkcxnksxn.micjpgauq.egihpi                |    11/16/2026    |   Malware  |
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.
