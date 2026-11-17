@@ -17,6 +17,79 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
     public class ValidationOutcomeProcessorFacts
     {
         [Theory]
+        [InlineData(ValidatingType.StagedPackage, ValidationStatus.Succeeded)]
+        [InlineData(ValidatingType.StagedPackage, ValidationStatus.Failed)]
+        [InlineData(ValidatingType.StagedPackage, ValidationStatus.Incomplete)]
+        [InlineData(ValidatingType.StagedSymbolPackage, ValidationStatus.Succeeded)]
+        [InlineData(ValidatingType.StagedSymbolPackage, ValidationStatus.Failed)]
+        [InlineData(ValidatingType.StagedSymbolPackage, ValidationStatus.Incomplete)]
+        public async Task StagedWorkflowLifecycleMetricsDoNotUseOrdinaryMetrics(ValidatingType validatingType, ValidationStatus status)
+        {
+            AddValidation("validation1", status);
+            ProcessorStats.AnyRequiredValidationSucceeded = status == ValidationStatus.Succeeded;
+            ValidationSet.ValidatingType = validatingType;
+            ValidationSet.PackageKey = 43;
+            if (status == ValidationStatus.Incomplete)
+            {
+                Configuration.TimeoutValidationSetAfter = TimeSpan.FromHours(1);
+                ValidationSet.Created = DateTime.UtcNow.AddDays(-1);
+            }
+
+            if (validatingType == ValidatingType.StagedPackage)
+            {
+                await ProcessStagedOutcomeAsync(new StagedPackageValidatingEntity(new StagedPackage { Key = 43, Status = StagedPackageStatus.Validating }));
+            }
+            else
+            {
+                await ProcessStagedOutcomeAsync(new StagedSymbolPackageValidatingEntity(new StagedSymbolPackage { Key = 43, Status = StagedPackageStatus.Validating }));
+            }
+
+            if (status == ValidationStatus.Incomplete)
+            {
+                TelemetryServiceMock.Verify(service => service.TrackStagingValidationSetTimeout(ValidationSet), Times.Once);
+                TelemetryServiceMock.Verify(service => service.TrackStagingValidationDuration(ValidationSet, It.IsAny<TimeSpan>(), It.IsAny<bool>()), Times.Never);
+            }
+            else
+            {
+                TelemetryServiceMock.Verify(
+                    service => service.TrackStagingValidationDuration(ValidationSet, It.IsAny<TimeSpan>(), status == ValidationStatus.Succeeded),
+                    Times.Once);
+                TelemetryServiceMock.Verify(service => service.TrackStagingValidationSetTimeout(ValidationSet), Times.Never);
+            }
+
+            TelemetryServiceMock.Verify(
+                service => service.TrackTotalValidationDuration(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<TimeSpan>(),
+                    It.IsAny<bool>()),
+                Times.Never);
+            TelemetryServiceMock.Verify(service => service.TrackValidationSetTimeout(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>()), Times.Never);
+        }
+
+        private Task ProcessStagedOutcomeAsync<T>(IValidatingEntity<T> entity) where T : class, IEntity
+        {
+            var status = new Mock<IStatusProcessor<T>>();
+            status.Setup(service => service.SetStatusAsync(entity, ValidationSet, It.IsAny<PackageStatus>())).Returns(Task.CompletedTask);
+            var messages = new Mock<IMessageService<T>>();
+            messages.Setup(service => service.SendPublishedMessageAsync(entity.EntityRecord)).Returns(Task.CompletedTask);
+            messages.Setup(service => service.SendValidationFailedMessageAsync(entity.EntityRecord, ValidationSet)).Returns(Task.CompletedTask);
+            messages.Setup(service => service.SendValidationTakingTooLongMessageAsync(entity.EntityRecord)).Returns(Task.CompletedTask);
+            var processor = new ValidationOutcomeProcessor<T>(
+                ValidationStorageServiceMock.Object,
+                ValidationEnqueuerMock.Object,
+                status.Object,
+                PackageFileServiceMock.Object,
+                ConfigurationAccessorMock.Object,
+                messages.Object,
+                TelemetryServiceMock.Object,
+                Mock.Of<ILogger<ValidationOutcomeProcessor<T>>>());
+
+            return processor.ProcessValidationOutcomeAsync(ValidationSet, entity, ProcessorStats, ScheduleNextCheck);
+        }
+
+        [Theory]
         [InlineData(ValidationFailureBehavior.MustSucceed, PackageStatus.FailedValidation)]
         [InlineData(ValidationFailureBehavior.AllowedToFail, PackageStatus.Available)]
         public async Task ProcessesFailedValidationAccordingToFailureBehavior(ValidationFailureBehavior failureBehavior, PackageStatus expectedPackageStatus)

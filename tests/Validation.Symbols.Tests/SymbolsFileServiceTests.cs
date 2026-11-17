@@ -44,7 +44,7 @@ namespace Validation.Symbols.Tests
             _fileDownloader.Setup(svss => svss.DownloadAsync(It.IsAny<Uri>(), It.IsAny<CancellationToken>())).ThrowsAsync(new InvalidOperationException("Boo"));
             
             // Act + Assert 
-            var exception = await Assert.ThrowsAsync<InvalidOperationException>( async () => await service.DownloadSnupkgFileAsync("https://dummy.snupkg", CancellationToken.None));
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>( async () => await service.DownloadSnupkgFileAsync(new Uri("https://dummy.snupkg"), CancellationToken.None));
 
             Assert.Equal("Boo", exception.Message);
         }

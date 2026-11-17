@@ -110,7 +110,7 @@ namespace NuGet.Services.Validation.Orchestrator
                         validationSet.PackageNormalizedVersion,
                         validationSet.ValidationTrackingId,
                         packageValidation.Key);
-                    var validationConfiguration = GetValidationConfiguration(packageValidation.Type);
+                    var validationConfiguration = GetValidationConfiguration(packageValidation);
                     if (validationConfiguration == null)
                     {
                         await OnUnknownValidation(packageValidation);
@@ -184,7 +184,7 @@ namespace NuGet.Services.Validation.Orchestrator
                     validationSet.PackageNormalizedVersion,
                     validationSet.ValidationTrackingId,
                     packageValidation.Key);
-                    var validationConfiguration = GetValidationConfiguration(packageValidation.Type);
+                    var validationConfiguration = GetValidationConfiguration(packageValidation);
                     if (validationConfiguration == null)
                     {
                         await OnUnknownValidation(packageValidation);
@@ -196,7 +196,7 @@ namespace NuGet.Services.Validation.Orchestrator
                         continue;
                     }
 
-                    bool prerequisitesAreMet = ArePrerequisitesMet(packageValidation, validationSet);
+                    bool prerequisitesAreMet = ArePrerequisitesMet(validationConfiguration, validationSet);
                     if (!prerequisitesAreMet)
                     {
                         _logger.LogInformation("Prerequisites are not met for validation {ValidationType} for {PackageId} {PackageVersion}, validation set {ValidationSetId}, {ValidationId}",
@@ -286,10 +286,15 @@ namespace NuGet.Services.Validation.Orchestrator
             }
         }
 
-        private ValidationConfigurationItem GetValidationConfiguration(string validationName)
+        private ValidationConfigurationItem GetValidationConfiguration(PackageValidation validation)
         {
+            if (SymbolPromotionValidationConfiguration.IsPromotion(validation.PackageValidationSet))
+            {
+                return SymbolPromotionValidationConfiguration.Create(_validationConfiguration);
+            }
+
             return _validationConfiguration.Validations
-                .FirstOrDefault(v => v.Name == validationName);
+                .FirstOrDefault(v => v.Name == validation.Type);
         }
 
         private async Task OnUnknownValidation(PackageValidation packageValidation)
@@ -321,17 +326,13 @@ namespace NuGet.Services.Validation.Orchestrator
             return validationRequest;
         }
 
-        private bool ArePrerequisitesMet(PackageValidation packageValidation, PackageValidationSet packageValidationSet)
+        private static bool ArePrerequisitesMet(ValidationConfigurationItem configuration, PackageValidationSet packageValidationSet)
         {
             var completeValidations = new HashSet<string>(packageValidationSet
                 .PackageValidations
                 .Where(v => v.ValidationStatus == ValidationStatus.Succeeded)
                 .Select(v => v.Type));
-            var requiredValidations = _validationConfiguration
-                .Validations
-                .Single(v => v.Name == packageValidation.Type).RequiredValidations;
-
-            return completeValidations.IsSupersetOf(requiredValidations);
+            return completeValidations.IsSupersetOf(configuration.RequiredValidations);
         }
     }
 }

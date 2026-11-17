@@ -1,0 +1,43 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using NuGet.Jobs.Validation;
+using NuGet.Jobs.Validation.Leases;
+using NuGet.Services.Entities;
+using NuGet.Services.Validation.Orchestrator.Telemetry;
+
+namespace NuGet.Services.Validation.Orchestrator
+{
+    public class StagedPackageValidationMessageHandler : BaseValidationMessageHandler<StagedPackage>
+    {
+        public StagedPackageValidationMessageHandler(
+            IOptionsSnapshot<ValidationConfiguration> validationConfigsAccessor,
+            IEntityService<StagedPackage> entityService,
+            IValidationSetProvider<StagedPackage> validationSetProvider,
+            IValidationSetProcessor validationSetProcessor,
+            IValidationOutcomeProcessor<StagedPackage> validationOutcomeProcessor,
+            IValidationStorageService validationStorageService,
+            ILeaseService leaseService,
+            IPackageValidationEnqueuer validationEnqueuer,
+            IFeatureFlagService featureFlagService,
+            ITelemetryService telemetryService,
+            ILogger<StagedPackageValidationMessageHandler> logger) : base(
+                validationConfigsAccessor,
+                entityService,
+                validationSetProvider,
+                validationSetProcessor,
+                validationOutcomeProcessor,
+                validationStorageService,
+                leaseService,
+                validationEnqueuer,
+                featureFlagService,
+                telemetryService,
+                logger)
+        {
+        }
+
+        protected override ValidatingType ValidatingType => ValidatingType.StagedPackage;
+    }
+}

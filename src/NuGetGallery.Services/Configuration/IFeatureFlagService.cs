@@ -381,6 +381,13 @@ namespace NuGetGallery
         bool IsAdminApiSoftDeleteEnabled();
 
         /// <summary>
+        /// Whether package staging is enabled for the specified user or organization.
+        /// </summary>
+        /// <param name="user">The user or organization to check.</param>
+        /// <returns>Whether package staging is enabled.</returns>
+        bool IsPackageStagingEnabled(User user);
+
+        /// <summary>
         /// When enabled, newly created API keys offer reduced expiration choices (1, 8, and 30 days)
         /// and API keys with a duration longer than 30 days are treated as expiring no later than
         /// the hardcoded cutoff date (see <see cref="NuGetGallery.ApiKeyReductionPolicy"/>).

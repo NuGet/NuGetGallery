@@ -7,6 +7,14 @@ namespace NuGet.Services.Entities.Tests
 {
     public class UserFacts
     {
+        [Fact]
+        public void EnablesStagingNotificationsByDefaultForUsersAndOrganizations()
+        {
+            Assert.True(new User().NotifyPackageStaged);
+            Assert.True(new User("user").NotifyPackageStaged);
+            Assert.True(new Organization("organization").NotifyPackageStaged);
+        }
+
         [Theory]
         [InlineData("Admins", true)]
         [InlineData("OtherRole", false)]

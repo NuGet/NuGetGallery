@@ -1,0 +1,43 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+using System.Web;
+using NuGet.Services.Entities;
+
+namespace NuGetGallery
+{
+    /// <summary>
+    /// Validates and stores private staged packages.
+    /// </summary>
+    public interface IPackageStagingUploadService
+    {
+        /// <summary>
+        /// Validates and stages a package on behalf of an authorized owner.
+        /// </summary>
+        /// <param name="currentUser">The user associated with the staging credential.</param>
+        /// <param name="scopes">The scopes granted to the staging credential.</param>
+        /// <param name="httpContext">The current HTTP context.</param>
+        /// <param name="packageFile">The stream containing the package file.</param>
+        /// <param name="groupId">The optional owner-scoped group ID. Omission preserves existing membership.</param>
+        /// <param name="listed">The optional listing intent. Omission preserves existing intent.</param>
+        /// <returns>The result of the staging operation.</returns>
+        Task<PackageStagingResult> StagePackageAsync(User currentUser, IReadOnlyCollection<Scope> scopes, HttpContextBase httpContext, Stream packageFile, string groupId = null, bool? listed = null);
+
+        /// <summary>
+        /// Replaces an authorized current staged package with a new immutable attempt.
+        /// </summary>
+        /// <param name="currentUser">The user replacing the package.</param>
+        /// <param name="httpContext">The current HTTP context.</param>
+        /// <param name="stagedPackage">The authorized current staged package attempt.</param>
+        /// <param name="packageFile">The replacement package stream.</param>
+        /// <returns>The result of the replacement operation.</returns>
+        Task<PackageStagingResult> ReplacePackageAsync(
+            User currentUser,
+            HttpContextBase httpContext,
+            StagedPackage stagedPackage,
+            Stream packageFile);
+    }
+}

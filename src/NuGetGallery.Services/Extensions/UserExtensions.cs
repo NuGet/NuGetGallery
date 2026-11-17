@@ -136,6 +136,7 @@ namespace NuGetGallery
             user.EmailConfirmationToken = null;
             user.PasswordResetToken = null;
             user.NotifyPackagePushed = false;
+            user.NotifyPackageStaged = false;
             user.LastFailedLoginUtc = null;
             user.FailedLoginCount = 0;
             user.IsDeleted = true;

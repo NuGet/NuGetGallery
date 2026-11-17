@@ -132,6 +132,7 @@ namespace NuGetGallery.AccountDeleter
                     return new EntitiesContext(connection, readOnly: false);
                 });
                 services.AddScoped<IDeleteAccountService, DeleteAccountService>();
+                services.AddScoped<IStagingBlobCleanupService, StagingBlobCleanupService>();
 
                 services.AddScoped<IUserService, AccountDeleteUserService>();
                 services.AddScoped<IDiagnosticsService, DiagnosticsService>();

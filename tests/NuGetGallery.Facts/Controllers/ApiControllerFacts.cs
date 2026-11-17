@@ -917,6 +917,7 @@ namespace NuGetGallery
             [InlineData(PackageStatus.Available)]
             [InlineData(PackageStatus.Deleted)]
             [InlineData(PackageStatus.Validating)]
+            [InlineData(PackageStatus.Staged)]
             public async Task WillReturnConflictIfAPackageWithTheIdAndSameNormalizedVersionAlreadyExists(PackageStatus status)
             {
                 var id = "theId";

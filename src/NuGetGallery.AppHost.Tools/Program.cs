@@ -12,7 +12,7 @@ public class Program
 		if (args.Length == 0)
 		{
 			Console.Error.WriteLine("Usage: NuGetGallery.AppHost.Tools <command> [args]");
-			Console.Error.WriteLine("Commands: seed-blobs, catalog-index-available, search-index-available, warmup");
+			Console.Error.WriteLine("Commands: configure-validation, seed-blobs, catalog-index-available, bootstrap-search, search-index-available, warmup");
 			return 1;
 		}
 
@@ -21,8 +21,10 @@ public class Program
 
 		return command switch
 		{
+			"configure-validation" => ConfigureValidationTool.Run(remaining),
 			"seed-blobs" => await SeedBlobsTool.RunAsync(remaining),
 			"catalog-index-available" => await V3CatalogIndexAvailableTool.RunAsync(remaining),
+			"bootstrap-search" => await BootstrapSearchTool.RunAsync(remaining),
 			"search-index-available" => await SearchIndexAvailableTool.RunAsync(remaining),
 			"warmup" => await WarmupTool.RunAsync(remaining),
 			_ => throw new ArgumentException($"Unknown command: {command}"),

@@ -38,6 +38,7 @@ using NuGet.Services.Logging;
 using NuGet.Services.Messaging;
 using NuGet.Services.Messaging.Email;
 using NuGet.Services.ServiceBus;
+using NuGet.Services.Staging;
 using NuGet.Services.Sql;
 using NuGet.Services.Validation;
 using NuGetGallery.Areas.Admin;
@@ -75,6 +76,7 @@ namespace NuGetGallery
             public const string FeatureFlaggedStatisticsKey = "FeatureFlaggedStatisticsKey";
 
             public const string AccountDeleterTopic = "AccountDeleterBindingKey";
+            public const string StagingPromotionTopic = "StagingPromotionBindingKey";
             public const string PackageValidationTopic = "PackageValidationBindingKey";
             public const string SymbolsPackageValidationTopic = "SymbolsPackageValidationBindingKey";
             public const string PackageValidationEnqueuer = "PackageValidationEnqueuerBindingKey";
@@ -228,6 +230,25 @@ namespace NuGetGallery
                 .As<IEntityRepository<Package>>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<EntityRepository<StagedPackage>>()
+                .AsSelf()
+                .As<IEntityRepository<StagedPackage>>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<EntityRepository<StagedSymbolPackage>>()
+                .AsSelf()
+                .As<IEntityRepository<StagedSymbolPackage>>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<EntityRepository<StagedPackageIdentity>>()
+                .AsSelf()
+                .As<IEntityRepository<StagedPackageIdentity>>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<EntityRepository<StagingGroup>>()
+                .As<IEntityRepository<StagingGroup>>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<EntityRepository<PackageDependency>>()
                 .AsSelf()
                 .As<IEntityRepository<PackageDependency>>()
@@ -319,6 +340,7 @@ namespace NuGetGallery
             builder.RegisterType<PackageService>()
                 .AsSelf()
                 .As<IPackageService>()
+                .As<ICorePackageService>()
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<PackageFilter>()
@@ -389,6 +411,44 @@ namespace NuGetGallery
                 .AsSelf()
                 .As<IPackageUploadService>()
                 .InstancePerLifetimeScope();
+
+            builder.RegisterType<PackageStagingManagementService>()
+                .As<IPackageStagingManagementService>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<StagingBlobCleanupService>()
+                .As<IStagingBlobCleanupService>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<StagingDeletionService>()
+                .AsSelf()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<StagingQuotaService>()
+                .As<IStagingQuotaService>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<PackageStagingPromotionService>()
+                .As<IPackageStagingPromotionService>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<PackageStagingAuthorizationService>()
+                .As<IPackageStagingAuthorizationService>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<PackageStagingUploadService>()
+                .As<IPackageStagingUploadService>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<SymbolPackageStagingUploadService>()
+                .As<ISymbolPackageStagingUploadService>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<SymbolPackageStagingManagementService>()
+                .As<ISymbolPackageStagingManagementService>()
+                .InstancePerLifetimeScope();
+
+            RegisterStagingPromotionMessaging(builder, configuration);
 
             builder.RegisterType<SymbolPackageUploadService>()
                 .AsSelf()
@@ -964,6 +1024,28 @@ namespace NuGetGallery
                 .InstancePerLifetimeScope();
         }
 
+        private static void RegisterStagingPromotionMessaging(ContainerBuilder builder, ConfigurationService configuration)
+        {
+            var connectionString = configuration.ServiceBus.StagingPromotion_ConnectionString;
+            var topicName = configuration.ServiceBus.StagingPromotion_TopicName;
+
+            builder
+                .Register(c => new TopicClientWrapper(connectionString, topicName, configuration.ServiceBus.ManagedIdentityClientId))
+                .SingleInstance()
+                .Keyed<ITopicClient>(BindingKeys.StagingPromotionTopic)
+                .OnRelease(x => _ = x.CloseAsync());
+
+            builder
+                .RegisterType<StagingPromotionMessageSerializer>()
+                .As<IBrokeredMessageSerializer<StagingPromotionMessage>>();
+
+            builder
+                .Register(c => new StagingPromotionMessageEnqueuer(
+                    c.ResolveKeyed<Lazy<ITopicClient>>(BindingKeys.StagingPromotionTopic),
+                    c.Resolve<IBrokeredMessageSerializer<StagingPromotionMessage>>()))
+                .As<IStagingPromotionMessageEnqueuer>();
+        }
+
         private static void RegisterFeatureFlagsService(ContainerBuilder builder, ConfigurationService configuration)
         {
             builder
@@ -1210,6 +1292,24 @@ namespace NuGetGallery
                 builder
                     .Register(c =>
                     {
+                        return new StagedPackageValidationMessageEmitter(
+                            c.ResolveKeyed<IPackageValidationEnqueuer>(BindingKeys.PackageValidationEnqueuer),
+                            c.Resolve<IAppConfiguration>(),
+                            c.Resolve<IDiagnosticsService>());
+                    }).As<IStagedPackageValidationMessageEmitter>();
+
+                builder
+                    .Register(c =>
+                    {
+                        return new StagedSymbolPackageValidationMessageEmitter(
+                            c.ResolveKeyed<IPackageValidationEnqueuer>(BindingKeys.SymbolsPackageValidationEnqueuer),
+                            c.Resolve<IAppConfiguration>(),
+                            c.Resolve<IDiagnosticsService>());
+                    }).As<IStagedSymbolPackageValidationMessageEmitter>();
+
+                builder
+                    .Register(c =>
+                    {
                         return new AsynchronousValidationMessageEmitter<SymbolPackage>(
                             c.ResolveKeyed<IPackageValidationEnqueuer>(BindingKeys.SymbolsPackageValidationEnqueuer),
                             c.Resolve<IAppConfiguration>(),
@@ -1247,6 +1347,14 @@ namespace NuGetGallery
                 builder
                     .RegisterGeneric(typeof(ImmediateValidationMessageEmitter<>))
                     .As(typeof(IValidationMessageEmitter<>));
+
+                builder
+                    .RegisterType<ImmediateStagedPackageValidationMessageEmitter>()
+                    .As<IStagedPackageValidationMessageEmitter>();
+
+                builder
+                    .RegisterType<ImmediateStagedSymbolPackageValidationMessageEmitter>()
+                    .As<IStagedSymbolPackageValidationMessageEmitter>();
             }
 
             builder.RegisterType<RevalidationAdminService>()

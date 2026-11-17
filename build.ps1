@@ -150,6 +150,7 @@ Invoke-BuildStep 'Creating job packages from jobs solution' {
             "src\NuGet.Jobs.Db2AzureSearch\NuGet.Jobs.Db2AzureSearch.nuspec",
             "src\NuGet.Jobs.GitHubIndexer\NuGet.Jobs.GitHubIndexer.nuspec",
             "src\NuGet.Services.Revalidate\NuGet.Services.Revalidate.nuspec",
+            "src\NuGet.Services.Staging.Promotion\NuGet.Services.Staging.Promotion.nuspec",
             "src\NuGet.Services.Validation.Orchestrator\Validation.Orchestrator.nuspec",
             "src\NuGet.Services.Validation.Orchestrator\Validation.SymbolsOrchestrator.nuspec",
             "src\NuGet.SupportRequests.Notifications\NuGet.SupportRequests.Notifications.nuspec",

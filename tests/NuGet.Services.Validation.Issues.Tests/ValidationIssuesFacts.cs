@@ -240,6 +240,7 @@ namespace NuGet.Services.Validation.Issues.Tests
             { ValidationIssueCode.OnlySignatureFormatVersion1Supported, () => ValidationIssue.OnlySignatureFormatVersion1Supported },
             { ValidationIssueCode.AuthorCounterSignaturesNotSupported, () => ValidationIssue.AuthorCounterSignaturesNotSupported },
             { ValidationIssueCode.PackageIsNotSigned, () => ValidationIssue.PackageIsNotSigned },
+            { ValidationIssueCode.AuthorSignedAttributesNotCanonical, () => ValidationIssue.AuthorSignedAttributesNotCanonical },
             { ValidationIssueCode.SymbolErrorCode_ChecksumDoesNotMatch, () => ValidationIssue.SymbolErrorCode_ChecksumDoesNotMatch },
             { ValidationIssueCode.SymbolErrorCode_MatchingAssemblyNotFound, () => ValidationIssue.SymbolErrorCode_MatchingAssemblyNotFound },
             { ValidationIssueCode.SymbolErrorCode_PdbIsNotPortable, () => ValidationIssue.SymbolErrorCode_PdbIsNotPortable },

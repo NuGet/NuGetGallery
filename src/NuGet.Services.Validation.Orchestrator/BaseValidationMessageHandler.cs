@@ -15,7 +15,7 @@ using NuGet.Services.Validation.Orchestrator.Telemetry;
 namespace NuGet.Services.Validation.Orchestrator
 {
     public abstract class BaseValidationMessageHandler<TEntity>
-        : IMessageHandler<PackageValidationMessageData> where TEntity : class, IEntity
+        : IValidationMessageHandler<TEntity> where TEntity : class, IEntity
     {
         private static readonly TimeSpan LeaseTime = TimeSpan.FromMinutes(1);
 
@@ -294,7 +294,7 @@ namespace NuGet.Services.Validation.Orchestrator
                     {
                         _logger.LogInformation(
                             "The validation request for {ValidatingType} {PackageId} {PackageVersion} {Key} " +
-                            "{ValidationSetId} is a duplicate. Discarding the message.",
+                            "{ValidationSetId} is a duplicate or is no longer eligible. Discarding the message.",
                             ValidatingType,
                             message.PackageId,
                             message.PackageNormalizedVersion,

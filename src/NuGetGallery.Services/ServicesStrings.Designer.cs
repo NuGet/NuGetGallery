@@ -1850,6 +1850,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Stage packages.
+        /// </summary>
+        public static string ScopeDescription_StagePackage {
+            get {
+                return ResourceManager.GetString("ScopeDescription_StagePackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unknown.
         /// </summary>
         public static string ScopeDescription_Unknown {

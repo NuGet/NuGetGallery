@@ -334,7 +334,7 @@ namespace NuGetGallery
                     {
                         foreach (var notifyPackagePushed in new[] { false, true })
                         {
-                            yield return MemberDataHelper.AsData(emailAllowed, notifyPackagePushed);
+                            yield return MemberDataHelper.AsData(emailAllowed, notifyPackagePushed, !notifyPackagePushed);
                         }
                     }
                 }
@@ -342,18 +342,18 @@ namespace NuGetGallery
 
             [Theory]
             [MemberData("UpdatesEmailPreferences_Data")]
-            public virtual async Task UpdatesEmailPreferences(Func<Fakes, User> getCurrentUser, bool emailAllowed, bool notifyPackagePushed)
+            public virtual async Task UpdatesEmailPreferences(Func<Fakes, User> getCurrentUser, bool emailAllowed, bool notifyPackagePushed, bool notifyPackageStaged)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
 
                 // Act
-                var result = await InvokeChangeEmailSubscription(controller, getCurrentUser, emailAllowed, notifyPackagePushed);
+                var result = await InvokeChangeEmailSubscription(controller, getCurrentUser, emailAllowed, notifyPackagePushed, notifyPackageStaged);
 
                 // Assert
                 ResultAssert.IsRedirectToRoute(result, new { action = controller.AccountAction });
-                GetMock<IUserService>().Verify(u => u.ChangeEmailSubscriptionAsync(account, emailAllowed, notifyPackagePushed));
+                GetMock<IUserService>().Verify(u => u.ChangeEmailSubscriptionAsync(account, emailAllowed, notifyPackagePushed, notifyPackageStaged));
             }
 
             [Theory]
@@ -374,7 +374,8 @@ namespace NuGetGallery
                 TAccountsController controller,
                 Func<Fakes, User> getCurrentUser,
                 bool emailAllowed = true,
-                bool notifyPackagePushed = true)
+                bool notifyPackagePushed = true,
+                bool notifyPackageStaged = true)
             {
                 // Arrange
                 controller.SetCurrentUser(getCurrentUser(Fakes));
@@ -384,11 +385,12 @@ namespace NuGetGallery
                 account.EmailAddress = "test@example.com";
                 account.EmailAllowed = !emailAllowed;
                 account.NotifyPackagePushed = !notifyPackagePushed;
+                account.NotifyPackageStaged = !notifyPackageStaged;
 
                 var userService = GetMock<IUserService>();
                 userService.Setup(u => u.FindByUsername(account.Username, false))
                     .Returns(account as User);
-                userService.Setup(u => u.ChangeEmailSubscriptionAsync(account, emailAllowed, notifyPackagePushed))
+                userService.Setup(u => u.ChangeEmailSubscriptionAsync(account, emailAllowed, notifyPackagePushed, notifyPackageStaged))
                     .Returns(Task.CompletedTask);
 
                 var viewModel = Activator.CreateInstance<TAccountViewModel>();
@@ -396,7 +398,8 @@ namespace NuGetGallery
                 viewModel.ChangeNotifications = new ChangeNotificationsViewModel
                 {
                     EmailAllowed = emailAllowed,
-                    NotifyPackagePushed = notifyPackagePushed
+                    NotifyPackagePushed = notifyPackagePushed,
+                    NotifyPackageStaged = notifyPackageStaged
                 };
 
                 // Act

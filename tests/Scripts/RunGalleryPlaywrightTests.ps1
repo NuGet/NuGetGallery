@@ -40,9 +40,19 @@ try
     New-Item -ItemType Directory -Path $resultsDirectory -Force | Out-Null
     Remove-Item $testResultsPath -ErrorAction SilentlyContinue
 
+    $testFilter = "Category=PlaywrightTests"
+    if ($AppHostProfile -eq "full")
+    {
+        $testFilter += "&Category!=StagingCiTests"
+    }
+    else
+    {
+        $testFilter += "&Category!=StagingFullTests"
+    }
+
     dotnet test $testDll `
         --blame-hang-timeout 600s `
-        --filter "Category=PlaywrightTests" `
+        --filter $testFilter `
         --logger "trx;LogFileName=PlaywrightTests.trx" `
         --results-directory $resultsDirectory
 

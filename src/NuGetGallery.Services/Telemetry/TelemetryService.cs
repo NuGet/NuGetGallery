@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Security.Principal;
 using System.Web;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using NuGet.Services.Entities;
 using NuGet.Services.FeatureFlags;
@@ -274,6 +275,30 @@ namespace NuGetGallery
             }
 
             _diagnosticsSource.Warning(exception.ToString());
+        }
+
+        public void TrackStagingPromotionAccepted(Guid promotionId, Package package, bool symbols)
+        {
+            if (promotionId == Guid.Empty)
+            {
+                throw new ArgumentException("A promotion ID is required.", nameof(promotionId));
+            }
+
+            if (package == null)
+            {
+                throw new ArgumentNullException(nameof(package));
+            }
+
+            const string eventName = "StagingPromotion.Accepted";
+            _telemetryClient.TrackTrace(JsonConvert.SerializeObject(new
+            {
+                EventName = eventName,
+                PromotionId = promotionId,
+                PackageId = package.PackageRegistration.Id,
+                PackageVersion = package.NormalizedVersion,
+                ArtifactType = symbols ? "Symbols" : "Package",
+                OccurredAt = DateTime.UtcNow,
+            }), LogLevel.Information, new EventId(0, eventName));
         }
 
         public void TrackGetPackageDownloadCountFailed(string packageId, string packageVersion)

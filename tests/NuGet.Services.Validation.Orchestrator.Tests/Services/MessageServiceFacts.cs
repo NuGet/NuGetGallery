@@ -56,9 +56,11 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             (from invalidValue in InvalidValuesToTest
              select new[]
              {
-                new object[] { invalidValue,   ValidValue, ValidSettingsUrl, "PackageUrlTemplate" },
-                new object[] {   ValidValue, invalidValue, ValidSettingsUrl, "PackageSupportTemplate" },
-                new object[] {   ValidValue,   ValidValue,     invalidValue, "EmailSettingsUrl" }
+                new object[] { invalidValue,   ValidValue, ValidSettingsUrl,   ValidValue,   ValidValue, "PackageUrlTemplate" },
+                new object[] {   ValidValue, invalidValue, ValidSettingsUrl,   ValidValue,   ValidValue, "PackageSupportTemplate" },
+                new object[] {   ValidValue,   ValidValue,     invalidValue,   ValidValue,   ValidValue, "EmailSettingsUrl" },
+                new object[] {   ValidValue,   ValidValue, ValidSettingsUrl, invalidValue,   ValidValue, "StagedPackageUrlTemplate" },
+                new object[] {   ValidValue,   ValidValue, ValidSettingsUrl,   ValidValue, invalidValue, "StagedSymbolPackageUrlTemplate" }
             }).SelectMany(x => x);
 
         [Theory]
@@ -67,6 +69,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             string packageUrlTemplate,
             string packageSupportTemplate,
             string emailSettingsUrl,
+            string stagedPackageUrlTemplate,
+            string stagedSymbolPackageUrlTemplate,
             string expectedProperty)
         {
             EmailConfigurationAccessorMock
@@ -75,7 +79,11 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 {
                     PackageUrlTemplate = packageUrlTemplate,
                     PackageSupportTemplate = packageSupportTemplate,
-                    EmailSettingsUrl = emailSettingsUrl
+                    EmailSettingsUrl = emailSettingsUrl,
+                    StagedPackageUrlTemplate = stagedPackageUrlTemplate,
+                    StagedSymbolPackageUrlTemplate = stagedSymbolPackageUrlTemplate,
+                    GalleryOwner = EmailConfiguration.GalleryOwner,
+                    GalleryNoReplyAddress = EmailConfiguration.GalleryNoReplyAddress
                 });
 
             var ex = Assert.Throws<ArgumentException>(() => new PackageMessageService(CoreMessageServiceMock.Object, EmailConfigurationAccessorMock.Object, LoggerMock.Object));
@@ -92,6 +100,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 {
                     PackageUrlTemplate = "packageUrlTemplate",
                     PackageSupportTemplate = "packageSupportTemplate",
+                    StagedPackageUrlTemplate = "stagedPackageUrlTemplate",
+                    StagedSymbolPackageUrlTemplate = "stagedSymbolPackageUrlTemplate",
                     EmailSettingsUrl = "someRandomValue"
                 });
 
@@ -157,6 +167,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             {
                 PackageUrlTemplate = "https://example.com/package/{0}/{1}",
                 PackageSupportTemplate = "https://example.com/packageSupport/{0}/{1}",
+                StagedPackageUrlTemplate = "https://example.com/account/staging/package/{0}/{1}",
+                StagedSymbolPackageUrlTemplate = "https://example.com/account/staging/symbols/{0}/{1}",
                 EmailSettingsUrl = ValidSettingsUrl,
                 AnnouncementsUrl = "https://announcements.com",
                 TwitterUrl = "https://twitter.com/nuget",

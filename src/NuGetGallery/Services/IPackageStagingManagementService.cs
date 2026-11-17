@@ -1,0 +1,264 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+using NuGet.Services.Entities;
+
+namespace NuGetGallery
+{
+    /// <summary>
+    /// Retrieves private staged packages for authorized owners.
+    /// </summary>
+    public interface IPackageStagingManagementService
+    {
+        /// <summary>
+        /// Gets one ordered page of current packages for an authorized API owner.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="scopes">The credential scopes used to filter package IDs.</param>
+        /// <param name="page">The one-based page number.</param>
+        /// <param name="pageSize">The number of artifacts per page.</param>
+        /// <returns>The visible package page and total matching count, or an empty page when the owner is unconfirmed or locked.</returns>
+        StagingArtifactPage<StagedPackage> GetStagedPackagePage(User stagingOwner, IReadOnlyCollection<Scope> scopes, int page, int pageSize);
+
+        /// <summary>
+        /// Gets one ordered page of current symbols for an authorized API owner.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="scopes">The credential scopes used to filter package IDs.</param>
+        /// <param name="page">The one-based page number.</param>
+        /// <param name="pageSize">The number of artifacts per page.</param>
+        /// <returns>The visible symbol page and total matching count, or an empty page when the owner is unconfirmed or locked.</returns>
+        StagingArtifactPage<StagedSymbolPackage> GetStagedSymbolPackagePage(User stagingOwner, IReadOnlyCollection<Scope> scopes, int page, int pageSize);
+
+        /// <summary>
+        /// Gets a current package visible to an authorized API owner and credential.
+        /// Unconfirmed or locked owners cannot read staged package attempts.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="scopes">The credential scopes used to filter package IDs.</param>
+        /// <param name="id">The package ID.</param>
+        /// <param name="version">The package version.</param>
+        /// <returns>The visible current attempt, or <see langword="null"/> when it is unavailable.</returns>
+        StagedPackage GetStagedPackage(User stagingOwner, IReadOnlyCollection<Scope> scopes, string id, string version);
+
+        /// <summary>
+        /// Gets current symbols visible to an authorized API owner and credential.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="scopes">The credential scopes used to filter package IDs.</param>
+        /// <param name="id">The package ID.</param>
+        /// <param name="version">The package version.</param>
+        /// <returns>The visible current attempt, or <see langword="null"/> when it is unavailable.</returns>
+        StagedSymbolPackage GetStagedSymbolPackage(User stagingOwner, IReadOnlyCollection<Scope> scopes, string id, string version);
+
+        /// <summary>
+        /// Gets staged packages visible to the API credential.
+        /// </summary>
+        /// <param name="currentUser">The user associated with the staging credential.</param>
+        /// <param name="scopes">The scopes granted to the staging credential.</param>
+        /// <returns>The current staged package statuses visible to the credential.</returns>
+        IReadOnlyList<PackageStagingStatus> GetPackages(User currentUser, IEnumerable<Scope> scopes);
+
+        /// <summary>
+        /// Gets an owner-visible staged package.
+        /// </summary>
+        /// <param name="currentUser">The user associated with the staging credential.</param>
+        /// <param name="scopes">The scopes granted to the staging credential.</param>
+        /// <param name="id">The package ID.</param>
+        /// <param name="version">The package version.</param>
+        /// <returns>The staged package status, or <see langword="null"/> when the package is not visible to the caller.</returns>
+        PackageStagingStatus GetPackageStatus(User currentUser, IEnumerable<Scope> scopes, string id, string version);
+
+        /// <summary>
+        /// Gets the owner-visible status for a staged package attempt.
+        /// </summary>
+        /// <param name="stagedPackage">The staged package attempt.</param>
+        /// <returns>The staged package status.</returns>
+        PackageStagingStatus GetStatus(StagedPackage stagedPackage);
+
+        /// <summary>
+        /// Determines whether package staging is enabled for the user or an organization the user belongs to.
+        /// </summary>
+        /// <param name="currentUser">The user whose staging access should be checked.</param>
+        /// <returns><see langword="true"/> when at least one eligible staging owner is enabled.</returns>
+        bool IsEnabled(User currentUser);
+
+        /// <summary>
+        /// Finds the current attempt for a staged package.
+        /// </summary>
+        /// <param name="id">The package ID.</param>
+        /// <param name="version">The package version.</param>
+        /// <returns>The current attempt, or <see langword="null"/> when the package is not staged.</returns>
+        StagedPackage FindCurrentStagedPackage(string id, string version);
+
+        /// <summary>
+        /// Opens the downloadable content for an authorized staged package attempt.
+        /// </summary>
+        /// <param name="stagedPackage">The authorized staged package attempt.</param>
+        /// <returns>The package stream.</returns>
+        Task<Stream> OpenPackageContentAsync(StagedPackage stagedPackage);
+
+        /// <summary>
+        /// Changes whether the package should be listed after promotion.
+        /// </summary>
+        /// <param name="stagedPackage">The authorized current staged package attempt.</param>
+        /// <param name="listed">Whether the package should be listed after promotion.</param>
+        /// <returns><see langword="true"/> when the value was updated; otherwise, <see langword="false"/> when promotion prevents the change.</returns>
+        Task<bool> UpdateListedAsync(StagedPackage stagedPackage, bool listed);
+
+        /// <summary>
+        /// Deletes an authorized current staged package attempt while retaining its reserved package row.
+        /// </summary>
+        /// <param name="stagedPackage">The authorized current staged package attempt.</param>
+        /// <returns>The deletion outcome, including the reason when deletion is rejected.</returns>
+        Task<PackageStagingDeletionResult> DeletePackageAsync(StagedPackage stagedPackage);
+
+        /// <summary>
+        /// Gets staged packages owned by the user or an enabled organization the user belongs to.
+        /// </summary>
+        /// <param name="currentUser">The user requesting the staged packages.</param>
+        /// <returns>The owner-visible staged packages.</returns>
+        IReadOnlyList<StagedPackage> GetStagedPackages(User currentUser);
+
+        /// <summary>
+        /// Gets owner-visible staged packages in the specified owner's group or Ungrouped.
+        /// </summary>
+        /// <param name="currentUser">The user requesting the staged packages.</param>
+        /// <param name="ownerKey">The staging owner's key.</param>
+        /// <param name="groupKey">The group key, or <see langword="null"/> for Ungrouped.</param>
+        /// <returns>The owner-visible staged packages in the requested scope.</returns>
+        IReadOnlyList<StagedPackage> GetStagedPackages(User currentUser, int ownerKey, int? groupKey);
+
+        /// <summary>
+        /// Gets staging groups owned by the user or an enabled organization the user belongs to.
+        /// </summary>
+        /// <param name="currentUser">The user requesting the staging groups.</param>
+        /// <returns>The owner-visible staging groups.</returns>
+        IReadOnlyList<StagingGroup> GetStagingGroups(User currentUser);
+
+        /// <summary>
+        /// Gets owner-visible staging groups for the specified owner.
+        /// </summary>
+        /// <param name="currentUser">The user requesting the staging groups.</param>
+        /// <param name="ownerKey">The staging owner's key.</param>
+        /// <returns>The owner-visible staging groups for the requested owner.</returns>
+        IReadOnlyList<StagingGroup> GetStagingGroups(User currentUser, int ownerKey);
+
+        /// <summary>
+        /// Finds a staging group for an authorized owner.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="groupId">The owner-scoped group ID.</param>
+        /// <returns>The staging group, or <see langword="null"/> when it does not exist.</returns>
+        StagingGroup FindStagingGroup(User stagingOwner, string groupId);
+
+        /// <summary>
+        /// Creates an owner-scoped staging group.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="groupId">The immutable owner-scoped group ID.</param>
+        /// <param name="name">The optional group display name. The group ID is used when omitted.</param>
+        /// <returns>The staging group creation result.</returns>
+        Task<CreateStagingGroupResult> CreateStagingGroupAsync(User stagingOwner, string groupId, string name);
+
+        /// <summary>
+        /// Renames an owner-scoped staging group.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="groupId">The immutable owner-scoped group ID.</param>
+        /// <param name="name">The new group display name.</param>
+        /// <returns>The renamed group, or <see langword="null"/> when it does not exist.</returns>
+        Task<StagingGroup> RenameStagingGroupAsync(User stagingOwner, string groupId, string name);
+
+        /// <summary>
+        /// Deletes an owner-scoped staging group and its current staged package members.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="group">The staging group to delete.</param>
+        /// <returns>The group deletion result.</returns>
+        Task<StagingGroupDeletionResult> DeleteStagingGroupAsync(User stagingOwner, StagingGroup group);
+
+        /// <summary>
+        /// Deletes a group only when its owner is confirmed and unlocked and the API credential authorizes every affected package ID.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="scopes">The credential scopes used to authorize the entire group.</param>
+        /// <param name="group">The staging group to delete.</param>
+        /// <returns>The deletion result, or NotFound when the owner is locked or unconfirmed or any member is outside the credential's staging scopes.</returns>
+        Task<StagingGroupDeletionResult> DeleteStagingGroupAsync(User stagingOwner, IReadOnlyCollection<Scope> scopes, StagingGroup group);
+
+        /// <summary>
+        /// Adds or moves a staged package identity to an owner-scoped group.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="group">The target staging group.</param>
+        /// <param name="stagedPackage">The current staged package attempt whose identity should move.</param>
+        /// <returns>The membership update result.</returns>
+        Task<StagingGroupMembershipResult> AddPackageToStagingGroupAsync(User stagingOwner, StagingGroup group, StagedPackage stagedPackage);
+
+        /// <summary>
+        /// Removes a staged package identity from an owner-scoped group.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="stagedPackage">The current staged package attempt whose identity should become ungrouped.</param>
+        /// <returns>The membership update result.</returns>
+        Task<StagingGroupMembershipResult> RemovePackageFromStagingGroupAsync(User stagingOwner, StagedPackage stagedPackage);
+
+        /// <summary>
+        /// Moves an authorized identity's current package and symbols together, or removes them from their group.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="identity">The shared staging identity to move.</param>
+        /// <param name="group">The target group, or null for Ungrouped.</param>
+        /// <returns>The membership update result.</returns>
+        Task<StagingGroupMembershipResult> MovePackageIdentityAsync(User stagingOwner, StagedPackageIdentity identity, StagingGroup group);
+
+        /// <summary>
+        /// Gets staging group summaries for an authorized owner.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <returns>The staging groups and current package attempts owned by the owner.</returns>
+        IReadOnlyList<StagingGroupSummary> GetStagingGroupSummaries(User stagingOwner);
+
+        /// <summary>
+        /// Gets one ordered page of staging group summaries for an authorized owner.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="scopes">The credential scopes; only fully authorized groups are included before counting and paging.</param>
+        /// <param name="page">The one-based page number.</param>
+        /// <param name="pageSize">The number of groups per page.</param>
+        /// <returns>The requested summaries and total number of matching groups, or an empty page when the owner is locked or unconfirmed.</returns>
+        StagingGroupSummaryPage GetStagingGroupSummaryPage(User stagingOwner, IReadOnlyCollection<Scope> scopes, int page, int pageSize);
+
+        /// <summary>
+        /// Gets one ordered page of current package attempts in an owner-scoped staging group.
+        /// </summary>
+        /// <param name="stagingOwner">The authorized staging owner.</param>
+        /// <param name="scopes">The credential scopes used to authorize every package ID, including off-page members.</param>
+        /// <param name="groupId">The owner-scoped group ID.</param>
+        /// <param name="page">The one-based page number.</param>
+        /// <param name="pageSize">The number of package attempts per page.</param>
+        /// <returns>The requested package page, or <see langword="null"/> when the owner is locked or unconfirmed, the group does not exist, or it is not fully authorized.</returns>
+        StagingGroupPackagePage GetStagingGroupPackagePage(User stagingOwner, IReadOnlyCollection<Scope> scopes, string groupId, int page, int pageSize);
+    }
+
+    /// <summary>
+    /// Describes the outcome of deleting a staged parent package.
+    /// </summary>
+    public enum PackageStagingDeletionResult
+    {
+        Deleted,
+        PromotionActive,
+        Conflict,
+    }
+
+    public enum StagingGroupMembershipResult
+    {
+        Updated,
+        Unchanged,
+        Conflict,
+    }
+}

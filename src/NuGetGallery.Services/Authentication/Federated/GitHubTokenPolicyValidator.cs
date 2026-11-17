@@ -235,8 +235,77 @@ namespace NuGetGallery.Services.Authentication
                         $"The policy '{policy.PolicyName}' has expired. Sign in and renew the trust policy on the Trusted Publishing page.",
                         isErrorDisclosable: true);
                 }
+            }
+            else
+            {
+                // Note that ID comparisons are case-sensitive
+                error = ValidateClaimExactMatch(jwt, RepositoryOwnerIdClaim, criteria.RepositoryOwnerId!, StringComparison.Ordinal);
+                if (error != null)
+                {
+                    return FederatedCredentialPolicyResult.Unauthorized(error);
+                }
 
-                // Update the policy with the repo and owner IDs
+                error = ValidateClaimExactMatch(jwt, RepositoryIdClaim, criteria.RepositoryId!, StringComparison.Ordinal);
+                if (error != null)
+                {
+                    return FederatedCredentialPolicyResult.Unauthorized(error);
+                }
+            }
+
+            // Reject banned events
+            if (_configuration.BannedGitHubActionsEvents is not null
+                && _configuration.BannedGitHubActionsEvents.Contains(eventName, StringComparer.OrdinalIgnoreCase))
+            {
+                return FederatedCredentialPolicyResult.Unauthorized(
+                    $"The GitHub Actions event '{eventName}' is not allowed.",
+                    isErrorDisclosable: true);
+            }
+
+            // Get workflow ref, e.g. "contoso/contoso-sdk/.github/workflows/release.yml@refs/heads/main"
+            error = TryGetRequiredClaim(jwt, JobWorkflowRefClaim, out string workflowRef);
+            if (error != null)
+            {
+                return FederatedCredentialPolicyResult.Unauthorized(error, isErrorDisclosable: true);
+            }
+
+            // Extract workflow file "release.yml" from job_workflow_ref claim
+            string expectedPrefix = $"{criteria.RepositoryOwner}/{criteria.Repository}/.github/workflows/";
+            int suffixIndex = expectedPrefix.Length < workflowRef.Length ? workflowRef.IndexOf('@', expectedPrefix.Length) : -1;
+            if (suffixIndex < 0 || !workflowRef.StartsWith(expectedPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                // There is something wrong with the token. The job_workflow_ref claim
+                // should always start with the prefix matching repo.
+                return FederatedCredentialPolicyResult.Unauthorized(
+                    $"Claim '{JobWorkflowRefClaim}' has value '{workflowRef}' which does not start with {expectedPrefix}.",
+                    isErrorDisclosable: criteria.IsPermanentlyEnabled);
+            }
+
+            string workflowFile = workflowRef[expectedPrefix.Length..suffixIndex];
+            if (!string.Equals(workflowFile, criteria.WorkflowFile, StringComparison.OrdinalIgnoreCase))
+            {
+                return FederatedCredentialPolicyResult.Unauthorized(
+                    $"Workflow mismatch for policy '{policy.PolicyName}': expected '{criteria.WorkflowFile}', actual '{workflowFile}'",
+                    isErrorDisclosable: criteria.IsPermanentlyEnabled);
+            }
+
+            if (!string.IsNullOrWhiteSpace(criteria.Environment))
+            {
+                // Get optinal environment claim, e.g. "production"
+                if (TryGetRequiredClaim(jwt, EnvironmentClaim, out string environment) != null)
+                {
+                    environment = string.Empty;
+                }
+                if (!string.Equals(environment, criteria.Environment, StringComparison.OrdinalIgnoreCase))
+                {
+                    return FederatedCredentialPolicyResult.Unauthorized(
+                        $"Environment mismatch for policy '{policy.PolicyName}': expected '{criteria.Environment}', actual '{environment}'",
+                        isErrorDisclosable: criteria.IsPermanentlyEnabled);
+                }
+            }
+
+            // Update the policy with the repo and owner IDs, only when all claims have been validated.
+            if (!criteria.IsPermanentlyEnabled)
+            {
                 criteria.RepositoryOwnerId = repositoryOwnerId;
                 criteria.RepositoryId = repositoryId;
                 criteria.ValidateByDate = null;
@@ -265,76 +334,6 @@ namespace NuGetGallery.Services.Authentication
                     {
                         return FederatedCredentialPolicyResult.Unauthorized($"The policy was updated with different repository owner/repo IDs during concurrent first use. Expected {criteria.RepositoryOwnerId}/{criteria.RepositoryId}, actual {updatedCriteria.RepositoryOwnerId}/{updatedCriteria.RepositoryId}");
                     }
-                }
-            }
-            else
-            {
-                // Note that ID comparisons are case-sensitive
-                error = ValidateClaimExactMatch(jwt, RepositoryOwnerIdClaim, criteria.RepositoryOwnerId!, StringComparison.Ordinal);
-                if (error != null)
-                {
-                    return FederatedCredentialPolicyResult.Unauthorized(error);
-                }
-
-                error = ValidateClaimExactMatch(jwt, RepositoryIdClaim, criteria.RepositoryId!, StringComparison.Ordinal);
-                if (error != null)
-                {
-                    return FederatedCredentialPolicyResult.Unauthorized(error);
-                }
-            }
-
-            // IMPORTANT. By now we validated repo owner and repo. Including IDs.
-            // From now on we can report errors as disclosable.
-
-            // Reject banned events
-            if (_configuration.BannedGitHubActionsEvents is not null
-                && _configuration.BannedGitHubActionsEvents.Contains(eventName, StringComparer.OrdinalIgnoreCase))
-            {
-                return FederatedCredentialPolicyResult.Unauthorized(
-                    $"The GitHub Actions event '{eventName}' is not allowed.",
-                    isErrorDisclosable: true);
-            }
-
-            // Get workflow ref, e.g. "contoso/contoso-sdk/.github/workflows/release.yml@refs/heads/main"
-            error = TryGetRequiredClaim(jwt, JobWorkflowRefClaim, out string workflowRef);
-            if (error != null)
-            {
-                return FederatedCredentialPolicyResult.Unauthorized(error, isErrorDisclosable: true);
-            }
-
-            // Extract workflow file "release.yml" from job_workflow_ref claim
-            string expectedPrefix = $"{criteria.RepositoryOwner}/{criteria.Repository}/.github/workflows/";
-            int suffixIndex = expectedPrefix.Length < workflowRef.Length ? workflowRef.IndexOf('@', expectedPrefix.Length) : -1;
-            if (suffixIndex < 0 || !workflowRef.StartsWith(expectedPrefix, StringComparison.OrdinalIgnoreCase))
-            {
-                // There is something wrong with the token. The job_workflow_ref claim
-                // should always start with the prefix matching repo.
-                return FederatedCredentialPolicyResult.Unauthorized(
-                    $"Claim '{JobWorkflowRefClaim}' has value '{workflowRef}' which does not start with {expectedPrefix}.",
-                    isErrorDisclosable: true);
-            }
-
-            string workflowFile = workflowRef[expectedPrefix.Length..suffixIndex];
-            if (!string.Equals(workflowFile, criteria.WorkflowFile, StringComparison.OrdinalIgnoreCase))
-            {
-                return FederatedCredentialPolicyResult.Unauthorized(
-                    $"Workflow mismatch for policy '{policy.PolicyName}': expected '{criteria.WorkflowFile}', actual '{workflowFile}'",
-                    isErrorDisclosable: true);
-            }
-
-            // Validate environment if specified in criteria. We do it last to make sure we report disclosable error
-            if (!string.IsNullOrWhiteSpace(criteria.Environment))
-            {
-                // Get optinal environment claim, e.g. "production"
-                if (TryGetRequiredClaim(jwt, EnvironmentClaim, out string environment) != null)
-                {
-                    environment = string.Empty;
-                }
-                if (!string.Equals(environment, criteria.Environment, StringComparison.OrdinalIgnoreCase))
-                {
-                    return FederatedCredentialPolicyResult.Unauthorized(
-                        $"Environment mismatch for policy '{policy.PolicyName}': expected '{criteria.Environment}', actual '{environment}'",
-                        isErrorDisclosable: true);
                 }
             }
 

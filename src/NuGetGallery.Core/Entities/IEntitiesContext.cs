@@ -21,6 +21,10 @@ namespace NuGetGallery
         DbSet<ReservedNamespace> ReservedNamespaces { get; set; }
         DbSet<UserCertificate> UserCertificates { get; set; }
         DbSet<SymbolPackage> SymbolPackages { get; set; }
+        DbSet<StagedPackage> StagedPackages { get; set; }
+        DbSet<StagedSymbolPackage> StagedSymbolPackages { get; set; }
+        DbSet<StagedPackageIdentity> StagedPackageIdentities { get; set; }
+        DbSet<StagingGroup> StagingGroups { get; set; }
         DbSet<PackageVulnerability> Vulnerabilities { get; set; }
         DbSet<VulnerablePackageVersionRange> VulnerableRanges { get; set; }
         DbSet<PackageRename> PackageRenames { get; set; }

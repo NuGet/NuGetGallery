@@ -115,7 +115,7 @@
             this.Scopes = ko.observableArray();
             this.Packages = ko.observableArray();
             this.GlobPattern = ko.observable();
- 
+
             // Properties used for the form
             this.PendingDescription = ko.observable();
 
@@ -130,14 +130,17 @@
                 }
 
                 // When the package owner scope is changed, update the selected action scopes to those that are allowed on behalf of the new package owner.
-                var isPushNewSelected = function () {
+                function isPushNewSelected() {
                     return self.PushScope() === initialData.PackagePushScope;
                 };
-                var isPushExistingSelected = function () {
+                function isPushExistingSelected() {
                     return self.PushScope() === initialData.PackagePushVersionScope;
                 };
-                var isUnlistSelected = function () {
+                function isUnlistSelected() {
                     return self.UnlistScopeChecked();
+                };
+                function isStageSelected() {
+                    return self.StageScopeChecked();
                 };
 
                 // If either push new or push existing is selected and that action is not allowed on behalf of the new owner,
@@ -153,14 +156,21 @@
                     self.UnlistScopeChecked(false);
                 }
 
+                // If stage is selected and that action is not allowed on behalf of the new owner, deselect it.
+                if (!newOwner.CanStage && isStageSelected()) {
+                    self.StageScopeChecked(false);
+                }
+
                 // If after this process, no actions are selected, select one that is allowed.
-                if (!isPushNewSelected() && !isPushExistingSelected() && !isUnlistSelected()) {
+                if (!isPushNewSelected() && !isPushExistingSelected() && !isUnlistSelected() && !isStageSelected()) {
                     if (newOwner.CanPushNew) {
                         self.PushScope(initialData.PackagePushScope);
                     } else if (newOwner.CanPushExisting) {
                         self.PushScope(initialData.PackagePushVersionScope);
                     } else if (newOwner.CanUnlist) {
                         self.UnlistScopeChecked(true);
+                    } else if (newOwner.CanStage) {
+                        self.StageScopeChecked(true);
                     }
                 }
 
@@ -173,7 +183,7 @@
             this.PushAnyEnabled = ko.pureComputed(function () {
                 return self.PackageOwner() && (self.PackageOwner().CanPushNew || self.PackageOwner().CanPushExisting);
             }, this);
-            
+
             this.PushNewEnabled = ko.pureComputed(function () {
                 return self.PackageOwner() && self.PackageOwner().CanPushNew;
             }, this);
@@ -186,12 +196,21 @@
                 return self.PackageOwner() && self.PackageOwner().CanUnlist;
             }, this);
 
+            this.StageEnabled = ko.pureComputed(function () {
+                return self.PackageOwner() && self.PackageOwner().CanStage;
+            }, this);
+
             this.ExpiresIn = ko.observable();
             this.PushScope = ko.observable();
             this.UnlistScopeChecked = ko.observable(false);
             this.UnlistScope = ko.pureComputed(function () {
                 return self.UnlistScopeChecked() ? initialData.PackageUnlistScope : null;
             }, this);
+            this.StageScopeChecked = ko.observable(false);
+            this.StageScope = ko.pureComputed(function () {
+                return self.StageScopeChecked() ? initialData.PackageStageScope : null;
+            }, this);
+
             this.PendingGlobPattern = ko.observable();
             this.PendingPackages = ko.observableArray();
 
@@ -274,6 +293,10 @@
                 if (this.UnlistEnabled() && this.UnlistScope()) {
                     scopes.push(this.UnlistScope());
                 }
+                if (this.StageEnabled() && this.StageScope()) {
+                    scopes.push(this.StageScope());
+                }
+
                 return scopes;
             }, this);
             this.PendingSubjects = ko.pureComputed(function () {
@@ -411,6 +434,7 @@
                 self.PushEnabled(false);
                 self.PushScope(null);
                 self.UnlistScopeChecked(false);
+                self.StageScopeChecked(false);
                 self.PendingGlobPattern(self.GlobPattern());
                 this._SetPackageSelection(self._packages);
 

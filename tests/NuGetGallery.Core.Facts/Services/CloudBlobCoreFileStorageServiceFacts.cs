@@ -41,6 +41,82 @@ namespace NuGetGallery
             return new CloudBlobCoreFileStorageService(fakeBlobClient.Object, Mock.Of<IDiagnosticsService>(), fakeFolderInformationProvider.Object);
         }
 
+        /// <summary>
+        /// Verifies stored package metadata can be read without downloading package content.
+        /// </summary>
+        public class TheGetPackageStreamMetadataMethod
+        {
+            [Fact]
+            public async Task ReadsHashAndSizeFromTheExpectedBlobVersionWithoutDownloading()
+            {
+                var hash = Convert.ToBase64String(new byte[64]);
+                var blob = new Mock<ISimpleCloudBlob>(MockBehavior.Strict);
+                blob.Setup(x => x.FetchAttributesAsync()).Returns(Task.CompletedTask);
+                blob.SetupGet(x => x.ETag).Returns("\"validated-etag\"");
+                blob.SetupGet(x => x.Metadata).Returns(new Dictionary<string, string> { { CoreConstants.Sha512HashAlgorithmId, hash } });
+                blob.SetupGet(x => x.Properties).Returns(Mock.Of<ICloudBlobProperties>(x => x.Length == 13600000));
+
+                var metadata = await CreateTarget(blob).GetPackageStreamMetadataAsync("staging", "validated.nupkg", "\"validated-etag\"");
+
+                Assert.Equal(CoreConstants.Sha512HashAlgorithmId, metadata.HashAlgorithm);
+                Assert.Equal(hash, metadata.Hash);
+                Assert.Equal(13600000, metadata.Size);
+                blob.Verify(x => x.FetchAttributesAsync(), Times.Once);
+            }
+
+            [Fact]
+            public async Task MissingStoredHashFailsWithoutDownloading()
+            {
+                var blob = new Mock<ISimpleCloudBlob>(MockBehavior.Strict);
+                blob.Setup(x => x.FetchAttributesAsync()).Returns(Task.CompletedTask);
+                blob.SetupGet(x => x.ETag).Returns("\"validated-etag\"");
+                blob.SetupGet(x => x.Metadata).Returns(new Dictionary<string, string>());
+
+                await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                    CreateTarget(blob).GetPackageStreamMetadataAsync("staging", "validated.nupkg", "\"validated-etag\""));
+            }
+
+            [Fact]
+            public async Task ChangedETagFailsBeforeReadingStoredHash()
+            {
+                var blob = new Mock<ISimpleCloudBlob>(MockBehavior.Strict);
+                blob.Setup(x => x.FetchAttributesAsync()).Returns(Task.CompletedTask);
+                blob.SetupGet(x => x.ETag).Returns("\"changed-etag\"");
+
+                await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                    CreateTarget(blob).GetPackageStreamMetadataAsync("staging", "validated.nupkg", "\"validated-etag\""));
+            }
+
+            [Theory]
+            [InlineData("", 1)]
+            [InlineData("AA==", 1)]
+            [InlineData(null, 0)]
+            public async Task InvalidStoredHashOrSizeFails(string hash, long size)
+            {
+                var blob = new Mock<ISimpleCloudBlob>(MockBehavior.Strict);
+                blob.Setup(x => x.FetchAttributesAsync()).Returns(Task.CompletedTask);
+                blob.SetupGet(x => x.ETag).Returns("\"validated-etag\"");
+                blob.SetupGet(x => x.Metadata).Returns(new Dictionary<string, string>
+                {
+                    { CoreConstants.Sha512HashAlgorithmId, hash ?? Convert.ToBase64String(new byte[64]) },
+                });
+                blob.SetupGet(x => x.Properties).Returns(Mock.Of<ICloudBlobProperties>(x => x.Length == size));
+
+                await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                    CreateTarget(blob).GetPackageStreamMetadataAsync("staging", "validated.nupkg", "\"validated-etag\""));
+            }
+
+            private static CloudBlobCoreFileStorageService CreateTarget(Mock<ISimpleCloudBlob> blob)
+            {
+                var container = new Mock<ICloudBlobContainer>();
+                container.Setup(x => x.CreateIfNotExistAsync(false)).Returns(Task.CompletedTask);
+                container.Setup(x => x.GetBlobReference("validated.nupkg")).Returns(blob.Object);
+                var client = new Mock<ICloudBlobClient>();
+                client.Setup(x => x.GetContainerReference("staging")).Returns(container.Object);
+                return CreateService(client);
+            }
+        }
+
         public class TheCtor
         {
             [Theory]

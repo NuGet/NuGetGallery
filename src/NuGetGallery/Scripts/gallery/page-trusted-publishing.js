@@ -432,6 +432,7 @@
             this.PushScopeChecked = ko.observable(false);
             this.PushScope = ko.observable(initialData.PackagePushScope);
             this.UnlistScopeChecked = ko.observable(false);
+            this.StageScopeChecked = ko.observable(false);
             this.PendingPolicyScopes = ko.pureComputed(function () {
                 let scopes = [];
                 if (self.PushScopeChecked() && self.PushScope()) {
@@ -440,6 +441,10 @@
 
                 if (self.UnlistScopeChecked()) {
                     scopes.push(initialData.PackageUnlistScope);
+                }
+
+                if (self.StageScopeChecked()) {
+                    scopes.push(initialData.PackageStageScope);
                 }
 
                 return scopes;
@@ -533,6 +538,9 @@
                 function isUnlistSelected() {
                     return self.UnlistScopeChecked();
                 };
+                function isStageSelected() {
+                    return self.StageScopeChecked();
+                };
 
                 // If either push new or push existing is selected and that action is not allowed on behalf of the new owner,
                 // swap the scope to the other push action if it is allowed or deselect it.
@@ -547,14 +555,21 @@
                     self.UnlistScopeChecked(false);
                 }
 
+                // If stage is selected and that action is not allowed on behalf of the new owner, deselect it.
+                if (!newPackageOwner.CanStage && isStageSelected()) {
+                    self.StageScopeChecked(false);
+                }
+
                 // If after this process, no actions are selected, select one that is allowed.
-                if (!isPushNewSelected() && !isPushExistingSelected() && !isUnlistSelected()) {
+                if (!isPushNewSelected() && !isPushExistingSelected() && !isUnlistSelected() && !isStageSelected()) {
                     if (newPackageOwner.CanPushNew) {
                         self.PushScope(initialData.PackagePushScope);
                     } else if (newPackageOwner.CanPushExisting) {
                         self.PushScope(initialData.PackagePushVersionScope);
                     } else if (newPackageOwner.CanUnlist) {
                         self.UnlistScopeChecked(true);
+                    } else if (newPackageOwner.CanStage) {
+                        self.StageScopeChecked(true);
                     }
                 }
 
@@ -578,6 +593,10 @@
                 return self.PackageOwner() && self.PackageOwner().CanUnlist;
             }, this);
 
+            this.StageEnabled = ko.pureComputed(function () {
+                return self.PackageOwner() && self.PackageOwner().CanStage;
+            }, this);
+
             this.IsOwnerValid = ko.observable(null);
             this.PendingCreateOrEdit = ko.observable(false);
             this.JustCreated = ko.observable(false);
@@ -594,6 +613,7 @@
             this.PackagePushScopeUid = computedUid(self, "package-push-scope");
             this.PackagePushVersionScopeUid = computedUid(self, "package-push-version-scope");
             this.UnlistScopeCheckedUid = computedUid(self, "unlist-scope-checked");
+            this.StageScopeCheckedUid = computedUid(self, "stage-scope-checked");
             this.ScopeSubjectsInputUid = computedUid(self, "scope-subjects-input");
             this.IconUrl = ko.pureComputed(function () {
                 if (!this.IsOwnerValid() || _getEnabledDaysLeft(this) <= 0) {

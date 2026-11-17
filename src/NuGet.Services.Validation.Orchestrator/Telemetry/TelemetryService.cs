@@ -164,6 +164,62 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
                         { ValidationTrackingId, validationTrackingId.ToString() },
                     });
 
+        public void TrackStagingDurationToValidationSetCreation(PackageValidationSet validationSet, TimeSpan duration)
+        {
+            var prefix = GetStagingMetricPrefix(validationSet);
+            _telemetryClient.TrackMetric(
+                prefix + "DurationToValidationSetCreationSeconds",
+                duration.TotalSeconds,
+                GetValidationSetProperties(validationSet));
+        }
+
+        public void TrackStagingValidationDuration(PackageValidationSet validationSet, TimeSpan duration, bool isSuccess)
+        {
+            var prefix = GetStagingMetricPrefix(validationSet);
+            var properties = GetValidationSetProperties(validationSet);
+            properties.Add(IsSuccess, isSuccess.ToString());
+            _telemetryClient.TrackMetric(prefix + "TotalDurationSeconds", duration.TotalSeconds, properties);
+        }
+
+        public void TrackStagingValidationSetTimeout(PackageValidationSet validationSet)
+        {
+            var prefix = GetStagingMetricPrefix(validationSet);
+            _telemetryClient.TrackMetric(prefix + "TimedOut", 1, GetValidationSetProperties(validationSet));
+        }
+
+        private static string GetStagingMetricPrefix(PackageValidationSet validationSet)
+        {
+            if (validationSet == null)
+            {
+                throw new ArgumentNullException(nameof(validationSet));
+            }
+
+            switch (validationSet.ValidatingType)
+            {
+                case ValidatingType.StagedPackage:
+                    return OrchestratorPrefix + "StagedPackageValidation.";
+                case ValidatingType.StagedSymbolPackage:
+                    if (SymbolPromotionValidationConfiguration.IsPromotion(validationSet))
+                    {
+                        return OrchestratorPrefix + "StagedSymbolPromotion.";
+                    }
+
+                    return OrchestratorPrefix + "StagedSymbolPackageValidation.";
+                default:
+                    throw new ArgumentException("The validation set must belong to staged validation or promotion.", nameof(validationSet));
+            }
+        }
+
+        private static Dictionary<string, string> GetValidationSetProperties(PackageValidationSet validationSet)
+        {
+            return new Dictionary<string, string>
+            {
+                { PackageId, validationSet.PackageId },
+                { NormalizedVersion, validationSet.PackageNormalizedVersion },
+                { ValidationTrackingId, validationSet.ValidationTrackingId.ToString() },
+            };
+        }
+
         public void TrackValidationIssue(string packageId, string normalizedVersion, Guid validationTrackingId, string validatorType, ValidationIssueCode code)
         {
             _telemetryClient.TrackMetric(

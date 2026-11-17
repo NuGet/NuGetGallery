@@ -428,6 +428,181 @@ namespace NuGetGallery.Services
                 }
             }
 
+            [Fact]
+            public async Task RemovesOwnedStagingAndRetiredVersionsWithoutDeletingPublicOrOtherOwnersContent()
+            {
+                var owner = new User("owner") { Key = 100, EmailAddress = "owner@example.test" };
+                var otherOwner = new User("other") { Key = 200, EmailAddress = "other@example.test" };
+                var fixture = new DeleteAccountTestService(owner);
+                var group = new StagingGroup { Key = 10, OwnerKey = owner.Key, Owner = owner, ActivePromotionId = Guid.NewGuid() };
+                var otherGroup = new StagingGroup { Key = 11, OwnerKey = otherOwner.Key, Owner = otherOwner };
+                fixture.Entities.StagingGroups.AddRange(new[] { group, otherGroup, new StagingGroup { Key = 12, OwnerKey = owner.Key, Owner = owner } });
+                var promoting = AddStaging(fixture, 1, owner, PackageStatus.Staged, StagedPackageStatus.Promoting, group);
+                promoting.Package.PackageRegistration.Owners.Clear();
+                var retired = AddStaging(fixture, 2, owner, PackageStatus.Deleted, StagedPackageStatus.Deleted);
+                var validating = AddStaging(fixture, 3, owner, PackageStatus.Staged, StagedPackageStatus.Validating);
+                var publicParent = AddStaging(fixture, 4, owner, PackageStatus.Available);
+                var deletedPublicParent = AddStaging(fixture, 5, owner, PackageStatus.Deleted);
+                var other = AddStaging(fixture, 6, otherOwner, PackageStatus.Staged, StagedPackageStatus.Ready, otherGroup);
+                var superseded = new StagedPackage
+                {
+                    Key = 7,
+                    StagedPackageIdentity = promoting,
+                    StagedPackageIdentityKey = promoting.Key,
+                    Status = StagedPackageStatus.Superseded,
+                    UploadedBlobPath = "superseded.nupkg",
+                    UploadedBlobETag = "superseded-etag",
+                };
+                fixture.Entities.StagedPackages.Add(superseded);
+                var publishedSymbols = new SymbolPackage { Key = 2000, Package = publicParent.Package, PackageKey = publicParent.Key, StatusKey = PackageStatus.Available };
+                fixture.Entities.SymbolPackages.Add(publishedSymbols);
+                var parentPaths = fixture.Entities.StagedPackages
+                    .Where(attempt => attempt.StagedPackageIdentity.OwnerKey == owner.Key)
+                    .Select(attempt => attempt.UploadedBlobPath);
+                var symbolPaths = fixture.Entities.StagedSymbolPackages
+                    .Where(attempt => attempt.StagedPackageIdentity.OwnerKey == owner.Key)
+                    .Select(attempt => attempt.UploadedBlobPath);
+                var expectedPaths = parentPaths.Concat(symbolPaths).OrderBy(path => path).ToArray();
+
+                var result = await fixture.GetDeleteAccountService(isPackageOrphaned: false).DeleteAccountAsync(owner, otherOwner);
+
+                Assert.True(result.Success, result.Description);
+                Assert.Same(other, Assert.Single(fixture.Entities.StagedPackageIdentities));
+                Assert.Same(other.CurrentStagedPackage, Assert.Single(fixture.Entities.StagedPackages));
+                Assert.Same(other.CurrentStagedSymbolPackage, Assert.Single(fixture.Entities.StagedSymbolPackages));
+                Assert.Same(otherGroup, Assert.Single(fixture.Entities.StagingGroups));
+
+                foreach (var package in new[] { promoting.Package, retired.Package, validating.Package })
+                {
+                    Assert.DoesNotContain(package, fixture.Entities.Packages);
+                    Assert.DoesNotContain(fixture.Entities.PackageFrameworks, framework => framework.Package == package);
+                }
+
+                Assert.Empty(promoting.Package.PackageRegistration.Packages);
+                Assert.Contains(publicParent.Package, fixture.Entities.Packages);
+                Assert.Contains(deletedPublicParent.Package, fixture.Entities.Packages);
+                Assert.Equal(PackageStatus.Available, publicParent.Package.PackageStatusKey);
+                Assert.Equal(PackageStatus.Deleted, deletedPublicParent.Package.PackageStatusKey);
+                Assert.Contains(publishedSymbols, fixture.Entities.SymbolPackages);
+                Assert.Contains(other.CurrentStagedSymbolPackage.SymbolPackage, fixture.Entities.SymbolPackages);
+                Assert.Equal(2, fixture.Entities.SymbolPackages.Count());
+                var retainedPackageKeys = new[] { publicParent.Key, deletedPublicParent.Key, other.Key };
+                Assert.Equal(retainedPackageKeys, fixture.Entities.Set<PackageAuthor>().Select(author => author.PackageKey).ToArray());
+                Assert.Equal(retainedPackageKeys, fixture.Entities.PackageDependencies.Select(dependency => dependency.PackageKey).ToArray());
+                Assert.Equal(expectedPaths, fixture.Entities.Set<StagingBlobCleanup>().Select(cleanup => cleanup.BlobPath).OrderBy(path => path).ToArray());
+                Assert.Null(promoting.CurrentStagedPackageKey);
+                Assert.Null(promoting.CurrentStagedSymbolPackageKey);
+                Assert.Null(promoting.StagingGroupKey);
+                Assert.Single(fixture.AuditService.Records);
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task DeletingMemberOnlyRemovesOrganizationStagingWhenTheOrganizationIsAlsoDeleted(bool lastMember)
+            {
+                var member = new User("member") { Key = 100, EmailAddress = "member@example.test" };
+                var organization = new Organization("organization") { Key = 200, EmailAddress = "organization@example.test" };
+                var membership = new Membership { Member = member, MemberKey = member.Key, Organization = organization, OrganizationKey = organization.Key, IsAdmin = true };
+                member.Organizations.Add(membership);
+                organization.Members.Add(membership);
+                if (!lastMember)
+                {
+                    var remaining = new User("remaining") { Key = 300, EmailAddress = "remaining@example.test" };
+                    organization.Members.Add(new Membership
+                    {
+                        Member = remaining,
+                        MemberKey = remaining.Key,
+                        Organization = organization,
+                        OrganizationKey = organization.Key,
+                        IsAdmin = true,
+                    });
+                }
+
+                var fixture = new DeleteAccountTestService(member);
+                var group = new StagingGroup { Key = 10, Owner = organization, OwnerKey = organization.Key, ActivePromotionId = Guid.NewGuid() };
+                fixture.Entities.StagingGroups.Add(group);
+                var identity = AddStaging(fixture, 1, organization, PackageStatus.Staged, StagedPackageStatus.Promoting, group);
+
+                var result = await fixture.GetDeleteAccountService(isPackageOrphaned: false).DeleteAccountAsync(member, member);
+
+                Assert.True(result.Success, result.Description);
+                Assert.True(member.IsDeleted);
+                Assert.Equal(lastMember, organization.IsDeleted);
+                if (lastMember)
+                {
+                    Assert.Empty(fixture.Entities.StagedPackageIdentities);
+                    Assert.Empty(fixture.Entities.StagingGroups);
+                    Assert.Empty(fixture.Entities.Packages);
+                    Assert.Equal(2, fixture.Entities.Set<StagingBlobCleanup>().Count());
+                }
+                else
+                {
+                    Assert.Same(identity, Assert.Single(fixture.Entities.StagedPackageIdentities));
+                    Assert.Same(group, Assert.Single(fixture.Entities.StagingGroups));
+                    Assert.Equal(StagedPackageStatus.Promoting, identity.CurrentStagedPackage.Status);
+                    Assert.Equal(StagedPackageStatus.Promoting, identity.CurrentStagedSymbolPackage.Status);
+                    Assert.NotNull(group.ActivePromotionId);
+                    Assert.Empty(fixture.Entities.Set<StagingBlobCleanup>());
+                }
+            }
+
+            private static StagedPackageIdentity AddStaging(
+                DeleteAccountTestService fixture,
+                int key,
+                User owner,
+                PackageStatus packageStatus,
+                StagedPackageStatus? parentStatus = null,
+                StagingGroup group = null)
+            {
+                var registration = new PackageRegistration { Key = key, Id = "Package." + key };
+                registration.Owners.Add(owner);
+                var package = new Package { Key = key, PackageRegistration = registration, PackageRegistrationKey = key, PackageStatusKey = packageStatus };
+                registration.Packages.Add(package);
+                var framework = new PackageFramework { Key = key, Package = package, TargetFramework = "net472" };
+                package.SupportedFrameworks.Add(framework);
+                fixture.Entities.PackageFrameworks.Add(framework);
+                fixture.Entities.Set<PackageAuthor>().Add(new PackageAuthor { Key = key, Package = package, PackageKey = key, Name = "author" });
+                fixture.Entities.PackageDependencies.Add(new PackageDependency { Key = key, Package = package, PackageKey = key, Id = "Dependency" });
+                fixture.Entities.Packages.Add(package);
+                var identity = new StagedPackageIdentity { Key = key, Package = package, Owner = owner, OwnerKey = owner.Key, StagingGroup = group, StagingGroupKey = group?.Key };
+                fixture.Entities.StagedPackageIdentities.Add(identity);
+                if (parentStatus.HasValue)
+                {
+                    var parent = new StagedPackage
+                    {
+                        Key = key,
+                        StagedPackageIdentity = identity,
+                        StagedPackageIdentityKey = key,
+                        Status = parentStatus.Value,
+                        UploadedBlobPath = key + ".nupkg",
+                        UploadedBlobETag = "parent-etag",
+                        ActivePromotionId = group?.ActivePromotionId,
+                    };
+                    identity.CurrentStagedPackage = parent;
+                    identity.CurrentStagedPackageKey = parent.Key;
+                    fixture.Entities.StagedPackages.Add(parent);
+                }
+
+                var symbolPackage = new SymbolPackage { Key = key + 1000, Package = package, PackageKey = key, StatusKey = PackageStatus.Staged };
+                var symbols = new StagedSymbolPackage
+                {
+                    Key = key + 1000,
+                    StagedPackageIdentity = identity,
+                    StagedPackageIdentityKey = key,
+                    SymbolPackage = symbolPackage,
+                    SymbolPackageKey = symbolPackage.Key,
+                    Status = parentStatus ?? StagedPackageStatus.Ready,
+                    UploadedBlobPath = key + ".snupkg",
+                    UploadedBlobETag = "symbol-etag",
+                    ActivePromotionId = group?.ActivePromotionId,
+                };
+                identity.CurrentStagedSymbolPackage = symbols;
+                identity.CurrentStagedSymbolPackageKey = symbols.Key;
+                fixture.Entities.StagedSymbolPackages.Add(symbols);
+                fixture.Entities.SymbolPackages.Add(symbolPackage);
+                return identity;
+            }
 
             private User CreateTestUserWithRegistration(ref PackageRegistration registration)
             {
@@ -547,6 +722,8 @@ namespace NuGetGallery.Services
             public FakeAuditingService AuditService = new FakeAuditingService();
             public bool HasDeletedOwnerScope => _hasDeletedCredentialWithOwnerScope;
 
+            public FakeEntitiesContext Entities { get; } = new FakeEntitiesContext();
+
             public AccountDelete AccountDeletedByUser { get; }
             public AccountDelete AccountDeletedByDifferentUser { get; }
             public PackageDelete PackageDeletedByUser { get; }
@@ -627,6 +804,18 @@ namespace NuGetGallery.Services
 
             public DeleteAccountService GetDeleteAccountService(bool isPackageOrphaned, bool isFeatureFlagsRemovalSuccessful = true)
             {
+                Mock.Get(Entities.StagedPackages).Setup(set => set.AsNoTracking()).Returns(Entities.StagedPackages);
+                Mock.Get(Entities.StagedSymbolPackages).Setup(set => set.AsNoTracking()).Returns(Entities.StagedSymbolPackages);
+                Mock.Get(Entities.StagedSymbolPackages).Setup(set => set.RemoveRange(It.IsAny<IEnumerable<StagedSymbolPackage>>()))
+                    .Callback<IEnumerable<StagedSymbolPackage>>(attempts =>
+                    {
+                        foreach (var attempt in attempts.ToList())
+                        {
+                            Entities.StagedSymbolPackages.Remove(attempt);
+                            attempt.SymbolPackage = null;
+                        }
+                    });
+
                 return new DeleteAccountService(
                     SetupAccountDeleteRepository().Object,
                     SetupPackageDeleteRepository().Object,
@@ -643,7 +832,8 @@ namespace NuGetGallery.Services
                     SetupSupportRequestService().Object,
                     SetupFeatureFlagStorageService(isFeatureFlagsRemovalSuccessful).Object,
                     AuditService,
-                    SetupTelemetryService().Object);
+                    SetupTelemetryService().Object,
+                    new StagingBlobCleanupService(Entities));
             }
 
             public class FakeAuditingService : IAuditingService
@@ -674,10 +864,19 @@ namespace NuGetGallery.Services
                     .Setup(m => m.GetDatabase())
                     .Returns(database.Object);
 
-                var packageDbSet = FakeEntitiesContext.CreateDbSet<Package>();
+                var packageDbSet = Entities.Packages;
                 mockContext
                     .Setup(x => x.Packages)
                     .Returns(packageDbSet);
+                mockContext.Setup(x => x.StagedPackageIdentities).Returns(Entities.StagedPackageIdentities);
+                mockContext.Setup(x => x.StagedPackages).Returns(Entities.StagedPackages);
+                mockContext.Setup(x => x.StagedSymbolPackages).Returns(Entities.StagedSymbolPackages);
+                mockContext.Setup(x => x.StagingGroups).Returns(Entities.StagingGroups);
+                mockContext.Setup(x => x.SymbolPackages).Returns(Entities.SymbolPackages);
+                mockContext.Setup(x => x.PackageFrameworks).Returns(Entities.PackageFrameworks);
+                mockContext.Setup(x => x.PackageDependencies).Returns(Entities.PackageDependencies);
+                mockContext.Setup(x => x.Set<PackageAuthor>()).Returns(Entities.Set<PackageAuthor>());
+                mockContext.Setup(x => x.SaveChangesAsync()).Returns(() => Entities.SaveChangesAsync());
 
                 if (PackagePushedByUser != null)
                 {

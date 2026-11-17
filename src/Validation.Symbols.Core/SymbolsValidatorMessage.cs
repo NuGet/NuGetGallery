@@ -7,17 +7,19 @@ namespace NuGet.Jobs.Validation.Symbols.Core
 {
     public class SymbolsValidatorMessage : ISymbolsValidatorMessage
     {
-        public SymbolsValidatorMessage(Guid validationId, 
+        public SymbolsValidatorMessage(Guid validationId,
             int symbolPackageKey,
             string packageId,
             string packageNormalizedVersion,
-            string snupkgUrl)
+            string snupkgUrl,
+            string parentPackageUrl = null)
         {
             ValidationId = validationId;
             SymbolsPackageKey = symbolPackageKey;
             PackageId = packageId;
             PackageNormalizedVersion = packageNormalizedVersion;
             SnupkgUrl = snupkgUrl;
+            ParentPackageUrl = parentPackageUrl;
         }
 
         public Guid ValidationId { get; }
@@ -29,5 +31,10 @@ namespace NuGet.Jobs.Validation.Symbols.Core
         public string PackageNormalizedVersion { get; }
 
         public string SnupkgUrl { get; }
+
+        /// <summary>
+        /// Gets the private staged parent URL, or null to use ordinary package storage.
+        /// </summary>
+        public string ParentPackageUrl { get; }
     }
 }

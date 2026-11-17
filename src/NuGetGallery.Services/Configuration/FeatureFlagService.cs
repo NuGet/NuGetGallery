@@ -73,6 +73,7 @@ namespace NuGetGallery
         private const string EnableApiKeyV5ForOIDCFeatureName = GalleryPrefix + "EnableApiKeyV5ForOIDC";
         private const string ReducedVersionLists = GalleryPrefix + "ReducedVersionLists";
         private const string AdminApiSoftDeleteFeatureName = GalleryPrefix + "AdminApiSoftDelete";
+        private const string PackageStagingFlightName = GalleryPrefix + "PackageStaging";
         private const string AllowInvalidPackageIdForAllPackages = GalleryPrefix + "AllowInvalidPackageIdForAllPackages";
         private const string AllowInvalidPackageIdForExistingPackages = GalleryPrefix + "AllowInvalidPackageIdForExistingPackages";
         private const string RestrictApiKeyExpirationFeatureName = GalleryPrefix + "RestrictApiKeyExpiration";
@@ -103,6 +104,11 @@ namespace NuGetGallery
         public bool IsAlternateStatisticsSourceEnabled()
         {
             return _client.IsEnabled(AlternateStatisticsSourceFeatureName, defaultValue: false);
+        }
+
+        public bool IsPackageStagingEnabled(User user)
+        {
+            return _client.IsEnabled(PackageStagingFlightName, user, defaultValue: false);
         }
 
         public bool IsAsyncAccountDeleteEnabled()

@@ -370,6 +370,11 @@ namespace GitHubVulnerabilities2Db.Fakes
             throw new NotImplementedException();
         }
 
+        public bool IsPackageStagingEnabled(User user)
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsApiKeyReductionDateEnabled()
         {
             throw new NotImplementedException();

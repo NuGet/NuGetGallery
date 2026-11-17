@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Packaging;
@@ -65,6 +66,9 @@ namespace NuGetGallery
                 entitiesContext
                     .Setup(x => x.SaveChangesAsync())
                     .CompletesWith(0);
+                entitiesContext
+                    .Setup(x => x.StagedPackageIdentities)
+                    .Returns(Enumerable.Empty<StagedPackageIdentity>().MockDbSet().Object);
             }
 
             validationService = validationService ?? new Mock<IValidationService>();
@@ -162,6 +166,27 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.NotNull(result);
+                Assert.Equal(SymbolPackageValidationResultType.SymbolsPackagePendingValidation, result.Type);
+            }
+
+            [Fact]
+            public async Task WillReturnSymbolPackageExistsForStagedSymbols()
+            {
+                var package = new Package { Key = 42, PackageStatusKey = PackageStatus.Available };
+                var packageService = new Mock<IPackageService>();
+                packageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(package);
+                var identity = new StagedPackageIdentity { Key = package.Key, CurrentStagedSymbolPackageKey = 43 };
+                var entitiesContext = new Mock<IEntitiesContext>();
+                entitiesContext
+                    .Setup(x => x.StagedPackageIdentities)
+                    .Returns(new[] { identity }.AsQueryable().MockDbSet().Object);
+                var service = CreateService(packageService: packageService, entitiesContext: entitiesContext);
+                using var symbolPackageStream = TestPackage.CreateTestSymbolPackageStream("theId", "1.0.42");
+
+                var result = await service.ValidateUploadedSymbolsPackage(symbolPackageStream, new User());
+
                 Assert.Equal(SymbolPackageValidationResultType.SymbolsPackagePendingValidation, result.Type);
             }
 

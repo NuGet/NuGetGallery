@@ -13,6 +13,9 @@
     <None Include="Settings\*" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="System.Formats.Asn1" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\NuGet.Services.Validation.Orchestrator\NuGet.Services.Validation.Orchestrator.csproj" />
   </ItemGroup>
 </Project>

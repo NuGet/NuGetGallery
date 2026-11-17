@@ -29,6 +29,7 @@ namespace NuGetGallery
             public static class ManagePackagesPage
             {
                 public const string ShowRequestsReceivedContainer = "#show-requests-received-container";
+                public const string ShowStagingGroupsContainer = "#show-staging-groups-container";
             }
         }
 
@@ -1185,9 +1186,277 @@ namespace NuGetGallery
             return GetActionLink(url, "Packages", "Users", relativeUrl);
         }
 
+        public static string CreateStagingGroup(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.CreateStagingGroup,
+                relativeUrl);
+        }
+
+        public static string ManageStagingGroup(this UrlHelper url, string owner, string groupId, bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.ManageStagingGroup,
+                relativeUrl,
+                new RouteValueDictionary
+                {
+                    { "owner", owner },
+                    { "groupId", groupId },
+                });
+        }
+
+        public static string DeleteStagingGroup(this UrlHelper url, string owner, string groupId, bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.DeleteStagingGroup,
+                relativeUrl,
+                new RouteValueDictionary
+                {
+                    { "owner", owner },
+                    { "groupId", groupId },
+                });
+        }
+
+        public static string PromoteStagingGroup(this UrlHelper url, string owner, string groupId, bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.PromoteStagingGroup,
+                relativeUrl,
+                new RouteValueDictionary
+                {
+                    { "owner", owner },
+                    { "groupId", groupId },
+                });
+        }
+
+        public static string ResendStagingGroup(this UrlHelper url, string owner, string groupId, bool relativeUrl = true)
+        {
+            if (url == null)
+            {
+                throw new ArgumentNullException(nameof(url));
+            }
+
+            if (string.IsNullOrWhiteSpace(owner))
+            {
+                throw new ArgumentNullException(nameof(owner));
+            }
+
+            if (string.IsNullOrWhiteSpace(groupId))
+            {
+                throw new ArgumentNullException(nameof(groupId));
+            }
+
+            return GetRouteLink(
+                url,
+                RouteName.ResendStagingGroup,
+                relativeUrl,
+                new RouteValueDictionary
+                {
+                    { "owner", owner },
+                    { "groupId", groupId },
+                });
+        }
+
+        public static string MoveStagedPackage(this UrlHelper url, string owner, string id, string version, bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.MoveStagedPackage,
+                relativeUrl,
+                new RouteValueDictionary
+                {
+                    { "owner", owner },
+                    { "id", id },
+                    { "version", version },
+                });
+        }
+
+        public static string ManageUngroupedStaging(this UrlHelper url, string owner, bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.ManageUngroupedStaging,
+                relativeUrl,
+                new RouteValueDictionary
+                {
+                    { "owner", owner },
+                });
+        }
+
+        public static string DownloadStagedSymbolPackage(this UrlHelper url, string id, string version, bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.DownloadManagedStagedSymbolPackage,
+                relativeUrl,
+                new RouteValueDictionary
+                {
+                    { "id", id },
+                    { "version", version },
+                });
+        }
+
+        public static string ReplaceStagedSymbolPackage(this UrlHelper url, string id, string version, bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.ReplaceManagedStagedSymbolPackage,
+                relativeUrl,
+                new RouteValueDictionary
+                {
+                    { "id", id },
+                    { "version", version },
+                });
+        }
+
+        public static string DeleteStagedSymbolPackage(this UrlHelper url, string id, string version, bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.DeleteManagedStagedSymbolPackage,
+                relativeUrl,
+                new RouteValueDictionary
+                {
+                    { "id", id },
+                    { "version", version },
+                });
+        }
+
+        public static string DownloadStagedPackage(this UrlHelper url, string id, string version, bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.DownloadManagedStagedPackage,
+                relativeUrl,
+                new RouteValueDictionary
+                {
+                    { "id", id },
+                    { "version", version },
+                });
+        }
+
+        public static string ReplaceStagedPackage(this UrlHelper url, string id, string version, bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.ReplaceManagedStagedPackage,
+                relativeUrl,
+                new RouteValueDictionary
+                {
+                    { "id", id },
+                    { "version", version },
+                });
+        }
+
+        public static string UpdateStagedPackageListed(this UrlHelper url, string id, string version, bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.UpdateManagedStagedPackageListed,
+                relativeUrl,
+                new RouteValueDictionary
+                {
+                    { "id", id },
+                    { "version", version },
+                });
+        }
+
+        public static string DeleteStagedPackage(this UrlHelper url, string id, string version, bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.DeleteManagedStagedPackage,
+                relativeUrl,
+                new RouteValueDictionary
+                {
+                    { "id", id },
+                    { "version", version },
+                });
+        }
+
+        public static string PromoteStagedPackage(this UrlHelper url, string id, string version, bool relativeUrl = true)
+        {
+            return GetRouteLink(
+                url,
+                RouteName.PromoteManagedStagedPackage,
+                relativeUrl,
+                new RouteValueDictionary
+                {
+                    { "id", id },
+                    { "version", version },
+                });
+        }
+
+        public static string ResendStagedPackage(this UrlHelper url, string id, string version, bool relativeUrl = true)
+        {
+            if (url == null)
+            {
+                throw new ArgumentNullException(nameof(url));
+            }
+
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+
+            if (string.IsNullOrWhiteSpace(version))
+            {
+                throw new ArgumentNullException(nameof(version));
+            }
+
+            return GetRouteLink(
+                url,
+                RouteName.ResendManagedStagedPackage,
+                relativeUrl,
+                new RouteValueDictionary
+                {
+                    { "id", id },
+                    { "version", version },
+                });
+        }
+
+        public static string PromoteStagedSymbolPackage(this UrlHelper url, string id, string version, bool relativeUrl = true)
+        {
+            return GetStagedSymbolPromotionLink(url, RouteName.PromoteManagedStagedSymbolPackage, id, version, relativeUrl);
+        }
+
+        public static string ResendStagedSymbolPackage(this UrlHelper url, string id, string version, bool relativeUrl = true)
+        {
+            return GetStagedSymbolPromotionLink(url, RouteName.ResendManagedStagedSymbolPackage, id, version, relativeUrl);
+        }
+
+        private static string GetStagedSymbolPromotionLink(UrlHelper url, string routeName, string id, string version, bool relativeUrl)
+        {
+            if (url == null)
+            {
+                throw new ArgumentNullException(nameof(url));
+            }
+
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+
+            if (string.IsNullOrWhiteSpace(version))
+            {
+                throw new ArgumentNullException(nameof(version));
+            }
+
+            return GetRouteLink(url, routeName, relativeUrl, new RouteValueDictionary { { "id", id }, { "version", version } });
+        }
+
         public static string ManageMyReceivedPackageOwnershipRequests(this UrlHelper url, bool relativeUrl = true)
         {
             return url.ManageMyPackages(relativeUrl) + Fragments.ManagePackagesPage.ShowRequestsReceivedContainer;
+        }
+
+        public static string ManageMyStagingGroups(this UrlHelper url, bool relativeUrl = true)
+        {
+            return url.ManageMyPackages(relativeUrl) + Fragments.ManagePackagesPage.ShowStagingGroupsContainer;
         }
 
         public static string GetPackageOwners(this UrlHelper url, bool relativeUrl = true)

@@ -81,6 +81,11 @@ namespace NuGetGallery
         public DbSet<Certificate> Certificates { get; set; }
         public DbSet<UserCertificate> UserCertificates { get; set; }
         public DbSet<SymbolPackage> SymbolPackages { get; set; }
+        public DbSet<StagedPackage> StagedPackages { get; set; }
+        public DbSet<StagedSymbolPackage> StagedSymbolPackages { get; set; }
+        public DbSet<StagedPackageIdentity> StagedPackageIdentities { get; set; }
+        public DbSet<StagingGroup> StagingGroups { get; set; }
+        public DbSet<StagingBlobCleanup> StagingBlobCleanups { get; set; }
         public DbSet<PackageVulnerability> Vulnerabilities { get; set; }
         public DbSet<VulnerablePackageVersionRange> VulnerableRanges { get; set; }
         public DbSet<PackageRename> PackageRenames { get; set; }
@@ -473,6 +478,140 @@ namespace NuGetGallery
                 .HasMany(p => p.SymbolPackages)
                 .WithRequired(s => s.Package)
                 .HasForeignKey(p => p.PackageKey);
+
+            modelBuilder.Entity<StagedPackage>()
+                .HasKey(s => s.Key);
+
+            modelBuilder.Entity<StagingBlobCleanup>()
+                .HasKey(cleanup => cleanup.Key);
+
+            modelBuilder.Entity<StagingBlobCleanup>()
+                .Property(cleanup => cleanup.QueuedDate)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<StagedPackage>()
+                .HasRequired(s => s.StagedPackageIdentity)
+                .WithMany()
+                .HasForeignKey(s => s.StagedPackageIdentityKey)
+                .WillCascadeOnDelete(true);
+
+            modelBuilder.Entity<StagedSymbolPackage>()
+                .HasKey(s => s.Key);
+
+            modelBuilder.Entity<StagedSymbolPackage>()
+                .HasRequired(s => s.SymbolPackage)
+                .WithMany()
+                .HasForeignKey(s => s.SymbolPackageKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StagedSymbolPackage>()
+                .HasRequired(s => s.StagedPackageIdentity)
+                .WithMany()
+                .HasForeignKey(s => s.StagedPackageIdentityKey)
+                .WillCascadeOnDelete(true);
+
+            modelBuilder.Entity<StagedSymbolPackage>()
+                .Property(s => s.RowVersion)
+                .IsRowVersion();
+
+            modelBuilder.Entity<StagedPackageIdentity>()
+                .HasKey(i => i.Key);
+
+            modelBuilder.Entity<StagedPackageIdentity>()
+                .HasRequired(i => i.Package)
+                .WithOptional()
+                .WillCascadeOnDelete(true);
+
+            modelBuilder.Entity<StagedPackageIdentity>()
+                .HasRequired(i => i.Owner)
+                .WithMany()
+                .HasForeignKey(i => i.OwnerKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StagedPackageIdentity>()
+                .HasOptional(i => i.StagingGroup)
+                .WithMany()
+                .HasForeignKey(i => i.StagingGroupKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StagedPackageIdentity>()
+                .HasOptional(i => i.CurrentStagedPackage)
+                .WithMany()
+                .HasForeignKey(i => i.CurrentStagedPackageKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StagedPackageIdentity>()
+                .HasOptional(i => i.CurrentStagedSymbolPackage)
+                .WithMany()
+                .HasForeignKey(i => i.CurrentStagedSymbolPackageKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StagingGroup>()
+                .HasKey(g => g.Key);
+
+            modelBuilder.Entity<StagingGroup>()
+                .HasRequired(g => g.Owner)
+                .WithMany()
+                .HasForeignKey(g => g.OwnerKey)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<StagingGroup>()
+                .Property(g => g.CreatedDate)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<StagingGroup>().Property(g => g.PromotionAcceptedAt).HasColumnType("datetime2");
+            modelBuilder.Entity<StagedPackage>().Property(p => p.PromotionAcceptedAt).HasColumnType("datetime2");
+            modelBuilder.Entity<StagedSymbolPackage>().Property(p => p.PromotionAcceptedAt).HasColumnType("datetime2");
+
+            modelBuilder.Entity<StagingGroup>()
+                .Property(g => g.ExpirationDate)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<StagedPackage>()
+                .Property(p => p.ExpirationDate)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<StagedSymbolPackage>()
+                .Property(p => p.ExpirationDate)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<StagingGroup>()
+                .Property(g => g.WarnedExpirationDate)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<StagedPackage>()
+                .Property(p => p.WarnedExpirationDate)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<StagedSymbolPackage>()
+                .Property(p => p.WarnedExpirationDate)
+                .HasColumnType("datetime2");
+
+            modelBuilder.Entity<StagingGroup>()
+                .Property(g => g.RowVersion)
+                .IsRowVersion();
+
+            modelBuilder.Entity<StagingGroup>()
+                .Property(g => g.OwnerKey)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(new IndexAttribute("IX_StagingGroups_OwnerKey_Id", 0)
+                    {
+                        IsUnique = true
+                    }));
+
+            modelBuilder.Entity<StagingGroup>()
+                .Property(g => g.Id)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(new IndexAttribute("IX_StagingGroups_OwnerKey_Id", 1)
+                    {
+                        IsUnique = true
+                    }));
+
+            modelBuilder.Entity<StagedPackage>()
+                .Property(s => s.RowVersion)
+                .IsRowVersion();
 
             modelBuilder.Entity<SymbolPackage>()
                 .Property(s => s.RowVersion)

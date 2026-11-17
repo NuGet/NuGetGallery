@@ -1,0 +1,74 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
+using System.ComponentModel.DataAnnotations;
+
+namespace NuGet.Services.Entities
+{
+    public class StagedPackage : IEntity, IStagedPackageAttempt
+    {
+        public int Key { get; set; }
+
+        public int StagedPackageIdentityKey { get; set; }
+
+        public virtual StagedPackageIdentity StagedPackageIdentity { get; set; }
+
+        [Required]
+        [StringLength(256)]
+        public string UploadedBlobPath { get; set; }
+
+        [Required]
+        [StringLength(256)]
+        public string UploadedBlobETag { get; set; }
+
+        [StringLength(256)]
+        public string ValidatedBlobPath { get; set; }
+
+        [StringLength(256)]
+        public string ValidatedBlobETag { get; set; }
+
+        [Required]
+        [StringLength(256)]
+        public string UploadHash { get; set; }
+
+        public StagedPackageStatus Status { get; set; }
+
+        /// <summary>
+        /// Gets or sets the ungrouped expiration deadline; grouped attempts use their group's deadline.
+        /// </summary>
+        public DateTime ExpirationDate { get; set; } = DateTime.UtcNow.AddDays(30);
+
+        /// <summary>
+        /// Gets or sets the ungrouped expiration deadline for which an owner warning was requested.
+        /// </summary>
+        public DateTime? WarnedExpirationDate { get; set; }
+
+        /// <summary>
+        /// Advances RowVersion when an edit changes the package or identity without changing this attempt.
+        /// </summary>
+        public long MutationRevision { get; set; }
+
+        /// <summary>
+        /// Identifies the active promotion for message correlation and fencing.
+        /// </summary>
+        public Guid? ActivePromotionId { get; set; }
+
+        /// <summary>
+        /// Gets or sets when the current promotion was accepted, in UTC; resends preserve this timestamp.
+        /// </summary>
+        public DateTime? PromotionAcceptedAt { get; set; }
+
+        /// <summary>
+        /// Records the last time work was sent for an individual promotion.
+        /// </summary>
+        public DateTime? PromotionMessageSentDate { get; set; }
+
+        public DateTime UploadedDate { get; set; }
+
+        /// <summary>
+        /// Used for optimistic concurrency when updating the staged attempt.
+        /// </summary>
+        public byte[] RowVersion { get; set; }
+    }
+}

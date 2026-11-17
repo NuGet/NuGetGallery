@@ -268,6 +268,14 @@
                             </label>
                         </div>
                     </li>
+                    <li>
+                        <div class="row-checkbox-label">
+                            <label class="brand-checkbox">
+                                <input type="checkbox" data-bind="checked: StageScopeChecked" />
+                                <span>@NuGetScopes.Describe(NuGetScopes.PackageStage, isDeprecateApiEnabled: true)</span>
+                            </label>
+                        </div>
+                    </li>
                     @Html.ShowValidationMessagesFor(m => m.AddPolicy.PolicyScopes)
                 </ul>
             </div>
@@ -378,6 +386,7 @@
                 this.PushScopeChecked = ko.observable(false);
                 this.PushScope = ko.observable('@NuGetScopes.PackagePush');
                 this.UnlistScopeChecked = ko.observable(false);
+                this.StageScopeChecked = ko.observable(false);
                 this.PolicyScopes = ko.pureComputed(function () {
                     const scopes = [];
                     if (self.PushScopeChecked() && self.PushScope()) {
@@ -386,6 +395,10 @@
 
                     if (self.UnlistScopeChecked()) {
                         scopes.push('@NuGetScopes.PackageUnlist');
+                    }
+
+                    if (self.StageScopeChecked()) {
+                        scopes.push('@NuGetScopes.PackageStage');
                     }
 
                     return scopes.join();

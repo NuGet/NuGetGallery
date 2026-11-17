@@ -336,6 +336,103 @@ namespace NuGetGallery
                 Assert.Empty(issues);
             }
 
+            [Theory]
+            [InlineData(ValidatingType.StagedPackage)]
+            [InlineData(ValidatingType.StagedSymbolPackage)]
+            public void FetchesIssuesForRequestedStagedPackageAttempts(ValidatingType validatingType)
+            {
+                var validationSet = new PackageValidationSet
+                {
+                    PackageKey = 123,
+                    ValidatingType = validatingType,
+                    PackageValidations = new[]
+                    {
+                        new PackageValidation
+                        {
+                            ValidationStatus = ValidationStatus.Failed,
+                            PackageValidationIssues = new[]
+                            {
+                                new PackageValidationIssue
+                                {
+                                    IssueCode = ValidationIssueCode.PackageIsSigned,
+                                    Data = "{}",
+                                }
+                            }
+                        }
+                    }
+                };
+
+                var otherValidationSet = new PackageValidationSet
+                {
+                    PackageKey = 456,
+                    ValidatingType = validatingType,
+                    PackageValidations = Array.Empty<PackageValidation>(),
+                };
+
+                var nonMatchingValidationSet = new PackageValidationSet
+                {
+                    PackageKey = 789,
+                    ValidatingType = validatingType,
+                    PackageValidations = Array.Empty<PackageValidation>(),
+                };
+
+                var ordinaryPackageValidationSet = new PackageValidationSet
+                {
+                    PackageKey = validationSet.PackageKey,
+                    ValidatingType = ValidatingType.Package,
+                    PackageValidations = Array.Empty<PackageValidation>(),
+                };
+                var otherArtifactValidationSet = new PackageValidationSet
+                {
+                    PackageKey = validationSet.PackageKey,
+                    ValidatingType = validatingType == ValidatingType.StagedPackage ? ValidatingType.StagedSymbolPackage : ValidatingType.StagedPackage,
+                    PackageValidations = Array.Empty<PackageValidation>(),
+                };
+                var ordinarySymbolValidationSet = new PackageValidationSet
+                {
+                    PackageKey = validationSet.PackageKey,
+                    ValidatingType = ValidatingType.SymbolPackage,
+                    PackageValidations = Array.Empty<PackageValidation>(),
+                };
+
+                _validationSets
+                    .Setup(x => x.GetAll())
+                    .Returns(new[]
+                    {
+                        validationSet,
+                        otherValidationSet,
+                        nonMatchingValidationSet,
+                        ordinaryPackageValidationSet,
+                        otherArtifactValidationSet,
+                        ordinarySymbolValidationSet,
+                    }.AsQueryable());
+
+                var keys = new[] { validationSet.PackageKey.Value, otherValidationSet.PackageKey.Value };
+                IReadOnlyDictionary<int, IReadOnlyList<ValidationIssue>> issues;
+                if (validatingType == ValidatingType.StagedSymbolPackage)
+                {
+                    issues = _target.GetStagedSymbolPackageValidationIssues(keys);
+                }
+                else
+                {
+                    issues = _target.GetStagedPackageValidationIssues(keys);
+                }
+
+                var issue = Assert.Single(issues[validationSet.PackageKey.Value]);
+                Assert.Equal(ValidationIssueCode.PackageIsSigned, issue.IssueCode);
+                Assert.Equal(ValidationIssueCode.Unknown, Assert.Single(issues[otherValidationSet.PackageKey.Value]).IssueCode);
+                Assert.DoesNotContain(nonMatchingValidationSet.PackageKey.Value, issues.Keys);
+            }
+
+            [Fact]
+            public void DoesNotQueryForEmptyStagedPackageKeys()
+            {
+                var issues = _target.GetStagedPackageValidationIssues(Array.Empty<int>());
+
+                Assert.Empty(issues);
+                _validationSets.Verify(x => x.GetAll(), Times.Never);
+            }
+
             [Fact]
             public void DeduplicatesValidationIssuesByCodeAndData()
             {

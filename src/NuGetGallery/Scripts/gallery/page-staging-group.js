@@ -1,0 +1,224 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+(function () {
+    'use strict';
+
+    const stagingValidationModal = $('#staging-validation-modal');
+    const stagingValidationModalTitle = $('#staging-validation-modal-title');
+    const stagingValidationModalContent = $('.staging-validation-modal-content');
+    const expirationDateFormat = new Intl.DateTimeFormat(undefined, { dateStyle: 'short' });
+    const expirationDateTitleFormat = new Intl.DateTimeFormat(undefined, { dateStyle: 'full', timeStyle: 'long' });
+
+    stagingValidationModal.on('shown.bs.modal', function () {
+        stagingValidationModalTitle.focus();
+    });
+
+    stagingValidationModal.on('hide.bs.modal', function () {
+        stagingValidationModal.addClass('staging-validation-modal-closing');
+    });
+
+    stagingValidationModal.on('hidden.bs.modal', function () {
+        stagingValidationModal.removeClass('staging-validation-modal-closing');
+        $('html').removeClass('staging-validation-modal-open');
+    });
+
+    function StagedPackageViewModel(packageItem, searchQuery) {
+        const self = this;
+
+        this.Id = packageItem.Id;
+        this.Version = packageItem.Version;
+        this.IsSymbolPackage = packageItem.IsSymbolPackage;
+        this.IsParentContinuation = packageItem.IsParentContinuation;
+        this.ParentStatus = packageItem.ParentStatus;
+        this.Status = packageItem.Status;
+        this.StatusClass = packageItem.StatusClass;
+        this.ExpirationDate = packageItem.ExpirationDate;
+        const expirationDate = new Date(packageItem.ExpirationDate);
+        this.ExpirationDateText = expirationDateFormat.format(expirationDate);
+        this.ExpirationDateTitle = expirationDateTitleFormat.format(expirationDate);
+        this.IsExpired = packageItem.IsExpired;
+        this.HasValidationIssues = packageItem.HasValidationIssues;
+        this.ValidationIssuesId = packageItem.ValidationIssuesId;
+        this.CanManage = packageItem.CanManage;
+        this.CanDelete = packageItem.CanDelete;
+        this.DeleteDisabledReasonId = packageItem.DeleteDisabledReasonId;
+        this.CanReplace = packageItem.CanReplace;
+        this.CanPromote = packageItem.CanPromote;
+        this.ReplacesPublishedSymbols = packageItem.ReplacesPublishedSymbols;
+        this.IncludesStagedSymbols = packageItem.IncludesStagedSymbols;
+        this.CanResend = packageItem.CanResend;
+        this.PromotionBlocker = packageItem.PromotionBlocker;
+        this.MoveUrl = packageItem.MoveUrl;
+        this.ListedInputId = packageItem.ListedInputId;
+        this.DownloadUrl = packageItem.DownloadUrl;
+        this.ReplaceUrl = packageItem.ReplaceUrl;
+        this.UpdateListedUrl = packageItem.UpdateListedUrl;
+        this.PromoteUrl = packageItem.PromoteUrl;
+        this.ResendUrl = packageItem.ResendUrl;
+        this.DeleteUrl = packageItem.DeleteUrl;
+        this.SearchText = `${packageItem.Id} ${packageItem.Version}`.toLowerCase();
+
+        this.Listed = ko.observable(packageItem.Listed);
+        this.IsBusy = ko.observable(packageItem.Status === 'Promoting' || packageItem.Status === 'Succeeded');
+        this.IsResending = ko.observable(false);
+        this.IsSavingListed = ko.observable(false);
+        this.ListedStatus = ko.observable('');
+        this.IsDisabled = ko.pureComputed(function () {
+            return !self.CanManage || self.IsBusy() || self.IsSavingListed();
+        });
+        this.Visible = ko.pureComputed(function () {
+            const query = searchQuery().trim().toLowerCase();
+            return query.length === 0 || self.SearchText.indexOf(query) !== -1;
+        });
+
+        this.UpdateListed = function (model, event) {
+            const input = $(event.currentTarget);
+            const form = input.closest('form');
+            const previousValue = !self.Listed();
+            const formData = form.serialize();
+
+            self.IsSavingListed(true);
+            self.ListedStatus('');
+
+            $.ajax({
+                method: 'POST',
+                url: form.attr('action'),
+                cache: false,
+                data: formData
+            })
+                .fail(function () {
+                    self.Listed(previousValue);
+                    self.ListedStatus('Not saved');
+                })
+                .always(function () {
+                    self.IsSavingListed(false);
+                });
+        };
+
+        this.ChooseReplacement = function (model, event) {
+            event.preventDefault();
+            if (!self.IsBusy()) {
+                $(event.currentTarget)
+                    .siblings('.staging-replace-form')
+                    .find('.staging-replace-input')
+                    .trigger('click');
+            }
+        };
+
+        this.Replace = function (model, event) {
+            const input = event.currentTarget;
+            if (input.files.length > 0) {
+                self.IsBusy(true);
+                input.form.submit();
+            }
+        };
+
+        this.Promote = function (model, event) {
+            event.preventDefault();
+            const trigger = $(event.currentTarget);
+            const artifact = self.IsSymbolPackage ? 'symbols' : 'package';
+            let message = `Promote staged ${artifact} ${self.Id} ${self.Version}?`;
+            if (self.IncludesStagedSymbols) {
+                message += ' Its Ready staged symbols will be promoted after the package is published.';
+            }
+            if (self.ReplacesPublishedSymbols) {
+                message += ' This will replace the currently published symbols if promotion succeeds.';
+            }
+            if (!self.IsBusy() && window.nuget.confirmEvent(message)) {
+                self.IsBusy(true);
+                trigger.siblings('.staging-promote-form')[0].submit();
+            }
+        };
+
+        this.Resend = function (model, event) {
+            event.preventDefault();
+            const trigger = $(event.currentTarget);
+            const artifact = self.IsSymbolPackage ? 'symbol' : 'package';
+            const message = `Retry ${artifact} promotion for ${self.Id} ${self.Version}?`;
+            if (!self.IsResending() && window.nuget.confirmEvent(message)) {
+                self.IsResending(true);
+                trigger.siblings('.staging-resend-form')[0].submit();
+            }
+        };
+
+        this.Delete = function (model, event) {
+            event.preventDefault();
+            const trigger = $(event.currentTarget);
+            const artifact = self.IsSymbolPackage ? 'symbols' : 'package';
+            const message = `Delete staged ${artifact} ${self.Id} ${self.Version}?`;
+            if (self.CanDelete && !self.IsBusy() && window.nuget.confirmEvent(message)) {
+                self.IsBusy(true);
+                trigger.siblings('.staging-delete-form')[0].submit();
+            }
+        };
+
+        this.ShowValidationIssues = function () {
+            const validationIssues = $(`#${self.ValidationIssuesId}`).html();
+
+            $('html').addClass('staging-validation-modal-open');
+            const artifact = self.IsSymbolPackage ? 'symbols' : 'package';
+            stagingValidationModalTitle.text(`Validation errors for ${self.Id} ${self.Version} (${artifact})`);
+            stagingValidationModalContent.html(validationIssues);
+            return true;
+        };
+    }
+
+    function StagingGroupViewModel(data) {
+        const self = this;
+
+        this.CanPromote = data.CanPromote;
+        this.CanResend = data.CanResend;
+        if (data.ExpirationDate) {
+            const expirationDate = new Date(data.ExpirationDate);
+            this.ExpirationDateText = expirationDateFormat.format(expirationDate);
+            this.ExpirationDateTitle = expirationDateTitleFormat.format(expirationDate);
+        }
+        this.IsPromotingGroup = ko.observable(false);
+        this.IsResendingGroup = ko.observable(false);
+        this.SearchQuery = ko.observable('');
+        this.Packages = data.Packages.map(function (packageItem) {
+            return new StagedPackageViewModel(packageItem, self.SearchQuery);
+        });
+        this.VisiblePackageCount = ko.pureComputed(function () {
+            return self.Packages.filter(function (packageItem) {
+                return packageItem.Visible();
+            }).length;
+        });
+        this.VisiblePackageSummary = ko.pureComputed(function () {
+            const visibleCount = self.VisiblePackageCount();
+            const totalCount = self.Packages.length;
+            const totalText = `${totalCount} staged package${totalCount === 1 ? '' : 's'}`;
+            if (self.SearchQuery().trim().length === 0) {
+                return totalText;
+            }
+
+            return `Showing ${visibleCount} of ${totalText}`;
+        });
+        this.Search = function () {
+            return false;
+        };
+        this.PromoteGroup = function () {
+            const message = `Promote all staged packages and symbols in ${data.Name}? Symbols will be promoted after their parent packages are published.`;
+            if (!self.IsPromotingGroup() && window.nuget.confirmEvent(message)) {
+                self.IsPromotingGroup(true);
+                return true;
+            }
+
+            return false;
+        };
+        this.ResendGroup = function () {
+            if (!self.IsResendingGroup() && window.nuget.confirmEvent(`Retry promotion for ${data.Name}?`)) {
+                self.IsResendingGroup(true);
+                return true;
+            }
+
+            return false;
+        };
+    }
+
+    const page = document.getElementById('staging-group');
+    if (page) {
+        ko.applyBindings(new StagingGroupViewModel(window.stagingGroupData), page);
+    }
+})();

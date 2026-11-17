@@ -25,6 +25,13 @@ namespace NuGetGallery.FunctionalTests
         {
             get
             {
+                var discoverySettings = AppContext.GetData("NuGetGallery.FunctionalTests.AspireDiscoverySettings") as string;
+                if (!string.IsNullOrEmpty(discoverySettings) && Environment.GetEnvironmentVariable("CloudTestWorkerCustomVstestExe") == null)
+                {
+                    return GetEnvironmentVariable(ConfigurationFilePathVariableName, required: false)
+                        ?? Path.Combine(AppContext.BaseDirectory, discoverySettings);
+                }
+
 #if DEBUG
                 bool required = false;
 #else

@@ -49,7 +49,7 @@ namespace NuGet.Services.Validation.Orchestrator
             return await _validationStorageService.TryGetParentValidationSetAsync(validationId);
         }
 
-        public async Task<PackageValidationSet> TryGetOrCreateValidationSetAsync(ProcessValidationSetData message, IValidatingEntity<T> validatingEntity)
+        public virtual async Task<PackageValidationSet> TryGetOrCreateValidationSetAsync(ProcessValidationSetData message, IValidatingEntity<T> validatingEntity)
         {
             var validationSet = await _validationStorageService.GetValidationSetAsync(message.ValidationTrackingId);
 
@@ -57,7 +57,7 @@ namespace NuGet.Services.Validation.Orchestrator
             {
                 var shouldSkip = await _validationStorageService.OtherRecentValidationSetForPackageExists(
                     validatingEntity,
-                    _validationConfiguration.NewValidationRequestDeduplicationWindow,
+                    GetDeduplicationWindow(validatingEntity),
                     message.ValidationTrackingId);
                 if (shouldSkip)
                 {
@@ -66,31 +66,7 @@ namespace NuGet.Services.Validation.Orchestrator
 
                 validationSet = InitializeValidationSet(message, validatingEntity);
 
-                if (validatingEntity.Status == PackageStatus.Available)
-                {
-                    var packageETag = await _packageFileService.CopyPackageFileForValidationSetAsync(validationSet);
-
-                    // This indicates that the package in the package container is expected to not change.
-                    validationSet.PackageETag = packageETag;
-                }
-                else
-                {
-                    await _packageFileService.CopyValidationPackageForValidationSetAsync(validationSet);
-
-                    // A symbols package for the same id and version can be re-submitted. 
-                    // When this happens a new validation is submitted. After validation the new symbols package will overwrite the old symbols package. 
-                    // Because of this when a new validation for a symbols package is received it can already exist a symbols package in the public symbols container.
-                    if (validatingEntity.ValidatingType == ValidatingType.SymbolPackage)
-                    {
-                        validationSet.PackageETag = await _packageFileService.GetPublicPackageBlobETagOrNullAsync(validationSet);
-                    }
-                    else
-                    {
-                        // This indicates that the package in the packages container is expected to not exist (i.e. it has
-                        // has no etag at all).
-                        validationSet.PackageETag = null;
-                    }
-                }
+                await CopyPackageFileToValidationSetAsync(validationSet, validatingEntity);
 
                 // If there are any processors in the validation set, back up the original. We back up from the
                 // validation set copy to avoid concurrency issues.
@@ -115,6 +91,37 @@ namespace NuGet.Services.Validation.Orchestrator
             return validationSet;
         }
 
+        protected virtual async Task CopyPackageFileToValidationSetAsync(
+            PackageValidationSet validationSet,
+            IValidatingEntity<T> validatingEntity)
+        {
+            if (validatingEntity.Status == PackageStatus.Available)
+            {
+                var packageETag = await _packageFileService.CopyPackageFileForValidationSetAsync(validationSet);
+
+                // This indicates that the package in the package container is expected to not change.
+                validationSet.PackageETag = packageETag;
+            }
+            else
+            {
+                await _packageFileService.CopyValidationPackageForValidationSetAsync(validationSet);
+
+                // A symbols package for the same id and version can be re-submitted. 
+                // When this happens a new validation is submitted. After validation the new symbols package will overwrite the old symbols package. 
+                // Because of this when a new validation for a symbols package is received it can already exist a symbols package in the public symbols container.
+                if (validatingEntity.ValidatingType == ValidatingType.SymbolPackage)
+                {
+                    validationSet.PackageETag = await _packageFileService.GetPublicPackageBlobETagOrNullAsync(validationSet);
+                }
+                else
+                {
+                    // This indicates that the package in the packages container is expected to not exist (i.e. it has
+                    // has no etag at all).
+                    validationSet.PackageETag = null;
+                }
+            }
+        }
+
         private async Task<PackageValidationSet> PersistValidationSetAsync(PackageValidationSet validationSet, IValidatingEntity<T> validatingEntity)
         {
             _logger.LogInformation("Persisting validation set {ValidationSetId} for package {PackageId} {PackageVersion} (package key {PackageKey})",
@@ -131,7 +138,18 @@ namespace NuGet.Services.Validation.Orchestrator
             // case.
             if (await _validationStorageService.GetValidationSetCountAsync(validatingEntity) == 1)
             {
-                _telemetryService.TrackDurationToValidationSetCreation(validationSet.PackageId, validationSet.PackageNormalizedVersion, validationSet.ValidationTrackingId, validationSet.Created - validatingEntity.Created);
+                if (validationSet.ValidatingType == ValidatingType.StagedPackage || validationSet.ValidatingType == ValidatingType.StagedSymbolPackage)
+                {
+                    // Upload age is not a measure of the later promotion request's creation delay.
+                    if (!SymbolPromotionValidationConfiguration.IsPromotion(validationSet))
+                    {
+                        _telemetryService.TrackStagingDurationToValidationSetCreation(validationSet, validationSet.Created - validatingEntity.Created);
+                    }
+                }
+                else
+                {
+                    _telemetryService.TrackDurationToValidationSetCreation(validationSet.PackageId, validationSet.PackageNormalizedVersion, validationSet.ValidationTrackingId, validationSet.Created - validatingEntity.Created);
+                }
             }
 
             return persistedValidationSet;
@@ -161,9 +179,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 ValidationSetStatus = ValidationSetStatus.InProgress,
             };
 
-            var validationsToStart = _validationConfiguration
-                .Validations
-                .Where(v => v.ShouldStart);
+            var validationsToStart = GetValidationsToStart(validatingEntity);
 
             foreach (var validation in validationsToStart)
             {
@@ -179,6 +195,16 @@ namespace NuGet.Services.Validation.Orchestrator
             }
 
             return validationSet;
+        }
+
+        protected virtual IEnumerable<ValidationConfigurationItem> GetValidationsToStart(IValidatingEntity<T> _)
+        {
+            return _validationConfiguration.Validations.Where(v => v.ShouldStart);
+        }
+
+        protected virtual TimeSpan GetDeduplicationWindow(IValidatingEntity<T> _)
+        {
+            return _validationConfiguration.NewValidationRequestDeduplicationWindow;
         }
     }
 }

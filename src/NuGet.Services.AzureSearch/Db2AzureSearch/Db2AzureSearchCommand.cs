@@ -114,6 +114,20 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
 
         private async Task InitializeAsync()
         {
+            if (_developmentOptions.Value.ReuseContainersAndIndexes)
+            {
+                if (_developmentOptions.Value.ReplaceContainersAndIndexes)
+                {
+                    throw new InvalidOperationException("ReuseContainersAndIndexes and ReplaceContainersAndIndexes cannot both be enabled.");
+                }
+
+                _logger.LogInformation("Reusing existing containers and indexes and refreshing their data from the database.");
+                await _blobContainerBuilder.CreateIfNotExistsAsync();
+                await _indexBuilder.CreateSearchIndexIfNotExistsAsync();
+                await _indexBuilder.CreateHijackIndexIfNotExistsAsync();
+                return;
+            }
+
             var containerDeleted = false;
             if (_developmentOptions.Value.ReplaceContainersAndIndexes)
             {
@@ -159,7 +173,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             _logger.LogInformation("Writing the initial owners file.");
             await _ownerDataClient.ReplaceLatestIndexedAsync(
                 owners,
-                AccessConditionWrapper.GenerateIfNotExistsCondition());
+                GetInitialFileAccessCondition());
             _logger.LogInformation("Done uploading the initial owners file.");
         }
 
@@ -168,7 +182,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             _logger.LogInformation("Writing the initial download data file.");
             await _downloadDataClient.ReplaceLatestIndexedAsync(
                 downloadData,
-                AccessConditionWrapper.GenerateIfNotExistsCondition());
+                GetInitialFileAccessCondition());
             _logger.LogInformation("Done uploading the initial download data file.");
         }
 
@@ -177,7 +191,7 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             _logger.LogInformation("Writing the initial verified packages data file.");
             await _verifiedPackagesDataClient.ReplaceLatestAsync(
                 verifiedPackages,
-                AccessConditionWrapper.GenerateIfNotExistsCondition());
+                GetInitialFileAccessCondition());
             _logger.LogInformation("Done uploading the initial verified packages data file.");
         }
 
@@ -186,8 +200,18 @@ namespace NuGet.Services.AzureSearch.Db2AzureSearch
             _logger.LogInformation("Writing the initial popularity transfers data file.");
             await _popularityTransferDataClient.ReplaceLatestIndexedAsync(
                 popularityTransfers,
-                AccessConditionWrapper.GenerateIfNotExistsCondition());
+                GetInitialFileAccessCondition());
             _logger.LogInformation("Done uploading the initial popularity transfers data file.");
+        }
+
+        private IAccessCondition GetInitialFileAccessCondition()
+        {
+            if (_developmentOptions.Value.ReuseContainersAndIndexes)
+            {
+                return AccessConditionWrapper.GenerateEmptyCondition();
+            }
+
+            return AccessConditionWrapper.GenerateIfNotExistsCondition();
         }
 
         private async Task<InitialAuxiliaryData> ProduceWorkAsync(

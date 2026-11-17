@@ -69,6 +69,7 @@ namespace NuGetGallery
                 var eligible = foundPackages
                     .Where(x => x.PackageStatusKey != PackageStatus.Deleted)
                     .Where(x => x.PackageStatusKey != PackageStatus.FailedValidation)
+                    .Where(x => x.PackageStatusKey != PackageStatus.Staged)
                     .ToList();
 
                 var eligibleVersions = eligible

@@ -77,6 +77,7 @@ namespace NuGetGallery.Views.Packages
                 yield return ValidationIssue.OnlySignatureFormatVersion1Supported;
                 yield return ValidationIssue.AuthorCounterSignaturesNotSupported;
                 yield return ValidationIssue.PackageIsNotSigned;
+                yield return ValidationIssue.AuthorSignedAttributesNotCanonical;
                 yield return ValidationIssue.SymbolErrorCode_ChecksumDoesNotMatch;
                 yield return ValidationIssue.SymbolErrorCode_MatchingAssemblyNotFound;
                 yield return ValidationIssue.SymbolErrorCode_PdbIsNotPortable;

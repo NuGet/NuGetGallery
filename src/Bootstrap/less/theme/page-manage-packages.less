@@ -49,6 +49,387 @@
     margin-top: 5px;
   }
 
+  .staging-groups-actions {
+    margin-bottom: 16px;
+    text-align: right;
+  }
+
+  .staging-status {
+    &.staging-status-validating {
+      background-color: var(--statusGenericBlueBackground2Rest);
+      color: var(--statusGenericBlueForeground2Rest);
+    }
+
+    &.staging-status-promoting {
+      background-color: var(--statusGenericBlueBackground2Rest);
+      color: var(--statusGenericBlueForeground2Rest);
+    }
+
+    &.staging-status-ready {
+      background-color: var(--statusSuccessBackground1Rest);
+      color: var(--statusSuccessForeground1Rest);
+    }
+
+    &.staging-status-succeeded {
+      background-color: var(--statusSuccessBackground1Rest);
+      color: var(--statusSuccessForeground1Rest);
+    }
+
+    &.staging-status-failedvalidation {
+      background-color: var(--statusDangerBackground1Rest);
+      color: var(--statusDangerForeground1Rest);
+    }
+
+    &.staging-status-promotionfailed {
+      background-color: var(--statusDangerBackground1Rest);
+      color: var(--statusDangerForeground1Rest);
+    }
+  }
+
+  .staging-group-back-link {
+    align-items: center;
+    display: inline-flex;
+    gap: 4px;
+
+    .ms-Icon {
+      line-height: 1;
+    }
+  }
+
+  .staging-group-heading {
+    margin-bottom: 8px;
+
+    h1 {
+      align-items: center;
+      display: flex;
+      gap: 8px;
+      margin: 0;
+    }
+  }
+
+  .staging-group-header {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: space-between;
+  }
+
+  .staging-group-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .staging-group-promote {
+    margin: 0;
+  }
+
+  .staging-group-delete {
+    align-items: center;
+    display: inline-flex;
+    flex: none;
+    gap: 6px;
+  }
+
+  .staging-group-summary {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .staging-group-search {
+    margin-bottom: 16px;
+  }
+
+  .staging-move-group-select {
+    height: (@input-height-base + 2);
+  }
+
+  .staging-group-package-list {
+    margin-top: 16px;
+  }
+
+  .staging-package-identity {
+    align-items: center;
+    display: flex;
+    gap: 29px;
+
+    .package-icon {
+      flex: none;
+      margin: 0;
+      width: 2em;
+    }
+  }
+
+  .staging-package-identity-text {
+    min-width: 0;
+  }
+
+  .staging-package-icon {
+    height: 2em;
+  }
+
+  .staging-packages-table {
+    table-layout: fixed;
+
+    > tbody > tr.staging-package-continuation > td {
+      border-top: 0;
+    }
+
+    .staging-package-id-column {
+      width: 40%;
+    }
+
+    .staging-package-owner-column {
+      width: 18%;
+    }
+
+    .staging-package-version-column {
+      width: 19%;
+    }
+
+    .staging-package-status-column {
+      width: 16%;
+    }
+
+    .staging-package-expiration-column {
+      width: 10%;
+    }
+
+    .staging-package-listed-column {
+      width: 8%;
+    }
+
+    .staging-package-actions-column {
+      width: 7%;
+    }
+
+    .staging-listed-form {
+      align-items: center;
+      display: inline-flex;
+      gap: 8px;
+      margin: 0;
+    }
+
+    .staging-listed-status {
+      color: var(--statusDangerForeground1Rest);
+      font-size: 13px;
+      font-weight: normal;
+      line-height: 16px;
+      white-space: nowrap;
+    }
+
+    input[type="checkbox"].staging-listed-input {
+      margin: 0 !important;
+    }
+
+    input[type="checkbox"].staging-listed-input:checked::after {
+      border: solid var(--neutralForegroundOnBrandRest);
+      border-width: 0 2px 2px 0;
+      content: "";
+      display: block;
+      height: 9px;
+      left: 5px;
+      position: absolute;
+      top: 2px;
+      transform: rotate(45deg);
+      width: 5px;
+    }
+
+    .staging-package-owner {
+      .break-word;
+    }
+
+    .staging-package-version {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .staging-package-actions {
+    display: inline-block;
+
+    .staging-package-actions-toggle {
+      align-items: center;
+      background-color: transparent;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      color: var(--neutralForeground1Rest);
+      display: inline-flex;
+      font-size: 20px;
+      height: 32px;
+      justify-content: center;
+      line-height: 1;
+      padding: 0;
+      width: 32px;
+
+      &:hover,
+      &:focus {
+        background-color: var(--neutralBackgroundSubtleHover);
+        border-color: transparent;
+        color: var(--neutralForeground1Rest);
+      }
+
+      &:focus {
+        outline: 2px solid var(--neutralStrokeFocus2Rest);
+        outline-offset: 1px;
+      }
+    }
+
+    &.open .staging-package-actions-toggle,
+    .staging-package-actions-toggle:active {
+      background-color: var(--neutralBackgroundSubtlePressed);
+      border-color: transparent;
+      color: var(--neutralForeground1Rest);
+    }
+
+    .dropdown-menu {
+      background-color: var(--neutralBackground2Rest);
+      border: 1px solid var(--neutralStroke1Rest);
+      box-shadow: 0 4px 12px var(--shadowAmbient);
+      min-width: 0;
+      padding: 4px 0;
+      width: max-content;
+
+      > li > a {
+        color: var(--neutralForeground1Rest);
+        padding: 6px 12px;
+
+        &:hover,
+        &:focus {
+          background-color: var(--neutralBackground2Hover);
+          color: var(--neutralForeground1Rest);
+        }
+      }
+
+      .divider {
+        background-color: var(--neutralStroke2Rest);
+      }
+
+      > .staging-delete-disabled > a {
+        &,
+        &:hover,
+        &:focus {
+          background-color: transparent;
+          color: var(--neutralForegroundDisabledRest);
+          cursor: not-allowed;
+        }
+
+        .tooltip-wrapper {
+          white-space: normal;
+
+          &.show {
+            left: auto;
+            right: 100%;
+          }
+        }
+      }
+    }
+  }
+
+  .staging-status-content {
+    display: flex;
+    align-items: center;
+  }
+
+  .staging-validation-issues-toggle {
+    color: var(--neutralForeground1Rest);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    margin-left: 4px;
+    padding: 0 4px;
+
+    &:hover,
+    &:focus,
+    &:active {
+      color: var(--neutralForeground1Rest);
+    }
+
+    .ms-Icon {
+      font-size: 16px;
+    }
+  }
+
+  .staging-validation-modal {
+    align-items: center;
+
+    &.fade .modal-dialog,
+    &.fade.in .modal-dialog {
+      -webkit-transform: none;
+      -ms-transform: none;
+      -o-transform: none;
+      transform: none;
+      -webkit-transition: none;
+      -o-transition: none;
+      transition: none;
+    }
+
+    &.in,
+    &.staging-validation-modal-closing {
+      display: flex !important;
+    }
+
+    .modal-dialog {
+      margin: 10px auto;
+      width: calc(100% - 20px);
+
+      @media (min-width: @screen-sm-min) {
+        width: 600px;
+      }
+    }
+
+    .modal-content,
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+      background-color: var(--neutralBackground1Rest);
+      color: var(--neutralForeground1Rest);
+    }
+
+    .modal-content {
+      border: 1px solid var(--neutralStroke2Rest);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .modal-header {
+      border-bottom: 1px solid var(--neutralStroke2Rest);
+    }
+
+    .modal-footer {
+      border-top: 1px solid var(--neutralStroke2Rest);
+    }
+
+    .modal-title {
+      color: var(--neutralForeground1Rest);
+    }
+
+    .close {
+      color: var(--neutralForeground2Rest);
+      opacity: 0.8;
+
+      &:hover,
+      &:focus {
+        color: var(--neutralForeground2Hover);
+        opacity: 1;
+      }
+    }
+
+    .validation-issues {
+      margin-bottom: 0;
+      padding-left: 20px;
+
+      li + li {
+        margin-top: 12px;
+      }
+    }
+  }
+
   .manage-package-listing {
     .ms-Icon {
       position: relative;
@@ -83,4 +464,18 @@
     width: 100%;
     max-width: 90%;
   }
+}
+
+html.staging-validation-modal-open {
+  overflow-y: scroll !important;
+}
+
+html.staging-validation-modal-open body.modal-open {
+  overflow: visible;
+  padding-right: 0 !important;
+}
+
+html.staging-validation-modal-open .staging-validation-modal {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
 }

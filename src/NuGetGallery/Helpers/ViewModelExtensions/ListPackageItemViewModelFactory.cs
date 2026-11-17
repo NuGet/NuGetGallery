@@ -34,8 +34,16 @@ namespace NuGetGallery
             return SetupInternal(viewModel, package, currentUser, includeComputedBadges, query);
         }
 
+        internal void SetupForManagePackages(ListPackageItemViewModel viewModel, Package package, User currentUser)
+        {
+            _packageViewModelFactory.Setup(viewModel, package);
+            SetupOwnersAndManagementPermissions(viewModel, package, currentUser);
+        }
+
         private ListPackageItemViewModel SetupInternal(ListPackageItemViewModel viewModel, Package package, User currentUser, bool includeComputedBadges = false, string query = null)
         {
+            SetupOwnersAndManagementPermissions(viewModel, package, currentUser);
+
             viewModel.Tags = package.Tags?
                 .Split(' ')
                 .Where(t => !string.IsNullOrEmpty(t))
@@ -44,7 +52,6 @@ namespace NuGetGallery
 
             viewModel.Authors = package.FlattenedAuthors;
             viewModel.MinClientVersion = package.MinClientVersion;
-            viewModel.Owners = package.PackageRegistration?.Owners?.Select(GetBasicUserViewModel).ToList();
             viewModel.IsVerified = package.PackageRegistration?.IsVerified;
             viewModel.IsDeprecated = package.Deprecations?.Count > 0;
             viewModel.IsVulnerable = package.VulnerablePackageRanges?.Count > 0;
@@ -62,9 +69,6 @@ namespace NuGetGallery
             }
 
             viewModel.CanDisplayPrivateMetadata = CanPerformAction(currentUser, package, ActionsRequiringPermissions.DisplayPrivatePackageMetadata);
-            viewModel.CanEdit = CanPerformAction(currentUser, package, ActionsRequiringPermissions.EditPackage);
-            viewModel.CanUnlistOrRelist = CanPerformAction(currentUser, package, ActionsRequiringPermissions.UnlistOrRelistPackage);
-            viewModel.CanManageOwners = CanPerformAction(currentUser, package, ActionsRequiringPermissions.ManagePackageOwnership);
             viewModel.CanReportAsOwner = CanPerformAction(currentUser, package, ActionsRequiringPermissions.ReportPackageAsOwner);
             viewModel.CanSeeBreadcrumbWithProfile = CanPerformAction(currentUser, package, ActionsRequiringPermissions.ShowProfileBreadcrumb);
             viewModel.CanDeleteSymbolsPackage = CanPerformAction(currentUser, package, ActionsRequiringPermissions.DeleteSymbolPackage);
@@ -84,6 +88,14 @@ namespace NuGetGallery
             }
 
             return viewModel;
+        }
+
+        private static void SetupOwnersAndManagementPermissions(ListPackageItemViewModel viewModel, Package package, User currentUser)
+        {
+            viewModel.Owners = package.PackageRegistration?.Owners?.Select(GetBasicUserViewModel).ToList();
+            viewModel.CanEdit = CanPerformAction(currentUser, package, ActionsRequiringPermissions.EditPackage);
+            viewModel.CanUnlistOrRelist = CanPerformAction(currentUser, package, ActionsRequiringPermissions.UnlistOrRelistPackage);
+            viewModel.CanManageOwners = CanPerformAction(currentUser, package, ActionsRequiringPermissions.ManagePackageOwnership);
         }
 
         private static bool CanPerformAction(User currentUser, Package package, ActionRequiringPackagePermissions action)

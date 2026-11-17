@@ -262,6 +262,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(id));
             }
 
+            var deletedStagingPackageKeys = GetDeletedStagingPackages().Select(identity => identity.Key);
             var packages = GetPackagesByIdQueryable(
                 id,
                 includeLicenseReports: false,
@@ -270,9 +271,33 @@ namespace NuGetGallery
                 includeSymbolPackages: false,
                 includeDeprecations: includeDeprecations,
                 includeDeprecationRelationships: false,
-                includeSupportedFrameworks: includeSupportedFrameworks);
+                includeSupportedFrameworks: includeSupportedFrameworks)
+                .Where(package => !deletedStagingPackageKeys.Contains(package.Key));
 
             return packages.ToList();
+        }
+
+        public bool IsDeletedStagingPackage(string id, string version)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+
+            if (string.IsNullOrWhiteSpace(version))
+            {
+                throw new ArgumentException(nameof(version));
+            }
+
+            var normalizedVersion = NuGetVersionFormatter.Normalize(version);
+            return GetDeletedStagingPackages().Any(identity => identity.Package.PackageRegistration.Id == id && identity.Package.NormalizedVersion == normalizedVersion);
+        }
+
+        private IQueryable<StagedPackageIdentity> GetDeletedStagingPackages()
+        {
+            return _entitiesContext.StagedPackageIdentities
+                .Where(identity => identity.Package.PackageStatusKey == PackageStatus.Deleted)
+                .Where(identity => identity.CurrentStagedPackage != null && identity.CurrentStagedPackage.Status == StagedPackageStatus.Deleted);
         }
 
         public LatestPackageVersionsResult FindLatestVersionsById(
@@ -293,6 +318,7 @@ namespace NuGetGallery
                 throw new ArgumentOutOfRangeException(nameof(maxCount), "Max count must be greater than 0.");
             }
 
+            var deletedStagingPackageKeys = GetDeletedStagingPackages().Select(identity => identity.Key);
             var packages = GetPackagesByIdQueryable(
                 id,
                 includeLicenseReports: false,
@@ -302,6 +328,7 @@ namespace NuGetGallery
                 includeDeprecations: includeDeprecations,
                 includeDeprecationRelationships: false,
                 includeSupportedFrameworks: includeSupportedFrameworks)
+                .Where(package => !deletedStagingPackageKeys.Contains(package.Key))
                 .OrderByDescending(p => p.Key)
                 .Take(maxCount + 1)
                 .ToList();
@@ -321,6 +348,7 @@ namespace NuGetGallery
                     includeDeprecations: includeDeprecations,
                     includeDeprecationRelationships: false,
                     includeSupportedFrameworks: includeSupportedFrameworks)
+                    .Where(package => !deletedStagingPackageKeys.Contains(package.Key))
                     .Where(p => p.IsLatestSemVer2 || p.IsLatestStableSemVer2)
                     .ToList();
 
@@ -356,6 +384,7 @@ namespace NuGetGallery
                     includeDeprecations: includeDeprecations,
                     includeDeprecationRelationships: false,
                     includeSupportedFrameworks: includeSupportedFrameworks)
+                    .Where(package => !deletedStagingPackageKeys.Contains(package.Key))
                     .Where(p => p.NormalizedVersion == includeVersion) // string comparisons on DB side are case-insensitive due to collation used
                     .SingleOrDefault();
 
@@ -556,6 +585,21 @@ namespace NuGetGallery
             return GetPackagesForOwners(ownerKeys, includeUnlisted, includeVersions);
         }
 
+        /// <summary>
+        /// Finds ordinary packages for account deletion, excluding never-published staging.
+        /// </summary>
+        public IEnumerable<Package> FindPackagesForAccountDeletion(User user)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            var ownerKeys = user.Organizations.Select(membership => membership.OrganizationKey).ToList();
+            ownerKeys.Insert(0, user.Key);
+            return GetPackagesForOwners(ownerKeys, includeUnlisted: true, includeVersions: false, excludeUnpublished: true);
+        }
+
         public (IReadOnlyCollection<Package> Packages, long TotalDownloadCount, int PackageCount) FindPackagesByProfile(
             User user,
             int page,
@@ -612,10 +656,25 @@ namespace NuGetGallery
             return (packages.ToList(), downloadCount, packageCount);
         }
 
-        private IEnumerable<Package> GetPackagesForOwners(IEnumerable<int> ownerKeys, bool includeUnlisted, bool includeVersions)
+        private IEnumerable<Package> GetPackagesForOwners(IEnumerable<int> ownerKeys, bool includeUnlisted, bool includeVersions, bool excludeUnpublished = false)
         {
             IQueryable<Package> packages = _packageRepository.GetAll()
                 .Where(p => p.PackageRegistration.Owners.Any(o => ownerKeys.Contains(o.Key)));
+
+            if (excludeUnpublished)
+            {
+                var identities = _entitiesContext.StagedPackageIdentities
+                    .Include(identity => identity.Package)
+                    .Include(identity => identity.CurrentStagedPackage)
+                    .Where(identity => identity.Package.PackageRegistration.Owners.Any(owner => ownerKeys.Contains(owner.Key)))
+                    .ToList();
+                var unpublishedPackageKeys = identities.Where(StagingDeletionService.IsUnpublishedPackage).Select(identity => identity.Key).ToList();
+                packages = packages.Where(package => package.PackageStatusKey != PackageStatus.Staged);
+                if (unpublishedPackageKeys.Count > 0)
+                {
+                    packages = packages.Where(package => !unpublishedPackageKeys.Contains(package.Key));
+                }
+            }
 
             if (!includeUnlisted)
             {
@@ -737,6 +796,34 @@ namespace NuGetGallery
             {
                 return false;
             }
+
+            var hasStagedVersions = packageRegistration.Packages.Any(package => package.PackageStatusKey == PackageStatus.Staged);
+            var hasDeletedVersions = packageRegistration.Packages.Any(package => package.PackageStatusKey == PackageStatus.Deleted);
+            if (hasStagedVersions || hasDeletedVersions)
+            {
+                var deletedOwnerKeys = new List<int> { ownerToRemove.Key };
+                foreach (var membership in ownerToRemove.Organizations)
+                {
+                    var hasOtherMembers = membership.Organization.Members.Any(member => !member.Member.MatchesUser(ownerToRemove));
+                    if (!hasOtherMembers)
+                    {
+                        deletedOwnerKeys.Add(membership.OrganizationKey);
+                    }
+                }
+
+                var identities = _entitiesContext.StagedPackageIdentities
+                    .Include(identity => identity.Package)
+                    .Include(identity => identity.CurrentStagedPackage)
+                    .Where(identity => identity.Package.PackageRegistrationKey == packageRegistration.Key)
+                    .Where(identity => deletedOwnerKeys.Contains(identity.OwnerKey))
+                    .ToList();
+                var removedPackageKeys = new HashSet<int>(identities.Where(StagingDeletionService.IsUnpublishedPackage).Select(identity => identity.Key));
+                if (packageRegistration.Packages.All(package => removedPackageKeys.Contains(package.Key)))
+                {
+                    return false;
+                }
+            }
+
             return WillPackageBeOrphanedIfOwnerRemovedHelper(packageRegistration.Owners, ownerToRemove);
         }
 
@@ -900,6 +987,78 @@ namespace NuGetGallery
             package.EmbeddedReadmeType = GetEmbeddedReadmeType(packageMetadata);
 
             return package;
+        }
+
+        public virtual Package ReplacePackageMetadataForStagedPackage(
+            StagedPackage stagedPackage,
+            PackageArchiveReader packageArchive,
+            PackageMetadata packageMetadata,
+            PackageStreamMetadata packageStreamMetadata,
+            User user)
+        {
+            if (stagedPackage == null)
+            {
+                throw new ArgumentNullException(nameof(stagedPackage));
+            }
+
+            if (stagedPackage.StagedPackageIdentity?.Package == null)
+            {
+                throw new ArgumentException("The staged package must have a populated staging identity and package reference.", nameof(stagedPackage));
+            }
+
+            var package = stagedPackage.StagedPackageIdentity.Package;
+            var isActiveStagedPackage =
+                package.PackageStatusKey == PackageStatus.Staged &&
+                (stagedPackage.Status == StagedPackageStatus.Validating ||
+                 stagedPackage.Status == StagedPackageStatus.Ready ||
+                 stagedPackage.Status == StagedPackageStatus.FailedValidation ||
+                 stagedPackage.Status == StagedPackageStatus.PromotionFailed);
+            var isDeletedStagedPackage =
+                package.PackageStatusKey == PackageStatus.Deleted &&
+                stagedPackage.Status == StagedPackageStatus.Deleted;
+            if (!isActiveStagedPackage && !isDeletedStagedPackage)
+            {
+                throw new ArgumentException("The staged package is not in a state that allows its metadata to be replaced.", nameof(stagedPackage));
+            }
+
+            if (packageArchive == null)
+            {
+                throw new ArgumentNullException(nameof(packageArchive));
+            }
+
+            if (packageMetadata == null)
+            {
+                throw new ArgumentNullException(nameof(packageMetadata));
+            }
+
+            if (packageStreamMetadata == null)
+            {
+                throw new ArgumentNullException(nameof(packageStreamMetadata));
+            }
+
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+#pragma warning disable 618
+            RemoveAll(package.Authors);
+#pragma warning restore 618
+            RemoveAll(package.Dependencies);
+            RemoveAll(package.PackageTypes);
+            RemoveAll(package.SupportedFrameworks);
+
+            return EnrichPackageFromNuGetPackage(package, packageArchive, packageMetadata, packageStreamMetadata, user);
+        }
+
+        private void RemoveAll<TEntity>(ICollection<TEntity> entities) where TEntity : class
+        {
+            foreach (var entity in entities.ToList())
+            {
+                _entitiesContext.Set<TEntity>().Remove(entity);
+            }
+
+            entities.Clear();
         }
 
         public virtual IEnumerable<NuGetFramework> GetSupportedFrameworks(PackageArchiveReader package)

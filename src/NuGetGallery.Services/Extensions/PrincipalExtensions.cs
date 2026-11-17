@@ -83,6 +83,18 @@ namespace NuGetGallery
         }
 
         /// <summary>
+        /// Determine if the current user context is a Gallery elevated administrator, which
+        /// requires both the <see cref="CoreConstants.AdminRoleName"/> and
+        /// <see cref="CoreConstants.ElevatedAdminRoleName"/> roles.
+        /// </summary>
+        /// <param name="self">Current user principal.</param>
+        /// <returns>True if Gallery elevated administrator, false otherwise.</returns>
+        public static bool IsElevatedAdministrator(this IPrincipal self)
+        {
+            return self.IsAdministrator() && self.IsInRole(CoreConstants.ElevatedAdminRoleName);
+        }
+
+        /// <summary>
         /// Determine if the current user has an associated password credential.
         /// </summary>
         /// <param name="self">Current user principal.</param>

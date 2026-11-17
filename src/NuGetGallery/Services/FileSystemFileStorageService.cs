@@ -10,6 +10,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Web.Hosting;
 using System.Web.Mvc;
+using NuGetGallery.Packaging;
 
 namespace NuGetGallery
 {
@@ -124,6 +125,26 @@ namespace NuGetGallery
             // Get the last modified date of the file and use that as the ContentID
             var file = new FileInfo(path);
             return Task.FromResult<IFileReference>(file.Exists ? new LocalFileReference(file) : null);
+        }
+
+        public Task<PackageStreamMetadata> GetPackageStreamMetadataAsync(string folderName, string fileName, string expectedETag)
+        {
+            if (string.IsNullOrWhiteSpace(folderName))
+            {
+                throw new ArgumentNullException(nameof(folderName));
+            }
+
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                throw new ArgumentNullException(nameof(fileName));
+            }
+
+            if (string.IsNullOrWhiteSpace(expectedETag))
+            {
+                throw new ArgumentNullException(nameof(expectedETag));
+            }
+
+            throw new NotSupportedException("File-system storage does not support stored package stream metadata.");
         }
 
         public Task SaveFileAsync(string folderName, string fileName, string contentType, Stream file, bool overwrite = true)

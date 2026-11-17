@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -20,6 +21,13 @@ namespace NuGet.VerifyMicrosoftPackage.Fakes
         public Task CommitChangesAsync()
         {
             return Task.CompletedTask;
+        }
+
+        public Task ExecuteInTransactionAsync(Func<Task> action)
+        {
+            action = action ?? throw new ArgumentNullException(nameof(action));
+
+            return action();
         }
 
         public void DeleteOnCommit(T entity)

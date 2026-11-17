@@ -5,6 +5,8 @@
   <ItemGroup Condition="'$(ConfigurationFilePath)' == ''">
     <PackageReference Include="Aspire.Hosting.Testing" />
     <ProjectReference Include="..\..\src\NuGetGallery.AppHost\NuGetGallery.AppHost.csproj" />
+    <RuntimeHostConfigurationOption Include="NuGetGallery.FunctionalTests.AspireDiscoverySettings" Value="settings.Aspire.json" />
+    <None Update="settings.Aspire.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGetGallery.FunctionalTests.Core\NuGetGallery.FunctionalTests.Core.csproj" />
@@ -19,6 +21,7 @@
     <PackageReference Include="FluentLinkChecker" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="NuGet.Packaging" />
+    <PackageReference Include="System.Data.SqlClient" />
     <PackageReference Include="System.ServiceModel.Syndication" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio">

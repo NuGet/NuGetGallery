@@ -17,5 +17,7 @@ namespace NuGetGallery
         }
 
         public string Username { get; set; }
+
+        public bool IsPackageStagingEnabled { get; set; }
     }
 }

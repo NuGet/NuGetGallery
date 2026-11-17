@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
+using NuGet.Jobs.Validation;
 using NuGet.Services.Entities;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 using Xunit;
@@ -15,6 +16,75 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 {
     public class ValidationSetProviderFacts
     {
+        [Theory]
+        [InlineData(ValidatingType.StagedPackage, false, true)]
+        [InlineData(ValidatingType.StagedSymbolPackage, false, true)]
+        [InlineData(ValidatingType.StagedSymbolPackage, true, false)]
+        public async Task TracksCreationDelayForInitialStagedValidationButNotPromotion(ValidatingType validatingType, bool isPromotion, bool expectedMetric)
+        {
+            var validator = ValidatorName.SymbolsValidator;
+            if (isPromotion)
+            {
+                validator = ValidatorName.SymbolsIngester;
+            }
+
+            Configuration.Validations = new List<ValidationConfigurationItem>
+            {
+                new ValidationConfigurationItem { Name = validator, ShouldStart = true },
+            };
+            PackageValidationSet validationSet;
+            if (validatingType == ValidatingType.StagedPackage)
+            {
+                var entity = new StagedPackageValidatingEntity(new StagedPackage { Key = 43, Status = StagedPackageStatus.Validating, UploadedDate = Package.Created });
+                validationSet = await CreateStagedValidationSetAsync(entity);
+            }
+            else
+            {
+                var status = StagedPackageStatus.Validating;
+                if (isPromotion)
+                {
+                    status = StagedPackageStatus.Promoting;
+                }
+
+                var attempt = new StagedSymbolPackage { Key = 43, Status = status, UploadedDate = Package.Created };
+                var entity = new StagedSymbolPackageValidatingEntity(attempt);
+                validationSet = await CreateStagedValidationSetAsync(entity);
+            }
+
+            TelemetryServiceMock.Verify(
+                service => service.TrackStagingDurationToValidationSetCreation(validationSet, validationSet.Created - Package.Created),
+                expectedMetric ? Times.Once() : Times.Never());
+            TelemetryServiceMock.Verify(
+                service => service.TrackDurationToValidationSetCreation(
+                    It.IsAny<string>(),
+                    It.IsAny<string>(),
+                    It.IsAny<Guid>(),
+                    It.IsAny<TimeSpan>()),
+                Times.Never);
+            TelemetryServiceMock.VerifyNoOtherCalls();
+        }
+
+        private async Task<PackageValidationSet> CreateStagedValidationSetAsync<T>(IValidatingEntity<T> entity) where T : class, IEntity
+        {
+            var trackingId = Guid.NewGuid();
+            ValidationStorageMock.Setup(service => service.GetValidationSetAsync(trackingId)).ReturnsAsync((PackageValidationSet)null);
+            ValidationStorageMock.Setup(service => service.OtherRecentValidationSetForPackageExists(entity, It.IsAny<TimeSpan>(), trackingId)).ReturnsAsync(false);
+            ValidationStorageMock.Setup(service => service.CreateValidationSetAsync(It.IsAny<PackageValidationSet>()))
+                .ReturnsAsync((PackageValidationSet validationSet) => validationSet);
+            ValidationStorageMock.Setup(service => service.GetValidationSetCountAsync(entity)).ReturnsAsync(1);
+            var provider = new ValidationSetProvider<T>(
+                ValidationStorageMock.Object,
+                PackageFileServiceMock.Object,
+                ValidatorProvider.Object,
+                ConfigurationAccessorMock.Object,
+                SasDefinitionConfigurationAccessorMock.Object,
+                TelemetryServiceMock.Object,
+                Mock.Of<ILogger<ValidationSetProvider<T>>>());
+            var message = new ProcessValidationSetData(Package.Id, Package.NormalizedVersion, trackingId, entity.ValidatingType, entity.Key);
+
+            return await provider.TryGetOrCreateValidationSetAsync(message, entity);
+        }
+
         public Mock<IValidationStorageService> ValidationStorageMock { get; }
         public Mock<IValidationFileService> PackageFileServiceMock { get; }
         public Mock<IValidatorProvider> ValidatorProvider { get; }

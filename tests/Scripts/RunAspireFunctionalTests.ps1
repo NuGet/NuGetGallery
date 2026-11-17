@@ -35,10 +35,18 @@ if ($LASTEXITCODE -ne 0)
     throw "Building functional tests failed with exit code $LASTEXITCODE."
 }
 
-$categories = "Category=P0Tests|Category=P1Tests|Category=P2Tests|Category=PlaywrightTests"
+$categories = "Category=P0Tests|Category=P1Tests|Category=P2Tests|Category=PlaywrightTests|Category=StagingCiTests"
 if ($UnsafeAdminApiAuthBypassForTesting)
 {
     $categories += "|Category=AdminApiTests"
+}
+if ($env:APPHOST_PROFILE -eq "full")
+{
+    $categories = "($categories|Category=StagingFullTests)&Category!=StagingCiTests"
+}
+else
+{
+    $categories = "($categories)&Category!=StagingFullTests"
 }
 
 Write-Host "=== Running Aspire-hosted functional tests: $categories ==="
