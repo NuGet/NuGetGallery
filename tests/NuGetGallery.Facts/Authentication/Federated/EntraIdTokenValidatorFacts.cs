@@ -493,7 +493,7 @@ namespace NuGetGallery.Services.Authentication
             }
         }
 
-        public class TheEvaluatePolicyMethod : EntraIdTokenValidatorFacts
+        public class TheEvaluatePolicyMethodForEntraIdServicePrincipalPolicy : EntraIdTokenValidatorFacts
         {
             [Fact]
             public async Task ReturnsNotApplicableForNonEntraIdPolicy()
@@ -523,7 +523,6 @@ namespace NuGetGallery.Services.Authentication
             public async Task RejectsMissingClaim(string claim)
             {
                 // Arrange
-                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.EntraIdServicePrincipal,
@@ -557,7 +556,6 @@ namespace NuGetGallery.Services.Authentication
             public async Task RejectsInvalidCredentialType()
             {
                 // Arrange
-                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.EntraIdServicePrincipal,
@@ -590,7 +588,6 @@ namespace NuGetGallery.Services.Authentication
             public async Task RejectsInvalidIdentityType()
             {
                 // Arrange
-                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.EntraIdServicePrincipal,
@@ -623,7 +620,6 @@ namespace NuGetGallery.Services.Authentication
             public async Task RejectsInvalidVersion()
             {
                 // Arrange
-                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.EntraIdServicePrincipal,
@@ -656,7 +652,6 @@ namespace NuGetGallery.Services.Authentication
             public async Task RejectsOidNotMatchingSub()
             {
                 // Arrange
-                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.EntraIdServicePrincipal,
@@ -689,7 +684,6 @@ namespace NuGetGallery.Services.Authentication
             public async Task RejectsWrongTenantId()
             {
                 // Arrange
-                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.EntraIdServicePrincipal,
@@ -722,7 +716,6 @@ namespace NuGetGallery.Services.Authentication
             public async Task RejectsNotAllowedTenantId()
             {
                 // Arrange
-                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
                 AllowedTenantIds = ["different-tenant-id"];
 
                 var policy = new FederatedCredentialPolicy
@@ -757,7 +750,6 @@ namespace NuGetGallery.Services.Authentication
             public async Task RejectsWrongObjectId()
             {
                 // Arrange
-                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
                 var differentObjectId = new Guid("d8f0bfc3-5def-4079-b08c-618832b6ae16");
                 var policy = new FederatedCredentialPolicy
                 {
@@ -791,8 +783,6 @@ namespace NuGetGallery.Services.Authentication
             public async Task ReturnsSuccessForValidPolicy()
             {
                 // Arrange
-                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
-
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.EntraIdServicePrincipal,
@@ -856,7 +846,6 @@ namespace NuGetGallery.Services.Authentication
             public async Task RejectsInvalidCriteriaJson()
             {
                 // Arrange
-                FeatureFlagService.Setup(x => x.CanUseFederatedCredentials(PackageOwner)).Returns(true);
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.EntraIdServicePrincipal,
@@ -881,6 +870,296 @@ namespace NuGetGallery.Services.Authentication
             }
         }
 
+        public class TheEvaluatePolicyMethodForAzureDevOpsPolicy : EntraIdTokenValidatorFacts
+        {
+            [Theory]
+            [InlineData("idtyp")]
+            [InlineData("xms_attr")]
+            public async Task RejectsMissingClaim(string claim)
+            {
+                // Arrange
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = FederatedCredentialType.AzureDevOps,
+                    Criteria = JsonSerializer.Serialize(new { organizationId = OrganizationId, pipelineId = PipelineId }),
+                    PackageOwner = PackageOwner,
+                };
+
+                var attributeClaimValue = new Dictionary<string, object>
+                {
+                    {
+                        "rISbSSETf0KqFyZ8ppdXmA", new Dictionary<string, object>
+                        {
+                            { "org_id", OrganizationId },
+                            { "def_id", PipelineId },
+                        }
+                    }
+                };
+
+                var claims = new Dictionary<string, object>
+                {
+                    { "idtyp", "fmi" },
+                    { "xms_attr", attributeClaimValue },
+                };
+                claims.Remove(claim);
+
+                var token = CreateToken(claims);
+
+                // Act
+                var result = await Target.EvaluatePolicyAsync(policy, token);
+
+                // Assert
+                Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
+                Assert.False(result.IsErrorDisclosable);
+                Assert.Equal($"The JSON Web Token is missing the required claim '{claim}'.", result.Error);
+            }
+
+            [Fact]
+            public async Task RejectsIdentityTypeClaimValue()
+            {
+                // Arrange
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = FederatedCredentialType.AzureDevOps,
+                    Criteria = JsonSerializer.Serialize(new { organizationId = OrganizationId, pipelineId = PipelineId }),
+                    PackageOwner = PackageOwner,
+                };
+
+                var attributeClaimValue = new Dictionary<string, object>
+                {
+                    {
+                        "rISbSSETf0KqFyZ8ppdXmA", new Dictionary<string, object>
+                        {
+                            { "org_id", OrganizationId },
+                            { "def_id", PipelineId },
+                        }
+                    }
+                };
+
+                var claims = new Dictionary<string, object>
+                {
+                    { "idtyp", "app" },
+                    { "xms_attr", attributeClaimValue },
+                };
+
+                var token = CreateToken(claims);
+
+                // Act
+                var result = await Target.EvaluatePolicyAsync(policy, token);
+
+                // Assert
+                Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
+                Assert.False(result.IsErrorDisclosable);
+                Assert.Equal("The JSON Web Token claim 'idtyp' has value 'app' which does not match the policy.", result.Error);
+            }
+
+            public static IEnumerable<object[]> AttributeClaimValue_Data
+            {
+                get
+                {
+                    yield return new object[] { new Dictionary<string, object>
+                                                {
+                                                    {
+                                                        "rISbSSETf0KqFyZ8ppdXmB", new Dictionary<string, object>
+                                                        {
+                                                            { "org_id", "0c25520f-c7eb-4bc1-919c-3870a18620ef" },
+                                                            { "def_id", "12345" },
+                                                        }
+                                                    }
+                                                },
+                                                "The xms_attr claim in the JSON web token does not contain the valid namespace." };
+                    yield return new object[] { new Dictionary<string, object>
+                                                {
+                                                    {
+                                                        "rISbSSETf0KqFyZ8ppdXmA", new Dictionary<string, object>
+                                                        {
+                                                            { "def_id", "12345" },
+                                                        }
+                                                    }
+                                                },
+                                                "The xms_attr claim in the JSON web token does not contain the valid organization Id." };
+                    yield return new object[] { new Dictionary<string, object>
+                                                {
+                                                    {
+                                                        "rISbSSETf0KqFyZ8ppdXmA", new Dictionary<string, object>
+                                                        {
+                                                            { "org_id", "0c25520f-c7eb-4bc1-919c-3870a18620ef" },
+                                                        }
+                                                    }
+                                                },
+                                                "The xms_attr claim in the JSON web token does not contain the valid pipeline Id." };
+                    yield return new object[] { new Dictionary<string, object>
+                                                {
+                                                    {
+                                                        "rISbSSETf0KqFyZ8ppdXmA", new Dictionary<string, object>
+                                                        {
+                                                            { "org_id", "0c25520f-c7eb-4bc1-919c-3870a18620eg" },
+                                                            { "def_id", "12345" },
+                                                        }
+                                                    }
+                                                },
+                                                "The organization Id in the JSON web token does not match the policy." };
+                    yield return new object[] { new Dictionary<string, object>
+                                                {
+                                                    {
+                                                        "rISbSSETf0KqFyZ8ppdXmA", new Dictionary<string, object>
+                                                        {
+                                                            { "org_id", "0c25520f-c7eb-4bc1-919c-3870a18620ef" },
+                                                            { "def_id", "12346" },
+                                                        }
+                                                    }
+                                                },
+                                                "The pipeline Id in the JSON web token does not match the policy." };
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(AttributeClaimValue_Data))]
+            public async Task RejectsAttributeClaimValue(IDictionary<string, object> attributeClaimValue, string error)
+            {
+                // Arrange
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = FederatedCredentialType.AzureDevOps,
+                    Criteria = JsonSerializer.Serialize(new { organizationId = OrganizationId, pipelineId = PipelineId }),
+                    PackageOwner = PackageOwner,
+                };
+
+                var claims = new Dictionary<string, object>
+                {
+                    { "idtyp", "fmi" },
+                    { "xms_attr", attributeClaimValue },
+                };
+
+                var token = CreateToken(claims);
+
+                // Act
+                var result = await Target.EvaluatePolicyAsync(policy, token);
+
+                // Assert
+                Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
+                Assert.False(result.IsErrorDisclosable);
+                Assert.Equal(error, result.Error);
+            }
+
+            [Fact]
+            public async Task RejectsInvalidCriteriaJson()
+            {
+                // Arrange
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = FederatedCredentialType.AzureDevOps,
+                    Criteria = "invalid",
+                    PackageOwner = PackageOwner
+                };
+
+                var attributeClaimValue = new Dictionary<string, object>
+                {
+                    {
+                        "rISbSSETf0KqFyZ8ppdXmA", new Dictionary<string, object>
+                        {
+                            { "org_id", OrganizationId },
+                            { "def_id", PipelineId },
+                        }
+                    }
+                };
+
+                var claims = new Dictionary<string, object>
+                {
+                    { "idtyp", "fmi" },
+                    { "xms_attr", attributeClaimValue },
+                };
+
+                var token = CreateToken(claims);
+
+                // Act & Assert
+                await Assert.ThrowsAnyAsync<Exception>(() => Target.EvaluatePolicyAsync(policy, token));
+            }
+
+            [Theory]
+            [InlineData("""{"organizationId":"   ","pipelineId":" "}""",
+                        "The policy criteria is not valid: The organization ID and pipeline ID are empty.")]
+            [InlineData("""{"organizationId":"","pipelineId":"12345"}""",
+                        "The policy criteria is not valid: The organization ID is empty.")]
+            [InlineData("""{"organizationId":"0c25520f-c7eb-4bc1-919c-3870a18620ef","pipelineId":""}""",
+                        "The policy criteria is not valid: The pipeline ID is empty.")]
+            public async Task RejectsInvalidCriteriaJsonWithEmptyId(string criteria, string error)
+            {
+                // Arrange
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = FederatedCredentialType.AzureDevOps,
+                    Criteria = criteria,
+                    PackageOwner = PackageOwner,
+                };
+
+                var attributeClaimValue = new Dictionary<string, object>
+                {
+                    {
+                        "rISbSSETf0KqFyZ8ppdXmA", new Dictionary<string, object>
+                        {
+                            { "org_id", OrganizationId },
+                            { "def_id", PipelineId },
+                        }
+                    }
+                };
+
+                var claims = new Dictionary<string, object>
+                {
+                    { "idtyp", "fmi" },
+                    { "xms_attr", attributeClaimValue },
+                };
+
+                var token = CreateToken(claims);
+
+                // Act
+                var result = await Target.EvaluatePolicyAsync(policy, token);
+
+                // Assert
+                Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
+                Assert.False(result.IsErrorDisclosable);
+                Assert.Equal(error, result.Error);
+            }
+
+
+            [Fact]
+            public async Task ReturnsSuccessForValidPolicy()
+            {
+                // Arrange
+                var policy = new FederatedCredentialPolicy
+                {
+                    Type = FederatedCredentialType.AzureDevOps,
+                    Criteria = JsonSerializer.Serialize(new { organizationId = OrganizationId, pipelineId = PipelineId }),
+                    PackageOwner = PackageOwner,
+                };
+
+                var attributeClaimValue = new Dictionary<string, object>
+                {
+                    {
+                        "rISbSSETf0KqFyZ8ppdXmA", new Dictionary<string, object>
+                        {
+                            { "org_id", OrganizationId },
+                            { "def_id", PipelineId },
+                        }
+                    }
+                };
+
+                var claims = new Dictionary<string, object>
+                {
+                    { "idtyp", "fmi" },
+                    { "xms_attr", attributeClaimValue },
+                };
+
+                var token = CreateToken(claims);
+
+                // Act
+                var result = await Target.EvaluatePolicyAsync(policy, token);
+
+                // Assert
+                Assert.Equal(FederatedCredentialPolicyResultType.Success, result.Type);
+            }
+        }
+
         public EntraIdTokenValidatorFacts()
         {
             ConfigurationRetriever = new Mock<IConfigurationRetriever<OpenIdConnectConfiguration>>();
@@ -897,6 +1176,9 @@ namespace NuGetGallery.Services.Authentication
             ObjectId = new Guid("d17083b8-74e0-46c6-b69f-764da2e6fc0e");
             Issuer = $"https://login.microsoftonline.com/{TenantId}/v2.0";
             AllowedTenantIds = [TenantId.ToString()];
+
+            OrganizationId = "0c25520f-c7eb-4bc1-919c-3870a18620ef";
+            PipelineId = "12345";
 
             PackageOwner = new User("test-user");
 
@@ -920,6 +1202,8 @@ namespace NuGetGallery.Services.Authentication
         public Guid ObjectId { get; }
         public string Issuer { get; set; }
         public string[] AllowedTenantIds { get; set; }
+        public string OrganizationId { get; }
+        public string PipelineId { get; }
         public User PackageOwner { get; }
 
         public JsonWebToken Token
