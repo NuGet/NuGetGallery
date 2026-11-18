@@ -40,7 +40,7 @@ namespace NuGetGallery.Services.Authentication
 
         public override FederatedCredentialPolicyValidationResult ValidatePolicy(FederatedCredentialPolicy policy)
         {
-            if (policy.Type != FederatedCredentialType.EntraIdServicePrincipal)
+            if (policy.Type != FederatedCredentialType.EntraIdServicePrincipal && policy.Type != FederatedCredentialType.AzureDevOps)
             {
                 // We do not expect callers to pass non-Entra ID policies to this validator.
                 return FederatedCredentialPolicyValidationResult.BadRequest(
@@ -48,33 +48,54 @@ namespace NuGetGallery.Services.Authentication
                     policyPropertyName: null);
             }
 
-            if (!_featureFlagService.CanUseFederatedCredentials(policy.PackageOwner))
-            {
-                return FederatedCredentialPolicyValidationResult.BadRequest(
-                    $"The package owner '{policy.PackageOwner.Username}' is not enabled to use federated credentials.",
-                    nameof(FederatedCredentialPolicy.PackageOwner));
-            }
-
             if (string.IsNullOrWhiteSpace(policy.Criteria))
             {
                 return FederatedCredentialPolicyValidationResult.BadRequest(
-                    "Criteria must be provided for Entra ID service principal policies.",
+                    $"Criteria must be provided for {policy.Type} policies.",
                     nameof(FederatedCredentialPolicy.Criteria));
             }
 
-            var criteria = JsonSerializer.Deserialize<EntraIdServicePrincipalCriteria>(policy.Criteria);
-            if (criteria is null)
+            if (policy.Type == FederatedCredentialType.EntraIdServicePrincipal)
             {
-                return FederatedCredentialPolicyValidationResult.BadRequest(
-                    "Invalid criteria format for Entra ID service principal policy.",
-                    nameof(FederatedCredentialPolicy.Criteria));
-            }
+                if (!_featureFlagService.CanUseFederatedCredentials(policy.PackageOwner))
+                {
+                    return FederatedCredentialPolicyValidationResult.BadRequest(
+                        $"The package owner '{policy.PackageOwner.Username}' is not enabled to use federated credentials.",
+                        nameof(FederatedCredentialPolicy.PackageOwner));
+                }
 
-            if (!IsTenantAllowed(criteria.TenantId))
+                var entraIdServicePrincipalCriteria = JsonSerializer.Deserialize<EntraIdServicePrincipalCriteria>(policy.Criteria);
+                if (entraIdServicePrincipalCriteria is null)
+                {
+                    return FederatedCredentialPolicyValidationResult.BadRequest(
+                        $"Invalid criteria format for {policy.Type} policy.",
+                        nameof(FederatedCredentialPolicy.Criteria));
+                }
+
+                if (!IsTenantAllowed(entraIdServicePrincipalCriteria.TenantId))
+                {
+                    return FederatedCredentialPolicyValidationResult.Unauthorized(
+                        $"The Entra ID tenant '{entraIdServicePrincipalCriteria.TenantId}' is not in the allow list.",
+                        nameof(FederatedCredentialPolicy.Criteria));
+                }
+            }
+            else
             {
-                return FederatedCredentialPolicyValidationResult.Unauthorized(
-                    $"The Entra ID tenant '{criteria.TenantId}' is not in the allow list.",
-                    nameof(FederatedCredentialPolicy.Criteria));
+                if (!_featureFlagService.CanUseAzureDevOpsCredentials(policy.PackageOwner))
+                {
+                    return FederatedCredentialPolicyValidationResult.BadRequest(
+                        $"The package owner '{policy.PackageOwner.Username}' is not enabled to use Azure DevOps credentials.",
+                        nameof(FederatedCredentialPolicy.PackageOwner));
+                }
+
+                var azureDevOpsCriteria = JsonSerializer.Deserialize<AzureDevOpsCriteria>(policy.Criteria);
+                var error = "";
+                if (azureDevOpsCriteria is null || !azureDevOpsCriteria.IsValid(out error))
+                {
+                    return FederatedCredentialPolicyValidationResult.BadRequest(
+                        $"Invalid criteria format for {policy.Type} policy" + (string.IsNullOrEmpty(error) ? "." : $": {error}"),
+                        nameof(FederatedCredentialPolicy.Criteria));
+                }
             }
 
             return base.ValidatePolicy(policy);

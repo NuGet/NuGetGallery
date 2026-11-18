@@ -402,5 +402,10 @@ namespace NuGetGallery
         /// When enabled, users can only create API keys with an expiration of 1, 8, or 30 days.
         /// </summary>
         bool IsApiKeyExpirationRestricted();
+
+        /// <summary>
+        /// Whether or not the user specified in a package owner scope can use Azure DevOps credentials.
+        /// </summary>
+        bool CanUseAzureDevOpsCredentials(User user);
     }
 }
