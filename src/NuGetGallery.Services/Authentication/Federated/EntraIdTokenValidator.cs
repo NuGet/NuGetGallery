@@ -42,7 +42,7 @@ namespace NuGetGallery.Services.Authentication
         {
             if (policy.Type != FederatedCredentialType.EntraIdServicePrincipal && policy.Type != FederatedCredentialType.AzureDevOps)
             {
-                // We do not expect callers to pass non-Entra ID policies to this validator.
+                // We do not expect callers to pass non-Entra ID and non-Azure DevOps policies to this validator.
                 return FederatedCredentialPolicyValidationResult.BadRequest(
                     $"Invalid policy type '{policy.Type}' for Entra ID validation.",
                     policyPropertyName: null);
@@ -124,14 +124,29 @@ namespace NuGetGallery.Services.Authentication
 
         public override Task<FederatedCredentialPolicyResult> EvaluatePolicyAsync(FederatedCredentialPolicy policy, JsonWebToken jwt)
         {
-            if (policy.Type != FederatedCredentialType.EntraIdServicePrincipal)
+            if (policy.Type != FederatedCredentialType.EntraIdServicePrincipal && policy.Type != FederatedCredentialType.AzureDevOps)
             {
                 return Task.FromResult(FederatedCredentialPolicyResult.NotApplicable);
             }
 
-            if (EvaluateEntraIdServicePrincipal(policy, jwt) is string error)
+            switch (policy.Type)
             {
-                return Task.FromResult(FederatedCredentialPolicyResult.Unauthorized(error));
+                case FederatedCredentialType.EntraIdServicePrincipal:
+                    if (EvaluateEntraIdServicePrincipalPolicy(policy, jwt) is string errorForEntraIdServicePrincipalPolicy)
+                    {
+                        return Task.FromResult(FederatedCredentialPolicyResult.Unauthorized(errorForEntraIdServicePrincipalPolicy));
+                    }
+
+                    break;
+                case FederatedCredentialType.AzureDevOps:
+                    if (EvaluateAzureDevOpsPolicy(policy, jwt) is string errorForAzureDevOpsPolicy)
+                    {
+                        return Task.FromResult(FederatedCredentialPolicyResult.Unauthorized(errorForAzureDevOpsPolicy));
+                    }
+
+                    break;
+                default:
+                    return Task.FromResult(FederatedCredentialPolicyResult.NotApplicable);
             }
 
             return Task.FromResult(FederatedCredentialPolicyResult.Success);
@@ -145,7 +160,7 @@ namespace NuGetGallery.Services.Authentication
         /// <returns>
         /// <see langword="null"/> if the policy evaluation succeeds; otherwise, an error message describing the validation failure.
         /// </returns>
-        private string? EvaluateEntraIdServicePrincipal(FederatedCredentialPolicy policy, JsonWebToken jwt)
+        private string? EvaluateEntraIdServicePrincipalPolicy(FederatedCredentialPolicy policy, JsonWebToken jwt)
         {
             // See https://learn.microsoft.com/en-us/entra/identity-platform/access-token-claims-reference
             const string ClientCredentialTypeClaim = "azpacr";
@@ -249,6 +264,78 @@ namespace NuGetGallery.Services.Authentication
 
             var tenantIdString = tenantId.ToString();
             return _configuration.AllowedEntraIdTenants.Contains(tenantIdString, StringComparer.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Evaluates an Azure DevOps policy against a validated JWT token.
+        /// This method validates that the token contains the required claims and that the claims match the policy criteria.
+        /// </summary>
+        /// <returns>
+        /// <see langword="null"/> if the policy evaluation succeeds; otherwise, an error message describing the validation failure.
+        /// </returns>
+        private string? EvaluateAzureDevOpsPolicy(FederatedCredentialPolicy policy, JsonWebToken jwt)
+        {
+            const string IdentityTypeClaim = "idtyp";
+            const string AppIdentityType = "fmi";
+            const string AttributeClaim = "xms_attr";
+            const string AttributeNamespace = "rISbSSETf0KqFyZ8ppdXmA";
+            const string OrganizationIdAttribute = "org_id";
+            const string PipelineIdAttribute = "def_id";
+
+            if (!_featureFlagService.CanUseAzureDevOpsCredentials(policy.PackageOwner))
+            {
+                return $"The package owner '{policy.PackageOwner.Username}' is not enabled to use Azure DevOps credentials.";
+            }
+
+            string? error = ValidateClaimExactMatch(jwt, claim: IdentityTypeClaim, expectedValue: AppIdentityType, StringComparison.Ordinal);
+            if (error != null)
+            {
+                return error;
+            }
+
+            error = TryGetRequiredClaim<JsonElement>(jwt, AttributeClaim, out var xms_attr);
+            if (error != null)
+            {
+                return error;
+            }
+
+            if (!xms_attr.TryGetProperty(AttributeNamespace, out var attributes) || attributes.ValueKind != JsonValueKind.Object)
+            {
+                return $"The {AttributeClaim} claim in the JSON web token does not contain the valid namespace.";
+            }
+
+            if (!attributes.TryGetProperty(OrganizationIdAttribute, out var organizationId) ||
+                organizationId.ValueKind != JsonValueKind.String ||
+                string.IsNullOrWhiteSpace(organizationId.GetString()))
+            {
+                return $"The {AttributeClaim} claim in the JSON web token does not contain the valid organization Id.";
+            }
+
+            if (!attributes.TryGetProperty(PipelineIdAttribute, out var pipelineId) ||
+                pipelineId.ValueKind != JsonValueKind.String ||
+                string.IsNullOrWhiteSpace(pipelineId.GetString()))
+            {
+                return $"The {AttributeClaim} claim in the JSON web token does not contain the valid pipeline Id.";
+            }
+
+            var criteria = JsonSerializer.Deserialize<AzureDevOpsCriteria>(policy.Criteria);
+            var errorForCriteria = "";
+            if (criteria is null || !criteria.IsValid(out errorForCriteria))
+            {
+                return "The policy criteria is not valid" + (string.IsNullOrEmpty(errorForCriteria) ? "." : $": {errorForCriteria}");
+            }
+
+            if (!criteria.OrganizationId.Equals(organizationId.ToString(), StringComparison.Ordinal))
+            {
+                return "The organization Id in the JSON web token does not match the policy.";
+            }
+
+            if (!criteria.PipelineId.Equals(pipelineId.ToString(), StringComparison.Ordinal))
+            {
+                return "The pipeline Id in the JSON web token does not match the policy.";
+            }
+
+            return null;
         }
     }
 }
