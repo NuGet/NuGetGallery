@@ -21,6 +21,7 @@ using NuGetGallery.Areas.Admin.Filters;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Areas.Admin.Services;
 using NuGetGallery.Auditing;
+using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using Xunit;
 
@@ -39,7 +40,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
             Mock<IUpdateListedService> updateListedService = null,
             ValidationAdminService validationAdminService = null,
             Mock<IValidationService> validationService = null,
-            Mock<IUndoSoftDeleteBatchService> undoSoftDeleteBatchService = null)
+            Mock<IUndoSoftDeleteBatchService> undoSoftDeleteBatchService = null,
+            Mock<IAppConfiguration> appConfiguration = null)
         {
             packageService ??= new Mock<IPackageService>();
             reflowPackageService ??= new Mock<IReflowPackageService>();
@@ -62,7 +64,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 updateListedService.Object,
                 undoSoftDeleteBatchService.Object,
                 validationAdminService,
-                validationService.Object);
+                validationService.Object,
+                appConfiguration?.Object);
 
             var mockResponse = new Mock<HttpResponseBase>();
             mockResponse.SetupProperty(r => r.StatusCode);
@@ -1803,6 +1806,24 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 var response = GetResponseData<AdminPendingValidationsResponse>(result);
                 Assert.NotNull(response.Results);
                 Assert.Empty(response.Results);
+            }
+
+            [Fact]
+            public void OverridesMaxJsonLength()
+            {
+                // Arrange
+                var appConfiguration = new Mock<IAppConfiguration>();
+                appConfiguration
+                    .Setup(c => c.MaxJsonLengthOverride)
+                    .Returns(12345);
+                var controller = CreateController(appConfiguration: appConfiguration);
+
+                // Act
+                var result = controller.GetPendingValidations();
+
+                // Assert
+                var jsonResult = Assert.IsType<JsonResult>(result);
+                Assert.Equal(12345, jsonResult.MaxJsonLength);
             }
 
             [Fact]
