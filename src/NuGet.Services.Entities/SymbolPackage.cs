@@ -46,6 +46,14 @@ namespace NuGet.Services.Entities
         public PackageStatus StatusKey { get; set; }
 
         /// <summary>
+        /// Gets or sets whether this symbol package was successfully published through staging.
+        /// </summary>
+        /// <remarks>
+        /// Earlier publications are not backfilled.
+        /// </remarks>
+        public bool PublishedFromStaging { get; set; }
+
+        /// <summary>
         /// Used for optimistic concurrency when updating the symbols.
         /// </summary>
         public byte[] RowVersion { get; set; }
