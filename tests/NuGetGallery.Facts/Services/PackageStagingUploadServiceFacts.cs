@@ -185,6 +185,7 @@ namespace NuGetGallery
                     .Callback(() => Assert.Equal("commit", operations.Last()))
                     .Returns(Task.CompletedTask);
                 var target = new PackageStagingUploadService(
+                    Mock.Of<ITelemetryService>(),
                     apiScopeEvaluator.Object,
                     featureFlagService.Object,
                     packageService.Object,
@@ -535,7 +536,9 @@ namespace NuGetGallery
                 }
 
                 var messages = new Mock<IMessageService>();
+                var telemetry = new Mock<ITelemetryService>();
                 var target = new PackageStagingUploadService(
+                    telemetry.Object,
                     apiScopeEvaluator.Object,
                     featureFlagService.Object,
                     packageService.Object,
@@ -568,6 +571,7 @@ namespace NuGetGallery
                 Assert.Equal(assignGroup && expectedStatusCode == HttpStatusCode.OK ? (createGroup ? createdGroup.Key : requestedGroup.Key) : originalGroup.Key, stagedPackage.StagedPackageIdentity.StagingGroupKey);
                 Assert.Equal(!assignGroup || expectedStatusCode == HttpStatusCode.Conflict, package.Listed);
                 var createsSuccessor = expectedStatusCode == HttpStatusCode.OK && !isActiveNoOp;
+                telemetry.Verify(service => service.TrackPackageStaged(package), createsSuccessor ? Times.Once() : Times.Never());
                 if (result.Success)
                 {
                     Assert.Same(createsSuccessor ? successor : stagedPackage, result.StagedPackage);
@@ -669,6 +673,7 @@ namespace NuGetGallery
                 var featureFlags = new Mock<IFeatureFlagService>();
                 featureFlags.Setup(x => x.IsPackageStagingEnabled(owner)).Returns(true);
                 var target = new PackageStagingUploadService(
+                    Mock.Of<ITelemetryService>(),
                     apiScopeEvaluator.Object,
                     featureFlags.Object,
                     packageService.Object,
@@ -724,6 +729,7 @@ namespace NuGetGallery
                 var groups = new Mock<IEntityRepository<StagingGroup>>();
                 var stagedPackages = new Mock<IEntityRepository<StagedPackage>>();
                 var target = new PackageStagingUploadService(
+                    Mock.Of<ITelemetryService>(),
                     apiScopeEvaluator.Object,
                     Mock.Of<IFeatureFlagService>(x => x.IsPackageStagingEnabled(owner) == true),
                     packageService.Object,
@@ -905,6 +911,7 @@ namespace NuGetGallery
                     .ReturnsAsync(SecurityPolicyResult.SuccessResult);
 
                 return new PackageStagingUploadService(
+                    Mock.Of<ITelemetryService>(),
                     Mock.Of<IApiScopeEvaluator>(),
                     Mock.Of<IFeatureFlagService>(),
                     packageService,

@@ -29,6 +29,8 @@ namespace NuGetGallery
     /// </summary>
     public class SymbolPackageStagingUploadService : ISymbolPackageStagingUploadService
     {
+        private readonly ITelemetryService _telemetryService;
+
         private readonly IApiScopeEvaluator _apiScopeEvaluator;
         private readonly IContentObjectService _contentObjectService;
         private readonly IEntitiesContext _entitiesContext;
@@ -46,6 +48,7 @@ namespace NuGetGallery
         private readonly IMessageService _messageService;
 
         public SymbolPackageStagingUploadService(
+            ITelemetryService telemetryService,
             IApiScopeEvaluator apiScopeEvaluator,
             IContentObjectService contentObjectService,
             IEntitiesContext entitiesContext,
@@ -62,6 +65,7 @@ namespace NuGetGallery
             IStagingQuotaService quotaService,
             IMessageService messageService)
         {
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _apiScopeEvaluator = apiScopeEvaluator ?? throw new ArgumentNullException(nameof(apiScopeEvaluator));
             _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
@@ -310,6 +314,7 @@ namespace NuGetGallery
                     return PackageStagingResult.Error(HttpStatusCode.Conflict, "The symbol package could not be staged. Retry the upload.");
                 }
 
+                _telemetryService.TrackPackageStaged(package);
                 var siteRoot = new Uri(_configuration.SiteRoot.TrimEnd('/') + "/");
                 var stagingUrl = new Uri(siteRoot, $"account/staging/symbols/{Uri.EscapeDataString(package.Id)}/{Uri.EscapeDataString(package.NormalizedVersion)}/manage").AbsoluteUri;
                 var emailSettingsUrl = new Uri(siteRoot, "account").AbsoluteUri;
