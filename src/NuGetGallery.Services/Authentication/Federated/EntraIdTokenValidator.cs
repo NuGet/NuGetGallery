@@ -64,11 +64,22 @@ namespace NuGetGallery.Services.Authentication
                         nameof(FederatedCredentialPolicy.PackageOwner));
                 }
 
-                var entraIdServicePrincipalCriteria = JsonSerializer.Deserialize<EntraIdServicePrincipalCriteria>(policy.Criteria);
+                EntraIdServicePrincipalCriteria? entraIdServicePrincipalCriteria;
+                try
+                {
+                    entraIdServicePrincipalCriteria = JsonSerializer.Deserialize<EntraIdServicePrincipalCriteria>(policy.Criteria);
+                }
+                catch (JsonException)
+                {
+                    return FederatedCredentialPolicyValidationResult.BadRequest(
+                        "The policy criteria is not in a valid JSON format.",
+                        nameof(FederatedCredentialPolicy.Criteria));
+                }
+
                 if (entraIdServicePrincipalCriteria is null)
                 {
                     return FederatedCredentialPolicyValidationResult.BadRequest(
-                        $"Invalid criteria format for {policy.Type} policy.",
+                        "The policy criteria is not in a valid JSON format.",
                         nameof(FederatedCredentialPolicy.Criteria));
                 }
 
@@ -88,12 +99,30 @@ namespace NuGetGallery.Services.Authentication
                         nameof(FederatedCredentialPolicy.PackageOwner));
                 }
 
-                var azureDevOpsCriteria = JsonSerializer.Deserialize<AzureDevOpsCriteria>(policy.Criteria);
-                var error = "";
-                if (azureDevOpsCriteria is null || !azureDevOpsCriteria.IsValid(out error))
+                AzureDevOpsCriteria? azureDevOpsCriteria;
+                try
+                {
+                    azureDevOpsCriteria = JsonSerializer.Deserialize<AzureDevOpsCriteria>(policy.Criteria);
+                }
+                catch (JsonException)
                 {
                     return FederatedCredentialPolicyValidationResult.BadRequest(
-                        $"Invalid criteria format for {policy.Type} policy" + (string.IsNullOrEmpty(error) ? "." : $": {error}"),
+                        "The policy criteria is not in a valid JSON format.",
+                        nameof(FederatedCredentialPolicy.Criteria));
+                }
+
+                if (azureDevOpsCriteria is null)
+                {
+                    return FederatedCredentialPolicyValidationResult.BadRequest(
+                        "The policy criteria is not in a valid JSON format.",
+                        nameof(FederatedCredentialPolicy.Criteria));
+                }
+
+                var errorForCriteria = "";
+                if (!azureDevOpsCriteria.IsValid(out errorForCriteria))
+                {
+                    return FederatedCredentialPolicyValidationResult.BadRequest(
+                        "The policy criteria is not valid" + (string.IsNullOrEmpty(errorForCriteria) ? "." : $": {errorForCriteria}"),
                         nameof(FederatedCredentialPolicy.Criteria));
                 }
             }
@@ -225,10 +254,19 @@ namespace NuGetGallery.Services.Authentication
                 return $"The JSON web token {ClaimConstants.Sub} claim must match the {ClaimConstants.Oid} claim.";
             }
 
-            var criteria = JsonSerializer.Deserialize<EntraIdServicePrincipalCriteria>(policy.Criteria);
+            EntraIdServicePrincipalCriteria? criteria;
+            try
+            {
+                criteria = JsonSerializer.Deserialize<EntraIdServicePrincipalCriteria>(policy.Criteria);
+            }
+            catch (JsonException)
+            {
+                return "The policy criteria is not in a valid JSON format.";
+            }
+
             if (criteria is null)
             {
-                return "The policy criteria is not a valid JSON object.";
+                return "The policy criteria is not in a valid JSON format.";
             }
 
             if (string.IsNullOrWhiteSpace(tid) || !Guid.TryParse(tid, out var parsedTid) || parsedTid != criteria.TenantId)
@@ -318,9 +356,23 @@ namespace NuGetGallery.Services.Authentication
                 return $"The {AttributeClaim} claim in the JSON web token does not contain the valid pipeline Id.";
             }
 
-            var criteria = JsonSerializer.Deserialize<AzureDevOpsCriteria>(policy.Criteria);
+            AzureDevOpsCriteria? criteria;
+            try
+            {
+                criteria = JsonSerializer.Deserialize<AzureDevOpsCriteria>(policy.Criteria);
+            }
+            catch (JsonException)
+            {
+                return "The policy criteria is not in a valid JSON format.";
+            }
+
+            if (criteria is null)
+            {
+                return "The policy criteria is not in a valid JSON format.";
+            }
+
             var errorForCriteria = "";
-            if (criteria is null || !criteria.IsValid(out errorForCriteria))
+            if (!criteria.IsValid(out errorForCriteria))
             {
                 return "The policy criteria is not valid" + (string.IsNullOrEmpty(errorForCriteria) ? "." : $": {errorForCriteria}");
             }
