@@ -53,6 +53,7 @@ namespace NuGetGallery
             packageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns<string, string>((id, version) => corePackageService.FindPackageByIdAndVersionStrict(id, version));
             var target = new SymbolPackageStagingUploadService(
+                Mock.Of<ITelemetryService>(),
                 new Mock<IApiScopeEvaluator>(MockBehavior.Strict).Object,
                 contentObjectService.Object,
                 new Mock<IEntitiesContext>(MockBehavior.Strict).Object,
@@ -92,6 +93,7 @@ namespace NuGetGallery
             var packages = Mock.Of<IPackageService>(service => service.FindPackageByIdAndVersionStrict("Test.Package", "1.0.0") == package);
             var attempts = Mock.Of<IEntityRepository<StagedSymbolPackage>>(repository => repository.GetAll() == new[] { attempt }.AsQueryable());
             var target = new SymbolPackageStagingUploadService(
+                Mock.Of<ITelemetryService>(),
                 Mock.Of<IApiScopeEvaluator>(), Mock.Of<IContentObjectService>(), Mock.Of<IEntitiesContext>(), packages, authorization,
                 Mock.Of<ISymbolPackageService>(), Mock.Of<ISecurityPolicyService>(), Mock.Of<IStagingBlobService>(), attempts,
                 Mock.Of<IStagedSymbolPackageValidationMessageEmitter>(), Mock.Of<IPackageStagingManagementService>(),
@@ -141,6 +143,7 @@ namespace NuGetGallery
             var entitiesContext = new Mock<IEntitiesContext>();
             entitiesContext.Setup(x => x.StagedPackageIdentities).Returns(identities.Object);
             var target = new SymbolPackageStagingUploadService(
+                Mock.Of<ITelemetryService>(),
                 Mock.Of<IApiScopeEvaluator>(),
                 contentObjectService.Object,
                 entitiesContext.Object,
@@ -215,6 +218,7 @@ namespace NuGetGallery
             var repository = new Mock<IEntityRepository<StagedSymbolPackage>>(MockBehavior.Strict);
             var validationMessageEmitter = new Mock<IStagedSymbolPackageValidationMessageEmitter>(MockBehavior.Strict);
             var target = new SymbolPackageStagingUploadService(
+                Mock.Of<ITelemetryService>(),
                 apiScopeEvaluator.Object,
                 contentObjectService.Object,
                 entitiesContext.Object,
@@ -409,7 +413,9 @@ namespace NuGetGallery
             messages.Setup(service => service.SendMessageAsync(It.IsAny<IEmailBuilder>(), It.IsAny<bool>(), It.IsAny<bool>()))
                 .Callback(() => Assert.True(committed))
                 .Returns(Task.CompletedTask);
+            var telemetry = new Mock<ITelemetryService>();
             var target = new SymbolPackageStagingUploadService(
+                telemetry.Object,
                 apiScopeEvaluator.Object,
                 contentObjectService.Object,
                 entitiesContext.Object,
@@ -443,6 +449,7 @@ namespace NuGetGallery
             }
 
             Assert.Equal(expectedStatus, result.StatusCode);
+            telemetry.Verify(service => service.TrackPackageStaged(package), result.Success && attempt != null ? Times.Once() : Times.Never());
             if (groupLimitReached)
             {
                 quota.Verify(service => service.EnsureGroupCapacityAsync(owner), groupId == "new" ? Times.Once() : Times.Never());

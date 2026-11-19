@@ -123,6 +123,14 @@ namespace NuGetGallery
                         (TrackAction)(s => s.TrackPackageReupload(package))
                     };
 
+                    yield return new object[] { "PackageStaged",
+                        (TrackAction)(s => s.TrackPackageStaged(package))
+                    };
+
+                    yield return new object[] { "PackagePromoted",
+                        (TrackAction)(s => s.TrackStagingPromotionAccepted(Guid.NewGuid(), package, symbols: false))
+                    };
+
                     yield return new object[] { "PackageReflow",
                         (TrackAction)(s => s.TrackPackageReflow(package))
                     };

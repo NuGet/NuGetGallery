@@ -24,6 +24,8 @@ namespace NuGetGallery
             public const string ODataQueryFilter = "ODataQueryFilter";
             public const string ODataCustomQuery = "ODataCustomQuery";
             public const string PackagePush = "PackagePush";
+            public const string PackageStaged = "PackageStaged";
+            public const string PackagePromoted = "PackagePromoted";
             public const string PackagePushFailure = "PackagePushFailure";
             public const string CreatePackageVerificationKey = "CreatePackageVerificationKey";
             public const string VerifyPackageKey = "VerifyPackageKey";
@@ -277,6 +279,11 @@ namespace NuGetGallery
             _diagnosticsSource.Warning(exception.ToString());
         }
 
+        public void TrackPackageStaged(Package package)
+        {
+            TrackMetricForPackage(Events.PackageStaged, package);
+        }
+
         public void TrackStagingPromotionAccepted(Guid promotionId, Package package, bool symbols)
         {
             if (promotionId == Guid.Empty)
@@ -290,6 +297,7 @@ namespace NuGetGallery
             }
 
             const string eventName = "StagingPromotion.Accepted";
+            TrackMetricForPackage(Events.PackagePromoted, package);
             _telemetryClient.TrackTrace(JsonConvert.SerializeObject(new
             {
                 EventName = eventName,
