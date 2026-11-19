@@ -55,6 +55,19 @@ namespace NuGetGallery.Services.Authentication
             return (tokenId, null);
         }
 
+        /// <summary>
+        /// Attempts to get a required claim from the JWT token.
+        /// </summary>
+        /// <returns><see langword="null"/> if the claim value present; otherwise, an error message.</returns>
+        protected static string? TryGetRequiredClaim<T>(JsonWebToken jwt, string claim, out T claimValue)
+        {
+            if (!jwt.TryGetPayloadValue<T>(claim, out claimValue) || claimValue == null)
+            {
+                return string.Format(MissingClaimError, claim);
+            }
+
+            return null;
+        }
 
         /// <summary>
         /// Attempts to get a required string claim from the JWT token.
