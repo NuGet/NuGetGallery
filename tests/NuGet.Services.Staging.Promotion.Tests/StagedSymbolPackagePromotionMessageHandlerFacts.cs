@@ -143,6 +143,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
             });
             Assert.Equal(StagedPackageStatus.Promoting, fixture.Attempt.Status);
             Assert.Equal(PackageStatus.Staged, fixture.Attempt.SymbolPackage.StatusKey);
+            Assert.False(fixture.Attempt.SymbolPackage.PublishedFromStaging);
             fixture.Attempts.Verify(repository => repository.CommitChangesAsync(), Times.Never);
         }
 

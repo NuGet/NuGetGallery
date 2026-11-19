@@ -154,6 +154,10 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 context.StagedPackageIdentity.CurrentStagedSymbolPackageKey = 100;
             }
 
+            context.StagedPackageRepository.Setup(repository => repository.CommitChangesAsync())
+                .Callback(() => Assert.True(context.Package.PublishedFromStaging))
+                .Returns(Task.CompletedTask);
+
             var handled = await context.Target.HandleAsync(context.Message);
 
             Assert.True(handled);
@@ -259,6 +263,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
             await Assert.ThrowsAsync<InvalidOperationException>(() => context.Target.HandleAsync(context.Message));
 
             Assert.Equal(PackageStatus.Available, context.Package.PackageStatusKey);
+            Assert.True(context.Package.PublishedFromStaging);
             Assert.Single(context.Publications);
             if (grouped)
             {
@@ -485,7 +490,11 @@ namespace NuGet.Services.Staging.Promotion.Tests
             var packageSuccessCommitted = false;
             context.StagedPackageRepository
                 .Setup(x => x.CommitChangesAsync())
-                .Callback(() => packageSuccessCommitted = true)
+                .Callback(() =>
+                {
+                    Assert.True(context.Package.PublishedFromStaging);
+                    packageSuccessCommitted = true;
+                })
                 .Returns(Task.CompletedTask);
             context.StagingGroupPromotionService
                 .Setup(x => x.TryFinalizeAsync(context.StagingGroup.Key, context.PromotionId))
@@ -667,6 +676,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
 
             Assert.Same(expected, actual);
             Assert.Equal(StagedPackageStatus.Promoting, context.StagedPackage.Status);
+            Assert.False(context.Package.PublishedFromStaging);
             context.PackageFileStorageService.Verify(
                 x => x.DeleteFileAsync(
                     CoreConstants.Folders.PackagesFolderName,

@@ -146,6 +146,8 @@ namespace NuGetGallery
             Assert.Equal(grouped ? StagedPackageStatus.Promoting : StagedPackageStatus.Succeeded, fixture.Attempt.Status);
             Assert.Single(fixture.Publications);
             Assert.Equal(PackageStatus.Available, fixture.Parent.PackageStatusKey);
+            Assert.True(fixture.StoredSymbol.PublishedFromStaging);
+            Assert.False(fixture.Parent.PublishedFromStaging);
             fixture.Blobs.Verify(service => service.GetPackageReadUriAsync("symbols/43", "etag"), Times.Once);
             fixture.Files.Verify(service => service.CopyFileAsync(Fixture.UploadUri, CoreConstants.Folders.SymbolPackagesFolderName,
                 Fixture.FileName, It.Is<IAccessCondition>(condition => condition.IfNoneMatchETag == "*")), Times.Once);
@@ -210,6 +212,7 @@ namespace NuGetGallery
 
             Assert.Equal(StagedPackageStatus.PromotionFailed, fixture.Attempt.Status);
             Assert.Equal(PackageStatus.Staged, fixture.Symbol.StatusKey);
+            Assert.False(fixture.Symbol.PublishedFromStaging);
             Assert.Empty(fixture.Publications);
             Assert.Equal(PackageStatus.Available, fixture.Parent.PackageStatusKey);
             Assert.Equal(PackageStatus.Available, fixture.StoredPreviousSymbol.StatusKey);
@@ -571,6 +574,7 @@ namespace NuGetGallery
                 Attempts.Setup(repository => repository.CommitChangesAsync()).Callback(() =>
                 {
                     StoredSymbol.StatusKey = Symbol.StatusKey;
+                    StoredSymbol.PublishedFromStaging = Symbol.PublishedFromStaging;
                     if (PreviousSymbol != null)
                     {
                         StoredPreviousSymbol.StatusKey = PreviousSymbol.StatusKey;
