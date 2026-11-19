@@ -92,7 +92,8 @@ namespace NuGetGallery
             Mock<IIconUrlProvider> iconUrlProvider = null,
             Mock<IMarkdownService> markdownService = null,
             Mock<IPackageFrameworkCompatibilityFactory> compatibilityFactory = null,
-            Mock<ISponsorshipUrlService> sponsorshipUrlService = null)
+            Mock<ISponsorshipUrlService> sponsorshipUrlService = null,
+            Mock<IStatisticsService> statisticsService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             PackageDependents packageDependents = new PackageDependents();
@@ -280,6 +281,14 @@ namespace NuGetGallery
 
             iconUrlProvider = iconUrlProvider ?? new Mock<IIconUrlProvider>();
 
+            if (statisticsService == null)
+            {
+                statisticsService = new Mock<IStatisticsService>();
+                statisticsService
+                    .Setup(x => x.GetPackageDownloadsByVersion(It.IsAny<string>()))
+                    .ReturnsAsync((StatisticsPackagesReport)null);
+            }
+
             abTestService = abTestService ?? new Mock<IABTestService>();
 
             var diagnosticsService = new Mock<IDiagnosticsService>();
@@ -323,7 +332,8 @@ namespace NuGetGallery
                 markdownService.Object,
                 compatibilityFactory.Object,
                 sponsorshipUrlService.Object,
-                reflowPackageService.Object);
+                reflowPackageService.Object,
+                statisticsService.Object);
 
             controller.CallBase = true;
             controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());
@@ -1109,6 +1119,149 @@ namespace NuGetGallery
                 Assert.Equal("Foo", model.Id);
                 Assert.Equal("1.1.1", model.Version);
                 Assert.Null(model.ReadMeHtml);
+            }
+
+            [Fact]
+            public async Task WhenRecentDownloadsPerDayEnabledUsesTrailingWindowStatistics()
+            {
+                // Arrange
+                var packageService = new Mock<IPackageService>();
+                var statisticsService = new Mock<IStatisticsService>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    statisticsService: statisticsService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration() { Id = "Foo", Owners = new List<User>() },
+                    Version = "1.0.0",
+                    NormalizedVersion = "1.0.0",
+                    PackageStatusKey = PackageStatus.Available,
+                    Created = DateTime.UtcNow.AddYears(-5),
+                };
+
+                var packages = new[] { package };
+                packageService
+                    .Setup(p => p.FindPackagesById("Foo", true, true, true))
+                    .Returns(packages);
+                packageService
+                    .Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
+                    .Returns(package);
+
+                // 8,400 downloads over the trailing 42-day window => 200 per day.
+                var report = new StatisticsPackagesReport
+                {
+                    Facts = new List<StatisticsFact>
+                    {
+                        new StatisticsFact(new Dictionary<string, string>(), 8000),
+                        new StatisticsFact(new Dictionary<string, string>(), 400),
+                    },
+                };
+                statisticsService
+                    .Setup(s => s.GetPackageDownloadsByVersion("Foo"))
+                    .ReturnsAsync(report);
+
+                // Act
+                var result = await controller.DisplayPackage("Foo", null);
+
+                // Assert
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                Assert.Equal(200L, model.DownloadsPerDay);
+            }
+
+            [Fact]
+            public async Task WhenPackageYoungerThanWindowStillDividesByFullWindow()
+            {
+                // Arrange
+                var packageService = new Mock<IPackageService>();
+                var statisticsService = new Mock<IStatisticsService>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    statisticsService: statisticsService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration() { Id = "Foo", Owners = new List<User>() },
+                    Version = "1.0.0",
+                    NormalizedVersion = "1.0.0",
+                    PackageStatusKey = PackageStatus.Available,
+                    Created = DateTime.UtcNow.AddDays(-10),
+                };
+
+                var packages = new[] { package };
+                packageService
+                    .Setup(p => p.FindPackagesById("Foo", true, true, true))
+                    .Returns(packages);
+                packageService
+                    .Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
+                    .Returns(package);
+
+                // Always a 6-week per day average: 1,000 downloads for a ~10-day-old package => 1000/42 = 23,
+                // regardless of the package's apparent age, so the metric has one consistent meaning.
+                var report = new StatisticsPackagesReport
+                {
+                    Facts = new List<StatisticsFact>
+                    {
+                        new StatisticsFact(new Dictionary<string, string>(), 1000),
+                    },
+                };
+                statisticsService
+                    .Setup(s => s.GetPackageDownloadsByVersion("Foo"))
+                    .ReturnsAsync(report);
+
+                // Act
+                var result = await controller.DisplayPackage("Foo", null);
+
+                // Assert
+                var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
+                Assert.Equal(23L, model.DownloadsPerDay);
+            }
+
+            [Fact]
+            public async Task WhenRecentDownloadsPerDayDisabled_DoesNotQueryStatistics()
+            {
+                // Arrange
+                var packageService = new Mock<IPackageService>();
+                var statisticsService = new Mock<IStatisticsService>();
+                var featureFlagService = new Mock<IFeatureFlagService>();
+                featureFlagService.SetReturnsDefault<bool>(true);
+                featureFlagService.Setup(ff => ff.IsReducedVersionListsEnabled()).Returns(false);
+                featureFlagService.Setup(ff => ff.IsRecentDownloadsPerDayEnabled()).Returns(false);
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    statisticsService: statisticsService,
+                    featureFlagService: featureFlagService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration() { Id = "Foo", Owners = new List<User>() },
+                    Version = "1.0.0",
+                    NormalizedVersion = "1.0.0",
+                    PackageStatusKey = PackageStatus.Available,
+                    Created = DateTime.UtcNow.AddYears(-5),
+                };
+
+                var packages = new[] { package };
+                packageService
+                    .Setup(p => p.FindPackagesById("Foo", true, true, true))
+                    .Returns(packages);
+                packageService
+                    .Setup(p => p.FilterLatestPackage(packages, SemVerLevelKey.SemVer2, true))
+                    .Returns(package);
+
+                // Act
+                var result = await controller.DisplayPackage("Foo", null);
+
+                // Assert
+                ResultAssert.IsView<DisplayPackageViewModel>(result);
+                statisticsService.Verify(s => s.GetPackageDownloadsByVersion(It.IsAny<string>()), Times.Never);
             }
 
             [Fact]

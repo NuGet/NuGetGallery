@@ -70,6 +70,11 @@ namespace GitHubVulnerabilities2Db.Fakes
             throw new NotImplementedException();
         }
 
+        public bool IsRecentDownloadsPerDayEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsDisplayNuGetTrendsLinksEnabled()
         {
             throw new NotImplementedException();

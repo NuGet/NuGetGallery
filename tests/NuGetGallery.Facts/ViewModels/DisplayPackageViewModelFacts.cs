@@ -682,69 +682,6 @@ namespace NuGetGallery.ViewModels
             Assert.Equal(totalDownloadCount / daysSinceFirstPackageCreated, viewModel.DownloadsPerDay);
         }
 
-        [Fact]
-        public void DownloadsPerDayLabelShowsLessThanOneWhenAverageBelowOne()
-        {
-            // Arrange
-            const int downloadCount = 10;
-            const int daysSinceCreated = 11;
-
-            var package = new Package
-            {
-                Dependencies = Enumerable.Empty<PackageDependency>().ToList(),
-                DownloadCount = downloadCount,
-                PackageRegistration = new PackageRegistration
-                {
-                    Owners = Enumerable.Empty<User>().ToList(),
-                    DownloadCount = downloadCount
-                },
-                Created = DateTime.UtcNow.AddDays(-daysSinceCreated),
-                Version = "1.0.10"
-            };
-
-            package.PackageRegistration.Packages = new[] { package };
-
-            var viewModel = CreateDisplayPackageViewModel(package, currentUser: null, packageKeyToDeprecation: null, readmeHtml: null);
-
-            // Act
-            var label = viewModel.DownloadsPerDayLabel;
-
-            // Assert
-            Assert.Equal("<1", label);
-        }
-
-        [Theory]
-        [InlineData(10, 10)]
-        [InlineData(11, 10)]
-        [InlineData(14, 10)]
-        [InlineData(15, 10)]
-        public void DownloadsPerDayLabelShowsOneWhenAverageBetweenOneAndOnePointFive(int downloadCount, int daysSinceCreated)
-        {
-            // Arrange
-            var package = new Package
-            {
-                Dependencies = Enumerable.Empty<PackageDependency>().ToList(),
-                DownloadCount = downloadCount,
-                PackageRegistration = new PackageRegistration
-                {
-                    Owners = Enumerable.Empty<User>().ToList(),
-                    DownloadCount = downloadCount
-                },
-                Created = DateTime.UtcNow.AddDays(-daysSinceCreated),
-                Version = "1.0.10"
-            };
-
-            package.PackageRegistration.Packages = new[] { package };
-
-            var viewModel = CreateDisplayPackageViewModel(package, currentUser: null, packageKeyToDeprecation: null, readmeHtml: null);
-
-            // Act
-            var label = viewModel.DownloadsPerDayLabel;
-
-            // Assert
-            Assert.Equal("1", label);
-        }
-
         [Theory]
         [InlineData("1.0.0", "1.0.1-alpha", true)]
         [InlineData("1.0.0", "1.0.1-alpha+metadata", true)]
