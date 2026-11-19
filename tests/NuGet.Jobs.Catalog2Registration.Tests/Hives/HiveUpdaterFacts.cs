@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -180,6 +180,48 @@ namespace NuGet.Jobs.Catalog2Registration
                 Storage.Verify(x => x.DeleteUrlAsync(It.IsAny<HiveType>(), It.IsAny<IReadOnlyList<HiveType>>(), It.IsAny<string>()), Times.Exactly(2));
                 Storage.Verify(x => x.DeleteUrlAsync(Hive, ReplicaHives, "https://example/reg/nuget.versioning/1.0.0.json"), Times.Once);
                 Storage.Verify(x => x.DeleteUrlAsync(Hive, ReplicaHives, "https://example/reg/nuget.versioning/3.0.0.json"), Times.Once);
+            }
+
+            [Fact]
+            public async Task WritesIndexWhenDeleteRemovesOnlyLeafOnLastPage()
+            {
+                Config.MaxLeavesPerPage = 2;
+                RegistrationIndex.Items.Add(new RegistrationPage
+                {
+                    Lower = "4.0.0",
+                    Upper = "4.0.0",
+                    Count = 1,
+                    Items = new List<RegistrationLeafItem>
+                    {
+                        new RegistrationLeafItem
+                        {
+                            Url = $"https://example/reg/{Id.ToLowerInvariant()}/4.0.0.json",
+                            CatalogEntry = new RegistrationCatalogEntry
+                            {
+                                Version = "4.0.0",
+                            }
+                        },
+                    }
+                });
+                AddPackageDelete("4.0.0");
+
+                await Target.UpdateAsync(Hive, ReplicaHives, Id, Entries, EntryToCatalogLeaf, RegistrationCommit);
+
+                Storage.Verify(
+                    x => x.WriteLeafAsync(It.IsAny<HiveType>(), It.IsAny<IReadOnlyList<HiveType>>(), It.IsAny<string>(), It.IsAny<NuGetVersion>(), It.IsAny<RegistrationLeaf>()),
+                    Times.Never);
+                Storage.Verify(
+                    x => x.WritePageAsync(It.IsAny<HiveType>(), It.IsAny<IReadOnlyList<HiveType>>(), It.IsAny<string>(), It.IsAny<NuGetVersion>(), It.IsAny<NuGetVersion>(), It.IsAny<RegistrationPage>()),
+                    Times.Never);
+                Storage.Verify(
+                    x => x.WriteIndexAsync(It.IsAny<HiveType>(), It.IsAny<IReadOnlyList<HiveType>>(), It.IsAny<string>(), It.IsAny<RegistrationIndex>()),
+                    Times.Once);
+                Storage.Verify(x => x.WriteIndexAsync(Hive, ReplicaHives, Id, RegistrationIndex), Times.Once);
+                Storage.Verify(x => x.DeleteIndexAsync(It.IsAny<HiveType>(), It.IsAny<IReadOnlyList<HiveType>>(), It.IsAny<string>()), Times.Never);
+                Storage.Verify(x => x.DeleteUrlAsync(It.IsAny<HiveType>(), It.IsAny<IReadOnlyList<HiveType>>(), It.IsAny<string>()), Times.Once);
+                Storage.Verify(x => x.DeleteUrlAsync(Hive, ReplicaHives, "https://example/reg/nuget.versioning/4.0.0.json"), Times.Once);
+                var page = Assert.Single(RegistrationIndex.Items);
+                Assert.Equal(new[] { "1.0.0", "3.0.0" }, page.Items.Select(x => x.CatalogEntry.Version).ToArray());
             }
 
             [Fact]
