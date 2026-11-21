@@ -893,6 +893,7 @@
     <Compile Include="ViewModels\DeleteOrganizationViewModel.cs" />
     <Compile Include="ViewModels\DeleteUserViewModel.cs" />
     <Compile Include="ViewModels\DisplayLicenseViewModel.cs" />
+    <Compile Include="ViewModels\AzureDevOpsPolicyDetailsViewModel.cs" />
     <Compile Include="ViewModels\GitHubPolicyDetailsViewModel.cs" />
     <Compile Include="ViewModels\GitHubUsageViewModel.cs" />
     <Compile Include="ViewModels\GitLabPolicyDetailsViewModel.cs" />

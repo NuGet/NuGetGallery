@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Text.Json.Serialization;
 
 namespace NuGetGallery.Services.Authentication
@@ -35,6 +36,10 @@ namespace NuGetGallery.Services.Authentication
             else if (string.IsNullOrEmpty(OrganizationId))
             {
                 error = "The organization ID is empty.";
+            }
+            else if (!Guid.TryParseExact(OrganizationId, "D", out _))
+            {
+                error = "The organization ID must be a GUID, e.g. 00000000-0000-0000-0000-000000000000.";
             }
             else if (string.IsNullOrEmpty(PipelineId))
             {

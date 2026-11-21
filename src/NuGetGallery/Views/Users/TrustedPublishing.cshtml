@@ -234,9 +234,13 @@
                         <b>Ref:</b> <span data-bind="text: gitLab.Ref()" />
                     </li>
                     <li data-bind="if: gitLab.Environment()">
-                        <b>Environment:</b> <span data-bind="text: gitLab.Environment()" />
-                    </li>
-                    <!-- /ko -->
+                             <b>Environment:</b> <span data-bind="text: gitLab.Environment()" />
+                        </li>
+                        <!-- /ko -->
+                        <!-- ko if: PublisherName() === 'AzureDevOps' -->
+                        <li><b>Organization ID:</b> <span data-bind="text: azureDevOps.OrganizationId()" /></li>
+                        <li><b>Pipeline ID:</b> <span data-bind="text: azureDevOps.PipelineId()" /></li>
+                        <!-- /ko -->
                 </ul>
 
                 <ul class="package-list" role="presentation">
@@ -491,6 +495,42 @@
         </div>
         <!-- /ko -->
 
+        <!-- ===== Azure DevOps fields ===== -->
+        <!-- ko if: SelectedProvider() === 'AzureDevOps' -->
+        <!-- ko ifnot: Key -->
+        <h4><b>Azure DevOps</b></h4>
+        <br />
+        <!-- /ko -->
+        <div class="row">
+            <div class="col-sm-7 form-group">
+                <label class="control-label required" data-bind="attr: { for: azureDevOps.OrganizationIdUid(), id: azureDevOps.OrganizationIdUid() + '-label' }">Organization ID</label>
+                <br />
+                <span>The Azure DevOps organization ID (GUID).</span>
+                <input type="text" class="form-control input-brand" data-bind="attr: { id: azureDevOps.OrganizationIdUid(),
+                                          name: azureDevOps.OrganizationIdUid(),
+                                          'aria-labelledby': azureDevOps.OrganizationIdUid() + '-label',
+                                          'aria-describedby': azureDevOps.OrganizationIdUid() + '-validation-message' },
+                                          trimmedValue: azureDevOps.PendingOrganizationId" data-val-required="Organization ID is required."
+                                                                 data-val-regex="Organization ID must be a GUID, e.g. 00000000-0000-0000-0000-000000000000."
+                                                                 data-val-regex-pattern="^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" data-val="true" />
+                <span class="field-validation-valid help-block" role="alert" aria-live="assertive" data-valmsg-replace="true" data-bind="attr: { 'data-valmsg-for': azureDevOps.OrganizationIdUid(), id: azureDevOps.OrganizationIdUid() + '-validation-message' }"></span>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-7 form-group">
+                <label class="control-label required" data-bind="attr: { for: azureDevOps.PipelineIdUid(), id: azureDevOps.PipelineIdUid() + '-label' }">Pipeline ID</label>
+                <br />
+                <span>The numeric pipeline (definition) ID.</span>
+                <input type="text" class="form-control input-brand" data-bind="attr: { id: azureDevOps.PipelineIdUid(),
+                                          name: azureDevOps.PipelineIdUid(),
+                                          'aria-labelledby': azureDevOps.PipelineIdUid() + '-label',
+                                          'aria-describedby': azureDevOps.PipelineIdUid() + '-validation-message' },
+                                          trimmedValue: azureDevOps.PendingPipelineId" data-val-required="Pipeline ID is required." data-val="true" />
+                <span class="field-validation-valid help-block" role="alert" aria-live="assertive" data-valmsg-replace="true" data-bind="attr: { 'data-valmsg-for': azureDevOps.PipelineIdUid(), id: azureDevOps.PipelineIdUid() + '-validation-message' }"></span>
+            </div>
+        </div>
+        <!-- /ko -->
+
         <!-- Policy Scopes -->
         <div class="row">
             <div class="col-sm-7 form-group">
@@ -627,6 +667,7 @@
                          PackagePushVersionScope = NuGetScopes.PackagePushVersion,
                          PackageUnlistScope = NuGetScopes.PackageUnlist,
                          PackageStageScope = NuGetScopes.PackageStage,
+                         IsAzureDevOpsEnabled = Model.IsAzureDevOpsEnabled,
                          GenerateUrl = Url.GenerateTrustedPublisherPolicy(),
                          EditUrl = Url.EditTrustedPublisherPolicy(),
                          EnableUrl = Url.EnableTrustedPublisherPolicy(),

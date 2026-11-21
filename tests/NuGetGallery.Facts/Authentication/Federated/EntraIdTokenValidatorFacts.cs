@@ -333,6 +333,10 @@ namespace NuGetGallery.Services.Authentication
                         "Invalid criteria format for AzureDevOps policy: The organization ID is empty.")]
             [InlineData("""{"organizationId":"0c25520f-c7eb-4bc1-919c-3870a18620ef","pipelineId":""}""",
                         "Invalid criteria format for AzureDevOps policy: The pipeline ID is empty.")]
+            [InlineData("""{"organizationId":"my-org","pipelineId":"12345"}""",
+                        "Invalid criteria format for AzureDevOps policy: The organization ID must be a GUID, e.g. 00000000-0000-0000-0000-000000000000.")]
+            [InlineData("""{"organizationId":"{0c25520f-c7eb-4bc1-919c-3870a18620ef}","pipelineId":"12345"}""",
+                        "Invalid criteria format for AzureDevOps policy: The organization ID must be a GUID, e.g. 00000000-0000-0000-0000-000000000000.")]
             public void RejectsInvalidCriteriaForAzureDevOpsPolicy(string criteria, string expectedUserMessage)
             {
                 // Arrange

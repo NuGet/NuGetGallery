@@ -1262,6 +1262,7 @@ namespace NuGetGallery
                 Policies = policies,
                 PackageOwners = owners.Select(o => CreateTrustedPublisherPolicyOwnerViewModel(currentUser, o)).ToArray(),
                 IsDeprecateApiEnabled = IsDeprecateApiEnabled(currentUser),
+                IsAzureDevOpsEnabled = owners.Any(o => _featureFlagService.CanUseAzureDevOpsCredentials(o)),
             };
 
             return View("TrustedPublishing", model);
@@ -1277,6 +1278,9 @@ namespace NuGetGallery
                     break;
                 case FederatedCredentialType.GitLab:
                     policyDetails = GitLabPolicyDetailsViewModel.FromDatabaseJson(policy.Criteria);
+                    break;
+                case FederatedCredentialType.AzureDevOps:
+                    policyDetails = AzureDevOpsPolicyDetailsViewModel.FromDatabaseJson(policy.Criteria);
                     break;
                 default:
                     return null;
@@ -1372,6 +1376,11 @@ namespace NuGetGallery
                 return FederatedCredentialType.GitLab;
             }
 
+            if (string.Equals(publisherType, nameof(FederatedCredentialType.AzureDevOps), StringComparison.OrdinalIgnoreCase))
+            {
+                return FederatedCredentialType.AzureDevOps;
+            }
+
             throw new ArgumentException($"Unknown publisher type: '{publisherType}'.", nameof(publisherType));
         }
 
@@ -1457,6 +1466,8 @@ namespace NuGetGallery
                 case FederatedCredentialType.GitLab:
                     var gitLabDetails = GitLabPolicyDetailsViewModel.FromViewJson(criteria);
                     return gitLabDetails.Criteria.ToDatabaseJson();
+                case FederatedCredentialType.AzureDevOps:
+                    return AzureDevOpsPolicyDetailsViewModel.FromViewJson(criteria).ToDatabaseJson();
                 case FederatedCredentialType.GitHubActions:
                     var details = GitHubPolicyDetailsViewModel.FromViewJson(criteria);
                     return details.Criteria.ToDatabaseJson();

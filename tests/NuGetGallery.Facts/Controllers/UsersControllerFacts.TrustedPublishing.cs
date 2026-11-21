@@ -53,6 +53,30 @@ public class TheTrustedPublishingAction : TestContainer
         Assert.Equal(currentUser.Username, firstPackageOwner.Owner);
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void IsAzureDevOpsEnabledReflectsFeatureFlag(bool flagEnabled)
+    {
+        // Arrange
+        var currentUser = TestUtility.FakeUser;
+        GetMock<IFederatedCredentialService>()
+            .Setup(r => r.GetPoliciesCreatedByUser(It.IsAny<int>()))
+            .Returns([]);
+        GetMock<IFederatedCredentialService>()
+            .Setup(x => x.IsValidPolicyOwner(currentUser, It.IsAny<User>()))
+            .Returns(true);
+        GetMock<IFeatureFlagService>()
+            .Setup(x => x.CanUseAzureDevOpsCredentials(It.IsAny<User>()))
+            .Returns(flagEnabled);
+
+        // Act
+        var model = GetModelForTrustedPublishing(currentUser);
+
+        // Assert
+        Assert.Equal(flagEnabled, model.IsAzureDevOpsEnabled);
+    }
+
     [Fact]
     public void FiltersOnlyTrustedPublisherPolicies()
     {

@@ -15,5 +15,6 @@ namespace NuGetGallery
         public IReadOnlyList<TrustedPublisherPolicyOwnerViewModel> PackageOwners { get; set; } = Array.Empty<TrustedPublisherPolicyOwnerViewModel>();
         public IReadOnlyList<TrustedPublisherPolicyViewModel> Policies { get; set; } = Array.Empty<TrustedPublisherPolicyViewModel>();
         public bool IsDeprecateApiEnabled { get; set; }
+        public bool IsAzureDevOpsEnabled { get; set; }
     }
 }

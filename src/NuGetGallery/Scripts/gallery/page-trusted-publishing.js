@@ -11,6 +11,7 @@
 
     const GitHubActionsPublisherName = "GitHubActions"; // must match the PublisherType in GitHubPolicyDetailsViewModel.cs
     const GitLabPublisherName = "GitLab"; // must match the PublisherType in GitLabPolicyDetailsViewModel.cs
+    const AzureDevOpsPublisherName = "AzureDevOps"; // must match the PublisherType in AzureDevOpsPolicyDetailsViewModel.cs
 
 
     ko.bindingHandlers.trimmedValue = {
@@ -394,10 +395,60 @@
             return JSON.stringify(gitLabData);
         };
 
+        // ===== Azure DevOps provider details =====
+        var _azureDevOpsDetails = {};
+        _azureDevOpsDetails.Initialize = function (self) {
+            self.azureDevOps = {
+                OrganizationId: ko.observable(),
+                PendingOrganizationId: ko.observable(),
+                OrganizationIdUid: computedUid(self, "azdo-organization-id"),
+
+                PipelineId: ko.observable(),
+                PendingPipelineId: ko.observable(),
+                PipelineIdUid: computedUid(self, "azdo-pipeline-id"),
+            };
+        };
+
+        _azureDevOpsDetails.Update = function (self, data) {
+            const details = data.PublisherName !== AzureDevOpsPublisherName ? {} : data.PolicyDetails || {};
+            self.azureDevOps.OrganizationId(details.OrganizationId || '');
+            self.azureDevOps.PendingOrganizationId(details.OrganizationId || '');
+            self.azureDevOps.PipelineId(details.PipelineId || '');
+            self.azureDevOps.PendingPipelineId(details.PipelineId || '');
+        };
+
+        _azureDevOpsDetails.CancelEdit = function (self) {
+            self.azureDevOps.PendingOrganizationId(self.azureDevOps.OrganizationId());
+            self.azureDevOps.PendingPipelineId(self.azureDevOps.PipelineId());
+        };
+
+        _azureDevOpsDetails.AttachExtensions = function (self, validator) {
+            validator.submitted[self.azureDevOps.OrganizationIdUid()] = null;
+            validator.submitted[self.azureDevOps.PipelineIdUid()] = null;
+        };
+
+        const GuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
+        _azureDevOpsDetails.Valid = function (self) {
+            const organizationId = self.azureDevOps.PendingOrganizationId();
+            return organizationId && GuidRegex.test(organizationId) && self.azureDevOps.PendingPipelineId();
+        };
+
+        _azureDevOpsDetails.CreatePendingCriteria = function (self) {
+            // MUST MATCH AzureDevOpsPolicyDetailsViewModel.FromViewJson.
+            return JSON.stringify({
+                OrganizationId: self.azureDevOps.PendingOrganizationId() || '',
+                PipelineId: self.azureDevOps.PendingPipelineId() || ''
+            });
+        };
+
         // ===== Helper to get the current provider details handler =====
         function _getProviderDetails(self) {
             if (self.SelectedProvider() === GitLabPublisherName) {
                 return _gitLabDetails;
+            }
+            if (self.SelectedProvider() === AzureDevOpsPublisherName) {
+                return _azureDevOpsDetails;
             }
             return _gitHubDetails;
         }
@@ -406,12 +457,18 @@
             if (self.PublisherName() === GitLabPublisherName) {
                 return self.gitLab.EnabledDaysLeft();
             }
+            if (self.PublisherName() === AzureDevOpsPublisherName) {
+                return 1;
+            }
             return self.gitHub.EnabledDaysLeft();
         }
 
         function _getIsPermanentlyEnabled(self) {
             if (self.PublisherName() === GitLabPublisherName) {
                 return self.gitLab.IsPermanentlyEnabled();
+            }
+            if (self.PublisherName() === AzureDevOpsPublisherName) {
+                return true;
             }
             return self.gitHub.IsPermanentlyEnabled();
         }
@@ -472,12 +529,16 @@
                 { label: 'GitHub Actions', value: GitHubActionsPublisherName },
                 { label: 'GitLab CI/CD', value: GitLabPublisherName }
             ];
+            if (initialData.IsAzureDevOpsEnabled) {
+                this.AvailableProviders.push({ label: 'Azure DevOps', value: AzureDevOpsPublisherName });
+            }
             this.SelectedProvider = ko.observable(GitHubActionsPublisherName);
             this.ProviderUid = computedUid(self, "provider");
 
             // Provider specific properties
             _gitHubDetails.Initialize(this);
             _gitLabDetails.Initialize(this);
+            _azureDevOpsDetails.Initialize(this);
 
             this._UpdateData = function (data) {
                 this.Key(data.Key || 0);
@@ -492,6 +553,8 @@
                 // Set provider from existing data
                 if (data.PublisherName === GitLabPublisherName) {
                     this.SelectedProvider(GitLabPublisherName);
+                } else if (data.PublisherName === AzureDevOpsPublisherName) {
+                    this.SelectedProvider(AzureDevOpsPublisherName);
                 } else {
                     this.SelectedProvider(GitHubActionsPublisherName);
                 }
@@ -513,6 +576,7 @@
                 // Provider specific properties
                 _gitHubDetails.Update(this, data);
                 _gitLabDetails.Update(this, data);
+                _azureDevOpsDetails.Update(this, data);
             };
 
             this.PackageOwners = packageOwners;
@@ -661,8 +725,11 @@
             };
 
             this.AttachExtensions = function () {
-                // Enable form validation.
+                // Enable form validation. Drop any previously parsed rules so that fields rendered
+                // later (e.g. after switching the CI/CD provider) get their validation attributes applied.
                 var $form = $("#" + self.FormUid());
+                $form.removeData("validator");
+                $form.removeData("unobtrusiveValidation");
                 $.validator.unobtrusive.parse($form);
                 var $validator = $form.validate();
 
@@ -674,6 +741,16 @@
                 var provider = _getProviderDetails(self);
                 provider.AttachExtensions(self, $validator);
             }
+
+            // Provider-specific fields are rendered by a knockout "if" binding, so re-attach validation
+            // once the newly selected provider's inputs are in the DOM.
+            this.SelectedProvider.subscribe(function () {
+                setTimeout(function () {
+                    if ($("#" + self.FormUid()).length) {
+                        self.AttachExtensions();
+                    }
+                }, 0);
+            });
 
             this.Valid = function () {
                 // Execute form validation.
@@ -706,8 +783,9 @@
 
                 _gitHubDetails.CancelEdit(self);
                 _gitLabDetails.CancelEdit(self);
+                _azureDevOpsDetails.CancelEdit(self);
 
-                // Reset PackageOwner to null for new items, or to the current Owner for existing items
+                // Reset PackageOwner
                 if (!self.Key()) {
                     self.PackageOwner(null);
                 }
