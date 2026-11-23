@@ -79,7 +79,9 @@
         var emailBoxGroupId = "@emailBoxGroupId";
         var organizationNameTextGroupId = "@organizationNameTextGroupId";
         var organizationNameTextId = "@organizationNameTextId";
-        var defaultImage = "@Html.Raw(@Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png"))";
+        var defaultImage = @Html.Raw(HttpUtility.JavaScriptStringEncode(
+            Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png"),
+            addDoubleQuotes: true));
         var emailValidationRegex = new RegExp("@Html.Raw(@GalleryConstants.EmailValidationRegex)");
     </script>
     @Scripts.Render("~/Scripts/gallery/page-add-organization.min.js")

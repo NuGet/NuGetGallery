@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Entities;
@@ -244,6 +245,54 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal(listed, result.Listed);
+            }
+
+            [Theory]
+            [InlineData(true, false)]
+            [InlineData(true, true)]
+            [InlineData(false, false)]
+            [InlineData(false, true)]
+            public async Task ReflowsReadmeWithoutReplacingExternalContent(bool hasExternalReadme, bool hasEmbeddedReadme)
+            {
+                // Arrange
+                var package = PackageServiceUtility.CreateTestPackage();
+                package.HasReadMe = hasExternalReadme;
+                package.EmbeddedReadmeType = EmbeddedReadmeFileType.Absent;
+
+                var nuspec = ReflowServiceSetupHelper.CreateTestNuspec();
+                if (hasEmbeddedReadme)
+                {
+                    nuspec = nuspec.Replace("</metadata>", "<readme>readme.md</readme></metadata>");
+                }
+
+                using (var packageStream = ReflowServiceSetupHelper.CreateTestPackageStream(nuspec))
+                {
+                    if (hasEmbeddedReadme)
+                    {
+                        using (var archive = new ZipArchive(packageStream, ZipArchiveMode.Update, leaveOpen: true))
+                        using (var writer = new StreamWriter(archive.CreateEntry("readme.md").Open()))
+                        {
+                            writer.Write("# Embedded documentation");
+                        }
+
+                        packageStream.Position = 0;
+                    }
+
+                    var service = CreateService(
+                        packageService: ReflowServiceSetupHelper.SetupPackageService(package),
+                        entitiesContext: ReflowServiceSetupHelper.SetupEntitiesContext(),
+                        packageFileService: ReflowServiceSetupHelper.SetupPackageFileService(package, packageStream));
+
+                    // Act
+                    var result = await service.ReflowAsync("test", "1.0.0");
+
+                    // Assert
+                    Assert.Equal(hasExternalReadme || hasEmbeddedReadme, result.HasReadMe);
+                    Assert.Equal(
+                        !hasExternalReadme && hasEmbeddedReadme ? EmbeddedReadmeFileType.Markdown : EmbeddedReadmeFileType.Absent,
+                        result.EmbeddedReadmeType);
+                    Assert.Equal(!hasExternalReadme && hasEmbeddedReadme, result.HasEmbeddedReadme);
+                }
             }
 
             [Fact]

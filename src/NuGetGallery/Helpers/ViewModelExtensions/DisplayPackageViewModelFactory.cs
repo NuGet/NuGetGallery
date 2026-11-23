@@ -80,6 +80,7 @@ namespace NuGetGallery
             viewModel.Dependencies = new DependencySetsViewModel(dependencies, isDotnetTool);
 
             var packageHistory = allVersions
+                .Where(p => p.PackageStatusKey != PackageStatus.Staged)
                 .OrderByDescending(p => new NuGetVersion(p.Version))
                 .ToList();
             var pushedByCache = new Dictionary<User, string>();

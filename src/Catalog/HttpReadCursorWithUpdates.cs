@@ -29,37 +29,57 @@ namespace NuGet.Services.Metadata.Catalog
                 storageDateTimeInUtc = storageDateTimeOffset.Value.UtcDateTime;
             }
 
-            var update = await GetUpdate(response, storageDateTimeInUtc);
-
-            return JsonConvert.SerializeObject(new { value = update.Value });
-        }
-
-        private async Task<CursorValueUpdate> GetUpdate(HttpResponseMessage response, DateTime? storageDateTimeInUtc)
-        {
             if (!storageDateTimeInUtc.HasValue)
             {
                 throw new ArgumentNullException(nameof(storageDateTimeInUtc));
             }
 
             var content = await response.Content.ReadAsStringAsync();
-
             var cursorValueWithUpdates = JsonConvert.DeserializeObject<CursorValueWithUpdates>(content, CursorValueWithUpdates.SerializerSettings);
-            var minIntervalBeforeToReadUpdate = cursorValueWithUpdates.MinIntervalBeforeToReadUpdate;
-            var updates = cursorValueWithUpdates.Updates.OrderByDescending(u => u.TimeStamp).ToList();
 
+            return JsonConvert.SerializeObject(new { value = GetValue(cursorValueWithUpdates, storageDateTimeInUtc.Value) });
+        }
+
+        private string GetValue(CursorValueWithUpdates cursorValueWithUpdates, DateTime storageDateTimeInUtc)
+        {
+            var minIntervalBeforeToReadUpdate = cursorValueWithUpdates.MinIntervalBeforeToReadUpdate;
+            if (minIntervalBeforeToReadUpdate == null || minIntervalBeforeToReadUpdate == TimeSpan.Zero)
+            {
+                _logger.LogInformation("Read the cursor value: {CursorValue}, at {Address}. MinIntervalBeforeToReadUpdate is not set or set to 0.",
+                    cursorValueWithUpdates.Value,
+                    _address.AbsoluteUri);
+
+                return cursorValueWithUpdates.Value;
+            }
+
+            // If the cursor value was updated before or at storageDateTimeInUtc - minIntervalBeforeToReadUpdate, use the cursor value and there is no need to check the updates.
+            if (cursorValueWithUpdates.TimeStamp.HasValue && cursorValueWithUpdates.TimeStamp.Value <= storageDateTimeInUtc - minIntervalBeforeToReadUpdate)
+            {
+                _logger.LogInformation("Read the cursor value with timeStamp: {TimeStamp} and value: {CursorValue}, at {Address}. " +
+                    "(Storage DateTime: {StorageDateTime}, MinIntervalBeforeToReadUpdate: {MinIntervalBeforeToReadUpdate})",
+                    cursorValueWithUpdates.TimeStamp.Value.ToString(CursorValueWithUpdates.SerializerSettings.DateFormatString),
+                    cursorValueWithUpdates.Value,
+                    _address.AbsoluteUri,
+                    storageDateTimeInUtc.ToString(CursorValueWithUpdates.SerializerSettings.DateFormatString),
+                    minIntervalBeforeToReadUpdate);
+
+                return cursorValueWithUpdates.Value;
+            }
+
+            var updates = cursorValueWithUpdates.Updates.OrderByDescending(u => u.TimeStamp).ToList();
             foreach (var update in updates)
             {
-                if (update.TimeStamp <= storageDateTimeInUtc.Value - minIntervalBeforeToReadUpdate)
+                if (update.TimeStamp <= storageDateTimeInUtc - minIntervalBeforeToReadUpdate)
                 {
                     _logger.LogInformation("Read the cursor update with timeStamp: {TimeStamp} and value: {UpdateValue}, at {Address}. " +
                         "(Storage DateTime: {StorageDateTime}, MinIntervalBeforeToReadUpdate: {MinIntervalBeforeToReadUpdate})",
                         update.TimeStamp.ToString(CursorValueWithUpdates.SerializerSettings.DateFormatString),
                         update.Value,
                         _address.AbsoluteUri,
-                        storageDateTimeInUtc.Value.ToString(CursorValueWithUpdates.SerializerSettings.DateFormatString),
+                        storageDateTimeInUtc.ToString(CursorValueWithUpdates.SerializerSettings.DateFormatString),
                         minIntervalBeforeToReadUpdate);
 
-                    return update;
+                    return update.Value;
                 }
             }
 
@@ -69,7 +89,7 @@ namespace NuGet.Services.Metadata.Catalog
                     "(Storage DateTime: {StorageDateTime}, MinIntervalBeforeToReadUpdate: {MinIntervalBeforeToReadUpdate})",
                     updates.Last().TimeStamp.ToString(CursorValueWithUpdates.SerializerSettings.DateFormatString),
                     _address.AbsoluteUri,
-                    storageDateTimeInUtc.Value.ToString(CursorValueWithUpdates.SerializerSettings.DateFormatString),
+                    storageDateTimeInUtc.ToString(CursorValueWithUpdates.SerializerSettings.DateFormatString),
                     minIntervalBeforeToReadUpdate);
             }
             else

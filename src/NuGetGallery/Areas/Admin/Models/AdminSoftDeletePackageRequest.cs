@@ -8,11 +8,18 @@ namespace NuGetGallery.Areas.Admin.Models
     {
         public List<AdminSoftDeletePackageIdentity> Packages { get; set; }
 
+        public bool UndoDelete { get; set; }
+
         [Required(AllowEmptyStrings = false, ErrorMessage = "The reason field is required.")]
         public string Reason { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
+            if (UndoDelete && Reason?.Length > 1000)
+            {
+                yield return new ValidationResult("An undo reason must contain at most 1000 characters.", [nameof(Reason)]);
+            }
+
             if (Packages == null)
             {
                 yield return new ValidationResult("The packages field is required.", [nameof(Packages)]);

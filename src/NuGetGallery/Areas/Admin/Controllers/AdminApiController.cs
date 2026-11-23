@@ -15,6 +15,7 @@ using NuGet.Versioning;
 using NuGetGallery.Areas.Admin.Filters;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Areas.Admin.Services;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
@@ -28,8 +29,10 @@ namespace NuGetGallery.Areas.Admin.Controllers
         private readonly IPackageDeleteService _packageDeleteService;
         private readonly IFeatureFlagService _featureFlagService;
         private readonly IUpdateListedService _updateListedService;
+        private readonly IUndoSoftDeleteBatchService _undoSoftDeleteBatchService;
         private readonly ValidationAdminService _validationAdminService;
         private readonly IValidationService _validationService;
+        private readonly IAppConfiguration _appConfiguration;
 
         public AdminApiController(
             IPackageService packageService,
@@ -39,8 +42,10 @@ namespace NuGetGallery.Areas.Admin.Controllers
             IPackageDeleteService packageDeleteService,
             IFeatureFlagService featureFlagService,
             IUpdateListedService updateListedService,
+            IUndoSoftDeleteBatchService undoSoftDeleteBatchService,
             ValidationAdminService validationAdminService = null,
-            IValidationService validationService = null)
+            IValidationService validationService = null,
+            IAppConfiguration appConfiguration = null)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _reflowPackageService = reflowPackageService ?? throw new ArgumentNullException(nameof(reflowPackageService));
@@ -49,8 +54,10 @@ namespace NuGetGallery.Areas.Admin.Controllers
             _packageDeleteService = packageDeleteService ?? throw new ArgumentNullException(nameof(packageDeleteService));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _updateListedService = updateListedService ?? throw new ArgumentNullException(nameof(updateListedService));
+            _undoSoftDeleteBatchService = undoSoftDeleteBatchService ?? throw new ArgumentNullException(nameof(undoSoftDeleteBatchService));
             _validationAdminService = validationAdminService;
             _validationService = validationService;
+            _appConfiguration = appConfiguration;
         }
 
         [HttpPost]
@@ -254,6 +261,11 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 return BadRequestFromModelState();
             }
 
+            if (request.UndoDelete)
+            {
+                return await UndoSoftDeletePackagesAsync(request);
+            }
+
             var callerIdentity = HttpContext.Items[AdminApiAuthAttribute.CallerIdentityItemKey] as string;
             var seen = new HashSet<PackageIdentity>();
             var results = new List<AdminSoftDeletePackageResult>();
@@ -308,7 +320,8 @@ namespace NuGetGallery.Areas.Admin.Controllers
                     acceptedPackages,
                     deletedBy: null,
                     reason: request.Reason,
-                    signature: callerIdentity);
+                    signature: callerIdentity,
+                    captureForUndo: true);
             }
             catch (Exception ex)
             {
@@ -471,7 +484,11 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 });
             }
 
-            return Json(HttpStatusCode.OK, new AdminPendingValidationsResponse { Results = results }, JsonRequestBehavior.AllowGet);
+            // A large validation backlog can exceed the default JavaScriptSerializer maxJsonLength,
+            // which would make this endpoint fail exactly when it is needed most.
+            var response = Json(HttpStatusCode.OK, new AdminPendingValidationsResponse { Results = results }, JsonRequestBehavior.AllowGet);
+            response.MaxJsonLength = _appConfiguration?.MaxJsonLengthOverride;
+            return response;
         }
 
         [HttpPost]
@@ -567,6 +584,55 @@ namespace NuGetGallery.Areas.Admin.Controllers
             {
                 Results = results
             });
+        }
+
+        private async Task<ActionResult> UndoSoftDeletePackagesAsync(AdminSoftDeletePackageRequest request)
+        {
+            var callerIdentity = HttpContext.Items[AdminApiAuthAttribute.CallerIdentityItemKey] as string;
+            var seen = new HashSet<PackageIdentity>();
+            var packages = request.Packages
+                .Select(entry => new PackageIdentity(entry.Id.Trim(), NuGetVersion.Parse(entry.Version.Trim())))
+                .Where(identity => seen.Add(identity))
+                .Select(identity => new UndoPackageRequest
+                {
+                    Id = identity.Id,
+                    Version = identity.Version.ToNormalizedString()
+                })
+                .ToList();
+
+            List<AdminSoftDeletePackageResult> results;
+            try
+            {
+                var batch = await _undoSoftDeleteBatchService.UndoAsync(packages, request.Reason, callerIdentity);
+                results = batch.Results.Select(result =>
+                {
+                    if (!result.Success)
+                    {
+                        QuietLog.LogHandledException(result.Exception);
+                    }
+
+                    return new AdminSoftDeletePackageResult
+                    {
+                        Id = result.Package.Id,
+                        Version = result.Package.Version,
+                        Status = result.Success ? AdminSoftDeletePackageStatus.Accepted : AdminSoftDeletePackageStatus.Failed
+                    };
+                }).ToList();
+            }
+            catch (Exception exception)
+            {
+                QuietLog.LogHandledException(exception);
+                results = packages.Select(package => new AdminSoftDeletePackageResult
+                {
+                    Id = package.Id,
+                    Version = package.Version,
+                    Status = AdminSoftDeletePackageStatus.Failed
+                }).ToList();
+            }
+
+            var statusCode = results.Any(result => result.Status == AdminSoftDeletePackageStatus.Accepted)
+                ? HttpStatusCode.Accepted : HttpStatusCode.BadRequest;
+            return Json(statusCode, new AdminSoftDeletePackageResponse { Results = results });
         }
 
         private JsonResult BadRequestFromModelState()

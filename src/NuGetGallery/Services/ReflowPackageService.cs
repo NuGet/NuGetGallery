@@ -72,6 +72,7 @@ namespace NuGetGallery
 
                         // 4) Reflow the package
                         var listed = package.Listed;
+                        var hasExternalReadme = package.HasReadMe && !package.HasEmbeddedReadme;
 
                         package = _packageService.EnrichPackageFromNuGetPackage(
                             package,
@@ -82,6 +83,13 @@ namespace NuGetGallery
 
                         package.LastEdited = DateTime.UtcNow;
                         package.Listed = listed;
+
+                        // External documentation is maintained separately from the package archive.
+                        if (hasExternalReadme)
+                        {
+                            package.HasReadMe = true;
+                            package.EmbeddedReadmeType = EmbeddedReadmeFileType.Absent;
+                        }
 
                         // 5) Update IsLatest so that reflow can correct concurrent updates (see Gallery #2514)
                         await _packageService.UpdateIsLatestAsync(package.PackageRegistration, commitChanges: false);

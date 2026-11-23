@@ -25,6 +25,7 @@ namespace NuGetGallery.Auditing
                 "NuGetGallery.Auditing.FederatedCredentialPolicyAuditRecord",
                 "NuGetGallery.Auditing.PackageAuditRecord",
                 "NuGetGallery.Auditing.PackageRegistrationAuditRecord",
+                "NuGetGallery.Auditing.PackageUndoSoftDeleteAuditRecord",
                 "NuGetGallery.Auditing.ReservedNamespaceAuditRecord",
                 "NuGetGallery.Auditing.UserAuditRecord",
                 "NuGetGallery.Auditing.UserSecurityPolicyAuditRecord"

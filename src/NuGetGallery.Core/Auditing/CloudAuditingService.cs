@@ -117,7 +117,9 @@ namespace NuGetGallery.Auditing
             var packageAuditRecord = auditRecord as PackageAuditRecord;
 
             return packageAuditRecord != null &&
-                (packageAuditRecord.Action == AuditedPackageAction.Delete || packageAuditRecord.Action == AuditedPackageAction.SoftDelete);
+                (packageAuditRecord.Action == AuditedPackageAction.Delete
+                || packageAuditRecord.Action == AuditedPackageAction.SoftDelete
+                || packageAuditRecord.Action == AuditedPackageAction.UndoSoftDelete);
         }
     }
 }
