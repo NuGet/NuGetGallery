@@ -561,6 +561,24 @@ namespace NuGetGallery.ViewModels
         }
 
         [Fact]
+        public void TheCtorExcludesStagedVersionsFromHistory()
+        {
+            var package = CreateTestPackage("1.0.0-preview");
+            package.PackageStatusKey = PackageStatus.Available;
+            var stagedPackage = new Package
+            {
+                Version = "2.0.0",
+                PackageRegistration = package.PackageRegistration,
+                PackageStatusKey = PackageStatus.Staged,
+            };
+            package.PackageRegistration.Packages = new[] { package, stagedPackage };
+
+            var model = CreateDisplayPackageViewModel(package);
+
+            Assert.Equal(package.Version, Assert.Single(model.PackageVersions).Version);
+        }
+
+        [Fact]
         public void TheCtorDoesNotPopulateLatestSymbolsPackageForHistory()
         {
             var package = new Package
