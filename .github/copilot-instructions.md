@@ -8,7 +8,7 @@ This repository powers nuget.org. It combines the ASP.NET Gallery, shared server
 
 - Use Windows with Visual Studio 2022 and the **ASP.NET and web development** and **Azure development** workloads. The build locates Visual Studio MSBuild and several projects target .NET Framework 4.7.2.
 - Gallery browser functional tests also require Visual Studio's **Web performance and load testing tools** component.
-- `global.json` starts SDK selection at 8.0.318 with `rollForward: latestMajor`. Install a .NET 10-capable SDK for the Aspire host and functional tests, which target .NET 10.
+- `global.json` selects .NET 10 with `rollForward: latestFeature`. Install a .NET 10 SDK for the Aspire host and functional tests, which target .NET 10.
 - Run `.\tools\Setup-DevEnvironment.ps1` as administrator for first-time Gallery setup. It configures IIS Express/HTTPS and applies the EF6 database migrations.
 
 ### C# build
