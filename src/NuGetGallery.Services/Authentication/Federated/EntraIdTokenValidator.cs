@@ -72,14 +72,14 @@ namespace NuGetGallery.Services.Authentication
                 catch (JsonException)
                 {
                     return FederatedCredentialPolicyValidationResult.BadRequest(
-                        "The policy criteria is not in a valid JSON format.",
+                        "The policy criteria value is not in a valid JSON format.",
                         nameof(FederatedCredentialPolicy.Criteria));
                 }
 
                 if (entraIdServicePrincipalCriteria is null)
                 {
                     return FederatedCredentialPolicyValidationResult.BadRequest(
-                        "The policy criteria is not in a valid JSON format.",
+                        "The policy criteria value (null) is not in a valid JSON format.",
                         nameof(FederatedCredentialPolicy.Criteria));
                 }
 
@@ -107,14 +107,14 @@ namespace NuGetGallery.Services.Authentication
                 catch (JsonException)
                 {
                     return FederatedCredentialPolicyValidationResult.BadRequest(
-                        "The policy criteria is not in a valid JSON format.",
+                        "The policy criteria value is not in a valid JSON format.",
                         nameof(FederatedCredentialPolicy.Criteria));
                 }
 
                 if (azureDevOpsCriteria is null)
                 {
                     return FederatedCredentialPolicyValidationResult.BadRequest(
-                        "The policy criteria is not in a valid JSON format.",
+                        "The policy criteria value (null) is not in a valid JSON format.",
                         nameof(FederatedCredentialPolicy.Criteria));
                 }
 
@@ -122,7 +122,7 @@ namespace NuGetGallery.Services.Authentication
                 if (!azureDevOpsCriteria.IsValid(out errorForCriteria))
                 {
                     return FederatedCredentialPolicyValidationResult.BadRequest(
-                        "The policy criteria is not valid" + (string.IsNullOrEmpty(errorForCriteria) ? "." : $": {errorForCriteria}"),
+                        "The policy criteria value is not valid" + (string.IsNullOrEmpty(errorForCriteria) ? "." : $": {errorForCriteria}"),
                         nameof(FederatedCredentialPolicy.Criteria));
                 }
             }
@@ -261,12 +261,12 @@ namespace NuGetGallery.Services.Authentication
             }
             catch (JsonException)
             {
-                return "The policy criteria is not in a valid JSON format.";
+                return "The policy criteria value is not in a valid JSON format.";
             }
 
             if (criteria is null)
             {
-                return "The policy criteria is not in a valid JSON format.";
+                return "The policy criteria value (null) is not in a valid JSON format.";
             }
 
             if (string.IsNullOrWhiteSpace(tid) || !Guid.TryParse(tid, out var parsedTid) || parsedTid != criteria.TenantId)
@@ -363,18 +363,18 @@ namespace NuGetGallery.Services.Authentication
             }
             catch (JsonException)
             {
-                return "The policy criteria is not in a valid JSON format.";
+                return "The policy criteria value is not in a valid JSON format.";
             }
 
             if (criteria is null)
             {
-                return "The policy criteria is not in a valid JSON format.";
+                return "The policy criteria value (null) is not in a valid JSON format.";
             }
 
             var errorForCriteria = "";
             if (!criteria.IsValid(out errorForCriteria))
             {
-                return "The policy criteria is not valid" + (string.IsNullOrEmpty(errorForCriteria) ? "." : $": {errorForCriteria}");
+                return "The policy criteria value is not valid" + (string.IsNullOrEmpty(errorForCriteria) ? "." : $": {errorForCriteria}");
             }
 
             if (!criteria.OrganizationId.Equals(organizationId.ToString(), StringComparison.Ordinal))

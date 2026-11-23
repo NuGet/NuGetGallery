@@ -90,7 +90,7 @@ namespace NuGetGallery.Services.Authentication
 
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyValidationResultType.BadRequest, result.Type);
-                Assert.Equal("The policy criteria is not in a valid JSON format.", result.UserMessage);
+                Assert.Equal("The policy criteria value is not in a valid JSON format.", result.UserMessage);
                 Assert.Equal(nameof(FederatedCredentialPolicy.Criteria), result.PolicyPropertyName);
             }
 
@@ -113,7 +113,7 @@ namespace NuGetGallery.Services.Authentication
 
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyValidationResultType.BadRequest, result.Type);
-                Assert.Equal("The policy criteria is not in a valid JSON format.", result.UserMessage);
+                Assert.Equal("The policy criteria value (null) is not in a valid JSON format.", result.UserMessage);
                 Assert.Equal(nameof(FederatedCredentialPolicy.Criteria), result.PolicyPropertyName);
             }
 
@@ -335,11 +335,11 @@ namespace NuGetGallery.Services.Authentication
             }
 
             [Theory]
-            [InlineData("{\"organizationId\":\"   \",\"pipelineId\":\" \"}", "The policy criteria is not valid: The organization ID and pipeline ID are invalid.")]
-            [InlineData("{\"organizationId\":\"   \",\"pipelineId\":\"12345\"}", "The policy criteria is not valid: The organization ID is invalid.")]
-            [InlineData("{\"organizationId\":\"0c25520f-c7eb-4bc1\",\"pipelineId\":\"12345\"}", "The policy criteria is not valid: The organization ID is invalid.")]
-            [InlineData("{\"organizationId\":\"0c25520f-c7eb-4bc1-919c-3870a18620ef\",\"pipelineId\":\" \"}", "The policy criteria is not valid: The pipeline ID is invalid.")]
-            [InlineData("{\"organizationId\":\"0c25520f-c7eb-4bc1-919c-3870a18620ef\",\"pipelineId\":\"abcde\"}", "The policy criteria is not valid: The pipeline ID is invalid.")]
+            [InlineData("{\"organizationId\":\"   \",\"pipelineId\":\" \"}", "The policy criteria value is not valid: The organization ID and pipeline ID are invalid.")]
+            [InlineData("{\"organizationId\":\"   \",\"pipelineId\":\"12345\"}", "The policy criteria value is not valid: The organization ID is invalid.")]
+            [InlineData("{\"organizationId\":\"0c25520f-c7eb-4bc1\",\"pipelineId\":\"12345\"}", "The policy criteria value is not valid: The organization ID is invalid.")]
+            [InlineData("{\"organizationId\":\"0c25520f-c7eb-4bc1-919c-3870a18620ef\",\"pipelineId\":\" \"}", "The policy criteria value is not valid: The pipeline ID is invalid.")]
+            [InlineData("{\"organizationId\":\"0c25520f-c7eb-4bc1-919c-3870a18620ef\",\"pipelineId\":\"abcde\"}", "The policy criteria value is not valid: The pipeline ID is invalid.")]
             public void RejectsInvalidCriteriaForAzureDevOpsPolicy(string criteria, string expectedUserMessage)
             {
                 // Arrange
@@ -880,7 +880,7 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
                 Assert.False(result.IsErrorDisclosable);
-                Assert.Equal("The policy criteria is not in a valid JSON format.", result.Error);
+                Assert.Equal("The policy criteria value is not in a valid JSON format.", result.Error);
             }
         }
 
@@ -1094,15 +1094,15 @@ namespace NuGetGallery.Services.Authentication
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
                 Assert.False(result.IsErrorDisclosable);
-                Assert.Equal("The policy criteria is not in a valid JSON format.", result.Error);
+                Assert.Equal("The policy criteria value is not in a valid JSON format.", result.Error);
             }
 
             [Theory]
-            [InlineData("{\"organizationId\":\"   \",\"pipelineId\":\" \"}", "The policy criteria is not valid: The organization ID and pipeline ID are invalid.")]
-            [InlineData("{\"organizationId\":\"   \",\"pipelineId\":\"12345\"}", "The policy criteria is not valid: The organization ID is invalid.")]
-            [InlineData("{\"organizationId\":\"0c25520f-c7eb-4bc1\",\"pipelineId\":\"12345\"}", "The policy criteria is not valid: The organization ID is invalid.")]
-            [InlineData("{\"organizationId\":\"0c25520f-c7eb-4bc1-919c-3870a18620ef\",\"pipelineId\":\" \"}", "The policy criteria is not valid: The pipeline ID is invalid.")]
-            [InlineData("{\"organizationId\":\"0c25520f-c7eb-4bc1-919c-3870a18620ef\",\"pipelineId\":\"abcde\"}", "The policy criteria is not valid: The pipeline ID is invalid.")]
+            [InlineData("{\"organizationId\":\"   \",\"pipelineId\":\" \"}", "The policy criteria value is not valid: The organization ID and pipeline ID are invalid.")]
+            [InlineData("{\"organizationId\":\"   \",\"pipelineId\":\"12345\"}", "The policy criteria value is not valid: The organization ID is invalid.")]
+            [InlineData("{\"organizationId\":\"0c25520f-c7eb-4bc1\",\"pipelineId\":\"12345\"}", "The policy criteria value is not valid: The organization ID is invalid.")]
+            [InlineData("{\"organizationId\":\"0c25520f-c7eb-4bc1-919c-3870a18620ef\",\"pipelineId\":\" \"}", "The policy criteria value is not valid: The pipeline ID is invalid.")]
+            [InlineData("{\"organizationId\":\"0c25520f-c7eb-4bc1-919c-3870a18620ef\",\"pipelineId\":\"abcde\"}", "The policy criteria value is not valid: The pipeline ID is invalid.")]
             public async Task RejectsInvalidCriteria(string criteria, string error)
             {
                 // Arrange
