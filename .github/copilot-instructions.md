@@ -64,13 +64,11 @@ For the supported P0/P1/P2 and Admin API suite, use:
 .\tests\Scripts\RunAspireFunctionalTests.ps1 -Configuration Release -UnsafeAdminApiAuthBypassForTesting
 ```
 
-For agent-owned browser validation, use the in-test Aspire harness:
+The functional-test runners share a Windows-only suite fixture. When `CloudTestWorkerCustomVstestExe` is present, the fixture uses the externally hosted Gallery configured by `ConfigurationFilePath` instead of starting Aspire. Builds with `ConfigurationFilePath` set omit the Aspire harness dependencies because CloudTest supplies the host.
 
-```powershell
-.\tests\Scripts\RunGalleryPlaywrightTests.ps1 -Configuration Release
-```
+#### Gallery UI validation
 
-Both runners use the same suite fixture. It is Windows-only and uses fixed Gallery ports 80/443, so do not run functional-test processes concurrently or alongside `Start-AspireHost.ps1`. When `CloudTestWorkerCustomVstestExe` is present, the fixture uses the externally hosted Gallery configured by `ConfigurationFilePath` instead of starting Aspire. Builds with `ConfigurationFilePath` set omit the Aspire harness dependencies because CloudTest supplies the host. Pass `-AppHostProfile full` to the Playwright runner only when local Azure Search prerequisites are available. Statistics-service and read-only-mode browser tests remain on their separately configured paths.
+For user-visible Gallery changes, follow the authoritative [Playwright test contract](../tests/NuGetGallery.FunctionalTests/Playwright/README.md). Use the [Gallery UI validation skill](skills/gallery-ui-validation/SKILL.md) within the agent implementing the feature. The contract owns browser-test requirements, validation commands, host/concurrency constraints, and reporting; browser-tool configuration is optional.
 
 ### Frontend assets
 
