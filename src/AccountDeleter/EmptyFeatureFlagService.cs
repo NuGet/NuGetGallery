@@ -71,6 +71,11 @@ namespace NuGetGallery.AccountDeleter
             throw new NotImplementedException();
         }
 
+        public bool IsRecentDownloadsPerDayEnabled()
+        {
+            throw new NotImplementedException();
+        }
+
         public bool IsDisplayNuGetPackageExplorerLinkEnabled()
         {
             throw new NotImplementedException();

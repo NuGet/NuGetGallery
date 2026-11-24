@@ -83,8 +83,6 @@ namespace NuGetGallery
 
         public bool? IsIndexed { get; set; }
 
-        public string DownloadsPerDayLabel { get; set; }
-
         public string PushedBy { get; set; }
 
         public bool IsCertificatesUIEnabled { get; set; }
