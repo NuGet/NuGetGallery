@@ -70,7 +70,7 @@ namespace NuGetGallery
             }
 
             return query
-                .AsEnumerable()
+                .ToList()
                 .Where(attempt => _authorizationService.CanManage(currentUser, attempt))
                 .OrderBy(attempt => attempt.StagedPackageIdentity.Package.PackageRegistration.Id)
                 .ThenByDescending(attempt => attempt.UploadedDate)

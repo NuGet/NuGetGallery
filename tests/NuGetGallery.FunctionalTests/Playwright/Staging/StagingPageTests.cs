@@ -17,6 +17,54 @@ namespace NuGetGallery.FunctionalTests.Playwright.Staging
     [Collection(GalleryTestCollection.Definition)]
     public class StagingPageTests : NuGetPageTest
     {
+        [Theory]
+        [InlineData(false, false)]
+        [InlineData(false, true)]
+        [InlineData(true, false)]
+        [InlineData(true, true)]
+        [Category("PlaywrightTests")]
+        [Category("StagingCiTests")]
+        public async Task OrganizationMemberCanViewGroupedAndUngroupedParentsAndSymbols(bool administrator, bool grouped)
+        {
+            var owner = GalleryConfiguration.Instance.CollaboratorOrganization;
+            if (administrator)
+            {
+                owner = GalleryConfiguration.Instance.AdminOrganization;
+            }
+
+            await using var context = new StagingTestContext(owner.ApiKeyStage);
+            string group = null;
+            if (grouped)
+            {
+                group = await context.CreateGroupAsync();
+            }
+
+            var id = StagingTestContext.NewPackageId();
+            using (var parent = await context.UploadAsync(id, StagingTestContext.CreateArchive(id), groupId: group))
+            using (var symbols = await context.UploadAsync(id, StagingTestContext.CreateArchive(id, symbols: true), symbols: true))
+            {
+                await StagingTestContext.ReadJsonAsync(parent, HttpStatusCode.Created);
+                await StagingTestContext.ReadJsonAsync(symbols, HttpStatusCode.Created);
+            }
+
+            var url = GalleryConfiguration.Instance.GalleryBaseUrl.TrimEnd('/') + "/account/staging/" + owner.Name;
+            if (grouped)
+            {
+                url += "/groups/" + group;
+            }
+            else
+            {
+                url += "/ungrouped";
+            }
+
+            await SignInAsStagingOwnerAsync();
+            await OpenStagingPageAsync(url);
+            var rows = Page.Locator(".staging-packages-table tbody tr").Filter(new LocatorFilterOptions { HasText = id });
+            await Expect(rows).ToHaveCountAsync(2);
+            await Expect(rows.First.Locator(".staging-status")).ToHaveTextAsync("Ready");
+            await Expect(rows.Last.Locator(".staging-status")).ToHaveTextAsync("Ready");
+        }
+
         [Fact]
         [Category("PlaywrightTests")]
         [Category("StagingCiTests")]
