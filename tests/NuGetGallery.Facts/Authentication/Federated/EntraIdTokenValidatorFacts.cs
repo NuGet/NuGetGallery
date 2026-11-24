@@ -70,9 +70,11 @@ namespace NuGetGallery.Services.Authentication
             }
 
             [Theory]
-            [InlineData(FederatedCredentialType.EntraIdServicePrincipal)]
-            [InlineData(FederatedCredentialType.AzureDevOps)]
-            public void RejectsInvalidJsonCriteria(FederatedCredentialType type)
+            [InlineData(FederatedCredentialType.EntraIdServicePrincipal, "invalid json")]
+            [InlineData(FederatedCredentialType.EntraIdServicePrincipal, "{\"tid\":\"c311b905-19a2-483e-a014-41d0fcdc99cf")]
+            [InlineData(FederatedCredentialType.AzureDevOps, "invalid json")]
+            [InlineData(FederatedCredentialType.AzureDevOps, "{\"pipelineId\":}")]
+            public void RejectsInvalidJsonCriteria(FederatedCredentialType type, string criteria)
             {
                 // Arrange
                 var user = new User("test-user");
@@ -80,11 +82,16 @@ namespace NuGetGallery.Services.Authentication
                 {
                     Type = type,
                     PackageOwner = user,
-                    Criteria = "invalid json"
+                    Criteria = criteria
                 };
 
-                // Act & Assert
-                Assert.ThrowsAny<Exception>(() => Target.ValidatePolicy(policy));
+                // Act
+                var result = Target.ValidatePolicy(policy);
+
+                // Assert
+                Assert.Equal(FederatedCredentialPolicyValidationResultType.BadRequest, result.Type);
+                Assert.Equal("The policy criteria value is not in a valid JSON format.", result.UserMessage);
+                Assert.Equal(nameof(FederatedCredentialPolicy.Criteria), result.PolicyPropertyName);
             }
 
             [Theory]
@@ -106,7 +113,7 @@ namespace NuGetGallery.Services.Authentication
 
                 // Assert
                 Assert.Equal(FederatedCredentialPolicyValidationResultType.BadRequest, result.Type);
-                Assert.Equal($"Invalid criteria format for {type} policy.", result.UserMessage);
+                Assert.Equal("The policy criteria value (null) is not in a valid JSON format.", result.UserMessage);
                 Assert.Equal(nameof(FederatedCredentialPolicy.Criteria), result.PolicyPropertyName);
             }
 
@@ -317,6 +324,7 @@ namespace NuGetGallery.Services.Authentication
                 };
 
                 FeatureFlagService.Setup(x => x.CanUseAzureDevOpsCredentials(user)).Returns(false);
+
                 // Act
                 var result = Target.ValidatePolicy(policy);
 
@@ -327,10 +335,12 @@ namespace NuGetGallery.Services.Authentication
             }
 
             [Theory]
-            [InlineData("   ", " ", "Invalid criteria format for AzureDevOps policy: The organization ID and pipeline ID are empty.")]
-            [InlineData("", "12345", "Invalid criteria format for AzureDevOps policy: The organization ID is empty.")]
-            [InlineData("0c25520f-c7eb-4bc1-919c-3870a18620ef", "", "Invalid criteria format for AzureDevOps policy: The pipeline ID is empty.")]
-            public void RejectsInvalidCriteriaForAzureDevOpsPolicy(string organizationId, string pipelineId, string expectedUserMessage)
+            [InlineData("{\"organizationId\":\"   \",\"pipelineId\":\" \"}", "The policy criteria value is not valid: The organization ID and pipeline ID are invalid.")]
+            [InlineData("{\"organizationId\":\"   \",\"pipelineId\":\"12345\"}", "The policy criteria value is not valid: The organization ID is invalid.")]
+            [InlineData("{\"organizationId\":\"0c25520f-c7eb-4bc1\",\"pipelineId\":\"12345\"}", "The policy criteria value is not valid: The organization ID is invalid.")]
+            [InlineData("{\"organizationId\":\"0c25520f-c7eb-4bc1-919c-3870a18620ef\",\"pipelineId\":\" \"}", "The policy criteria value is not valid: The pipeline ID is invalid.")]
+            [InlineData("{\"organizationId\":\"0c25520f-c7eb-4bc1-919c-3870a18620ef\",\"pipelineId\":\"abcde\"}", "The policy criteria value is not valid: The pipeline ID is invalid.")]
+            public void RejectsInvalidCriteriaForAzureDevOpsPolicy(string criteria, string expectedUserMessage)
             {
                 // Arrange
                 var user = new User("test-user");
@@ -338,7 +348,7 @@ namespace NuGetGallery.Services.Authentication
                 {
                     Type = FederatedCredentialType.AzureDevOps,
                     PackageOwner = user,
-                    Criteria = JsonSerializer.Serialize(new { organizationId = organizationId, pipelineId = pipelineId }),
+                    Criteria = criteria,
                 };
 
                 // Act
@@ -839,14 +849,16 @@ namespace NuGetGallery.Services.Authentication
                 Assert.Equal("The package owner 'test-user' is not enabled to use federated credentials.", result.Error);
             }
 
-            [Fact]
-            public async Task RejectsInvalidCriteriaJson()
+            [Theory]
+            [InlineData("invalid json")]
+            [InlineData("{\"tid\":\"c311b905-19a2-483e-a014-41d0fcdc99cf")]
+            public async Task RejectsInvalidCriteriaJson(string criteria)
             {
                 // Arrange
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.EntraIdServicePrincipal,
-                    Criteria = "invalid",
+                    Criteria = criteria,
                     PackageOwner = PackageOwner
                 };
 
@@ -862,8 +874,13 @@ namespace NuGetGallery.Services.Authentication
 
                 var token = CreateToken(claims);
 
-                // Act & Assert
-                await Assert.ThrowsAnyAsync<Exception>(() => Target.EvaluatePolicyAsync(policy, token));
+                // Act
+                var result = await Target.EvaluatePolicyAsync(policy, token);
+
+                // Assert
+                Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
+                Assert.False(result.IsErrorDisclosable);
+                Assert.Equal("The policy criteria value is not in a valid JSON format.", result.Error);
             }
         }
 
@@ -1039,14 +1056,16 @@ namespace NuGetGallery.Services.Authentication
                 Assert.Equal(error, result.Error);
             }
 
-            [Fact]
-            public async Task RejectsInvalidCriteriaJson()
+            [Theory]
+            [InlineData("invalid json")]
+            [InlineData("{\"pipelineId\":}")]
+            public async Task RejectsInvalidCriteriaJson(string criteria)
             {
                 // Arrange
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.AzureDevOps,
-                    Criteria = "invalid",
+                    Criteria = criteria,
                     PackageOwner = PackageOwner
                 };
 
@@ -1069,21 +1088,28 @@ namespace NuGetGallery.Services.Authentication
 
                 var token = CreateToken(claims);
 
-                // Act & Assert
-                await Assert.ThrowsAnyAsync<Exception>(() => Target.EvaluatePolicyAsync(policy, token));
+                // Act
+                var result = await Target.EvaluatePolicyAsync(policy, token);
+
+                // Assert
+                Assert.Equal(FederatedCredentialPolicyResultType.Unauthorized, result.Type);
+                Assert.False(result.IsErrorDisclosable);
+                Assert.Equal("The policy criteria value is not in a valid JSON format.", result.Error);
             }
 
             [Theory]
-            [InlineData("   ", " ", "The policy criteria is not valid: The organization ID and pipeline ID are empty.")]
-            [InlineData("", "12345", "The policy criteria is not valid: The organization ID is empty.")]
-            [InlineData("0c25520f-c7eb-4bc1-919c-3870a18620ef", "", "The policy criteria is not valid: The pipeline ID is empty.")]
-            public async Task RejectsInvalidCriteriaJsonWithEmptyId(string organizationId, string pipelineId, string error)
+            [InlineData("{\"organizationId\":\"   \",\"pipelineId\":\" \"}", "The policy criteria value is not valid: The organization ID and pipeline ID are invalid.")]
+            [InlineData("{\"organizationId\":\"   \",\"pipelineId\":\"12345\"}", "The policy criteria value is not valid: The organization ID is invalid.")]
+            [InlineData("{\"organizationId\":\"0c25520f-c7eb-4bc1\",\"pipelineId\":\"12345\"}", "The policy criteria value is not valid: The organization ID is invalid.")]
+            [InlineData("{\"organizationId\":\"0c25520f-c7eb-4bc1-919c-3870a18620ef\",\"pipelineId\":\" \"}", "The policy criteria value is not valid: The pipeline ID is invalid.")]
+            [InlineData("{\"organizationId\":\"0c25520f-c7eb-4bc1-919c-3870a18620ef\",\"pipelineId\":\"abcde\"}", "The policy criteria value is not valid: The pipeline ID is invalid.")]
+            public async Task RejectsInvalidCriteria(string criteria, string error)
             {
                 // Arrange
                 var policy = new FederatedCredentialPolicy
                 {
                     Type = FederatedCredentialType.AzureDevOps,
-                    Criteria = JsonSerializer.Serialize(new { organizationId = organizationId, pipelineId = pipelineId }),
+                    Criteria = criteria,
                     PackageOwner = PackageOwner,
                 };
 
