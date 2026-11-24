@@ -16,6 +16,11 @@ namespace GitHubVulnerabilities2Db.Gallery
     /// </remarks>
     public class ThrowingTelemetryService : ITelemetryService
     {
+        public void TrackPackageStaged(Package package)
+        {
+            throw new NotImplementedException();
+        }
+
         public void TrackStagingPromotionAccepted(Guid promotionId, Package package, bool symbols)
         {
             throw new NotImplementedException();

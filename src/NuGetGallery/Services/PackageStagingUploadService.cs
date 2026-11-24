@@ -27,6 +27,8 @@ namespace NuGetGallery
 {
     public class PackageStagingUploadService : IPackageStagingUploadService
     {
+        private readonly ITelemetryService _telemetryService;
+
         private readonly IApiScopeEvaluator _apiScopeEvaluator;
 
         private readonly IFeatureFlagService _featureFlagService;
@@ -60,6 +62,7 @@ namespace NuGetGallery
         private readonly IMessageService _messageService;
 
         public PackageStagingUploadService(
+            ITelemetryService telemetryService,
             IApiScopeEvaluator apiScopeEvaluator,
             IFeatureFlagService featureFlagService,
             IPackageService packageService,
@@ -77,6 +80,7 @@ namespace NuGetGallery
             IStagingQuotaService quotaService,
             IMessageService messageService)
         {
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _apiScopeEvaluator = apiScopeEvaluator ?? throw new ArgumentNullException(nameof(apiScopeEvaluator));
             _featureFlagService = featureFlagService ?? throw new ArgumentNullException(nameof(featureFlagService));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
@@ -584,6 +588,7 @@ namespace NuGetGallery
                 return PackageStagingResult.Error(HttpStatusCode.Conflict, Strings.UploadPackage_IdVersionConflict);
             }
 
+            _telemetryService.TrackPackageStaged(package);
             var siteRoot = new Uri(_configuration.SiteRoot.TrimEnd('/') + "/");
             var stagingUrl = new Uri(siteRoot, $"account/staging/package/{Uri.EscapeDataString(package.Id)}/{Uri.EscapeDataString(package.NormalizedVersion)}/manage").AbsoluteUri;
             var emailSettingsUrl = new Uri(siteRoot, "account").AbsoluteUri;
