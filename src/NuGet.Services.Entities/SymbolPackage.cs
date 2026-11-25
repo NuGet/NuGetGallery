@@ -46,6 +46,14 @@ namespace NuGet.Services.Entities
         public PackageStatus StatusKey { get; set; }
 
         /// <summary>
+        /// Gets or sets the UTC time this symbol package was successfully published through staging.
+        /// </summary>
+        /// <remarks>
+        /// Null when no staging publication is recorded. Earlier publications are not backfilled.
+        /// </remarks>
+        public DateTime? PublishedFromStagingAt { get; set; }
+
+        /// <summary>
         /// Used for optimistic concurrency when updating the symbols.
         /// </summary>
         public byte[] RowVersion { get; set; }

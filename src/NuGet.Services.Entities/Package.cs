@@ -254,6 +254,14 @@ namespace NuGet.Services.Entities
         public PackageStatus PackageStatusKey { get; set; }
 
         /// <summary>
+        /// Gets or sets the UTC time this package was successfully published through staging.
+        /// </summary>
+        /// <remarks>
+        /// Null when no staging publication is recorded. Earlier publications are not backfilled.
+        /// </remarks>
+        public DateTime? PublishedFromStagingAt { get; set; }
+
+        /// <summary>
         /// Gets or sets the foreign key of the certificate used to sign the package.
         /// </summary>
         public int? CertificateKey { get; set; }
