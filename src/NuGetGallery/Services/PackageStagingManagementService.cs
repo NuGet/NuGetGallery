@@ -262,7 +262,7 @@ namespace NuGetGallery
             }
 
             return query
-                .AsEnumerable()
+                .ToList()
                 .Where(stagedPackage => _packageStagingAuthorizationService.CanManage(currentUser, stagedPackage))
                 .OrderBy(stagedPackage => stagedPackage.StagedPackageIdentity.Package.PackageRegistration.Id)
                 .ThenByDescending(stagedPackage => stagedPackage.UploadedDate)
@@ -979,7 +979,7 @@ namespace NuGetGallery
                 .ToArray();
 
             return GetCurrentStagedPackages(ownerKeys)
-                .AsEnumerable()
+                .ToList()
                 .Where(stagedPackage => _packageStagingAuthorizationService.CanManageWithApiKey(currentUser, scopes, stagedPackage))
                 .Select(GetStatus)
                 .OrderBy(package => package.Id)
