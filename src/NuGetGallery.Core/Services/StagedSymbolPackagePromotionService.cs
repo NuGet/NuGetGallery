@@ -156,7 +156,7 @@ namespace NuGetGallery
                         }
 
                         await _symbolService.UpdateStatusAsync(symbol, PackageStatus.Available, commitChanges: false);
-                        symbol.PublishedFromStaging = true;
+                        symbol.PublishedFromStagingAt = DateTime.UtcNow;
                         published = true;
                         // Grouped attempts remain Promoting until orchestration completion is durable.
                         if (!attempt.StagedPackageIdentity.StagingGroupKey.HasValue)

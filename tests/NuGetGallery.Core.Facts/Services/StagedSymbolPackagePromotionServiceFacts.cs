@@ -133,12 +133,20 @@ namespace NuGetGallery
         public async Task PublishesImmutableSymbolsAndRetainsAttemptUntilOrchestrationCompletes(bool grouped)
         {
             var fixture = new Fixture();
+            fixture.Symbol.Created = DateTime.UtcNow.AddDays(-40);
             if (grouped)
             {
                 fixture.AddToGroup();
             }
 
+            var beforePublication = DateTime.UtcNow;
             await fixture.Target.CompleteAsync(fixture.Attempt.Key, fixture.PromotionId);
+            var publishedAt = fixture.StoredSymbol.PublishedFromStagingAt;
+            Assert.NotNull(publishedAt);
+            Assert.InRange(publishedAt.Value, beforePublication, DateTime.UtcNow);
+            var originalPublishedAt = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            fixture.Symbol.PublishedFromStagingAt = originalPublishedAt;
+            fixture.StoredSymbol.PublishedFromStagingAt = originalPublishedAt;
             fixture.Identity.Owner.UserStatusKey = UserStatus.Locked;
             await fixture.Target.CompleteAsync(fixture.Attempt.Key, fixture.PromotionId);
 
@@ -146,8 +154,8 @@ namespace NuGetGallery
             Assert.Equal(grouped ? StagedPackageStatus.Promoting : StagedPackageStatus.Succeeded, fixture.Attempt.Status);
             Assert.Single(fixture.Publications);
             Assert.Equal(PackageStatus.Available, fixture.Parent.PackageStatusKey);
-            Assert.True(fixture.StoredSymbol.PublishedFromStaging);
-            Assert.False(fixture.Parent.PublishedFromStaging);
+            Assert.Equal(originalPublishedAt, fixture.StoredSymbol.PublishedFromStagingAt);
+            Assert.Null(fixture.Parent.PublishedFromStagingAt);
             fixture.Blobs.Verify(service => service.GetPackageReadUriAsync("symbols/43", "etag"), Times.Once);
             fixture.Files.Verify(service => service.CopyFileAsync(Fixture.UploadUri, CoreConstants.Folders.SymbolPackagesFolderName,
                 Fixture.FileName, It.Is<IAccessCondition>(condition => condition.IfNoneMatchETag == "*")), Times.Once);
@@ -212,7 +220,7 @@ namespace NuGetGallery
 
             Assert.Equal(StagedPackageStatus.PromotionFailed, fixture.Attempt.Status);
             Assert.Equal(PackageStatus.Staged, fixture.Symbol.StatusKey);
-            Assert.False(fixture.Symbol.PublishedFromStaging);
+            Assert.Null(fixture.Symbol.PublishedFromStagingAt);
             Assert.Empty(fixture.Publications);
             Assert.Equal(PackageStatus.Available, fixture.Parent.PackageStatusKey);
             Assert.Equal(PackageStatus.Available, fixture.StoredPreviousSymbol.StatusKey);
@@ -574,7 +582,7 @@ namespace NuGetGallery
                 Attempts.Setup(repository => repository.CommitChangesAsync()).Callback(() =>
                 {
                     StoredSymbol.StatusKey = Symbol.StatusKey;
-                    StoredSymbol.PublishedFromStaging = Symbol.PublishedFromStaging;
+                    StoredSymbol.PublishedFromStagingAt = Symbol.PublishedFromStagingAt;
                     if (PreviousSymbol != null)
                     {
                         StoredPreviousSymbol.StatusKey = PreviousSymbol.StatusKey;

@@ -342,7 +342,7 @@ namespace NuGet.Services.Staging.Promotion
                 var stagingGroup = identity.StagingGroup;
                 await _packageService.UpdatePackageStreamMetadataAsync(package, streamMetadata, commitChanges: false);
                 await _packageService.UpdatePackageStatusAsync(package, PackageStatus.Available, commitChanges: false);
-                package.PublishedFromStaging = true;
+                package.PublishedFromStagingAt = DateTime.UtcNow;
 
                 if (stagingGroup == null && FindAcceptedSymbols(stagedPackage) != null)
                 {

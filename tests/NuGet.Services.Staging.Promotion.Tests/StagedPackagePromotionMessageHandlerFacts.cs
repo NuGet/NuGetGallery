@@ -139,6 +139,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
         public async Task PublishesExactValidatedPackageAndRemovesStagingRow(bool hasStagedSymbols)
         {
             var context = new TestContext();
+            context.Package.Published = DateTime.UtcNow.AddDays(-40);
             var metadata = new PackageStreamMetadata
             {
                 HashAlgorithm = CoreConstants.Sha512HashAlgorithmId,
@@ -155,12 +156,14 @@ namespace NuGet.Services.Staging.Promotion.Tests
             }
 
             context.StagedPackageRepository.Setup(repository => repository.CommitChangesAsync())
-                .Callback(() => Assert.True(context.Package.PublishedFromStaging))
+                .Callback(() => Assert.NotNull(context.Package.PublishedFromStagingAt))
                 .Returns(Task.CompletedTask);
 
+            var beforePublication = DateTime.UtcNow;
             var handled = await context.Target.HandleAsync(context.Message);
 
             Assert.True(handled);
+            Assert.InRange(context.Package.PublishedFromStagingAt.Value, beforePublication, DateTime.UtcNow);
             Assert.Equal(PackageStatus.Available, context.Package.PackageStatusKey);
             Assert.Equal(CoreConstants.Sha512HashAlgorithmId, context.Package.HashAlgorithm);
             Assert.Equal(metadata.Size, context.Package.PackageFileSize);
@@ -226,11 +229,14 @@ namespace NuGet.Services.Staging.Promotion.Tests
             var context = new TestContext();
 
             var firstHandled = await context.Target.HandleAsync(context.Message);
+            var publishedAt = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            context.Package.PublishedFromStagingAt = publishedAt;
             context.StagedPackageIdentity.Owner.UserStatusKey = UserStatus.Locked;
             var duplicateHandled = await context.Target.HandleAsync(context.Message);
 
             Assert.True(firstHandled);
             Assert.True(duplicateHandled);
+            Assert.Equal(publishedAt, context.Package.PublishedFromStagingAt);
             Assert.Single(context.Publications);
             context.PackageFileStorageService.Verify(
                 x => x.CopyFileAsync(
@@ -263,7 +269,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
             await Assert.ThrowsAsync<InvalidOperationException>(() => context.Target.HandleAsync(context.Message));
 
             Assert.Equal(PackageStatus.Available, context.Package.PackageStatusKey);
-            Assert.True(context.Package.PublishedFromStaging);
+            Assert.NotNull(context.Package.PublishedFromStagingAt);
             Assert.Single(context.Publications);
             if (grouped)
             {
@@ -492,7 +498,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
                 .Setup(x => x.CommitChangesAsync())
                 .Callback(() =>
                 {
-                    Assert.True(context.Package.PublishedFromStaging);
+                    Assert.NotNull(context.Package.PublishedFromStagingAt);
                     packageSuccessCommitted = true;
                 })
                 .Returns(Task.CompletedTask);
@@ -676,7 +682,7 @@ namespace NuGet.Services.Staging.Promotion.Tests
 
             Assert.Same(expected, actual);
             Assert.Equal(StagedPackageStatus.Promoting, context.StagedPackage.Status);
-            Assert.False(context.Package.PublishedFromStaging);
+            Assert.Null(context.Package.PublishedFromStagingAt);
             context.PackageFileStorageService.Verify(
                 x => x.DeleteFileAsync(
                     CoreConstants.Folders.PackagesFolderName,
