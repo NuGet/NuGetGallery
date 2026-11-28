@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -133,8 +133,15 @@ namespace NuGet.Jobs.Catalog2Registration
                 }
             }
 
-            // Write the index, if there were any changes.
-            if (mergeResult.ModifiedPages.Any() || mergeResult.ModifiedLeaves.Any())
+            // Write the index, if there were any changes. Deleted leaves must be considered too: when a delete removes
+            // the last leaf on a page, the merger removes the page from both the index and the set of modified pages.
+            // If that was the only change, the index would otherwise never be written and would still reference the
+            // deleted version, even though the leaf blob is deleted below as an orphan. If no pages remain, the index is
+            // deleted below instead, so there is no need to write it first.
+            var hasChanges = mergeResult.ModifiedPages.Any()
+                || mergeResult.ModifiedLeaves.Any()
+                || mergeResult.DeletedLeaves.Any();
+            if (hasChanges && indexInfo.Items.Any())
             {
                 _logger.LogInformation("Updating the index.");
                 _entityBuilder.UpdateIndex(indexInfo.Index, hive, id, indexInfo.Items.Count);
