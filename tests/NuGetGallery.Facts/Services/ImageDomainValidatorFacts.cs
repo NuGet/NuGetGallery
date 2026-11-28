@@ -37,6 +37,10 @@ namespace NuGetGallery.Services
             [InlineData("https://git@github.com/peaceiris/actions-gh-pages/actions/workflows/dev-image.yml/something/badge.svg", false, null, false)]
             [InlineData("https://github.com/cedx/where.dart/workflows/build.yaml/badge.svg?branch=develop", false, "https://github.com/cedx/where.dart/workflows/build.yaml/badge.svg?branch=develop", true)]
             [InlineData("https://git@github.com/peaceiris/actions-gh-pages/workflows/dev-image.yml/something/badge.svg", false, null, false)]
+            [InlineData("https://github.com/codespaces/badge.svg", false, "https://github.com/codespaces/badge.svg", true)]
+            [InlineData("http://github.com/codespaces/badge.svg", false, "https://github.com/codespaces/badge.svg", true)]
+            [InlineData("https://github.com/codespaces/badge.svg?branch=main", false, null, false)]
+            [InlineData("https://git@github.com/codespaces/badge.svg", false, null, false)]
             public void TryPrepareImageUrlForRendering(string input, bool istrusted,  string expectedOutput, bool expectConversion)
             {
                 _contentObjectService
