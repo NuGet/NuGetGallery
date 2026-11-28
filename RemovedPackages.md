@@ -293,6 +293,14 @@ Scanning is not perfect. Community partnership is a very valuable part of the ov
 |    autostoremanagementsystem.import.contracts |    11/11/2026    |   Malware  |
 |    ElementLogic                               |    11/11/2026    |   Malware  |
 |    rdkcxnksxn.micjpgauq.egihpi                |    11/16/2026    |   Malware  |
+|    AndysonNet.BaseBusinessLogicLayer          |    11/20/2026    |   Malware  |
+|    AndysonNet.BaseConfig                      |    11/20/2026    |   Potentially malicious  |
+|    AndysonNet.BaseDataAccessLayer             |    11/20/2026    |   Potentially malicious  |
+|    AndysonNet.BaseDataTransferObject          |    11/20/2026    |   Potentially malicious  |
+|    AndysonNet.BaseDomainModel                 |    11/20/2026    |   Potentially malicious  |
+|    AndysonNet.BaseExtension                   |    11/20/2026    |   Potentially malicious  |
+|    AndysonNet.BaseHelper                      |    11/20/2026    |   Potentially malicious  |
+|    AndysonNet.BaseWebMvc                      |    11/20/2026    |   Potentially malicious  |
 
 Legend:
 - Copyright violation - Uses someone else's copyrighted or trademarked material without permission.
